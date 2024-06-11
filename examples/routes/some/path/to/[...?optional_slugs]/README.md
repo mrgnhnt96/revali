@@ -1,0 +1,1 @@
+Optional slugs -> https://nextjs.org/docs/app/building-your-application/routing/dynamic-routes#optional-catch-all-segments

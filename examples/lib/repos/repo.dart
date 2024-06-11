@@ -1,0 +1,3 @@
+class Repo {
+  const Repo();
+}

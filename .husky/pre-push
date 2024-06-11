@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+sip test --recursive --concurrent --bail --no-version-check --test-randomize-ordering-seed random

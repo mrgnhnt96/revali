@@ -1,0 +1,14 @@
+name: zora_gen
+version: 0.0.1+1
+publish_to: 'none'
+
+environment:
+    sdk: '>=3.2.6 <4.0.0'
+
+dependencies:
+    analyzer: 6.4.1
+    equatable: ^2.0.5
+    file: ^7.0.0
+    path: ^1.9.0
+    zora_core:
+        path: ../zora_core
