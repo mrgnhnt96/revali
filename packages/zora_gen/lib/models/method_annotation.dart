@@ -5,7 +5,7 @@ import 'package:zora_core/zora_core.dart';
 class MethodAnnotation extends Equatable implements Method {
   const MethodAnnotation(this.name);
 
-  static fromAnnotation(DartObject annotation) {
+  static MethodAnnotation fromAnnotation(DartObject annotation) {
     final name = getFieldValueFromDartObject(annotation, 'name');
 
     if (name == null) {

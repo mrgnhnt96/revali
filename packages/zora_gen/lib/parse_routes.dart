@@ -10,6 +10,7 @@ import 'package:file/file.dart';
 import 'package:path/path.dart' as path;
 import 'package:zora_gen/checkers/checkers.dart';
 import 'package:zora_gen/file_system/file_resource_provider.dart';
+import 'package:zora_gen/models/controller_annotation.dart';
 import 'package:zora_gen/models/meta_method.dart';
 import 'package:zora_gen/models/meta_middleware.dart';
 import 'package:zora_gen/models/meta_param.dart';
@@ -39,7 +40,7 @@ class RouteParser {
         continue;
       }
 
-      if (path.basename(file.path) != 'index.dart') {
+      if (!path.basename(file.path).endsWith('.controller.dart')) {
         continue;
       }
 
@@ -58,10 +59,11 @@ class RouteParser {
       final classVisitor = ClassVisitor();
       result.libraryElement.accept(classVisitor);
 
-      if (classVisitor.clazz == null) {
+      if (classVisitor.clazz == null || classVisitor.path == null) {
         continue;
       }
       final clazz = classVisitor.clazz!;
+      final routePath = classVisitor.path!;
 
       final methodVisitor = MethodVisitor();
       clazz.accept(methodVisitor);
@@ -78,7 +80,8 @@ class RouteParser {
 
       routes.add(
         MetaRoute(
-          path: file.path,
+          path: routePath,
+          filePath: file.path,
           className: clazz.name,
           params: params,
           constructorName: constructor.name,
@@ -94,11 +97,12 @@ class RouteParser {
 
 class ClassVisitor extends RecursiveElementVisitor<void> {
   ClassElement? clazz;
+  String? path;
   @override
   void visitClassElement(ClassElement element) {
     super.visitClassElement(element);
 
-    if (!requestChecker.hasAnnotationOf(element)) {
+    if (!controllerChecker.hasAnnotationOf(element)) {
       return;
     }
 
@@ -106,7 +110,16 @@ class ClassVisitor extends RecursiveElementVisitor<void> {
       throw Exception('Only one request class per file is allowed');
     }
 
+    final annotation = controllerChecker.annotationsOf(element);
+
+    if (annotation.length > 1) {
+      throw Exception('Only one controller type per class is allowed');
+    }
+
+    final controller = ControllerAnnotation.fromAnnotation(annotation.first);
+
     clazz = element;
+    path = controller.path;
   }
 }
 

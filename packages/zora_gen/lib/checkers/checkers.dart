@@ -19,8 +19,8 @@ import 'package:zora_core/zora_core.dart';
 // --- LICENSE ---
 import './type_checker.dart';
 
-final requestChecker =
-    TypeChecker.fromName('$Request', packageName: 'zora_core');
+final controllerChecker =
+    TypeChecker.fromName('$Controller', packageName: 'zora_core');
 final methodChecker = TypeChecker.fromName('$Method', packageName: 'zora_core');
 final middlewareChecker =
     TypeChecker.fromName('$Middleware', packageName: 'zora_core');
