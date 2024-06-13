@@ -1,9 +1,5 @@
-sealed class Request {
+final class Request {
   const Request();
-}
-
-class BaseRequest implements Request {
-  const BaseRequest();
 }
 
 class Method {

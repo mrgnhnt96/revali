@@ -9,3 +9,6 @@ dependencies:
     shelf_router: ^1.1.4
     zora_core:
         path: ../packages/zora_core
+
+dev_dependencies:
+    mocktail: ^1.0.4
