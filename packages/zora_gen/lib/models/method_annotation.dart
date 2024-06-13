@@ -3,7 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:zora_core/zora_core.dart';
 
 class MethodAnnotation extends Equatable implements Method {
-  const MethodAnnotation(this.name);
+  const MethodAnnotation(this.name, {required this.path});
 
   static MethodAnnotation fromAnnotation(DartObject annotation) {
     final name = getFieldValueFromDartObject(annotation, 'name');
@@ -12,10 +12,16 @@ class MethodAnnotation extends Equatable implements Method {
       throw Exception('Method name is required');
     }
 
-    return MethodAnnotation(name);
+    final path = getFieldValueFromDartObject(annotation, 'path');
+
+    return MethodAnnotation(name, path: path);
   }
 
+  @override
   final String name;
+
+  @override
+  final String? path;
 
   @override
   List<Object?> get props => [name];

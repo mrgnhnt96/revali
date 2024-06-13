@@ -1,0 +1,4 @@
+constructs:
+    - name: shelf
+      path: zora_shelf.construct.dart
+      method: shelfConstruct

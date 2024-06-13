@@ -8,7 +8,11 @@ dependencies:
     shelf: ^1.4.1
     shelf_router: ^1.1.4
     zora_core:
-        path: ../packages/zora_core
+        path: ../../packages/zora_core
 
 dev_dependencies:
     mocktail: ^1.0.4
+    zora_gen:
+        path: ../../packages/zora_gen
+    zora_shelf:
+        path: ../../packages/zora_shelf

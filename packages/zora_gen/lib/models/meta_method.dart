@@ -9,6 +9,7 @@ class MetaMethod {
   const MetaMethod({
     required this.name,
     required this.method,
+    required this.path,
     required this.annotations,
     required this.params,
     required this.middlewares,
@@ -17,6 +18,7 @@ class MetaMethod {
 
   final String name;
   final String method;
+  final String? path;
   final Iterable<ElementAnnotation> annotations;
   final Iterable<MetaParam> params;
   final Iterable<MetaMiddleware> middlewares;

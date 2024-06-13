@@ -154,6 +154,7 @@ class MethodVisitor extends RecursiveElementVisitor<void> {
     methods[method.name] = MetaMethod(
       name: element.name,
       method: method.name,
+      path: method.path,
       annotations: element.metadata,
       params: params,
       middlewares: middlewares,

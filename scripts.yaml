@@ -1,0 +1,16 @@
+barrel: barreler build
+
+build_runner:
+    (aliases): br
+    build:
+        (aliases): b
+        (command): dart run build_runner build --delete-conflicting-outputs
+        zora_gen:
+            (aliases): gen
+            (command): cd packages/zora_gen && {$build_runner:build}
+    watch:
+        (aliases): w
+        (command): dart run build_runner watch --delete-conflicting-outputs
+        zora_gen:
+            (aliases): gen
+            (command): cd packages/zora_gen && {$build_runner:watch}

@@ -4,11 +4,18 @@
 
 export 'checkers/checkers.dart';
 export 'checkers/type_checker.dart';
+export 'entrypoint/run.dart';
 export 'file_system/analyzer_file.dart';
 export 'file_system/analyzer_folder.dart';
 export 'file_system/file_resource_provider.dart';
 export 'file_system/util/watch_event_extension.dart';
-export 'main.dart';
+export 'generate.dart';
+export 'generators/construct_generator.dart';
+export 'models/construct.dart';
+export 'models/construct_config.dart';
+export 'models/construct_options.dart';
+export 'models/construct_yaml.dart';
+export 'models/controller_annotation.dart';
 export 'models/meta_method.dart';
 export 'models/meta_middleware.dart';
 export 'models/meta_param.dart';

@@ -1,16 +1,17 @@
-import 'package:examples/repos/repo.dart';
-import 'package:examples/utils/logger.dart';
 import 'package:zora_core/zora_core.dart';
 
+import '../lib/repos/repo.dart';
+import '../lib/utils/logger.dart';
+
 @Auth(AuthType.user)
-@Controller('/user')
+@Controller('user')
 class ThisController {
   const ThisController(this.repo, this.logger);
 
   final Repo repo;
   final Logger logger;
 
-  @Get()
+  @Get('get')
   getNewPerson({
     @Query('name') required String name,
     @Param('age') int? age,
