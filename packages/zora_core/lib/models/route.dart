@@ -1,4 +1,4 @@
-import 'package:zora_core/models/request.dart';
+import 'package:zora_core/models/methods/method.dart';
 
 class Route {
   const Route({
