@@ -16,7 +16,9 @@ class DevCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    await _generator.generate();
+    final kernel = await _generator.generate();
+
+    await _generator.run(kernel, []);
 
     return 0;
   }

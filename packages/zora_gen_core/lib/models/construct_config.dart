@@ -1,10 +1,11 @@
+import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:zora_gen_core/models/construct_options.dart';
 
 part 'construct_config.g.dart';
 
 @JsonSerializable()
-class ConstructConfig {
+class ConstructConfig extends Equatable {
   const ConstructConfig({
     required this.name,
     required this.path,
@@ -22,4 +23,13 @@ class ConstructConfig {
   final bool isRouter;
 
   Map<String, dynamic> toJson() => _$ConstructConfigToJson(this);
+
+  @override
+  List<Object?> get props => [
+        name,
+        path,
+        method,
+        options,
+        isRouter,
+      ];
 }
