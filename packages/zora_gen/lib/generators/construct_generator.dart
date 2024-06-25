@@ -1,4 +1,5 @@
 import 'package:zora_gen/zora_gen.dart';
+import 'package:zora_gen_core/zora_gen_core.dart';
 
 class ConstructGenerator {
   const ConstructGenerator({

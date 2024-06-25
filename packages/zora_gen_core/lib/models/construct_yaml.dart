@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:zora_gen/models/construct_config.dart';
+
+import 'construct_config.dart';
 
 part 'construct_yaml.g.dart';
 

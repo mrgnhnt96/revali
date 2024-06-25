@@ -1,9 +1,10 @@
 import 'dart:core';
 
 import 'package:analyzer/dart/element/element.dart';
-import 'package:zora_gen/models/meta_middleware.dart';
-import 'package:zora_gen/models/meta_param.dart';
-import 'package:zora_gen/models/meta_return_type.dart';
+
+import 'meta_middleware.dart';
+import 'meta_param.dart';
+import 'meta_return_type.dart';
 
 class MetaMethod {
   const MetaMethod({

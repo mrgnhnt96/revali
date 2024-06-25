@@ -1,6 +1,6 @@
-import 'package:zora_gen/models/meta_method.dart';
-import 'package:zora_gen/models/meta_middleware.dart';
-import 'package:zora_gen/models/meta_param.dart';
+import 'meta_method.dart';
+import 'meta_middleware.dart';
+import 'meta_param.dart';
 
 class MetaRoute {
   const MetaRoute({

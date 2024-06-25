@@ -1,5 +1,5 @@
 import 'package:zora_gen/generate.dart';
-import 'package:zora_gen/models/construct.dart';
+import 'package:zora_gen_core/zora_gen_core.dart';
 
 Future<int> run(
   List<String> args, {

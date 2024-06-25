@@ -10,13 +10,7 @@ import 'package:file/file.dart';
 import 'package:path/path.dart' as path;
 import 'package:zora_gen/checkers/checkers.dart';
 import 'package:zora_gen/file_system/file_resource_provider.dart';
-import 'package:zora_gen/models/controller_annotation.dart';
-import 'package:zora_gen/models/meta_method.dart';
-import 'package:zora_gen/models/meta_middleware.dart';
-import 'package:zora_gen/models/meta_param.dart';
-import 'package:zora_gen/models/meta_return_type.dart';
-import 'package:zora_gen/models/meta_route.dart';
-import 'package:zora_gen/models/method_annotation.dart';
+import 'package:zora_gen_core/zora_gen_core.dart';
 
 class RouteParser {
   const RouteParser({

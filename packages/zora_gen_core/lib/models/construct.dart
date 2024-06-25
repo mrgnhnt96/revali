@@ -1,5 +1,4 @@
-import 'package:zora_gen/models/meta_route.dart';
-import 'package:zora_gen/zora_gen.dart';
+import 'meta_route.dart';
 
 abstract interface class Construct {
   const Construct();

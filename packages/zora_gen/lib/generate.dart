@@ -1,6 +1,6 @@
 import 'package:file/local.dart';
-import 'package:zora_gen/models/meta_route.dart';
 import 'package:zora_gen/parse_routes.dart';
+import 'package:zora_gen_core/zora_gen_core.dart';
 
 Future<List<MetaRoute>> parseRoutes(String path) async {
   final fs = LocalFileSystem();

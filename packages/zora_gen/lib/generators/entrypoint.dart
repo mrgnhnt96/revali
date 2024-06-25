@@ -3,7 +3,7 @@ import 'dart:isolate';
 import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart' as yaml;
-import 'package:zora_gen/models/construct_yaml.dart';
+import 'package:zora_gen_core/zora_gen_core.dart';
 
 class EntrypointGenerator {
   const EntrypointGenerator({

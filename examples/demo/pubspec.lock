@@ -255,6 +255,13 @@ packages:
       relative: true
     source: path
     version: "0.0.1+1"
+  zora_gen_core:
+    dependency: transitive
+    description:
+      path: "../../packages/zora_gen_core"
+      relative: true
+    source: path
+    version: "0.0.1"
   zora_shelf:
     dependency: "direct dev"
     description:
