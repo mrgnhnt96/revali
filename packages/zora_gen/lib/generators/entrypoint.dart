@@ -28,7 +28,7 @@ class EntrypointGenerator {
       directory = directory.parent;
     }
 
-    if (file == null) {
+    if ((file == null || !await file.exists()) || directory == null) {
       throw Exception('pubspec.yaml not found');
     }
 
@@ -68,9 +68,18 @@ class EntrypointGenerator {
       zoraConstructs.add(ConstructYaml.fromJson(json));
     }
 
+    bool hasRouter = false;
+
     // TODO(mrgnhnt96): generate the entrypoint file
     for (final construct in zoraConstructs) {
       for (final config in construct.constructs) {
+        if (config.isRouter) {
+          if (hasRouter) {
+            throw Exception('Only one router is allowed');
+          }
+
+          hasRouter = true;
+        }
         final path = p.join(construct.packagePath, 'lib', config.path);
         final file = fs.file(path);
         if (!await file.exists()) {
@@ -80,5 +89,30 @@ class EntrypointGenerator {
         print(config.name);
       }
     }
+
+    if (!hasRouter) {
+      // The router isn't found because the developer hasn't
+      // added a zora router to the project
+      throw Exception('Router not found');
+    }
+
+    final zoraDir = directory.childDirectory('.zora');
+
+    await zoraDir.create();
+
+    final entrypointFile = zoraDir.childFile('entrypoint.dart');
+
+    if (await entrypointFile.exists()) {
+      await entrypointFile.delete();
+    }
+
+    await entrypointFile.create();
+
+    final entrypointContent = '''
+void main() {
+  print('Hello, World!');
+}''';
+
+    await entrypointFile.writeAsString(entrypointContent);
   }
 }

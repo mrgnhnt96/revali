@@ -16,7 +16,12 @@ dependencies:
         path: ../zora_gen_core
     zora_core:
         path: ../zora_core
+    args: ^2.5.0
 
 dev_dependencies:
     build_runner: ^2.4.8
     json_serializable: ^6.8.0
+    test: ^1.25.7
+
+executables:
+  zora_gen:

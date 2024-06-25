@@ -10,6 +10,7 @@ class ConstructConfig {
     required this.path,
     required this.method,
     this.options = const ConstructOptions.empty(),
+    this.isRouter = false,
   });
 
   static ConstructConfig fromJson(Map json) => _$ConstructConfigFromJson(json);
@@ -18,6 +19,7 @@ class ConstructConfig {
   final String path;
   final String method;
   final ConstructOptions options;
+  final bool isRouter;
 
   Map<String, dynamic> toJson() => _$ConstructConfigToJson(this);
 }

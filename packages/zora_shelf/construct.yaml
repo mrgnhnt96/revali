@@ -2,3 +2,4 @@ constructs:
     - name: shelf
       path: zora_shelf.construct.dart
       method: shelfConstruct
+      is_router: true
