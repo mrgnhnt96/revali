@@ -1,5 +1,5 @@
 constructs:
     - name: shelf
-      path: zora_shelf.construct.dart
+      path: main.dart
       method: shelfConstruct
       is_router: true

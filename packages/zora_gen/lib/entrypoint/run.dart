@@ -1,18 +1,21 @@
-import 'package:zora_gen/generate.dart';
+import 'package:file/local.dart';
+import 'package:zora_gen/construct_runner/construct_runner.dart';
 import 'package:zora_gen_core/zora_gen_core.dart';
 
 Future<int> run(
   List<String> args, {
-  required List<Construct> constructs,
+  required List<ConstructMaker> constructs,
   required String path,
 }) async {
-  final routes = await parseRoutes(path);
+  final fs = LocalFileSystem();
 
-  for (final construct in constructs) {
-    final result = construct.generate(routes);
+  final runner = ConstructRunner(
+    fs: fs,
+    constructs: constructs,
+    rootPath: path,
+  );
 
-    print(result);
-  }
+  final result = await runner.run(args);
 
-  return 0;
+  return result;
 }

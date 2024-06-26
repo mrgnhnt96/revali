@@ -3,52 +3,52 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:code_builder/code_builder.dart';
 import 'package:collection/collection.dart';
+import 'package:dart_style/dart_style.dart';
 import 'package:file/file.dart';
 import 'package:stack_trace/stack_trace.dart';
+import 'package:zora_gen/extensions/directory_extensions.dart';
+import 'package:zora_gen/mixins/directories_mixin.dart';
 import 'package:zora_gen/parsers/constructs_handler.dart';
 import 'package:zora_gen_core/zora_gen_core.dart';
 
-class EntrypointGenerator {
+class EntrypointGenerator with DirectoriesMixin {
   EntrypointGenerator({
     required this.initialDirectory,
     ConstructsHandler? constructHandler,
     required this.fs,
-  }) : constructHandler = constructHandler ??
-            ConstructsHandler(
-              initialDirectory: initialDirectory,
-              fs: fs,
-            );
+  }) : constructHandler = constructHandler ?? ConstructsHandler(fs: fs);
 
   final String initialDirectory;
   final ConstructsHandler constructHandler;
   final FileSystem fs;
 
+  static const String entrypointFile = 'zora.dart';
+  static const String kernelExtension = 'dill';
+  static const String kernelFile = '$entrypointFile$kernelExtension';
+  static const String assetsFile = 'zora.assets.json';
+
   Future<File> generate() async {
-    final root = await constructHandler.root;
-    final constructs = await constructHandler.constructs(root);
+    final root = await rootOf(initialDirectory);
+    final constructs = await constructHandler.constructDepsFrom(root);
 
     final needsNewKernel = await checkAssets(constructs, root);
 
     if (!needsNewKernel) {
-      final kernel = root
-          .childDirectory('.dart_tool')
-          .childDirectory('zora')
-          .childFile('zora.dart.dill');
+      final kernel = await root.getInternalZoraFile(kernelFile);
 
       if (await kernel.exists()) {
         return kernel;
       }
     }
 
-    final entrypointFile = await createEntrypoint(
+    await createEntrypoint(
       root,
       constructs: constructs,
     );
 
     final kernel = await compile(
-      entrypointFile,
-      fs,
       root: root,
     );
 
@@ -59,10 +59,8 @@ class EntrypointGenerator {
     List<ConstructYaml> constructs,
     Directory root,
   ) async {
-    final assetsFile = root
-        .childDirectory('.dart_tool')
-        .childDirectory('zora')
-        .childFile('zora.assets.json');
+    final assetsFile =
+        await root.getInternalZoraFile(EntrypointGenerator.assetsFile);
 
     Future<void> saveAssets() async {
       final json = constructs.map((e) => e.toJson()).toList();
@@ -101,16 +99,15 @@ class EntrypointGenerator {
     return true;
   }
 
-  Future<File> createEntrypoint(
+  Future<void> createEntrypoint(
     Directory root, {
     required List<ConstructYaml> constructs,
   }) async {
-    final zoraDir = await root
-        .childDirectory('.dart_tool')
-        .childDirectory('zora')
-        .create(recursive: true);
+    final zoraDir = await root.getInternalZora();
+    await zoraDir.create(recursive: true);
 
-    final entrypointFile = zoraDir.childFile('zora.dart');
+    final entrypointFile =
+        zoraDir.childFile(EntrypointGenerator.entrypointFile);
 
     if (await entrypointFile.exists()) {
       await entrypointFile.delete();
@@ -118,50 +115,26 @@ class EntrypointGenerator {
 
     await entrypointFile.create();
 
-    final entrypointContent = '''
-import 'dart:isolate';
-import 'dart:io';
-import 'package:zora_gen/zora_gen.dart' as zora;
-import 'package:zora_gen_core/zora_gen_core.dart';
-import 'package:zora_shelf/zora_shelf.dart';
-
-const constructs = <Construct>[
-  ZoraShelfConstruct(),
-];
-
-const path = '${root.childDirectory('routes').path}';
-
-void main(
-  List<String> args, [
-  SendPort? sendPort,
-]) async {
-  var result = await zora.run(
-    args,
-    constructs: constructs,
-    path: path,
-  );
-  sendPort?.send(result);
-  exitCode = result;
-}''';
-
-    await entrypointFile.writeAsString(entrypointContent);
-
-    return entrypointFile;
+    final content = this.entrypointContent(
+      constructs,
+      root: root,
+    );
+    await entrypointFile.writeAsString(content);
   }
 
-  Future<File> compile(
-    File file,
-    FileSystem fs, {
+  Future<File> compile({
     required Directory root,
   }) async {
-    final kernel = fs.file('${file.path}.dill');
+    final kernel = await root.getInternalZoraFile(kernelFile);
 
     if (await kernel.exists()) {
       return kernel;
     }
 
-    final packageJson =
-        root.childDirectory('.dart_tool').childFile('package_config.json');
+    final toCompile = await root.getInternalZoraFile(entrypointFile);
+
+    final dartTool = await root.getDartTool();
+    final packageJson = dartTool.childFile('package_config.json');
 
     if (!await packageJson.exists()) {
       final result = await Process.run(
@@ -184,7 +157,7 @@ void main(
       [
         'compile',
         'kernel',
-        file.path,
+        toCompile.path,
         '-o',
         kernel.path,
       ],
@@ -251,11 +224,11 @@ void main(
               'SDK update. Deleting precompiled script and retrying...');
         }
 
-        // try {
-        //   await file.delete();
-        // } catch (e) {
-        //   print('Failed to delete precompiled script: $e');
-        // }
+        try {
+          await file.delete();
+        } catch (e) {
+          print('Failed to delete precompiled script: $e');
+        }
       }
     }
 
@@ -274,5 +247,101 @@ void main(
     await exitPort?.first;
     await errorListener?.cancel();
     await exitCodeListener?.cancel();
+  }
+
+  String entrypointContent(
+    Iterable<ConstructYaml> constructs, {
+    required Directory root,
+  }) {
+    final constructItems = [
+      for (final yaml in constructs)
+        for (final construct in yaml.constructs)
+          refer(construct.method, '${yaml.packageUri}${construct.path}'),
+    ];
+
+    final _constructs = declareFinal('_constructs')
+        .assign(
+          literalList(
+            constructItems,
+            FunctionType(
+              (b) => b
+                ..returnType = refer(
+                  'Construct',
+                  'package:zora_gen_core/zora_gen_core.dart',
+                )
+                ..requiredParameters.add(
+                  refer(
+                    'ConstructOptions?',
+                    'package:zora_gen_core/zora_gen_core.dart',
+                  ),
+                ),
+            ),
+          ),
+        )
+        .statement;
+
+    final _path =
+        declareConst('_routes').assign(literalString(root.path)).statement;
+
+    final main = Method((b) => b
+      ..name = 'main'
+      ..returns = refer('void')
+      ..modifier = MethodModifier.async
+      ..requiredParameters.add(Parameter((b) => b
+        ..name = 'args'
+        ..type = TypeReference((b) => b
+          ..symbol = 'List'
+          ..types.add(refer('String')))))
+      ..optionalParameters.add(Parameter((b) => b
+        ..name = 'sendPort'
+        ..type = TypeReference((b) => b
+          ..symbol = 'SendPort'
+          ..url = 'dart:isolate'
+          ..isNullable = true)))
+      ..body = Block.of([
+        declareFinal('result')
+            .assign(
+              refer('run', 'package:zora_gen/zora_gen.dart').call([
+                refer('args'),
+              ], {
+                'constructs': refer('_constructs'),
+                'path': refer('_routes'),
+              }).awaited,
+            )
+            .statement,
+        Code('\n'),
+        refer('sendPort')
+            .nullSafeProperty('send')
+            .call([refer('result')]).statement,
+        Code('\n'),
+        refer('exitCode', 'dart:io').assign(refer('result')).statement,
+      ]));
+
+    final library = Library(
+      (b) => b.body.addAll(
+        [
+          _constructs,
+          _path,
+          main,
+        ],
+      ),
+    );
+
+    final emitter = DartEmitter(
+        allocator: Allocator.simplePrefixing(), useNullSafetySyntax: true);
+    try {
+      final content = StringBuffer()
+        ..writeln('// ignore_for_file: directives_ordering')
+        ..writeln(library.accept(emitter));
+
+      final clean = DartFormatter().format(content.toString());
+
+      return clean;
+    } on FormatterException {
+      print('Generated build script could not be parsed.\n'
+          'This is likely caused by a misconfigured builder definition.');
+      // TODO(mrgnhnt): throw custom exception
+      throw Exception('Failed to generate build script');
+    }
   }
 }

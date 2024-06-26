@@ -6,48 +6,22 @@ import 'package:yaml/yaml.dart';
 import 'package:zora_gen_core/zora_gen_core.dart';
 
 class ConstructsHandler {
-  ConstructsHandler({
-    required this.fs,
-    required this.initialDirectory,
-  });
+  ConstructsHandler({required this.fs});
 
   final FileSystem fs;
-  final String initialDirectory;
-
-  Directory? __root;
-  Future<Directory> get root async {
-    if (__root case final root?) {
-      return root;
-    }
-
-    File? file;
-    Directory? directory = fs.directory(initialDirectory);
-    while (file == null && directory != null) {
-      final pubspec = directory.childFile('pubspec.yaml');
-
-      if (await pubspec.exists()) {
-        file = pubspec;
-        break;
-      }
-
-      directory = directory.parent;
-    }
-
-    if ((file == null || !await file.exists()) || directory == null) {
-      // TODO(mrgnhnt): throw a custom exception
-      throw Exception('pubspec.yaml not found');
-    }
-
-    return __root = directory;
-  }
 
   List<ConstructYaml>? __constructs;
-  Future<List<ConstructYaml>> constructs(Directory root) async {
+
+  static const String constructYamlFileName = 'construct.yaml';
+
+  /// Gets the [ConstructYaml]s based on the dependencies of the project requesting
+  /// zora_gen
+  Future<List<ConstructYaml>> constructDepsFrom(Directory projectRoot) async {
     if (__constructs case final constructs?) {
       return constructs;
     }
 
-    final pubspec = root.childFile('pubspec.yaml');
+    final pubspec = projectRoot.childFile('pubspec.yaml');
 
     final pubspecYaml = loadYaml(await pubspec.readAsString());
 
@@ -66,7 +40,7 @@ class ConstructsHandler {
       }
 
       final packageDir = fs.directory(package);
-      final construct = packageDir.parent.childFile('construct.yaml');
+      final construct = packageDir.parent.childFile(constructYamlFileName);
 
       if (!construct.existsSync()) {
         continue;
@@ -88,12 +62,16 @@ class ConstructsHandler {
     return __constructs = zoraConstructs;
   }
 
+  /// Asserts the config for all constructs
+  ///
+  /// - Contains only 1 config where [ConstructConfig.isRouter] is true
   Future<void> checkConstructs(Iterable<ConstructYaml> constructs) async {
     bool hasRouter = false;
     for (final construct in constructs) {
       for (final config in construct.constructs) {
         if (config.isRouter) {
           if (hasRouter) {
+            // TODO(mrgnhnt): throw a custom exception
             throw Exception('Only one router is allowed');
           }
 
@@ -102,6 +80,7 @@ class ConstructsHandler {
         final path = p.join(construct.packagePath, 'lib', config.path);
         final file = fs.file(path);
         if (!await file.exists()) {
+          // TODO(mrgnhnt): throw a custom exception
           throw Exception('Construct not found for ${config.name}');
         }
 
@@ -112,6 +91,7 @@ class ConstructsHandler {
     if (!hasRouter) {
       // The router isn't found because the developer hasn't
       // added a zora router to the project
+      // TODO(mrgnhnt): throw a custom exception
       throw Exception('Router not found');
     }
   }

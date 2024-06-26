@@ -2,7 +2,7 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:file/file.dart';
 import 'package:zora_gen/generators/entrypoint.dart';
-import 'package:zora_gen/runner/commands/dev_command.dart';
+import 'package:zora_gen/zora_gen_runner/commands/dev_command.dart';
 
 class ZoraGenRunner extends CommandRunner<int> {
   ZoraGenRunner({
