@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:zora_gen_core/zora_gen_core.dart';
 
 part 'zora_construct_config.g.dart';
 
@@ -19,6 +20,8 @@ class ZoraConstructConfig extends Equatable {
   final String? package;
   final bool enabled;
   final Map<String, dynamic> options;
+
+  ConstructOptions get constructOptions => ConstructOptions(options);
 
   Map<String, dynamic> toJson() => _$ZoraConstructConfigToJson(this);
 

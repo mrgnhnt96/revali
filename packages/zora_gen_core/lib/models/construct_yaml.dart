@@ -21,6 +21,10 @@ class ConstructYaml extends Equatable {
   final String packagePath;
   final String packageUri;
 
+  String get packageName {
+    return packageUri.replaceAll('package:', '').replaceAll('/', '');
+  }
+
   @override
   List<Object?> get props => [
         constructs,

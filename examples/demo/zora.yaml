@@ -1,0 +1,5 @@
+constructs:
+    - name: shelf
+      package: zora_shelf
+      options:
+        im: awesome

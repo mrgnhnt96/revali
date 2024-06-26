@@ -6,7 +6,11 @@ part of 'construct_options.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-ConstructOptions _$ConstructOptionsFromJson(Map json) => ConstructOptions();
+ConstructOptions _$ConstructOptionsFromJson(Map json) => ConstructOptions(
+      Map<String, dynamic>.from(json['values'] as Map),
+    );
 
 Map<String, dynamic> _$ConstructOptionsToJson(ConstructOptions instance) =>
-    <String, dynamic>{};
+    <String, dynamic>{
+      'values': instance.values,
+    };

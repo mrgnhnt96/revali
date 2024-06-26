@@ -5,11 +5,13 @@ part 'construct_options.g.dart';
 
 @JsonSerializable()
 class ConstructOptions extends Equatable {
-  const ConstructOptions();
-  const ConstructOptions.empty();
+  const ConstructOptions(this.values);
+  const ConstructOptions.empty() : values = const {};
 
   static ConstructOptions fromJson(Map json) =>
       _$ConstructOptionsFromJson(json);
+
+  final Map<String, dynamic> values;
 
   Map<String, dynamic> toJson() => _$ConstructOptionsToJson(this);
 

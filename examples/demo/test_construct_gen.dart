@@ -7,11 +7,15 @@ import 'package:zora_gen/zora_gen.dart' as _i4;
 import 'package:zora_gen_core/zora_gen_core.dart' as _i1;
 import 'package:zora_shelf/main.dart' as _i2;
 
-final _constructs = <_i1.Construct Function(_i1.ConstructOptions?)>[
-  _i2.shelfConstruct
+final _constructs = <_i1.ConstructMaker>[
+  _i1.ConstructMaker(
+    package: 'zora_shelf',
+    isRouter: true,
+    name: 'shelf',
+    maker: _i2.shelfConstruct,
+  )
 ];
-const _routes =
-    '/Users/morgan/Documents/develop.nosync/zora/examples/demo/routes';
+const _routes = '/Users/morgan/Documents/develop.nosync/zora/examples/demo';
 void main(
   List<String> args, [
   _i3.SendPort? sendPort,

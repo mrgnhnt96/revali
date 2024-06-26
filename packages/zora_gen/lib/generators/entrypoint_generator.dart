@@ -253,29 +253,30 @@ class EntrypointGenerator with DirectoriesMixin {
     Iterable<ConstructYaml> constructs, {
     required Directory root,
   }) {
+    const zora_gen_core = 'package:zora_gen_core/zora_gen_core.dart';
+    const zora_gen = 'package:zora_gen/zora_gen.dart';
+
     final constructItems = [
       for (final yaml in constructs)
         for (final construct in yaml.constructs)
-          refer(construct.method, '${yaml.packageUri}${construct.path}'),
+          refer('$ConstructMaker', zora_gen_core).newInstance(
+            [],
+            {
+              // TODO: figure out how to represent a literal string
+              'package': CodeExpression(Code("'${yaml.packageName}'")),
+              'isRouter': refer('${construct.isRouter}'),
+              'name': CodeExpression(Code("'${construct.name}'")),
+              'maker': refer(
+                  construct.method, '${yaml.packageUri}${construct.path}'),
+            },
+          ),
     ];
 
     final _constructs = declareFinal('_constructs')
         .assign(
           literalList(
             constructItems,
-            FunctionType(
-              (b) => b
-                ..returnType = refer(
-                  'Construct',
-                  'package:zora_gen_core/zora_gen_core.dart',
-                )
-                ..requiredParameters.add(
-                  refer(
-                    'ConstructOptions?',
-                    'package:zora_gen_core/zora_gen_core.dart',
-                  ),
-                ),
-            ),
+            refer('$ConstructMaker', zora_gen_core),
           ),
         )
         .statement;
@@ -301,7 +302,7 @@ class EntrypointGenerator with DirectoriesMixin {
       ..body = Block.of([
         declareFinal('result')
             .assign(
-              refer('run', 'package:zora_gen/zora_gen.dart').call([
+              refer('run', zora_gen).call([
                 refer('args'),
               ], {
                 'constructs': refer('_constructs'),

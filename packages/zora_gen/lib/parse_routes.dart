@@ -12,80 +12,59 @@ import 'package:zora_gen/checkers/checkers.dart';
 import 'package:zora_gen/file_system/file_resource_provider.dart';
 import 'package:zora_gen_core/zora_gen_core.dart';
 
-class RouteParser {
-  const RouteParser({
-    required this.fs,
-    required this.routeDirectory,
-  });
+class RouteTraverser {
+  const RouteTraverser({required this.fs});
 
   final FileSystem fs;
-  final String routeDirectory;
 
-  Future<List<MetaRoute>> parse() async {
-    final routesDir = await fs.directory(routeDirectory).listSync(
-          recursive: true,
-          followLinks: false,
-        );
-
-    final routes = <MetaRoute>[];
-
-    for (final file in routesDir) {
-      if (file is! File) {
-        continue;
-      }
-
-      if (!path.basename(file.path).endsWith('.controller.dart')) {
-        continue;
-      }
-
-      final collection = AnalysisContextCollection(
-        includedPaths: [file.path],
-        resourceProvider: FileResourceProvider(fs),
-      );
-
-      final context = collection.contexts.first;
-      final result = await context.currentSession.getResolvedUnit(file.path);
-      if (result is! ResolvedUnitResult) {
-        print('Failed to resolve the unit.');
-        exit(1);
-      }
-
-      final classVisitor = ClassVisitor();
-      result.libraryElement.accept(classVisitor);
-
-      if (classVisitor.clazz == null || classVisitor.path == null) {
-        continue;
-      }
-      final clazz = classVisitor.clazz!;
-      final routePath = classVisitor.path!;
-
-      final methodVisitor = MethodVisitor();
-      clazz.accept(methodVisitor);
-
-      final middlewares = getMiddleware(clazz);
-
-      if (clazz.constructors.isEmpty) {
-        throw Exception('No constructor found in ${clazz.name}');
-      }
-
-      final constructor = clazz.constructors.first;
-
-      final params = getParams(constructor);
-
-      routes.add(
-        MetaRoute(
-          path: routePath,
-          filePath: file.path,
-          className: clazz.name,
-          params: params,
-          constructorName: constructor.name,
-          methods: [...methodVisitor.methods.values],
-          middlewares: middlewares,
-        ),
-      );
+  Future<MetaRoute?> parse(File file) async {
+    if (!path.basename(file.path).endsWith('.controller.dart')) {
+      return null;
     }
 
-    return routes;
+    final collection = AnalysisContextCollection(
+      includedPaths: [file.path],
+      resourceProvider: FileResourceProvider(fs),
+    );
+
+    final context = collection.contexts.first;
+    final result = await context.currentSession.getResolvedUnit(file.path);
+    if (result is! ResolvedUnitResult) {
+      print('Failed to resolve the unit.');
+      exit(1);
+    }
+
+    final classVisitor = ClassVisitor();
+    result.libraryElement.accept(classVisitor);
+
+    if (classVisitor.clazz == null || classVisitor.path == null) {
+      return null;
+    }
+    final clazz = classVisitor.clazz!;
+    final routePath = classVisitor.path!;
+
+    final methodVisitor = MethodVisitor();
+    clazz.accept(methodVisitor);
+
+    final middlewares = getMiddleware(clazz);
+
+    if (clazz.constructors.isEmpty) {
+      throw Exception('No constructor found in ${clazz.name}');
+    }
+
+    final constructor = clazz.constructors.first;
+
+    final params = getParams(constructor);
+
+    return MetaRoute(
+      path: routePath,
+      filePath: file.path,
+      className: clazz.name,
+      params: params,
+      constructorName: constructor.name,
+      methods: [...methodVisitor.methods.values],
+      middlewares: middlewares,
+    );
   }
 }
 

@@ -1,10 +1,10 @@
 import 'package:zora_gen_core/zora_gen_core.dart';
 
-class ZoraShelfConstruct implements Construct {
+class ZoraShelfConstruct implements RouterConstruct {
   const ZoraShelfConstruct();
 
   @override
-  Map<String, String> generate(List<MetaRoute> routes) {
-    return {'file.dart': 'content'};
+  String generate(List<MetaRoute> routes) {
+    return 'content';
   }
 }

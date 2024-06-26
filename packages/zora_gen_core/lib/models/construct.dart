@@ -1,7 +1,7 @@
 import 'meta_route.dart';
 
-abstract interface class Construct {
+abstract class Construct<T> {
   const Construct();
 
-  Map<String, String> generate(List<MetaRoute> routes);
+  T generate(List<MetaRoute> routes);
 }

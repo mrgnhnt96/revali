@@ -1,30 +1,57 @@
+import 'package:file/file.dart';
+import 'package:zora_gen/extensions/directory_extensions.dart';
+import 'package:zora_gen/mixins/directories_mixin.dart';
 import 'package:zora_gen/parse_routes.dart';
 import 'package:zora_gen_core/zora_gen_core.dart';
-import 'package:file/file.dart';
 
-class RoutesHandler {
-  const RoutesHandler({
+class RoutesHandler with DirectoriesMixin {
+  RoutesHandler({
     required this.fs,
+    required this.rootPath,
   });
 
   final FileSystem fs;
+  final String rootPath;
 
-  Future<List<MetaRoute>> parse(String path) async {
-    if (!fs.directory(path).existsSync()) {
-      throw Exception('Routes directory not found');
+  Future<List<MetaRoute>> parse() async {
+    final root = await rootOf(rootPath);
+
+    final routesDir = await root.getRoutes();
+
+    if (routesDir == null || !await routesDir.exists()) {
+      return [];
     }
 
-    // check if path ends with routes
-    if (!path.endsWith('routes')) {
-      throw Exception('Path must point to routes');
-    }
-
-    final parser = RouteParser(
-      routeDirectory: path,
+    final traverser = RouteTraverser(
       fs: fs,
     );
 
-    final routes = await parser.parse();
+    final entities = await routesDir
+        .list(
+          recursive: true,
+          followLinks: false,
+        )
+        .toList();
+
+    final routes = <MetaRoute>[];
+
+    for (final entity in entities) {
+      if (entity is Directory) continue;
+
+      if (!await fs.isFile(entity.path)) {
+        continue;
+      }
+
+      final file = fs.file(entity.path);
+
+      final route = await traverser.parse(file);
+
+      if (route == null) {
+        continue;
+      }
+
+      routes.add(route);
+    }
 
     return routes;
   }
