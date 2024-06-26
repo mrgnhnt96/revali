@@ -1,5 +1,5 @@
 import 'package:args/command_runner.dart';
-import 'package:zora_gen/generators/entrypoint.dart';
+import 'package:zora_gen/generators/entrypoint_generator.dart';
 
 class DevCommand extends Command<int> {
   DevCommand({

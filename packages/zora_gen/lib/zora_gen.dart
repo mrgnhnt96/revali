@@ -12,7 +12,7 @@ export 'file_system/analyzer_file.dart';
 export 'file_system/analyzer_folder.dart';
 export 'file_system/file_resource_provider.dart';
 export 'file_system/util/watch_event_extension.dart';
-export 'generators/entrypoint.dart';
+export 'generators/entrypoint_generator.dart';
 export 'mixins/directories_mixin.dart';
 export 'parse_routes.dart';
 export 'parsers/constructs_handler.dart';
