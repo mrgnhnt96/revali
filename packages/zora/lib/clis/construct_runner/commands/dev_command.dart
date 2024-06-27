@@ -64,15 +64,15 @@ class DevCommand extends Command<int> with DirectoriesMixin {
       );
     }
 
-    final serverRunner = VMServiceRunner(
+    final serverHandler = VMServiceHandler(
       root: root,
       serverFile: (await root.getZoraFile('server.dart')).path,
       codeGenerator: codeGenerator,
       logger: logger,
     );
 
-    await serverRunner.start();
-    return await serverRunner.exitCode;
+    await serverHandler.start();
+    return await serverHandler.exitCode;
   }
 
   Future<void> generate({

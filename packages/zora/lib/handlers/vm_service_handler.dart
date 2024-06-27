@@ -16,8 +16,8 @@ final _dartVmServiceAlreadyInUseErrorRegex = RegExp(
   multiLine: true,
 );
 
-class VMServiceRunner {
-  VMServiceRunner({
+class VMServiceHandler {
+  VMServiceHandler({
     required this.root,
     required this.serverFile,
     required this.codeGenerator,
