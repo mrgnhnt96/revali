@@ -2,15 +2,20 @@ import 'dart:convert';
 import 'dart:isolate';
 
 import 'package:file/file.dart';
+import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 import 'package:zora/utils/extensions/directory_extensions.dart';
 import 'package:zora_construct/zora_construct.dart';
 
 class ConstructsHandler {
-  ConstructsHandler({required this.fs});
+  ConstructsHandler({
+    required this.fs,
+    required this.logger,
+  });
 
   final FileSystem fs;
+  final Logger logger;
 
   List<ConstructYaml>? __constructs;
 
@@ -91,7 +96,8 @@ class ConstructsHandler {
         if (config.isRouter) {
           if (hasRouter) {
             // TODO(mrgnhnt): throw a custom exception
-            throw Exception('Only one router is allowed');
+            logger.err('Only one router is allowed per project');
+            throw Exception('Only one router is allowed per project');
           }
 
           hasRouter = true;
@@ -100,10 +106,11 @@ class ConstructsHandler {
         final file = fs.file(path);
         if (!await file.exists()) {
           // TODO(mrgnhnt): throw a custom exception
+          logger.err('Construct not found for ${config.name}');
           throw Exception('Construct not found for ${config.name}');
         }
 
-        print(config.name);
+        logger.detail('Construct: ${config.name}');
       }
     }
 
@@ -111,6 +118,7 @@ class ConstructsHandler {
       // The router isn't found because the developer hasn't
       // added a zora router to the project
       // TODO(mrgnhnt): throw a custom exception
+      logger.err('You must have a router in your project');
       throw Exception('Router not found');
     }
   }

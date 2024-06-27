@@ -1,5 +1,6 @@
 import 'package:file/local.dart';
-import 'package:zora/clis/construct_runner/construct_runner.dart';
+import 'package:mason_logger/mason_logger.dart';
+import 'package:zora/zora.dart';
 import 'package:zora_construct/zora_construct.dart';
 
 Future<int> run(
@@ -9,10 +10,28 @@ Future<int> run(
 }) async {
   final fs = LocalFileSystem();
 
+  final originalArgs = ZoraRunner.originalArgs;
+  var isLoud = false;
+  var isQuiet = false;
+  if (originalArgs.contains('--loud')) {
+    isLoud = true;
+  } else if (originalArgs.contains('--quiet')) {
+    isQuiet = true;
+  }
+
+  final logger = Logger(
+    level: isLoud
+        ? Level.verbose
+        : isQuiet
+            ? Level.error
+            : Level.info,
+  );
+
   final runner = ConstructRunner(
     fs: fs,
     constructs: constructs,
     rootPath: path,
+    logger: logger,
   );
 
   final result = await runner.run(args);

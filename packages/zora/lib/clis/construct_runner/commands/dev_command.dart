@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:args/command_runner.dart';
 import 'package:file/file.dart';
+import 'package:mason_logger/mason_logger.dart';
 import 'package:yaml/yaml.dart';
 import 'package:zora/handlers/routes_handler.dart';
 import 'package:zora/handlers/vm_service_handler.dart';
@@ -14,6 +15,7 @@ class DevCommand extends Command<int> with DirectoriesMixin {
     required this.rootPath,
     required this.constructs,
     required this.fs,
+    required this.logger,
     RoutesHandler? routesHandler,
   }) : routesHandler = routesHandler ??
             RoutesHandler(
@@ -26,6 +28,7 @@ class DevCommand extends Command<int> with DirectoriesMixin {
   final String rootPath;
   @override
   final FileSystem fs;
+  final Logger logger;
 
   @override
   String get description => 'Starts the development server';
@@ -51,7 +54,7 @@ class DevCommand extends Command<int> with DirectoriesMixin {
           zoraConfig = ZoraYaml.fromJson(Map<String, dynamic>.from(yaml.value));
         }
       } catch (_) {
-        print('Failed to parse zora.yaml');
+        logger.err('Failed to parse zora.yaml, using default configuration.');
       }
     }
 
@@ -67,6 +70,7 @@ class DevCommand extends Command<int> with DirectoriesMixin {
       root: root,
       serverFile: (await root.getZoraFile('server.dart')).path,
       codeGen: codeGen,
+      logger: logger,
     );
 
     await serverRunner.start();
@@ -83,10 +87,10 @@ class DevCommand extends Command<int> with DirectoriesMixin {
 
       if (!constructConfig.enabled) {
         if (maker.isRouter) {
-          print(
+          logger.warn(
               '${constructConfig.name} cannot be disabled, because it is the router construct');
         } else {
-          print('skipping ${constructConfig.name}');
+          logger.detail('skipping ${constructConfig.name}');
           continue;
         }
       }

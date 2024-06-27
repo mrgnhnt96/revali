@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:file/file.dart';
+import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart' as path;
 import 'package:stream_transform/stream_transform.dart';
 import 'package:watcher/watcher.dart';
@@ -20,6 +21,7 @@ class VMServiceRunner {
     required this.root,
     required this.serverFile,
     required this.codeGen,
+    required this.logger,
     this.dartVmServicePort = '8080',
     this.onHotReloadEnabled,
   }) : assert(
@@ -27,6 +29,7 @@ class VMServiceRunner {
           'dartVmServicePort cannot be empty',
         );
 
+  final Logger logger;
   final String dartVmServicePort;
   final Directory root;
   final void Function()? onHotReloadEnabled;
@@ -48,6 +51,7 @@ class VMServiceRunner {
   Future<int> get exitCode => _exitCodeCompleter.future;
 
   Future<void> _reload([bool verbose = false]) async {
+    logger.detail('Reloading...');
     _isReloading = true;
     await codeGen();
     _isReloading = false;
@@ -57,6 +61,7 @@ class VMServiceRunner {
   // Make sure to call `stop` after calling this method to also stop the
   // watcher.
   Future<void> _killServerProcess() async {
+    logger.detail('Killing server process...');
     _isReloading = false;
     final process = _serverProcess;
     if (process == null) {
@@ -82,6 +87,7 @@ class VMServiceRunner {
   }
 
   Future<void> start() async {
+    logger.detail('Starting dev server...');
     if (isCompleted) {
       throw Exception(
         'Cannot start a dev server after it has been stopped.',
@@ -94,14 +100,8 @@ class VMServiceRunner {
       );
     }
 
-    print('starting');
-    print('generating code...');
-
     await codeGen();
-    print('code generated');
-    print('serving');
     await serve();
-    print('served');
 
     final watcher = DirectoryWatcher(path.join(root.path));
     _watcherSubscription = watcher.events
@@ -123,6 +123,8 @@ class VMServiceRunner {
       return;
     }
 
+    logger.detail('Stopping dev server...');
+
     if (isWatching) {
       await _cancelWatcherSubscription();
     }
@@ -135,8 +137,8 @@ class VMServiceRunner {
 
   Future<void> serve() async {
     var isHotReloadingEnabled = false;
+    logger.detail('Starting server...');
 
-    print('serving');
     final process = _serverProcess = await io.Process.start(
       'dart',
       [
@@ -169,16 +171,15 @@ class VMServiceRunner {
       final isSDKWarning = _warningRegex.hasMatch(message);
 
       if (isDartVMServiceAlreadyInUseError) {
-        print(
+        logger.err(
           '$message '
           'Try specifying a different port using the `--dart-vm-service-port` argument',
         );
       } else if (isSDKWarning) {
         // Do not kill the process if the error is a warning from the SDK.
-        print('WARNING');
+        logger.warn(message);
       } else {
-        print('ERROR');
-        print(message);
+        logger.err(message);
       }
 
       if ((!isHotReloadingEnabled && !isSDKWarning) ||
@@ -187,23 +188,27 @@ class VMServiceRunner {
         await stop(1);
         return;
       }
-
-      // await _target.rollback();
     });
 
     process.stdout.listen((_) {
       final message = utf8.decode(_).trim();
       final containsHotReload = message.contains('[hotreload]');
       if (message.isNotEmpty) {
-        print('stdout:');
-        print(message);
+        if (message.contains('Dart VM service')) {
+          logger.success(message);
+        } else if (message.contains('Dart DevTools debugger')) {
+          logger
+            ..success(message)
+            ..write('\n');
+        } else {
+          logger.write('$message\n');
+        }
       }
+
       if (containsHotReload) {
         isHotReloadingEnabled = true;
         onHotReloadEnabled?.call();
       }
-
-      // cacheLatestSnapshot();
     });
 
     process.exitCode.then((code) async {
@@ -219,6 +224,8 @@ class VMServiceRunner {
   }
 
   Future<bool> shouldReload(WatchEvent event) async {
+    logger.detail('File ${event.type}: ${event.path}');
+
     final zora = await root.getZora();
 
     final server = path.equals(zora.childFile('server.dart').path, event.path);
@@ -236,6 +243,7 @@ class VMServiceRunner {
     }
 
     // path.isWithin(public, event.path);
+    logger.detail('  No reload needed');
     return false;
   }
 }

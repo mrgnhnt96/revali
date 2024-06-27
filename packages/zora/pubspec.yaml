@@ -14,6 +14,7 @@ dependencies:
     equatable: ^2.0.5
     file: ^7.0.0
     json_annotation: ^4.9.0
+    mason_logger: ^0.2.15
     path: ^1.9.0
     stack_trace: ^1.11.1
     stream_transform: ^2.1.0

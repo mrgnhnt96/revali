@@ -1,17 +1,13 @@
 import 'package:args/command_runner.dart';
+import 'package:mason_logger/mason_logger.dart';
 import 'package:zora/handlers/construct_entrypoint_handler.dart';
 
 class DevCommand extends Command<int> {
   DevCommand({
     required ConstructEntrypointHandler generator,
+    required this.logger,
   }) : _generator = generator {
     argParser
-      ..addOption(
-        'port',
-        abbr: 'p',
-        help: 'The port to run the server on',
-        defaultsTo: '8080',
-      )
       ..addFlag(
         'recompile',
         help:
@@ -22,6 +18,7 @@ class DevCommand extends Command<int> {
   }
 
   final ConstructEntrypointHandler _generator;
+  final Logger logger;
 
   @override
   String get name => 'dev';
@@ -34,6 +31,7 @@ class DevCommand extends Command<int> {
     final recompile = argResults!['recompile'] as bool;
 
     await _generator.generate(recompile: recompile);
+    logger.write('\n');
     await _generator.run(['dev']);
 
     return 0;

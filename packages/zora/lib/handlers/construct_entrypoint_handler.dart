@@ -7,22 +7,29 @@ import 'package:code_builder/code_builder.dart';
 import 'package:collection/collection.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:file/file.dart';
+import 'package:mason_logger/mason_logger.dart';
 import 'package:stack_trace/stack_trace.dart';
-import 'package:zora/utils/extensions/directory_extensions.dart';
 import 'package:zora/handlers/constructs_handler.dart';
+import 'package:zora/utils/extensions/directory_extensions.dart';
 import 'package:zora/utils/mixins/directories_mixin.dart';
 import 'package:zora_construct/zora_construct.dart';
 
 class ConstructEntrypointHandler with DirectoriesMixin {
   ConstructEntrypointHandler({
     required this.initialDirectory,
-    ConstructsHandler? constructHandler,
     required this.fs,
-  }) : constructHandler = constructHandler ?? ConstructsHandler(fs: fs);
+    required this.logger,
+    ConstructsHandler? constructHandler,
+  }) : constructHandler = constructHandler ??
+            ConstructsHandler(
+              fs: fs,
+              logger: logger,
+            );
 
   final String initialDirectory;
   final ConstructsHandler constructHandler;
   final FileSystem fs;
+  final Logger logger;
 
   static const String entrypointFile = 'zora.dart';
   static const String kernelExtension = '.dill';
@@ -31,7 +38,14 @@ class ConstructEntrypointHandler with DirectoriesMixin {
 
   Future<void> generate({bool recompile = false}) async {
     final root = await rootOf(initialDirectory);
+    logger.detail('Root: ${root.path}');
+
+    final constructProgress = logger.progress('Retrieving constructs');
     final constructs = await constructHandler.constructDepsFrom(root);
+    constructProgress.complete('Retrieved constructs');
+
+    logger.detail('Constructs: ${constructs.length}');
+    logger.detail(constructs.map((e) => '$e').join('\n'));
 
     final needsNewKernel = await checkAssets(constructs, root);
 
@@ -39,16 +53,28 @@ class ConstructEntrypointHandler with DirectoriesMixin {
       final kernel = await root.getInternalZoraFile(kernelFile);
 
       if (await kernel.exists()) {
+        logger.detail('Skipping entrypoint generation, using existing kernel');
+        logger.success('Construct entrypoint is up to date');
         return;
       }
     }
+
+    if (recompile) {
+      logger.detail('Forcing entrypoint recompile');
+    }
+
+    final entrypointProgress =
+        logger.progress('Generating construct entrypoint');
 
     await createEntrypoint(
       root,
       constructs: constructs,
     );
+    entrypointProgress.complete('Generated construct entrypoint');
 
+    final compileProgress = logger.progress('Compiling construct entrypoint');
     await compile(root: root);
+    compileProgress.complete('Compiled construct entrypoint');
   }
 
   Future<bool> checkAssets(
@@ -59,6 +85,7 @@ class ConstructEntrypointHandler with DirectoriesMixin {
         await root.getInternalZoraFile(ConstructEntrypointHandler.assetsFile);
 
     Future<void> saveAssets() async {
+      logger.detail('Saving assets file');
       final json = constructs.map((e) => e.toJson()).toList();
 
       if (!await assetsFile.exists()) {
@@ -88,6 +115,7 @@ class ConstructEntrypointHandler with DirectoriesMixin {
     final deepEquality = const DeepCollectionEquality();
 
     if (deepEquality.equals(constructs, existingConstructs)) {
+      logger.detail('Assets are up to date');
       return false;
     }
 
@@ -129,6 +157,7 @@ class ConstructEntrypointHandler with DirectoriesMixin {
     final packageJson = dartTool.childFile('package_config.json');
 
     if (!await packageJson.exists()) {
+      final progress = logger.progress('Running pub get');
       final result = await Process.run(
         'dart',
         [
@@ -138,6 +167,7 @@ class ConstructEntrypointHandler with DirectoriesMixin {
         ],
         workingDirectory: root.path,
       );
+      progress.complete('Got dependencies');
 
       if (result.exitCode != 0) {
         throw Exception('Failed to get dependencies');
@@ -194,8 +224,8 @@ class ConstructEntrypointHandler with DirectoriesMixin {
         final error = e[0] ?? TypeError();
         final trace = Trace.parse(e[1] as String? ?? '').terse;
 
-        print('Error in script: $error');
-        print(trace);
+        logger.err('Error in script: $error');
+        logger.err(trace.toString());
         if (scriptExitCode == 0) scriptExitCode = 1;
       });
       try {
@@ -210,7 +240,7 @@ class ConstructEntrypointHandler with DirectoriesMixin {
         succeeded = true;
       } on IsolateSpawnException catch (e) {
         if (tryCount > 1) {
-          print(
+          logger.err(
             'Failed to spawn build script after retry. '
             'This is likely due to a misconfigured construct definition.\n'
             '$e',
@@ -218,15 +248,15 @@ class ConstructEntrypointHandler with DirectoriesMixin {
           messagePort.sendPort.send(1);
           exitPort.sendPort.send(null);
         } else {
-          print(
+          logger.err(
               'Error spawning build script isolate, this is likely due to a Dart '
               'SDK update. Deleting precompiled script and retrying...');
         }
 
         try {
-          // await file.delete();
+          await file.delete();
         } catch (e) {
-          print('Failed to delete precompiled script: $e');
+          logger.err('Failed to delete precompiled script: $e');
         }
       }
     }
@@ -261,12 +291,13 @@ class ConstructEntrypointHandler with DirectoriesMixin {
           refer('$ConstructMaker', zora_construct).newInstance(
             [],
             {
-              // TODO: figure out how to represent a literal string
-              'package': CodeExpression(Code("'${yaml.packageName}'")),
+              'package': literalString(yaml.packageName),
               'isRouter': refer('${construct.isRouter}'),
-              'name': CodeExpression(Code("'${construct.name}'")),
+              'name': literalString(construct.name),
               'maker': refer(
-                  construct.method, '${yaml.packageUri}${construct.path}'),
+                construct.method,
+                '${yaml.packageUri}${construct.path}',
+              ),
             },
           ),
     ];
@@ -338,7 +369,7 @@ class ConstructEntrypointHandler with DirectoriesMixin {
 
       return clean;
     } on FormatterException {
-      print('Generated build script could not be parsed.\n'
+      logger.err('Generated build script could not be parsed.\n'
           'This is likely caused by a misconfigured builder definition.');
       // TODO(mrgnhnt): throw custom exception
       throw Exception('Failed to generate build script');
