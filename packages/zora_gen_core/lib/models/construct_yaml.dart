@@ -11,6 +11,8 @@ class ConstructYaml extends Equatable {
     required this.constructs,
     required this.packagePath,
     required this.packageUri,
+    required this.packageName,
+    required this.packageRootUri,
   });
 
   static ConstructYaml fromJson(Map json) => _$ConstructYamlFromJson(json);
@@ -20,15 +22,15 @@ class ConstructYaml extends Equatable {
   final List<ConstructConfig> constructs;
   final String packagePath;
   final String packageUri;
-
-  String get packageName {
-    return packageUri.replaceAll('package:', '').replaceAll('/', '');
-  }
+  final String packageName;
+  final String? packageRootUri;
 
   @override
   List<Object?> get props => [
         constructs,
         packagePath,
         packageUri,
+        packageName,
+        packageRootUri,
       ];
 }

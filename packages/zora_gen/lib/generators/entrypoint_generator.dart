@@ -25,11 +25,11 @@ class EntrypointGenerator with DirectoriesMixin {
   final FileSystem fs;
 
   static const String entrypointFile = 'zora.dart';
-  static const String kernelExtension = 'dill';
+  static const String kernelExtension = '.dill';
   static const String kernelFile = '$entrypointFile$kernelExtension';
   static const String assetsFile = 'zora.assets.json';
 
-  Future<File> generate() async {
+  Future<void> generate() async {
     final root = await rootOf(initialDirectory);
     final constructs = await constructHandler.constructDepsFrom(root);
 
@@ -39,7 +39,7 @@ class EntrypointGenerator with DirectoriesMixin {
       final kernel = await root.getInternalZoraFile(kernelFile);
 
       if (await kernel.exists()) {
-        return kernel;
+        return;
       }
     }
 
@@ -48,19 +48,13 @@ class EntrypointGenerator with DirectoriesMixin {
       constructs: constructs,
     );
 
-    final kernel = await compile(
-      root: root,
-    );
-
-    return kernel;
+    await compile(root: root);
   }
 
   Future<bool> checkAssets(
     List<ConstructYaml> constructs,
     Directory root,
   ) async {
-    // TODO: Need to check hash to ensure that the assets are
-    // the latest version
     final assetsFile =
         await root.getInternalZoraFile(EntrypointGenerator.assetsFile);
 
@@ -173,12 +167,19 @@ class EntrypointGenerator with DirectoriesMixin {
     return kernel;
   }
 
-  Future<void> run(File file, List<String> args) async {
+  Future<void> run(List<String> args) async {
     ReceivePort? exitPort;
     ReceivePort? errorPort;
     ReceivePort? messagePort;
     StreamSubscription? errorListener;
     int? scriptExitCode;
+
+    final root = await rootOf(initialDirectory);
+    final file = await root.getInternalZoraFile(kernelFile);
+
+    if (!await file.exists()) {
+      throw StateError('Script file does not exist');
+    }
 
     var tryCount = 0;
     var succeeded = false;
@@ -215,7 +216,7 @@ class EntrypointGenerator with DirectoriesMixin {
         if (tryCount > 1) {
           print(
             'Failed to spawn build script after retry. '
-            'This is likely due to a misconfigured builder definition.\n'
+            'This is likely due to a misconfigured construct definition.\n'
             '$e',
           );
           messagePort.sendPort.send(1);
@@ -227,7 +228,7 @@ class EntrypointGenerator with DirectoriesMixin {
         }
 
         try {
-          await file.delete();
+          // await file.delete();
         } catch (e) {
           print('Failed to delete precompiled script: $e');
         }

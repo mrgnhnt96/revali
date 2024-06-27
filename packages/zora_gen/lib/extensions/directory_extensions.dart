@@ -29,11 +29,10 @@ extension DirectoryX on Directory {
       throw Exception('Failed to find project root');
     }
 
-    // TODO(mrgnhnt): Search for routes dir
     return root.childDirectory('routes');
   }
 
-  /// retrieves the dartTool directory,
+  /// retrieves the .dart_tool directory,
   /// the directory may _NOT_ exist
   Future<Directory> getDartTool() async {
     final root = await getRoot();
@@ -43,6 +42,14 @@ extension DirectoryX on Directory {
     }
 
     return root.childDirectory('.dart_tool');
+  }
+
+  /// Retrieves a file within the .dart_tool directory
+  /// the file may _NOT_ exist
+  Future<File> getDartToolFile(String basename) async {
+    final dartTool = await getDartTool();
+
+    return dartTool.childFile(basename);
   }
 
   /// The utilities directory within the .dart_tool directory

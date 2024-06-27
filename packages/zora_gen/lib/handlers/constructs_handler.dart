@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'dart:isolate';
 
 import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
+import 'package:zora_gen/extensions/directory_extensions.dart';
 import 'package:zora_gen_core/zora_gen_core.dart';
 
 class ConstructsHandler {
@@ -16,18 +18,32 @@ class ConstructsHandler {
 
   /// Gets the [ConstructYaml]s based on the dependencies of the project requesting
   /// zora_gen
-  Future<List<ConstructYaml>> constructDepsFrom(Directory projectRoot) async {
+  Future<List<ConstructYaml>> constructDepsFrom(Directory root) async {
     if (__constructs case final constructs?) {
       return constructs;
     }
 
-    final pubspec = projectRoot.childFile('pubspec.yaml');
+    final pubspec = root.childFile('pubspec.yaml');
 
     final pubspecYaml = loadYaml(await pubspec.readAsString());
 
     final devDependencies = pubspecYaml['dev_dependencies'] as YamlMap?;
 
     final zoraConstructs = <ConstructYaml>[];
+
+    final packageJsonFile = await root.getDartToolFile('package_config.json');
+    if (!await packageJsonFile.exists()) {
+      throw Exception('Failed to find package.json, run `dart pub get`');
+    }
+
+    final packageJson = jsonDecode(await packageJsonFile.readAsString()) as Map;
+    final packages = <String, String>{};
+    for (final package in packageJson['packages']) {
+      final packageUri = package['packageUri'] as String;
+      final name = package['name'] as String;
+
+      packages[name] = packageUri;
+    }
 
     for (final key in devDependencies?.keys ?? []) {
       final packageUri = 'package:$key/';
@@ -46,13 +62,16 @@ class ConstructsHandler {
         continue;
       }
 
-      final constructContent = await construct.readAsString();
+      final packageRootUri = packages[key] ?? '__unknown_version__';
 
+      final constructContent = await construct.readAsString();
       final constructYaml = loadYaml(constructContent) as YamlMap;
 
       final json = {...constructYaml.value};
       json['package_path'] = packageDir.parent.path;
       json['package_uri'] = packageUri;
+      json['package_name'] = key;
+      json['package_root_uri'] = packageRootUri;
 
       zoraConstructs.add(ConstructYaml.fromJson(json));
     }
