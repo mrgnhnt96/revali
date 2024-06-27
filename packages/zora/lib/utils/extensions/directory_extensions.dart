@@ -73,6 +73,16 @@ extension DirectoryX on Directory {
     return zora.childFile(basename);
   }
 
+  Future<Directory> getPublic() async {
+    final root = await getRoot();
+
+    if (root == null) {
+      throw Exception('Failed to find project root');
+    }
+
+    return root.childDirectory('public');
+  }
+
   /// The directory within the root directory
   /// specifically used for Zora
   ///

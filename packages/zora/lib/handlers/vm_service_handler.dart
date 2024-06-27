@@ -242,7 +242,12 @@ class VMServiceRunner {
       }
     }
 
-    // path.isWithin(public, event.path);
+    final public = await root.getPublic();
+
+    if (path.isWithin(public.path, event.path)) {
+      return true;
+    }
+
     logger.detail('  No reload needed');
     return false;
   }
