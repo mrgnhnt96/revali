@@ -259,7 +259,7 @@ class VMServiceRunner {
       return true;
     }
 
-    logger.detail('  No reload needed');
+    logger.detail('No construct reload needed');
     return false;
   }
 }

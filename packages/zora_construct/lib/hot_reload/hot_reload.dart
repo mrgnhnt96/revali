@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:hotreloader/hotreloader.dart';
 import 'package:logging/logging.dart' as logging;
+import 'package:path/path.dart' as p;
 
 void hotReload(Future<HttpServer> Function() callback) {
   HotReload(serverFactory: callback).attach().ignore();
@@ -72,10 +73,40 @@ class HotReload {
       /// Register the server reload mechanism to the generic HotReloader.
       /// It will throw an error if reloading is not available.
       await HotReloader.create(
+        onBeforeReload: (context) {
+          final path = context.event?.path;
+
+          if (path == null) {
+            return false;
+          }
+
+          final cwd = Directory.current.path;
+
+          final lib = Directory(p.join(cwd, 'lib')).path;
+          final routes = Directory(p.join(cwd, 'routes')).path;
+          final public = Directory(p.join(cwd, 'public')).path;
+          final server = File(p.join(cwd, '.zora', 'server.dart')).path;
+
+          if (p.isWithin(lib, path)) {
+            return true;
+          }
+
+          if (server == path) {
+            return true;
+          }
+
+          if (p.isWithin(routes, path) || p.isWithin(public, path)) {
+            // The construct runner will be triggered and will update
+            // the server file.
+            return false;
+          }
+
+          return false;
+        },
         onAfterReload: (ctx) {
           obtainNewServer(serverFactory);
         },
-        debounceInterval: const Duration(milliseconds: 1000),
+        debounceInterval: Duration.zero,
       );
 
       /// Hot-reload is available
