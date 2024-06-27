@@ -1,5 +1,3 @@
-// Modified: 2024-06-27 09:56:16.972003
-// Route count: 2
 import 'dart:io';
 
 import 'package:shelf/shelf.dart';

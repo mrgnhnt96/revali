@@ -7,6 +7,7 @@ environment:
 
 dependencies:
     equatable: ^2.0.5
+    hotreloader: ^4.2.0
     json_annotation: ^4.9.0
     zora_annotations:
         path: ../zora_annotations

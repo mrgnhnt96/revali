@@ -15,5 +15,8 @@ dirs:
     name: zora
   - path: packages/zora_construct/lib
     name: zora_construct
+    include:
+      - export: "hot_reload/hot_reload.dart"
+        show: hotReload
   - path: packages/zora_shelf/lib
     name: zora_shelf

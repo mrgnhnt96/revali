@@ -19,6 +19,9 @@ class ThisController {
   }) {
     return null;
   }
+
+  @Post('post')
+  void nothing() {}
 }
 
 class Auth extends Middleware {

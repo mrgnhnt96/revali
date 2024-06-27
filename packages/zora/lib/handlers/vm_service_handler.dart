@@ -20,10 +20,9 @@ class VMServiceRunner {
   VMServiceRunner({
     required this.root,
     required this.serverFile,
-    required this.codeGen,
+    required this.codeGenerator,
     required this.logger,
     this.dartVmServicePort = '8080',
-    this.onHotReloadEnabled,
   }) : assert(
           dartVmServicePort.isNotEmpty,
           'dartVmServicePort cannot be empty',
@@ -32,11 +31,11 @@ class VMServiceRunner {
   final Logger logger;
   final String dartVmServicePort;
   final Directory root;
-  final void Function()? onHotReloadEnabled;
   final String serverFile;
-  final Future<void> Function() codeGen;
+  final Future<void> Function() codeGenerator;
 
-  var _isReloading = false;
+  bool _isReloading = false;
+
   io.Process? _serverProcess;
   StreamSubscription<WatchEvent>? _watcherSubscription;
 
@@ -50,10 +49,17 @@ class VMServiceRunner {
 
   Future<int> get exitCode => _exitCodeCompleter.future;
 
-  Future<void> _reload([bool verbose = false]) async {
-    logger.detail('Reloading...');
+  Future<void> _reload() async {
+    if (_isReloading) {
+      logger.detail('Still reloading, skipping...');
+      return;
+    }
+
     _isReloading = true;
-    await codeGen();
+    _cancelWatcherSubscription();
+    logger.detail('Reloading...');
+    await codeGenerator();
+    watchForChanges();
     _isReloading = false;
   }
 
@@ -100,10 +106,14 @@ class VMServiceRunner {
       );
     }
 
-    await codeGen();
+    await codeGenerator();
     await serve();
+    watchForChanges();
+  }
 
-    final watcher = DirectoryWatcher(path.join(root.path));
+  void watchForChanges() {
+    logger.detail('Watching ${root.path} for changes...');
+    final watcher = DirectoryWatcher(root.path);
     _watcherSubscription = watcher.events
         .asyncWhere(shouldReload)
         .debounce(Duration.zero)
@@ -161,7 +171,9 @@ class VMServiceRunner {
     }
 
     process.stderr.listen((_) async {
-      if (_isReloading) return;
+      if (_isReloading) {
+        return;
+      }
 
       final message = utf8.decode(_).trim();
       if (message.isEmpty) return;
@@ -207,7 +219,6 @@ class VMServiceRunner {
 
       if (containsHotReload) {
         isHotReloadingEnabled = true;
-        onHotReloadEnabled?.call();
       }
     });
 
@@ -218,13 +229,13 @@ class VMServiceRunner {
     }).ignore();
   }
 
-  Future<void> reload() async {
-    if (isCompleted || !isServerRunning || _isReloading) return;
-    return _reload(true);
-  }
-
   Future<bool> shouldReload(WatchEvent event) async {
     logger.detail('File ${event.type}: ${event.path}');
+
+    if (_isReloading) {
+      logger.detail('Skipping reload, hot reload in progress...');
+      return false;
+    }
 
     final zora = await root.getZora();
 

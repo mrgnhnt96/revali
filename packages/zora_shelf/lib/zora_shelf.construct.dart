@@ -5,29 +5,64 @@ class ZoraShelfConstruct implements RouterConstruct {
 
   @override
   String generate(List<MetaRoute> routes) {
-    return r'''
-import 'dart:async';
+    var count = 0;
+    for (final route in routes) {
+      count += route.methods.length;
+    }
+    return '''
+// Modified: ${DateTime.now()}
+// Route count: $count
+import 'dart:io';
 
-void main() {
-  _run();
+import 'package:shelf/shelf.dart';
+import 'package:shelf/shelf_io.dart' as io;
+import 'package:shelf_router/shelf_router.dart';
+import 'package:zora_construct/zora_construct.dart';
+
+void main() async {
+  final address = InternetAddress.tryParse('') ?? InternetAddress.anyIPv6;
+  final port = int.tryParse(Platform.environment['PORT'] ?? '8080') ?? 8080;
+  hotReload(() => createServer(address, port));
 }
 
-Future<void> _run() async {
-  await Future<void>.delayed(const Duration(seconds: 1));
-  print('starting');
-  await Future<void>.delayed(const Duration(seconds: 1));
-  print('generating code...');
-  await Future<void>.delayed(const Duration(seconds: 1));
-  print('code generated');
-  print('serving');
-  var count = 0;
+Future<HttpServer> createServer(InternetAddress address, int port) async {
+  final handler = Cascade().add(_root()).handler;
 
-  while (true) {
-    await Future<void>.delayed(const Duration(seconds: 1));
-    print('lets go!!!');
-    print('serving ${count++}');
-  }
+  final server = await io.serve(handler, 'localhost', 8123);
+
+  // Enable content compression
+  server.autoCompress = true;
+
+  print('Serving at http://\${server.address.host}:\${server.port}');
+
+  return server;
 }
-''';
+
+Handler _root() {
+  final pipeline = Pipeline();
+
+  final router = Router()
+    ..mount('/hello', (context) {
+      if (context.method != 'GET') {
+        return Response(405, body: 'Method Not Allowed');
+      }
+
+      return _helloHandler(context);
+    })
+    ..mount('/', (context) {
+      if (context.method != 'GET') {
+        return Response(405, body: 'Method Not Allowed');
+      }
+
+      return Response.ok('Hello, World!');
+    });
+
+  return pipeline.addHandler(router);
+}
+
+Response _helloHandler(Request request) {
+  final name = request.url.queryParameters['name'] ?? 'You';
+  return Response.ok('Hello, \$name!');
+}''';
   }
 }

@@ -12,6 +12,18 @@ class ConstructRunner extends CommandRunner<int> {
     required this.logger,
     required FileSystem fs,
   }) : super('', 'Generates the construct') {
+    argParser
+      ..addFlag(
+        'loud',
+        help: 'Prints detailed output',
+        hide: true,
+      )
+      ..addFlag(
+        'quiet',
+        help: 'Limits output to important information only',
+        hide: true,
+      );
+
     addCommand(DevCommand(
       fs: fs,
       rootPath: rootPath,

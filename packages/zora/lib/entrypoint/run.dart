@@ -10,12 +10,11 @@ Future<int> run(
 }) async {
   final fs = LocalFileSystem();
 
-  final originalArgs = ZoraRunner.originalArgs;
   var isLoud = false;
   var isQuiet = false;
-  if (originalArgs.contains('--loud')) {
+  if (args.contains('--loud')) {
     isLoud = true;
-  } else if (originalArgs.contains('--quiet')) {
+  } else if (args.contains('--quiet')) {
     isQuiet = true;
   }
 

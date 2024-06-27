@@ -35,13 +35,10 @@ class ZoraRunner extends CommandRunner<int> {
     );
   }
 
-  static Iterable<String> originalArgs = [];
-
   final Logger logger;
 
   @override
   Future<int> run(Iterable<String> args) async {
-    originalArgs = args;
     final result = await super.run(args);
 
     return result ?? 0;

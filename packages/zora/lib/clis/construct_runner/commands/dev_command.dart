@@ -40,8 +40,6 @@ class DevCommand extends Command<int> with DirectoriesMixin {
   Future<int>? run() async {
     final root = await rootOf(rootPath);
 
-    final routes = await routesHandler.parse();
-
     final constructYamlFile = root.childFile('zora.yaml');
     ZoraYaml? zoraConfig;
     if (await constructYamlFile.exists()) {
@@ -58,10 +56,10 @@ class DevCommand extends Command<int> with DirectoriesMixin {
       }
     }
 
-    Future<void> codeGen() async {
+    Future<void> codeGenerator() async {
       await generate(
         root: root,
-        routes: routes,
+        routes: await routesHandler.parse(),
         zoraConfig: zoraConfig ??= ZoraYaml.none(),
       );
     }
@@ -69,7 +67,7 @@ class DevCommand extends Command<int> with DirectoriesMixin {
     final serverRunner = VMServiceRunner(
       root: root,
       serverFile: (await root.getZoraFile('server.dart')).path,
-      codeGen: codeGen,
+      codeGenerator: codeGenerator,
       logger: logger,
     );
 
@@ -83,6 +81,8 @@ class DevCommand extends Command<int> with DirectoriesMixin {
     required ZoraYaml zoraConfig,
   }) async {
     for (final maker in constructs) {
+      logger.detail('Constructing ${maker.name}...');
+
       final constructConfig = zoraConfig.configFor(maker);
 
       if (!constructConfig.enabled) {

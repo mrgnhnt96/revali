@@ -28,12 +28,25 @@ class DevCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    final recompile = argResults!['recompile'] as bool;
+    final argResults = this.argResults!;
+    final recompile = argResults['recompile'] as bool;
 
     await _generator.generate(recompile: recompile);
     logger.write('\n');
-    await _generator.run(['dev']);
+
+    await _generator.run(constructRunnerArgs);
 
     return 0;
+  }
+
+  List<String> get constructRunnerArgs {
+    final argResults = this.argResults!;
+
+    final argsToPass = ['dev', ...argResults.arguments];
+    argsToPass.remove('--recompile');
+
+    logger.detail('Construct Args: $argsToPass');
+
+    return argsToPass;
   }
 }
