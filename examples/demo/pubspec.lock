@@ -226,7 +226,7 @@ packages:
     source: hosted
     version: "2.1.4"
   shelf:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: shelf
       sha256: ad29c505aee705f41a4d8963641f91ac4cee3c8fad5947e033390a7bd8180fa4
@@ -234,7 +234,7 @@ packages:
     source: hosted
     version: "1.4.1"
   shelf_router:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: shelf_router
       sha256: f5e5d492440a7fb165fe1e2e1a623f31f734d3370900070b2b1e0d0428d59864
