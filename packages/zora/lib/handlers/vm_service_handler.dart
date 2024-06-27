@@ -8,6 +8,7 @@ import 'package:path/path.dart' as path;
 import 'package:stream_transform/stream_transform.dart';
 import 'package:watcher/watcher.dart';
 import 'package:zora/utils/extensions/directory_extensions.dart';
+import 'package:zora_construct/hot_reload/hot_reload.dart';
 
 final _warningRegex = RegExp(r'^.*:\d+:\d+: Warning: .*', multiLine: true);
 
@@ -49,6 +50,8 @@ class VMServiceHandler {
 
   Future<int> get exitCode => _exitCodeCompleter.future;
 
+  String _vmServiceUri = '';
+
   Future<void> _reload() async {
     if (_isReloading) {
       logger.detail('Still reloading, skipping...');
@@ -58,9 +61,27 @@ class VMServiceHandler {
     _isReloading = true;
     _cancelWatcherSubscription();
     logger.detail('Reloading...');
+
     await codeGenerator();
+    clearConsole();
+    printVmServiceUri();
     watchForChanges();
     _isReloading = false;
+  }
+
+  void clearConsole() {
+    print("\x1B[2J\x1B[0;0H");
+    logger.write(
+      '${yellow.wrap(_formatTime(DateTime.now()))} ${darkGray.wrap('[RELOAD]')}\n',
+    );
+  }
+
+  void printVmServiceUri() {
+    if (_vmServiceUri.isEmpty) {
+      return;
+    }
+
+    logger.success(_vmServiceUri);
   }
 
   // Internal method to kill the server process.
@@ -147,7 +168,10 @@ class VMServiceHandler {
 
   Future<void> serve() async {
     var isHotReloadingEnabled = false;
+    clearConsole();
     logger.detail('Starting server...');
+
+    var _hasStartedServer = false;
 
     final process = _serverProcess = await io.Process.start(
       'dart',
@@ -178,6 +202,12 @@ class VMServiceHandler {
       final message = utf8.decode(_).trim();
       if (message.isEmpty) return;
 
+      if (message.contains(HotReload.nonZoraReload)) {
+        clearConsole();
+        printVmServiceUri();
+        return;
+      }
+
       final isDartVMServiceAlreadyInUseError =
           _dartVmServiceAlreadyInUseErrorRegex.hasMatch(message);
       final isSDKWarning = _warningRegex.hasMatch(message);
@@ -202,23 +232,46 @@ class VMServiceHandler {
       }
     });
 
+    Progress? progress;
     process.stdout.listen((_) {
       final message = utf8.decode(_).trim();
-      final containsHotReload = message.contains('Hot reload enabled');
-      if (message.isNotEmpty) {
-        if (message.contains('Dart VM service')) {
-          logger.success(message);
-        } else if (message.contains('Dart DevTools debugger')) {
-          logger
-            ..success(message)
-            ..write('\n');
-        } else {
-          logger.write('$message\n');
-        }
+      if (message.isEmpty) {
+        return;
       }
 
-      if (containsHotReload) {
+      if (message.contains(HotReload.reloaded)) {
+        logger.write('\n');
+        return;
+      }
+
+      if (message.contains(HotReload.nonZoraReload)) {
+        clearConsole();
+        printVmServiceUri();
+        return;
+      }
+
+      if (message.contains(HotReload.zoraStarted) && !_hasStartedServer) {
+        _hasStartedServer = true;
+        progress?.complete();
+        return;
+      }
+
+      if (message.contains(HotReload.hotReloadEnabled)) {
         isHotReloadingEnabled = true;
+        return;
+      }
+
+      if (message.contains('Dart VM service')) {
+        _vmServiceUri = message;
+        logger.success(message);
+      } else if (message.contains('Dart DevTools debugger')) {
+        _vmServiceUri += '\n$message';
+        logger
+          ..success(message)
+          ..write('\n');
+        progress = logger.progress('Starting server...');
+      } else {
+        logger.write('$message\n');
       }
     });
 
@@ -261,5 +314,26 @@ class VMServiceHandler {
 
     logger.detail('No construct reload needed');
     return false;
+  }
+
+  String _formatTime(DateTime time) {
+    String hour;
+    //am/pm
+    String ampm;
+    if (time.hour case _ when time.hour > 12) {
+      hour = (time.hour - 12).toString();
+      ampm = 'PM';
+    } else if (time.hour case _ when time.hour == 0) {
+      hour = '12';
+      ampm = 'AM';
+    } else {
+      hour = time.hour.toString();
+      ampm = 'AM';
+    }
+
+    final minute = time.minute.toString().padLeft(2, '0');
+    final second = time.second.toString().padLeft(2, '0');
+
+    return '$hour:$minute:$second $ampm';
   }
 }

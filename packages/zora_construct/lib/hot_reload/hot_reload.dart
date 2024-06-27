@@ -15,20 +15,16 @@ class HotReload {
     this.logLevel = Level.OFF,
   });
 
+  static const reloaded = '__RELOADED__';
+  static const nonZoraReload = '__NON_ZORA_RELOAD__';
+  static const zoraStarted = '__ZORA_STARTED__';
+  static const hotReloadEnabled = '__HOT_RELOAD_ENABLED__';
+
   final Future<HttpServer> Function() serverFactory;
   final Level logLevel;
 
-  /// Set default messages
-  void _onReloaded() {
-    final time = _formatTime(DateTime.now());
-
-    stdout.writeln(
-      '$time - Reloaded',
-    );
-  }
-
   void _onHotReloadAvailable() {
-    stdout.writeln('[ZORA] Hot reload enabled');
+    stdout.writeln(hotReloadEnabled);
   }
 
   void _onHotReloadNotAvailable() {
@@ -39,13 +35,6 @@ class HotReload {
     );
   }
 
-  void _onHotReloadLog(LogRecord log) {
-    final time = _formatTime(log.time);
-    (log.level < Level.SEVERE ? stdout : stderr).writeln(
-      '[hotreload] $time - ${log.message}',
-    );
-  }
-
   Future<void> attach() async {
     /// Current server instance
     HttpServer? runningServer;
@@ -53,20 +42,11 @@ class HotReload {
     /// Configure logging
     hierarchicalLoggingEnabled = true;
     HotReloader.logLevel = logLevel;
-    Logger.root.onRecord.listen(_onHotReloadLog);
 
     /// Function in charge of replacing the running http server
     final obtainNewServer = (FutureOr<HttpServer> Function() create) async {
-      /// Will we replace a server?
-      var willReplaceServer = runningServer != null;
-
       /// Shut down existing server
       await runningServer?.close(force: true);
-
-      /// Report about reloading
-      if (willReplaceServer) {
-        _onReloaded();
-      }
 
       /// Create a new server
       runningServer = await create();
@@ -79,12 +59,16 @@ class HotReload {
         onBeforeReload: (context) {
           final path = context.event?.path;
 
+          final out = log.level < Level.SEVERE ? stdout : stderr;
+
           if (path == null) {
             return false;
           }
 
           final cwd = Directory.current.path;
           if (!p.isWithin(cwd, path)) {
+            out.writeln(nonZoraReload);
+
             return true;
           }
 
@@ -94,6 +78,7 @@ class HotReload {
           final server = File(p.join(cwd, '.zora', 'server.dart')).path;
 
           if (p.isWithin(lib, path)) {
+            out.writeln(nonZoraReload);
             return true;
           }
 
@@ -110,10 +95,13 @@ class HotReload {
           return false;
         },
         onAfterReload: (ctx) {
+          stdout.writeln(reloaded);
           obtainNewServer(serverFactory);
         },
         debounceInterval: Duration.zero,
       );
+
+      stdout.writeln(zoraStarted);
 
       /// Hot-reload is available
       _onHotReloadAvailable();
@@ -127,12 +115,5 @@ class HotReload {
     }
 
     await obtainNewServer(serverFactory);
-  }
-
-  String _formatTime(DateTime time) {
-    final hour = time.hour.toString().padLeft(2, '0');
-    final minute = time.minute.toString().padLeft(2, '0');
-    final second = time.second.toString().padLeft(2, '0');
-    return '$hour:$minute:$second';
   }
 }
