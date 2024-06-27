@@ -6,7 +6,7 @@ import 'package:file/file.dart';
 import 'package:path/path.dart' as path;
 import 'package:stream_transform/stream_transform.dart';
 import 'package:watcher/watcher.dart';
-import 'package:zora/extensions/directory_extensions.dart';
+import 'package:zora/utils/extensions/directory_extensions.dart';
 
 final _warningRegex = RegExp(r'^.*:\d+:\d+: Warning: .*', multiLine: true);
 

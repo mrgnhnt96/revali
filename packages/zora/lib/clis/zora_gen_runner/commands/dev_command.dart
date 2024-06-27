@@ -1,9 +1,9 @@
 import 'package:args/command_runner.dart';
-import 'package:zora/generators/entrypoint_generator.dart';
+import 'package:zora/handlers/construct_entrypoint_handler.dart';
 
 class DevCommand extends Command<int> {
   DevCommand({
-    required EntrypointGenerator generator,
+    required ConstructEntrypointHandler generator,
   }) : _generator = generator {
     argParser
       ..addOption(
@@ -21,7 +21,7 @@ class DevCommand extends Command<int> {
       );
   }
 
-  final EntrypointGenerator _generator;
+  final ConstructEntrypointHandler _generator;
 
   @override
   String get name => 'dev';

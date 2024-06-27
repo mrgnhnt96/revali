@@ -1,7 +1,7 @@
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:file/file.dart';
-import 'package:zora/construct_runner/commands/dev_command.dart';
+import 'package:zora/clis/construct_runner/commands/dev_command.dart';
 import 'package:zora_construct/zora_construct.dart';
 
 class ConstructRunner extends CommandRunner<int> {

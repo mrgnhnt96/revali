@@ -4,7 +4,7 @@ import 'dart:isolate';
 import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
-import 'package:zora/extensions/directory_extensions.dart';
+import 'package:zora/utils/extensions/directory_extensions.dart';
 import 'package:zora_construct/zora_construct.dart';
 
 class ConstructsHandler {

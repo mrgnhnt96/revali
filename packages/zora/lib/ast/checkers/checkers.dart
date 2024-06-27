@@ -17,7 +17,7 @@ limitations under the License.
 import 'package:zora_annotations/zora_annotations.dart';
 
 // --- LICENSE ---
-import './type_checker.dart';
+import 'type_checker.dart';
 
 final controllerChecker =
     TypeChecker.fromName('$Controller', packageName: 'zora_annotations');

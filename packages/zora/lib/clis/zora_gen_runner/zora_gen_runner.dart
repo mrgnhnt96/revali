@@ -1,8 +1,8 @@
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:file/file.dart';
-import 'package:zora/generators/entrypoint_generator.dart';
-import 'package:zora/zora_gen_runner/commands/dev_command.dart';
+import 'package:zora/clis/zora_gen_runner/commands/dev_command.dart';
+import 'package:zora/handlers/construct_entrypoint_handler.dart';
 
 class ZoraGenRunner extends CommandRunner<int> {
   ZoraGenRunner({
@@ -11,7 +11,7 @@ class ZoraGenRunner extends CommandRunner<int> {
   }) : super('zora', 'Zora code generator') {
     addCommand(
       DevCommand(
-        generator: EntrypointGenerator(
+        generator: ConstructEntrypointHandler(
           initialDirectory: initialDirectory,
           fs: fs,
         ),

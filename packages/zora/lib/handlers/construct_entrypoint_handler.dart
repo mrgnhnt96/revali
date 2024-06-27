@@ -8,13 +8,13 @@ import 'package:collection/collection.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:file/file.dart';
 import 'package:stack_trace/stack_trace.dart';
-import 'package:zora/extensions/directory_extensions.dart';
+import 'package:zora/utils/extensions/directory_extensions.dart';
 import 'package:zora/handlers/constructs_handler.dart';
-import 'package:zora/mixins/directories_mixin.dart';
+import 'package:zora/utils/mixins/directories_mixin.dart';
 import 'package:zora_construct/zora_construct.dart';
 
-class EntrypointGenerator with DirectoriesMixin {
-  EntrypointGenerator({
+class ConstructEntrypointHandler with DirectoriesMixin {
+  ConstructEntrypointHandler({
     required this.initialDirectory,
     ConstructsHandler? constructHandler,
     required this.fs,
@@ -56,7 +56,7 @@ class EntrypointGenerator with DirectoriesMixin {
     Directory root,
   ) async {
     final assetsFile =
-        await root.getInternalZoraFile(EntrypointGenerator.assetsFile);
+        await root.getInternalZoraFile(ConstructEntrypointHandler.assetsFile);
 
     Future<void> saveAssets() async {
       final json = constructs.map((e) => e.toJson()).toList();
@@ -103,7 +103,7 @@ class EntrypointGenerator with DirectoriesMixin {
     await zoraDir.create(recursive: true);
 
     final entrypointFile =
-        zoraDir.childFile(EntrypointGenerator.entrypointFile);
+        zoraDir.childFile(ConstructEntrypointHandler.entrypointFile);
 
     if (await entrypointFile.exists()) {
       await entrypointFile.delete();

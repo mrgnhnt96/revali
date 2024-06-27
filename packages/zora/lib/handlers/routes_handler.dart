@@ -1,7 +1,7 @@
 import 'package:file/file.dart';
-import 'package:zora/extensions/directory_extensions.dart';
-import 'package:zora/mixins/directories_mixin.dart';
-import 'package:zora/parse_routes.dart';
+import 'package:zora/ast/route_traverser.dart';
+import 'package:zora/utils/extensions/directory_extensions.dart';
+import 'package:zora/utils/mixins/directories_mixin.dart';
 import 'package:zora_construct/zora_construct.dart';
 
 class RoutesHandler with DirectoriesMixin {

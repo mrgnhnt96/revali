@@ -4,9 +4,9 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:file/file.dart' show FileSystem, FileSystemEvent;
 import 'package:path/path.dart' as p;
 import 'package:watcher/src/watch_event.dart';
-import 'package:zora/file_system/analyzer_file.dart';
-import 'package:zora/file_system/file_resource_provider.dart';
-import 'package:zora/file_system/util/watch_event_extension.dart';
+import 'package:zora/ast/file_system/analyzer_file.dart';
+import 'package:zora/ast/file_system/file_resource_provider.dart';
+import 'package:zora/ast/file_system/util/watch_event_extension.dart';
 
 class AnalyzerFolder implements Folder {
   AnalyzerFolder(this.fileSystem, this.directory, this.provider);

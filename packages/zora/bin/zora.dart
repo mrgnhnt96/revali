@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:file/local.dart';
-import 'package:zora/zora_gen_runner/zora_gen_runner.dart';
+import 'package:zora/clis/zora_gen_runner/zora_gen_runner.dart';
 
 void main(List<String> args) {
   _run(args);
