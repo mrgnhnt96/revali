@@ -8,9 +8,9 @@ import 'package:file/file.dart' as f;
 import 'package:file/file.dart' show FileSystem, FileSystemEvent;
 import 'package:path/path.dart' as p;
 import 'package:watcher/src/watch_event.dart';
-import 'package:zora_gen/file_system/analyzer_folder.dart';
-import 'package:zora_gen/file_system/file_resource_provider.dart';
-import 'package:zora_gen/file_system/util/watch_event_extension.dart';
+import 'package:zora/file_system/analyzer_folder.dart';
+import 'package:zora/file_system/file_resource_provider.dart';
+import 'package:zora/file_system/util/watch_event_extension.dart';
 
 class AnalyzerFile implements File {
   AnalyzerFile(

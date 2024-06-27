@@ -12,7 +12,7 @@ dependencies:
 
 dev_dependencies:
     mocktail: ^1.0.4
-    zora_gen:
-        path: ../../packages/zora_gen
+    zora:
+        path: ../../packages/zora
     zora_shelf:
         path: ../../packages/zora_shelf

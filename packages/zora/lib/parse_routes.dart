@@ -8,8 +8,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:file/file.dart';
 import 'package:path/path.dart' as path;
-import 'package:zora_gen/checkers/checkers.dart';
-import 'package:zora_gen/file_system/file_resource_provider.dart';
+import 'package:zora/checkers/checkers.dart';
+import 'package:zora/file_system/file_resource_provider.dart';
 import 'package:zora_gen_core/zora_gen_core.dart';
 
 class RouteTraverser {

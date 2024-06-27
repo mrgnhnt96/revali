@@ -3,8 +3,8 @@ import 'dart:io' as io;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:file/file.dart' show FileSystem;
 import 'package:path/path.dart' as p;
-import 'package:zora_gen/file_system/analyzer_file.dart';
-import 'package:zora_gen/file_system/analyzer_folder.dart';
+import 'package:zora/file_system/analyzer_file.dart';
+import 'package:zora/file_system/analyzer_folder.dart';
 
 class FileResourceProvider extends ResourceProvider {
   FileResourceProvider(this.fs);

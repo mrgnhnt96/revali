@@ -3,7 +3,7 @@
 import 'dart:io' as _i5;
 import 'dart:isolate' as _i3;
 
-import 'package:zora_gen/zora_gen.dart' as _i4;
+import 'package:zora/zora.dart' as _i4;
 import 'package:zora_gen_core/zora_gen_core.dart' as _i1;
 import 'package:zora_shelf/main.dart' as _i2;
 

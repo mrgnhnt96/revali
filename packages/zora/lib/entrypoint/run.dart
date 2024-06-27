@@ -1,5 +1,5 @@
 import 'package:file/local.dart';
-import 'package:zora_gen/construct_runner/construct_runner.dart';
+import 'package:zora/construct_runner/construct_runner.dart';
 import 'package:zora_gen_core/zora_gen_core.dart';
 
 Future<int> run(

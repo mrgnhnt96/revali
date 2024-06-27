@@ -11,8 +11,8 @@ defaults:
 dirs:
   - path: packages/zora_core/lib
     name: zora_core
-  - path: packages/zora_gen/lib
-    name: zora_gen
+  - path: packages/zora/lib
+    name: zora
   - path: packages/zora_gen_core/lib
     name: zora_gen_core
   - path: packages/zora_shelf/lib

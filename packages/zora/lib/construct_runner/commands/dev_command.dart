@@ -3,10 +3,10 @@ import 'dart:async';
 import 'package:args/command_runner.dart';
 import 'package:file/file.dart';
 import 'package:yaml/yaml.dart';
-import 'package:zora_gen/extensions/directory_extensions.dart';
-import 'package:zora_gen/handlers/routes_handler.dart';
-import 'package:zora_gen/hot_reload/vm_service_runner.dart';
-import 'package:zora_gen/mixins/directories_mixin.dart';
+import 'package:zora/extensions/directory_extensions.dart';
+import 'package:zora/handlers/routes_handler.dart';
+import 'package:zora/hot_reload/vm_service_runner.dart';
+import 'package:zora/mixins/directories_mixin.dart';
 import 'package:zora_gen_core/zora_gen_core.dart';
 
 class DevCommand extends Command<int> with DirectoriesMixin {

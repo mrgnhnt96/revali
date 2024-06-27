@@ -8,9 +8,9 @@ import 'package:collection/collection.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:file/file.dart';
 import 'package:stack_trace/stack_trace.dart';
-import 'package:zora_gen/extensions/directory_extensions.dart';
-import 'package:zora_gen/handlers/constructs_handler.dart';
-import 'package:zora_gen/mixins/directories_mixin.dart';
+import 'package:zora/extensions/directory_extensions.dart';
+import 'package:zora/handlers/constructs_handler.dart';
+import 'package:zora/mixins/directories_mixin.dart';
 import 'package:zora_gen_core/zora_gen_core.dart';
 
 class EntrypointGenerator with DirectoriesMixin {
@@ -253,7 +253,7 @@ class EntrypointGenerator with DirectoriesMixin {
     required Directory root,
   }) {
     const zora_gen_core = 'package:zora_gen_core/zora_gen_core.dart';
-    const zora_gen = 'package:zora_gen/zora_gen.dart';
+    const zora = 'package:zora/zora.dart';
 
     final constructItems = [
       for (final yaml in constructs)
@@ -301,7 +301,7 @@ class EntrypointGenerator with DirectoriesMixin {
       ..body = Block.of([
         declareFinal('result')
             .assign(
-              refer('run', zora_gen).call([
+              refer('run', zora).call([
                 refer('args'),
               ], {
                 'constructs': refer('_constructs'),

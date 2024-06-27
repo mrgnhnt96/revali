@@ -12,7 +12,7 @@
             "program": ".zora/server.dart",
             "args": [
                 "run",
-                "zora_gen"
+                "zora"
             ]
         }
     ]

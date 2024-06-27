@@ -1,5 +1,5 @@
 import 'package:file/file.dart';
-import 'package:zora_gen/extensions/directory_extensions.dart';
+import 'package:zora/extensions/directory_extensions.dart';
 
 mixin DirectoriesMixin {
   FileSystem get fs;

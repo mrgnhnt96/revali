@@ -4,7 +4,7 @@ import 'dart:isolate';
 import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
-import 'package:zora_gen/extensions/directory_extensions.dart';
+import 'package:zora/extensions/directory_extensions.dart';
 import 'package:zora_gen_core/zora_gen_core.dart';
 
 class ConstructsHandler {
@@ -17,7 +17,7 @@ class ConstructsHandler {
   static const String constructYamlFileName = 'construct.yaml';
 
   /// Gets the [ConstructYaml]s based on the dependencies of the project requesting
-  /// zora_gen
+  /// zora
   Future<List<ConstructYaml>> constructDepsFrom(Directory root) async {
     if (__constructs case final constructs?) {
       return constructs;
