@@ -29,13 +29,13 @@ class EntrypointGenerator with DirectoriesMixin {
   static const String kernelFile = '$entrypointFile$kernelExtension';
   static const String assetsFile = 'zora.assets.json';
 
-  Future<void> generate() async {
+  Future<void> generate({bool recompile = false}) async {
     final root = await rootOf(initialDirectory);
     final constructs = await constructHandler.constructDepsFrom(root);
 
     final needsNewKernel = await checkAssets(constructs, root);
 
-    if (!needsNewKernel) {
+    if (!recompile && !needsNewKernel) {
       final kernel = await root.getInternalZoraFile(kernelFile);
 
       if (await kernel.exists()) {
@@ -122,10 +122,6 @@ class EntrypointGenerator with DirectoriesMixin {
     required Directory root,
   }) async {
     final kernel = await root.getInternalZoraFile(kernelFile);
-
-    if (await kernel.exists()) {
-      return kernel;
-    }
 
     final toCompile = await root.getInternalZoraFile(entrypointFile);
 
