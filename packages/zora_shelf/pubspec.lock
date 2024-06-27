@@ -26,7 +26,7 @@ packages:
     source: hosted
     version: "2.0.5"
   hotreloader:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: hotreloader
       sha256: ed56fdc1f3a8ac924e717257621d09e9ec20e308ab6352a73a50a1d7a4d9158e
