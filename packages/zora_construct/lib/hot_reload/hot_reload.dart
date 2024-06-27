@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:hotreloader/hotreloader.dart';
-import 'package:logging/logging.dart' as logging;
+import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
 void hotReload(Future<HttpServer> Function() callback) {
@@ -12,20 +12,23 @@ void hotReload(Future<HttpServer> Function() callback) {
 class HotReload {
   const HotReload({
     required this.serverFactory,
-    this.logLevel = logging.Level.OFF,
+    this.logLevel = Level.OFF,
   });
 
   final Future<HttpServer> Function() serverFactory;
-  final logging.Level logLevel;
+  final Level logLevel;
 
   /// Set default messages
   void _onReloaded() {
     final time = _formatTime(DateTime.now());
-    stdout.writeln('[hotreload] $time - Application reloaded.');
+
+    stdout.writeln(
+      '$time - Reloaded',
+    );
   }
 
   void _onHotReloadAvailable() {
-    stdout.writeln('[hotreload] Hot reload is enabled.');
+    stdout.writeln('[ZORA] Hot reload enabled');
   }
 
   void _onHotReloadNotAvailable() {
@@ -36,9 +39,9 @@ class HotReload {
     );
   }
 
-  void _onHotReloadLog(logging.LogRecord log) {
+  void _onHotReloadLog(LogRecord log) {
     final time = _formatTime(log.time);
-    (log.level < logging.Level.SEVERE ? stdout : stderr).writeln(
+    (log.level < Level.SEVERE ? stdout : stderr).writeln(
       '[hotreload] $time - ${log.message}',
     );
   }
@@ -48,9 +51,9 @@ class HotReload {
     HttpServer? runningServer;
 
     /// Configure logging
-    logging.hierarchicalLoggingEnabled = true;
+    hierarchicalLoggingEnabled = true;
     HotReloader.logLevel = logLevel;
-    logging.Logger.root.onRecord.listen(_onHotReloadLog);
+    Logger.root.onRecord.listen(_onHotReloadLog);
 
     /// Function in charge of replacing the running http server
     final obtainNewServer = (FutureOr<HttpServer> Function() create) async {
@@ -81,6 +84,9 @@ class HotReload {
           }
 
           final cwd = Directory.current.path;
+          if (!p.isWithin(cwd, path)) {
+            return true;
+          }
 
           final lib = Directory(p.join(cwd, 'lib')).path;
           final routes = Directory(p.join(cwd, 'routes')).path;

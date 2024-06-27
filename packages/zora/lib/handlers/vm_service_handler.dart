@@ -204,7 +204,7 @@ class VMServiceRunner {
 
     process.stdout.listen((_) {
       final message = utf8.decode(_).trim();
-      final containsHotReload = message.contains('[hotreload]');
+      final containsHotReload = message.contains('Hot reload enabled');
       if (message.isNotEmpty) {
         if (message.contains('Dart VM service')) {
           logger.success(message);
