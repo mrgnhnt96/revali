@@ -426,7 +426,7 @@ packages:
     source: hosted
     version: "2.1.2"
   stream_transform:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: stream_transform
       sha256: "14a00e794c7c11aa145a170587321aedce29769c08d7f58b1d141da75e3b1c6f"
@@ -498,7 +498,7 @@ packages:
     source: hosted
     version: "14.2.4"
   watcher:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: watcher
       sha256: "3d2ad6751b3c16cf07c7fca317a1413b3f26530319181b37e3b9039b84fc01d8"

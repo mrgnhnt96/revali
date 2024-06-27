@@ -1,10 +1,11 @@
 import 'dart:async';
 
 import 'package:args/command_runner.dart';
-import 'package:file/src/interface/file_system.dart';
+import 'package:file/file.dart';
 import 'package:yaml/yaml.dart';
 import 'package:zora_gen/extensions/directory_extensions.dart';
 import 'package:zora_gen/handlers/routes_handler.dart';
+import 'package:zora_gen/hot_reload/vm_service_runner.dart';
 import 'package:zora_gen/mixins/directories_mixin.dart';
 import 'package:zora_gen_core/zora_gen_core.dart';
 
@@ -53,8 +54,30 @@ class DevCommand extends Command<int> with DirectoriesMixin {
         print('Failed to parse zora.yaml');
       }
     }
-    zoraConfig ??= ZoraYaml.none();
 
+    Future<void> codeGen() async {
+      await generate(
+        root: root,
+        routes: routes,
+        zoraConfig: zoraConfig ??= ZoraYaml.none(),
+      );
+    }
+
+    final serverRunner = VMServiceRunner(
+      root: root,
+      serverFile: (await root.getZoraFile('server.dart')).path,
+      codeGen: codeGen,
+    );
+
+    await serverRunner.start();
+    return await serverRunner.exitCode;
+  }
+
+  Future<void> generate({
+    required Directory root,
+    required List<MetaRoute> routes,
+    required ZoraYaml zoraConfig,
+  }) async {
     for (final maker in constructs) {
       final constructConfig = zoraConfig.configFor(maker);
 
@@ -92,7 +115,5 @@ class DevCommand extends Command<int> with DirectoriesMixin {
         continue;
       }
     }
-
-    return 0;
   }
 }

@@ -9,8 +9,8 @@ import 'package:dart_style/dart_style.dart';
 import 'package:file/file.dart';
 import 'package:stack_trace/stack_trace.dart';
 import 'package:zora_gen/extensions/directory_extensions.dart';
-import 'package:zora_gen/mixins/directories_mixin.dart';
 import 'package:zora_gen/handlers/constructs_handler.dart';
+import 'package:zora_gen/mixins/directories_mixin.dart';
 import 'package:zora_gen_core/zora_gen_core.dart';
 
 class EntrypointGenerator with DirectoriesMixin {
@@ -59,6 +59,8 @@ class EntrypointGenerator with DirectoriesMixin {
     List<ConstructYaml> constructs,
     Directory root,
   ) async {
+    // TODO: Need to check hash to ensure that the assets are
+    // the latest version
     final assetsFile =
         await root.getInternalZoraFile(EntrypointGenerator.assetsFile);
 
