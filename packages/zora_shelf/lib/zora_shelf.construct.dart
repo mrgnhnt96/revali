@@ -5,6 +5,6 @@ class ZoraShelfConstruct implements RouterConstruct {
 
   @override
   String generate(List<MetaRoute> routes) {
-    return 'content';
+    return 'void main() => print(\'Hello, World!\');';
   }
 }

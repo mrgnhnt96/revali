@@ -65,4 +65,29 @@ extension DirectoryX on Directory {
 
     return zora.childFile(basename);
   }
+
+  /// The directory within the root directory
+  /// specifically used for Zora
+  ///
+  /// The directory may _NOT_ exist
+  Future<Directory> getZora() async {
+    final root = await getRoot();
+
+    if (root == null) {
+      throw Exception('Failed to find project root');
+    }
+
+    return root.childDirectory('.zora');
+  }
+
+  /// retrieves the file within [getZora] dir
+  ///
+  /// Should be 1 level deep only
+  ///
+  /// The file may _NOT_ exist
+  Future<File> getZoraFile(String basename) async {
+    final zora = await getZora();
+
+    return zora.childFile(basename);
+  }
 }

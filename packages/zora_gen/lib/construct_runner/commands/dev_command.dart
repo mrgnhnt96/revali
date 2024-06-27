@@ -3,8 +3,9 @@ import 'dart:async';
 import 'package:args/command_runner.dart';
 import 'package:file/src/interface/file_system.dart';
 import 'package:yaml/yaml.dart';
+import 'package:zora_gen/extensions/directory_extensions.dart';
+import 'package:zora_gen/handlers/routes_handler.dart';
 import 'package:zora_gen/mixins/directories_mixin.dart';
-import 'package:zora_gen/parsers/routes_handler.dart';
 import 'package:zora_gen_core/zora_gen_core.dart';
 
 class DevCommand extends Command<int> with DirectoriesMixin {
@@ -78,11 +79,18 @@ class DevCommand extends Command<int> with DirectoriesMixin {
             'must be of type $RouterConstruct',
           );
         }
+
+        final result = construct.generate(routes);
+
+        final router = await root.getZoraFile('server.dart');
+
+        if (!await router.exists()) {
+          await router.create(recursive: true);
+        }
+
+        await router.writeAsString(result);
+        continue;
       }
-
-      final result = construct.generate(routes);
-
-      print(result);
     }
 
     return 0;

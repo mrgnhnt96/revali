@@ -10,7 +10,7 @@ import 'package:file/file.dart';
 import 'package:stack_trace/stack_trace.dart';
 import 'package:zora_gen/extensions/directory_extensions.dart';
 import 'package:zora_gen/mixins/directories_mixin.dart';
-import 'package:zora_gen/parsers/constructs_handler.dart';
+import 'package:zora_gen/handlers/constructs_handler.dart';
 import 'package:zora_gen_core/zora_gen_core.dart';
 
 class EntrypointGenerator with DirectoriesMixin {
