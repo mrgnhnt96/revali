@@ -1,6 +1,6 @@
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:equatable/equatable.dart';
-import 'package:zora_core/zora_core.dart';
+import 'package:zora_annotations/zora_annotations.dart';
 
 class MethodAnnotation extends Equatable implements Method {
   const MethodAnnotation(this.name, {required this.path});

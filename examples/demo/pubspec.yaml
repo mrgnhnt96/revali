@@ -7,8 +7,8 @@ environment:
 dependencies:
     shelf: ^1.4.1
     shelf_router: ^1.1.4
-    zora_core:
-        path: ../../packages/zora_core
+    zora_annotations:
+        path: ../../packages/zora_annotations
 
 dev_dependencies:
     mocktail: ^1.0.4

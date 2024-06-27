@@ -19,8 +19,8 @@ dependencies:
     stream_transform: ^2.1.0
     watcher: ^1.1.0
     yaml: ^3.1.2
-    zora_core:
-        path: ../zora_core
+    zora_annotations:
+        path: ../zora_annotations
     zora_gen_core:
         path: ../zora_gen_core
 

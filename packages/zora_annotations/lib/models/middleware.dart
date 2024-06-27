@@ -1,5 +1,5 @@
 import 'package:meta/meta.dart';
-import 'package:zora_core/zora_core.dart';
+import 'package:zora_annotations/zora_annotations.dart';
 
 class Middleware {
   const Middleware();

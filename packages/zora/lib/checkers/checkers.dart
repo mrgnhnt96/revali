@@ -14,13 +14,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-import 'package:zora_core/zora_core.dart';
+import 'package:zora_annotations/zora_annotations.dart';
 
 // --- LICENSE ---
 import './type_checker.dart';
 
 final controllerChecker =
-    TypeChecker.fromName('$Controller', packageName: 'zora_core');
-final methodChecker = TypeChecker.fromName('$Method', packageName: 'zora_core');
+    TypeChecker.fromName('$Controller', packageName: 'zora_annotations');
+final methodChecker =
+    TypeChecker.fromName('$Method', packageName: 'zora_annotations');
 final middlewareChecker =
-    TypeChecker.fromName('$Middleware', packageName: 'zora_core');
+    TypeChecker.fromName('$Middleware', packageName: 'zora_annotations');

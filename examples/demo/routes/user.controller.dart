@@ -1,4 +1,4 @@
-import 'package:zora_core/zora_core.dart';
+import 'package:zora_annotations/zora_annotations.dart';
 
 import '../lib/repos/repo.dart';
 import '../lib/utils/logger.dart';
