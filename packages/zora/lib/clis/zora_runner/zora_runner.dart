@@ -1,11 +1,11 @@
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:file/file.dart';
-import 'package:zora/clis/zora_gen_runner/commands/dev_command.dart';
+import 'package:zora/clis/zora_runner/commands/dev_command.dart';
 import 'package:zora/handlers/construct_entrypoint_handler.dart';
 
-class ZoraGenRunner extends CommandRunner<int> {
-  ZoraGenRunner({
+class ZoraRunner extends CommandRunner<int> {
+  ZoraRunner({
     required String initialDirectory,
     required FileSystem fs,
   }) : super('zora', 'Zora code generator') {

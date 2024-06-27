@@ -10,7 +10,7 @@ export 'ast/file_system/file_resource_provider.dart';
 export 'ast/file_system/util/watch_event_extension.dart';
 export 'ast/route_traverser.dart';
 export 'clis/construct_runner/construct_runner.dart';
-export 'clis/zora_gen_runner/zora_gen_runner.dart';
+export 'clis/zora_runner/zora_runner.dart';
 export 'entrypoint/run.dart';
 export 'handlers/construct_entrypoint_handler.dart';
 export 'handlers/constructs_handler.dart';
