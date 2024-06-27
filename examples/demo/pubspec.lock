@@ -311,10 +311,10 @@ packages:
       relative: true
     source: path
     version: "0.0.1+1"
-  zora_gen_core:
+  zora_construct:
     dependency: transitive
     description:
-      path: "../../packages/zora_gen_core"
+      path: "../../packages/zora_construct"
       relative: true
     source: path
     version: "0.0.1"

@@ -11,7 +11,7 @@ import 'package:stack_trace/stack_trace.dart';
 import 'package:zora/extensions/directory_extensions.dart';
 import 'package:zora/handlers/constructs_handler.dart';
 import 'package:zora/mixins/directories_mixin.dart';
-import 'package:zora_gen_core/zora_gen_core.dart';
+import 'package:zora_construct/zora_construct.dart';
 
 class EntrypointGenerator with DirectoriesMixin {
   EntrypointGenerator({
@@ -252,13 +252,13 @@ class EntrypointGenerator with DirectoriesMixin {
     Iterable<ConstructYaml> constructs, {
     required Directory root,
   }) {
-    const zora_gen_core = 'package:zora_gen_core/zora_gen_core.dart';
+    const zora_construct = 'package:zora_construct/zora_construct.dart';
     const zora = 'package:zora/zora.dart';
 
     final constructItems = [
       for (final yaml in constructs)
         for (final construct in yaml.constructs)
-          refer('$ConstructMaker', zora_gen_core).newInstance(
+          refer('$ConstructMaker', zora_construct).newInstance(
             [],
             {
               // TODO: figure out how to represent a literal string
@@ -275,7 +275,7 @@ class EntrypointGenerator with DirectoriesMixin {
         .assign(
           literalList(
             constructItems,
-            refer('$ConstructMaker', zora_gen_core),
+            refer('$ConstructMaker', zora_construct),
           ),
         )
         .statement;

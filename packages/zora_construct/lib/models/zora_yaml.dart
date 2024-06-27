@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:zora_gen_core/zora_gen_core.dart';
+import 'package:zora_construct/zora_construct.dart';
 
 part 'zora_yaml.g.dart';
 

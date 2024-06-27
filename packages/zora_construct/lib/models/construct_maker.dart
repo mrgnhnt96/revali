@@ -1,5 +1,5 @@
-import 'package:zora_gen_core/models/construct.dart';
-import 'package:zora_gen_core/models/construct_options.dart';
+import 'package:zora_construct/models/construct.dart';
+import 'package:zora_construct/models/construct_options.dart';
 
 class ConstructMaker {
   const ConstructMaker({

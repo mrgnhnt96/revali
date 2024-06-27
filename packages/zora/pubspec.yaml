@@ -21,8 +21,8 @@ dependencies:
     yaml: ^3.1.2
     zora_annotations:
         path: ../zora_annotations
-    zora_gen_core:
-        path: ../zora_gen_core
+    zora_construct:
+        path: ../zora_construct
 
 dev_dependencies:
     build_runner: ^2.4.8

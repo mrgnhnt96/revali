@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:zora_gen_core/models/construct_options.dart';
+import 'package:zora_construct/models/construct_options.dart';
 
 part 'construct_config.g.dart';
 

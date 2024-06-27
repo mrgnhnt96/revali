@@ -7,7 +7,7 @@ import 'package:zora/extensions/directory_extensions.dart';
 import 'package:zora/handlers/routes_handler.dart';
 import 'package:zora/hot_reload/vm_service_runner.dart';
 import 'package:zora/mixins/directories_mixin.dart';
-import 'package:zora_gen_core/zora_gen_core.dart';
+import 'package:zora_construct/zora_construct.dart';
 
 class DevCommand extends Command<int> with DirectoriesMixin {
   DevCommand({

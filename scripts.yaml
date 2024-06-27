@@ -5,12 +5,12 @@ build_runner:
     build:
         (aliases): b
         (command): dart run build_runner build --delete-conflicting-outputs
-        zora_gen_core:
+        zora_construct:
             (aliases): gen_core
-            (command): cd packages/zora_gen_core && {$build_runner:build}
+            (command): cd packages/zora_construct && {$build_runner:build}
     watch:
         (aliases): w
         (command): dart run build_runner watch --delete-conflicting-outputs
-        zora_gen_core:
+        zora_construct:
             (aliases): gen_core
-            (command): cd packages/zora_gen_core && {$build_runner:watch}
+            (command): cd packages/zora_construct && {$build_runner:watch}

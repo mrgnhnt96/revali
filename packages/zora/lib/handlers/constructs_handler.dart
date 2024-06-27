@@ -5,7 +5,7 @@ import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 import 'package:zora/extensions/directory_extensions.dart';
-import 'package:zora_gen_core/zora_gen_core.dart';
+import 'package:zora_construct/zora_construct.dart';
 
 class ConstructsHandler {
   ConstructsHandler({required this.fs});

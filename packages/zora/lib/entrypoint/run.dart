@@ -1,6 +1,6 @@
 import 'package:file/local.dart';
 import 'package:zora/construct_runner/construct_runner.dart';
-import 'package:zora_gen_core/zora_gen_core.dart';
+import 'package:zora_construct/zora_construct.dart';
 
 Future<int> run(
   List<String> args, {

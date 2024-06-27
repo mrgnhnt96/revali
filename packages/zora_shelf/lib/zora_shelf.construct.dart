@@ -1,4 +1,4 @@
-import 'package:zora_gen_core/zora_gen_core.dart';
+import 'package:zora_construct/zora_construct.dart';
 
 class ZoraShelfConstruct implements RouterConstruct {
   const ZoraShelfConstruct();

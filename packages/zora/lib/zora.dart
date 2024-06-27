@@ -15,6 +15,7 @@ export 'file_system/util/watch_event_extension.dart';
 export 'generators/entrypoint_generator.dart';
 export 'handlers/constructs_handler.dart';
 export 'handlers/routes_handler.dart';
+export 'hot_reload/vm_service_runner.dart';
 export 'mixins/directories_mixin.dart';
 export 'parse_routes.dart';
 export 'zora_gen_runner/zora_gen_runner.dart';

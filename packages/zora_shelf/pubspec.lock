@@ -120,10 +120,10 @@ packages:
       relative: true
     source: path
     version: "0.0.1+1"
-  zora_gen_core:
+  zora_construct:
     dependency: "direct main"
     description:
-      path: "../zora_gen_core"
+      path: "../zora_construct"
       relative: true
     source: path
     version: "0.0.1"
