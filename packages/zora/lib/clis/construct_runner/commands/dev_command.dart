@@ -3,12 +3,12 @@ import 'dart:async';
 import 'package:args/command_runner.dart';
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
-import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 import 'package:zora/handlers/routes_handler.dart';
 import 'package:zora/handlers/vm_service_handler.dart';
 import 'package:zora/utils/extensions/directory_extensions.dart';
 import 'package:zora/utils/mixins/directories_mixin.dart';
+import 'package:zora_construct/models/files/server_file.dart';
 import 'package:zora_construct/zora_construct.dart';
 
 class DevCommand extends Command<int> with DirectoriesMixin {
@@ -71,7 +71,7 @@ class DevCommand extends Command<int> with DirectoriesMixin {
 
     final serverHandler = VMServiceHandler(
       root: root,
-      serverFile: (await root.getZoraFile('server.dart')).path,
+      serverFile: (await root.getZoraFile(ServerFile.fileName)).path,
       codeGenerator: codeGenerator,
       logger: logger,
     );
@@ -86,59 +86,79 @@ class DevCommand extends Command<int> with DirectoriesMixin {
     required ZoraYaml zoraConfig,
   }) async {
     for (final maker in constructs) {
-      logger.detail('Constructing ${maker.name}...');
-
       final constructConfig = zoraConfig.configFor(maker);
 
-      if (!constructConfig.enabled) {
-        if (maker.isServer) {
-          logger.warn(
-              '${constructConfig.name} cannot be disabled, because it is the $ServerConstruct');
-        } else {
-          logger.detail('skipping ${constructConfig.name}');
-          continue;
-        }
-      }
+      await _generateConstruct(
+        maker,
+        constructConfig,
+        routes,
+        root,
+      );
+    }
+  }
 
-      final options = constructConfig.constructOptions;
+  Future<void> _generateConstruct(
+    ConstructMaker maker,
+    ZoraConstructConfig config,
+    List<MetaRoute> routes,
+    Directory root,
+  ) async {
+    logger.detail('Constructing ${maker.name}...');
 
-      final construct = maker.maker(options);
-
+    if (!config.enabled) {
       if (maker.isServer) {
-        if (construct is! ServerConstruct) {
-          throw Exception(
-            'Invalid type for router! ${construct.runtimeType} '
-            'must be of type $ServerConstruct',
-          );
-        }
-
-        final result = construct.generate(routes);
-
-        final router = await root.getZoraFile(result.basename);
-
-        if (!await router.exists()) {
-          await router.create(recursive: true);
-        }
-
-        await router.writeAsString(result.getContent());
-
-        final zora = await root.getZora();
-
-        for (final MapEntry(key: basename, value: content)
-            in result.getPartContent()) {
-          final normalized = p.normalize(p.join(zora.path, basename));
-          final partFile = zora.childFile(normalized);
-
-          // force the file to be within the zora dir
-
-          if (!await partFile.exists()) {
-            await partFile.create(recursive: true);
-          }
-
-          await partFile.writeAsString(content);
-        }
-        continue;
+        logger.warn(
+            '${config.name} cannot be disabled, because it is the $ServerConstruct');
+      } else {
+        logger.detail('skipping ${config.name}');
+        return;
       }
+    }
+
+    final options = config.constructOptions;
+
+    final construct = maker.maker(options);
+
+    if (maker.isServer) {
+      if (construct is! ServerConstruct) {
+        throw Exception(
+          'Invalid type for router! ${construct.runtimeType} '
+          'must be of type $ServerConstruct',
+        );
+      }
+
+      await _generateServerConstruct(construct, routes, root);
+      return;
+    }
+  }
+
+  Future<void> _generateServerConstruct(
+    ServerConstruct construct,
+    List<MetaRoute> routes,
+    Directory root,
+  ) async {
+    final result = construct.generate(routes);
+
+    final router = await root.getZoraFile(result.basename);
+
+    if (!await router.exists()) {
+      await router.create(recursive: true);
+    }
+
+    await router.writeAsString(result.getContent());
+
+    final zora = await root.getZora();
+
+    for (final MapEntry(key: basename, value: content)
+        in result.getPartContent()) {
+      // ensure that the path is within the zora directory
+      final partFile = zora.sanitizedChildFile(basename);
+
+      if (!await partFile.exists()) {
+        await partFile.create(recursive: true);
+      }
+
+      await partFile.writeAsString(content);
     }
   }
 }

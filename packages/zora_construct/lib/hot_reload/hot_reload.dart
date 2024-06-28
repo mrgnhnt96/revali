@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:hotreloader/hotreloader.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
+import 'package:zora_construct/models/files/server_file.dart';
 
 void hotReload(Future<HttpServer> Function() callback) {
   HotReload(serverFactory: callback).attach().ignore();
@@ -75,7 +76,7 @@ class HotReload {
           final lib = Directory(p.join(cwd, 'lib')).path;
           final routes = Directory(p.join(cwd, 'routes')).path;
           final public = Directory(p.join(cwd, 'public')).path;
-          final server = File(p.join(cwd, '.zora', 'server.dart')).path;
+          final server = File(p.join(cwd, '.zora', ServerFile.fileName)).path;
 
           if (p.isWithin(lib, path)) {
             out.writeln(nonZoraReload);

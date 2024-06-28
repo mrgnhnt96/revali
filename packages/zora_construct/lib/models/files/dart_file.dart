@@ -26,14 +26,19 @@ class DartFile {
 
     // inject part directives after all import statements
     final importIndex = content.lastIndexOf('import');
-    final importEndIndex = content.indexOf(';', importIndex);
-    final importStatements = content.substring(0, importEndIndex + 1);
+    String importStatements = '';
+    String contentWithoutImports = content;
+    if (importIndex != -1) {
+      final importEndIndex = content.indexOf(';', importIndex);
+      importStatements = content.substring(0, importEndIndex + 1);
 
-    final contentWithoutImports = content.substring(importEndIndex + 1);
+      contentWithoutImports = content.substring(importEndIndex + 1);
+    }
 
     return '''
 $importStatements
 $partDirectives
-$contentWithoutImports''';
+$contentWithoutImports'''
+        .trim();
   }
 }

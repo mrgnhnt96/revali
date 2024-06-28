@@ -1,4 +1,5 @@
 import 'package:file/file.dart';
+import 'package:path/path.dart' as p;
 
 extension DirectoryX on Directory {
   Future<Directory?> getRoot() async {
@@ -104,7 +105,16 @@ extension DirectoryX on Directory {
   /// The file may _NOT_ exist
   Future<File> getZoraFile(String basename) async {
     final zora = await getZora();
+    final normalized = p.normalize(p.join(zora.path, basename));
+    final relative = p.relative(normalized, from: zora.path);
 
-    return zora.childFile(basename);
+    return zora.childFile(relative);
+  }
+
+  File sanitizedChildFile(String basename) {
+    final normalized = p.normalize(p.join(path, basename));
+    final relative = p.relative(normalized, from: path);
+
+    return childFile(relative);
   }
 }

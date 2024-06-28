@@ -9,6 +9,7 @@ import 'package:stream_transform/stream_transform.dart';
 import 'package:watcher/watcher.dart';
 import 'package:zora/utils/extensions/directory_extensions.dart';
 import 'package:zora_construct/hot_reload/hot_reload.dart';
+import 'package:zora_construct/models/files/server_file.dart';
 import 'package:zora_construct/zora_construct.dart';
 
 final _warningRegex = RegExp(r'^.*:\d+:\d+: Warning: .*', multiLine: true);
@@ -326,7 +327,8 @@ class VMServiceHandler {
 
     final zora = await root.getZora();
 
-    final server = path.equals(zora.childFile('server.dart').path, event.path);
+    final server =
+        path.equals(zora.childFile(ServerFile.fileName).path, event.path);
     final pubspec =
         path.equals(zora.childFile('pubspec.yaml').path, event.path);
 

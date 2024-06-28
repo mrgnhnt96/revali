@@ -62,7 +62,7 @@ class RouteTraverser {
       className: clazz.name,
       params: params,
       constructorName: constructor.name,
-      methods: [...methodVisitor.methods.values],
+      methods: [...methodVisitor.methods.values.expand((e) => e)],
       middlewares: middlewares,
     );
   }
@@ -98,7 +98,7 @@ class ClassVisitor extends RecursiveElementVisitor<void> {
 
 class MethodVisitor extends RecursiveElementVisitor<void> {
   // Method name to method element
-  Map<String, MetaMethod> methods = {};
+  Map<String, List<MetaMethod>> methods = {};
 
   @override
   void visitMethodElement(MethodElement element) {
@@ -117,26 +117,32 @@ class MethodVisitor extends RecursiveElementVisitor<void> {
     final method = MethodAnnotation.fromAnnotation(annotation.first);
 
     // only one method type per method
-    if (methods.containsKey(method.name)) {
-      throw Exception('Only one method type per method is allowed');
+    if (methods[method.name] case final parsed?) {
+      for (final parsedMethod in parsed) {
+        if (parsedMethod.path == method.path) {
+          throw Exception('Conflicting paths ${parsedMethod.path}');
+        }
+      }
     }
 
     final params = getParams(element);
     final middlewares = getMiddleware(element);
 
-    methods[method.name] = MetaMethod(
-      name: element.name,
-      method: method.name,
-      path: method.path,
-      annotations: element.metadata,
-      params: params,
-      middlewares: middlewares,
-      returnType: MetaReturnType(
-        isVoid: element.returnType is VoidType,
-        isNullable:
-            element.returnType.nullabilitySuffix != NullabilitySuffix.none,
-        type: element.returnType.getDisplayString(withNullability: false),
-        element: element.returnType.element,
+    (methods[method.name] ??= []).add(
+      MetaMethod(
+        name: element.name,
+        method: method.name,
+        path: method.path,
+        annotations: element.metadata,
+        params: params,
+        middlewares: middlewares,
+        returnType: MetaReturnType(
+          isVoid: element.returnType is VoidType,
+          isNullable:
+              element.returnType.nullabilitySuffix != NullabilitySuffix.none,
+          type: element.returnType.getDisplayString(withNullability: false),
+          element: element.returnType.element,
+        ),
       ),
     );
   }

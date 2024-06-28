@@ -10,6 +10,10 @@ class PartFile {
   final String content;
 
   String getContent(DartFile parent) {
+    if (content.contains(RegExp("^import '"))) {
+      throw Exception('Part files cannot contain import statements.');
+    }
+
     return '''
 part of '${parent.basename}';
 $content''';
