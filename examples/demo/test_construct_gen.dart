@@ -10,7 +10,7 @@ import 'package:zora_shelf/main.dart' as _i2;
 final _constructs = <_i1.ConstructMaker>[
   _i1.ConstructMaker(
     package: 'zora_shelf',
-    isRouter: true,
+    isServer: true,
     name: 'shelf',
     maker: _i2.shelfConstruct,
   )

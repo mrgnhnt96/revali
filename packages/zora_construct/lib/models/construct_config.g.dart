@@ -13,7 +13,7 @@ ConstructConfig _$ConstructConfigFromJson(Map json) => ConstructConfig(
       options: json['options'] == null
           ? const ConstructOptions.empty()
           : ConstructOptions.fromJson(json['options'] as Map),
-      isRouter: json['is_router'] as bool? ?? false,
+      isServer: json['is_server'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$ConstructConfigToJson(ConstructConfig instance) =>
@@ -22,5 +22,5 @@ Map<String, dynamic> _$ConstructConfigToJson(ConstructConfig instance) =>
       'path': instance.path,
       'method': instance.method,
       'options': instance.options.toJson(),
-      'is_router': instance.isRouter,
+      'is_server': instance.isServer,
     };

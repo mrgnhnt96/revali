@@ -88,12 +88,12 @@ class ConstructsHandler {
 
   /// Asserts the config for all constructs
   ///
-  /// - Contains only 1 config where [ConstructConfig.isRouter] is true
+  /// - Contains only 1 config where [ConstructConfig.isServer] is true
   Future<void> checkConstructs(Iterable<ConstructYaml> constructs) async {
     bool hasRouter = false;
     for (final construct in constructs) {
       for (final config in construct.constructs) {
-        if (config.isRouter) {
+        if (config.isServer) {
           if (hasRouter) {
             // TODO(mrgnhnt): throw a custom exception
             logger.err('Only one router is allowed per project');

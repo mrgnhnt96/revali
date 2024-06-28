@@ -292,7 +292,7 @@ class ConstructEntrypointHandler with DirectoriesMixin {
             [],
             {
               'package': literalString(yaml.packageName),
-              'isRouter': refer('${construct.isRouter}'),
+              'isServer': refer('${construct.isServer}'),
               'name': literalString(construct.name),
               'maker': refer(
                 construct.method,

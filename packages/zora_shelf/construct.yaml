@@ -2,4 +2,4 @@ constructs:
     - name: shelf
       path: main.dart
       method: shelfConstruct
-      is_router: true
+      is_server: true

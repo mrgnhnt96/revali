@@ -90,9 +90,9 @@ class DevCommand extends Command<int> with DirectoriesMixin {
       final constructConfig = zoraConfig.configFor(maker);
 
       if (!constructConfig.enabled) {
-        if (maker.isRouter) {
+        if (maker.isServer) {
           logger.warn(
-              '${constructConfig.name} cannot be disabled, because it is the router construct');
+              '${constructConfig.name} cannot be disabled, because it is the $ServerConstruct');
         } else {
           logger.detail('skipping ${constructConfig.name}');
           continue;
@@ -103,7 +103,7 @@ class DevCommand extends Command<int> with DirectoriesMixin {
 
       final construct = maker.maker(options);
 
-      if (maker.isRouter) {
+      if (maker.isServer) {
         if (construct is! ServerConstruct) {
           throw Exception(
             'Invalid type for router! ${construct.runtimeType} '

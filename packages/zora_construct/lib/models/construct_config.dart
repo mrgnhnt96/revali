@@ -11,7 +11,7 @@ class ConstructConfig extends Equatable {
     required this.path,
     required this.method,
     this.options = const ConstructOptions.empty(),
-    this.isRouter = false,
+    this.isServer = false,
   });
 
   static ConstructConfig fromJson(Map json) => _$ConstructConfigFromJson(json);
@@ -20,7 +20,7 @@ class ConstructConfig extends Equatable {
   final String path;
   final String method;
   final ConstructOptions options;
-  final bool isRouter;
+  final bool isServer;
 
   Map<String, dynamic> toJson() => _$ConstructConfigToJson(this);
 
@@ -30,6 +30,6 @@ class ConstructConfig extends Equatable {
         path,
         method,
         options,
-        isRouter,
+        isServer,
       ];
 }

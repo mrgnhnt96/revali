@@ -4,13 +4,13 @@ import 'package:zora_construct/models/construct_options.dart';
 class ConstructMaker {
   const ConstructMaker({
     required this.package,
-    required this.isRouter,
+    required this.isServer,
     required this.name,
     required this.maker,
   });
 
   final String package;
-  final bool isRouter;
+  final bool isServer;
   final String name;
   final Construct Function(ConstructOptions) maker;
 }
