@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:args/command_runner.dart';
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
+import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 import 'package:zora/handlers/routes_handler.dart';
 import 'package:zora/handlers/vm_service_handler.dart';
@@ -113,13 +114,29 @@ class DevCommand extends Command<int> with DirectoriesMixin {
 
         final result = construct.generate(routes);
 
-        final router = await root.getZoraFile('server.dart');
+        final router = await root.getZoraFile(result.basename);
 
         if (!await router.exists()) {
           await router.create(recursive: true);
         }
 
-        await router.writeAsString(result);
+        await router.writeAsString(result.getContent());
+
+        final zora = await root.getZora();
+
+        for (final MapEntry(key: basename, value: content)
+            in result.getPartContent()) {
+          final normalized = p.normalize(p.join(zora.path, basename));
+          final partFile = zora.childFile(normalized);
+
+          // force the file to be within the zora dir
+
+          if (!await partFile.exists()) {
+            await partFile.create(recursive: true);
+          }
+
+          await partFile.writeAsString(content);
+        }
         continue;
       }
     }
