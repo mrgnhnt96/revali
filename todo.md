@@ -1,14 +1,15 @@
 # TODO
 
-- [ ] Combine zora_gen and zora_shelf into a single package
-  - This is because shelf is really the only http server that we will be using, and we want consistency
-  - We also don't want constructs to run scripts, which is what we would have to do if the zora_shelf package was separate
-- [ ] Create `zora_gen_core` package to hold the core functionality of zora_gen
-  - This way developers don't need to depend on the entire zora_gen package, just the necessary parts
+- [ ] ~~Combine zora and zora_shelf into a single package~~
+  - ~~This is because shelf is really the only http server that we will be using, and we want consistency~~
+  - ~~We also don't want constructs to run scripts, which is what we would have to do if the zora_shelf package was separate~~
+  - This is fine actually, we will have a flag within the config file that will determine whether the dependency is a "router" generator or other
+- [x] Create `zora_construct` package to hold the core functionality of zora
+  - This way developers don't need to depend on the entire zora package, just the necessary parts
 
 ## Create entrypoint for constructs
 
-So I I just figured out how I can get the constructs that the dev is depending on implicitly
+So I just figured out how I can get the constructs that the dev is depending on implicitly
 
 1. Ge the dev dependencies
 2. Resolve their paths and look for a construct.yaml file
@@ -24,7 +25,7 @@ The code within this file should look like
 import 'dart:io' as io;
 import 'dart:isolate';
 
-import 'package:zora_gen/zora_gen.dart';
+import 'package:zora/zora.dart';
 import 'package:zora_shelf/zora_shelf.dart';
 
 final constructs = <Construct>[
@@ -61,4 +62,4 @@ onError: errorPort.sendPort);
 
 In build_runner, they are compiling the code to a kernel file and then executing it. I will probably need to do the same thing.
 
-Once the code is executed, it will run the code found within the `zora_gen` package and generate the code provided by the constructs, provided by the generated `zora.dart` file.
+Once the code is executed, it will run the code found within the `zora` package and generate the code provided by the constructs, provided by the generated `zora.dart` file.
