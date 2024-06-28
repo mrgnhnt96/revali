@@ -9,6 +9,7 @@ import 'package:stream_transform/stream_transform.dart';
 import 'package:watcher/watcher.dart';
 import 'package:zora/utils/extensions/directory_extensions.dart';
 import 'package:zora_construct/hot_reload/hot_reload.dart';
+import 'package:zora_construct/zora_construct.dart';
 
 final _warningRegex = RegExp(r'^.*:\d+:\d+: Warning: .*', multiLine: true);
 
@@ -33,7 +34,7 @@ class VMServiceHandler {
   final String dartVmServicePort;
   final Directory root;
   final String serverFile;
-  final Future<void> Function() codeGenerator;
+  final Future<List<MetaRoute>> Function() codeGenerator;
 
   bool _isReloading = false;
 
@@ -62,17 +63,18 @@ class VMServiceHandler {
     _cancelWatcherSubscription();
     logger.detail('Reloading...');
 
-    await codeGenerator();
+    final routes = await codeGenerator();
     clearConsole();
     printVmServiceUri();
+    printParsedRoutes(routes);
     watchForChanges();
     _isReloading = false;
   }
 
   void clearConsole() {
     print("\x1B[2J\x1B[0;0H");
-    logger.write(
-      '${yellow.wrap(_formatTime(DateTime.now()))} ${darkGray.wrap('[RELOAD]')}\n',
+    logger.info(
+      '${yellow.wrap(_formatTime(DateTime.now()))} ${darkGray.wrap('[RELOAD]')}',
     );
   }
 
@@ -82,6 +84,32 @@ class VMServiceHandler {
     }
 
     logger.success(_vmServiceUri);
+  }
+
+  List<MetaRoute> __lastRoutes = [];
+  void printParsedRoutes(List<MetaRoute>? routes) {
+    if (routes == null) {
+      if (__lastRoutes.isEmpty) {
+        return;
+      }
+
+      routes = __lastRoutes;
+    }
+
+    __lastRoutes = routes;
+
+    logger.write('\n');
+    for (final route in routes) {
+      for (final method in route.methods) {
+        final fullPath = path.join(route.path, method.path ?? '/');
+        logger.info(
+          '${method.wrappedMethod}'
+          '${darkGray.wrap('-> ')}'
+          '$fullPath',
+        );
+      }
+    }
+    logger.write('\n');
   }
 
   // Internal method to kill the server process.
@@ -127,8 +155,10 @@ class VMServiceHandler {
       );
     }
 
-    await codeGenerator();
-    await serve();
+    final routes = await codeGenerator();
+    await serve(
+      onReady: () => printParsedRoutes(routes),
+    );
     watchForChanges();
   }
 
@@ -166,7 +196,9 @@ class VMServiceHandler {
     _exitCodeCompleter.complete(exitCode);
   }
 
-  Future<void> serve() async {
+  Future<void> serve({
+    void Function()? onReady,
+  }) async {
     var isHotReloadingEnabled = false;
     clearConsole();
     logger.detail('Starting server...');
@@ -205,6 +237,7 @@ class VMServiceHandler {
       if (message.contains(HotReload.nonZoraReload)) {
         clearConsole();
         printVmServiceUri();
+        printParsedRoutes(null);
         return;
       }
 
@@ -240,7 +273,7 @@ class VMServiceHandler {
       }
 
       if (message.contains(HotReload.reloaded)) {
-        logger.write('\n');
+        logger.write('');
         return;
       }
 
@@ -253,6 +286,7 @@ class VMServiceHandler {
       if (message.contains(HotReload.zoraStarted) && !_hasStartedServer) {
         _hasStartedServer = true;
         progress?.complete();
+        onReady?.call();
         return;
       }
 
@@ -335,5 +369,34 @@ class VMServiceHandler {
     final second = time.second.toString().padLeft(2, '0');
 
     return '$hour:$minute:$second $ampm';
+  }
+}
+
+extension _MethodX on MetaMethod {
+  /// Wraps the method with an associated color
+  String? get wrappedMethod {
+    final padded = method.padRight(6);
+    switch (method) {
+      case 'GET':
+        return yellow.wrap(padded);
+      case 'POST':
+        return green.wrap(padded);
+      case 'PUT':
+        return blue.wrap(padded);
+      case 'DELETE':
+        return red.wrap(padded);
+      case 'PATCH':
+        return magenta.wrap(padded);
+      case 'HEAD':
+        return cyan.wrap(padded);
+      case 'CONNECT':
+        return lightGreen.wrap(padded);
+      case 'OPTIONS':
+        return lightRed.wrap(padded);
+      case 'TRACE':
+        return lightBlue.wrap(padded);
+      default:
+        return padded;
+    }
   }
 }

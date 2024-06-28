@@ -56,12 +56,16 @@ class DevCommand extends Command<int> with DirectoriesMixin {
       }
     }
 
-    Future<void> codeGenerator() async {
+    Future<List<MetaRoute>> codeGenerator() async {
+      final routes = await routesHandler.parse();
+
       await generate(
         root: root,
-        routes: await routesHandler.parse(),
+        routes: routes,
         zoraConfig: zoraConfig ??= ZoraYaml.none(),
       );
+
+      return routes;
     }
 
     final serverHandler = VMServiceHandler(
