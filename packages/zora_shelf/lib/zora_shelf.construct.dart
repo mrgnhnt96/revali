@@ -1,6 +1,6 @@
 import 'package:zora_construct/zora_construct.dart';
 
-class ZoraShelfConstruct implements RouterConstruct {
+class ZoraShelfConstruct implements ServerConstruct {
   const ZoraShelfConstruct();
 
   @override

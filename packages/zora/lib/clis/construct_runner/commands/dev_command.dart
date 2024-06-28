@@ -104,10 +104,10 @@ class DevCommand extends Command<int> with DirectoriesMixin {
       final construct = maker.maker(options);
 
       if (maker.isRouter) {
-        if (construct is! RouterConstruct) {
+        if (construct is! ServerConstruct) {
           throw Exception(
             'Invalid type for router! ${construct.runtimeType} '
-            'must be of type $RouterConstruct',
+            'must be of type $ServerConstruct',
           );
         }
 
