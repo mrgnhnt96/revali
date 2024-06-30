@@ -13,13 +13,13 @@ class RoutesHandler with DirectoriesMixin {
   final FileSystem fs;
   final String rootPath;
 
-  Future<List<MetaRoute>> parse() async {
+  Future<MetaServer> parse() async {
     final root = await rootOf(rootPath);
 
     final routesDir = await root.getRoutes();
 
     if (routesDir == null || !await routesDir.exists()) {
-      return [];
+      return MetaServer(routes: []);
     }
 
     final traverser = RouteTraverser(
@@ -53,6 +53,6 @@ class RoutesHandler with DirectoriesMixin {
       routes.add(route);
     }
 
-    return routes;
+    return MetaServer(routes: routes);
   }
 }

@@ -9,7 +9,6 @@ import 'package:stream_transform/stream_transform.dart';
 import 'package:watcher/watcher.dart';
 import 'package:zora/utils/extensions/directory_extensions.dart';
 import 'package:zora_construct/hot_reload/hot_reload.dart';
-import 'package:zora_construct/models/files/server_file.dart';
 import 'package:zora_construct/zora_construct.dart';
 
 final _warningRegex = RegExp(r'^.*:\d+:\d+: Warning: .*', multiLine: true);
@@ -35,7 +34,7 @@ class VMServiceHandler {
   final String dartVmServicePort;
   final Directory root;
   final String serverFile;
-  final Future<List<MetaRoute>> Function() codeGenerator;
+  final Future<MetaServer> Function() codeGenerator;
 
   bool _isReloading = false;
 
@@ -64,10 +63,10 @@ class VMServiceHandler {
     _cancelWatcherSubscription();
     logger.detail('Reloading...');
 
-    final routes = await codeGenerator();
+    final server = await codeGenerator();
     clearConsole();
     printVmServiceUri();
-    printParsedRoutes(routes);
+    printParsedRoutes(server.routes);
     watchForChanges();
     _isReloading = false;
   }
@@ -160,9 +159,9 @@ class VMServiceHandler {
       );
     }
 
-    final routes = await codeGenerator();
+    final server = await codeGenerator();
     await serve(
-      onReady: () => printParsedRoutes(routes),
+      onReady: () => printParsedRoutes(server.routes),
     );
     watchForChanges();
   }

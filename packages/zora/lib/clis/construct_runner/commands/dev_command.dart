@@ -8,7 +8,6 @@ import 'package:zora/handlers/routes_handler.dart';
 import 'package:zora/handlers/vm_service_handler.dart';
 import 'package:zora/utils/extensions/directory_extensions.dart';
 import 'package:zora/utils/mixins/directories_mixin.dart';
-import 'package:zora_construct/models/files/server_file.dart';
 import 'package:zora_construct/zora_construct.dart';
 
 class DevCommand extends Command<int> with DirectoriesMixin {
@@ -57,16 +56,16 @@ class DevCommand extends Command<int> with DirectoriesMixin {
       }
     }
 
-    Future<List<MetaRoute>> codeGenerator() async {
-      final routes = await routesHandler.parse();
+    Future<MetaServer> codeGenerator() async {
+      final server = await routesHandler.parse();
 
       await generate(
         root: root,
-        routes: routes,
+        server: server,
         zoraConfig: zoraConfig ??= ZoraYaml.none(),
       );
 
-      return routes;
+      return server;
     }
 
     final serverHandler = VMServiceHandler(
@@ -87,7 +86,7 @@ class DevCommand extends Command<int> with DirectoriesMixin {
 
   Future<void> generate({
     required Directory root,
-    required List<MetaRoute> routes,
+    required MetaServer server,
     required ZoraYaml zoraConfig,
   }) async {
     for (final maker in constructs) {
@@ -96,7 +95,7 @@ class DevCommand extends Command<int> with DirectoriesMixin {
       await _generateConstruct(
         maker,
         constructConfig,
-        routes,
+        server,
         root,
       );
     }
@@ -105,7 +104,7 @@ class DevCommand extends Command<int> with DirectoriesMixin {
   Future<void> _generateConstruct(
     ConstructMaker maker,
     ZoraConstructConfig config,
-    List<MetaRoute> routes,
+    MetaServer server,
     Directory root,
   ) async {
     logger.detail('Constructing ${maker.name}...');
@@ -132,17 +131,17 @@ class DevCommand extends Command<int> with DirectoriesMixin {
         );
       }
 
-      await _generateServerConstruct(construct, routes, root);
+      await _generateServerConstruct(construct, server, root);
       return;
     }
   }
 
   Future<void> _generateServerConstruct(
     ServerConstruct construct,
-    List<MetaRoute> routes,
+    MetaServer server,
     Directory root,
   ) async {
-    final result = construct.generate(routes);
+    final result = construct.generate(server);
 
     final router = await root.getZoraFile(result.basename);
 
