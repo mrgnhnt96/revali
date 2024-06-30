@@ -76,6 +76,11 @@ class DevCommand extends Command<int> with DirectoriesMixin {
       logger: logger,
     );
 
+    final zora = await root.getZora();
+    if (await zora.exists()) {
+      await zora.delete(recursive: true);
+    }
+
     await serverHandler.start();
     return await serverHandler.exitCode;
   }

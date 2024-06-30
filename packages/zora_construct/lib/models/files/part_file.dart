@@ -1,12 +1,13 @@
+import 'package:path/path.dart' as p;
 import 'package:zora_construct/models/files/dart_file.dart';
 
-class PartFile {
+final class PartFile {
   const PartFile({
-    required this.basename,
+    required this.path,
     required this.content,
   });
 
-  final String basename;
+  final List<String> path;
   final String content;
 
   String getContent(DartFile parent) {
@@ -14,8 +15,16 @@ class PartFile {
       throw Exception('Part files cannot contain import statements.');
     }
 
+    final partsToParent = [
+      for (final _ in path.skip(1)) '..',
+      parent.basename,
+    ];
+
+    final parentPath = p.joinAll(partsToParent);
+
     return '''
-part of '${parent.basename}';
+part of '$parentPath';
+
 $content''';
   }
 }

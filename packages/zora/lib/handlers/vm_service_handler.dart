@@ -101,8 +101,12 @@ class VMServiceHandler {
 
     logger.write('\n');
     for (final route in routes) {
+      final root = '/${route.path}';
+      logger.info(darkGray.wrap(root));
       for (final method in route.methods) {
-        final fullPath = path.join(route.path, method.path ?? '/');
+        logger.detail('method: ${method.path}');
+
+        final fullPath = path.join(root, (method.path ?? ''));
         logger.info(
           '${method.wrappedMethod}'
           '${darkGray.wrap('-> ')}'
@@ -227,7 +231,10 @@ class VMServiceHandler {
       });
     }
 
+    Progress? progress;
     process.stderr.listen((_) async {
+      progress?.fail('Failed to start server');
+
       if (_isReloading) {
         return;
       }
@@ -266,7 +273,6 @@ class VMServiceHandler {
       }
     });
 
-    Progress? progress;
     process.stdout.listen((_) {
       final message = utf8.decode(_).trim();
       if (message.isEmpty) {

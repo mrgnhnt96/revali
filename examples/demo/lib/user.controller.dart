@@ -21,8 +21,8 @@ class ThisController {
     return '$name $id';
   }
 
-  @Post('create')
-  void create() {}
+  // @Post('create')
+  // void create() {}
 }
 
 class Auth extends Middleware {

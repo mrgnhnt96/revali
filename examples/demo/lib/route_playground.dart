@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:examples/repos/repo.dart';
 import 'package:examples/utils/logger.dart';
@@ -6,6 +7,7 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_router/shelf_router.dart';
 import 'package:zora_annotations/zora_annotations.dart';
+import 'package:zora_construct/zora_construct.dart';
 
 import 'user.controller.dart' as user_controller;
 
@@ -13,6 +15,10 @@ void main() async {
   _registerDependencies();
   _registerControllers();
 
+  hotReload(createServer);
+}
+
+Future<HttpServer> createServer() async {
   final server =
       await io.serve(Cascade().add(_root()).handler, 'localhost', 8123);
 
@@ -20,6 +26,8 @@ void main() async {
   server.autoCompress = true;
 
   print('Serving at http://${server.address.host}:${server.port}');
+
+  return server;
 }
 
 void _registerDependencies() {
@@ -61,7 +69,7 @@ Handler _userListPeople(user_controller.ThisController controller) {
 
 Handler _userCreate(user_controller.ThisController controller) {
   return Pipeline().addHandler((context) {
-    controller.create();
+    // controller.create();
 
     return Response(201);
   });

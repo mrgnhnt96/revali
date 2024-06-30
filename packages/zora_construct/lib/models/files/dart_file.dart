@@ -1,3 +1,4 @@
+import 'package:path/path.dart' as p;
 import 'package:zora_construct/models/files/part_file.dart';
 
 class DartFile {
@@ -14,7 +15,7 @@ class DartFile {
   Iterable<MapEntry<String, String>> getPartContent() {
     return parts.map(
       (part) => MapEntry(
-        part.basename,
+        p.joinAll(part.path),
         part.getContent(this),
       ),
     );
@@ -22,7 +23,7 @@ class DartFile {
 
   String getContent() {
     final partDirectives =
-        parts.map((part) => "part '${part.basename}';").join('\n');
+        parts.map((part) => "part '${p.joinAll(part.path)}';").join('\n');
 
     // inject part directives after all import statements
     final importIndex = content.lastIndexOf('import');
@@ -37,6 +38,7 @@ class DartFile {
 
     return '''
 $importStatements
+
 $partDirectives
 $contentWithoutImports'''
         .trim();
