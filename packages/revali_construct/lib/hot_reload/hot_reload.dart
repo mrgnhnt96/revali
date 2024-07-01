@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:hotreloader/hotreloader.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
-import 'package:revali_construct/models/files/server_file.dart';
 
 void hotReload(Future<HttpServer> Function() callback) {
   HotReload(serverFactory: callback).attach().ignore();
@@ -17,8 +16,8 @@ class HotReload {
   });
 
   static const reloaded = '__RELOADED__';
-  static const nonrevaliReload = '__NON_revali_RELOAD__';
-  static const revaliStarted = '__revali_STARTED__';
+  static const nonRevaliReload = '__NON_REVALI_RELOAD__';
+  static const revaliStarted = '__REVALI_STARTED__';
   static const hotReloadEnabled = '__HOT_RELOAD_ENABLED__';
 
   final Future<HttpServer> Function() serverFactory;
@@ -68,7 +67,7 @@ class HotReload {
 
           final cwd = Directory.current.path;
           if (!p.isWithin(cwd, path)) {
-            out.writeln(nonrevaliReload);
+            out.writeln(nonRevaliReload);
 
             return true;
           }
@@ -76,14 +75,14 @@ class HotReload {
           final lib = Directory(p.join(cwd, 'lib')).path;
           final routes = Directory(p.join(cwd, 'routes')).path;
           final public = Directory(p.join(cwd, 'public')).path;
-          final server = File(p.join(cwd, '.revali', ServerFile.fileName)).path;
+          final revali = Directory(p.join(cwd, '.revali')).path;
 
           if (p.isWithin(lib, path)) {
-            out.writeln(nonrevaliReload);
+            out.writeln(nonRevaliReload);
             return true;
           }
 
-          if (server == path) {
+          if (p.isWithin(revali, path)) {
             return true;
           }
 

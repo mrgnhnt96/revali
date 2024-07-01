@@ -19,6 +19,6 @@ export 'models/meta_return_type.dart';
 export 'models/meta_route.dart';
 export 'models/meta_server.dart';
 export 'models/method_annotation.dart';
-export 'models/server_construct.dart';
 export 'models/revali_construct_config.dart';
 export 'models/revali_yaml.dart';
+export 'models/server_construct.dart';

@@ -15,14 +15,16 @@ class ThisController {
 
   @Get(':id')
   String getNewPerson({
-    @Query('name') required String name,
-    @Param('id') required String id,
+    @Query() required String name,
+    @Param() required String id,
   }) {
     return '$name $id';
   }
 
   @Post('create')
-  void create() {}
+  void create(
+    @Query() String name,
+  ) {}
 }
 
 class Auth extends Middleware {

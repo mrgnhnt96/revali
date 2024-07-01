@@ -7,8 +7,9 @@ environment:
 
 dependencies:
     code_builder: ^4.10.0
+    change_case: ^2.1.0
     dart_style: ^2.3.6
-    shelf: ^1.4.1
-    shelf_router: ^1.1.4
     revali_construct:
         path: ../revali_construct
+    shelf: ^1.4.1
+    shelf_router: ^1.1.4

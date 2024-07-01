@@ -25,3 +25,7 @@ final methodChecker =
     TypeChecker.fromName('$Method', packageName: 'revali_annotations');
 final middlewareChecker =
     TypeChecker.fromName('$Middleware', packageName: 'revali_annotations');
+final queryChecker =
+    TypeChecker.fromName('$Query', packageName: 'revali_annotations');
+final paramChecker =
+    TypeChecker.fromName('$Param', packageName: 'revali_annotations');

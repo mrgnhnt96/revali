@@ -8,11 +8,11 @@ import 'package:collection/collection.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
-import 'package:stack_trace/stack_trace.dart';
 import 'package:revali/handlers/constructs_handler.dart';
 import 'package:revali/utils/extensions/directory_extensions.dart';
 import 'package:revali/utils/mixins/directories_mixin.dart';
 import 'package:revali_construct/revali_construct.dart';
+import 'package:stack_trace/stack_trace.dart';
 
 class ConstructEntrypointHandler with DirectoriesMixin {
   ConstructEntrypointHandler({
@@ -50,7 +50,7 @@ class ConstructEntrypointHandler with DirectoriesMixin {
     final needsNewKernel = await checkAssets(constructs, root);
 
     if (!recompile && !needsNewKernel) {
-      final kernel = await root.getInternalrevaliFile(kernelFile);
+      final kernel = await root.getInternalRevaliFile(kernelFile);
 
       if (await kernel.exists()) {
         logger.detail('Skipping entrypoint generation, using existing kernel');
@@ -82,7 +82,7 @@ class ConstructEntrypointHandler with DirectoriesMixin {
     Directory root,
   ) async {
     final assetsFile =
-        await root.getInternalrevaliFile(ConstructEntrypointHandler.assetsFile);
+        await root.getInternalRevaliFile(ConstructEntrypointHandler.assetsFile);
 
     Future<void> saveAssets() async {
       logger.detail('Saving assets file');
@@ -127,7 +127,7 @@ class ConstructEntrypointHandler with DirectoriesMixin {
     Directory root, {
     required List<ConstructYaml> constructs,
   }) async {
-    final revaliDir = await root.getInternalrevali();
+    final revaliDir = await root.getInternalRevali();
     await revaliDir.create(recursive: true);
 
     final entrypointFile =
@@ -149,9 +149,9 @@ class ConstructEntrypointHandler with DirectoriesMixin {
   Future<File> compile({
     required Directory root,
   }) async {
-    final kernel = await root.getInternalrevaliFile(kernelFile);
+    final kernel = await root.getInternalRevaliFile(kernelFile);
 
-    final toCompile = await root.getInternalrevaliFile(entrypointFile);
+    final toCompile = await root.getInternalRevaliFile(entrypointFile);
 
     final dartTool = await root.getDartTool();
     final packageJson = dartTool.childFile('package_config.json');
@@ -201,7 +201,7 @@ class ConstructEntrypointHandler with DirectoriesMixin {
     int? scriptExitCode;
 
     final root = await rootOf(initialDirectory);
-    final file = await root.getInternalrevaliFile(kernelFile);
+    final file = await root.getInternalRevaliFile(kernelFile);
 
     if (!await file.exists()) {
       throw StateError('Script file does not exist');

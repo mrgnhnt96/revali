@@ -23,7 +23,7 @@ class revaliShelfConstruct implements ServerConstruct {
       parts: [
         registerDependencies(format),
         registerControllers(format),
-        ...routeHandlers(server.routes),
+        ...routeHandlers(server.routes, format),
       ],
     );
   }

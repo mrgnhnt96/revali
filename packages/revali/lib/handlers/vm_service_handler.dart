@@ -5,11 +5,11 @@ import 'dart:io' as io;
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart' as path;
-import 'package:stream_transform/stream_transform.dart';
-import 'package:watcher/watcher.dart';
 import 'package:revali/utils/extensions/directory_extensions.dart';
 import 'package:revali_construct/hot_reload/hot_reload.dart';
 import 'package:revali_construct/revali_construct.dart';
+import 'package:stream_transform/stream_transform.dart';
+import 'package:watcher/watcher.dart';
 
 final _warningRegex = RegExp(r'^.*:\d+:\d+: Warning: .*', multiLine: true);
 
@@ -241,7 +241,7 @@ class VMServiceHandler {
       final message = utf8.decode(_).trim();
       if (message.isEmpty) return;
 
-      if (message.contains(HotReload.nonrevaliReload)) {
+      if (message.contains(HotReload.nonRevaliReload)) {
         clearConsole();
         printVmServiceUri();
         printParsedRoutes(null);
@@ -283,7 +283,7 @@ class VMServiceHandler {
         return;
       }
 
-      if (message.contains(HotReload.nonrevaliReload)) {
+      if (message.contains(HotReload.nonRevaliReload)) {
         clearConsole();
         printVmServiceUri();
         return;
@@ -330,7 +330,7 @@ class VMServiceHandler {
       return false;
     }
 
-    final revali = await root.getrevali();
+    final revali = await root.getRevali();
 
     final server =
         path.equals(revali.childFile(ServerFile.fileName).path, event.path);

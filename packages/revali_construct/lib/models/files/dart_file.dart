@@ -2,11 +2,31 @@ import 'package:path/path.dart' as p;
 import 'package:revali_construct/models/files/part_file.dart';
 
 class DartFile {
-  const DartFile({
+  DartFile({
     required this.basename,
     required this.content,
-    this.parts = const [],
-  });
+    List<PartFile> parts = const [],
+  }) : parts = parts.map((e) {
+          if (e.path.isEmpty) {
+            throw Exception('Part file path cannot be empty.');
+          }
+
+          for (final partPath in e.path) {
+            if (partPath.isEmpty) {
+              throw Exception('Part file path cannot contain empty parts.');
+            }
+
+            if (partPath.contains(RegExp(r'\\|\/|\.\\|\.{2,}|^\.'))) {
+              throw Exception('Part file path cannot contain relative paths.');
+            }
+          }
+
+          if (!e.path.last.endsWith('.dart')) {
+            throw Exception('Part file path must end with .dart.');
+          }
+
+          return e;
+        }).toList();
 
   final String basename;
   final String content;

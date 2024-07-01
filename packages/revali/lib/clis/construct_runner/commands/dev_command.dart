@@ -3,12 +3,12 @@ import 'dart:async';
 import 'package:args/command_runner.dart';
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
-import 'package:yaml/yaml.dart';
 import 'package:revali/handlers/routes_handler.dart';
 import 'package:revali/handlers/vm_service_handler.dart';
 import 'package:revali/utils/extensions/directory_extensions.dart';
 import 'package:revali/utils/mixins/directories_mixin.dart';
 import 'package:revali_construct/revali_construct.dart';
+import 'package:yaml/yaml.dart';
 
 class DevCommand extends Command<int> with DirectoriesMixin {
   DevCommand({
@@ -71,12 +71,12 @@ class DevCommand extends Command<int> with DirectoriesMixin {
 
     final serverHandler = VMServiceHandler(
       root: root,
-      serverFile: (await root.getrevaliFile(ServerFile.fileName)).path,
+      serverFile: (await root.getRevaliFile(ServerFile.fileName)).path,
       codeGenerator: codeGenerator,
       logger: logger,
     );
 
-    final revali = await root.getrevali();
+    final revali = await root.getRevali();
     if (await revali.exists()) {
       await revali.delete(recursive: true);
     }
@@ -144,7 +144,7 @@ class DevCommand extends Command<int> with DirectoriesMixin {
   ) async {
     final result = construct.generate(server);
 
-    final router = await root.getrevaliFile(result.basename);
+    final router = await root.getRevaliFile(result.basename);
 
     if (!await router.exists()) {
       await router.create(recursive: true);
@@ -152,7 +152,7 @@ class DevCommand extends Command<int> with DirectoriesMixin {
 
     await router.writeAsString(result.getContent());
 
-    final revali = await root.getrevali();
+    final revali = await root.getRevali();
 
     for (final MapEntry(key: basename, value: content)
         in result.getPartContent()) {

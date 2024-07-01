@@ -57,19 +57,19 @@ extension DirectoryX on Directory {
   /// specifically used with revali
   ///
   /// The directory may _NOT_ exist
-  Future<Directory> getInternalrevali() async {
+  Future<Directory> getInternalRevali() async {
     final dartTool = await getDartTool();
 
     return dartTool.childDirectory('revali');
   }
 
-  /// retrieves the file within [getInternalrevali] dir
+  /// retrieves the file within [getInternalRevali] dir
   ///
   /// Should be 1 level deep only
   ///
   /// The file may _NOT_ exist
-  Future<File> getInternalrevaliFile(String basename) async {
-    final revali = await getInternalrevali();
+  Future<File> getInternalRevaliFile(String basename) async {
+    final revali = await getInternalRevali();
 
     return revali.childFile(basename);
   }
@@ -88,7 +88,7 @@ extension DirectoryX on Directory {
   /// specifically used for revali
   ///
   /// The directory may _NOT_ exist
-  Future<Directory> getrevali() async {
+  Future<Directory> getRevali() async {
     final root = await getRoot();
 
     if (root == null) {
@@ -98,13 +98,13 @@ extension DirectoryX on Directory {
     return root.childDirectory('.revali');
   }
 
-  /// retrieves the file within [getrevali] dir
+  /// retrieves the file within [getRevali] dir
   ///
   /// Should be 1 level deep only
   ///
   /// The file may _NOT_ exist
-  Future<File> getrevaliFile(String basename) async {
-    final revali = await getrevali();
+  Future<File> getRevaliFile(String basename) async {
+    final revali = await getRevali();
     final normalized = p.normalize(p.join(revali.path, basename));
     final relative = p.relative(normalized, from: revali.path);
 

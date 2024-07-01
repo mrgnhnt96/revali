@@ -6,11 +6,14 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_router/shelf_router.dart';
 import 'package:revali_annotations/revali_annotations.dart';
-import '../routes/user.controller.dart' as user_controller;
 import 'package:revali_construct/revali_construct.dart';
+import '../routes/user.controller.dart';
+import '../routes/some.controller.dart';
 
 part 'server/__register_dependencies.dart';
 part 'server/__register_controllers.dart';
+part 'server/handlers/__user.dart';
+part 'server/handlers/__some.dart';
 
 void main() async {
   _registerDependencies();
@@ -35,11 +38,10 @@ Handler _root() {
         ..mount(
           '/user',
           (context) => user()(context),
+        )
+        ..mount(
+          '/some',
+          (context) => some()(context),
         ))
       .handler);
-}
-
-Handler user() {
-  final controller = DI.instance.get<user_controller.ThisController>();
-  return Router();
 }

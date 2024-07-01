@@ -1,5 +1,5 @@
 class Query {
-  const Query(this.name);
+  const Query([this.name]);
 
-  final String name;
+  final String? name;
 }

@@ -9,12 +9,11 @@ PartFile registerControllers(String Function(Spec) formatter) {
       ..body = Block.of([
         refer('DI').property('instance').property('registerLazySingleton').call(
           [
-            refer(
-                '() => user_controller.ThisController(DI.instance.get(), DI.instance.get())'),
+            refer('() => ThisController(DI.instance.get(), DI.instance.get())'),
           ],
           {},
           [
-            refer('user_controller.ThisController'),
+            refer('ThisController'),
           ],
         ).statement,
       ]),

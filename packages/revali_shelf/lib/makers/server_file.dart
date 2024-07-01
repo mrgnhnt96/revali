@@ -1,5 +1,7 @@
 import 'package:code_builder/code_builder.dart';
+import 'package:path/path.dart' as p;
 import 'package:revali_construct/revali_construct.dart';
+import 'package:revali_shelf/makers/utils/meta_route_extensions.dart';
 
 String serverFile(List<MetaRoute> routes, String Function(Spec) formatter) {
   final imports = [
@@ -11,8 +13,8 @@ String serverFile(List<MetaRoute> routes, String Function(Spec) formatter) {
     "import 'package:shelf/shelf_io.dart' as io;",
     "import 'package:shelf_router/shelf_router.dart';",
     "import 'package:revali_annotations/revali_annotations.dart';",
-    "import '../routes/user.controller.dart' as user_controller;",
     "import 'package:revali_construct/revali_construct.dart';",
+    for (final route in routes) "import '../${p.relative(route.filePath)}';",
   ];
 
   final main = Method(
@@ -39,7 +41,7 @@ String serverFile(List<MetaRoute> routes, String Function(Spec) formatter) {
       ..body = Block.of([
         declareFinal('server')
             .assign(
-              refer('await io.serve').call(
+              refer('io').property('serve').call(
                 [
                   refer('Cascade')
                       .call([])
@@ -53,7 +55,7 @@ String serverFile(List<MetaRoute> routes, String Function(Spec) formatter) {
                   literalString('localhost'),
                   literalNum(8123),
                 ],
-              ),
+              ).awaited,
             )
             .statement,
         refer('server')
@@ -70,6 +72,24 @@ String serverFile(List<MetaRoute> routes, String Function(Spec) formatter) {
       ]),
   );
 
+  var router = refer('Router').newInstance([]);
+
+  for (final route in routes) {
+    router = router.cascade('mount').call(
+      [
+        literalString(route.cleanPath),
+        Method(
+          (b) => b
+            ..lambda = true
+            ..requiredParameters.add(Parameter((b) => b..name = 'context'))
+            ..body = Block.of([
+              refer(route.handlerName).call([]).call([refer('context')]).code,
+            ]),
+        ).closure,
+      ],
+    );
+  }
+
   final _root = Method(
     (b) => b
       ..name = '_root'
@@ -81,19 +101,9 @@ String serverFile(List<MetaRoute> routes, String Function(Spec) formatter) {
             .call(
               [
                 refer('Cascade')
-                    .call([])
+                    .newInstance([])
                     .property('add')
-                    .call(
-                      [
-                        refer('Router').call([]).cascade('mount').call(
-                              [
-                                literalString('/user'),
-                                refer('(context) => user()')
-                                    .call([refer('context')]),
-                              ],
-                            ),
-                      ],
-                    )
+                    .call([router])
                     .property('handler'),
               ],
             )
@@ -102,59 +112,10 @@ String serverFile(List<MetaRoute> routes, String Function(Spec) formatter) {
       ]),
   );
 
-  final user = Method(
-    (b) => b
-      ..name = 'user'
-      ..returns = refer('Handler')
-      ..body = Block.of([
-        declareFinal('controller')
-            .assign(
-              refer('DI').property('instance').property('get').call(
-                [],
-                {},
-                [
-                  refer('user_controller.ThisController'),
-                ],
-              ),
-            )
-            .statement,
-        refer('return Router').call([])
-            // .property('add')
-            // .call(
-            //   [
-            //     literalString('GET'),
-            //     literalString('/'),
-            //     refer('(context) => _userListPeople(controller)')
-            //         .call([refer('context')]),
-            //   ],
-            // )
-            // .property('add')
-            // .call(
-            //   [
-            //     literalString('GET'),
-            //     literalString('/<id>'),
-            //     refer('(context) => _userGetNewPerson(controller)')
-            //         .call([refer('context')]),
-            //   ],
-            // )
-            // .property('add')
-            // .call(
-            //   [
-            //     literalString('POST'),
-            //     literalString('/create'),
-            //     refer('(context) => _userCreate(controller)')
-            //         .call([refer('context')]),
-            //   ],
-            // )
-            .statement,
-      ]),
-  );
-
   final parts = <Spec>[
     main,
     createServer,
     _root,
-    user,
   ];
 
   final content = parts.map(formatter).join('\n');

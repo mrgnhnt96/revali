@@ -15,8 +15,8 @@ class ThisController {
 
   @Get(':id')
   String getNewPerson({
-    @Query('name') required String name,
-    @Param('id') required String id,
+    @Query() required String name,
+    @Param() required String id,
   }) {
     return '$name $id';
   }

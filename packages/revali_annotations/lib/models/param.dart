@@ -1,5 +1,5 @@
 class Param {
-  const Param(this.name);
+  const Param([this.name]);
 
-  final String name;
+  final String? name;
 }

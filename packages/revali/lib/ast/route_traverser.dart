@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/visitor.dart';
 import 'package:file/file.dart';
 import 'package:path/path.dart' as path;
 import 'package:revali/ast/checkers/checkers.dart';
+import 'package:revali/ast/checkers/type_checker.dart';
 import 'package:revali/ast/file_system/file_resource_provider.dart';
 import 'package:revali_construct/revali_construct.dart';
 
@@ -182,13 +183,34 @@ Iterable<MetaParam> getParams(FunctionTypedElement element) {
 
     params.add(
       MetaParam(
-        name: param.name,
-        type: type,
-        typeElement: element,
-        nullable: param.type.nullabilitySuffix != NullabilitySuffix.none,
-        isRequired: param.isRequired,
-        annotations: annotations,
-      ),
+          name: param.name,
+          type: type,
+          typeElement: element,
+          nullable: param.type.nullabilitySuffix != NullabilitySuffix.none,
+          isRequired: param.isRequired,
+          annotations: annotations,
+          isNamed: param.isNamed,
+          defaultValue: param.defaultValueCode,
+          annotationFor: ({
+            required String className,
+            required String package,
+          }) {
+            final checker =
+                TypeChecker.fromName(className, packageName: package);
+
+            final annotations = checker.annotationsOf(param);
+
+            if (annotations.isEmpty) {
+              return null;
+            }
+
+            if (annotations.length > 1) {
+              throw Exception(
+                  'Only one annotation of type $className is allowed');
+            }
+
+            return annotations.first;
+          }),
     );
   }
 
