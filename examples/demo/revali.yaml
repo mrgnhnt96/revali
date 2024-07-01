@@ -1,0 +1,5 @@
+constructs:
+    - name: shelf
+      package: revali_shelf
+      options:
+        im: awesome

@@ -241,6 +241,34 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.4"
+  revali:
+    dependency: "direct dev"
+    description:
+      path: "../../packages/revali"
+      relative: true
+    source: path
+    version: "0.0.1+1"
+  revali_annotations:
+    dependency: "direct main"
+    description:
+      path: "../../packages/revali_annotations"
+      relative: true
+    source: path
+    version: "0.0.1+1"
+  revali_construct:
+    dependency: transitive
+    description:
+      path: "../../packages/revali_construct"
+      relative: true
+    source: path
+    version: "0.0.1"
+  revali_shelf:
+    dependency: "direct dev"
+    description:
+      path: "../../packages/revali_shelf"
+      relative: true
+    source: path
+    version: "0.0.1+1"
   shelf:
     dependency: transitive
     description:
@@ -353,33 +381,5 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.2"
-  zora:
-    dependency: "direct dev"
-    description:
-      path: "../../packages/zora"
-      relative: true
-    source: path
-    version: "0.0.1+1"
-  zora_annotations:
-    dependency: "direct main"
-    description:
-      path: "../../packages/zora_annotations"
-      relative: true
-    source: path
-    version: "0.0.1+1"
-  zora_construct:
-    dependency: transitive
-    description:
-      path: "../../packages/zora_construct"
-      relative: true
-    source: path
-    version: "0.0.1"
-  zora_shelf:
-    dependency: "direct dev"
-    description:
-      path: "../../packages/zora_shelf"
-      relative: true
-    source: path
-    version: "0.0.1+1"
 sdks:
   dart: ">=3.4.0 <4.0.0"

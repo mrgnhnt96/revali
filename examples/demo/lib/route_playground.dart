@@ -6,8 +6,8 @@ import 'package:examples/utils/logger.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_router/shelf_router.dart';
-import 'package:zora_annotations/zora_annotations.dart';
-import 'package:zora_construct/zora_construct.dart';
+import 'package:revali_annotations/revali_annotations.dart';
+import 'package:revali_construct/revali_construct.dart';
 
 import 'user.controller.dart' as user_controller;
 

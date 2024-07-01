@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as io;
-import 'package:zora_annotations/zora_annotations.dart' show DI;
+import 'package:revali_annotations/revali_annotations.dart' show DI;
 
 void main() async {
   final handler = Cascade().add(_root()).handler;
@@ -35,7 +35,7 @@ Middleware _prepDi() => (handler) {
       };
     };
 
-Middleware _middleStuff<T extends Object>(ZoraMiddleWare<T> middleware) =>
+Middleware _middleStuff<T extends Object>(revaliMiddleWare<T> middleware) =>
     (handler) {
       return (request) async {
         final context = Context();
@@ -62,7 +62,7 @@ Response _helloHandler(Request request) {
   return Response.ok('Hello, $name!');
 }
 
-class MiddleStuff extends ZoraMiddleWare<String> {
+class MiddleStuff extends revaliMiddleWare<String> {
   MiddleStuff(this.message);
 
   final String message;
@@ -80,7 +80,7 @@ class MiddleStuff extends ZoraMiddleWare<String> {
   }
 }
 
-class MiddleNada extends ZoraMiddleWare<Nada> {
+class MiddleNada extends revaliMiddleWare<Nada> {
   MiddleNada(this.message);
   final String message;
 
@@ -103,8 +103,8 @@ class Nada {
   final String message;
 }
 
-abstract class ZoraMiddleWare<T extends Object> {
-  const ZoraMiddleWare();
+abstract class revaliMiddleWare<T extends Object> {
+  const revaliMiddleWare();
 
   Future<T?> before(Context context) async {
     return null;

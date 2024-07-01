@@ -1,6 +1,6 @@
 import 'package:examples/repos/repo.dart';
 import 'package:examples/utils/logger.dart';
-import 'package:zora_annotations/zora_annotations.dart';
+import 'package:revali_annotations/revali_annotations.dart';
 
 @Auth(AuthType.user)
 @Controller('user')

@@ -5,12 +5,12 @@ environment:
     sdk: '>=3.2.6 <4.0.0'
 
 dependencies:
-    zora_annotations:
-        path: ../../packages/zora_annotations
+    revali_annotations:
+        path: ../../packages/revali_annotations
 
 dev_dependencies:
     mocktail: ^1.0.4
-    zora:
-        path: ../../packages/zora
-    zora_shelf:
-        path: ../../packages/zora_shelf
+    revali:
+        path: ../../packages/revali
+    revali_shelf:
+        path: ../../packages/revali_shelf

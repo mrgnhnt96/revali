@@ -9,10 +9,10 @@
             "cwd": "examples/demo",
             "request": "launch",
             "type": "dart",
-            "program": ".zora/server.dart",
+            "program": ".revali/server.dart",
             "args": [
                 "run",
-                "zora"
+                "revali"
             ]
         }
     ]
