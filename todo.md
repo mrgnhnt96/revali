@@ -1,5 +1,18 @@
 # TODO
 
+## 7.1.2024
+
+- [ ] Create "App" annotation
+  - This will be used for configurations such as
+    - Server lambdas
+    - Server configurations
+    - Dependency injection
+    - etc.
+
+## > 7.1.2024
+
+---
+
 - [ ] ~~Combine revali and revali_shelf into a single package~~
   - ~~This is because shelf is really the only http server that we will be using, and we want consistency~~
   - ~~We also don't want constructs to run scripts, which is what we would have to do if the revali_shelf package was separate~~
