@@ -1,3 +1,5 @@
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_annotations/revali_annotations.dart' as a;
 import 'package:revali_construct/revali_construct.dart';
@@ -70,6 +72,42 @@ Spec methodHandler(MetaMethod method, MetaRoute route) {
     // TODO(MRGNHNT): Add support for other types of parameters
   }
 
+  Expression methodCall = refer('controller')
+      .property(method.name)
+      .call(params.positional, params.named);
+
+  var response = refer('Response')
+      .newInstanceNamed('ok', [literalString(method.name)])
+      .returned
+      .statement;
+
+  if (!method.returnType.isVoid) {
+    methodCall = declareFinal('result').assign(methodCall);
+
+    response = refer('Response')
+        .newInstanceNamed('ok', [
+          refer('jsonEncode').call([
+            literalMap(
+              {
+                'data': refer('result'),
+              },
+            )
+          ]),
+        ])
+        .returned
+        .statement;
+
+    if (!method.returnType.isPrimitive) {
+      final element = method.returnType.element;
+      if (element is ClassElement) {
+        final toJson = element.getMethod('toJson');
+        if (toJson != null) {
+          methodCall = methodCall.property('toJson').call([]);
+        }
+      }
+    }
+  }
+
   return Method(
     (b) => b
       ..name = method.handlerName(route)
@@ -96,14 +134,8 @@ Spec methodHandler(MetaMethod method, MetaRoute route) {
                   ..body = Block.of([
                     ...getters,
                     ...checks,
-                    refer('controller')
-                        .property(method.name)
-                        .call(params.positional, params.named)
-                        .statement,
-                    refer('Response')
-                        .newInstanceNamed('ok', [literalString(method.name)])
-                        .returned
-                        .statement,
+                    methodCall.statement,
+                    response,
                   ]),
               ).closure,
             ])
@@ -114,14 +146,22 @@ Spec methodHandler(MetaMethod method, MetaRoute route) {
 }
 
 Expression? _checkForQueryParam(MetaParam param) {
-  final queryObject = param.annotationFor(
-    className: '${a.Query}',
+  final queryObjects = param.annotationsFor(
+    className: a.Query,
     package: 'revali_annotations',
   );
 
-  if (queryObject == null) {
+  if (queryObjects.isEmpty) {
     return null;
   }
+
+  if (queryObjects.length > 1) {
+    throw Exception(
+      'Found multiple @Query annotations on parameter ${param.name}',
+    );
+  }
+
+  final queryObject = queryObjects.first;
 
   var paramName = queryObject.getField('name')?.toStringValue();
 
@@ -136,27 +176,101 @@ Expression? _checkForQueryParam(MetaParam param) {
 }
 
 Expression? _checkForParamParam(MetaParam param) {
-  final queryObject = param.annotationFor(
-    className: '${a.Param}',
+  final paramObjects = param.annotationsFor(
+    className: a.Param,
     package: 'revali_annotations',
   );
 
-  if (queryObject == null) {
+  if (paramObjects.isEmpty) {
     return null;
   }
 
-  var paramName = queryObject.getField('name')?.toStringValue();
+  if (paramObjects.length > 1) {
+    throw Exception(
+      'Found multiple @Param annotations on parameter ${param.name}',
+    );
+  }
 
+  final paramObject = paramObjects.first;
+
+  var paramName = paramObject.getField('name')?.toStringValue();
   if (paramName == null) {
     paramName = param.name;
   }
 
-  final expression =
+  var pipe = paramObject.getField('pipe')?.toTypeValue();
+
+  var getter =
       refer('context').property('params').index(literalString(paramName));
 
   if (!param.nullable) {
-    return expression.nullChecked;
+    getter = getter.nullChecked;
   }
 
-  return expression;
+  if (pipe == null) {
+    return getter;
+  }
+
+  if (pipe is! InterfaceType) {
+    throw Exception(
+      'Invalid pipe type for parameter ${param.name}, '
+      'expected InterfaceType, got ${pipe.runtimeType}',
+    );
+  }
+
+  final pipeExpression = createPipe(
+    pipe,
+    type: a.ParamType.param,
+    name: paramName,
+    getter: getter,
+  );
+
+  return pipeExpression;
+}
+
+Expression createPipe(
+  InterfaceType pipe, {
+  required a.ParamType type,
+  required String name,
+  required Expression getter,
+}) {
+  final pipeTransform = pipe.allSupertypes.firstWhere(
+      (element) =>
+          element.element.name == 'PipeTransform' &&
+          element.element.library.identifier.contains('revali_annotations'),
+      orElse: () {
+    throw Exception(
+        'Pipe (${pipe.element.name}) must be of type PipeTransform');
+  });
+
+  final params = (named: <String, Expression>{}, positional: <Expression>[]);
+  final pipeParams = pipe.element.constructors.first.parameters;
+  for (final param in pipeParams) {
+    final getter = refer('DI').property('instance').property('get').call([]);
+
+    if (param.isNamed) {
+      params.named[param.name] = getter;
+    } else {
+      params.positional.add(getter);
+    }
+  }
+
+  final pipeInstance =
+      refer(pipe.element.name).newInstance(params.positional, params.named);
+
+  final typeArgs = <String>[
+    for (final type in pipeTransform.typeArguments)
+      type.getDisplayString(withNullability: true),
+  ];
+
+  // call transform method on pipe
+  final transform = pipeInstance.property('transform').call([
+    getter.asA(refer(typeArgs[0])),
+    refer('ArgumentMetadata').newInstance([
+      refer('$type'),
+      literalString(name),
+    ]),
+  ]);
+
+  return transform;
 }

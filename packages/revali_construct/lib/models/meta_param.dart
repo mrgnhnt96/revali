@@ -11,7 +11,7 @@ class MetaParam {
     required this.isNamed,
     required this.annotations,
     required this.defaultValue,
-    required this.annotationFor,
+    required this.annotationsFor,
   });
 
   final String name;
@@ -21,8 +21,10 @@ class MetaParam {
   final bool isRequired;
   final bool isNamed;
   final String? defaultValue;
-  final DartObject? Function(
-      {required String className, required String package}) annotationFor;
+  final Iterable<DartObject> Function({
+    required Type className,
+    required String package,
+  }) annotationsFor;
   final Iterable<ElementAnnotation> annotations;
 
   bool get hasDefaultValue => defaultValue != null;

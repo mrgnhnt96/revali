@@ -10,7 +10,7 @@ Handler user() {
     )
     ..add(
       'GET',
-      '/:id',
+      '/<id>',
       (context) => _userId(controller)(context),
     )
     ..add(
@@ -32,15 +32,23 @@ Handler _user(ThisController controller) {
 Handler _userId(ThisController controller) {
   return Pipeline().addHandler((context) {
     final name = context.url.queryParameters['name'];
-    final id = context.params['id']!;
+    final id = StringToIntPipe(DI.instance.get()).transform(
+      (context.params['id']! as String),
+      ArgumentMetadata(
+        ParamType.param,
+        'id',
+      ),
+    );
     if (name == null) {
       return Response.badRequest(body: {'error': 'name is required in query'});
     }
-    controller.getNewPerson(
-      name: name,
-      id: id,
-    );
-    return Response.ok('getNewPerson');
+    final result = controller
+        .getNewPerson(
+          name: name,
+          id: id,
+        )
+        .toJson();
+    return Response.ok(jsonEncode({'data': result}));
   });
 }
 

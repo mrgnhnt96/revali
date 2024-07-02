@@ -191,25 +191,16 @@ Iterable<MetaParam> getParams(FunctionTypedElement element) {
           annotations: annotations,
           isNamed: param.isNamed,
           defaultValue: param.defaultValueCode,
-          annotationFor: ({
-            required String className,
+          annotationsFor: ({
+            required Type className,
             required String package,
           }) {
             final checker =
-                TypeChecker.fromName(className, packageName: package);
+                TypeChecker.fromName('$className', packageName: package);
 
             final annotations = checker.annotationsOf(param);
 
-            if (annotations.isEmpty) {
-              return null;
-            }
-
-            if (annotations.length > 1) {
-              throw Exception(
-                  'Only one annotation of type $className is allowed');
-            }
-
-            return annotations.first;
+            return annotations;
           }),
     );
   }

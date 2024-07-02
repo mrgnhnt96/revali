@@ -32,7 +32,7 @@ PartFile _routeHandler(MetaRoute route, String Function(Spec) formatter) {
     router = router.cascade('add').call(
       [
         literalString(method.method),
-        literalString(method.cleanPath),
+        literalString(method.formattedPath),
         Method(
           (b) => b
             ..lambda = true

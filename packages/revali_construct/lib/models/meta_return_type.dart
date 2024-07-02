@@ -12,4 +12,12 @@ class MetaReturnType {
   final bool isNullable;
   final String type;
   final Element? element;
+
+  bool get isPrimitive {
+    return type == 'String' ||
+        type == 'int' ||
+        type == 'double' ||
+        type == 'num' ||
+        type == 'bool';
+  }
 }

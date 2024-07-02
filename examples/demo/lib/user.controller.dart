@@ -16,13 +16,22 @@ class ThisController {
   @Get(':id')
   String getNewPerson({
     @Query() required String name,
-    @Param() required String id,
+    @Param.pipe(StringToIntPipe) required int id,
   }) {
     return '$name $id';
   }
 
   // @Post('create')
   // void create() {}
+}
+
+class StringToIntPipe extends PipeTransform<String, int> {
+  const StringToIntPipe();
+
+  @override
+  int transform(String value, ArgumentMetadata metadata) {
+    return int.parse(value);
+  }
 }
 
 class Auth extends Middleware {

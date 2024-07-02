@@ -84,7 +84,12 @@ Handler _userGetNewPerson(user_controller.ThisController controller) {
 
     final idPathParam = context.params['id']!;
 
-    final result = controller.getNewPerson(name: name, id: idPathParam);
+    final pipedId = user_controller.StringToIntPipe().transform(
+      idPathParam,
+      ArgumentMetadata(ParamType.param, 'path'),
+    );
+
+    final result = controller.getNewPerson(name: name, id: pipedId);
 
     return Response.ok(jsonEncode({
       'data': result,

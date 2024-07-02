@@ -6,8 +6,9 @@ environment:
     sdk: '>=3.2.6 <4.0.0'
 
 dependencies:
-    code_builder: ^4.10.0
+    analyzer: 6.4.1
     change_case: ^2.1.0
+    code_builder: ^4.10.0
     dart_style: ^2.3.6
     revali_construct:
         path: ../revali_construct
