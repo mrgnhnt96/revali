@@ -15,7 +15,7 @@ class ThisController {
 
   @Get(':id')
   User getNewPerson({
-    @Query() required String name,
+    @Query.pipe(NamePipe) required String name,
     @Param.pipe(StringToIntPipe) required int id,
   }) {
     final user = User(name, id);
@@ -27,6 +27,15 @@ class ThisController {
   void create(
     @Query() String name,
   ) {}
+}
+
+class NamePipe extends PipeTransform<String, String> {
+  const NamePipe();
+
+  @override
+  String transform(String value, ArgumentMetadata metadata) {
+    return 'value: $value';
+  }
 }
 
 class StringToIntPipe extends PipeTransform<String, int> {

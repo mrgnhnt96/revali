@@ -1,3 +1,4 @@
+import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:code_builder/code_builder.dart';
@@ -11,20 +12,25 @@ Spec methodHandler(MetaMethod method, MetaRoute route) {
   final params = (positional: <Expression>[], named: <String, Expression>{});
 
   for (final param in method.params) {
-    final queryParam = _checkForQueryParam(param);
-    if (queryParam != null) {
-      final getter = declareFinal(param.name).assign(queryParam).statement;
-      getters.add(getter);
+    if (_checkForQueryParam(param) case final result
+        when result.getter != null) {
+      final (:getter!, :pipe) = result;
 
-      if (!param.nullable) {
+      final getterStatement = declareFinal(param.name).assign(getter).statement;
+      getters.add(getterStatement);
+
+      if (!param.nullable || param.isRequired) {
         final condition = refer(param.name).equalTo(literalNull);
         final block = Block.of([
           // TODO(mrgnhnt): Add support for custom error messages/exceptions
           refer('Response')
               .newInstanceNamed('badRequest', [], {
-                'body': literalMap({
-                  'error': literalString('${param.name} is required in query'),
-                }),
+                'body': refer('jsonEncode').call([
+                  literalMap({
+                    'error':
+                        literalString('${param.name} is required in query'),
+                  })
+                ]),
               })
               .returned
               .statement,
@@ -42,22 +48,24 @@ Spec methodHandler(MetaMethod method, MetaRoute route) {
       }
 
       if (param.isNamed) {
-        params.named[param.name] = refer(param.name);
+        params.named[param.name] = pipe ?? refer(param.name);
       } else {
-        params.positional.add(refer(param.name));
+        params.positional.add(pipe ?? refer(param.name));
       }
       continue;
     }
 
-    final paramParam = _checkForParamParam(param);
-    if (paramParam != null) {
-      final getter = declareFinal(param.name).assign(paramParam).statement;
-      getters.add(getter);
+    if (_checkForParamParam(param) case final result
+        when result.getter != null) {
+      final (:getter!, :pipe) = result;
+
+      final getterStatement = declareFinal(param.name).assign(getter).statement;
+      getters.add(getterStatement);
 
       if (param.isNamed) {
-        params.named[param.name] = refer(param.name);
+        params.named[param.name] = pipe ?? refer(param.name);
       } else {
-        params.positional.add(refer(param.name));
+        params.positional.add(pipe ?? refer(param.name));
       }
       continue;
     }
@@ -145,14 +153,14 @@ Spec methodHandler(MetaMethod method, MetaRoute route) {
   );
 }
 
-Expression? _checkForQueryParam(MetaParam param) {
+({Expression? getter, Expression? pipe}) _checkForQueryParam(MetaParam param) {
   final queryObjects = param.annotationsFor(
     className: a.Query,
     package: 'revali_annotations',
   );
 
   if (queryObjects.isEmpty) {
-    return null;
+    return (getter: null, pipe: null);
   }
 
   if (queryObjects.length > 1) {
@@ -169,20 +177,47 @@ Expression? _checkForQueryParam(MetaParam param) {
     paramName = param.name;
   }
 
-  return refer('context')
+  var getter = refer('context')
       .property('url')
       .property('queryParameters')
       .index(literalString(paramName));
+
+  return _checkForPipe(
+    queryObject,
+    getter: getter,
+    name: paramName,
+    type: a.ParamType.query,
+  );
 }
 
-Expression? _checkForParamParam(MetaParam param) {
+({Expression getter, Expression? pipe}) _checkForPipe(
+  DartObject object, {
+  required Expression getter,
+  required String name,
+  required a.ParamType type,
+}) {
+  var pipe = object.getField('pipe')?.toTypeValue();
+  if (pipe == null) {
+    return (getter: getter, pipe: null);
+  }
+
+  final pipeExpression = createPipe(
+    pipe,
+    type: type,
+    name: name,
+  );
+
+  return (getter: getter, pipe: pipeExpression);
+}
+
+({Expression? getter, Expression? pipe}) _checkForParamParam(MetaParam param) {
   final paramObjects = param.annotationsFor(
     className: a.Param,
     package: 'revali_annotations',
   );
 
   if (paramObjects.isEmpty) {
-    return null;
+    return (getter: null, pipe: null);
   }
 
   if (paramObjects.length > 1) {
@@ -198,8 +233,6 @@ Expression? _checkForParamParam(MetaParam param) {
     paramName = param.name;
   }
 
-  var pipe = paramObject.getField('pipe')?.toTypeValue();
-
   var getter =
       refer('context').property('params').index(literalString(paramName));
 
@@ -207,33 +240,26 @@ Expression? _checkForParamParam(MetaParam param) {
     getter = getter.nullChecked;
   }
 
-  if (pipe == null) {
-    return getter;
-  }
+  return _checkForPipe(
+    paramObject,
+    getter: getter,
+    name: paramName,
+    type: a.ParamType.param,
+  );
+}
 
+Expression createPipe(
+  DartType? pipe, {
+  required a.ParamType type,
+  required String name,
+}) {
   if (pipe is! InterfaceType) {
     throw Exception(
-      'Invalid pipe type for parameter ${param.name}, '
+      'Invalid pipe type for parameter $name, '
       'expected InterfaceType, got ${pipe.runtimeType}',
     );
   }
 
-  final pipeExpression = createPipe(
-    pipe,
-    type: a.ParamType.param,
-    name: paramName,
-    getter: getter,
-  );
-
-  return pipeExpression;
-}
-
-Expression createPipe(
-  InterfaceType pipe, {
-  required a.ParamType type,
-  required String name,
-  required Expression getter,
-}) {
   final pipeTransform = pipe.allSupertypes.firstWhere(
       (element) =>
           element.element.name == 'PipeTransform' &&
@@ -265,7 +291,7 @@ Expression createPipe(
 
   // call transform method on pipe
   final transform = pipeInstance.property('transform').call([
-    getter.asA(refer(typeArgs[0])),
+    refer(name).asA(refer(typeArgs[0])),
     refer('ArgumentMetadata').newInstance([
       refer('$type'),
       literalString(name),
