@@ -30,11 +30,15 @@ class ThisController {
 class Auth extends Middleware {
   const Auth(this.type);
 
-  AuthRepo get repo => get();
-
   final AuthType type;
 
   String get hi => 'hi';
+}
+
+class Guard {
+  const Guard(this.types);
+
+  final List<Type> types;
 }
 
 enum AuthType {

@@ -1,0 +1,3 @@
+class RequestContext {
+  const RequestContext();
+}

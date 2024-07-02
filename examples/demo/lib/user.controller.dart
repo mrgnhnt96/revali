@@ -28,8 +28,6 @@ class ThisController {
 class Auth extends Middleware {
   const Auth(this.type);
 
-  AuthRepo get repo => get();
-
   final AuthType type;
 
   String get hi => 'hi';

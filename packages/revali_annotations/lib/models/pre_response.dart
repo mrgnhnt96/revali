@@ -1,0 +1,3 @@
+class PreResponse {
+  const PreResponse();
+}

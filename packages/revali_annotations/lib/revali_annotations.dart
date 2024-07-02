@@ -11,6 +11,6 @@ export 'models/methods/method.dart';
 export 'models/methods/patch.dart';
 export 'models/methods/post.dart';
 export 'models/methods/put.dart';
-export 'models/middleware.dart';
+export 'models/middleware/middleware.dart';
 export 'models/param.dart';
 export 'models/query.dart';
