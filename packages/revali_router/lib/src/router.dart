@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:revali_router/src/data/data_handler.dart';
 import 'package:revali_router/src/endpoint/endpoint_context.dart';
 import 'package:revali_router/src/guard/guard_action.dart';
 import 'package:revali_router/src/guard/guard_context_impl.dart';
@@ -44,9 +45,11 @@ class Router extends Equatable {
 
     final middlewareAction = MiddlewareAction();
 
+    final dataHandler = DataHandler();
     final directMeta = route.getMeta();
     final inheritedMeta = route.getMeta(inherit: true);
-    final middlewareContext = MiddlewareContextImpl.from(context);
+    final middlewareContext =
+        MiddlewareContextImpl.from(context, data: dataHandler);
 
     for (final middleware in route.allMiddlewares) {
       final result = await middleware.use(
@@ -68,6 +71,7 @@ class Router extends Equatable {
         inherited: inheritedMeta,
         route: route,
       ),
+      data: dataHandler,
     );
 
     final guardAction = GuardAction();
@@ -88,6 +92,7 @@ class Router extends Equatable {
         direct: directMeta,
         inherited: inheritedMeta,
       ),
+      data: dataHandler,
     );
 
     for (final interceptor in route.allInterceptors) {
@@ -107,6 +112,7 @@ class Router extends Equatable {
         direct: directMeta,
         inherited: inheritedMeta,
       ),
+      data: dataHandler,
     );
 
     for (final interceptor in route.allInterceptors) {

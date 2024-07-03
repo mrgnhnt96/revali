@@ -1,5 +1,3 @@
-typedef Factory<T> = T Function();
-
 class MetaHandler {
   MetaHandler();
 

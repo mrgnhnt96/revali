@@ -1,3 +1,4 @@
+import 'package:revali_router/src/data/data_handler.dart';
 import 'package:revali_router/src/interceptor/interceptor_context.dart';
 import 'package:revali_router/src/interceptor/interceptor_meta.dart';
 import 'package:revali_router/src/request/mutable_request_context_impl.dart';
@@ -8,11 +9,17 @@ class InterceptorContextImpl extends MutableRequestContextImpl
   InterceptorContextImpl(
     super.request, {
     required this.meta,
+    required this.data,
   });
   InterceptorContextImpl.from(
     super.request, {
     required this.meta,
+    required this.data,
   }) : super.from();
 
+  @override
   final InterceptorMeta meta;
+
+  @override
+  final DataHandler data;
 }
