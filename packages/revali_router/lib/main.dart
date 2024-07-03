@@ -1,6 +1,5 @@
 import 'package:revali_router/src/guard/guard.dart';
 import 'package:revali_router/src/guard/guard_action.dart';
-import 'package:revali_router/src/guard/guard_context.dart';
 import 'package:revali_router/src/middleware/middleware.dart';
 import 'package:revali_router/src/middleware/middleware_action.dart';
 import 'package:revali_router/src/request/request_context.dart';
@@ -49,6 +48,7 @@ late final routes = [
       Route(
         '',
         method: 'GET',
+        guards: [AuthGuard()],
         handler: (context) async {},
       ),
     ],
@@ -57,11 +57,18 @@ late final routes = [
 
 class AuthGuard extends Guard {
   @override
-  Future<GuardResult> canNavigate(
-    GuardContext context,
-    GuardAction action,
-  ) async {
-    return action.no();
+  Future<GuardResult> canActivate(context, canActivate) async {
+    final hasAuth = context.data.get<HasAuth>();
+
+    if (hasAuth case null) {
+      return canActivate.no();
+    }
+
+    if (!hasAuth.hasAuth) {
+      return canActivate.no();
+    }
+
+    return canActivate.yes();
   }
 }
 
@@ -69,10 +76,16 @@ class AddAuth extends Middleware {
   @override
   Future<MiddlewareResult> use(
     MiddlewareContext context,
-    MiddlewareAction action,
+    MiddlewareAction canActivate,
   ) async {
-    context.setHeader('AUTH', 'YES');
+    context.data.add(HasAuth(true));
 
-    return action.next();
+    return canActivate.next();
   }
+}
+
+class HasAuth {
+  final bool hasAuth;
+
+  HasAuth(this.hasAuth);
 }

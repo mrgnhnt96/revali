@@ -5,7 +5,7 @@ class DataHandler {
 
   /// Register an instance of [T] to be used later.
   void add<T>(T instance) {
-    (_registered[T] ??= []).add(instance);
+    _registered[T] = instance;
   }
 
   T? get<T>() {

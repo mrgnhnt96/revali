@@ -76,7 +76,7 @@ class Router extends Equatable {
 
     final guardAction = GuardAction();
     for (final guard in route.allGuards) {
-      final result = await guard.canNavigate(guardContext, guardAction);
+      final result = await guard.canActivate(guardContext, guardAction);
 
       if (result.isNo) {
         final context = guardContext.getContext();
