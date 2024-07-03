@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:revali_router/src/endpoint/endpoint_context_impl.dart';
+import 'package:revali_router/src/endpoint/endpoint_context.dart';
 import 'package:revali_router/src/guard/guard_action.dart';
 import 'package:revali_router/src/guard/guard_context.dart';
 import 'package:revali_router/src/guard/guard_meta.dart';
@@ -97,7 +97,7 @@ class Router extends Equatable {
       );
     }
 
-    final endpointContext = EndpointContextImpl.from(context);
+    final endpointContext = EndpointContext.from(context);
 
     await handler.call(endpointContext);
 
