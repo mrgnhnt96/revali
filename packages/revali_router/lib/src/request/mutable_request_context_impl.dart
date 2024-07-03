@@ -27,4 +27,16 @@ class MutableRequestContextImpl extends RequestContext
   MutableRequestContextImpl getRequestContext() {
     return this;
   }
+
+  String? _body;
+
+  @override
+  Future<String?> get body async {
+    if (_body != null) {
+      return _body;
+    }
+
+    final body = await this.body;
+    return _body = body;
+  }
 }

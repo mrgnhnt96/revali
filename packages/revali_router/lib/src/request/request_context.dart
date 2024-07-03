@@ -22,6 +22,12 @@ class RequestContext extends Equatable {
     return segments;
   }
 
+  Future<String?> get body async {
+    final body = await _request.readAsString();
+
+    return body;
+  }
+
   @include
   String get method => _request.method;
 

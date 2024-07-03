@@ -17,13 +17,17 @@ class MutableResponseContextImpl implements MutableResponseContext {
   }
 
   int? _statusCode;
+  @override
   int get statusCode => _statusCode ?? 200;
+  @override
   void set statusCode(int value) {
     _statusCode = value;
   }
 
   Object? _body;
+  @override
   Object? get body => _body;
+  @override
   void set body(Object? value) {
     _body = value;
   }
