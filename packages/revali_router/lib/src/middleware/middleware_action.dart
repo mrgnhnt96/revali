@@ -1,5 +1,3 @@
-import 'package:shelf/shelf.dart';
-
 class MiddlewareResult {
   const MiddlewareResult();
 
@@ -15,9 +13,7 @@ class _Next extends MiddlewareResult {
 }
 
 class _Cancel extends MiddlewareResult {
-  const _Cancel(this.response, this.action);
-
-  final Response response;
+  const _Cancel(this.action);
 
   final MiddlewareAction action;
 }
@@ -27,5 +23,5 @@ class MiddlewareAction {
 
   _Next next() => _Next(this);
 
-  _Cancel cancel(Response response) => _Cancel(response, this);
+  _Cancel cancel() => _Cancel(this);
 }

@@ -12,6 +12,7 @@ extension _$RouteAutoequal on Route {
         routes,
         middlewares,
         interceptors,
+        guards,
         handler,
         method,
         _meta,
@@ -37,6 +38,8 @@ abstract class _$RouteCWProxy {
 
   Route method(String? method);
 
+  Route guards(List<Guard> guards);
+
   Route meta(dynamic meta);
 
   /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `Route(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
@@ -53,6 +56,7 @@ abstract class _$RouteCWProxy {
     Route? parent,
     Future<void> Function(EndpointContext)? handler,
     String? method,
+    List<Guard>? guards,
     dynamic meta,
   });
 }
@@ -88,6 +92,9 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
   Route method(String? method) => this(method: method);
 
   @override
+  Route guards(List<Guard> guards) => this(guards: guards);
+
+  @override
   Route meta(dynamic meta) => this(meta: meta);
 
   @override
@@ -106,6 +113,7 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
     Object? parent = const $CopyWithPlaceholder(),
     Object? handler = const $CopyWithPlaceholder(),
     Object? method = const $CopyWithPlaceholder(),
+    Object? guards = const $CopyWithPlaceholder(),
     Object? meta = const $CopyWithPlaceholder(),
   }) {
     return Route._(
@@ -139,6 +147,10 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
           ? _value.method
           // ignore: cast_nullable_to_non_nullable
           : method as String?,
+      guards: guards == const $CopyWithPlaceholder() || guards == null
+          ? _value.guards
+          // ignore: cast_nullable_to_non_nullable
+          : guards as List<Guard>,
       meta: meta == const $CopyWithPlaceholder() || meta == null
           ? _value._meta
           // ignore: cast_nullable_to_non_nullable

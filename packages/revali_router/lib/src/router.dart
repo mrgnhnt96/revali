@@ -1,11 +1,13 @@
 import 'package:equatable/equatable.dart';
 import 'package:revali_router/src/endpoint/endpoint_context_impl.dart';
+import 'package:revali_router/src/guard/guard_action.dart';
+import 'package:revali_router/src/guard/guard_context.dart';
+import 'package:revali_router/src/guard/guard_meta.dart';
 import 'package:revali_router/src/interceptor/interceptor_action.dart';
 import 'package:revali_router/src/interceptor/interceptor_context_impl.dart';
 import 'package:revali_router/src/interceptor/interceptor_meta.dart';
 import 'package:revali_router/src/middleware/middleware_action.dart';
-import 'package:revali_router/src/middleware/middleware_context_impl.dart';
-import 'package:revali_router/src/middleware/middleware_meta.dart';
+import 'package:revali_router/src/middleware/middleware_context.dart';
 import 'package:revali_router/src/request/request_context.dart';
 import 'package:revali_router/src/request/request_context_impl.dart';
 import 'package:revali_router/src/route.dart';
@@ -45,22 +47,38 @@ class Router extends Equatable {
 
     final directMeta = route.getMeta();
     final inheritedMeta = route.getMeta(inherit: true);
-    final middlewareContext = MiddlewareContextImpl.from(
-      context,
-      meta: MiddlewareMeta(
-        direct: directMeta,
-        inherited: inheritedMeta,
-      ),
-    );
+    final middlewareContext = MiddlewareContext.from(context);
 
     for (final middleware in route.allMiddlewares) {
-      final result = middleware.use(
+      final result = await middleware.use(
         middlewareContext,
         middlewareAction,
       );
 
       if (result.isCancel) {
-        return result.asCancel.response;
+        final context = middlewareContext.getContext();
+
+        return context.getErrorResponse();
+      }
+    }
+
+    final guardContext = GuardContext.from(
+      context,
+      meta: GuardMeta(
+        direct: directMeta,
+        inherited: inheritedMeta,
+        route: route,
+      ),
+    );
+
+    final guardAction = GuardAction();
+    for (final guard in route.allGuards) {
+      final result = await guard.canNavigate(guardContext, guardAction);
+
+      if (result.isNo) {
+        final context = guardContext.getContext();
+
+        return context.getErrorResponse();
       }
     }
 
@@ -80,13 +98,12 @@ class Router extends Equatable {
       );
     }
 
-    final endpointContext =
-        EndpointContextImpl.from(context.merge(interceptorContext));
+    final endpointContext = EndpointContextImpl.from(context);
 
     await handler.call(endpointContext);
 
     interceptorContext = InterceptorContextImpl.from(
-      context.merge(endpointContext),
+      context,
       meta: InterceptorMeta(
         direct: directMeta,
         inherited: inheritedMeta,
@@ -103,9 +120,9 @@ class Router extends Equatable {
       );
     }
 
-    final response = interceptorContext.getResponse();
+    final responseContext = interceptorContext.getContext();
 
-    return response;
+    return responseContext.getSuccessResponse();
   }
 
   Route? find({

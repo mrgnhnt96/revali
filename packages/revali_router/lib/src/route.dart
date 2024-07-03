@@ -2,6 +2,7 @@ import 'package:autoequal/autoequal.dart';
 import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:equatable/equatable.dart';
 import 'package:revali_router/src/endpoint/endpoint_context.dart';
+import 'package:revali_router/src/guard/guard.dart';
 import 'package:revali_router/src/interceptor/interceptor.dart';
 import 'package:revali_router/src/meta/meta_handler.dart';
 import 'package:revali_router/src/middleware/middleware.dart';
@@ -17,6 +18,7 @@ class Route extends Equatable {
     List<Route>? routes,
     this.middlewares = const [],
     this.interceptors = const [],
+    this.guards = const [],
     void Function(MetaHandler)? meta,
   })  : parent = null,
         _meta = meta,
@@ -94,6 +96,7 @@ class Route extends Equatable {
     required this.parent,
     required this.handler,
     required this.method,
+    required this.guards,
     // dynamic is needed bc copyWith has a bug
     required meta,
   }) : _meta = meta as void Function(MetaHandler)?;
@@ -102,6 +105,7 @@ class Route extends Equatable {
   late final Iterable<Route>? routes;
   final List<Middleware> middlewares;
   final List<Interceptor> interceptors;
+  final List<Guard> guards;
   @ignore
   final Route? parent;
   final Future<void> Function(EndpointContext)? handler;
@@ -174,6 +178,19 @@ class Route extends Equatable {
 
       yield* traverse(route.parent);
       yield* route.interceptors;
+    }
+
+    yield* traverse(this);
+  }
+
+  Iterable<Guard> get allGuards sync* {
+    Iterable<Guard> traverse(Route? route) sync* {
+      if (route == null) {
+        return;
+      }
+
+      yield* traverse(route.parent);
+      yield* route.guards;
     }
 
     yield* traverse(this);

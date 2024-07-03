@@ -4,7 +4,7 @@ import 'package:revali_router/src/middleware/middleware_context.dart';
 abstract class Middleware {
   const Middleware();
 
-  MiddlewareResult use(
+  Future<MiddlewareResult> use(
     MiddlewareContext context,
     MiddlewareAction action,
   );

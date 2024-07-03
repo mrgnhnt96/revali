@@ -1,16 +1,16 @@
-import 'package:revali_router/src/interceptor/interceptor_meta.dart';
+import 'package:revali_router/src/guard/guard_meta.dart';
 import 'package:revali_router/src/request/mutable_request_context.dart';
 
 // ignore: must_be_immutable
-class InterceptorContext extends MutableRequestContext {
-  InterceptorContext(
+class GuardContext extends MutableRequestContext {
+  GuardContext(
     super.request, {
     required this.meta,
   });
-  InterceptorContext.from(
+  GuardContext.from(
     super.request, {
     required this.meta,
   }) : super.from();
 
-  final InterceptorMeta meta;
+  final GuardMeta meta;
 }

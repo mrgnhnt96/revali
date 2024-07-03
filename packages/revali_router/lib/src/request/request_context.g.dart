@@ -10,5 +10,6 @@ extension _$RequestContextAutoequal on RequestContext {
   List<Object?> get _$props => [
         segments,
         method,
+        headers,
       ];
 }

@@ -5,12 +5,12 @@ import 'package:revali_router/src/interceptor/interceptor_meta.dart';
 abstract class Interceptor {
   const Interceptor();
 
-  void pre(
+  Future<void> pre(
     InterceptorContext context,
     InterceptorAction action,
   );
 
-  void post(
+  Future<void> post(
     InterceptorContext context,
     InterceptorMeta meta,
   );
