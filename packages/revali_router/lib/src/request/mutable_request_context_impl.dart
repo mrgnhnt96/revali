@@ -24,54 +24,7 @@ class MutableRequestContextImpl extends RequestContext
     _headers.remove(key);
   }
 
-  MutableRequestContextImpl merge(MutableRequestContextImpl other) {
-    final merged = MutableRequestContextImpl.from(this);
-
-    merged._headers.addAll(other._headers);
-
-    return merged;
-  }
-
-  int? _statusCode;
-  int get statusCode => _statusCode ?? 200;
-  void set statusCode(int value) {
-    _statusCode = value;
-  }
-
-  Object? _body;
-  Object? get body => _body;
-  void set body(Object? value) {
-    _body = value;
-  }
-
-  MutableRequestContextImpl getContext() {
+  MutableRequestContextImpl getRequestContext() {
     return this;
-  }
-
-  Response getSuccessResponse([int defaultStatusCode = 200]) {
-    var code = _statusCode ?? defaultStatusCode;
-
-    if (code < 200 || code >= 300) {
-      code = 200;
-    }
-
-    return Response(
-      code,
-      body: _body,
-      headers: _headers,
-    );
-  }
-
-  Response getErrorResponse([int defaultStatusCode = 400]) {
-    var code = _statusCode ?? defaultStatusCode;
-    if (code < 400 || code >= 600) {
-      code = 400;
-    }
-
-    return Response(
-      code,
-      body: _body,
-      headers: _headers,
-    );
   }
 }

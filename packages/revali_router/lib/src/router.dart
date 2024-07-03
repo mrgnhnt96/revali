@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:revali_router/src/data/data_handler.dart';
-import 'package:revali_router/src/endpoint/endpoint_context.dart';
+import 'package:revali_router/src/endpoint/endpoint_context_impl.dart';
 import 'package:revali_router/src/guard/guard_action.dart';
 import 'package:revali_router/src/guard/guard_context_impl.dart';
 import 'package:revali_router/src/guard/guard_meta.dart';
@@ -9,7 +9,9 @@ import 'package:revali_router/src/interceptor/interceptor_context_impl.dart';
 import 'package:revali_router/src/interceptor/interceptor_meta.dart';
 import 'package:revali_router/src/middleware/middleware_action.dart';
 import 'package:revali_router/src/middleware/middleware_context_impl.dart';
+import 'package:revali_router/src/request/mutable_request_context_impl.dart';
 import 'package:revali_router/src/request/request_context.dart';
+import 'package:revali_router/src/response/mutable_response_context_impl.dart';
 import 'package:revali_router/src/route/route.dart';
 import 'package:shelf/shelf.dart';
 
@@ -25,13 +27,13 @@ class Router extends Equatable {
   final List<Route> routes;
 
   Future<Response> handle() async {
-    final context = RequestContext.from(this.context);
-    final segments = context.segments;
+    final request = MutableRequestContextImpl.from(this.context);
+    final segments = request.segments;
 
     final route = find(
       segments: segments,
       routes: routes,
-      method: context.method,
+      method: request.method,
     );
 
     if (route == null) {
@@ -43,81 +45,80 @@ class Router extends Equatable {
       return Response.notFound(null);
     }
 
-    final middlewareAction = MiddlewareAction();
-
-    final dataHandler = DataHandler();
+    final response = MutableResponseContextImpl();
     final directMeta = route.getMeta();
     final inheritedMeta = route.getMeta(inherit: true);
-    final middlewareContext =
-        MiddlewareContextImpl.from(context, data: dataHandler);
+    final dataHandler = DataHandler();
 
     for (final middleware in route.allMiddlewares) {
       final result = await middleware.use(
-        middlewareContext,
-        middlewareAction,
+        MiddlewareContextImpl(
+          request: request,
+          response: response,
+          data: dataHandler,
+        ),
+        const MiddlewareAction(),
       );
 
       if (result.isCancel) {
-        final context = middlewareContext.getContext();
-
-        return context.getErrorResponse();
+        return response.getError();
       }
     }
 
-    final guardContext = GuardContextImpl.from(
-      context,
-      meta: GuardMeta(
-        direct: directMeta,
-        inherited: inheritedMeta,
-        route: route,
-      ),
-      data: dataHandler,
-    );
-
-    final guardAction = GuardAction();
     for (final guard in route.allGuards) {
-      final result = await guard.canActivate(guardContext, guardAction);
+      final result = await guard.canActivate(
+        GuardContextImpl(
+          meta: GuardMeta(
+            direct: directMeta,
+            inherited: inheritedMeta,
+            route: route,
+          ),
+          response: response,
+          request: request,
+          data: dataHandler,
+        ),
+        const GuardAction(),
+      );
 
       if (result.isNo) {
-        final context = guardContext.getContext();
-
-        return context.getErrorResponse();
+        return response.getError();
       }
     }
 
-    final interceptorAction = InterceptorAction();
-    var interceptorContext = InterceptorContextImpl.from(
-      context,
-      meta: InterceptorMeta(
-        direct: directMeta,
-        inherited: inheritedMeta,
-      ),
-      data: dataHandler,
-    );
-
     for (final interceptor in route.allInterceptors) {
-      interceptor.pre(
-        interceptorContext,
-        interceptorAction,
+      await interceptor.pre(
+        InterceptorContextImpl(
+          meta: InterceptorMeta(
+            direct: directMeta,
+            inherited: inheritedMeta,
+          ),
+          request: request,
+          response: response,
+          data: dataHandler,
+        ),
+        const InterceptorAction(),
       );
     }
 
-    final endpointContext = EndpointContext.from(context);
-
-    await handler.call(endpointContext);
-
-    interceptorContext = InterceptorContextImpl.from(
-      context,
-      meta: InterceptorMeta(
-        direct: directMeta,
-        inherited: inheritedMeta,
+    await handler.call(
+      EndpointContextImpl(
+        request: request,
+        data: dataHandler,
+        response: response,
       ),
-      data: dataHandler,
     );
 
     for (final interceptor in route.allInterceptors) {
-      interceptor.post(
-        interceptorContext,
+      await interceptor.post(
+        InterceptorContextImpl(
+          meta: InterceptorMeta(
+            direct: directMeta,
+            inherited: inheritedMeta,
+          ),
+          request: request,
+          response: response,
+          data: dataHandler,
+        ),
         InterceptorMeta(
           direct: directMeta,
           inherited: inheritedMeta,
@@ -125,9 +126,7 @@ class Router extends Equatable {
       );
     }
 
-    final responseContext = interceptorContext.getContext();
-
-    return responseContext.getSuccessResponse();
+    return response.get();
   }
 
   Route? find({
