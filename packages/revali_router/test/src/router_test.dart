@@ -1,6 +1,5 @@
 import 'package:mockito/mockito.dart';
 import 'package:revali_router/src/request/request_context.dart';
-import 'package:revali_router/src/request/request_context_impl.dart';
 import 'package:revali_router/src/route.dart';
 import 'package:revali_router/src/router.dart';
 import 'package:shelf/shelf.dart';
@@ -243,7 +242,7 @@ void main() {
           );
 
           final router = Router(
-            RequestContextImpl(_fakeRequest),
+            RequestContext(_fakeRequest),
             routes: [
               Route(
                 'user',

@@ -4,12 +4,11 @@ import 'package:revali_router/src/guard/guard_action.dart';
 import 'package:revali_router/src/guard/guard_context.dart';
 import 'package:revali_router/src/guard/guard_meta.dart';
 import 'package:revali_router/src/interceptor/interceptor_action.dart';
-import 'package:revali_router/src/interceptor/interceptor_context_impl.dart';
+import 'package:revali_router/src/interceptor/interceptor_context.dart';
 import 'package:revali_router/src/interceptor/interceptor_meta.dart';
 import 'package:revali_router/src/middleware/middleware_action.dart';
 import 'package:revali_router/src/middleware/middleware_context.dart';
 import 'package:revali_router/src/request/request_context.dart';
-import 'package:revali_router/src/request/request_context_impl.dart';
 import 'package:revali_router/src/route.dart';
 import 'package:shelf/shelf.dart';
 
@@ -25,7 +24,7 @@ class Router extends Equatable {
   final List<Route> routes;
 
   Future<Response> handle() async {
-    final context = RequestContextImpl.from(this.context);
+    final context = RequestContext.from(this.context);
     final segments = context.segments;
 
     final route = find(
@@ -83,7 +82,7 @@ class Router extends Equatable {
     }
 
     final interceptorAction = InterceptorAction();
-    var interceptorContext = InterceptorContextImpl.from(
+    var interceptorContext = InterceptorContext.from(
       context,
       meta: InterceptorMeta(
         direct: directMeta,
@@ -102,7 +101,7 @@ class Router extends Equatable {
 
     await handler.call(endpointContext);
 
-    interceptorContext = InterceptorContextImpl.from(
+    interceptorContext = InterceptorContext.from(
       context,
       meta: InterceptorMeta(
         direct: directMeta,
