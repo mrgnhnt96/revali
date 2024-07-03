@@ -6,11 +6,12 @@ import 'package:revali_router/src/guard/guard.dart';
 import 'package:revali_router/src/interceptor/interceptor.dart';
 import 'package:revali_router/src/meta/meta_handler.dart';
 import 'package:revali_router/src/middleware/middleware.dart';
+import 'package:revali_router/src/route/route_entry.dart';
 
 part 'route.g.dart';
 
 @CopyWith(constructor: '_')
-class Route extends Equatable {
+class Route extends Equatable implements RouteEntry {
   Route(
     this.path, {
     this.handler,

@@ -1,5 +1,5 @@
 import 'package:revali_router/src/meta/meta_arg.dart';
-import 'package:revali_router/src/route.dart';
+import 'package:revali_router/src/route/route_entry.dart';
 
 class GuardMeta extends MetaArg {
   const GuardMeta({
@@ -8,5 +8,5 @@ class GuardMeta extends MetaArg {
     required this.route,
   });
 
-  final Route route;
+  final RouteEntry route;
 }

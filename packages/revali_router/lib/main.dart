@@ -1,7 +1,14 @@
+import 'package:revali_router/src/guard/guard.dart';
+import 'package:revali_router/src/guard/guard_action.dart';
+import 'package:revali_router/src/guard/guard_context.dart';
+import 'package:revali_router/src/middleware/middleware.dart';
+import 'package:revali_router/src/middleware/middleware_action.dart';
 import 'package:revali_router/src/request/request_context.dart';
-import 'package:revali_router/src/route.dart';
+import 'package:revali_router/src/route/route.dart';
 import 'package:revali_router/src/router.dart';
 import 'package:shelf/shelf_io.dart';
+
+import 'src/middleware/middleware_context.dart';
 
 void main() async {
   final server = await serve(
@@ -35,6 +42,8 @@ late final routes = [
       Route(
         ':id',
         method: 'GET',
+        middlewares: [AddAuth()],
+        guards: [AuthGuard()],
         handler: (context) async {},
       ),
       Route(
@@ -45,3 +54,25 @@ late final routes = [
     ],
   ),
 ];
+
+class AuthGuard extends Guard {
+  @override
+  Future<GuardResult> canNavigate(
+    GuardContext context,
+    GuardAction action,
+  ) async {
+    return action.no();
+  }
+}
+
+class AddAuth extends Middleware {
+  @override
+  Future<MiddlewareResult> use(
+    MiddlewareContext context,
+    MiddlewareAction action,
+  ) async {
+    context.setHeader('AUTH', 'YES');
+
+    return action.next();
+  }
+}

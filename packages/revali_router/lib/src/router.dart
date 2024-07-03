@@ -1,15 +1,15 @@
 import 'package:equatable/equatable.dart';
 import 'package:revali_router/src/endpoint/endpoint_context.dart';
 import 'package:revali_router/src/guard/guard_action.dart';
-import 'package:revali_router/src/guard/guard_context.dart';
+import 'package:revali_router/src/guard/guard_context_impl.dart';
 import 'package:revali_router/src/guard/guard_meta.dart';
 import 'package:revali_router/src/interceptor/interceptor_action.dart';
-import 'package:revali_router/src/interceptor/interceptor_context.dart';
+import 'package:revali_router/src/interceptor/interceptor_context_impl.dart';
 import 'package:revali_router/src/interceptor/interceptor_meta.dart';
 import 'package:revali_router/src/middleware/middleware_action.dart';
-import 'package:revali_router/src/middleware/middleware_context.dart';
+import 'package:revali_router/src/middleware/middleware_context_impl.dart';
 import 'package:revali_router/src/request/request_context.dart';
-import 'package:revali_router/src/route.dart';
+import 'package:revali_router/src/route/route.dart';
 import 'package:shelf/shelf.dart';
 
 part 'router.g.dart';
@@ -46,7 +46,7 @@ class Router extends Equatable {
 
     final directMeta = route.getMeta();
     final inheritedMeta = route.getMeta(inherit: true);
-    final middlewareContext = MiddlewareContext.from(context);
+    final middlewareContext = MiddlewareContextImpl.from(context);
 
     for (final middleware in route.allMiddlewares) {
       final result = await middleware.use(
@@ -61,7 +61,7 @@ class Router extends Equatable {
       }
     }
 
-    final guardContext = GuardContext.from(
+    final guardContext = GuardContextImpl.from(
       context,
       meta: GuardMeta(
         direct: directMeta,
@@ -82,7 +82,7 @@ class Router extends Equatable {
     }
 
     final interceptorAction = InterceptorAction();
-    var interceptorContext = InterceptorContext.from(
+    var interceptorContext = InterceptorContextImpl.from(
       context,
       meta: InterceptorMeta(
         direct: directMeta,
@@ -101,7 +101,7 @@ class Router extends Equatable {
 
     await handler.call(endpointContext);
 
-    interceptorContext = InterceptorContext.from(
+    interceptorContext = InterceptorContextImpl.from(
       context,
       meta: InterceptorMeta(
         direct: directMeta,

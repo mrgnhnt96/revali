@@ -1,4 +1,4 @@
-import 'package:revali_router/src/route.dart';
+import 'package:revali_router/src/route/route.dart';
 import 'package:test/test.dart';
 
 void main() {
