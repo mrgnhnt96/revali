@@ -24,12 +24,14 @@ class MutableResponseContextImpl implements MutableResponseContext {
     _statusCode = value;
   }
 
-  Object? _body;
+// TODO(mrgnhnt): probably create a class for the body
+// That way it will be easier to change from Map to Static file, etc
+  Map<String, dynamic>? _body;
   @override
-  Object? get body => _body;
+  Map<String, dynamic>? get body => _body;
   @override
   void set body(Object? value) {
-    _body = value;
+    (_body ??= {})['data'] = value;
   }
 
   Response get([int defaultStatusCode = 200]) {
@@ -65,5 +67,14 @@ class MutableResponseContextImpl implements MutableResponseContext {
       body: _body,
       headers: _headers,
     );
+  }
+
+  @override
+  void addToBody(String key, Object value) async {
+    if (key == 'data') {
+      throw ArgumentError('The key `data` is reserved for the body');
+    }
+
+    (_body ??= {})[key] = value;
   }
 }
