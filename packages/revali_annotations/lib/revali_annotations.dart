@@ -17,6 +17,7 @@ export 'models/middleware/middleware_action.dart';
 export 'models/middleware/redirect_action.dart';
 export 'models/param.dart';
 export 'models/pipes/argument_metadata.dart';
+export 'models/pipes/body.dart';
 export 'models/pipes/pipe_transform.dart';
 export 'models/pre_response.dart';
 export 'models/query.dart';

@@ -17,6 +17,7 @@ class ThisController {
   User getNewPerson({
     @Query.pipe(NamePipe) required String name,
     @Param.pipe(StringToIntPipe) required int id,
+    @Body(['name']) String? data,
   }) {
     final user = User(name, id);
 
