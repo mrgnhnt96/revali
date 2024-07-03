@@ -1,0 +1,3 @@
+class InterceptorAction {
+  const InterceptorAction();
+}

@@ -8,9 +8,15 @@ build_runner:
         revali_construct:
             (aliases): gen_core
             (command): cd packages/revali_construct && {$build_runner:build}
+        revali_router:
+            (aliases): router
+            (command): cd packages/revali_router && {$build_runner:build}
     watch:
         (aliases): w
         (command): dart run build_runner watch --delete-conflicting-outputs
         revali_construct:
             (aliases): gen_core
             (command): cd packages/revali_construct && {$build_runner:watch}
+        revali_router:
+            (aliases): router
+            (command): cd packages/revali_router && {$build_runner:watch}

@@ -1,0 +1,7 @@
+targets:
+    $default:
+        builders:
+            autoequal_gen:
+                enabled: true
+                options:
+                    auto_include: true
