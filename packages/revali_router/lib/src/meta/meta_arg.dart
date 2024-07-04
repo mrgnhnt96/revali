@@ -1,6 +1,7 @@
 import 'package:revali_router/src/meta/meta_handler.dart';
+import 'package:revali_router/src/meta/read_only_meta_arg.dart';
 
-class MetaArg {
+class MetaArg implements ReadOnlyMetaArg {
   const MetaArg({
     required MetaHandler direct,
     required MetaHandler inherited,
@@ -10,12 +11,7 @@ class MetaArg {
   final MetaHandler _direct;
   final MetaHandler _inherited;
 
-  /// Get the metadata of type [T] if it exists.
-  ///
-  /// Traverses the metadata hierarchy to find the metadata of type [T]. Meaning that
-  /// that parent metadata is also considered.
-  ///
-  /// If [T] is not found, returns `null`.
+  /// {@macro ReadOnlyMetaArg_get}
   List<T>? get<T>() {
     final inherited = _inherited.get<T>();
     final direct = _direct.get<T>();
@@ -30,40 +26,24 @@ class MetaArg {
     ];
   }
 
-  /// Check if the metadata of type [T] exists.
-  ///
-  /// Traverses the metadata hierarchy to find the metadata of type [T]. Meaning that
-  /// that parent metadata is also considered.
-  ///
-  /// Returns `true` if the metadata of type [T] exists, otherwise `false`.
+  /// {@macro ReadOnlyMetaArg_has}
+  @override
   bool has<T>() => _inherited.has<T>() || _direct.has<T>();
 
-  /// Get the metadata of type [T] if it exists.
-  ///
-  /// Only checks the direct metadata of the route.
-  ///
-  /// If [T] is not found, returns `null`.
+  /// {@macro ReadOnlyMetaArg_getDirect}
+  @override
   List<T>? getDirect<T>() => _direct.get<T>();
 
-  /// Check if the metadata of type [T] exists.
-  ///
-  /// Only checks the direct metadata of the route.
-  ///
-  /// Returns `true` if the metadata of type [T] exists, otherwise `false`.
+  /// {@macro ReadOnlyMetaArg_hasDirect}
+  @override
   bool hasDirect<T>() => _direct.has<T>();
 
-  /// Get the metadata of type [T] if it exists.
-  ///
-  /// Only checks the inherited metadata of the route.
-  ///
-  /// If [T] is not found, returns `null`.
+  /// {@macro ReadOnlyMetaArg_getInherited}
+  @override
   List<T>? getInherited<T>() => _inherited.get<T>();
 
-  /// Check if the metadata of type [T] exists.
-  ///
-  /// Only checks the inherited metadata of the route.
-  ///
-  /// Returns `true` if the metadata of type [T] exists, otherwise `false`.
+  /// {@macro ReadOnlyMetaArg_hasInherited}
+  @override
   bool hasInherited<T>() => _inherited.has<T>();
 
   /// Add metadata to the directly associated route.

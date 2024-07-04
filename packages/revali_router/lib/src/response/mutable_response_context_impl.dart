@@ -42,6 +42,19 @@ class MutableResponseContextImpl implements MutableResponseContext {
     );
   }
 
+  Response overrideWith({
+    int? statusCode,
+    int defaultStatusCode = 200,
+    Map<String, String>? headers,
+    Object? body,
+  }) {
+    return Response(
+      statusCode ?? _statusCode ?? defaultStatusCode,
+      body: body ?? _body,
+      headers: headers ?? _headers,
+    );
+  }
+
   @override
   void addToBody(String key, Object value) async {
     if (key == 'data') {

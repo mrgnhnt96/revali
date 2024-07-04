@@ -4,7 +4,7 @@ import 'package:revali_router/src/guard/guard_meta.dart';
 import 'package:revali_router/src/request/mutable_request_context.dart';
 import 'package:revali_router/src/response/mutable_response_context.dart';
 
-class GuardContextImpl implements GuardContext {
+final class GuardContextImpl implements GuardContext {
   const GuardContextImpl({
     required this.meta,
     required this.data,

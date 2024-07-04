@@ -1,12 +1,8 @@
-import 'package:revali_router/src/route/route.dart';
+abstract class RouteEntry {
+  const RouteEntry();
 
-class RouteEntry {
-  RouteEntry(Route route)
-      : path = route.path,
-        method = route.method,
-        parent = route.parent;
-
-  final String path;
-  final RouteEntry? parent;
-  final String? method;
+  String get path;
+  RouteEntry? get parent;
+  String? get method;
+  String get fullPath;
 }

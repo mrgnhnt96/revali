@@ -1,12 +1,16 @@
 import 'package:equatable/equatable.dart';
 import 'package:revali_router/src/data/data_handler.dart';
 import 'package:revali_router/src/endpoint/endpoint_context_impl.dart';
+import 'package:revali_router/src/exception_catcher/exception_catcher_action.dart';
+import 'package:revali_router/src/exception_catcher/exception_catcher_context_impl.dart';
+import 'package:revali_router/src/exception_catcher/exception_catcher_meta_impl.dart';
 import 'package:revali_router/src/guard/guard_action.dart';
 import 'package:revali_router/src/guard/guard_context_impl.dart';
 import 'package:revali_router/src/guard/guard_meta.dart';
 import 'package:revali_router/src/interceptor/interceptor_action.dart';
 import 'package:revali_router/src/interceptor/interceptor_context_impl.dart';
 import 'package:revali_router/src/interceptor/interceptor_meta.dart';
+import 'package:revali_router/src/meta/meta_handler.dart';
 import 'package:revali_router/src/middleware/middleware_action.dart';
 import 'package:revali_router/src/middleware/middleware_context_impl.dart';
 import 'package:revali_router/src/request/mutable_request_context_impl.dart';
@@ -40,15 +44,73 @@ class Router extends Equatable {
       return Response.notFound(null);
     }
 
-    final handler = route.handler;
-    if (handler == null) {
-      return Response.notFound(null);
-    }
-
+    final catches = route.allCatches;
     final response = MutableResponseContextImpl();
     final directMeta = route.getMeta();
     final inheritedMeta = route.getMeta(inherit: true);
     final dataHandler = DataHandler();
+
+    try {
+      final result = await execute(
+        route: route,
+        request: request,
+        response: response,
+        dataHandler: dataHandler,
+        directMeta: directMeta,
+        inheritedMeta: inheritedMeta,
+      );
+
+      return result;
+    } catch (e) {
+      for (final catcher in catches) {
+        if (!catcher.canCatch(e)) {
+          continue;
+        }
+
+        final result = await catcher.catchException(
+          e,
+          ExceptionCatcherContextImpl(
+            data: dataHandler,
+            meta: ExceptionCatcherMetaImpl(
+              direct: directMeta,
+              inherited: inheritedMeta,
+              route: route,
+            ),
+            request: request,
+            response: response,
+          ),
+          const ExceptionCatcherAction(),
+        );
+
+        if (result.isHandled) {
+          final (statusCode, headers, body) =
+              result.asHandled.getResponseOverrides();
+
+          return response.overrideWith(
+            statusCode: statusCode,
+            defaultStatusCode: 500,
+            headers: headers,
+            body: body,
+          );
+        }
+      }
+
+      return Response.internalServerError();
+    }
+  }
+
+  Future<Response> execute({
+    required Route route,
+    required MutableRequestContextImpl request,
+    required MutableResponseContextImpl response,
+    required DataHandler dataHandler,
+    required MetaHandler directMeta,
+    required MetaHandler inheritedMeta,
+  }) async {
+    final handler = route.handler;
+    if (handler == null) {
+      return Response.notFound(null);
+    }
 
     for (final middleware in route.allMiddlewares) {
       final result = await middleware.use(
@@ -60,8 +122,16 @@ class Router extends Equatable {
         const MiddlewareAction(),
       );
 
-      if (result.isCancel) {
-        return response.get();
+      if (result.isStop) {
+        final (statusCode, headers, body) =
+            result.asStop.getResponseOverrides();
+
+        return response.overrideWith(
+          statusCode: statusCode,
+          defaultStatusCode: 400,
+          headers: headers,
+          body: body,
+        );
       }
     }
 
@@ -81,7 +151,13 @@ class Router extends Equatable {
       );
 
       if (result.isNo) {
-        return response.get();
+        final (statusCode, headers, body) = result.asNo.getResponseOverrides();
+        return response.overrideWith(
+          statusCode: statusCode,
+          defaultStatusCode: 403,
+          headers: headers,
+          body: body,
+        );
       }
     }
 
