@@ -40,7 +40,7 @@ late final routes = [
   ),
   Route(
     'user',
-    catches: [AuthExceptionHandler()],
+    catchers: [AuthExceptionCatcher()],
     routes: [
       Route(
         ':id',
@@ -96,7 +96,7 @@ class HasAuth {
 
 class AuthException implements Exception {}
 
-class AuthExceptionHandler extends ExceptionCatcher<AuthException> {
+class AuthExceptionCatcher extends ExceptionCatcher<AuthException> {
   @override
   ExceptionCatcherResult catchException(
     AuthException e,

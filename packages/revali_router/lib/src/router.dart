@@ -43,7 +43,7 @@ class Router extends Equatable {
       return Response.notFound(null);
     }
 
-    final catches = route.allCatches;
+    final catchers = route.allCatchers;
     final response = MutableResponseContextImpl();
     final directMeta = route.getMeta();
     final inheritedMeta = route.getMeta(inherit: true);
@@ -61,7 +61,7 @@ class Router extends Equatable {
 
       return result;
     } catch (e) {
-      for (final catcher in catches) {
+      for (final catcher in catchers) {
         if (!catcher.canCatch(e)) {
           continue;
         }

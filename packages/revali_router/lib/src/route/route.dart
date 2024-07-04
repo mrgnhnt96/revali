@@ -21,7 +21,7 @@ class Route extends Equatable implements RouteEntry {
     this.middlewares = const [],
     this.interceptors = const [],
     this.guards = const [],
-    this.catches = const [],
+    this.catchers = const [],
     void Function(MetaHandler)? meta,
   })  : parent = null,
         _meta = meta,
@@ -100,7 +100,7 @@ class Route extends Equatable implements RouteEntry {
     required this.handler,
     required this.method,
     required this.guards,
-    required this.catches,
+    required this.catchers,
     // dynamic is needed bc copyWith has a bug
     required meta,
   }) : _meta = meta as void Function(MetaHandler)?;
@@ -109,7 +109,7 @@ class Route extends Equatable implements RouteEntry {
   late final Iterable<Route>? routes;
   final List<Middleware> middlewares;
   final List<Interceptor> interceptors;
-  final List<ExceptionCatcher> catches;
+  final List<ExceptionCatcher> catchers;
   final List<Guard> guards;
   @ignore
   final Route? parent;
@@ -201,14 +201,14 @@ class Route extends Equatable implements RouteEntry {
     yield* traverse(this);
   }
 
-  Iterable<ExceptionCatcher> get allCatches sync* {
+  Iterable<ExceptionCatcher> get allCatchers sync* {
     Iterable<ExceptionCatcher> traverse(Route? route) sync* {
       if (route == null) {
         return;
       }
 
       yield* traverse(route.parent);
-      yield* route.catches;
+      yield* route.catchers;
     }
 
     yield* traverse(this);
