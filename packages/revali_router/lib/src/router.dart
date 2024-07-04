@@ -61,7 +61,7 @@ class Router extends Equatable {
       );
 
       if (result.isCancel) {
-        return response.getError();
+        return response.get();
       }
     }
 
@@ -81,7 +81,7 @@ class Router extends Equatable {
       );
 
       if (result.isNo) {
-        return response.getError();
+        return response.get();
       }
     }
 

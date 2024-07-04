@@ -42,33 +42,6 @@ class MutableResponseContextImpl implements MutableResponseContext {
     );
   }
 
-  Response getSuccess([int defaultStatusCode = 200]) {
-    var code = _statusCode ?? defaultStatusCode;
-
-    if (code < 200 || code >= 300) {
-      code = 200;
-    }
-
-    return Response(
-      code,
-      body: _body,
-      headers: _headers,
-    );
-  }
-
-  Response getError([int defaultStatusCode = 400]) {
-    var code = _statusCode ?? defaultStatusCode;
-    if (code < 400 || code >= 600) {
-      code = 400;
-    }
-
-    return Response(
-      code,
-      body: _body,
-      headers: _headers,
-    );
-  }
-
   @override
   void addToBody(String key, Object value) async {
     if (key == 'data') {

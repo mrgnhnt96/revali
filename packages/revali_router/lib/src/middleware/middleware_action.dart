@@ -2,8 +2,8 @@ class MiddlewareResult {
   const MiddlewareResult();
 
   bool get isNext => this is _Next;
-  bool get isCancel => this is _Cancel;
-  _Cancel get asCancel => this as _Cancel;
+  bool get isCancel => this is _Stop;
+  _Stop get asCancel => this as _Stop;
 }
 
 class _Next extends MiddlewareResult {
@@ -12,8 +12,8 @@ class _Next extends MiddlewareResult {
   final MiddlewareAction action;
 }
 
-class _Cancel extends MiddlewareResult {
-  const _Cancel(this.action);
+class _Stop extends MiddlewareResult {
+  const _Stop(this.action);
 
   final MiddlewareAction action;
 }
@@ -23,5 +23,5 @@ class MiddlewareAction {
 
   _Next next() => _Next(this);
 
-  _Cancel cancel() => _Cancel(this);
+  _Stop stop() => _Stop(this);
 }
