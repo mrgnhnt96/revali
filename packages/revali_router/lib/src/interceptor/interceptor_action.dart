@@ -1,3 +1,0 @@
-class InterceptorAction {
-  const InterceptorAction();
-}

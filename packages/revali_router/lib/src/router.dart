@@ -7,7 +7,6 @@ import 'package:revali_router/src/exception_catcher/exception_catcher_meta_impl.
 import 'package:revali_router/src/guard/guard_action.dart';
 import 'package:revali_router/src/guard/guard_context_impl.dart';
 import 'package:revali_router/src/guard/guard_meta.dart';
-import 'package:revali_router/src/interceptor/interceptor_action.dart';
 import 'package:revali_router/src/interceptor/interceptor_context_impl.dart';
 import 'package:revali_router/src/interceptor/interceptor_meta.dart';
 import 'package:revali_router/src/meta/meta_handler.dart';
@@ -172,7 +171,6 @@ class Router extends Equatable {
           response: response,
           data: dataHandler,
         ),
-        const InterceptorAction(),
       );
     }
 
@@ -194,10 +192,6 @@ class Router extends Equatable {
           request: request,
           response: response,
           data: dataHandler,
-        ),
-        InterceptorMeta(
-          direct: directMeta,
-          inherited: inheritedMeta,
         ),
       );
     }
