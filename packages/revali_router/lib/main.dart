@@ -1,3 +1,6 @@
+import 'package:revali_router/src/exception_catcher/exception_catcher.dart';
+import 'package:revali_router/src/exception_catcher/exception_catcher_action.dart';
+import 'package:revali_router/src/exception_catcher/exception_catcher_context.dart';
 import 'package:revali_router/src/guard/guard.dart';
 import 'package:revali_router/src/guard/guard_action.dart';
 import 'package:revali_router/src/middleware/middleware.dart';
@@ -37,6 +40,7 @@ late final routes = [
   ),
   Route(
     'user',
+    catches: [AuthExceptionHandler()],
     routes: [
       Route(
         ':id',
@@ -61,7 +65,7 @@ class AuthGuard extends Guard {
     final hasAuth = context.data.get<HasAuth>();
 
     if (hasAuth case null) {
-      return canActivate.no();
+      throw AuthException();
     }
 
     if (!hasAuth.hasAuth) {
@@ -88,4 +92,20 @@ class HasAuth {
   final bool hasAuth;
 
   HasAuth(this.hasAuth);
+}
+
+class AuthException implements Exception {}
+
+class AuthExceptionHandler extends ExceptionCatcher<AuthException> {
+  @override
+  ExceptionCatcherResult catchException(
+    AuthException e,
+    ExceptionCatcherContext context,
+    ExceptionCatcherAction action,
+  ) {
+    return action.handled(
+      statusCode: 401,
+      body: 'Unauthorized',
+    );
+  }
 }
