@@ -1,5 +1,6 @@
+import 'package:revali_construct/types/annotation_getter.dart';
+
 import 'meta_method.dart';
-import 'meta_middleware.dart';
 import 'meta_param.dart';
 
 class MetaRoute {
@@ -8,9 +9,9 @@ class MetaRoute {
     required this.filePath,
     required this.path,
     required this.methods,
-    required this.middlewares,
     required this.params,
     required this.constructorName,
+    required this.annotationsFor,
   });
 
   final String path;
@@ -18,6 +19,6 @@ class MetaRoute {
   final String className;
   final String constructorName;
   final Iterable<MetaMethod> methods;
-  final Iterable<MetaMiddleware> middlewares;
   final Iterable<MetaParam> params;
+  final AnnotationGetter annotationsFor;
 }

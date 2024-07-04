@@ -4,8 +4,11 @@
 
 export 'enums/param_type.dart';
 export 'models/bootstrap.dart';
+export 'models/catcher/catcher.dart';
 export 'models/controller.dart';
 export 'models/di.dart';
+export 'models/guard/guard.dart';
+export 'models/interceptor/interceptor.dart';
 export 'models/methods/delete.dart';
 export 'models/methods/get.dart';
 export 'models/methods/method.dart';
@@ -21,4 +24,3 @@ export 'models/pipes/body.dart';
 export 'models/pipes/pipe_transform.dart';
 export 'models/pre_response.dart';
 export 'models/query.dart';
-export 'models/request_context.dart';

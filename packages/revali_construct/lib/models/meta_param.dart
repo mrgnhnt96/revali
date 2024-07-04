@@ -1,5 +1,5 @@
-import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:revali_construct/types/annotation_getter.dart';
 
 class MetaParam {
   const MetaParam({
@@ -9,7 +9,6 @@ class MetaParam {
     required this.nullable,
     required this.isRequired,
     required this.isNamed,
-    required this.annotations,
     required this.defaultValue,
     required this.annotationsFor,
   });
@@ -21,11 +20,7 @@ class MetaParam {
   final bool isRequired;
   final bool isNamed;
   final String? defaultValue;
-  final Iterable<DartObject> Function({
-    required Type className,
-    required String package,
-  }) annotationsFor;
-  final Iterable<ElementAnnotation> annotations;
+  final AnnotationGetter annotationsFor;
 
   bool get hasDefaultValue => defaultValue != null;
 }

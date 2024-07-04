@@ -11,7 +11,7 @@ class ThisController {
   final Logger logger;
 
   @Get()
-  void listPeople() {}
+  Future<void> listPeople() async {}
 
   @Get(':id')
   User getNewPerson({

@@ -48,7 +48,6 @@ class DevCommand extends Command<int> with DirectoriesMixin {
 
       try {
         if (yaml != null) {
-          // TODO(MRGNHNT): add checked: true during parse
           revaliConfig =
               revaliYaml.fromJson(Map<String, dynamic>.from(yaml.value));
         }

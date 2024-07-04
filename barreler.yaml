@@ -20,3 +20,5 @@ dirs:
         show: hotReload
   - path: packages/revali_shelf/lib
     name: revali_shelf
+  - path: packages/revali_router/lib
+    name: revali_router

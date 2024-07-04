@@ -22,3 +22,4 @@ export 'models/method_annotation.dart';
 export 'models/revali_construct_config.dart';
 export 'models/revali_yaml.dart';
 export 'models/server_construct.dart';
+export 'types/annotation_getter.dart';

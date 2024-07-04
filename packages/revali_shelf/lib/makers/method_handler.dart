@@ -22,7 +22,6 @@ Spec methodHandler(MetaMethod method, MetaRoute route) {
       if (!param.nullable || param.isRequired) {
         final condition = refer(param.name).equalTo(literalNull);
         final block = Block.of([
-          // TODO(mrgnhnt): Add support for custom error messages/exceptions
           refer('Response')
               .newInstanceNamed('badRequest', [], {
                 'body': refer('jsonEncode').call([
@@ -76,8 +75,6 @@ Spec methodHandler(MetaMethod method, MetaRoute route) {
         'did you forget to add a @Query or @Param annotation?',
       );
     }
-
-    // TODO(MRGNHNT): Add support for other types of parameters
   }
 
   Expression methodCall = refer('controller')
@@ -155,7 +152,7 @@ Spec methodHandler(MetaMethod method, MetaRoute route) {
 
 ({Expression? getter, Expression? pipe}) _checkForQueryParam(MetaParam param) {
   final queryObjects = param.annotationsFor(
-    className: a.Query,
+    classType: a.Query,
     package: 'revali_annotations',
   );
 
@@ -212,7 +209,7 @@ Spec methodHandler(MetaMethod method, MetaRoute route) {
 
 ({Expression? getter, Expression? pipe}) _checkForParamParam(MetaParam param) {
   final paramObjects = param.annotationsFor(
-    className: a.Param,
+    classType: a.Param,
     package: 'revali_annotations',
   );
 

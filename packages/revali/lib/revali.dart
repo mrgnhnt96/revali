@@ -17,5 +17,6 @@ export 'handlers/constructs_handler.dart';
 export 'handlers/routes_handler.dart';
 export 'handlers/vm_service_handler.dart';
 export 'revali_bin.dart';
+export 'utils/annotation_getter_impl.dart';
 export 'utils/extensions/directory_extensions.dart';
 export 'utils/mixins/directories_mixin.dart';

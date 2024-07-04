@@ -12,5 +12,6 @@ dependencies:
     dart_style: ^2.3.6
     revali_construct:
         path: ../revali_construct
+    revali_router:
+        path: ../revali_router
     shelf: ^1.4.1
-    shelf_router: ^1.1.4

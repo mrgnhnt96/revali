@@ -1,3 +1,4 @@
+import 'package:change_case/change_case.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:path/path.dart' as p;
 import 'package:revali_construct/revali_construct.dart';
@@ -11,8 +12,7 @@ String serverFile(List<MetaRoute> routes, String Function(Spec) formatter) {
     "import 'package:examples/utils/logger.dart';",
     "import 'package:shelf/shelf.dart';",
     "import 'package:shelf/shelf_io.dart' as io;",
-    "import 'package:shelf_router/shelf_router.dart';",
-    "import 'package:revali_annotations/revali_annotations.dart';",
+    "import 'package:revali_router/revali_router.dart';",
     "import 'package:revali_construct/revali_construct.dart';",
     for (final route in routes) "import '../${p.relative(route.filePath)}';",
   ];
@@ -21,14 +21,7 @@ String serverFile(List<MetaRoute> routes, String Function(Spec) formatter) {
     (b) => b
       ..name = 'main'
       ..returns = refer('void')
-      ..modifier = MethodModifier.async
       ..body = Block.of([
-        // dependencies can't be registered here, we aren't ASTing any of the lib's
-        // code, where the dependencies are defined
-        // This means that we will need to have a file or something that the user defines as the
-        // entry point for the server, where they can register their dependencies
-        refer('_registerDependencies').call([]).statement,
-        refer('_registerControllers').call([]).statement,
         refer('hotReload').call([refer('createServer')]).statement,
       ]),
   );
@@ -43,25 +36,44 @@ String serverFile(List<MetaRoute> routes, String Function(Spec) formatter) {
             .assign(
               refer('io').property('serve').call(
                 [
-                  refer('Cascade')
-                      .call([])
-                      .property('add')
-                      .call(
-                        [
-                          refer('_root').call([]),
-                        ],
+                  Method(
+                    (p) => p
+                      ..requiredParameters.add(
+                        Parameter((b) => b..name = 'context'),
                       )
-                      .property('handler'),
+                      ..modifier = MethodModifier.async
+                      ..body = Block.of([
+                        declareFinal('requestContext')
+                            .assign(refer('RequestContext')
+                                .newInstance([refer('context')]))
+                            .statement,
+                        declareFinal('router')
+                            .assign(refer('Router').newInstance(
+                              [refer('requestContext')],
+                              {'routes': refer('routes')},
+                            ))
+                            .statement,
+                        Code('\n'),
+                        declareFinal('response')
+                            .assign(refer('router')
+                                .awaited
+                                .property('handle')
+                                .call([]))
+                            .statement,
+                        Code('\n'),
+                        refer('response').returned.statement,
+                      ]),
+                  ).closure,
                   literalString('localhost'),
                   literalNum(8123),
                 ],
               ).awaited,
             )
             .statement,
-        refer('server')
-            .property('autoCompress')
-            .assign(literalBool(true))
-            .statement,
+        Code('\n'),
+        Code('\t// ensure that the routes are configured correctly'),
+        refer('routes').statement,
+        Code('\n'),
         refer('print').call(
           [
             literalString(
@@ -72,50 +84,21 @@ String serverFile(List<MetaRoute> routes, String Function(Spec) formatter) {
       ]),
   );
 
-  var router = refer('Router').newInstance([]);
+  final routeSpecs = [
+    for (final route in routes) createParentRoute(route),
+  ];
 
-  for (final route in routes) {
-    router = router.cascade('mount').call(
-      [
-        literalString(route.cleanPath),
-        Method(
-          (b) => b
-            ..lambda = true
-            ..requiredParameters.add(Parameter((b) => b..name = 'context'))
-            ..body = Block.of([
-              refer(route.handlerName).call([]).call([refer('context')]).code,
-            ]),
-        ).closure,
-      ],
-    );
-  }
-
-  final _root = Method(
-    (b) => b
-      ..name = '_root'
-      ..returns = refer('Handler')
-      ..body = Block.of([
-        refer('Pipeline')
-            .call([])
-            .property('addHandler')
-            .call(
-              [
-                refer('Cascade')
-                    .newInstance([])
-                    .property('add')
-                    .call([router])
-                    .property('handler'),
-              ],
-            )
-            .returned
-            .statement,
-      ]),
-  );
+  final routesVar = declareFinal('routes', late: true)
+      .assign(literalList([
+        for (final spec in routeSpecs) spec.ref,
+      ]))
+      .statement;
 
   final parts = <Spec>[
     main,
     createServer,
-    _root,
+    routesVar,
+    for (final spec in routeSpecs) spec.method,
   ];
 
   final content = parts.map(formatter).join('\n');
@@ -123,4 +106,81 @@ String serverFile(List<MetaRoute> routes, String Function(Spec) formatter) {
   return '''
 ${imports.join('\n')}
 $content''';
+}
+
+({Spec ref, Spec method}) createParentRoute(MetaRoute route) {
+  final method = Method(
+    (p) => p
+      ..name = route.handlerName
+      ..returns = refer('Route')
+      ..requiredParameters.add(
+        Parameter(
+          (b) => b
+            ..name = route.className.toCamelCase()
+            ..type = refer(route.className),
+        ),
+      )
+      ..body = Block.of([
+        refer('Route')
+            .newInstance([
+              literalString(route.path)
+            ], {
+              'catchers': literalConstList([]),
+              'middlewares': literalConstList([]),
+              'guards': literalConstList([]),
+              'interceptors': literalConstList([]),
+              'meta': literalConstList([]),
+              'method': literalNull,
+              'handler': literalNull,
+              if (route.methods.isNotEmpty)
+                'route': literalList([
+                  for (final method in route.methods) createRoute(method, route)
+                ])
+            })
+            .returned
+            .statement,
+      ]),
+  );
+
+  final ref = refer(route.handlerName).call([
+    refer(route.className).newInstance([]),
+  ]);
+
+  return (ref: ref, method: method);
+}
+
+Spec createRoute(MetaMethod method, MetaRoute route) {
+  var handler =
+      refer(route.className.toCamelCase()).property(method.name).call([
+    // TODO: Add parameters
+  ]);
+
+  if (method.returnType.isFuture) {
+    handler = handler.awaited;
+  }
+
+  if (!method.returnType.isVoid) {
+    handler = declareFinal('result').assign(handler);
+  }
+
+  return refer('Route').newInstance([
+    literalString(method.path ?? '')
+  ], {
+    'catchers': literalConstList([]),
+    'middlewares': literalConstList([]),
+    'guards': literalConstList([]),
+    'interceptors': literalConstList([]),
+    'meta': literalConstList([]),
+    'method': literalString(method.method),
+    'handler': Method(
+      (p) => p
+        ..requiredParameters.add(Parameter((b) => b..name = 'context'))
+        ..body = Block.of([
+          if (method.returnType.isFuture)
+            handler.awaited.statement
+          else
+            handler.statement,
+        ]),
+    ).closure,
+  });
 }

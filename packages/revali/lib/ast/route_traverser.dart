@@ -9,8 +9,8 @@ import 'package:analyzer/dart/element/visitor.dart';
 import 'package:file/file.dart';
 import 'package:path/path.dart' as path;
 import 'package:revali/ast/checkers/checkers.dart';
-import 'package:revali/ast/checkers/type_checker.dart';
 import 'package:revali/ast/file_system/file_resource_provider.dart';
+import 'package:revali/utils/annotation_getter_impl.dart';
 import 'package:revali_construct/revali_construct.dart';
 
 class RouteTraverser {
@@ -47,8 +47,6 @@ class RouteTraverser {
     final methodVisitor = MethodVisitor();
     clazz.accept(methodVisitor);
 
-    final middlewares = getMiddleware(clazz);
-
     if (clazz.constructors.isEmpty) {
       throw Exception('No constructor found in ${clazz.name}');
     }
@@ -64,7 +62,15 @@ class RouteTraverser {
       params: params,
       constructorName: constructor.name,
       methods: [...methodVisitor.methods.values.expand((e) => e)],
-      middlewares: middlewares,
+      annotationsFor: ({
+        required Type classType,
+        required String package,
+      }) =>
+          getAnnotations(
+        classType: classType,
+        package: package,
+        element: clazz,
+      ),
     );
   }
 }
@@ -127,53 +133,39 @@ class MethodVisitor extends RecursiveElementVisitor<void> {
     }
 
     final params = getParams(element);
-    final middlewares = getMiddleware(element);
 
     (methods[method.name] ??= []).add(
       MetaMethod(
         name: element.name,
         method: method.name,
         path: method.path,
-        annotations: element.metadata,
         params: params,
-        middlewares: middlewares,
         returnType: MetaReturnType(
           isVoid: element.returnType is VoidType,
           isNullable:
               element.returnType.nullabilitySuffix != NullabilitySuffix.none,
           type: element.returnType.getDisplayString(withNullability: false),
           element: element.returnType.element,
+          isFuture: element.returnType.isDartAsyncFuture,
+        ),
+        annotationsFor: ({
+          required Type classType,
+          required String package,
+        }) =>
+            getAnnotations(
+          classType: classType,
+          package: package,
+          element: element,
         ),
       ),
     );
   }
 }
 
-Iterable<MetaMiddleware> getMiddleware(Element element) {
-  final middlewares = <MetaMiddleware>[];
-  final middlewareAnnotations = middlewareChecker.annotationsOf(element);
-
-  for (final annotation in middlewareAnnotations) {
-    final name = annotation.type?.getDisplayString(withNullability: false);
-
-    if (name == null) {
-      continue;
-    }
-
-    middlewares.add(MetaMiddleware(
-      name: name,
-      element: annotation,
-    ));
-  }
-
-  return middlewares;
-}
-
 Iterable<MetaParam> getParams(FunctionTypedElement element) {
   final params = <MetaParam>[];
 
   for (final param in element.parameters) {
-    final annotations = param.metadata;
     final type = param.type.getDisplayString(withNullability: false);
 
     final element = param.type.element;
@@ -183,25 +175,23 @@ Iterable<MetaParam> getParams(FunctionTypedElement element) {
 
     params.add(
       MetaParam(
-          name: param.name,
-          type: type,
-          typeElement: element,
-          nullable: param.type.nullabilitySuffix != NullabilitySuffix.none,
-          isRequired: param.isRequired,
-          annotations: annotations,
-          isNamed: param.isNamed,
-          defaultValue: param.defaultValueCode,
-          annotationsFor: ({
-            required Type className,
-            required String package,
-          }) {
-            final checker =
-                TypeChecker.fromName('$className', packageName: package);
-
-            final annotations = checker.annotationsOf(param);
-
-            return annotations;
-          }),
+        name: param.name,
+        type: type,
+        typeElement: element,
+        nullable: param.type.nullabilitySuffix != NullabilitySuffix.none,
+        isRequired: param.isRequired,
+        isNamed: param.isNamed,
+        defaultValue: param.defaultValueCode,
+        annotationsFor: ({
+          required Type classType,
+          required String package,
+        }) =>
+            getAnnotations(
+          classType: classType,
+          package: package,
+          element: element,
+        ),
+      ),
     );
   }
 

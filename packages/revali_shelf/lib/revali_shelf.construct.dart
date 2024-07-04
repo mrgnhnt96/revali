@@ -1,9 +1,6 @@
 import 'package:code_builder/code_builder.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:revali_construct/revali_construct.dart';
-import 'package:revali_shelf/makers/register_controllers.dart';
-import 'package:revali_shelf/makers/register_dependencies.dart';
-import 'package:revali_shelf/makers/route_handlers.dart';
 import 'package:revali_shelf/makers/server_file.dart';
 
 class revaliShelfConstruct implements ServerConstruct {
@@ -21,9 +18,8 @@ class revaliShelfConstruct implements ServerConstruct {
     return ServerFile(
       content: serverFile(server.routes, format),
       parts: [
-        registerDependencies(format),
-        registerControllers(format),
-        ...routeHandlers(server.routes, format),
+        // registerDependencies(format),
+        // registerControllers(format),
       ],
     );
   }
