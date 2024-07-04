@@ -1,4 +1,4 @@
-import 'package:revali_router/src/utils/override_error_response.dart';
+import 'package:revali_router/src/response/override_error_response.dart';
 
 final class GuardAction {
   const GuardAction();
