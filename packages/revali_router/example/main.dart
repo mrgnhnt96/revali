@@ -14,8 +14,8 @@ import 'package:shelf/shelf_io.dart';
 void main() async {
   final server = await serve(
     (context) async {
-      final routerContext = RequestContext(context);
-      final router = Router(routerContext, routes: routes);
+      final requestContext = RequestContext(context);
+      final router = Router(requestContext, routes: routes);
 
       final response = await router.handle();
 
