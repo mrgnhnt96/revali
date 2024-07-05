@@ -1,7 +1,11 @@
-import 'package:revali_router_annotations/src/apply_annotations/apply_annotations_context.dart';
+import 'package:revali_router/revali_router.dart';
 
 abstract class ApplyAnnotations {
   const ApplyAnnotations();
 
-  void apply(ApplyAnnotationsContext context);
+  List<Guard> guards() => const [];
+  List<Middleware> middleware() => const [];
+  List<Interceptor> interceptors() => const [];
+  List<ExceptionCatcher> catchers() => const [];
+  List<Data> data() => const [];
 }
