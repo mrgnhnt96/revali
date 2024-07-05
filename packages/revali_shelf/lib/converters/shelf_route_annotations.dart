@@ -1,8 +1,6 @@
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
-import 'package:revali_shelf/converters/shelf_apply_annotations.dart';
-import 'package:revali_shelf/converters/shelf_set_data.dart';
 import 'package:revali_shelf/revali_shelf.dart';
 
 class ShelfRouteAnnotations {

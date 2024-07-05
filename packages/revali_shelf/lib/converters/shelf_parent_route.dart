@@ -1,5 +1,4 @@
 import 'package:revali_construct/revali_construct.dart';
-import 'package:revali_shelf/converters/shelf_route_annotations.dart';
 import 'package:revali_shelf/revali_shelf.dart';
 
 class ShelfParentRoute {
