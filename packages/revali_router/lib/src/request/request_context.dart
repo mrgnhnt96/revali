@@ -34,6 +34,12 @@ class RequestContext extends Equatable {
   @include
   Map<String, String> get headers => Map.unmodifiable(_request.headers);
 
+  Map<String, String> get queryParameters =>
+      Map.unmodifiable(_request.url.queryParameters);
+
+  Map<String, List<String>> get queryParametersAll =>
+      Map.unmodifiable(_request.url.queryParametersAll);
+
   @override
   List<Object?> get props => _$props;
 }

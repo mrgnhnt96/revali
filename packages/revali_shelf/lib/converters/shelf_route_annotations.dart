@@ -1,5 +1,5 @@
-import 'package:revali_annotations/revali_annotations.dart';
 import 'package:revali_construct/revali_construct.dart';
+import 'package:revali_router/revali_router.dart';
 import 'package:revali_shelf/revali_shelf.dart';
 
 class ShelfRouteAnnotations {
@@ -25,7 +25,7 @@ class ShelfRouteAnnotations {
 
     if (getter(
       classType: Middleware,
-      package: 'revali_annotations',
+      package: 'revali_router',
     )
         case final annotations when annotations.isNotEmpty) {
       for (final annotation in annotations) {
@@ -35,7 +35,7 @@ class ShelfRouteAnnotations {
 
     if (getter(
       classType: Interceptor,
-      package: 'revali_annotations',
+      package: 'revali_router',
     )
         case final annotations when annotations.isNotEmpty) {
       for (final annotation in annotations) {
@@ -44,8 +44,8 @@ class ShelfRouteAnnotations {
     }
 
     if (getter(
-      classType: Catcher,
-      package: 'revali_annotations',
+      classType: ExceptionCatcher,
+      package: 'revali_router',
     )
         case final annotations when annotations.isNotEmpty) {
       for (final annotation in annotations) {
@@ -55,7 +55,7 @@ class ShelfRouteAnnotations {
 
     if (getter(
       classType: Guard,
-      package: 'revali_annotations',
+      package: 'revali_router',
     )
         case final annotations when annotations.isNotEmpty) {
       for (final annotation in annotations) {

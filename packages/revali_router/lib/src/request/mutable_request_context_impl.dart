@@ -39,4 +39,13 @@ class MutableRequestContextImpl extends RequestContext
     final body = await this.body;
     return _body = body;
   }
+
+  void setPathParameters(Map<String, String> pathParameters) {
+    _pathParameters = Map.from(pathParameters);
+  }
+
+  @override
+  Map<String, String> get pathParameters =>
+      Map.unmodifiable(_pathParameters ?? {});
+  Map<String, String>? _pathParameters;
 }

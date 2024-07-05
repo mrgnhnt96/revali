@@ -26,7 +26,7 @@ void main() {
           method: 'GET',
         );
 
-        expect(result, isNull);
+        expect(result?.route, isNull);
       });
 
       test('should return null if no routes match', () {
@@ -47,7 +47,7 @@ void main() {
           method: 'GET',
         );
 
-        expect(result, isNull);
+        expect(result?.route, isNull);
       });
 
       test('should return the route if it matches', () {
@@ -68,7 +68,7 @@ void main() {
         );
 
         expect(result, isNotNull);
-        expect(result, getter);
+        expect(result?.route, getter);
       });
 
       test('should return nested route when matches', () {
@@ -96,7 +96,7 @@ void main() {
         );
 
         expect(result, isNotNull);
-        expect(result, create);
+        expect(result?.route, create);
       });
 
       test(
@@ -125,7 +125,7 @@ void main() {
         );
 
         expect(result, isNotNull);
-        expect(result, getter);
+        expect(result?.route, getter);
       });
 
       test('should return route when 1st nested empty path does not match', () {
@@ -160,7 +160,7 @@ void main() {
         );
 
         expect(result, isNotNull);
-        expect(result, post);
+        expect(result?.route, post);
       });
 
       group('single dynamic route', () {
@@ -190,10 +190,46 @@ void main() {
           );
 
           expect(result, isNotNull);
-          expect(result, id);
+          expect(result?.route, id);
         });
 
-        test('should return correct route', () {
+        test('should return correct route when preceded by dynamic route', () {
+          final data = Route(
+            'data',
+            method: 'GET',
+            handler: (_) async {},
+          );
+
+          final router = Router(
+            RequestContext(_fakeRequest),
+            routes: [
+              Route(
+                'user',
+                method: 'GET',
+                handler: (_) async {},
+                routes: [
+                  Route(
+                    ':banana',
+                    method: 'GET',
+                    handler: (_) async {},
+                  ),
+                  data,
+                ],
+              ),
+            ],
+          );
+
+          final result = router.find(
+            segments: ['user', 'data'],
+            routes: router.routes,
+            method: 'GET',
+          );
+
+          expect(result, isNotNull);
+          expect(result?.route, data);
+        });
+
+        test('should return correct complex route', () {
           final id = Route(
             ':id/boom',
             method: 'GET',
@@ -231,7 +267,54 @@ void main() {
           );
 
           expect(result, isNotNull);
-          expect(result, id);
+          expect(result?.route, id);
+        });
+
+        test('should return match with path parameters', () {
+          final name = Route(
+            ':name',
+            method: 'GET',
+            handler: (_) async {},
+          );
+
+          final router = Router(
+            RequestContext(_fakeRequest),
+            routes: [
+              Route(
+                'user',
+                method: 'GET',
+                handler: (_) async {},
+                routes: [
+                  Route(
+                    ':banana/data',
+                    method: 'GET',
+                    handler: (_) async {},
+                  ),
+                  Route(
+                    'data/:id',
+                    method: 'GET',
+                    handler: (_) async {},
+                  ),
+                  Route(
+                    ':id/boom',
+                    method: 'GET',
+                    handler: (_) async {},
+                    routes: [name],
+                  ),
+                ],
+              ),
+            ],
+          );
+
+          final result = router.find(
+            segments: ['user', '123', 'boom', 'bob'],
+            routes: router.routes,
+            method: 'GET',
+          );
+
+          expect(result, isNotNull);
+          expect(result!.route, name);
+          expect(result.pathParameters, {'id': '123', 'name': 'bob'});
         });
 
         test('should return nothing when root is not handled', () {

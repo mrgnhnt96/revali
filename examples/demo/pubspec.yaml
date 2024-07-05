@@ -7,6 +7,8 @@ environment:
 dependencies:
     revali_annotations:
         path: ../../packages/revali_annotations
+    revali_router:
+        path: ../../packages/revali_router
 
 dev_dependencies:
     mocktail: ^1.0.4
