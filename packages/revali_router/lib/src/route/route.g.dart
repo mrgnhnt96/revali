@@ -43,7 +43,7 @@ abstract class _$RouteCWProxy {
 
   Route guards(List<Guard> guards);
 
-  Route catchers(List<ExceptionCatcher<dynamic>> catchers);
+  Route catchers(List<ExceptionCatcher<Exception>> catchers);
 
   Route data(List<Data<dynamic>> data);
 
@@ -66,7 +66,7 @@ abstract class _$RouteCWProxy {
     Future<void> Function(EndpointContext)? handler,
     String? method,
     List<Guard>? guards,
-    List<ExceptionCatcher<dynamic>>? catchers,
+    List<ExceptionCatcher<Exception>>? catchers,
     List<Data<dynamic>>? data,
     Redirect? redirect,
     dynamic meta,
@@ -107,7 +107,7 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
   Route guards(List<Guard> guards) => this(guards: guards);
 
   @override
-  Route catchers(List<ExceptionCatcher<dynamic>> catchers) =>
+  Route catchers(List<ExceptionCatcher<Exception>> catchers) =>
       this(catchers: catchers);
 
   @override
@@ -179,7 +179,7 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
       catchers: catchers == const $CopyWithPlaceholder() || catchers == null
           ? _value.catchers
           // ignore: cast_nullable_to_non_nullable
-          : catchers as List<ExceptionCatcher<dynamic>>,
+          : catchers as List<ExceptionCatcher<Exception>>,
       data: data == const $CopyWithPlaceholder() || data == null
           ? _value.data
           // ignore: cast_nullable_to_non_nullable

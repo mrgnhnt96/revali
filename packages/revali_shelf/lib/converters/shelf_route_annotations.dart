@@ -1,6 +1,7 @@
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
+import 'package:revali_shelf/converters/shelf_catches.dart';
 import 'package:revali_shelf/revali_shelf.dart';
 
 class ShelfRouteAnnotations {
@@ -10,7 +11,7 @@ class ShelfRouteAnnotations {
     required this.catchers,
     required this.guards,
     required this.data,
-    required this.apply,
+    required this.combine,
   });
 
   factory ShelfRouteAnnotations.fromParent(MetaRoute parent) {
@@ -23,19 +24,17 @@ class ShelfRouteAnnotations {
   factory ShelfRouteAnnotations._fromGetter(AnnotationGetter getter) {
     final middlewares = <ShelfMiddleware>[];
     final interceptors = <ShelfInterceptor>[];
-    final catchers = <ShelfCatcher>[];
+    final catchers = <ShelfExceptionCatcher>[];
     final guards = <ShelfGuard>[];
     final data = <ShelfSetData>[];
-    final apply = <ShelfApplyAnnotations>[];
+    final apply = <ShelfCombineMeta>[];
 
     if (getter(
       classType: Middleware,
       package: 'revali_router',
     )
         case final annotations when annotations.isNotEmpty) {
-      for (final annotation in annotations) {
-        middlewares.add(ShelfMiddleware.fromDartObject(annotation));
-      }
+      middlewares.addAll(annotations.map(ShelfMiddleware.fromDartObject));
     }
 
     if (getter(
@@ -43,9 +42,7 @@ class ShelfRouteAnnotations {
       package: 'revali_router',
     )
         case final annotations when annotations.isNotEmpty) {
-      for (final annotation in annotations) {
-        interceptors.add(ShelfInterceptor.fromDartObject(annotation));
-      }
+      interceptors.addAll(annotations.map(ShelfInterceptor.fromDartObject));
     }
 
     if (getter(
@@ -53,8 +50,16 @@ class ShelfRouteAnnotations {
       package: 'revali_router',
     )
         case final annotations when annotations.isNotEmpty) {
+      catchers.addAll(annotations.map(ShelfExceptionCatcher.fromDartObject));
+    }
+    if (getter(
+      classType: Catches,
+      package: 'revali_router',
+    )
+        case final annotations when annotations.isNotEmpty) {
       for (final annotation in annotations) {
-        catchers.add(ShelfCatcher.fromDartObject(annotation));
+        final catches = ShelfCatches.fromDartObject(annotation);
+        catchers.addAll(catches.catchers);
       }
     }
 
@@ -63,9 +68,7 @@ class ShelfRouteAnnotations {
       package: 'revali_router',
     )
         case final annotations when annotations.isNotEmpty) {
-      for (final annotation in annotations) {
-        guards.add(ShelfGuard.fromDartObject(annotation));
-      }
+      guards.addAll(annotations.map(ShelfGuard.fromDartObject));
     }
 
     if (getter(
@@ -73,19 +76,15 @@ class ShelfRouteAnnotations {
       package: 'revali_router_annotations',
     )
         case final annotations when annotations.isNotEmpty) {
-      for (final annotation in annotations) {
-        data.add(ShelfSetData.fromDartObject(annotation));
-      }
+      data.addAll(annotations.map(ShelfSetData.fromDartObject));
     }
 
     if (getter(
-      classType: ApplyAnnotations,
+      classType: CombineMeta,
       package: 'revali_router_annotations',
     )
         case final annotations when annotations.isNotEmpty) {
-      for (final annotation in annotations) {
-        apply.add(ShelfApplyAnnotations.fromDartObject(annotation));
-      }
+      apply.addAll(annotations.map(ShelfCombineMeta.fromDartObject));
     }
 
     return ShelfRouteAnnotations(
@@ -94,14 +93,14 @@ class ShelfRouteAnnotations {
       catchers: catchers,
       guards: guards,
       data: data,
-      apply: apply,
+      combine: apply,
     );
   }
 
   final Iterable<ShelfMiddleware> middlewares;
   final Iterable<ShelfInterceptor> interceptors;
-  final Iterable<ShelfCatcher> catchers;
+  final Iterable<ShelfExceptionCatcher> catchers;
   final Iterable<ShelfGuard> guards;
   final Iterable<ShelfSetData> data;
-  final Iterable<ShelfApplyAnnotations> apply;
+  final Iterable<ShelfCombineMeta> combine;
 }

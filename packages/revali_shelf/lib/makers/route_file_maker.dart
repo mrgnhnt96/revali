@@ -1,8 +1,8 @@
 import 'package:change_case/change_case.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_construct/revali_construct.dart';
-import 'package:revali_shelf/converters/shelf_parent_route.dart';
-import 'package:revali_shelf/converters/shelf_route.dart';
+import 'package:revali_shelf/converters/shelf_child_route.dart';
+import 'package:revali_shelf/revali_shelf.dart';
 
 PartFile routeFileMaker(
   ShelfParentRoute route,
@@ -24,20 +24,16 @@ PartFile routeFileMaker(
             .newInstance([
               literalString(route.routePath)
             ], {
-              'catchers': literalConstList([]),
-              'data': literalConstList([]),
-              'guards': literalConstList([]),
-              'handler': literalNull,
-              'interceptors': literalConstList([]),
-              'meta': Method((p) => p
-                ..requiredParameters.add(Parameter((b) => b..name = 'm'))
-                ..body = Block.of([])).closure,
-              'method': literalNull,
-              'middlewares': literalConstList([]),
-              'redirect': literalNull,
+              ...createRouteArgs(
+                route: route,
+                returnType: null,
+                classVarName: route.classVarName,
+                method: null,
+              ),
               if (route.routes.isNotEmpty)
                 'routes': literalList([
-                  for (final child in route.routes) createRoute(child, route)
+                  for (final child in route.routes)
+                    createChildRoute(child, route)
                 ])
             })
             .returned
@@ -51,7 +47,7 @@ PartFile routeFileMaker(
   );
 }
 
-Spec createRoute(ShelfRoute route, ShelfParentRoute parent) {
+Spec createChildRoute(ShelfChildRoute route, ShelfParentRoute parent) {
   var handler = refer(parent.classVarName).property(route.handlerName).call([
     // TODO: Add parameters
   ]);
@@ -67,23 +63,75 @@ Spec createRoute(ShelfRoute route, ShelfParentRoute parent) {
   return refer('Route').newInstance([
     literalString(route.path)
   ], {
-    'catchers': literalConstList([]),
+    ...createRouteArgs(
+      route: route,
+      returnType: route.returnType,
+      classVarName: parent.classVarName,
+      method: route.method,
+    )
+  });
+}
+
+Map<String, Expression> createRouteArgs({
+  required ShelfRoute route,
+  ShelfReturnType? returnType,
+  String? classVarName,
+  String? method,
+}) {
+  var handler = literalNull;
+  if (returnType != null && classVarName != null) {
+    handler = refer(classVarName).property(route.handlerName).call([
+      // TODO: Add parameters
+    ]);
+
+    if (returnType.isFuture) {
+      handler = handler.awaited;
+    }
+
+    if (!returnType.isVoid) {
+      handler = declareFinal('result').assign(handler);
+    }
+  }
+  return {
+    if (route.annotations.catchers.isNotEmpty)
+      'catchers': literalConstList([
+        for (final catcher in route.annotations.catchers) createCatcher(catcher)
+      ]),
     'data': literalConstList([]),
     'guards': literalConstList([]),
     'interceptors': literalConstList([]),
+    'middlewares': literalConstList([]),
+    'redirect': literalNull,
     'meta': Method((p) => p
       ..requiredParameters.add(Parameter((b) => b..name = 'm'))
       ..body = Block.of([])).closure,
-    'method': literalString(route.method),
-    'middlewares': literalConstList([]),
-    'redirect': literalNull,
-    'handler': Method(
-      (p) => p
-        ..requiredParameters.add(Parameter((b) => b..name = 'context'))
-        ..modifier = MethodModifier.async
-        ..body = Block.of([
-          handler.statement,
-        ]),
-    ).closure,
-  });
+    if (method != null) 'method': literalString(method),
+    if ('$handler' != '$literalNull')
+      'handler': Method(
+        (p) => p
+          ..requiredParameters.add(Parameter((b) => b..name = 'context'))
+          ..modifier = MethodModifier.async
+          ..body = Block.of([
+            handler.statement,
+          ]),
+      ).closure,
+  };
+}
+
+Spec createCatcher(ShelfExceptionCatcher catcher) {
+  final positioned = <Expression>[];
+  final named = <String, Expression>{};
+
+  for (final paramWithValue in catcher.params) {
+    final arg = CodeExpression(Code(paramWithValue.value));
+    final param = paramWithValue.param;
+
+    if (param.isNamed) {
+      named[param.name] = arg;
+    } else {
+      positioned.add(arg);
+    }
+  }
+
+  return refer(catcher.className).newInstance(positioned, named);
 }

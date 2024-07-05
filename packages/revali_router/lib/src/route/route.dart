@@ -6,6 +6,8 @@ import 'package:revali_router/src/endpoint/endpoint_context.dart';
 import 'package:revali_router/src/exception_catcher/exception_catcher.dart';
 import 'package:revali_router/src/guard/guard.dart';
 import 'package:revali_router/src/interceptor/interceptor.dart';
+import 'package:revali_router/src/meta/combine_meta.dart';
+import 'package:revali_router/src/meta/combine_meta_applier.dart';
 import 'package:revali_router/src/meta/meta_handler.dart';
 import 'package:revali_router/src/middleware/middleware.dart';
 import 'package:revali_router/src/redirect/redirect.dart';
@@ -24,9 +26,10 @@ class Route extends Equatable implements RouteEntry {
     this.interceptors = const [],
     this.guards = const [],
     this.catchers = const [],
-    void Function(MetaHandler)? meta,
     this.data = const [],
+    void Function(MetaHandler)? meta,
     this.redirect,
+    CombineMeta? combine,
   })  : parent = null,
         _meta = meta,
         method = method?.toUpperCase() {
@@ -65,6 +68,8 @@ class Route extends Equatable implements RouteEntry {
         );
       }
     }
+
+    CombineMetaApplier(this, combine).apply();
 
     this.routes = routes?.map((e) => e.copyWith.parent(this));
 

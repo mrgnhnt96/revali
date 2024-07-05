@@ -79,6 +79,10 @@ class Router extends Equatable {
 
       return result;
     } catch (e) {
+      if (e is! Exception) {
+        return Response.internalServerError();
+      }
+
       for (final catcher in catchers) {
         if (!catcher.canCatch(e)) {
           continue;

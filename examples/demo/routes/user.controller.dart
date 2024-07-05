@@ -14,6 +14,10 @@ class ThisController {
   @Get()
   Future<void> listPeople() async {}
 
+  @Catches([
+    NotAuthCatcher('hi'),
+  ])
+  @NotAuthCatcher('bye')
   @Get(':id')
   User getNewPerson({
     @Query.pipe(NamePipe) required String name,
@@ -98,5 +102,18 @@ class Lazy {
 
   String get() {
     return value ??= 'lazy';
+  }
+}
+
+class NotAuth implements Exception {}
+
+class NotAuthCatcher extends ExceptionCatcher {
+  const NotAuthCatcher(this.value);
+
+  final String value;
+
+  @override
+  ExceptionCatcherResult catchException(exception, context, action) {
+    return action.handled();
   }
 }
