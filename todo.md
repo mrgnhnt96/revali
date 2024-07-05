@@ -1,6 +1,6 @@
 # TODO
 
-## 7.1.2024
+## 7.5.2024
 
 - [ ] Create "App" annotation
   - This will be used for configurations such as
@@ -13,29 +13,33 @@
     - CORS
     - (Nice To Haves):
       - Rate limiting
-  - [ ] Add flavor flag to the annotation & to the CLI to determine what environment the app is running in
-- [ ] Add `Pipe` class for annotations
+- [ ] Add flavor flag to the annotation & to the CLI to determine what environment the app is running in
+
+## 7.1.2024
+
+- [x] Add `Pipe` class for annotations
   - This will be used to convert the annotated item to another type
-- [ ] Add `Guard` class for annotations
+- [x] Add `Guard` class for annotations
   - This will be used to stop or continue the execution of the method/endpoint
   - We could create a field for types where we could annotation like `@Guard([AuthGuard, RoleGuard])`
     - This wouldn't allow for _all_ edge cases, but could be useful
     - We could also add a different field coupled with a different constructor to allow for instances of guards
-- [ ] Create `Catch` class which will be used to catch errors thrown by the method/endpoint
+- [x] Create `Catch` class which will be used to catch errors thrown by the method/endpoint
   - The errors would need to implement the `ExceptionCatcher` interface
   - We could create a field for types where we could annotation like `@Catch([UnknownCatcher, ServerCatcher, BadRequestCatcher])`
-- [ ] Create `HttpCode` class which will be used to set the status code of the response
+- [x] Create `HttpCode` class which will be used to set the status code of the response
   - `@HttpCode(200)`
-- [ ] Create `SetHeader` class which will be used to set the headers of the response
+- [x] Create `SetHeader` class which will be used to set the headers of the response
   - `@SetHeader('Content-Type', 'application/json')`
-- [ ] Create `Redirect` class which will be used to redirect the user to another endpoint
+- [x] Create `Redirect` class which will be used to redirect the user to another endpoint
   - `@Redirect('/home')`
-- [ ] Create `Body` class which will be used to get the body of the request as a parameter
+- [x] Create `Body` class which will be used to get the body of the request as a parameter
   - `@Body()`
-- [ ] Create `Header` class which will be used to get the headers of the request as a parameter
+- [x] Create `Header` class which will be used to get the headers of the request as a parameter
   - `@Header('Content-Type')`
 
 # Nice to have
+
 - [ ] Create `RateLimit` class which will be used to limit the number of requests to an endpoint
   - `@RateLimit(10, Duration(minutes: 1))`
 
