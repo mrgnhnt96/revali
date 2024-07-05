@@ -30,6 +30,7 @@ export 'src/middleware/middleware.dart';
 export 'src/middleware/middleware_action.dart';
 export 'src/middleware/middleware_context.dart';
 export 'src/middleware/middleware_context_impl.dart';
+export 'src/redirect/redirect.dart';
 export 'src/request/mutable_request_context.dart';
 export 'src/request/mutable_request_context_impl.dart';
 export 'src/request/read_only_request_context.dart';

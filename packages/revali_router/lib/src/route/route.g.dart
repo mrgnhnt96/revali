@@ -18,6 +18,7 @@ extension _$RouteAutoequal on Route {
         handler,
         method,
         _meta,
+        redirect,
       ];
 }
 
@@ -46,6 +47,8 @@ abstract class _$RouteCWProxy {
 
   Route data(List<Data<dynamic>> data);
 
+  Route redirect(Redirect? redirect);
+
   Route meta(dynamic meta);
 
   /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `Route(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
@@ -65,6 +68,7 @@ abstract class _$RouteCWProxy {
     List<Guard>? guards,
     List<ExceptionCatcher<dynamic>>? catchers,
     List<Data<dynamic>>? data,
+    Redirect? redirect,
     dynamic meta,
   });
 }
@@ -110,6 +114,9 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
   Route data(List<Data<dynamic>> data) => this(data: data);
 
   @override
+  Route redirect(Redirect? redirect) => this(redirect: redirect);
+
+  @override
   Route meta(dynamic meta) => this(meta: meta);
 
   @override
@@ -131,6 +138,7 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
     Object? guards = const $CopyWithPlaceholder(),
     Object? catchers = const $CopyWithPlaceholder(),
     Object? data = const $CopyWithPlaceholder(),
+    Object? redirect = const $CopyWithPlaceholder(),
     Object? meta = const $CopyWithPlaceholder(),
   }) {
     return Route._(
@@ -176,6 +184,10 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
           ? _value.data
           // ignore: cast_nullable_to_non_nullable
           : data as List<Data<dynamic>>,
+      redirect: redirect == const $CopyWithPlaceholder()
+          ? _value.redirect
+          // ignore: cast_nullable_to_non_nullable
+          : redirect as Redirect?,
       meta: meta == const $CopyWithPlaceholder() || meta == null
           ? _value._meta
           // ignore: cast_nullable_to_non_nullable

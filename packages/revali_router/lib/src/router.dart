@@ -45,6 +45,16 @@ class Router extends Equatable {
     }
 
     final RouteMatch(:route, :pathParameters) = match;
+
+    if (route.redirect case final redirect?) {
+      return Response(
+        redirect.code,
+        headers: {
+          'Location': redirect.path,
+        },
+      );
+    }
+
     request.setPathParameters(pathParameters);
 
     final catchers = route.allCatchers;

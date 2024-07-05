@@ -8,6 +8,7 @@ import 'package:revali_router/src/guard/guard.dart';
 import 'package:revali_router/src/interceptor/interceptor.dart';
 import 'package:revali_router/src/meta/meta_handler.dart';
 import 'package:revali_router/src/middleware/middleware.dart';
+import 'package:revali_router/src/redirect/redirect.dart';
 import 'package:revali_router/src/route/route_entry.dart';
 
 part 'route.g.dart';
@@ -25,6 +26,7 @@ class Route extends Equatable implements RouteEntry {
     this.catchers = const [],
     void Function(MetaHandler)? meta,
     this.data = const [],
+    this.redirect,
   })  : parent = null,
         _meta = meta,
         method = method?.toUpperCase() {
@@ -104,6 +106,7 @@ class Route extends Equatable implements RouteEntry {
     required this.guards,
     required this.catchers,
     required this.data,
+    required this.redirect,
     // dynamic is needed bc copyWith has a bug
     required meta,
   }) : _meta = meta as void Function(MetaHandler)?;
@@ -120,6 +123,7 @@ class Route extends Equatable implements RouteEntry {
   final Future<void> Function(EndpointContext)? handler;
   final String? method;
   final void Function(MetaHandler)? _meta;
+  final Redirect? redirect;
 
   bool get isDynamic => segments.any((s) => s.startsWith(':'));
   bool get isStatic => !isDynamic;
