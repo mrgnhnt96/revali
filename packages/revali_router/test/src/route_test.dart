@@ -237,13 +237,13 @@ void main() {
             'user',
             method: 'GET',
             handler: (_) async {},
-            meta: (m) => m..register(_Auth()),
+            meta: (m) => m..add(_Auth()),
             routes: [
               Route(
                 'profile',
                 method: 'GET',
                 handler: (_) async {},
-                meta: (m) => m..register(_Public()),
+                meta: (m) => m..add(_Public()),
               ),
             ],
           );
@@ -263,13 +263,13 @@ void main() {
             'user',
             method: 'GET',
             handler: (_) async {},
-            meta: (m) => m..register(_Auth()),
+            meta: (m) => m..add(_Auth()),
             routes: [
               Route(
                 'profile',
                 method: 'GET',
                 handler: (_) async {},
-                meta: (m) => m..register(_Public()),
+                meta: (m) => m..add(_Public()),
               ),
             ],
           );

@@ -48,6 +48,6 @@ class MetaArg implements ReadOnlyMetaArg {
 
   /// Add metadata to the directly associated route.
   void add<T>(T metadata) {
-    _direct.register(metadata);
+    _direct.add(metadata);
   }
 }

@@ -14,6 +14,7 @@ extension _$RouteAutoequal on Route {
         interceptors,
         catchers,
         guards,
+        data,
         handler,
         method,
         _meta,
@@ -43,6 +44,8 @@ abstract class _$RouteCWProxy {
 
   Route catchers(List<ExceptionCatcher<dynamic>> catchers);
 
+  Route data(List<Data<dynamic>> data);
+
   Route meta(dynamic meta);
 
   /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `Route(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
@@ -61,6 +64,7 @@ abstract class _$RouteCWProxy {
     String? method,
     List<Guard>? guards,
     List<ExceptionCatcher<dynamic>>? catchers,
+    List<Data<dynamic>>? data,
     dynamic meta,
   });
 }
@@ -103,6 +107,9 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
       this(catchers: catchers);
 
   @override
+  Route data(List<Data<dynamic>> data) => this(data: data);
+
+  @override
   Route meta(dynamic meta) => this(meta: meta);
 
   @override
@@ -123,6 +130,7 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
     Object? method = const $CopyWithPlaceholder(),
     Object? guards = const $CopyWithPlaceholder(),
     Object? catchers = const $CopyWithPlaceholder(),
+    Object? data = const $CopyWithPlaceholder(),
     Object? meta = const $CopyWithPlaceholder(),
   }) {
     return Route._(
@@ -164,6 +172,10 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
           ? _value.catchers
           // ignore: cast_nullable_to_non_nullable
           : catchers as List<ExceptionCatcher<dynamic>>,
+      data: data == const $CopyWithPlaceholder() || data == null
+          ? _value.data
+          // ignore: cast_nullable_to_non_nullable
+          : data as List<Data<dynamic>>,
       meta: meta == const $CopyWithPlaceholder() || meta == null
           ? _value._meta
           // ignore: cast_nullable_to_non_nullable

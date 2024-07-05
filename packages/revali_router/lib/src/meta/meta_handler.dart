@@ -5,7 +5,10 @@ class MetaHandler implements ReadOnlyMeta {
 
   Map<Type, List<dynamic>> _registered = {};
 
-  void register<T>(T instance) {
+  /// Adds an instance to meta, which can be retrieved later.
+  ///
+  /// The key for the instance is the type of the instance.
+  void add<T>(T instance) {
     (_registered[T] ??= []).add(instance);
   }
 
