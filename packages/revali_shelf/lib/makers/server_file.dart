@@ -1,10 +1,9 @@
-import 'package:change_case/change_case.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:path/path.dart' as p;
-import 'package:revali_construct/revali_construct.dart';
-import 'package:revali_shelf/makers/utils/meta_route_extensions.dart';
+import 'package:revali_shelf/converters/shelf_parent_route.dart';
+import 'package:revali_shelf/converters/shelf_server.dart';
 
-String serverFile(List<MetaRoute> routes, String Function(Spec) formatter) {
+String serverFile(ShelfServer server, String Function(Spec) formatter) {
   final imports = [
     "import 'dart:io';",
     "import 'dart:convert';",
@@ -13,8 +12,10 @@ String serverFile(List<MetaRoute> routes, String Function(Spec) formatter) {
     "import 'package:shelf/shelf.dart';",
     "import 'package:shelf/shelf_io.dart' as io;",
     "import 'package:revali_router/revali_router.dart';",
+    "import 'package:revali_router_annotations/revali_router_annotations.dart';",
     "import 'package:revali_construct/revali_construct.dart';",
-    for (final route in routes) "import '../${p.relative(route.filePath)}';",
+    for (final route in server.routes)
+      "import '../${p.relative(route.filePath)}';",
   ];
 
   final main = Method(
@@ -29,7 +30,13 @@ String serverFile(List<MetaRoute> routes, String Function(Spec) formatter) {
   final createServer = Method(
     (b) => b
       ..name = 'createServer'
-      ..returns = refer('Future<HttpServer>')
+      ..returns = TypeReference(
+        (p) => p
+          ..symbol = 'Future'
+          ..types.add(
+            refer('HttpServer'),
+          ),
+      )
       ..modifier = MethodModifier.async
       ..body = Block.of([
         declareFinal('server')
@@ -80,25 +87,30 @@ String serverFile(List<MetaRoute> routes, String Function(Spec) formatter) {
                 'Serving at http://\${server.address.host}:\${server.port}'),
           ],
         ).statement,
-        refer('return server').statement,
+        Code('\n'),
+        refer('server').returned.statement,
       ]),
   );
 
-  final routeSpecs = [
-    for (final route in routes) createParentRoute(route),
-  ];
-
-  final routesVar = declareFinal('routes', late: true)
-      .assign(literalList([
-        for (final spec in routeSpecs) spec.ref,
-      ]))
-      .statement;
+  final routesVar = Method((p) => p
+    ..name = 'routes'
+    ..lambda = true
+    ..type = MethodType.getter
+    ..returns = TypeReference(
+      (b) => b
+        ..symbol = 'List'
+        ..types.add(refer('Route')),
+    )
+    ..body = Block.of([
+      literalList([
+        for (final route in server.routes) createParentReference(route),
+      ]).statement,
+    ]));
 
   final parts = <Spec>[
     main,
     createServer,
     routesVar,
-    for (final spec in routeSpecs) spec.method,
   ];
 
   final content = parts.map(formatter).join('\n');
@@ -108,79 +120,8 @@ ${imports.join('\n')}
 $content''';
 }
 
-({Spec ref, Spec method}) createParentRoute(MetaRoute route) {
-  final method = Method(
-    (p) => p
-      ..name = route.handlerName
-      ..returns = refer('Route')
-      ..requiredParameters.add(
-        Parameter(
-          (b) => b
-            ..name = route.className.toCamelCase()
-            ..type = refer(route.className),
-        ),
-      )
-      ..body = Block.of([
-        refer('Route')
-            .newInstance([
-              literalString(route.path)
-            ], {
-              'catchers': literalConstList([]),
-              'middlewares': literalConstList([]),
-              'guards': literalConstList([]),
-              'interceptors': literalConstList([]),
-              'meta': literalConstList([]),
-              'method': literalNull,
-              'handler': literalNull,
-              if (route.methods.isNotEmpty)
-                'route': literalList([
-                  for (final method in route.methods) createRoute(method, route)
-                ])
-            })
-            .returned
-            .statement,
-      ]),
-  );
-
-  final ref = refer(route.handlerName).call([
+Spec createParentReference(ShelfParentRoute route) {
+  return refer(route.handlerName).call([
     refer(route.className).newInstance([]),
   ]);
-
-  return (ref: ref, method: method);
-}
-
-Spec createRoute(MetaMethod method, MetaRoute route) {
-  var handler =
-      refer(route.className.toCamelCase()).property(method.name).call([
-    // TODO: Add parameters
-  ]);
-
-  if (method.returnType.isFuture) {
-    handler = handler.awaited;
-  }
-
-  if (!method.returnType.isVoid) {
-    handler = declareFinal('result').assign(handler);
-  }
-
-  return refer('Route').newInstance([
-    literalString(method.path ?? '')
-  ], {
-    'catchers': literalConstList([]),
-    'middlewares': literalConstList([]),
-    'guards': literalConstList([]),
-    'interceptors': literalConstList([]),
-    'meta': literalConstList([]),
-    'method': literalString(method.method),
-    'handler': Method(
-      (p) => p
-        ..requiredParameters.add(Parameter((b) => b..name = 'context'))
-        ..body = Block.of([
-          if (method.returnType.isFuture)
-            handler.awaited.statement
-          else
-            handler.statement,
-        ]),
-    ).closure,
-  });
 }

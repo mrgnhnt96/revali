@@ -81,6 +81,25 @@ void main() {
       });
 
       group('should throw', () {
+        test('if root handler and nested empty route handler is implemented',
+            () {
+          expect(
+            () => Route(
+              '',
+              method: 'GET',
+              handler: (_) async {},
+              routes: [
+                Route(
+                  '',
+                  method: 'GET',
+                  handler: (_) async {},
+                ),
+              ],
+            ),
+            throwsArgumentError,
+          );
+        });
+
         test('if method is provided without handler', () {
           expect(
             () => Route(

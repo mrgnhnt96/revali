@@ -43,10 +43,16 @@ late final routes = [
     routes: [
       Route(
         ':id',
-        method: 'GET',
-        middlewares: [AddAuth()],
+        catchers: [],
+        data: [],
         guards: [AuthGuard()],
         handler: (context) async {},
+        interceptors: [],
+        meta: (m) {},
+        method: 'GET',
+        middlewares: [AddAuth()],
+        redirect: null,
+        routes: [],
       ),
       Route(
         '',

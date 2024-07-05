@@ -1,3 +1,4 @@
+import 'package:change_case/change_case.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_shelf/revali_shelf.dart';
 
@@ -28,4 +29,10 @@ class ShelfParentRoute {
   final Iterable<ShelfParam> params;
   final Iterable<ShelfRoute> routes;
   final ShelfRouteAnnotations annotations;
+
+  String get handlerName => routePath.toNoCase().toCamelCase();
+
+  String get classVarName => className.toNoCase().toCamelCase();
+
+  String get fileName => routePath.toNoCase().toSnakeCase();
 }
