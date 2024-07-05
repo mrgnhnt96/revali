@@ -1,49 +1,31 @@
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/type.dart';
-import 'package:revali_router/revali_router.dart';
+import 'package:revali_shelf/converters/shelf_class.dart';
 import 'package:revali_shelf/converters/shelf_param_with_value.dart';
-import 'package:revali_shelf/revali_shelf.dart';
 
-class ShelfExceptionCatcher {
+class ShelfExceptionCatcher implements ShelfClass {
   const ShelfExceptionCatcher({
     required this.className,
     required this.importPath,
     required this.params,
+    required this.source,
   });
 
-  factory ShelfExceptionCatcher.fromDartObject(DartObject object) {
-    final name = object.type?.getDisplayString(withNullability: false);
-    final filePath = object.type?.element?.library?.identifier;
-    final params = <ShelfParam>[];
-
-    if (object.type case final InterfaceType type) {
-      if (type.constructors.isEmpty) {
-        throw Exception(
-          'Invalid $ExceptionCatcher, At least 1 constructor is needed',
-        );
-      }
-
-      params.addAll(
-        type.constructors.first.parameters.map(ShelfParam.fromElement),
-      );
-    } else {
-      throw Exception('Invalid $ExceptionCatcher, failed to parse');
-    }
-
-    if (name == null || filePath == null) {
-      throw Exception('Invalid $ExceptionCatcher, failed to parse');
-    }
+  factory ShelfExceptionCatcher.fromDartObject(
+      DartObject object, String source) {
+    final shelfClass = ShelfClass.fromDartObject(object, source);
 
     return ShelfExceptionCatcher(
-      className: name,
-      importPath: filePath,
-      params: params.map((e) => ShelfParamWithValue.fromDartObject(object, e)),
+      className: shelfClass.className,
+      importPath: shelfClass.importPath,
+      params: shelfClass.params,
+      source: source,
     );
   }
 
   final String className;
   final String importPath;
   final Iterable<ShelfParamWithValue> params;
+  final String source;
 
   bool get isFileImport => importPath.startsWith('file:');
 }

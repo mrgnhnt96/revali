@@ -7,7 +7,6 @@ export 'src/data/data_handler.dart';
 export 'src/data/read_only_data_handler.dart';
 export 'src/endpoint/endpoint_context.dart';
 export 'src/endpoint/endpoint_context_impl.dart';
-export 'src/exception_catcher/catches.dart';
 export 'src/exception_catcher/exception_catcher.dart';
 export 'src/exception_catcher/exception_catcher_action.dart';
 export 'src/exception_catcher/exception_catcher_context.dart';

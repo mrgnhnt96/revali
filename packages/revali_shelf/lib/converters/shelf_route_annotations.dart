@@ -1,7 +1,6 @@
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
-import 'package:revali_shelf/converters/shelf_catches.dart';
 import 'package:revali_shelf/revali_shelf.dart';
 
 class ShelfRouteAnnotations {
@@ -12,80 +11,87 @@ class ShelfRouteAnnotations {
     required this.guards,
     required this.data,
     required this.combine,
+    required this.meta,
   });
 
   factory ShelfRouteAnnotations.fromParent(MetaRoute parent) {
     return ShelfRouteAnnotations._fromGetter(parent.annotationsFor);
   }
   factory ShelfRouteAnnotations.fromRoute(MetaMethod method) {
-    return ShelfRouteAnnotations._fromGetter(method.annotationsFor);
+    return ShelfRouteAnnotations._fromGetter(method.annotationsMapper);
   }
 
-  factory ShelfRouteAnnotations._fromGetter(AnnotationGetter getter) {
-    final middlewares = <ShelfMiddleware>[];
-    final interceptors = <ShelfInterceptor>[];
-    final catchers = <ShelfExceptionCatcher>[];
-    final guards = <ShelfGuard>[];
-    final data = <ShelfSetData>[];
-    final apply = <ShelfCombineMeta>[];
+  factory ShelfRouteAnnotations._fromGetter(AnnotationMapper getter) {
+    final middlewares = <ShelfClass>[];
+    final interceptors = <ShelfClass>[];
+    final catchers = <ShelfClass>[];
+    final guards = <ShelfClass>[];
+    final data = <ShelfClass>[];
+    final apply = <ShelfClass>[];
+    final meta = <ShelfSetMeta>[];
 
-    if (getter(
-      classType: Middleware,
-      package: 'revali_router',
-    )
-        case final annotations when annotations.isNotEmpty) {
-      middlewares.addAll(annotations.map(ShelfMiddleware.fromDartObject));
-    }
-
-    if (getter(
-      classType: Interceptor,
-      package: 'revali_router',
-    )
-        case final annotations when annotations.isNotEmpty) {
-      interceptors.addAll(annotations.map(ShelfInterceptor.fromDartObject));
-    }
-
-    if (getter(
-      classType: ExceptionCatcher,
-      package: 'revali_router',
-    )
-        case final annotations when annotations.isNotEmpty) {
-      catchers.addAll(annotations.map(ShelfExceptionCatcher.fromDartObject));
-    }
-    if (getter(
-      classType: Catches,
-      package: 'revali_router',
-    )
-        case final annotations when annotations.isNotEmpty) {
-      for (final annotation in annotations) {
-        final catches = ShelfCatches.fromDartObject(annotation);
-        catchers.addAll(catches.catchers);
-      }
-    }
-
-    if (getter(
-      classType: Guard,
-      package: 'revali_router',
-    )
-        case final annotations when annotations.isNotEmpty) {
-      guards.addAll(annotations.map(ShelfGuard.fromDartObject));
-    }
-
-    if (getter(
-      classType: SetData,
-      package: 'revali_router_annotations',
-    )
-        case final annotations when annotations.isNotEmpty) {
-      data.addAll(annotations.map(ShelfSetData.fromDartObject));
-    }
-
-    if (getter(
-      classType: CombineMeta,
-      package: 'revali_router_annotations',
-    )
-        case final annotations when annotations.isNotEmpty) {
-      apply.addAll(annotations.map(ShelfCombineMeta.fromDartObject));
-    }
+    getter(
+      on: [
+        OnClass(
+          classType: Middleware,
+          package: 'revali_router',
+          convert: (annotation, source) {
+            middlewares.add(ShelfClass.fromDartObject(annotation, source));
+          },
+        ),
+        OnClass(
+          classType: Interceptor,
+          package: 'revali_router',
+          convert: (annotation, source) {
+            interceptors.add(ShelfClass.fromDartObject(annotation, source));
+          },
+        ),
+        OnClass(
+          classType: ExceptionCatcher,
+          package: 'revali_router',
+          convert: (annotation, source) {
+            catchers.add(ShelfClass.fromDartObject(annotation, source));
+          },
+        ),
+        // will implement later
+        // OnClass(
+        //   classType: Catches,
+        //   package: 'revali_router',
+        //   convert: (annotation, source) {
+        //     final catches = ShelfCatches.fromDartObject(annotation);
+        //     catchers.addAll(catches.catchers);
+        //   },
+        // ),
+        OnClass(
+          classType: Guard,
+          package: 'revali_router',
+          convert: (annotation, source) {
+            guards.add(ShelfClass.fromDartObject(annotation, source));
+          },
+        ),
+        OnClass(
+          classType: Data,
+          package: 'revali_router',
+          convert: (annotation, source) {
+            data.add(ShelfClass.fromDartObject(annotation, source));
+          },
+        ),
+        OnClass(
+          classType: CombineMeta,
+          package: 'revali_router',
+          convert: (annotation, source) {
+            apply.add(ShelfClass.fromDartObject(annotation, source));
+          },
+        ),
+        OnClass(
+          classType: SetMeta,
+          package: 'revali_router_annotations',
+          convert: (annotation, source) {
+            meta.add(ShelfSetMeta.fromDartObject(annotation, source));
+          },
+        ),
+      ],
+    );
 
     return ShelfRouteAnnotations(
       middlewares: middlewares,
@@ -94,13 +100,15 @@ class ShelfRouteAnnotations {
       guards: guards,
       data: data,
       combine: apply,
+      meta: meta,
     );
   }
 
-  final Iterable<ShelfMiddleware> middlewares;
-  final Iterable<ShelfInterceptor> interceptors;
-  final Iterable<ShelfExceptionCatcher> catchers;
-  final Iterable<ShelfGuard> guards;
-  final Iterable<ShelfSetData> data;
-  final Iterable<ShelfCombineMeta> combine;
+  final Iterable<ShelfClass> middlewares;
+  final Iterable<ShelfClass> interceptors;
+  final Iterable<ShelfClass> catchers;
+  final Iterable<ShelfClass> guards;
+  final Iterable<ShelfClass> data;
+  final Iterable<ShelfClass> combine;
+  final Iterable<ShelfSetMeta> meta;
 }

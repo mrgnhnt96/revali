@@ -12,7 +12,7 @@ class MetaMethod {
     required this.path,
     required this.params,
     required this.returnType,
-    required this.annotationsFor,
+    required this.annotationsMapper,
   });
 
   final String name;
@@ -20,5 +20,5 @@ class MetaMethod {
   final String? path;
   final Iterable<MetaParam> params;
   final MetaReturnType returnType;
-  final AnnotationGetter annotationsFor;
+  final AnnotationMapper annotationsMapper;
 }

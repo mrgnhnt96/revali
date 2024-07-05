@@ -20,7 +20,7 @@ class MetaParam {
   final bool isRequired;
   final bool isNamed;
   final String? defaultValue;
-  final AnnotationGetter annotationsFor;
+  final AnnotationMapper annotationsFor;
 
   bool get hasDefaultValue => defaultValue != null;
 }

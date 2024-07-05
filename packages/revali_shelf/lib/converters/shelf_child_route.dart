@@ -1,9 +1,9 @@
-import 'package:revali_construct/models/meta_method.dart';
+import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
+import 'package:revali_shelf/converters/shelf_class.dart';
 import 'package:revali_shelf/converters/shelf_http_code.dart';
 import 'package:revali_shelf/converters/shelf_param.dart';
-import 'package:revali_shelf/converters/shelf_redirect.dart';
 import 'package:revali_shelf/converters/shelf_return_type.dart';
 import 'package:revali_shelf/converters/shelf_route.dart';
 import 'package:revali_shelf/converters/shelf_route_annotations.dart';
@@ -22,34 +22,38 @@ class ShelfChildRoute implements ShelfRoute {
 
   factory ShelfChildRoute.fromMeta(MetaMethod method) {
     ShelfHttpCode? httpCode;
-    if (method.annotationsFor(
-      classType: HttpCode,
-      package: 'revali_router_annotations',
-    )
-        case final annotations when annotations.isNotEmpty) {
-      if (annotations.length > 1) {
-        throw ArgumentError(
-          'Only one HttpCode annotation is allowed per method',
-        );
-      }
+    ShelfClass? redirect;
 
-      httpCode = ShelfHttpCode.fromDartObject(annotations.first);
-    }
+    method.annotationsMapper(
+      on: [
+        OnClass(
+          classType: HttpCode,
+          package: 'revali_router_annotations',
+          convert: (annotation, source) {
+            if (httpCode != null) {
+              throw ArgumentError(
+                'Only one HttpCode annotation is allowed per method',
+              );
+            }
 
-    ShelfRedirect? redirect;
-    if (method.annotationsFor(
-      classType: Redirect,
-      package: 'revali_router',
-    )
-        case final annotations when annotations.isNotEmpty) {
-      if (annotations.length > 1) {
-        throw ArgumentError(
-          'Only one Redirect annotation is allowed per method',
-        );
-      }
+            httpCode = ShelfHttpCode.fromDartObject(annotation);
+          },
+        ),
+        OnClass(
+          classType: Redirect,
+          package: 'revali_router',
+          convert: (annotation, source) {
+            if (redirect != null) {
+              throw ArgumentError(
+                'Only one Redirect annotation is allowed per method',
+              );
+            }
 
-      redirect = ShelfRedirect.fromDartObject(annotations.first);
-    }
+            redirect = ShelfClass.fromDartObject(annotation, source);
+          },
+        ),
+      ],
+    );
 
     final shelfRoute = ShelfRoute.fromMeta(method);
 
@@ -67,7 +71,7 @@ class ShelfChildRoute implements ShelfRoute {
 
   final ShelfReturnType returnType;
   final ShelfHttpCode? httpCode;
-  final ShelfRedirect? redirect;
+  final ShelfClass? redirect;
   final String method;
   final String path;
 

@@ -60,16 +60,15 @@ class RouteTraverser {
       filePath: file.path,
       className: clazz.name,
       params: params,
+      element: clazz,
       constructorName: constructor.name,
       methods: [...methodVisitor.methods.values.expand((e) => e)],
       annotationsFor: ({
-        required Type classType,
-        required String package,
+        required List<OnClass> on,
       }) =>
           getAnnotations(
-        classType: classType,
-        package: package,
         element: clazz,
+        on: on,
       ),
     );
   }
@@ -134,6 +133,8 @@ class MethodVisitor extends RecursiveElementVisitor<void> {
 
     final params = getParams(element);
 
+    final type = element.returnType.getDisplayString(withNullability: false);
+
     (methods[method.name] ??= []).add(
       MetaMethod(
         name: element.name,
@@ -141,21 +142,20 @@ class MethodVisitor extends RecursiveElementVisitor<void> {
         path: method.path,
         params: params,
         returnType: MetaReturnType(
-          isVoid: element.returnType is VoidType,
+          isVoid:
+              element.returnType is VoidType ? true : type.contains('<void>'),
           isNullable:
               element.returnType.nullabilitySuffix != NullabilitySuffix.none,
-          type: element.returnType.getDisplayString(withNullability: false),
+          type: type,
           element: element.returnType.element,
           isFuture: element.returnType.isDartAsyncFuture,
         ),
-        annotationsFor: ({
-          required Type classType,
-          required String package,
+        annotationsMapper: ({
+          required List<OnClass> on,
         }) =>
             getAnnotations(
-          classType: classType,
-          package: package,
           element: element,
+          on: on,
         ),
       ),
     );
@@ -183,13 +183,11 @@ Iterable<MetaParam> getParams(FunctionTypedElement element) {
         isNamed: param.isNamed,
         defaultValue: param.defaultValueCode,
         annotationsFor: ({
-          required Type classType,
-          required String package,
+          required List<OnClass> on,
         }) =>
             getAnnotations(
-          classType: classType,
-          package: package,
           element: element,
+          on: on,
         ),
       ),
     );

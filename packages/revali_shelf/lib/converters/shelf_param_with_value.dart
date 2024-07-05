@@ -1,6 +1,6 @@
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:revali_shelf/revali_shelf.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
+import 'package:revali_shelf/revali_shelf.dart';
 
 class ShelfParamWithValue {
   const ShelfParamWithValue({
@@ -14,7 +14,8 @@ class ShelfParamWithValue {
 
     if (value == null || value is! DartObjectImpl) {
       throw Exception(
-          'Invalid $ShelfParamWithValue, failed to parse field: ${param.name}');
+        'Invalid $ShelfParamWithValue, failed to parse field: ${param.name}',
+      );
     }
 
     return ShelfParamWithValue(

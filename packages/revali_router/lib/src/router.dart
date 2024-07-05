@@ -63,10 +63,6 @@ class Router extends Equatable {
     final inheritedMeta = route.getMeta(inherit: true);
     final dataHandler = DataHandler();
 
-    for (final data in route.allData) {
-      data.apply(dataHandler);
-    }
-
     try {
       final result = await execute(
         route: route,

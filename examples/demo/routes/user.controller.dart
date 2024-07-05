@@ -14,10 +14,8 @@ class ThisController {
   @Get()
   Future<void> listPeople() async {}
 
-  @Catches([
-    NotAuthCatcher('hi'),
-  ])
   @NotAuthCatcher('bye')
+  @SetMeta(Role(AuthType.admin))
   @Get(':id')
   User getNewPerson({
     @Query.pipe(NamePipe) required String name,
@@ -42,6 +40,12 @@ class NamePipe extends Pipe<String, String> {
   String transform(value, context) {
     return 'value: $value';
   }
+}
+
+class Role {
+  const Role(this.type);
+
+  final AuthType type;
 }
 
 class StringToIntPipe extends Pipe<String, int> {

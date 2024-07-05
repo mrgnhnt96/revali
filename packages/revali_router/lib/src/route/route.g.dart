@@ -14,7 +14,6 @@ extension _$RouteAutoequal on Route {
         interceptors,
         catchers,
         guards,
-        data,
         handler,
         method,
         _meta,
@@ -45,8 +44,6 @@ abstract class _$RouteCWProxy {
 
   Route catchers(List<ExceptionCatcher<Exception>> catchers);
 
-  Route data(List<Data<dynamic>> data);
-
   Route redirect(Redirect? redirect);
 
   Route meta(dynamic meta);
@@ -67,7 +64,6 @@ abstract class _$RouteCWProxy {
     String? method,
     List<Guard>? guards,
     List<ExceptionCatcher<Exception>>? catchers,
-    List<Data<dynamic>>? data,
     Redirect? redirect,
     dynamic meta,
   });
@@ -111,9 +107,6 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
       this(catchers: catchers);
 
   @override
-  Route data(List<Data<dynamic>> data) => this(data: data);
-
-  @override
   Route redirect(Redirect? redirect) => this(redirect: redirect);
 
   @override
@@ -137,7 +130,6 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
     Object? method = const $CopyWithPlaceholder(),
     Object? guards = const $CopyWithPlaceholder(),
     Object? catchers = const $CopyWithPlaceholder(),
-    Object? data = const $CopyWithPlaceholder(),
     Object? redirect = const $CopyWithPlaceholder(),
     Object? meta = const $CopyWithPlaceholder(),
   }) {
@@ -180,10 +172,6 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
           ? _value.catchers
           // ignore: cast_nullable_to_non_nullable
           : catchers as List<ExceptionCatcher<Exception>>,
-      data: data == const $CopyWithPlaceholder() || data == null
-          ? _value.data
-          // ignore: cast_nullable_to_non_nullable
-          : data as List<Data<dynamic>>,
       redirect: redirect == const $CopyWithPlaceholder()
           ? _value.redirect
           // ignore: cast_nullable_to_non_nullable

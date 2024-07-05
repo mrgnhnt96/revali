@@ -2,7 +2,10 @@ import 'package:change_case/change_case.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_shelf/converters/shelf_child_route.dart';
-import 'package:revali_shelf/revali_shelf.dart';
+import 'package:revali_shelf/converters/shelf_class.dart';
+import 'package:revali_shelf/converters/shelf_parent_route.dart';
+import 'package:revali_shelf/converters/shelf_return_type.dart';
+import 'package:revali_shelf/converters/shelf_route.dart';
 
 PartFile routeFileMaker(
   ShelfParentRoute route,
@@ -68,7 +71,9 @@ Spec createChildRoute(ShelfChildRoute route, ShelfParentRoute parent) {
       returnType: route.returnType,
       classVarName: parent.classVarName,
       method: route.method,
-    )
+    ),
+    if (route.redirect != null)
+      'redirect': literal(createClass(route.redirect!)),
   });
 }
 
@@ -95,13 +100,28 @@ Map<String, Expression> createRouteArgs({
   return {
     if (route.annotations.catchers.isNotEmpty)
       'catchers': literalConstList([
-        for (final catcher in route.annotations.catchers) createCatcher(catcher)
+        for (final catcher in route.annotations.catchers) createClass(catcher)
       ]),
-    'data': literalConstList([]),
-    'guards': literalConstList([]),
-    'interceptors': literalConstList([]),
-    'middlewares': literalConstList([]),
-    'redirect': literalNull,
+    if (route.annotations.data.isNotEmpty)
+      'data': literalConstList(
+          [for (final data in route.annotations.data) createClass(data)]),
+    if (route.annotations.guards.isNotEmpty)
+      'guards': literalConstList(
+          [for (final guard in route.annotations.guards) createClass(guard)]),
+    if (route.annotations.interceptors.isNotEmpty)
+      'interceptors': literalConstList([
+        for (final interceptor in route.annotations.interceptors)
+          createClass(interceptor)
+      ]),
+    if (route.annotations.middlewares.isNotEmpty)
+      'middlewares': literalConstList([
+        for (final middleware in route.annotations.middlewares)
+          createClass(middleware)
+      ]),
+    if (route.annotations.combine.isNotEmpty)
+      'combine': literalConstList([
+        for (final combine in route.annotations.combine) createClass(combine)
+      ]),
     'meta': Method((p) => p
       ..requiredParameters.add(Parameter((b) => b..name = 'm'))
       ..body = Block.of([])).closure,
@@ -118,11 +138,11 @@ Map<String, Expression> createRouteArgs({
   };
 }
 
-Spec createCatcher(ShelfExceptionCatcher catcher) {
+Spec createClass(ShelfClass clazz) {
   final positioned = <Expression>[];
   final named = <String, Expression>{};
 
-  for (final paramWithValue in catcher.params) {
+  for (final paramWithValue in clazz.params) {
     final arg = CodeExpression(Code(paramWithValue.value));
     final param = paramWithValue.param;
 
@@ -133,5 +153,5 @@ Spec createCatcher(ShelfExceptionCatcher catcher) {
     }
   }
 
-  return refer(catcher.className).newInstance(positioned, named);
+  return Code(clazz.source);
 }

@@ -16,6 +16,7 @@ class RevaliShelfConstruct implements ServerConstruct {
     final emitter = DartEmitter.scoped(useNullSafetySyntax: true);
 
     String format(Spec spec) {
+      // return spec.accept(emitter).toString();
       return formatter.format(spec.accept(emitter).toString());
     }
 

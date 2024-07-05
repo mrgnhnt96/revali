@@ -17,6 +17,5 @@ class CombineMetaApplier {
     route.middlewares.addAll(combine.middleware);
     route.interceptors.addAll(combine.interceptors);
     route.catchers.addAll(combine.catchers);
-    route.data.addAll(combine.data);
   }
 }

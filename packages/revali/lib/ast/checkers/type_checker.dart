@@ -53,6 +53,7 @@ abstract class TypeChecker {
   /// same name, there could be a conflict.
   const factory TypeChecker.fromName(
     String name, {
+    bool ignoreGenerics,
     String? packageName,
   }) = _NamedChecker;
 
@@ -266,14 +267,29 @@ class _PackageChecker extends TypeChecker {
 
 @immutable
 class _NamedChecker extends TypeChecker {
-  const _NamedChecker(this._name, {this.packageName}) : super._();
+  const _NamedChecker(
+    this._name, {
+    this.ignoreGenerics = false,
+    this.packageName,
+  }) : super._();
 
   final String _name;
   final String? packageName;
+  final bool ignoreGenerics;
 
   @override
   bool isExactly(Element element) {
-    if (element.name != _name) return false;
+    if (element.name != _name) {
+      if (element.name case final name? when ignoreGenerics) {
+        final elementNameWithoutGenerics = name.split('<').first;
+        final nameWithoutGenerics = _name.split('<').first;
+        if (elementNameWithoutGenerics != nameWithoutGenerics) {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    }
 
     // No packageName specified, ignoring it.
     if (packageName == null) return true;

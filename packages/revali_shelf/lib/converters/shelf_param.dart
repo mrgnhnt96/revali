@@ -16,14 +16,15 @@ class ShelfParam {
 
   factory ShelfParam.fromMeta(MetaParam param) {
     return ShelfParam(
-        name: param.name,
-        type: param.type,
-        isNullable: param.nullable,
-        isRequired: param.isRequired,
-        isNamed: param.isNamed,
-        defaultValue: param.defaultValue,
-        hasDefaultValue: param.hasDefaultValue,
-        importPath: param.typeElement.library?.identifier);
+      name: param.name,
+      type: param.type,
+      isNullable: param.nullable,
+      isRequired: param.isRequired,
+      isNamed: param.isNamed,
+      defaultValue: param.defaultValue,
+      hasDefaultValue: param.hasDefaultValue,
+      importPath: param.typeElement.librarySource?.uri.toString(),
+    );
   }
 
   factory ShelfParam.fromElement(ParameterElement element) {
@@ -35,7 +36,7 @@ class ShelfParam {
       isNamed: element.isNamed,
       defaultValue: element.defaultValueCode,
       hasDefaultValue: element.hasDefaultValue,
-      importPath: element.library?.identifier,
+      importPath: element.librarySource?.uri.toString(),
     );
   }
 

@@ -1,7 +1,6 @@
 import 'package:autoequal/autoequal.dart';
 import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:equatable/equatable.dart';
-import 'package:revali_router/src/data/data.dart';
 import 'package:revali_router/src/endpoint/endpoint_context.dart';
 import 'package:revali_router/src/exception_catcher/exception_catcher.dart';
 import 'package:revali_router/src/guard/guard.dart';
@@ -26,7 +25,6 @@ class Route extends Equatable implements RouteEntry {
     this.interceptors = const [],
     this.guards = const [],
     this.catchers = const [],
-    this.data = const [],
     void Function(MetaHandler)? meta,
     this.redirect,
     CombineMeta? combine,
@@ -110,7 +108,6 @@ class Route extends Equatable implements RouteEntry {
     required this.method,
     required this.guards,
     required this.catchers,
-    required this.data,
     required this.redirect,
     // dynamic is needed bc copyWith has a bug
     required meta,
@@ -122,7 +119,6 @@ class Route extends Equatable implements RouteEntry {
   final List<Interceptor> interceptors;
   final List<ExceptionCatcher> catchers;
   final List<Guard> guards;
-  final List<Data> data;
   @ignore
   final Route? parent;
   final Future<void> Function(EndpointContext)? handler;
@@ -222,19 +218,6 @@ class Route extends Equatable implements RouteEntry {
 
       yield* traverse(route.parent);
       yield* route.catchers;
-    }
-
-    yield* traverse(this);
-  }
-
-  Iterable<Data> get allData sync* {
-    Iterable<Data> traverse(Route? route) sync* {
-      if (route == null) {
-        return;
-      }
-
-      yield* traverse(route.parent);
-      yield* route.data;
     }
 
     yield* traverse(this);

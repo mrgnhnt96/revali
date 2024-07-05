@@ -44,7 +44,6 @@ late final routes = [
       Route(
         ':id',
         catchers: [],
-        data: [],
         guards: [AuthGuard()],
         handler: (context) async {},
         interceptors: [],
