@@ -10,6 +10,7 @@ dependencies:
     copy_with_extension: ^5.0.4
     equatable: ^2.0.5
     shelf: ^1.4.1
+
 dev_dependencies:
     autoequal_gen: ^0.9.1
     build_runner: ^2.4.11

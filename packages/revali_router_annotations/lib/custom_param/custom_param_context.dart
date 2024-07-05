@@ -1,7 +1,4 @@
-import 'package:revali_router/src/data/read_only_data_handler.dart';
-import 'package:revali_router/src/meta/read_only_meta.dart';
-import 'package:revali_router/src/request/read_only_request_context.dart';
-import 'package:revali_router/src/response/read_only_response_context.dart';
+import 'package:revali_router/revali_router.dart';
 
 abstract class CustomParamContext {
   const CustomParamContext();

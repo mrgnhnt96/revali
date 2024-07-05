@@ -246,6 +246,13 @@ packages:
       relative: true
     source: path
     version: "0.0.1+1"
+  revali_router_annotations:
+    dependency: "direct main"
+    description:
+      path: "../revali_router_annotations"
+      relative: true
+    source: path
+    version: "0.0.1+1"
   shelf:
     dependency: "direct main"
     description:

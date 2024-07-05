@@ -2,8 +2,8 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:code_builder/code_builder.dart';
-import 'package:revali_annotations/revali_annotations.dart' as a;
 import 'package:revali_construct/revali_construct.dart';
+import 'package:revali_router_annotations/revali_router_annotations.dart' as a;
 import 'package:revali_shelf/makers/utils/meta_method_extensions.dart';
 
 Spec methodHandler(MetaMethod method, MetaRoute route) {

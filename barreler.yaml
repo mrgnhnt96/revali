@@ -22,3 +22,5 @@ dirs:
     name: revali_shelf
   - path: packages/revali_router/lib
     name: revali_router
+  - path: packages/revali_router_annotations/lib
+    name: revali_router_annotations
