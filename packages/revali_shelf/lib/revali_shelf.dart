@@ -10,7 +10,6 @@ export 'converters/shelf_mimic.dart';
 export 'converters/shelf_param.dart';
 export 'converters/shelf_param_annotation.dart';
 export 'converters/shelf_param_annotations.dart';
-export 'converters/shelf_param_with_value.dart';
 export 'converters/shelf_parent_route.dart';
 export 'converters/shelf_pipe.dart';
 export 'converters/shelf_query_annotation.dart';
