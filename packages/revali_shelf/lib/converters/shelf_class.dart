@@ -3,14 +3,14 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:revali_shelf/converters/shelf_imports.dart';
 import 'package:revali_shelf/converters/shelf_param.dart';
 
-class ShelfPipe {
-  const ShelfPipe({
+class ShelfClass {
+  const ShelfClass({
     required this.className,
     required this.params,
     required this.importPath,
   });
 
-  factory ShelfPipe.fromType(DartType type) {
+  factory ShelfClass.fromType(DartType type) {
     final className = type.getDisplayString(withNullability: false);
     final element = type.element;
     if (element is! ClassElement) {
@@ -35,11 +35,11 @@ class ShelfPipe {
       return ShelfParam.fromElement(param);
     });
 
-    final pipeUri = element.librarySource.uri.toString();
+    final uri = element.librarySource.uri.toString();
 
-    final imports = ShelfImports([pipeUri]);
+    final imports = ShelfImports([uri]);
 
-    return ShelfPipe(
+    return ShelfClass(
       className: className,
       params: params,
       importPath: imports,

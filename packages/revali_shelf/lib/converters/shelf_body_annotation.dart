@@ -1,6 +1,6 @@
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:revali_shelf/converters/shelf_pipe.dart';
+import 'package:revali_shelf/converters/shelf_class.dart';
 
 class ShelfBodyAnnotation {
   const ShelfBodyAnnotation({
@@ -20,10 +20,10 @@ class ShelfBodyAnnotation {
 
     return ShelfBodyAnnotation(
       access: access,
-      pipe: pipe == null ? null : ShelfPipe.fromType(pipe),
+      pipe: pipe == null ? null : ShelfClass.fromType(pipe),
     );
   }
 
   final List<String>? access;
-  final ShelfPipe? pipe;
+  final ShelfClass? pipe;
 }
