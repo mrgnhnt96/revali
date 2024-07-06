@@ -15,4 +15,3 @@ export 'src/pipe/pipe_context.dart';
 export 'src/pipe/pipe_context_impl.dart';
 export 'src/query.dart';
 export 'src/set_header.dart';
-export 'src/set_meta.dart';

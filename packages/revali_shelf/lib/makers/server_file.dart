@@ -14,8 +14,7 @@ String serverFile(ShelfServer server, String Function(Spec) formatter) {
     "import 'package:revali_router/revali_router.dart';",
     "import 'package:revali_router_annotations/revali_router_annotations.dart';",
     "import 'package:revali_construct/revali_construct.dart';",
-    for (final route in server.routes)
-      "import '../${p.relative(route.importPath)}';",
+    for (final imprt in server.imports) "import '../${p.relative(imprt)}';",
   ];
 
   final main = Method(

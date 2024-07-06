@@ -1,9 +1,18 @@
 import 'package:analyzer/dart/constant/value.dart';
 
 class ShelfHttpCode {
-  const ShelfHttpCode();
+  const ShelfHttpCode(this.code);
 
   factory ShelfHttpCode.fromDartObject(DartObject object) {
-    return ShelfHttpCode();
+    // get field value
+    final code = object.getField('code')?.toIntValue();
+
+    if (code == null) {
+      throw ArgumentError.value(object, 'object', 'Invalid ShelfHttpCode');
+    }
+
+    return ShelfHttpCode(code);
   }
+
+  final int code;
 }

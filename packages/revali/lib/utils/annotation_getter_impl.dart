@@ -7,7 +7,8 @@ import 'package:revali_construct/types/annotation_getter.dart';
 
 void getAnnotations({
   required Element element,
-  required List<OnClass> on,
+  required List<OnMatch> onMatch,
+  required NonMatch? onNonMatch,
 }) {
   for (var i = 0; i < element.metadata.length; i++) {
     final value = _computeConstantValue(
@@ -15,18 +16,35 @@ void getAnnotations({
       i,
     );
 
-    if (value?.type case final type?) {
-      for (final onClass in on) {
-        if (onClass.predicate(type)) {
-          var source = element.metadata[i].toSource();
-          if (source.contains('@')) {
-            source = source.substring(source.indexOf('@') + 1);
-          }
+    if (value == null) {
+      continue;
+    }
 
-          onClass.convert(value, source);
+    if (value.type case final type?) {
+      var found = false;
+      for (final onClass in onMatch) {
+        if (onClass.predicate(type)) {
+          final annotation = element.metadata[i];
+
+          onClass.convert(value, annotation);
+          found = true;
           break;
         }
       }
+
+      if (found) {
+        continue;
+      }
+
+      if (onNonMatch == null) {
+        continue;
+      }
+
+      if (onNonMatch.ignore.any((ignore) => ignore.predicate(type))) {
+        continue;
+      }
+
+      onNonMatch.convert(value, element.metadata[i]);
     }
   }
 }
@@ -38,14 +56,22 @@ DartObject? _computeConstantValue(Element element, int annotationIndex) {
   return result;
 }
 
-extension _OnClassX on OnClass {
+extension _MatcherX on Matcher {
   TypeChecker get checker => TypeChecker.fromName(
-        '$classType',
+        classType,
         ignoreGenerics: true,
         packageName: package,
       );
 
   bool predicate(DartType type) {
-    return checker.isExactlyType(type);
+    if (checker.isExactlyType(type)) {
+      return true;
+    }
+
+    if (checker.isAssignableFromType(type)) {
+      return true;
+    }
+
+    return false;
   }
 }

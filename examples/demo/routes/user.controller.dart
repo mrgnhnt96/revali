@@ -15,7 +15,7 @@ class ThisController {
   Future<void> listPeople() async {}
 
   @NotAuthCatcher('bye')
-  @SetMeta(Role(AuthType.admin))
+  @Role(AuthType.admin)
   @Get(':id')
   User getNewPerson({
     @Query.pipe(NamePipe) required String name,

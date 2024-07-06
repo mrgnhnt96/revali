@@ -64,11 +64,13 @@ class RouteTraverser {
       constructorName: constructor.name,
       methods: [...methodVisitor.methods.values.expand((e) => e)],
       annotationsFor: ({
-        required List<OnClass> on,
+        required List<OnMatch> onMatch,
+        NonMatch? onNonMatch,
       }) =>
           getAnnotations(
         element: clazz,
-        on: on,
+        onMatch: onMatch,
+        onNonMatch: onNonMatch,
       ),
     );
   }
@@ -151,11 +153,13 @@ class MethodVisitor extends RecursiveElementVisitor<void> {
           isFuture: element.returnType.isDartAsyncFuture,
         ),
         annotationsMapper: ({
-          required List<OnClass> on,
+          required List<OnMatch> onMatch,
+          NonMatch? onNonMatch,
         }) =>
             getAnnotations(
           element: element,
-          on: on,
+          onNonMatch: onNonMatch,
+          onMatch: onMatch,
         ),
       ),
     );
@@ -183,11 +187,13 @@ Iterable<MetaParam> getParams(FunctionTypedElement element) {
         isNamed: param.isNamed,
         defaultValue: param.defaultValueCode,
         annotationsFor: ({
-          required List<OnClass> on,
+          required List<OnMatch> onMatch,
+          NonMatch? onNonMatch,
         }) =>
             getAnnotations(
           element: element,
-          on: on,
+          onMatch: onMatch,
+          onNonMatch: onNonMatch,
         ),
       ),
     );

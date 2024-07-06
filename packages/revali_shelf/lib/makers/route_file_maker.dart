@@ -2,7 +2,7 @@ import 'package:change_case/change_case.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_shelf/converters/shelf_child_route.dart';
-import 'package:revali_shelf/converters/shelf_class.dart';
+import 'package:revali_shelf/converters/shelf_mimic.dart';
 import 'package:revali_shelf/converters/shelf_parent_route.dart';
 import 'package:revali_shelf/converters/shelf_return_type.dart';
 import 'package:revali_shelf/converters/shelf_route.dart';
@@ -71,9 +71,10 @@ Spec createChildRoute(ShelfChildRoute route, ShelfParentRoute parent) {
       returnType: route.returnType,
       classVarName: parent.classVarName,
       method: route.method,
+      statusCode: route.httpCode?.code,
     ),
-    if (route.redirect != null)
-      'redirect': literal(createClass(route.redirect!)),
+    if (route.redirect case final redirect?)
+      'redirect': literal(mimic(redirect)),
   });
 }
 
@@ -82,6 +83,7 @@ Map<String, Expression> createRouteArgs({
   ShelfReturnType? returnType,
   String? classVarName,
   String? method,
+  int? statusCode,
 }) {
   var handler = literalNull;
   if (returnType != null && classVarName != null) {
@@ -99,32 +101,42 @@ Map<String, Expression> createRouteArgs({
   }
   return {
     if (route.annotations.catchers.isNotEmpty)
-      'catchers': literalConstList([
-        for (final catcher in route.annotations.catchers) createClass(catcher)
-      ]),
+      'catchers': literalConstList(
+          [for (final catcher in route.annotations.catchers) mimic(catcher)]),
     if (route.annotations.data.isNotEmpty)
       'data': literalConstList(
-          [for (final data in route.annotations.data) createClass(data)]),
+          [for (final data in route.annotations.data) mimic(data)]),
     if (route.annotations.guards.isNotEmpty)
       'guards': literalConstList(
-          [for (final guard in route.annotations.guards) createClass(guard)]),
+          [for (final guard in route.annotations.guards) mimic(guard)]),
     if (route.annotations.interceptors.isNotEmpty)
       'interceptors': literalConstList([
         for (final interceptor in route.annotations.interceptors)
-          createClass(interceptor)
+          mimic(interceptor)
       ]),
     if (route.annotations.middlewares.isNotEmpty)
       'middlewares': literalConstList([
         for (final middleware in route.annotations.middlewares)
-          createClass(middleware)
+          mimic(middleware)
       ]),
     if (route.annotations.combine.isNotEmpty)
-      'combine': literalConstList([
-        for (final combine in route.annotations.combine) createClass(combine)
-      ]),
-    'meta': Method((p) => p
-      ..requiredParameters.add(Parameter((b) => b..name = 'm'))
-      ..body = Block.of([])).closure,
+      'combine': literalConstList(
+          [for (final combine in route.annotations.combine) mimic(combine)]),
+    if (route.annotations.meta.isNotEmpty)
+      ...() {
+        final m = refer('m');
+
+        return {
+          'meta': Method((p) => p
+            ..requiredParameters.add(Parameter((b) => b..name = 'm'))
+            ..body = Block.of([
+              for (final meta in route.annotations.meta)
+                m.cascade('add').call([
+                  mimic(meta),
+                ]).statement,
+            ])).closure
+        };
+      }(),
     if (method != null) 'method': literalString(method),
     if ('$handler' != '$literalNull')
       'handler': Method(
@@ -132,26 +144,19 @@ Map<String, Expression> createRouteArgs({
           ..requiredParameters.add(Parameter((b) => b..name = 'context'))
           ..modifier = MethodModifier.async
           ..body = Block.of([
+            if (statusCode != null)
+              refer('context')
+                  .property('response')
+                  .property('statusCode')
+                  .assign(
+                    literalNum(statusCode),
+                  )
+                  .statement,
+            Code('\n'),
             handler.statement,
           ]),
       ).closure,
   };
 }
 
-Spec createClass(ShelfClass clazz) {
-  final positioned = <Expression>[];
-  final named = <String, Expression>{};
-
-  for (final paramWithValue in clazz.params) {
-    final arg = CodeExpression(Code(paramWithValue.value));
-    final param = paramWithValue.param;
-
-    if (param.isNamed) {
-      named[param.name] = arg;
-    } else {
-      positioned.add(arg);
-    }
-  }
-
-  return Code(clazz.source);
-}
+Expression mimic(ShelfMimic mimic) => CodeExpression(Code(mimic.instance));

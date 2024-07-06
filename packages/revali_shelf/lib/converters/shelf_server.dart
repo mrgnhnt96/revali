@@ -13,4 +13,20 @@ class ShelfServer {
   }
 
   final List<ShelfParentRoute> routes;
+
+  Iterable<String> get imports sync* {
+    final imports = <String>{};
+
+    for (final route in routes) {
+      imports.add(route.importPath);
+    }
+
+    for (final imprt in imports) {
+      if (imprt.startsWith('file:')) {
+        yield imprt.replaceFirst('file:', '');
+      } else {
+        yield imprt;
+      }
+    }
+  }
 }

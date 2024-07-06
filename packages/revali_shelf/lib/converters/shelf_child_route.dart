@@ -1,8 +1,8 @@
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
-import 'package:revali_shelf/converters/shelf_class.dart';
 import 'package:revali_shelf/converters/shelf_http_code.dart';
+import 'package:revali_shelf/converters/shelf_mimic.dart';
 import 'package:revali_shelf/converters/shelf_param.dart';
 import 'package:revali_shelf/converters/shelf_return_type.dart';
 import 'package:revali_shelf/converters/shelf_route.dart';
@@ -22,11 +22,11 @@ class ShelfChildRoute implements ShelfRoute {
 
   factory ShelfChildRoute.fromMeta(MetaMethod method) {
     ShelfHttpCode? httpCode;
-    ShelfClass? redirect;
+    ShelfMimic? redirect;
 
     method.annotationsMapper(
-      on: [
-        OnClass(
+      onMatch: [
+        OnMatch(
           classType: HttpCode,
           package: 'revali_router_annotations',
           convert: (annotation, source) {
@@ -39,7 +39,7 @@ class ShelfChildRoute implements ShelfRoute {
             httpCode = ShelfHttpCode.fromDartObject(annotation);
           },
         ),
-        OnClass(
+        OnMatch(
           classType: Redirect,
           package: 'revali_router',
           convert: (annotation, source) {
@@ -49,7 +49,7 @@ class ShelfChildRoute implements ShelfRoute {
               );
             }
 
-            redirect = ShelfClass.fromDartObject(annotation, source);
+            redirect = ShelfMimic.fromDartObject(annotation, source);
           },
         ),
       ],
@@ -71,7 +71,7 @@ class ShelfChildRoute implements ShelfRoute {
 
   final ShelfReturnType returnType;
   final ShelfHttpCode? httpCode;
-  final ShelfClass? redirect;
+  final ShelfMimic? redirect;
   final String method;
   final String path;
 
