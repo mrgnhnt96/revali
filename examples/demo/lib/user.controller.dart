@@ -18,6 +18,7 @@ class ThisController {
   @Get(':id')
   String getNewPerson({
     @Query() required String name,
+    @MyParam() required String myName,
     @Param.pipe(StringToIntPipe) required int id,
   }) {
     return '$name $id';
@@ -69,5 +70,14 @@ class Lazy {
 
   String get() {
     return value ??= 'lazy';
+  }
+}
+
+class MyParam extends CustomParam<String> {
+  const MyParam();
+
+  @override
+  String parse(CustomParamContext context) {
+    return context.request.queryParameters['name'] ?? '';
   }
 }

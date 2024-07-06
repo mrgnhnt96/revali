@@ -1,8 +1,8 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:revali_construct/revali_construct.dart';
-import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_shelf/converters/shelf_imports.dart';
+import 'package:revali_shelf/converters/shelf_param_annotations.dart';
 
 class ShelfParam {
   const ShelfParam({
@@ -14,48 +14,19 @@ class ShelfParam {
     required this.defaultValue,
     required this.hasDefaultValue,
     required this.importPath,
+    required this.paramAnnotations,
   });
 
   factory ShelfParam.fromMeta(MetaParam param) {
     final importString = param.typeElement.librarySource?.uri.toString();
 
-    param.annotationsFor(
-      onMatch: [
-        OnMatch(
-          classType: Body,
-          package: 'revali_router_annotations',
-          convert: (object, annotation) {
-            print(object);
-          },
-        ),
-        OnMatch(
-          classType: Query,
-          package: 'revali_router_annotations',
-          convert: (object, annotation) {
-            print(object);
-          },
-        ),
-        OnMatch(
-          classType: Param,
-          package: 'revali_router_annotations',
-          convert: (object, annotation) {
-            print(object);
-          },
-        ),
-        OnMatch(
-          classType: CustomParam,
-          package: 'revali_router_annotations',
-          convert: (object, annotation) {
-            print(object);
-          },
-        ),
-      ],
-    );
-
     ShelfImports? importPath;
     if (importString != null) {
       importPath = ShelfImports([importString]);
     }
+
+    final paramAnnotations = ShelfParamAnnotations.fromMeta(param);
+
     return ShelfParam(
       name: param.name,
       type: param.type,
@@ -65,6 +36,7 @@ class ShelfParam {
       defaultValue: param.defaultValue,
       hasDefaultValue: param.hasDefaultValue,
       importPath: importPath,
+      paramAnnotations: paramAnnotations,
     );
   }
 
@@ -75,6 +47,9 @@ class ShelfParam {
     if (importString != null) {
       importPath = ShelfImports([importString]);
     }
+
+    final paramAnnotations = ShelfParamAnnotations.fromElement(element);
+
     return ShelfParam(
       name: element.name,
       type: element.type.getDisplayString(withNullability: false),
@@ -84,6 +59,7 @@ class ShelfParam {
       defaultValue: element.defaultValueCode,
       hasDefaultValue: element.hasDefaultValue,
       importPath: importPath,
+      paramAnnotations: paramAnnotations,
     );
   }
 
@@ -95,4 +71,15 @@ class ShelfParam {
   final String? defaultValue;
   final bool hasDefaultValue;
   final ShelfImports? importPath;
+  final ShelfParamAnnotations? paramAnnotations;
+
+  Iterable<String> get imports sync* {
+    if (importPath case final importPath?) {
+      yield* importPath.imports;
+    }
+
+    if (paramAnnotations?.imports case final imports?) {
+      yield* imports;
+    }
+  }
 }

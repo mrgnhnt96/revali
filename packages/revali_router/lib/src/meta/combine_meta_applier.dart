@@ -5,17 +5,14 @@ class CombineMetaApplier {
   const CombineMetaApplier(this.route, this.combine);
 
   final Route route;
-  final CombineMeta? combine;
+  final List<CombineMeta> combine;
 
   void apply() {
-    final combine = this.combine;
-    if (combine == null) {
-      return;
+    for (final c in combine) {
+      route.guards.addAll(c.guards);
+      route.middlewares.addAll(c.middleware);
+      route.interceptors.addAll(c.interceptors);
+      route.catchers.addAll(c.catchers);
     }
-
-    route.guards.addAll(combine.guards);
-    route.middlewares.addAll(combine.middleware);
-    route.interceptors.addAll(combine.interceptors);
-    route.catchers.addAll(combine.catchers);
   }
 }

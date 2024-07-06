@@ -6,6 +6,7 @@ export 'src/body.dart';
 export 'src/custom_param/custom_param.dart';
 export 'src/custom_param/custom_param_context.dart';
 export 'src/custom_param/custom_param_context_impl.dart';
+export 'src/dep.dart';
 export 'src/header.dart';
 export 'src/http_code.dart';
 export 'src/meta.dart';

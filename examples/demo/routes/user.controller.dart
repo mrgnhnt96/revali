@@ -23,6 +23,7 @@ class ThisController {
   User getNewPerson({
     @Query.pipe(NamePipe) required String name,
     @Param.pipe(StringToIntPipe) required int id,
+    @MyParam() required String myName,
     @Body(['name']) String? data,
   }) {
     final user = User(name, id);
@@ -36,12 +37,20 @@ class ThisController {
   ) {}
 }
 
+class StringValue {
+  const StringValue(this.value);
+
+  final String value;
+}
+
 class NamePipe extends Pipe<String, String> {
-  const NamePipe();
+  const NamePipe(this.value);
+
+  final StringValue value;
 
   @override
   String transform(value, context) {
-    return 'value: $value';
+    return 'value: ($value, ${this.value.value})';
   }
 }
 
@@ -127,4 +136,13 @@ class NotAuthCatcher extends ExceptionCatcher {
 
 final class AuthCombine extends CombineMeta {
   const AuthCombine();
+}
+
+class MyParam extends CustomParam<String> {
+  const MyParam();
+
+  @override
+  String parse(CustomParamContext context) {
+    return context.request.queryParameters['name'] ?? '';
+  }
 }

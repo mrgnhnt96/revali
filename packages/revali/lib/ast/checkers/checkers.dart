@@ -15,9 +15,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 import 'package:revali_annotations/revali_annotations.dart';
+import 'package:revali_construct/revali_construct.dart';
 
 // --- LICENSE ---
-import 'type_checker.dart';
 
 final controllerChecker =
     TypeChecker.fromName('$Controller', packageName: 'revali_annotations');

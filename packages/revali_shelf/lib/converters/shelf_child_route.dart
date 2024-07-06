@@ -92,9 +92,7 @@ class ShelfChildRoute implements ShelfRoute {
     yield* annotations.imports;
 
     for (final param in params) {
-      if (param.importPath case final importPath?) {
-        yield* importPath.imports;
-      }
+      yield* param.imports;
     }
   }
 }

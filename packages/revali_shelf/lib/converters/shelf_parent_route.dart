@@ -1,6 +1,5 @@
 import 'package:change_case/change_case.dart';
 import 'package:revali_construct/revali_construct.dart';
-import 'package:revali_shelf/converters/shelf_imports.dart';
 import 'package:revali_shelf/revali_shelf.dart';
 
 class ShelfParentRoute implements ShelfRoute {
@@ -45,9 +44,7 @@ class ShelfParentRoute implements ShelfRoute {
     }
 
     for (final param in params) {
-      if (param.importPath case final importPath?) {
-        yield* importPath.imports;
-      }
+      yield* param.imports;
     }
 
     yield* annotations.imports;

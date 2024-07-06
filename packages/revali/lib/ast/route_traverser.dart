@@ -10,7 +10,6 @@ import 'package:file/file.dart';
 import 'package:path/path.dart' as path;
 import 'package:revali/ast/checkers/checkers.dart';
 import 'package:revali/ast/file_system/file_resource_provider.dart';
-import 'package:revali/utils/annotation_getter_impl.dart';
 import 'package:revali_construct/revali_construct.dart';
 
 class RouteTraverser {
@@ -191,7 +190,7 @@ Iterable<MetaParam> getParams(FunctionTypedElement element) {
           NonMatch? onNonMatch,
         }) =>
             getAnnotations(
-          element: element,
+          element: param,
           onMatch: onMatch,
           onNonMatch: onNonMatch,
         ),

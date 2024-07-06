@@ -27,7 +27,7 @@ class Route extends Equatable implements RouteEntry {
     this.catchers = const [],
     void Function(MetaHandler)? meta,
     this.redirect,
-    CombineMeta? combine,
+    List<CombineMeta> combine = const [],
   })  : parent = null,
         _meta = meta,
         method = method?.toUpperCase() {

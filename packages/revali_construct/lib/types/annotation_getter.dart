@@ -11,10 +11,12 @@ class OnMatch implements Matcher {
     required Type classType,
     required this.package,
     required this.convert,
+    this.ignoreGenerics = false,
   }) : classType = '$classType';
 
   final String classType;
   final String package;
+  final bool ignoreGenerics;
   final void Function(DartObject object, ElementAnnotation annotation) convert;
 }
 
@@ -22,12 +24,17 @@ class Matcher {
   const Matcher({
     required Type classType,
     required this.package,
+    this.ignoreGenerics = false,
   }) : classType = '$classType';
 
-  const Matcher.any(this.classType) : package = null;
+  const Matcher.any(
+    this.classType, {
+    this.ignoreGenerics = false,
+  }) : package = null;
 
   final String classType;
   final String? package;
+  final bool ignoreGenerics;
 }
 
 class NonMatch {
