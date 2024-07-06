@@ -52,6 +52,29 @@ PartFile routeFileMaker(
 }
 
 Spec createChildRoute(ShelfChildRoute route, ShelfParentRoute parent) {
+  final headers = [
+    ...route.annotations.setHeaders,
+    ...parent.annotations.setHeaders,
+  ];
+
+  Expression? response = refer('context').property('response');
+  final ogResponse = response;
+
+  if (route.httpCode?.code case final code?) {
+    response = response.cascade('statusCode').assign(literalNum(code));
+  }
+
+  for (final setHeader in headers) {
+    response = response?.cascade('setHeader').call([
+      literalString(setHeader.name),
+      literalString(setHeader.value),
+    ]);
+  }
+
+  if ('$response' == '$ogResponse') {
+    response = null;
+  }
+
   return refer('Route').newInstance([
     literalString(route.path)
   ], {
@@ -61,6 +84,9 @@ Spec createChildRoute(ShelfChildRoute route, ShelfParentRoute parent) {
       classVarName: parent.classVarName,
       method: route.method,
       statusCode: route.httpCode?.code,
+      additionalHandlerCode: [
+        if (response != null) response.statement,
+      ],
     ),
     if (route.redirect case final redirect?)
       'redirect': literal(mimic(redirect)),
@@ -73,8 +99,10 @@ Map<String, Expression> createRouteArgs({
   String? classVarName,
   String? method,
   int? statusCode,
+  List<Code> additionalHandlerCode = const [],
 }) {
   var handler = literalNull;
+
   if (returnType != null && classVarName != null) {
     final (:positioned, :named) = getParams(route.params);
     handler =
@@ -133,14 +161,7 @@ Map<String, Expression> createRouteArgs({
           ..requiredParameters.add(Parameter((b) => b..name = 'context'))
           ..modifier = MethodModifier.async
           ..body = Block.of([
-            if (statusCode != null)
-              refer('context')
-                  .property('response')
-                  .property('statusCode')
-                  .assign(
-                    literalNum(statusCode),
-                  )
-                  .statement,
+            ...additionalHandlerCode,
             Code('\n'),
             handler.statement,
           ]),

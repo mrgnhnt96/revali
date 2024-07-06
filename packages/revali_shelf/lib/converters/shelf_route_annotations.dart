@@ -2,6 +2,7 @@ import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_shelf/converters/shelf_mimic.dart';
+import 'package:revali_shelf/converters/shelf_set_header.dart';
 
 class ShelfRouteAnnotations {
   const ShelfRouteAnnotations({
@@ -12,6 +13,7 @@ class ShelfRouteAnnotations {
     required this.data,
     required this.combine,
     required this.meta,
+    required this.setHeaders,
   });
 
   factory ShelfRouteAnnotations.fromParent(MetaRoute parent) {
@@ -29,6 +31,7 @@ class ShelfRouteAnnotations {
     final data = <ShelfMimic>[];
     final combine = <ShelfMimic>[];
     final meta = <ShelfMimic>[];
+    final setHeaders = <ShelfSetHeader>[];
 
     getter(
       onMatch: [
@@ -90,6 +93,13 @@ class ShelfRouteAnnotations {
             meta.add(ShelfMimic.fromDartObject(object, annotation));
           },
         ),
+        OnMatch(
+          classType: SetHeader,
+          package: 'revali_router_annotations',
+          convert: (object, annotation) {
+            setHeaders.add(ShelfSetHeader.fromDartObject(object));
+          },
+        ),
       ],
     );
 
@@ -101,6 +111,7 @@ class ShelfRouteAnnotations {
       data: data,
       combine: combine,
       meta: meta,
+      setHeaders: setHeaders,
     );
   }
 
@@ -111,6 +122,7 @@ class ShelfRouteAnnotations {
   final Iterable<ShelfMimic> data;
   final Iterable<ShelfMimic> combine;
   final Iterable<ShelfMimic> meta;
+  final Iterable<ShelfSetHeader> setHeaders;
 
   Iterable<String> get imports sync* {
     final mimics = [

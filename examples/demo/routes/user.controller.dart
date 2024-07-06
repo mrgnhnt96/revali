@@ -14,6 +14,8 @@ class ThisController {
   @Get()
   Future<void> listPeople() async {}
 
+  @HttpCode(201)
+  @SetHeader('method', 'hi')
   @NotAuthCatcher('bye')
   @Role(AuthType.admin)
   @Get(':id')
