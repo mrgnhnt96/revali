@@ -14,6 +14,7 @@ class ThisController {
   @Get()
   Future<void> listPeople() async {}
 
+  @AuthCombine()
   @HttpCode(201)
   @SetHeader('method', 'hi')
   @NotAuthCatcher('bye')
@@ -122,4 +123,8 @@ class NotAuthCatcher extends ExceptionCatcher {
   ExceptionCatcherResult catchException(exception, context, action) {
     return action.handled();
   }
+}
+
+final class AuthCombine extends CombineMeta {
+  const AuthCombine();
 }

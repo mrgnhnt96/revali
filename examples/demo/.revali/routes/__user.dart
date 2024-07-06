@@ -15,6 +15,7 @@ Route user(ThisController thisController) {
       Route(
         ':id',
         catchers: const [NotAuthCatcher('bye')],
+        combine: const [AuthCombine()],
         meta: (m) {
           m..add(Role(AuthType.admin));
         },

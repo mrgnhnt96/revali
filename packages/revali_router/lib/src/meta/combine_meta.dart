@@ -3,7 +3,7 @@ import 'package:revali_router/src/guard/guard.dart';
 import 'package:revali_router/src/interceptor/interceptor.dart';
 import 'package:revali_router/src/middleware/middleware.dart';
 
-abstract class CombineMeta {
+abstract base class CombineMeta {
   const CombineMeta({
     this.guards = const [],
     this.middleware = const [],
