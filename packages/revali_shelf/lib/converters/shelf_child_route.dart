@@ -83,4 +83,18 @@ class ShelfChildRoute implements ShelfRoute {
 
   @override
   final Iterable<ShelfParam> params;
+
+  Iterable<String> get imports sync* {
+    if (redirect case final redirect?) {
+      yield* redirect.imports.imports;
+    }
+
+    yield* annotations.imports;
+
+    for (final param in params) {
+      if (param.importPath case final importPath?) {
+        yield* importPath.imports;
+      }
+    }
+  }
 }

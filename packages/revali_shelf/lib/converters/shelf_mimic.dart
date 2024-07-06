@@ -1,6 +1,7 @@
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:revali_shelf/converters/shelf_imports.dart';
 
 /// A class that represents an annotation that will
 /// be written exactly as it is in the source code.
@@ -40,10 +41,10 @@ class ShelfMimic {
 
     return ShelfMimic(
       instance: annotation.toSource().replaceFirst('@', ''),
-      imports: imports,
+      imports: ShelfImports(imports),
     );
   }
 
-  final Iterable<String> imports;
+  final ShelfImports imports;
   final String instance;
 }

@@ -4,7 +4,6 @@ class ShelfHttpCode {
   const ShelfHttpCode(this.code);
 
   factory ShelfHttpCode.fromDartObject(DartObject object) {
-    // get field value
     final code = object.getField('code')?.toIntValue();
 
     if (code == null) {

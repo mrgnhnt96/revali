@@ -1,5 +1,4 @@
 import 'package:code_builder/code_builder.dart';
-import 'package:path/path.dart' as p;
 import 'package:revali_shelf/converters/shelf_parent_route.dart';
 import 'package:revali_shelf/converters/shelf_server.dart';
 
@@ -7,14 +6,12 @@ String serverFile(ShelfServer server, String Function(Spec) formatter) {
   final imports = [
     "import 'dart:io';",
     "import 'dart:convert';",
-    "import 'package:examples/repos/repo.dart';",
-    "import 'package:examples/utils/logger.dart';",
     "import 'package:shelf/shelf.dart';",
     "import 'package:shelf/shelf_io.dart' as io;",
     "import 'package:revali_router/revali_router.dart';",
     "import 'package:revali_router_annotations/revali_router_annotations.dart';",
     "import 'package:revali_construct/revali_construct.dart';",
-    for (final imprt in server.imports) "import '../${p.relative(imprt)}';",
+    for (final imprt in server.imports) "import '../$imprt';",
   ];
 
   final main = Method(

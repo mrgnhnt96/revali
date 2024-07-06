@@ -1,5 +1,6 @@
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router/revali_router.dart';
+import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_shelf/converters/shelf_mimic.dart';
 
 class ShelfRouteAnnotations {
@@ -82,16 +83,14 @@ class ShelfRouteAnnotations {
             combine.add(ShelfMimic.fromDartObject(object, annotation));
           },
         ),
+        OnMatch(
+          classType: Meta,
+          package: 'revali_router_annotations',
+          convert: (object, annotation) {
+            meta.add(ShelfMimic.fromDartObject(object, annotation));
+          },
+        ),
       ],
-      onNonMatch: NonMatch(
-        ignore: [
-          Matcher.any('Method'),
-          Matcher.any('Controller'),
-        ],
-        convert: (object, annotation) {
-          meta.add(ShelfMimic.fromDartObject(object, annotation));
-        },
-      ),
     );
 
     return ShelfRouteAnnotations(
@@ -112,4 +111,20 @@ class ShelfRouteAnnotations {
   final Iterable<ShelfMimic> data;
   final Iterable<ShelfMimic> combine;
   final Iterable<ShelfMimic> meta;
+
+  Iterable<String> get imports sync* {
+    final mimics = [
+      ...middlewares,
+      ...interceptors,
+      ...catchers,
+      ...guards,
+      ...data,
+      ...combine,
+      ...meta,
+    ];
+
+    for (final mimic in mimics) {
+      yield* mimic.imports.imports;
+    }
+  }
 }

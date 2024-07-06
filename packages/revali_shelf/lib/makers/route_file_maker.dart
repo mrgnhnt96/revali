@@ -3,6 +3,7 @@ import 'package:code_builder/code_builder.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_shelf/converters/shelf_child_route.dart';
 import 'package:revali_shelf/converters/shelf_mimic.dart';
+import 'package:revali_shelf/converters/shelf_param.dart';
 import 'package:revali_shelf/converters/shelf_parent_route.dart';
 import 'package:revali_shelf/converters/shelf_return_type.dart';
 import 'package:revali_shelf/converters/shelf_route.dart';
@@ -51,18 +52,6 @@ PartFile routeFileMaker(
 }
 
 Spec createChildRoute(ShelfChildRoute route, ShelfParentRoute parent) {
-  var handler = refer(parent.classVarName).property(route.handlerName).call([
-    // TODO: Add parameters
-  ]);
-
-  if (route.returnType.isFuture) {
-    handler = handler.awaited;
-  }
-
-  if (!route.returnType.isVoid) {
-    handler = declareFinal('result').assign(handler);
-  }
-
   return refer('Route').newInstance([
     literalString(route.path)
   ], {
@@ -87,9 +76,9 @@ Map<String, Expression> createRouteArgs({
 }) {
   var handler = literalNull;
   if (returnType != null && classVarName != null) {
-    handler = refer(classVarName).property(route.handlerName).call([
-      // TODO: Add parameters
-    ]);
+    final (:positioned, :named) = getParams(route.params);
+    handler =
+        refer(classVarName).property(route.handlerName).call(positioned, named);
 
     if (returnType.isFuture) {
       handler = handler.awaited;
@@ -160,3 +149,19 @@ Map<String, Expression> createRouteArgs({
 }
 
 Expression mimic(ShelfMimic mimic) => CodeExpression(Code(mimic.instance));
+
+({Iterable<Expression> positioned, Map<String, Expression> named}) getParams(
+  Iterable<ShelfParam> params,
+) {
+  final positioned = <Expression>[];
+  final named = <String, Expression>{};
+
+  for (final param in params) {
+    if (param.isNamed) {
+      named[param.name] = refer(param.name);
+    } else {
+      positioned.add(refer(param.name));
+    }
+  }
+  return (positioned: [], named: {});
+}

@@ -42,7 +42,7 @@ class NamePipe extends Pipe<String, String> {
   }
 }
 
-class Role {
+class Role implements Meta {
   const Role(this.type);
 
   final AuthType type;

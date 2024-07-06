@@ -8,6 +8,7 @@ export 'src/custom_param/custom_param_context.dart';
 export 'src/custom_param/custom_param_context_impl.dart';
 export 'src/header.dart';
 export 'src/http_code.dart';
+export 'src/meta.dart';
 export 'src/param.dart';
 export 'src/pipe/param_type.dart';
 export 'src/pipe/pipe.dart';
