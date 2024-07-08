@@ -194,6 +194,7 @@ class Router extends Equatable {
 
     await handler.call(
       EndpointContextImpl(
+        meta: directMeta,
         request: request,
         data: dataHandler,
         response: response,

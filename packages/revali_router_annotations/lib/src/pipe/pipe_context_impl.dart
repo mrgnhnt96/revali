@@ -12,6 +12,14 @@ class PipeContextImpl<T> implements PipeContext<T> {
     required this.type,
   });
 
+  PipeContextImpl.from(
+    EndpointContext context, {
+    required this.arg,
+    required this.paramName,
+    required this.type,
+  })  : data = context.data,
+        meta = context.meta;
+
   @override
   final ReadOnlyDataHandler data;
 

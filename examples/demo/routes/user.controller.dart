@@ -45,13 +45,11 @@ class StringValue {
 }
 
 class NamePipe extends Pipe<String, String> {
-  const NamePipe(this.value);
-
-  final StringValue value;
+  const NamePipe();
 
   @override
   String transform(value, context) {
-    return 'value: ($value, ${this.value.value})';
+    return 'value: ($value)';
   }
 }
 
@@ -62,7 +60,7 @@ class Role implements Meta {
 }
 
 class StringToIntPipe extends Pipe<String, int> {
-  const StringToIntPipe(this.repo);
+  const StringToIntPipe(@Dep() this.repo);
 
   final Repo repo;
 

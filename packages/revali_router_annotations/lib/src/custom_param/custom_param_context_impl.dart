@@ -10,6 +10,14 @@ class CustomParamContextImpl implements CustomParamContext {
     required this.request,
     required this.response,
   });
+  CustomParamContextImpl.from(
+    EndpointContext context, {
+    required this.name,
+    required this.type,
+  })  : data = context.data,
+        meta = context.meta,
+        request = context.request,
+        response = context.response;
 
   @override
   final ReadOnlyDataHandler data;

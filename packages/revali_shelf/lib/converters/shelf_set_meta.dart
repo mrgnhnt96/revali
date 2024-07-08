@@ -1,6 +1,5 @@
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 
 class ShelfSetMeta {
@@ -37,14 +36,4 @@ class ShelfSetMeta {
   final String typeArg;
   final Iterable<String> imports;
   final String value;
-}
-
-class _AnnotationVisitor extends SimpleElementVisitor<void> {
-  _AnnotationVisitor();
-
-  @override
-  void visitFieldFormalParameterElement(FieldFormalParameterElement element) {
-    print(element);
-    super.visitFieldFormalParameterElement(element);
-  }
 }

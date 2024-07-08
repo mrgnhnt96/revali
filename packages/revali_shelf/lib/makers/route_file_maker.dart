@@ -118,6 +118,7 @@ Map<String, Expression> createRouteArgs({
       handler = declareFinal('result').assign(handler);
     }
   }
+
   return {
     if (route.annotations.catchers.isNotEmpty ||
         route.annotations.catches.isNotEmpty)
@@ -129,8 +130,8 @@ Map<String, Expression> createRouteArgs({
             for (final catcher in catches.types) createClass(catcher),
       ]),
     if (route.annotations.data.isNotEmpty)
-      'data': literalConstList(
-          [for (final data in route.annotations.data) mimic(data)]),
+      'data':
+          literalList([for (final data in route.annotations.data) mimic(data)]),
     if (route.annotations.guardsMimic.isNotEmpty ||
         route.annotations.guards.isNotEmpty)
       'guards': literalList([
@@ -142,7 +143,7 @@ Map<String, Expression> createRouteArgs({
       ]),
     if (route.annotations.interceptors.isNotEmpty ||
         route.annotations.intercepts.isNotEmpty)
-      'interceptors': literalConstList([
+      'interceptors': literalList([
         if (route.annotations.interceptors.isNotEmpty)
           for (final interceptor in route.annotations.interceptors)
             mimic(interceptor),
@@ -153,7 +154,7 @@ Map<String, Expression> createRouteArgs({
       ]),
     if (route.annotations.middlewares.isNotEmpty ||
         route.annotations.uses.isNotEmpty)
-      'middlewares': literalConstList([
+      'middlewares': literalList([
         if (route.annotations.middlewares.isNotEmpty)
           for (final middleware in route.annotations.middlewares)
             mimic(middleware),
@@ -162,7 +163,7 @@ Map<String, Expression> createRouteArgs({
             for (final middleware in uses.types) createClass(middleware),
       ]),
     if (route.annotations.combine.isNotEmpty)
-      'combine': literalConstList(
+      'combine': literalList(
           [for (final combine in route.annotations.combine) mimic(combine)]),
     if (route.annotations.meta.isNotEmpty)
       ...() {
@@ -203,46 +204,34 @@ Expression mimic(ShelfMimic mimic) => CodeExpression(Code(mimic.instance));
   final named = <String, Expression>{};
 
   for (final param in params) {
-    if (param.isNamed) {
-      named[param.name] = refer(param.name);
-    } else {
-      positioned.add(refer(param.name));
-    }
-  }
-  return (positioned: [], named: {});
-}
+    final arg = createParamArg(param);
 
-Expression createClass(ShelfClass clas) {
-  final positioned = <Expression>[];
-  final named = <String, Expression>{};
-  final additionalExpressions = <Expression>[];
-
-  for (final param in clas.params) {
-    final arg = createParamArg(param, additionalExpressions);
     if (param.isNamed) {
       named[param.name] = arg;
     } else {
       positioned.add(arg);
     }
   }
+  return (positioned: positioned, named: named);
+}
 
-  final constructor = refer(clas.className).newInstance(
-    positioned,
-    named,
-  );
+Expression createClass(ShelfClass clas) {
+  final (:positioned, :named) = getParams(clas.params);
+
+  final constructor = refer(clas.className).newInstance(positioned, named);
 
   return constructor;
 }
 
 Expression createParamArg(
   ShelfParam param,
-  List<Expression> additionalExpressions,
 ) {
   final annotation = param.annotations;
 
   if (!annotation.hasAnnotation && !param.hasDefaultValue) {
     throw ArgumentError(
-        'No annotation or default value for param ${param.name}');
+      'No annotation or default value for param ${param.name}',
+    );
   }
 
   if (param.defaultValue case final value? when !annotation.hasAnnotation) {
@@ -254,106 +243,111 @@ Expression createParamArg(
   }
 
   if (annotation.body case final body?) {
-    final bodyVar = declareFinal('body')
-        .assign(refer('context').property('request').property('body').awaited);
-    final json = refer('json')
-        .assign(refer('jsonDecode').call([refer('body')]))
-        .asA(TypeReference(
-          (p) => p
-            ..symbol = 'Map'
-            ..types.addAll([refer('String'), refer('dynamic')]),
-        ));
+    final bodyVar = refer('context')
+        .property('request')
+        .property('body')
+        .awaited
+        .parenthesized;
 
-    additionalExpressions.addAll([bodyVar, json]);
-
-    Expression prePipe;
+    var json = refer('jsonDecode')
+        .call([bodyVar.ifNullThen(literalString(''))]).asA(TypeReference(
+      (p) => p
+        ..symbol = 'Map'
+        ..types.addAll([refer('String'), refer('dynamic')]),
+    ));
 
     if (body.access case final access?) {
-      Expression bodyValue = refer('body');
-
       for (final part in access) {
-        bodyValue = bodyValue.index(literalString(part)).nullChecked;
+        json = json.index(literalString(part)).nullChecked;
       }
-      prePipe = bodyValue;
-    } else {
-      prePipe = refer('json');
     }
-
     if (body.pipe case final pipe?) {
       final pipeClass = createClass(pipe);
 
-      return pipeClass.property('transform').call([prePipe]);
+      return pipeClass.property('transform').call([json]);
     }
 
-    return prePipe;
+    return json;
   }
 
   if (annotation.param case final paramAnnotation?) {
-    final paramsVar = declareFinal('params').assign(
-      refer('context').property('request').property('pathParameters'),
-    );
+    final paramsRef =
+        refer('context').property('request').property('pathParameters');
 
-    additionalExpressions.add(paramsVar);
-
-    final paramValue = refer('params')
+    final paramValue = paramsRef
         .index(literalString(paramAnnotation.name ?? param.name))
         .nullChecked;
 
     if (paramAnnotation.pipe case final pipe?) {
       final pipeClass = createClass(pipe);
 
-      return pipeClass.property('transform').call([paramValue]);
+      final context = refer('$PipeContextImpl').newInstanceNamed(
+        'from',
+        [
+          refer('context'),
+        ],
+        {
+          'arg': paramValue,
+          'paramName': literalString(paramAnnotation.name ?? param.name),
+          'type': refer('${ParamType.param}'),
+        },
+      );
+
+      return pipeClass.property('transform').call([paramValue, context]);
     }
 
     return paramValue;
   }
 
   if (annotation.query case final query?) {
-    var queryVar = declareFinal('query');
+    Expression queryVar;
 
     if (query.all) {
-      queryVar = queryVar.assign(
-        refer('context').property('request').property('queryParametersAll'),
-      );
+      queryVar =
+          refer('context').property('request').property('queryParametersAll');
     } else {
-      queryVar = queryVar.assign(
-        refer('context').property('request').property('queryParameters'),
-      );
+      queryVar =
+          refer('context').property('request').property('queryParameters');
     }
 
-    additionalExpressions.add(queryVar);
-
-    final queryValue = refer('query')
-        .index(literalString(query.name ?? param.name))
-        .nullChecked;
+    final queryValue =
+        queryVar.index(literalString(query.name ?? param.name)).nullChecked;
 
     if (query.pipe case final pipe?) {
       final pipeClass = createClass(pipe);
 
-      return pipeClass.property('transform').call([queryValue]);
+      final context = refer('$PipeContextImpl').newInstanceNamed(
+        'from',
+        [
+          refer('context'),
+        ],
+        {
+          'arg': queryValue,
+          'paramName': literalString(query.name ?? param.name),
+          'type': refer('${ParamType.query}'),
+        },
+      );
+
+      return pipeClass.property('transform').call([queryValue, context]);
     }
 
     return queryValue;
   }
 
   if (annotation.customParam case final customParam?) {
-    final context = declareFinal('context').assign(
-      refer('$CustomParamContext').newInstance(
-        [],
-        {
-          'name': literalString(param.name),
-          'type': refer(param.type),
-          'data': refer('context').property('data'),
-          'meta': refer('context').property('meta'),
-          'request': refer('context').property('request'),
-          'response': refer('context').property('response'),
-        },
-      ),
+    final context = refer('$CustomParamContextImpl').newInstanceNamed(
+      'from',
+      [
+        refer('context'),
+      ],
+      {
+        'name': literalString(param.name),
+        // TODO: This is going to need an import
+        'type': refer(param.type),
+      },
     );
 
-    additionalExpressions.add(context);
-
-    return mimic(customParam).property('parse').call([refer('context')]);
+    return mimic(customParam).property('parse').call([context]);
   }
 
   throw ArgumentError('Unknown annotation for param ${param.name}');
