@@ -11,6 +11,7 @@ class ShelfParamAnnotations {
     required this.body,
     required this.query,
     required this.param,
+    required this.dep,
     required this.customParam,
   });
 
@@ -36,6 +37,7 @@ class ShelfParamAnnotations {
     ShelfQueryAnnotation? query;
     ShelfParamAnnotation? param;
     ShelfMimic? customParam;
+    bool? dep;
 
     getter(
       onMatch: [
@@ -68,15 +70,23 @@ class ShelfParamAnnotations {
             customParam = ShelfMimic.fromDartObject(object, annotation);
           },
         ),
+        OnMatch(
+          classType: Dep,
+          package: 'revali_router_annotations',
+          convert: (object, annotation) {
+            dep = true;
+          },
+        ),
       ],
     );
 
     var isOnlyOne = false;
-    for (final annotation in [
+    for (final annotation in <Object?>[
       body,
       query,
       param,
       customParam,
+      dep,
     ]) {
       if (annotation == null) {
         continue;
@@ -97,6 +107,7 @@ class ShelfParamAnnotations {
       query: query,
       param: param,
       customParam: customParam,
+      dep: dep ?? false,
     );
   }
 
@@ -104,9 +115,14 @@ class ShelfParamAnnotations {
   final ShelfQueryAnnotation? query;
   final ShelfParamAnnotation? param;
   final ShelfMimic? customParam;
+  final bool dep;
 
   bool get hasAnnotation =>
-      body != null || query != null || param != null || customParam != null;
+      body != null ||
+      query != null ||
+      param != null ||
+      customParam != null ||
+      dep;
 
   Iterable<String> get imports sync* {
     if (body?.pipe case final pipe?) {

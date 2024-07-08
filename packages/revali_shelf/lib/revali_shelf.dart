@@ -4,6 +4,7 @@
 
 export 'converters/shelf_body_annotation.dart';
 export 'converters/shelf_child_route.dart';
+export 'converters/shelf_class.dart';
 export 'converters/shelf_http_code.dart';
 export 'converters/shelf_imports.dart';
 export 'converters/shelf_mimic.dart';
@@ -11,7 +12,6 @@ export 'converters/shelf_param.dart';
 export 'converters/shelf_param_annotation.dart';
 export 'converters/shelf_param_annotations.dart';
 export 'converters/shelf_parent_route.dart';
-export 'converters/shelf_pipe.dart';
 export 'converters/shelf_query_annotation.dart';
 export 'converters/shelf_redirect.dart';
 export 'converters/shelf_return_type.dart';
@@ -20,6 +20,7 @@ export 'converters/shelf_route_annotations.dart';
 export 'converters/shelf_server.dart';
 export 'converters/shelf_set_header.dart';
 export 'converters/shelf_set_meta.dart';
+export 'converters/shelf_types_list.dart';
 export 'main.dart';
 export 'makers/route_file_maker.dart';
 export 'makers/server_file.dart';

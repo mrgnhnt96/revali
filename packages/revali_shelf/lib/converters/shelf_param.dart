@@ -14,7 +14,7 @@ class ShelfParam {
     required this.defaultValue,
     required this.hasDefaultValue,
     required this.importPath,
-    required this.paramAnnotations,
+    required this.annotations,
   });
 
   factory ShelfParam.fromMeta(MetaParam param) {
@@ -36,7 +36,7 @@ class ShelfParam {
       defaultValue: param.defaultValue,
       hasDefaultValue: param.hasDefaultValue,
       importPath: importPath,
-      paramAnnotations: paramAnnotations,
+      annotations: paramAnnotations,
     );
   }
 
@@ -59,7 +59,7 @@ class ShelfParam {
       defaultValue: element.defaultValueCode,
       hasDefaultValue: element.hasDefaultValue,
       importPath: importPath,
-      paramAnnotations: paramAnnotations,
+      annotations: paramAnnotations,
     );
   }
 
@@ -71,15 +71,13 @@ class ShelfParam {
   final String? defaultValue;
   final bool hasDefaultValue;
   final ShelfImports? importPath;
-  final ShelfParamAnnotations? paramAnnotations;
+  final ShelfParamAnnotations annotations;
 
   Iterable<String> get imports sync* {
     if (importPath case final importPath?) {
       yield* importPath.imports;
     }
 
-    if (paramAnnotations?.imports case final imports?) {
-      yield* imports;
-    }
+    yield* annotations.imports;
   }
 }

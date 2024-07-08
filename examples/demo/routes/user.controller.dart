@@ -15,6 +15,7 @@ class ThisController {
   Future<void> listPeople() async {}
 
   @AuthCombine()
+  @Catches([NotAuthCatcher])
   @HttpCode(201)
   @SetHeader('method', 'hi')
   @NotAuthCatcher('bye')
@@ -124,7 +125,7 @@ class Lazy {
 class NotAuth implements Exception {}
 
 class NotAuthCatcher extends ExceptionCatcher {
-  const NotAuthCatcher(this.value);
+  const NotAuthCatcher(@Dep() this.value);
 
   final String value;
 

@@ -1,7 +1,9 @@
 import 'package:change_case/change_case.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_construct/revali_construct.dart';
+import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_shelf/converters/shelf_child_route.dart';
+import 'package:revali_shelf/converters/shelf_class.dart';
 import 'package:revali_shelf/converters/shelf_mimic.dart';
 import 'package:revali_shelf/converters/shelf_param.dart';
 import 'package:revali_shelf/converters/shelf_parent_route.dart';
@@ -117,24 +119,47 @@ Map<String, Expression> createRouteArgs({
     }
   }
   return {
-    if (route.annotations.catchers.isNotEmpty)
-      'catchers': literalConstList(
-          [for (final catcher in route.annotations.catchers) mimic(catcher)]),
+    if (route.annotations.catchers.isNotEmpty ||
+        route.annotations.catches.isNotEmpty)
+      'catchers': literalList([
+        if (route.annotations.catchers.isNotEmpty)
+          for (final catcher in route.annotations.catchers) mimic(catcher),
+        if (route.annotations.catches.isNotEmpty)
+          for (final catches in route.annotations.catches)
+            for (final catcher in catches.types) createClass(catcher),
+      ]),
     if (route.annotations.data.isNotEmpty)
       'data': literalConstList(
           [for (final data in route.annotations.data) mimic(data)]),
-    if (route.annotations.guards.isNotEmpty)
-      'guards': literalConstList(
-          [for (final guard in route.annotations.guards) mimic(guard)]),
-    if (route.annotations.interceptors.isNotEmpty)
-      'interceptors': literalConstList([
-        for (final interceptor in route.annotations.interceptors)
-          mimic(interceptor)
+    if (route.annotations.guardsMimic.isNotEmpty ||
+        route.annotations.guards.isNotEmpty)
+      'guards': literalList([
+        if (route.annotations.guardsMimic.isNotEmpty)
+          for (final guard in route.annotations.guardsMimic) mimic(guard),
+        if (route.annotations.guards.isNotEmpty)
+          for (final guards in route.annotations.guards)
+            for (final guard in guards.types) createClass(guard),
       ]),
-    if (route.annotations.middlewares.isNotEmpty)
+    if (route.annotations.interceptors.isNotEmpty ||
+        route.annotations.intercepts.isNotEmpty)
+      'interceptors': literalConstList([
+        if (route.annotations.interceptors.isNotEmpty)
+          for (final interceptor in route.annotations.interceptors)
+            mimic(interceptor),
+        if (route.annotations.intercepts.isNotEmpty)
+          for (final intercepts in route.annotations.intercepts)
+            for (final interceptor in intercepts.types)
+              createClass(interceptor),
+      ]),
+    if (route.annotations.middlewares.isNotEmpty ||
+        route.annotations.uses.isNotEmpty)
       'middlewares': literalConstList([
-        for (final middleware in route.annotations.middlewares)
-          mimic(middleware)
+        if (route.annotations.middlewares.isNotEmpty)
+          for (final middleware in route.annotations.middlewares)
+            mimic(middleware),
+        if (route.annotations.uses.isNotEmpty)
+          for (final uses in route.annotations.uses)
+            for (final middleware in uses.types) createClass(middleware),
       ]),
     if (route.annotations.combine.isNotEmpty)
       'combine': literalConstList(
@@ -185,4 +210,151 @@ Expression mimic(ShelfMimic mimic) => CodeExpression(Code(mimic.instance));
     }
   }
   return (positioned: [], named: {});
+}
+
+Expression createClass(ShelfClass clas) {
+  final positioned = <Expression>[];
+  final named = <String, Expression>{};
+  final additionalExpressions = <Expression>[];
+
+  for (final param in clas.params) {
+    final arg = createParamArg(param, additionalExpressions);
+    if (param.isNamed) {
+      named[param.name] = arg;
+    } else {
+      positioned.add(arg);
+    }
+  }
+
+  final constructor = refer(clas.className).newInstance(
+    positioned,
+    named,
+  );
+
+  return constructor;
+}
+
+Expression createParamArg(
+  ShelfParam param,
+  List<Expression> additionalExpressions,
+) {
+  final annotation = param.annotations;
+
+  if (!annotation.hasAnnotation && !param.hasDefaultValue) {
+    throw ArgumentError(
+        'No annotation or default value for param ${param.name}');
+  }
+
+  if (param.defaultValue case final value? when !annotation.hasAnnotation) {
+    return CodeExpression(Code(value));
+  }
+
+  if (annotation.dep) {
+    return refer('DI').property('instance').property('get').call([]);
+  }
+
+  if (annotation.body case final body?) {
+    final bodyVar = declareFinal('body')
+        .assign(refer('context').property('request').property('body').awaited);
+    final json = refer('json')
+        .assign(refer('jsonDecode').call([refer('body')]))
+        .asA(TypeReference(
+          (p) => p
+            ..symbol = 'Map'
+            ..types.addAll([refer('String'), refer('dynamic')]),
+        ));
+
+    additionalExpressions.addAll([bodyVar, json]);
+
+    Expression prePipe;
+
+    if (body.access case final access?) {
+      Expression bodyValue = refer('body');
+
+      for (final part in access) {
+        bodyValue = bodyValue.index(literalString(part)).nullChecked;
+      }
+      prePipe = bodyValue;
+    } else {
+      prePipe = refer('json');
+    }
+
+    if (body.pipe case final pipe?) {
+      final pipeClass = createClass(pipe);
+
+      return pipeClass.property('transform').call([prePipe]);
+    }
+
+    return prePipe;
+  }
+
+  if (annotation.param case final paramAnnotation?) {
+    final paramsVar = declareFinal('params').assign(
+      refer('context').property('request').property('pathParameters'),
+    );
+
+    additionalExpressions.add(paramsVar);
+
+    final paramValue = refer('params')
+        .index(literalString(paramAnnotation.name ?? param.name))
+        .nullChecked;
+
+    if (paramAnnotation.pipe case final pipe?) {
+      final pipeClass = createClass(pipe);
+
+      return pipeClass.property('transform').call([paramValue]);
+    }
+
+    return paramValue;
+  }
+
+  if (annotation.query case final query?) {
+    var queryVar = declareFinal('query');
+
+    if (query.all) {
+      queryVar = queryVar.assign(
+        refer('context').property('request').property('queryParametersAll'),
+      );
+    } else {
+      queryVar = queryVar.assign(
+        refer('context').property('request').property('queryParameters'),
+      );
+    }
+
+    additionalExpressions.add(queryVar);
+
+    final queryValue = refer('query')
+        .index(literalString(query.name ?? param.name))
+        .nullChecked;
+
+    if (query.pipe case final pipe?) {
+      final pipeClass = createClass(pipe);
+
+      return pipeClass.property('transform').call([queryValue]);
+    }
+
+    return queryValue;
+  }
+
+  if (annotation.customParam case final customParam?) {
+    final context = declareFinal('context').assign(
+      refer('$CustomParamContext').newInstance(
+        [],
+        {
+          'name': literalString(param.name),
+          'type': refer(param.type),
+          'data': refer('context').property('data'),
+          'meta': refer('context').property('meta'),
+          'request': refer('context').property('request'),
+          'response': refer('context').property('response'),
+        },
+      ),
+    );
+
+    additionalExpressions.add(context);
+
+    return mimic(customParam).property('parse').call([refer('context')]);
+  }
+
+  throw ArgumentError('Unknown annotation for param ${param.name}');
 }

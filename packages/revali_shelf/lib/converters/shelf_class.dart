@@ -10,7 +10,10 @@ class ShelfClass {
     required this.importPath,
   });
 
-  factory ShelfClass.fromType(DartType type) {
+  factory ShelfClass.fromType(
+    DartType type, {
+    required Type superType,
+  }) {
     final className = type.getDisplayString(withNullability: false);
     final element = type.element;
     if (element is! ClassElement) {
@@ -18,6 +21,18 @@ class ShelfClass {
         type,
         'type',
         'Expected a class element',
+      );
+    }
+
+    final superTypeWithoutGenertics = '$superType'.split('<').first;
+
+    if (!element.allSupertypes.any((e) => e
+        .getDisplayString(withNullability: false)
+        .startsWith(superTypeWithoutGenertics))) {
+      throw ArgumentError.value(
+        type,
+        'type',
+        'Expected a class element that extends $superType',
       );
     }
 
