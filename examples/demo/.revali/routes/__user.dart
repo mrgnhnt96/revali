@@ -32,7 +32,7 @@ Route user(ThisController thisController) {
             name: NamePipe().transform(
               context.request.queryParameters['name'] ??
                   (throw 'Missing value!'),
-              PipeContextImpl<dynamic>.from(
+              PipeContextImpl.from(
                 context,
                 arg: null,
                 paramName: 'name',
@@ -41,7 +41,7 @@ Route user(ThisController thisController) {
             ),
             id: StringToIntPipe(DI.instance.get()).transform(
               context.request.pathParameters['id'],
-              PipeContextImpl<dynamic>.from(
+              PipeContextImpl.from(
                 context,
                 arg: null,
                 paramName: 'id',

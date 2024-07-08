@@ -296,7 +296,7 @@ Expression createParamArg(
     if (paramAnnotation.pipe case final pipe?) {
       final pipeClass = createClass(pipe);
 
-      final context = refer('$PipeContextImpl').newInstanceNamed(
+      final context = refer((PipeContextImpl).name).newInstanceNamed(
         'from',
         [
           refer('context'),
@@ -341,7 +341,7 @@ Expression createParamArg(
     if (query.pipe case final pipe?) {
       final pipeClass = createClass(pipe);
 
-      final context = refer('$PipeContextImpl').newInstanceNamed(
+      final context = refer((PipeContextImpl).name).newInstanceNamed(
         'from',
         [
           refer('context'),
@@ -361,7 +361,7 @@ Expression createParamArg(
   }
 
   if (annotation.customParam case final customParam?) {
-    final context = refer('$CustomParamContextImpl').newInstanceNamed(
+    final context = refer((CustomParamContextImpl).name).newInstanceNamed(
       'from',
       [
         refer('context'),
@@ -377,4 +377,8 @@ Expression createParamArg(
   }
 
   throw ArgumentError('Unknown annotation for param ${param.name}');
+}
+
+extension _TypeX on Type {
+  String get name => '$this'.split('<').first;
 }
