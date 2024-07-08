@@ -30,19 +30,20 @@ Route user(ThisController thisController) {
 
           final result = thisController.getNewPerson(
             name: NamePipe().transform(
-              context.request.queryParameters['name']!,
+              context.request.queryParameters['name'] ??
+                  (throw 'Missing value!'),
               PipeContextImpl<dynamic>.from(
                 context,
-                arg: context.request.queryParameters['name']!,
+                arg: null,
                 paramName: 'name',
                 type: ParamType.query,
               ),
             ),
             id: StringToIntPipe(DI.instance.get()).transform(
-              context.request.pathParameters['id']!,
+              context.request.pathParameters['id'],
               PipeContextImpl<dynamic>.from(
                 context,
-                arg: context.request.pathParameters['id']!,
+                arg: null,
                 paramName: 'id',
                 type: ParamType.param,
               ),
@@ -53,7 +54,8 @@ Route user(ThisController thisController) {
               type: String,
             )),
             data: (jsonDecode((await context.request.body) ?? '')
-                as Map<String, dynamic>)['name']!,
+                    as Map<String, dynamic>)['name'] ??
+                (throw 'Missing value!'),
           );
         },
       ),
@@ -61,7 +63,7 @@ Route user(ThisController thisController) {
         'create',
         method: 'POST',
         handler: (context) async {
-          thisController.create(context.request.queryParameters['name']!);
+          thisController.create(context.request.queryParametersAll['name']);
         },
       ),
     ],

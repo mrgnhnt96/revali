@@ -25,7 +25,7 @@ class ThisController {
     @Query.pipe(NamePipe) required String name,
     @Param.pipe(StringToIntPipe) required int id,
     @MyParam() required String myName,
-    @Body(['name']) String? data,
+    @Body(['name']) required String data,
   }) {
     final user = User(name, id);
 
@@ -34,7 +34,7 @@ class ThisController {
 
   @Post('create')
   void create(
-    @Query() String name,
+    @Query.all() List<String>? name,
   ) {}
 }
 
@@ -59,14 +59,14 @@ class Role implements Meta {
   final AuthType type;
 }
 
-class StringToIntPipe extends Pipe<String, int> {
+class StringToIntPipe extends Pipe<String?, int> {
   const StringToIntPipe(@Dep() this.repo);
 
   final Repo repo;
 
   @override
   int transform(value, context) {
-    return int.parse(value);
+    return int.parse(value ?? '0');
   }
 }
 

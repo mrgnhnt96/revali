@@ -258,7 +258,15 @@ Expression createParamArg(
 
     if (body.access case final access?) {
       for (final part in access) {
-        json = json.index(literalString(part)).nullChecked;
+        json = json.index(literalString(part));
+
+        final acceptsNull = body.acceptsNull;
+        if ((acceptsNull != null && !acceptsNull) ||
+            (!param.isNullable && body.pipe == null)) {
+          json = json
+              // TODO(MRGNHNT): Throw custom exception here
+              .ifNullThen(literalString('Missing value!').thrown.parenthesized);
+        }
       }
     }
     if (body.pipe case final pipe?) {
@@ -274,9 +282,16 @@ Expression createParamArg(
     final paramsRef =
         refer('context').property('request').property('pathParameters');
 
-    final paramValue = paramsRef
-        .index(literalString(paramAnnotation.name ?? param.name))
-        .nullChecked;
+    var paramValue =
+        paramsRef.index(literalString(paramAnnotation.name ?? param.name));
+
+    final acceptsNull = paramAnnotation.acceptsNull;
+    if ((acceptsNull != null && !acceptsNull) ||
+        (!param.isNullable && paramAnnotation.pipe == null)) {
+      paramValue = paramValue
+          // TODO(MRGNHNT): Throw custom exception here
+          .ifNullThen(literalString('Missing value!').thrown.parenthesized);
+    }
 
     if (paramAnnotation.pipe case final pipe?) {
       final pipeClass = createClass(pipe);
@@ -287,7 +302,9 @@ Expression createParamArg(
           refer('context'),
         ],
         {
-          'arg': paramValue,
+          'arg': paramAnnotation.name == null
+              ? literalNull
+              : literalString(paramAnnotation.name!),
           'paramName': literalString(paramAnnotation.name ?? param.name),
           'type': refer('${ParamType.param}'),
         },
@@ -310,8 +327,16 @@ Expression createParamArg(
           refer('context').property('request').property('queryParameters');
     }
 
-    final queryValue =
-        queryVar.index(literalString(query.name ?? param.name)).nullChecked;
+    var queryValue = queryVar.index(literalString(query.name ?? param.name));
+
+    final acceptsNull = query.acceptsNull;
+    if ((acceptsNull != null && !acceptsNull) ||
+        (!param.isNullable && query.pipe == null)) {
+      queryValue = queryValue
+          // TODO(MRGNHNT): Throw custom exception here
+          .ifNullThen(literalString('Missing value!').thrown.parenthesized);
+      ;
+    }
 
     if (query.pipe case final pipe?) {
       final pipeClass = createClass(pipe);
@@ -322,9 +347,10 @@ Expression createParamArg(
           refer('context'),
         ],
         {
-          'arg': queryValue,
+          'arg': query.name == null ? literalNull : literalString(query.name!),
           'paramName': literalString(query.name ?? param.name),
-          'type': refer('${ParamType.query}'),
+          'type':
+              refer(query.all ? '${ParamType.queryAll}' : '${ParamType.query}'),
         },
       );
 
