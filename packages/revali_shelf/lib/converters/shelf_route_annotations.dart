@@ -3,22 +3,16 @@ import 'package:revali_router/revali_router.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_shelf/converters/shelf_mimic.dart';
 import 'package:revali_shelf/converters/shelf_set_header.dart';
-import 'package:revali_shelf/converters/shelf_types_list.dart';
+import 'package:revali_shelf/converters/shelf_type_references.dart';
 
 class ShelfRouteAnnotations {
   const ShelfRouteAnnotations({
-    required this.middlewares,
-    required this.interceptors,
-    required this.catchers,
-    required this.guardsMimic,
+    required this.mimics,
+    required this.typeReferences,
     required this.data,
     required this.combine,
     required this.meta,
     required this.setHeaders,
-    required this.catches,
-    required this.uses,
-    required this.intercepts,
-    required this.guards,
   });
 
   factory ShelfRouteAnnotations.fromParent(MetaRoute parent) {
@@ -29,18 +23,13 @@ class ShelfRouteAnnotations {
   }
 
   factory ShelfRouteAnnotations._fromGetter(AnnotationMapper getter) {
-    final middlewares = <ShelfMimic>[];
-    final interceptors = <ShelfMimic>[];
-    final catchers = <ShelfMimic>[];
-    final guardsMimic = <ShelfMimic>[];
+    final mimics = _AnnotationMimics();
+    final types = _AnnotationTypeReferences();
+
     final data = <ShelfMimic>[];
+    final setHeaders = <ShelfSetHeader>[];
     final combine = <ShelfMimic>[];
     final meta = <ShelfMimic>[];
-    final setHeaders = <ShelfSetHeader>[];
-    final catches = <ShelfTypesList>[];
-    final uses = <ShelfTypesList>[];
-    final intercepts = <ShelfTypesList>[];
-    final guards = <ShelfTypesList>[];
 
     getter(
       onMatch: [
@@ -48,29 +37,32 @@ class ShelfRouteAnnotations {
           classType: Middleware,
           package: 'revali_router',
           convert: (object, annotation) {
-            middlewares.add(ShelfMimic.fromDartObject(object, annotation));
+            mimics.middlewares
+                .add(ShelfMimic.fromDartObject(object, annotation));
           },
         ),
         OnMatch(
           classType: Interceptor,
           package: 'revali_router',
           convert: (object, annotation) {
-            interceptors.add(ShelfMimic.fromDartObject(object, annotation));
+            mimics.interceptors
+                .add(ShelfMimic.fromDartObject(object, annotation));
           },
         ),
         OnMatch(
           classType: ExceptionCatcher,
           package: 'revali_router',
           convert: (object, annotation) {
-            catchers.add(ShelfMimic.fromDartObject(object, annotation));
+            mimics.catchers.add(ShelfMimic.fromDartObject(object, annotation));
           },
         ),
         OnMatch(
           classType: Catches,
           package: 'revali_router_annotations',
           convert: (object, annotation) {
-            catches.add(
-              ShelfTypesList.fromElement(object, superType: ExceptionCatcher),
+            types.catchers.add(
+              ShelfTypeReferences.fromElement(object,
+                  superType: ExceptionCatcher),
             );
           },
         ),
@@ -78,15 +70,16 @@ class ShelfRouteAnnotations {
           classType: Uses,
           package: 'revali_router_annotations',
           convert: (object, annotation) {
-            uses.add(ShelfTypesList.fromElement(object, superType: Middleware));
+            types.middlewares.add(
+                ShelfTypeReferences.fromElement(object, superType: Middleware));
           },
         ),
         OnMatch(
           classType: Intercepts,
           package: 'revali_router_annotations',
           convert: (object, annotation) {
-            intercepts.add(
-              ShelfTypesList.fromElement(object, superType: Interceptor),
+            types.interceptors.add(
+              ShelfTypeReferences.fromElement(object, superType: Interceptor),
             );
           },
         ),
@@ -94,8 +87,8 @@ class ShelfRouteAnnotations {
           classType: Guards,
           package: 'revali_router_annotations',
           convert: (object, annotation) {
-            guards.add(
-              ShelfTypesList.fromElement(object, superType: Guard),
+            types.guards.add(
+              ShelfTypeReferences.fromElement(object, superType: Guard),
             );
           },
         ),
@@ -103,7 +96,7 @@ class ShelfRouteAnnotations {
           classType: Guard,
           package: 'revali_router',
           convert: (object, annotation) {
-            guardsMimic.add(ShelfMimic.fromDartObject(object, annotation));
+            mimics.guards.add(ShelfMimic.fromDartObject(object, annotation));
           },
         ),
         OnMatch(
@@ -138,58 +131,86 @@ class ShelfRouteAnnotations {
     );
 
     return ShelfRouteAnnotations(
-      middlewares: middlewares,
-      interceptors: interceptors,
-      catchers: catchers,
-      guardsMimic: guardsMimic,
+      mimics: mimics,
+      typeReferences: types,
       data: data,
       combine: combine,
       meta: meta,
       setHeaders: setHeaders,
-      catches: catches,
-      uses: uses,
-      intercepts: intercepts,
-      guards: guards,
     );
   }
 
-  final Iterable<ShelfMimic> middlewares;
-  final Iterable<ShelfMimic> interceptors;
-  final Iterable<ShelfMimic> catchers;
-  final Iterable<ShelfMimic> guardsMimic;
+  final _AnnotationTypeReferences typeReferences;
+  final _AnnotationMimics mimics;
   final Iterable<ShelfMimic> data;
   final Iterable<ShelfMimic> combine;
   final Iterable<ShelfMimic> meta;
   final Iterable<ShelfSetHeader> setHeaders;
-  final Iterable<ShelfTypesList> catches;
-  final Iterable<ShelfTypesList> uses;
-  final Iterable<ShelfTypesList> intercepts;
-  final Iterable<ShelfTypesList> guards;
 
   Iterable<String> get imports sync* {
     final mimics = [
-      ...middlewares,
-      ...interceptors,
-      ...catchers,
-      ...guardsMimic,
+      ...this.mimics.all,
       ...data,
       ...combine,
       ...meta,
-    ];
-
-    final typeLists = [
-      ...catches,
-      ...uses,
-      ...intercepts,
-      ...guards,
     ];
 
     for (final mimic in mimics) {
       yield* mimic.imports.imports;
     }
 
-    for (final typeList in typeLists) {
+    for (final typeList in typeReferences.all) {
       yield* typeList.imports;
     }
   }
+}
+
+abstract class BaseAnnotations<T> {
+  Iterable<T> get middlewares;
+  Iterable<T> get interceptors;
+  Iterable<T> get catchers;
+  Iterable<T> get guards;
+}
+
+class _AnnotationTypeReferences
+    implements BaseAnnotations<ShelfTypeReferences> {
+  @override
+  List<ShelfTypeReferences> catchers = [];
+
+  @override
+  List<ShelfTypeReferences> guards = [];
+
+  @override
+  List<ShelfTypeReferences> interceptors = [];
+
+  @override
+  List<ShelfTypeReferences> middlewares = [];
+
+  Iterable<ShelfTypeReferences> get all => [
+        ...middlewares,
+        ...interceptors,
+        ...catchers,
+        ...guards,
+      ];
+}
+
+class _AnnotationMimics implements BaseAnnotations<ShelfMimic> {
+  @override
+  List<ShelfMimic> catchers = [];
+
+  @override
+  List<ShelfMimic> guards = [];
+
+  @override
+  List<ShelfMimic> interceptors = [];
+
+  @override
+  List<ShelfMimic> middlewares = [];
+
+  Iterable<ShelfMimic> get all => [
+        ...middlewares,
+        ...interceptors,
+        ...catchers,
+        ...guards,
+      ];
 }

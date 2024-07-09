@@ -119,47 +119,45 @@ Map<String, Expression> createRouteArgs({
     }
   }
 
+  final typeReferences = route.annotations.typeReferences;
+  final mimics = route.annotations.mimics;
+
   return {
-    if (route.annotations.catchers.isNotEmpty ||
-        route.annotations.catches.isNotEmpty)
+    if (mimics.catchers.isNotEmpty || typeReferences.catchers.isNotEmpty)
       'catchers': literalList([
-        if (route.annotations.catchers.isNotEmpty)
-          for (final catcher in route.annotations.catchers) mimic(catcher),
-        if (route.annotations.catches.isNotEmpty)
-          for (final catches in route.annotations.catches)
+        if (mimics.catchers.isNotEmpty)
+          for (final catcher in mimics.catchers) mimic(catcher),
+        if (typeReferences.catchers.isNotEmpty)
+          for (final catches in typeReferences.catchers)
             for (final catcher in catches.types) createClass(catcher),
       ]),
     if (route.annotations.data.isNotEmpty)
       'data':
           literalList([for (final data in route.annotations.data) mimic(data)]),
-    if (route.annotations.guardsMimic.isNotEmpty ||
-        route.annotations.guards.isNotEmpty)
+    if (mimics.guards.isNotEmpty || typeReferences.guards.isNotEmpty)
       'guards': literalList([
-        if (route.annotations.guardsMimic.isNotEmpty)
-          for (final guard in route.annotations.guardsMimic) mimic(guard),
-        if (route.annotations.guards.isNotEmpty)
-          for (final guards in route.annotations.guards)
+        if (mimics.guards.isNotEmpty)
+          for (final guard in mimics.guards) mimic(guard),
+        if (typeReferences.guards.isNotEmpty)
+          for (final guards in typeReferences.guards)
             for (final guard in guards.types) createClass(guard),
       ]),
-    if (route.annotations.interceptors.isNotEmpty ||
-        route.annotations.intercepts.isNotEmpty)
+    if (mimics.interceptors.isNotEmpty ||
+        typeReferences.interceptors.isNotEmpty)
       'interceptors': literalList([
-        if (route.annotations.interceptors.isNotEmpty)
-          for (final interceptor in route.annotations.interceptors)
-            mimic(interceptor),
-        if (route.annotations.intercepts.isNotEmpty)
-          for (final intercepts in route.annotations.intercepts)
+        if (mimics.interceptors.isNotEmpty)
+          for (final interceptor in mimics.interceptors) mimic(interceptor),
+        if (typeReferences.interceptors.isNotEmpty)
+          for (final intercepts in typeReferences.interceptors)
             for (final interceptor in intercepts.types)
               createClass(interceptor),
       ]),
-    if (route.annotations.middlewares.isNotEmpty ||
-        route.annotations.uses.isNotEmpty)
+    if (mimics.middlewares.isNotEmpty || typeReferences.middlewares.isNotEmpty)
       'middlewares': literalList([
-        if (route.annotations.middlewares.isNotEmpty)
-          for (final middleware in route.annotations.middlewares)
-            mimic(middleware),
-        if (route.annotations.uses.isNotEmpty)
-          for (final uses in route.annotations.uses)
+        if (mimics.middlewares.isNotEmpty)
+          for (final middleware in mimics.middlewares) mimic(middleware),
+        if (typeReferences.middlewares.isNotEmpty)
+          for (final uses in typeReferences.middlewares)
             for (final middleware in uses.types) createClass(middleware),
       ]),
     if (route.annotations.combine.isNotEmpty)

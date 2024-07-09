@@ -1,19 +1,19 @@
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:revali_shelf/converters/shelf_class.dart';
 
-class ShelfTypesList {
-  const ShelfTypesList({
+class ShelfTypeReferences {
+  const ShelfTypeReferences({
     required this.types,
   });
 
-  factory ShelfTypesList.fromElement(
+  factory ShelfTypeReferences.fromElement(
     DartObject object, {
     required Type superType,
   }) {
     final catchersValue = object.getField('types')?.toListValue();
 
     if (catchersValue == null || catchersValue.isEmpty) {
-      return ShelfTypesList(
+      return ShelfTypeReferences(
         types: [],
       );
     }
@@ -29,7 +29,7 @@ class ShelfTypesList {
       types.add(ShelfClass.fromType(type, superType: superType));
     }
 
-    return ShelfTypesList(types: types);
+    return ShelfTypeReferences(types: types);
   }
 
   final Iterable<ShelfClass> types;
