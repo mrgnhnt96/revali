@@ -162,7 +162,10 @@ Map<String, Expression> createRouteArgs({
       ]),
     if (route.annotations.combine.isNotEmpty)
       'combine': literalList(
-          [for (final combine in route.annotations.combine) mimic(combine)]),
+        [
+          for (final combine in route.annotations.combine) mimic(combine),
+        ],
+      ),
     if (route.annotations.meta.isNotEmpty)
       ...() {
         final m = refer('m');
@@ -213,10 +216,10 @@ Expression mimic(ShelfMimic mimic) => CodeExpression(Code(mimic.instance));
   return (positioned: positioned, named: named);
 }
 
-Expression createClass(ShelfClass clas) {
-  final (:positioned, :named) = getParams(clas.params);
+Expression createClass(ShelfClass c) {
+  final (:positioned, :named) = getParams(c.params);
 
-  final constructor = refer(clas.className).newInstance(positioned, named);
+  final constructor = refer(c.className).newInstance(positioned, named);
 
   return constructor;
 }
@@ -366,7 +369,6 @@ Expression createParamArg(
       ],
       {
         'name': literalString(param.name),
-        // TODO: This is going to need an import
         'type': refer(param.type),
       },
     );

@@ -10,7 +10,7 @@ class CombineMetaApplier {
   void apply() {
     for (final c in combine) {
       route.guards.addAll(c.guards);
-      route.middlewares.addAll(c.middleware);
+      route.middlewares.addAll(c.middlewares);
       route.interceptors.addAll(c.interceptors);
       route.catchers.addAll(c.catchers);
     }

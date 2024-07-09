@@ -3,7 +3,7 @@ import 'package:revali_router/revali_router.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_shelf/converters/shelf_mimic.dart';
 import 'package:revali_shelf/converters/shelf_set_header.dart';
-import 'package:revali_shelf/converters/shelf_type_references.dart';
+import 'package:revali_shelf/converters/shelf_type_reference.dart';
 
 class ShelfRouteAnnotations {
   const ShelfRouteAnnotations({
@@ -61,7 +61,7 @@ class ShelfRouteAnnotations {
           package: 'revali_router_annotations',
           convert: (object, annotation) {
             types.catchers.add(
-              ShelfTypeReferences.fromElement(object,
+              ShelfTypeReference.fromElement(object,
                   superType: ExceptionCatcher),
             );
           },
@@ -71,7 +71,7 @@ class ShelfRouteAnnotations {
           package: 'revali_router_annotations',
           convert: (object, annotation) {
             types.middlewares.add(
-                ShelfTypeReferences.fromElement(object, superType: Middleware));
+                ShelfTypeReference.fromElement(object, superType: Middleware));
           },
         ),
         OnMatch(
@@ -79,7 +79,7 @@ class ShelfRouteAnnotations {
           package: 'revali_router_annotations',
           convert: (object, annotation) {
             types.interceptors.add(
-              ShelfTypeReferences.fromElement(object, superType: Interceptor),
+              ShelfTypeReference.fromElement(object, superType: Interceptor),
             );
           },
         ),
@@ -88,7 +88,7 @@ class ShelfRouteAnnotations {
           package: 'revali_router_annotations',
           convert: (object, annotation) {
             types.guards.add(
-              ShelfTypeReferences.fromElement(object, superType: Guard),
+              ShelfTypeReference.fromElement(object, superType: Guard),
             );
           },
         ),
@@ -172,21 +172,20 @@ abstract class BaseAnnotations<T> {
   Iterable<T> get guards;
 }
 
-class _AnnotationTypeReferences
-    implements BaseAnnotations<ShelfTypeReferences> {
+class _AnnotationTypeReferences implements BaseAnnotations<ShelfTypeReference> {
   @override
-  List<ShelfTypeReferences> catchers = [];
+  List<ShelfTypeReference> catchers = [];
 
   @override
-  List<ShelfTypeReferences> guards = [];
+  List<ShelfTypeReference> guards = [];
 
   @override
-  List<ShelfTypeReferences> interceptors = [];
+  List<ShelfTypeReference> interceptors = [];
 
   @override
-  List<ShelfTypeReferences> middlewares = [];
+  List<ShelfTypeReference> middlewares = [];
 
-  Iterable<ShelfTypeReferences> get all => [
+  Iterable<ShelfTypeReference> get all => [
         ...middlewares,
         ...interceptors,
         ...catchers,

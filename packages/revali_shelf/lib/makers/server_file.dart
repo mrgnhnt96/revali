@@ -9,13 +9,12 @@ String serverFile(ShelfServer server, String Function(Spec) formatter) {
   final imports = [
     "import 'dart:io';",
     "import 'dart:convert';",
-    "import 'package:shelf/shelf.dart';",
     "import 'package:shelf/shelf_io.dart' as io;",
     "import 'package:revali_router/revali_router.dart';",
     "import 'package:revali_annotations/revali_annotations.dart';",
     "import 'package:revali_router_annotations/revali_router_annotations.dart';",
     "import 'package:revali_construct/revali_construct.dart';",
-    for (final imprt in server.imports) "import '../$imprt';",
+    for (final imprt in {...server.imports}) "import '../$imprt';",
   ];
 
   final main = Method(

@@ -98,12 +98,6 @@ class Auth extends Middleware {
   }
 }
 
-class Guard {
-  const Guard(this.types);
-
-  final List<Type> types;
-}
-
 enum AuthType {
   admin,
   user,
@@ -134,8 +128,20 @@ class NotAuthCatcher extends ExceptionCatcher {
   }
 }
 
-final class AuthCombine extends CombineMeta {
+final class AuthCombine implements CombineMeta {
   const AuthCombine();
+
+  @override
+  List<ExceptionCatcher<Exception>> get catchers => [NotAuthCatcher('bye')];
+
+  @override
+  List<Guard> get guards => [];
+
+  @override
+  List<Interceptor> get interceptors => [];
+
+  @override
+  List<Middleware> get middlewares => [Auth(AuthType.admin)];
 }
 
 class MyParam extends CustomParam<String> {

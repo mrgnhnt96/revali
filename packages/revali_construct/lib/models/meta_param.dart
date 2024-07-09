@@ -5,6 +5,7 @@ class MetaParam {
   const MetaParam({
     required this.name,
     required this.type,
+    required this.typeImport,
     required this.typeElement,
     required this.nullable,
     required this.isRequired,
@@ -15,6 +16,7 @@ class MetaParam {
 
   final String name;
   final String type;
+  final String? typeImport;
   final Element typeElement;
   final bool nullable;
   final bool isRequired;

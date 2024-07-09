@@ -25,7 +25,7 @@ class RevaliShelfConstruct implements ServerConstruct {
     return ServerFile(
       content: content,
       parts: [
-        for (final route in shelfServer.routes) routeFileMaker(route, format)
+        for (final route in shelfServer.routes) routeFileMaker(route, format),
       ],
     );
   }

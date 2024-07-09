@@ -189,10 +189,16 @@ Iterable<MetaParam> getParams(FunctionTypedElement element) {
       throw Exception('Element not found for type $type');
     }
 
+    String? typeImport;
+    if (element.library?.isInSdk == false) {
+      typeImport = element.librarySource?.uri.toString();
+    }
+
     params.add(
       MetaParam(
         name: param.name,
         type: type,
+        typeImport: typeImport,
         typeElement: element,
         nullable: param.type.nullabilitySuffix != NullabilitySuffix.none,
         isRequired: param.isRequired,

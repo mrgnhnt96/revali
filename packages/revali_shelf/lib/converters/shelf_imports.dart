@@ -5,6 +5,10 @@ class ShelfImports {
     final cleaned = <String>{};
 
     for (final imprt in imports) {
+      if (imprt.startsWith('dart:')) {
+        continue;
+      }
+
       if (imprt.startsWith('file:')) {
         final cleanedImport =
             p.relative(imprt.replaceFirst(RegExp('^file:'), ''));

@@ -61,6 +61,14 @@ Route user(ThisController thisController) {
       ),
       Route(
         'create',
+        combine: [
+          _CombineMeta(
+            guards: [],
+            middlewares: [],
+            interceptors: [],
+            catchers: [],
+          )
+        ],
         method: 'POST',
         handler: (context) async {
           thisController.create(context.request.queryParametersAll['name']);
