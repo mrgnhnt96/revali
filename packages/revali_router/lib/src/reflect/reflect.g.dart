@@ -1,15 +1,14 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'router.dart';
+part of 'reflect.dart';
 
 // **************************************************************************
 // AutoequalGenerator
 // **************************************************************************
 
-extension _$RouterAutoequal on Router {
+extension _$ReflectAutoequal on Reflect {
   List<Object?> get _$props => [
-        context,
-        routes,
-        _reflects,
+        type,
+        metas,
       ];
 }

@@ -1,6 +1,7 @@
 import 'package:revali_router/src/meta/read_only_meta.dart';
+import 'package:revali_router/src/meta/write_only_meta.dart';
 
-class MetaHandler implements ReadOnlyMeta {
+class MetaHandler implements ReadOnlyMeta, WriteOnlyMeta {
   MetaHandler();
 
   Map<Type, List<dynamic>> _registered = {};

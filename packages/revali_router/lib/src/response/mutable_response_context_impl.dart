@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:revali_router/src/response/mutable_response_context.dart';
 import 'package:shelf/shelf.dart';
 
@@ -37,7 +39,7 @@ class MutableResponseContextImpl implements MutableResponseContext {
   Response get([int defaultStatusCode = 200]) {
     return Response(
       _statusCode ?? defaultStatusCode,
-      body: _body,
+      body: jsonEncode(_body),
       headers: _headers,
     );
   }
@@ -50,7 +52,7 @@ class MutableResponseContextImpl implements MutableResponseContext {
   }) {
     return Response(
       statusCode ?? _statusCode ?? defaultStatusCode,
-      body: body ?? _body,
+      body: jsonEncode(body ?? _body),
       headers: headers ?? _headers,
     );
   }

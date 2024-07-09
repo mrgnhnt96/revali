@@ -71,6 +71,29 @@ void main() {
         expect(result?.route, getter);
       });
 
+      test('should return the route if it matches and nested routes is empty',
+          () {
+        final getter = Route(
+          'user',
+          method: 'GET',
+          handler: (_) async {},
+          routes: [],
+        );
+        final router = Router(
+          RequestContext(_fakeRequest),
+          routes: [getter],
+        );
+
+        final result = router.find(
+          segments: ['user'],
+          routes: router.routes,
+          method: 'GET',
+        );
+
+        expect(result, isNotNull);
+        expect(result?.route, getter);
+      });
+
       test('should return nested route when matches', () {
         final create = Route(
           'create',

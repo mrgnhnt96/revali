@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:equatable/equatable.dart';
 import 'package:revali_router/src/data/data_handler.dart';
 import 'package:revali_router/src/endpoint/endpoint_context_impl.dart';
@@ -12,6 +14,8 @@ import 'package:revali_router/src/interceptor/interceptor_meta.dart';
 import 'package:revali_router/src/meta/meta_handler.dart';
 import 'package:revali_router/src/middleware/middleware_action.dart';
 import 'package:revali_router/src/middleware/middleware_context_impl.dart';
+import 'package:revali_router/src/reflect/reflect.dart';
+import 'package:revali_router/src/reflect/reflect_handler.dart';
 import 'package:revali_router/src/request/mutable_request_context_impl.dart';
 import 'package:revali_router/src/request/request_context.dart';
 import 'package:revali_router/src/response/mutable_response_context_impl.dart';
@@ -25,10 +29,12 @@ class Router extends Equatable {
   const Router(
     this.context, {
     required this.routes,
-  });
+    Set<Reflect> reflects = const {},
+  }) : _reflects = reflects;
 
   final RequestContext context;
   final List<Route> routes;
+  final Set<Reflect> _reflects;
 
   Future<Response> handle() async {
     final request = MutableRequestContextImpl.from(this.context);
@@ -62,6 +68,7 @@ class Router extends Equatable {
     final directMeta = route.getMeta();
     final inheritedMeta = route.getMeta(inherit: true);
     final dataHandler = DataHandler();
+    final reflectHandler = ReflectHandler(_reflects);
 
     try {
       final result = await execute(
@@ -71,6 +78,7 @@ class Router extends Equatable {
         dataHandler: dataHandler,
         directMeta: directMeta,
         inheritedMeta: inheritedMeta,
+        reflectHandler: reflectHandler,
       );
 
       return result;
@@ -123,6 +131,7 @@ class Router extends Equatable {
     required DataHandler dataHandler,
     required MetaHandler directMeta,
     required MetaHandler inheritedMeta,
+    required ReflectHandler reflectHandler,
   }) async {
     final handler = route.handler;
     if (handler == null) {
@@ -147,7 +156,7 @@ class Router extends Equatable {
           statusCode: statusCode,
           defaultStatusCode: 400,
           headers: headers,
-          body: body,
+          body: jsonEncode(body),
         );
       }
     }
@@ -185,6 +194,7 @@ class Router extends Equatable {
             direct: directMeta,
             inherited: inheritedMeta,
           ),
+          reflect: reflectHandler,
           request: request,
           response: response,
           data: dataHandler,
@@ -195,6 +205,7 @@ class Router extends Equatable {
     await handler.call(
       EndpointContextImpl(
         meta: directMeta,
+        reflect: reflectHandler,
         request: request,
         data: dataHandler,
         response: response,
@@ -208,6 +219,7 @@ class Router extends Equatable {
             direct: directMeta,
             inherited: inheritedMeta,
           ),
+          reflect: reflectHandler,
           request: request,
           response: response,
           data: dataHandler,
@@ -230,7 +242,7 @@ class Router extends Equatable {
       required String method,
       required Map<String, String> pathParameters,
     }) {
-      if (routes == null) {
+      if (routes == null || routes.isEmpty) {
         if (parent == null) {
           return null;
         }
@@ -321,6 +333,7 @@ class Router extends Equatable {
           );
         }
       }
+
       return null;
     }
 

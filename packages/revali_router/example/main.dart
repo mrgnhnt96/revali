@@ -1,21 +1,22 @@
-import 'package:revali_router/src/exception_catcher/exception_catcher.dart';
-import 'package:revali_router/src/exception_catcher/exception_catcher_action.dart';
-import 'package:revali_router/src/exception_catcher/exception_catcher_context.dart';
-import 'package:revali_router/src/guard/guard.dart';
-import 'package:revali_router/src/guard/guard_action.dart';
-import 'package:revali_router/src/middleware/middleware.dart';
-import 'package:revali_router/src/middleware/middleware_action.dart';
-import 'package:revali_router/src/middleware/middleware_context.dart';
-import 'package:revali_router/src/request/request_context.dart';
-import 'package:revali_router/src/route/route.dart';
-import 'package:revali_router/src/router.dart';
+import 'package:revali_router/revali_router.dart';
 import 'package:shelf/shelf_io.dart';
 
 void main() async {
   final server = await serve(
     (context) async {
       final requestContext = RequestContext(context);
-      final router = Router(requestContext, routes: routes);
+      final router = Router(
+        requestContext,
+        routes: routes,
+        reflects: {
+          Reflect(
+            User,
+            metas: (m) {
+              m['user']..add(Role('admin'));
+            },
+          ),
+        },
+      );
 
       final response = await router.handle();
 
@@ -45,8 +46,11 @@ late final routes = [
         ':id',
         catchers: [],
         guards: [AuthGuard()],
-        handler: (context) async {},
-        interceptors: [],
+        handler: (context) async {
+          context.response.statusCode = 200;
+          context.response.body = {'id': 'hi'};
+        },
+        interceptors: [BodyInterceptor()],
         meta: (m) {},
         method: 'GET',
         middlewares: [AddAuth()],
@@ -112,4 +116,32 @@ class AuthExceptionCatcher extends ExceptionCatcher<AuthException> {
       body: 'Unauthorized',
     );
   }
+}
+
+class User {
+  const User(this.name);
+
+  final String name;
+}
+
+class Role {
+  const Role(this.name);
+
+  final String name;
+}
+
+class BodyInterceptor extends Interceptor {
+  const BodyInterceptor();
+
+  @override
+  Future<void> post(InterceptorContext context) async {
+    final reflect = context.reflect.get<User>();
+
+    reflect?.meta.entries;
+
+    reflect?.meta['user']?.has<Role>();
+  }
+
+  @override
+  Future<void> pre(InterceptorContext context) async {}
 }
