@@ -23,6 +23,7 @@ Future<HttpServer> createServer() async {
       final router = Router(
         requestContext,
         routes: routes,
+        reflects: reflects,
       );
 
       final response = await router.handle();
@@ -45,3 +46,12 @@ List<Route> get routes => [
       user(ThisController()),
       some(Some()),
     ];
+
+Set<Reflect> get reflects => {
+      Reflect(
+        User,
+        metas: (m) {
+          m['id']..add(Role(AuthType.admin));
+        },
+      )
+    };

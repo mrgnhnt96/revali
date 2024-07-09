@@ -5,6 +5,7 @@ import 'package:revali_shelf/converters/shelf_body_annotation.dart';
 import 'package:revali_shelf/converters/shelf_mimic.dart';
 import 'package:revali_shelf/converters/shelf_param_annotation.dart';
 import 'package:revali_shelf/converters/shelf_query_annotation.dart';
+import 'package:revali_shelf/converters/shelf_reflect.dart';
 
 class ShelfParamAnnotations {
   const ShelfParamAnnotations({
@@ -125,20 +126,34 @@ class ShelfParamAnnotations {
       dep;
 
   Iterable<String> get imports sync* {
-    if (body?.pipe case final pipe?) {
-      yield* pipe.imports;
+    if (body?.pipe?.pipe.imports case final imports?) {
+      yield* imports;
     }
 
-    if (query?.pipe case final pipe?) {
-      yield* pipe.imports;
+    if (query?.pipe?.pipe.imports case final imports?) {
+      yield* imports;
     }
 
-    if (param?.pipe case final pipe?) {
-      yield* pipe.imports;
+    if (param?.pipe?.pipe.imports case final imports?) {
+      yield* imports;
     }
 
-    if (customParam?.imports case final imports?) {
-      yield* imports.imports;
+    if (customParam?.imports.imports case final imports?) {
+      yield* imports;
+    }
+  }
+
+  Iterable<ShelfReflect> get reflects sync* {
+    if (body?.pipe?.reflect case final reflect?) {
+      yield reflect;
+    }
+
+    if (query?.pipe?.reflect case final reflect?) {
+      yield reflect;
+    }
+
+    if (param?.pipe?.reflect case final reflect?) {
+      yield reflect;
     }
   }
 }

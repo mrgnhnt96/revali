@@ -1,8 +1,7 @@
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:revali_router_annotations/revali_router_annotations.dart';
-import 'package:revali_shelf/converters/shelf_class.dart';
+import 'package:revali_shelf/converters/shelf_pipe.dart';
 
 class ShelfBodyAnnotation {
   const ShelfBodyAnnotation({
@@ -30,7 +29,7 @@ class ShelfBodyAnnotation {
 
     return ShelfBodyAnnotation(
       access: access,
-      pipe: pipe == null ? null : ShelfClass.fromType(pipe, superType: Pipe),
+      pipe: pipe == null ? null : ShelfPipe.fromType(pipe),
       acceptsNull: firstTypeArg == null
           ? null
           : firstTypeArg.nullabilitySuffix == NullabilitySuffix.question,
@@ -38,6 +37,6 @@ class ShelfBodyAnnotation {
   }
 
   final List<String>? access;
-  final ShelfClass? pipe;
+  final ShelfPipe? pipe;
   final bool? acceptsNull;
 }

@@ -1,5 +1,6 @@
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_shelf/converters/shelf_parent_route.dart';
+import 'package:revali_shelf/converters/shelf_reflect.dart';
 
 class ShelfServer {
   const ShelfServer({
@@ -16,7 +17,13 @@ class ShelfServer {
 
   Iterable<String> get imports sync* {
     for (final route in routes) {
-      yield* route.importPath.imports;
+      yield* route.imports;
+    }
+  }
+
+  Iterable<ShelfReflect> get reflects sync* {
+    for (final route in routes) {
+      yield* route.reflects;
     }
   }
 }

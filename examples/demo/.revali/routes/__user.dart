@@ -28,7 +28,7 @@ Route user(ThisController thisController) {
               'hi',
             );
 
-          final result = thisController.getNewPerson(
+          final result = await thisController.getNewPerson(
             name: NamePipe().transform(
               context.request.queryParameters['name'] ??
                   (throw 'Missing value!'),

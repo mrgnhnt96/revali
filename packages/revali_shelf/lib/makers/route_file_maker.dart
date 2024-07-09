@@ -270,7 +270,7 @@ Expression createParamArg(
       }
     }
     if (body.pipe case final pipe?) {
-      final pipeClass = createClass(pipe);
+      final pipeClass = createClass(pipe.pipe);
 
       return pipeClass.property('transform').call([json]);
     }
@@ -294,7 +294,7 @@ Expression createParamArg(
     }
 
     if (paramAnnotation.pipe case final pipe?) {
-      final pipeClass = createClass(pipe);
+      final pipeClass = createClass(pipe.pipe);
 
       final context = refer((PipeContextImpl).name).newInstanceNamed(
         'from',
@@ -339,7 +339,7 @@ Expression createParamArg(
     }
 
     if (query.pipe case final pipe?) {
-      final pipeClass = createClass(pipe);
+      final pipeClass = createClass(pipe.pipe);
 
       final context = refer((PipeContextImpl).name).newInstanceNamed(
         'from',

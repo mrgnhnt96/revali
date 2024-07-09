@@ -4,6 +4,7 @@ import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_shelf/converters/shelf_http_code.dart';
 import 'package:revali_shelf/converters/shelf_mimic.dart';
 import 'package:revali_shelf/converters/shelf_param.dart';
+import 'package:revali_shelf/converters/shelf_reflect.dart';
 import 'package:revali_shelf/converters/shelf_return_type.dart';
 import 'package:revali_shelf/converters/shelf_route.dart';
 import 'package:revali_shelf/converters/shelf_route_annotations.dart';
@@ -93,6 +94,12 @@ class ShelfChildRoute implements ShelfRoute {
 
     for (final param in params) {
       yield* param.imports;
+    }
+  }
+
+  Iterable<ShelfReflect> get reflects sync* {
+    if (returnType.reflect case final reflect?) {
+      yield reflect;
     }
   }
 }

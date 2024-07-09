@@ -7,7 +7,7 @@ import 'package:revali_construct/utils/type_checker.dart';
 void getAnnotations({
   required Element element,
   required List<OnMatch> onMatch,
-  required NonMatch? onNonMatch,
+  NonMatch? onNonMatch,
 }) {
   for (var i = 0; i < element.metadata.length; i++) {
     final value = _computeConstantValue(

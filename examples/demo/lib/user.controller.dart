@@ -16,12 +16,12 @@ class ThisController {
   void listPeople() {}
 
   @Get(':id')
-  String getNewPerson({
+  User getNewPerson({
     @Query() required String name,
     @MyParam() required String myName,
     @Param.pipe(StringToIntPipe) required int id,
   }) {
-    return '$name $id';
+    return User(name);
   }
 
   // @Post('create')
@@ -59,6 +59,13 @@ class AuthRepo {}
 
 class User {
   const User(this.name);
+
+  @Role('admin')
+  final String name;
+}
+
+class Role implements Meta {
+  const Role(this.name);
 
   final String name;
 }

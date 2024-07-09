@@ -21,12 +21,12 @@ class ThisController {
   @NotAuthCatcher('bye')
   @Role(AuthType.admin)
   @Get(':id')
-  User getNewPerson({
+  Future<User> getNewPerson({
     @Query.pipe(NamePipe) required String name,
     @Param.pipe(StringToIntPipe) required int id,
     @MyParam() required String myName,
     @Body(['name']) required String data,
-  }) {
+  }) async {
     final user = User(name, id);
 
     return user;
@@ -74,6 +74,7 @@ class User {
   const User(this.name, this.id);
 
   final String name;
+  @Role(AuthType.admin)
   final int id;
 
   Map<String, dynamic> toJson() {

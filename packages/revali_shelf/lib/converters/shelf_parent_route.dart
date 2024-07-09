@@ -1,5 +1,6 @@
 import 'package:change_case/change_case.dart';
 import 'package:revali_construct/revali_construct.dart';
+import 'package:revali_shelf/converters/shelf_reflect.dart';
 import 'package:revali_shelf/revali_shelf.dart';
 
 class ShelfParentRoute implements ShelfRoute {
@@ -48,5 +49,15 @@ class ShelfParentRoute implements ShelfRoute {
     }
 
     yield* annotations.imports;
+  }
+
+  Iterable<ShelfReflect> get reflects sync* {
+    for (final route in routes) {
+      yield* route.reflects;
+    }
+
+    for (final param in params) {
+      yield* param.annotations.reflects;
+    }
   }
 }
