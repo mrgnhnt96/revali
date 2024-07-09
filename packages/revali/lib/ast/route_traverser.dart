@@ -136,6 +136,18 @@ class MethodVisitor extends RecursiveElementVisitor<void> {
 
     final type = element.returnType.getDisplayString(withNullability: false);
 
+    final isFuture = element.returnType.isDartAsyncFuture ||
+        element.returnType.isDartAsyncFutureOr;
+    final isStream = element.returnType.isDartAsyncStream;
+    Element? returnTypeElement;
+
+    if (isFuture || isStream) {
+      returnTypeElement =
+          (element.returnType as InterfaceType).typeArguments.first.element;
+    } else {
+      returnTypeElement = element.returnType.element;
+    }
+
     (methods[method.name] ??= []).add(
       MetaMethod(
         name: element.name,
@@ -148,8 +160,9 @@ class MethodVisitor extends RecursiveElementVisitor<void> {
           isNullable:
               element.returnType.nullabilitySuffix != NullabilitySuffix.none,
           type: type,
-          element: element.returnType.element,
-          isFuture: element.returnType.isDartAsyncFuture,
+          element: returnTypeElement,
+          isFuture: isFuture,
+          isStream: isStream,
         ),
         annotationsMapper: ({
           required List<OnMatch> onMatch,

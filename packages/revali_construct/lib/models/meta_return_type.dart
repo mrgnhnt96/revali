@@ -6,6 +6,7 @@ class MetaReturnType {
     required this.isNullable,
     required this.type,
     required this.isFuture,
+    required this.isStream,
     this.element,
   });
 
@@ -14,6 +15,7 @@ class MetaReturnType {
   final String type;
   final Element? element;
   final bool isFuture;
+  final bool isStream;
 
   bool get isPrimitive {
     return type == 'String' ||
