@@ -1,7 +1,5 @@
 import 'package:revali_construct/revali_construct.dart';
-import 'package:revali_shelf/converters/shelf_app_annotation.dart';
-import 'package:revali_shelf/converters/shelf_imports.dart';
-import 'package:revali_shelf/converters/shelf_param.dart';
+import 'package:revali_shelf/revali_shelf.dart';
 import 'package:revali_shelf/utils/extract_import.dart';
 
 class ShelfApp with ExtractImport {
@@ -11,6 +9,7 @@ class ShelfApp with ExtractImport {
     required this.constructor,
     required this.params,
     required this.appAnnotation,
+    required this.globalRouteAnnotations,
   });
 
   factory ShelfApp.fromMeta(MetaAppConfig app) {
@@ -20,6 +19,7 @@ class ShelfApp with ExtractImport {
       constructor: app.constructor,
       params: app.params.map((param) => ShelfParam.fromMeta(param)).toList(),
       appAnnotation: ShelfAppAnnotation.fromMeta(app.appAnnotation),
+      globalRouteAnnotations: ShelfRouteAnnotations.fromApp(app),
     );
   }
 
@@ -28,6 +28,7 @@ class ShelfApp with ExtractImport {
   final String constructor;
   final List<ShelfParam> params;
   final ShelfAppAnnotation appAnnotation;
+  final ShelfRouteAnnotations globalRouteAnnotations;
 
   @override
   List<ExtractImport?> get extractors => [...params];

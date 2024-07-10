@@ -21,6 +21,7 @@ import 'package:revali_router/src/request/request_context.dart';
 import 'package:revali_router/src/response/mutable_response_context_impl.dart';
 import 'package:revali_router/src/route/route.dart';
 import 'package:revali_router/src/route/route_match.dart';
+import 'package:revali_router/src/route/route_modifiers.dart';
 import 'package:shelf/shelf.dart';
 
 part 'router.g.dart';
@@ -29,12 +30,15 @@ class Router extends Equatable {
   const Router(
     this.context, {
     required this.routes,
+    RouteModifiers? globalModifiers,
     Set<Reflect> reflects = const {},
-  }) : _reflects = reflects;
+  })  : _reflects = reflects,
+        _globalModifiers = globalModifiers;
 
   final RequestContext context;
   final List<Route> routes;
   final Set<Reflect> _reflects;
+  final RouteModifiers? _globalModifiers;
 
   Future<Response> handle() async {
     final request = MutableRequestContextImpl.from(this.context);
@@ -63,16 +67,18 @@ class Router extends Equatable {
 
     request.setPathParameters(pathParameters);
 
-    final catchers = route.allCatchers;
+    final globalModifiers = _globalModifiers ?? RouteModifiers();
     final response = MutableResponseContextImpl();
     final directMeta = route.getMeta();
     final inheritedMeta = route.getMeta(inherit: true);
+    globalModifiers.getMeta(handler: inheritedMeta);
     final dataHandler = DataHandler();
     final reflectHandler = ReflectHandler(_reflects);
 
     try {
       final result = await execute(
         route: route,
+        globalModifiers: globalModifiers,
         request: request,
         response: response,
         dataHandler: dataHandler,
@@ -86,6 +92,11 @@ class Router extends Equatable {
       if (e is! Exception) {
         return Response.internalServerError();
       }
+
+      final catchers = [
+        ...route.allCatchers,
+        ...globalModifiers.catchers,
+      ];
 
       for (final catcher in catchers) {
         if (!catcher.canCatch(e)) {
@@ -126,6 +137,7 @@ class Router extends Equatable {
 
   Future<Response> execute({
     required Route route,
+    required RouteModifiers globalModifiers,
     required MutableRequestContextImpl request,
     required MutableResponseContextImpl response,
     required DataHandler dataHandler,
@@ -138,7 +150,11 @@ class Router extends Equatable {
       return Response.notFound(null);
     }
 
-    for (final middleware in route.allMiddlewares) {
+    final middlewares = [
+      ...globalModifiers.middlewares,
+      ...route.allMiddlewares,
+    ];
+    for (final middleware in middlewares) {
       final result = await middleware.use(
         MiddlewareContextImpl(
           request: request,
@@ -161,7 +177,11 @@ class Router extends Equatable {
       }
     }
 
-    for (final guard in route.allGuards) {
+    final guards = [
+      ...globalModifiers.guards,
+      ...route.allGuards,
+    ];
+    for (final guard in guards) {
       final result = await guard.canActivate(
         GuardContextImpl(
           meta: GuardMeta(
@@ -187,7 +207,11 @@ class Router extends Equatable {
       }
     }
 
-    for (final interceptor in route.allInterceptors) {
+    final interceptors = [
+      ...globalModifiers.interceptors,
+      ...route.allInterceptors,
+    ];
+    for (final interceptor in interceptors) {
       await interceptor.pre(
         InterceptorContextImpl(
           meta: InterceptorMeta(
@@ -212,7 +236,7 @@ class Router extends Equatable {
       ),
     );
 
-    for (final interceptor in route.allInterceptors) {
+    for (final interceptor in interceptors) {
       await interceptor.post(
         InterceptorContextImpl(
           meta: InterceptorMeta(

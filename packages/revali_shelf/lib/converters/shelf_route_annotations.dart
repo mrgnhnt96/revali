@@ -9,17 +9,21 @@ import 'package:revali_shelf/utils/extract_import.dart';
 
 class ShelfRouteAnnotations with ExtractImport {
   ShelfRouteAnnotations({
-    required this.mimics,
-    required this.typeReferences,
+    required this.coreMimics,
+    required this.coreTypeReferences,
     required this.data,
     required this.combine,
     required this.meta,
     required this.setHeaders,
   });
 
+  factory ShelfRouteAnnotations.fromApp(MetaAppConfig app) {
+    return ShelfRouteAnnotations._fromGetter(app.annotationsFor);
+  }
   factory ShelfRouteAnnotations.fromParent(MetaRoute parent) {
     return ShelfRouteAnnotations._fromGetter(parent.annotationsFor);
   }
+
   factory ShelfRouteAnnotations.fromRoute(MetaMethod method) {
     return ShelfRouteAnnotations._fromGetter(method.annotationsMapper);
   }
@@ -133,8 +137,8 @@ class ShelfRouteAnnotations with ExtractImport {
     );
 
     return ShelfRouteAnnotations(
-      mimics: mimics,
-      typeReferences: types,
+      coreMimics: mimics,
+      coreTypeReferences: types,
       data: data,
       combine: combine,
       meta: meta,
@@ -142,8 +146,8 @@ class ShelfRouteAnnotations with ExtractImport {
     );
   }
 
-  final _AnnotationTypeReferences typeReferences;
-  final _AnnotationMimics mimics;
+  final _AnnotationTypeReferences coreTypeReferences;
+  final _AnnotationMimics coreMimics;
   final Iterable<ShelfMimic> data;
   final Iterable<ShelfMimic> combine;
   final Iterable<ShelfMimic> meta;
@@ -151,8 +155,8 @@ class ShelfRouteAnnotations with ExtractImport {
 
   @override
   List<ExtractImport?> get extractors => [
-        ...mimics.all,
-        ...typeReferences.all,
+        ...coreMimics.all,
+        ...coreTypeReferences.all,
         ...data,
         ...combine,
         ...meta,

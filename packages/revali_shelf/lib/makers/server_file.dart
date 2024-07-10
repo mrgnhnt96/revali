@@ -73,11 +73,33 @@ String serverFile(ShelfServer server, String Function(Spec) formatter) {
                             .assign(refer('RequestContext')
                                 .newInstance([refer('context')]))
                             .statement,
+                        Code('\n'),
+                        declareVar('_routes').assign(refer('routes')).statement,
+                        Block.of([
+                          Code('if ('),
+                          refer('app').property('prefix').code,
+                          Code(' case'),
+                          declareFinal('prefix?').code,
+                          Code(' when '),
+                          refer('prefix').property('isNotEmpty').code,
+                          Code(') {'),
+                          refer('_routes')
+                              .assign(literalList([
+                                refer('Route').newInstance([
+                                  refer('prefix')
+                                ], {
+                                  'routes': refer('_routes'),
+                                }),
+                              ]))
+                              .statement,
+                          Code('}'),
+                        ]),
+                        Code('\n'),
                         declareFinal('router')
                             .assign(refer('Router').newInstance(
                               [refer('requestContext')],
                               {
-                                'routes': refer('routes'),
+                                'routes': refer('_routes'),
                                 'reflects': refer('reflects'),
                               },
                             ))

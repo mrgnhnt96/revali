@@ -21,9 +21,20 @@ Future<HttpServer> createServer() async {
   final server = await io.serve(
     (context) async {
       final requestContext = RequestContext(context);
+
+      var _routes = routes;
+      if (app.prefix case final prefix? when prefix.isNotEmpty) {
+        _routes = [
+          Route(
+            prefix,
+            routes: _routes,
+          )
+        ];
+      }
+
       final router = Router(
         requestContext,
-        routes: routes,
+        routes: _routes,
         reflects: reflects,
       );
 

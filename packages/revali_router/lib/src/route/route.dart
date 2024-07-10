@@ -11,11 +11,12 @@ import 'package:revali_router/src/meta/meta_handler.dart';
 import 'package:revali_router/src/middleware/middleware.dart';
 import 'package:revali_router/src/redirect/redirect.dart';
 import 'package:revali_router/src/route/route_entry.dart';
+import 'package:revali_router/src/route/route_modifiers.dart';
 
 part 'route.g.dart';
 
 @CopyWith(constructor: '_')
-class Route extends Equatable implements RouteEntry {
+class Route extends Equatable implements RouteEntry, RouteModifiers {
   Route(
     this.path, {
     this.handler,
@@ -113,6 +114,8 @@ class Route extends Equatable implements RouteEntry {
     required meta,
   }) : _meta = meta as void Function(MetaHandler)?;
 
+  static void validateRoutes(List<RouteModifiers> routes) {}
+
   final String path;
   late final Iterable<Route>? routes;
   final List<Middleware> middlewares;
@@ -129,8 +132,8 @@ class Route extends Equatable implements RouteEntry {
   bool get isDynamic => segments.any((s) => s.startsWith(':'));
   bool get isStatic => !isDynamic;
 
-  MetaHandler getMeta({bool inherit = false}) {
-    final meta = MetaHandler();
+  MetaHandler getMeta({MetaHandler? handler, bool inherit = false}) {
+    final meta = handler ?? MetaHandler();
 
     void traverse(Route? route) {
       if (route == null) {
@@ -216,8 +219,8 @@ class Route extends Equatable implements RouteEntry {
         return;
       }
 
-      yield* traverse(route.parent);
       yield* route.catchers;
+      yield* traverse(route.parent);
     }
 
     yield* traverse(this);

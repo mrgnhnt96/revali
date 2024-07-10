@@ -119,8 +119,8 @@ Map<String, Expression> createRouteArgs({
     }
   }
 
-  final typeReferences = route.annotations.typeReferences;
-  final mimics = route.annotations.mimics;
+  final typeReferences = route.annotations.coreTypeReferences;
+  final mimics = route.annotations.coreMimics;
 
   return {
     if (mimics.catchers.isNotEmpty || typeReferences.catchers.isNotEmpty)

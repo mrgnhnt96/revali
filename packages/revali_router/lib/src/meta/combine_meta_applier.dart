@@ -1,10 +1,10 @@
 import 'package:revali_router/src/meta/combine_meta.dart';
-import 'package:revali_router/src/route/route.dart';
+import 'package:revali_router/src/route/route_modifiers.dart';
 
 class CombineMetaApplier {
   const CombineMetaApplier(this.route, this.combine);
 
-  final Route route;
+  final RouteModifiers route;
   final List<CombineMeta> combine;
 
   void apply() {
