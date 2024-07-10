@@ -1,19 +1,21 @@
 # TODO
 
+## 7.10.2024
+
 ## 7.5.2024
 
-- [ ] Create "App" annotation
+- [x] Create "App" annotation
   - This will be used for configurations such as
-    - Server lambdas
-    - Server configurations
-    - Dependency injection
-    - Global exception catchers
-    - Global guards
-    - Global prefix
-    - CORS
+    - [x] Server lambdas
+    - [x] Server configurations
+    - [ ] Dependency injection
+    - [x] Global exception catchers
+    - [x] Global guards
+    - [x] Global prefix
+    - [ ] CORS
     - (Nice To Haves):
       - Rate limiting
-- [ ] Add flavor flag to the annotation & to the CLI to determine what environment the app is running in
+- [x] Add flavor flag to the annotation & to the CLI to determine what environment the app is running in
 
 ## 7.1.2024
 

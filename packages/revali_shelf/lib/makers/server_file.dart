@@ -101,6 +101,15 @@ String serverFile(ShelfServer server, String Function(Spec) formatter) {
                               {
                                 'routes': refer('_routes'),
                                 'reflects': refer('reflects'),
+                                if (server.app case final app?
+                                    when app
+                                        .globalRouteAnnotations.hasAnnotations)
+                                  'globalModifiers':
+                                      refer('RouteModifiers').newInstance([], {
+                                    ...createModifierArgs(
+                                      annotations: app.globalRouteAnnotations,
+                                    )
+                                  })
                               },
                             ))
                             .statement,

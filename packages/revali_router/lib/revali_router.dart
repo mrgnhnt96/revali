@@ -50,4 +50,5 @@ export 'src/response/restricted_mutable_response_context.dart';
 export 'src/route/route.dart';
 export 'src/route/route_entry.dart';
 export 'src/route/route_match.dart';
+export 'src/route/route_modifiers.dart';
 export 'src/router.dart';

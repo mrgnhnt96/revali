@@ -58,6 +58,7 @@ class ShelfRouteAnnotations with ExtractImport {
         OnMatch(
           classType: ExceptionCatcher,
           package: 'revali_router',
+          ignoreGenerics: true,
           convert: (object, annotation) {
             mimics.catchers.add(ShelfMimic.fromDartObject(object, annotation));
           },
@@ -108,6 +109,7 @@ class ShelfRouteAnnotations with ExtractImport {
         OnMatch(
           classType: Data,
           package: 'revali_router',
+          ignoreGenerics: true,
           convert: (object, annotation) {
             data.add(ShelfMimic.fromDartObject(object, annotation));
           },
@@ -152,6 +154,16 @@ class ShelfRouteAnnotations with ExtractImport {
   final Iterable<ShelfMimic> combine;
   final Iterable<ShelfMimic> meta;
   final Iterable<ShelfSetHeader> setHeaders;
+
+  bool get hasAnnotations {
+    if (coreMimics.all.isNotEmpty) return true;
+    if (coreTypeReferences.all.isNotEmpty) return true;
+    if (data.isNotEmpty) return true;
+    if (combine.isNotEmpty) return true;
+    if (meta.isNotEmpty) return true;
+    if (setHeaders.isNotEmpty) return true;
+    return false;
+  }
 
   @override
   List<ExtractImport?> get extractors => [

@@ -1,0 +1,3 @@
+class ShelfRouteModifiers {
+  const ShelfRouteModifiers();
+}

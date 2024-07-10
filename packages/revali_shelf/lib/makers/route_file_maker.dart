@@ -2,13 +2,7 @@ import 'package:change_case/change_case.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
-import 'package:revali_shelf/converters/shelf_child_route.dart';
-import 'package:revali_shelf/converters/shelf_class.dart';
-import 'package:revali_shelf/converters/shelf_mimic.dart';
-import 'package:revali_shelf/converters/shelf_param.dart';
-import 'package:revali_shelf/converters/shelf_parent_route.dart';
-import 'package:revali_shelf/converters/shelf_return_type.dart';
-import 'package:revali_shelf/converters/shelf_route.dart';
+import 'package:revali_shelf/revali_shelf.dart';
 
 PartFile routeFileMaker(
   ShelfParentRoute route,
@@ -95,32 +89,11 @@ Spec createChildRoute(ShelfChildRoute route, ShelfParentRoute parent) {
   });
 }
 
-Map<String, Expression> createRouteArgs({
-  required ShelfRoute route,
-  ShelfReturnType? returnType,
-  String? classVarName,
-  String? method,
-  int? statusCode,
-  List<Code> additionalHandlerCode = const [],
+Map<String, Expression> createModifierArgs({
+  required ShelfRouteAnnotations annotations,
 }) {
-  var handler = literalNull;
-
-  if (returnType != null && classVarName != null) {
-    final (:positioned, :named) = getParams(route.params);
-    handler =
-        refer(classVarName).property(route.handlerName).call(positioned, named);
-
-    if (returnType.isFuture) {
-      handler = handler.awaited;
-    }
-
-    if (!returnType.isVoid) {
-      handler = declareFinal('result').assign(handler);
-    }
-  }
-
-  final typeReferences = route.annotations.coreTypeReferences;
-  final mimics = route.annotations.coreMimics;
+  final typeReferences = annotations.coreTypeReferences;
+  final mimics = annotations.coreMimics;
 
   return {
     if (mimics.catchers.isNotEmpty || typeReferences.catchers.isNotEmpty)
@@ -131,9 +104,8 @@ Map<String, Expression> createRouteArgs({
           for (final catches in typeReferences.catchers)
             for (final catcher in catches.types) createClass(catcher),
       ]),
-    if (route.annotations.data.isNotEmpty)
-      'data':
-          literalList([for (final data in route.annotations.data) mimic(data)]),
+    if (annotations.data.isNotEmpty)
+      'data': literalList([for (final data in annotations.data) mimic(data)]),
     if (mimics.guards.isNotEmpty || typeReferences.guards.isNotEmpty)
       'guards': literalList([
         if (mimics.guards.isNotEmpty)
@@ -160,13 +132,13 @@ Map<String, Expression> createRouteArgs({
           for (final uses in typeReferences.middlewares)
             for (final middleware in uses.types) createClass(middleware),
       ]),
-    if (route.annotations.combine.isNotEmpty)
+    if (annotations.combine.isNotEmpty)
       'combine': literalList(
         [
-          for (final combine in route.annotations.combine) mimic(combine),
+          for (final combine in annotations.combine) mimic(combine),
         ],
       ),
-    if (route.annotations.meta.isNotEmpty)
+    if (annotations.meta.isNotEmpty)
       ...() {
         final m = refer('m');
 
@@ -174,13 +146,42 @@ Map<String, Expression> createRouteArgs({
           'meta': Method((p) => p
             ..requiredParameters.add(Parameter((b) => b..name = 'm'))
             ..body = Block.of([
-              for (final meta in route.annotations.meta)
+              for (final meta in annotations.meta)
                 m.cascade('add').call([
                   mimic(meta),
                 ]).statement,
             ])).closure
         };
       }(),
+  };
+}
+
+Map<String, Expression> createRouteArgs({
+  required ShelfRoute route,
+  ShelfReturnType? returnType,
+  String? classVarName,
+  String? method,
+  int? statusCode,
+  List<Code> additionalHandlerCode = const [],
+}) {
+  var handler = literalNull;
+
+  if (returnType != null && classVarName != null) {
+    final (:positioned, :named) = getParams(route.params);
+    handler =
+        refer(classVarName).property(route.handlerName).call(positioned, named);
+
+    if (returnType.isFuture) {
+      handler = handler.awaited;
+    }
+
+    if (!returnType.isVoid) {
+      handler = declareFinal('result').assign(handler);
+    }
+  }
+
+  return {
+    ...createModifierArgs(annotations: route.annotations),
     if (method != null) 'method': literalString(method),
     if ('$handler' != '$literalNull')
       'handler': Method(
