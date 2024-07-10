@@ -2,6 +2,26 @@
 
 ## 7.10.2024
 
+## Features
+
+- [ ] Dependency injection for apps
+- [ ] CORs for apps
+- [ ] Wildcard paths
+- [ ] Web sockets
+- [ ] Returning streams (not as web sockets)
+- [ ] Returning files
+- [ ] Public files
+  - Routes will be automatically generated for these files
+  - The files will be served from the `public` directory
+- [ ] Static files
+  - Routes will _not_ be generated for these files
+  - The idea is that the user will be able to return a "ServerFile" class with the path pointing to the file
+  
+## Try
+
+- [ ] Attempt to create a variable for combine types as an annotation
+  - This could allow me to get the values of the fields of the annotation
+
 ## 7.5.2024
 
 - [x] Create "App" annotation
