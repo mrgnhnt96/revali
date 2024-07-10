@@ -1,5 +1,8 @@
 import 'package:revali_construct/revali_construct.dart';
-import 'package:revali_shelf/revali_shelf.dart';
+import 'package:revali_shelf/converters/shelf_app_annotation.dart';
+import 'package:revali_shelf/converters/shelf_imports.dart';
+import 'package:revali_shelf/converters/shelf_param.dart';
+import 'package:revali_shelf/converters/shelf_route_annotations.dart';
 import 'package:revali_shelf/utils/extract_import.dart';
 
 class ShelfApp with ExtractImport {
