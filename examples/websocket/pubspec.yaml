@@ -1,0 +1,12 @@
+name: _
+publish_to: none
+
+environment:
+  sdk: ">=3.2.6 <4.0.0"
+
+dependencies:
+  revali_router:
+    path: ../../packages/revali_router
+  shelf: ^1.4.2
+  shelf_web_socket: ^2.0.0
+  web_socket_channel: ^3.0.0
