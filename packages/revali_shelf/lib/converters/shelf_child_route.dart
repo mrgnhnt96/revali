@@ -2,15 +2,17 @@ import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_shelf/converters/shelf_http_code.dart';
+import 'package:revali_shelf/converters/shelf_imports.dart';
 import 'package:revali_shelf/converters/shelf_mimic.dart';
 import 'package:revali_shelf/converters/shelf_param.dart';
 import 'package:revali_shelf/converters/shelf_reflect.dart';
 import 'package:revali_shelf/converters/shelf_return_type.dart';
 import 'package:revali_shelf/converters/shelf_route.dart';
 import 'package:revali_shelf/converters/shelf_route_annotations.dart';
+import 'package:revali_shelf/utils/extract_import.dart';
 
-class ShelfChildRoute implements ShelfRoute {
-  const ShelfChildRoute({
+class ShelfChildRoute with ExtractImport implements ShelfRoute {
+  ShelfChildRoute({
     required this.returnType,
     required this.httpCode,
     required this.redirect,
@@ -85,21 +87,19 @@ class ShelfChildRoute implements ShelfRoute {
   @override
   final Iterable<ShelfParam> params;
 
-  Iterable<String> get imports sync* {
-    if (redirect case final redirect?) {
-      yield* redirect.imports.imports;
-    }
-
-    yield* annotations.imports;
-
-    for (final param in params) {
-      yield* param.imports;
-    }
-  }
-
   Iterable<ShelfReflect> get reflects sync* {
     if (returnType.reflect case final reflect?) {
       yield reflect;
     }
   }
+
+  @override
+  List<ExtractImport?> get extractors => [
+        redirect,
+        ...params,
+        annotations,
+      ];
+
+  @override
+  List<ShelfImports?> get imports => const [];
 }

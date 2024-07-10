@@ -1,8 +1,10 @@
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:revali_shelf/converters/shelf_class.dart';
+import 'package:revali_shelf/converters/shelf_imports.dart';
+import 'package:revali_shelf/utils/extract_import.dart';
 
-class ShelfTypeReference {
-  const ShelfTypeReference({
+class ShelfTypeReference with ExtractImport {
+  ShelfTypeReference({
     required this.types,
   });
 
@@ -15,7 +17,7 @@ class ShelfTypeReference {
 
     if (typesValue == null || typesValue.isEmpty) {
       return ShelfTypeReference(
-        types: [],
+        types: const [],
       );
     }
 
@@ -35,9 +37,9 @@ class ShelfTypeReference {
 
   final Iterable<ShelfClass> types;
 
-  Iterable<String> get imports sync* {
-    for (final type in types) {
-      yield* type.importPath.imports;
-    }
-  }
+  @override
+  List<ExtractImport?> get extractors => [...types];
+
+  @override
+  List<ShelfImports?> get imports => const [];
 }

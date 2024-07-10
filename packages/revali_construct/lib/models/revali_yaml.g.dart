@@ -8,8 +8,8 @@ part of 'revali_yaml.dart';
 
 revaliYaml _$revaliYamlFromJson(Map json) => revaliYaml(
       constructs: (json['constructs'] as List<dynamic>?)
-              ?.map((e) => revaliConstructConfig
-                  .fromJson(Map<String, dynamic>.from(e as Map)))
+              ?.map((e) => RevaliConstructConfig.fromJson(
+                  Map<String, dynamic>.from(e as Map)))
               .toList() ??
           [],
     );

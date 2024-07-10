@@ -1,4 +1,5 @@
 import 'package:code_builder/code_builder.dart';
+import 'package:revali_shelf/converters/shelf_app.dart';
 import 'package:revali_shelf/converters/shelf_mimic.dart';
 import 'package:revali_shelf/converters/shelf_parent_route.dart';
 import 'package:revali_shelf/converters/shelf_reflect.dart';
@@ -14,7 +15,8 @@ String serverFile(ShelfServer server, String Function(Spec) formatter) {
     "import 'package:revali_annotations/revali_annotations.dart';",
     "import 'package:revali_router_annotations/revali_router_annotations.dart';",
     "import 'package:revali_construct/revali_construct.dart';",
-    for (final imprt in {...server.imports}) "import '../$imprt';",
+    for (final imprt in {...server.packageImports()}) "import '$imprt';",
+    for (final imprt in {...server.pathImports()}) "import '../$imprt';",
   ];
 
   final main = Method(
@@ -55,6 +57,7 @@ String serverFile(ShelfServer server, String Function(Spec) formatter) {
       )
       ..modifier = MethodModifier.async
       ..body = Block.of([
+        declareFinal('app').assign(createApp(server.app)).statement,
         declareFinal('server')
             .assign(
               refer('io').property('serve').call(
@@ -90,8 +93,8 @@ String serverFile(ShelfServer server, String Function(Spec) formatter) {
                         refer('response').returned.statement,
                       ]),
                   ).closure,
-                  literalString('localhost'),
-                  literalNum(8123),
+                  refer('app').property('host'),
+                  refer('app').property('port'),
                 ],
               ).awaited,
             )
@@ -100,11 +103,8 @@ String serverFile(ShelfServer server, String Function(Spec) formatter) {
         Code('\t// ensure that the routes are configured correctly'),
         refer('routes').statement,
         Code('\n'),
-        refer('print').call(
-          [
-            literalString(
-                'Serving at http://\${server.address.host}:\${server.port}'),
-          ],
+        refer('app').property('onServerStarted').nullSafeProperty('call').call(
+          [refer('server')],
         ).statement,
         Code('\n'),
         refer('server').returned.statement,
@@ -141,8 +141,10 @@ $content''';
 }
 
 Spec createParentReference(ShelfParentRoute route) {
+  final (:positioned, :named) = getParams(route.params);
+
   return refer(route.handlerName).call([
-    refer(route.className).newInstance([]),
+    refer(route.className).newInstance(positioned, named),
   ]);
 }
 
@@ -181,4 +183,20 @@ Spec createReflect(ShelfReflect possibleReflect) {
       ).closure,
     },
   );
+}
+
+Expression createApp(ShelfApp? app) {
+  if (app == null) {
+    throw Exception('No app found');
+  }
+
+  final (:positioned, :named) = getParams(app.params);
+
+  var expression = refer(app.className);
+
+  if (app.constructor.isEmpty) {
+    return expression.newInstance(positioned, named);
+  } else {
+    return expression.newInstanceNamed(app.constructor, positioned, named);
+  }
 }

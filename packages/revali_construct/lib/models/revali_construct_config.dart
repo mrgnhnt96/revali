@@ -5,15 +5,15 @@ import 'package:revali_construct/revali_construct.dart';
 part 'revali_construct_config.g.dart';
 
 @JsonSerializable()
-class revaliConstructConfig extends Equatable {
-  const revaliConstructConfig({
+class RevaliConstructConfig extends Equatable {
+  const RevaliConstructConfig({
     required this.name,
     this.enabled = true,
     this.package,
     this.options = const {},
   });
 
-  factory revaliConstructConfig.fromJson(Map<String, dynamic> json) =>
+  factory RevaliConstructConfig.fromJson(Map<String, dynamic> json) =>
       _$revaliConstructConfigFromJson(json);
 
   final String name;

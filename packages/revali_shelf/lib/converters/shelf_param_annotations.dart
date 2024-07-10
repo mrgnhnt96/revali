@@ -2,13 +2,15 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_shelf/converters/shelf_body_annotation.dart';
+import 'package:revali_shelf/converters/shelf_imports.dart';
 import 'package:revali_shelf/converters/shelf_mimic.dart';
 import 'package:revali_shelf/converters/shelf_param_annotation.dart';
 import 'package:revali_shelf/converters/shelf_query_annotation.dart';
 import 'package:revali_shelf/converters/shelf_reflect.dart';
+import 'package:revali_shelf/utils/extract_import.dart';
 
-class ShelfParamAnnotations {
-  const ShelfParamAnnotations({
+class ShelfParamAnnotations with ExtractImport {
+  ShelfParamAnnotations({
     required this.body,
     required this.query,
     required this.param,
@@ -96,7 +98,7 @@ class ShelfParamAnnotations {
       if (isOnlyOne) {
         throw ArgumentError(
           'Only one of the following annotations can be used: '
-          '@Body, @Query, @Param, @CustomParam',
+          '@Body, @Query, @Param, @CustomParam, @Dep',
         );
       }
 
@@ -125,24 +127,6 @@ class ShelfParamAnnotations {
       customParam != null ||
       dep;
 
-  Iterable<String> get imports sync* {
-    if (body?.pipe?.pipe.imports case final imports?) {
-      yield* imports;
-    }
-
-    if (query?.pipe?.pipe.imports case final imports?) {
-      yield* imports;
-    }
-
-    if (param?.pipe?.pipe.imports case final imports?) {
-      yield* imports;
-    }
-
-    if (customParam?.imports.imports case final imports?) {
-      yield* imports;
-    }
-  }
-
   Iterable<ShelfReflect> get reflects sync* {
     if (body?.pipe?.reflect case final reflect?) {
       yield reflect;
@@ -156,4 +140,10 @@ class ShelfParamAnnotations {
       yield reflect;
     }
   }
+
+  @override
+  List<ExtractImport?> get extractors => [body, query, param, customParam];
+
+  @override
+  List<ShelfImports?> get imports => const [];
 }

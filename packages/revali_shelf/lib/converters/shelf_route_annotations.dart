@@ -1,12 +1,14 @@
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
+import 'package:revali_shelf/converters/shelf_imports.dart';
 import 'package:revali_shelf/converters/shelf_mimic.dart';
 import 'package:revali_shelf/converters/shelf_set_header.dart';
 import 'package:revali_shelf/converters/shelf_type_reference.dart';
+import 'package:revali_shelf/utils/extract_import.dart';
 
-class ShelfRouteAnnotations {
-  const ShelfRouteAnnotations({
+class ShelfRouteAnnotations with ExtractImport {
+  ShelfRouteAnnotations({
     required this.mimics,
     required this.typeReferences,
     required this.data,
@@ -147,22 +149,17 @@ class ShelfRouteAnnotations {
   final Iterable<ShelfMimic> meta;
   final Iterable<ShelfSetHeader> setHeaders;
 
-  Iterable<String> get imports sync* {
-    final mimics = [
-      ...this.mimics.all,
-      ...data,
-      ...combine,
-      ...meta,
-    ];
+  @override
+  List<ExtractImport?> get extractors => [
+        ...mimics.all,
+        ...typeReferences.all,
+        ...data,
+        ...combine,
+        ...meta,
+      ];
 
-    for (final mimic in mimics) {
-      yield* mimic.imports.imports;
-    }
-
-    for (final typeList in typeReferences.all) {
-      yield* typeList.imports;
-    }
-  }
+  @override
+  List<ShelfImports?> get imports => const [];
 }
 
 abstract class BaseAnnotations<T> {

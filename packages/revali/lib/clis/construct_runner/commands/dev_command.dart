@@ -21,7 +21,13 @@ class DevCommand extends Command<int> with DirectoriesMixin {
             RoutesHandler(
               fs: fs,
               rootPath: rootPath,
-            );
+            ) {
+    argParser.addOption(
+      'flavor',
+      abbr: 'f',
+      help: 'The flavor to use for the app (case-sensitive)',
+    );
+  }
 
   final RoutesHandler routesHandler;
   final List<ConstructMaker> constructs;
@@ -38,6 +44,10 @@ class DevCommand extends Command<int> with DirectoriesMixin {
 
   @override
   Future<int>? run() async {
+    final flavor = argResults?['flavor'] as String?;
+
+    final context = RevaliContext(flavor: flavor);
+
     final root = await rootOf(rootPath);
 
     final constructYamlFile = root.childFile('revali.yaml');
@@ -61,6 +71,7 @@ class DevCommand extends Command<int> with DirectoriesMixin {
 
       await generate(
         root: root,
+        context: context,
         server: server,
         revaliConfig: revaliConfig ??= revaliYaml.none(),
       );
@@ -86,6 +97,7 @@ class DevCommand extends Command<int> with DirectoriesMixin {
 
   Future<void> generate({
     required Directory root,
+    required RevaliContext context,
     required MetaServer server,
     required revaliYaml revaliConfig,
   }) async {
@@ -95,6 +107,7 @@ class DevCommand extends Command<int> with DirectoriesMixin {
       await _generateConstruct(
         maker,
         constructConfig,
+        context,
         server,
         root,
       );
@@ -103,7 +116,8 @@ class DevCommand extends Command<int> with DirectoriesMixin {
 
   Future<void> _generateConstruct(
     ConstructMaker maker,
-    revaliConstructConfig config,
+    RevaliConstructConfig config,
+    RevaliContext context,
     MetaServer server,
     Directory root,
   ) async {
@@ -131,17 +145,18 @@ class DevCommand extends Command<int> with DirectoriesMixin {
         );
       }
 
-      await _generateServerConstruct(construct, server, root);
+      await _generateServerConstruct(construct, context, server, root);
       return;
     }
   }
 
   Future<void> _generateServerConstruct(
     ServerConstruct construct,
+    RevaliContext context,
     MetaServer server,
     Directory root,
   ) async {
-    final result = construct.generate(server);
+    final result = construct.generate(context, server);
 
     final router = await root.getRevaliFile(result.basename);
 

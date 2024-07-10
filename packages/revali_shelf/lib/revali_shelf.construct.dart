@@ -9,8 +9,9 @@ class RevaliShelfConstruct implements ServerConstruct {
   const RevaliShelfConstruct();
 
   @override
-  ServerFile generate(MetaServer server) {
-    final shelfServer = ShelfServer.fromMeta(server);
+  ServerFile generate(RevaliContext context, MetaServer server) {
+    final shelfServer = ShelfServer.fromMeta(context, server);
+    shelfServer.validate();
 
     final formatter = DartFormatter();
     final emitter = DartEmitter.scoped(useNullSafetySyntax: true);

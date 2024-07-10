@@ -2,25 +2,34 @@ import 'package:path/path.dart' as p;
 
 class ShelfImports {
   ShelfImports(Iterable<String> imports) {
-    final cleaned = <String>{};
+    final paths = <String>{};
+    final packages = <String>{};
 
-    for (final imprt in imports) {
-      if (imprt.startsWith('dart:')) {
+    for (final import in imports) {
+      if (import.startsWith('dart:')) {
         continue;
       }
 
-      if (imprt.startsWith('file:')) {
+      if (import.startsWith('file:')) {
         final cleanedImport =
-            p.relative(imprt.replaceFirst(RegExp('^file:'), ''));
+            p.relative(import.replaceFirst(RegExp('^file:'), ''));
 
-        cleaned.add(cleanedImport);
-      } else {
-        cleaned.add(imprt);
+        paths.add(cleanedImport);
+        continue;
       }
+
+      if (import.startsWith('package:')) {
+        packages.add(import);
+        continue;
+      }
+
+      throw ArgumentError('Invalid import: $import');
     }
 
-    this.imports = cleaned;
+    this.paths = paths;
+    this.packages = packages;
   }
 
-  late final Iterable<String> imports;
+  late final Iterable<String> packages;
+  late final Iterable<String> paths;
 }

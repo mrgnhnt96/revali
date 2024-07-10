@@ -1,5 +1,5 @@
 import 'package:file/file.dart';
-import 'package:revali/ast/route_traverser.dart';
+import 'package:revali/ast/file_traverser.dart';
 import 'package:revali/utils/extensions/directory_extensions.dart';
 import 'package:revali/utils/mixins/directories_mixin.dart';
 import 'package:revali_construct/revali_construct.dart';
@@ -19,12 +19,10 @@ class RoutesHandler with DirectoriesMixin {
     final routesDir = await root.getRoutes();
 
     if (routesDir == null || !await routesDir.exists()) {
-      return MetaServer(routes: []);
+      return MetaServer(routes: [], apps: [MetaAppConfig.defaultConfig()]);
     }
 
-    final traverser = RouteTraverser(
-      fs: fs,
-    );
+    final traverser = FileTraverser(fs);
 
     final entities = await routesDir
         .list(
@@ -34,6 +32,7 @@ class RoutesHandler with DirectoriesMixin {
         .toList();
 
     final routes = <MetaRoute>[];
+    final apps = <MetaAppConfig>[];
 
     for (final entity in entities) {
       if (entity is Directory) continue;
@@ -44,15 +43,28 @@ class RoutesHandler with DirectoriesMixin {
 
       final file = fs.file(entity.path);
 
-      final route = await traverser.parse(file);
+      final route = await traverser.parseRoute(file);
 
-      if (route == null) {
+      if (route != null) {
+        routes.add(route);
         continue;
       }
 
-      routes.add(route);
+      final app = await traverser.parseApp(file);
+
+      if (app != null) {
+        apps.add(app);
+        continue;
+      }
     }
 
-    return MetaServer(routes: routes);
+    if (apps.isEmpty) {
+      apps.add(MetaAppConfig.defaultConfig());
+    }
+
+    return MetaServer(
+      routes: routes,
+      apps: apps,
+    );
   }
 }

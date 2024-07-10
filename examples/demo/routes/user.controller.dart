@@ -1,4 +1,5 @@
 import 'package:examples/repos/repo.dart';
+import 'package:examples/utils/logger.dart';
 import 'package:revali_annotations/revali_annotations.dart';
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
@@ -6,10 +7,13 @@ import 'package:revali_router_annotations/revali_router_annotations.dart';
 @Auth(AuthType.user)
 @Controller('user')
 class ThisController {
-  const ThisController();
+  const ThisController({
+    @Dep() required this.repo,
+    @Dep() required this.logger,
+  });
 
-  // final Repo repo;
-  // final Logger logger;
+  final Repo repo;
+  final Logger logger;
 
   @Get()
   Future<void> listPeople() async {}

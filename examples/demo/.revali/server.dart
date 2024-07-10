@@ -7,16 +7,17 @@ import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_construct/revali_construct.dart';
 import '../routes/user.controller.dart';
 import '../routes/some.controller.dart';
+import '../routes/dev.app.dart';
 
 part 'routes/__user.dart';
 part 'routes/__some.dart';
-part 'utils/__helper.dart';
 
 void main() {
   hotReload(createServer);
 }
 
 Future<HttpServer> createServer() async {
+  final app = DevApp();
   final server = await io.serve(
     (context) async {
       final requestContext = RequestContext(context);
@@ -30,20 +31,23 @@ Future<HttpServer> createServer() async {
 
       return response;
     },
-    'localhost',
-    8123,
+    app.host,
+    app.port,
   );
 
   // ensure that the routes are configured correctly
   routes;
 
-  print('Serving at http://${server.address.host}:${server.port}');
+  app.onServerStarted?.call(server);
 
   return server;
 }
 
 List<Route> get routes => [
-      user(ThisController()),
+      user(ThisController(
+        repo: DI.instance.get(),
+        logger: DI.instance.get(),
+      )),
       some(Some()),
     ];
 

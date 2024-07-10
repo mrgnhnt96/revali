@@ -1,10 +1,10 @@
 import 'package:change_case/change_case.dart';
 import 'package:revali_construct/revali_construct.dart';
-import 'package:revali_shelf/converters/shelf_reflect.dart';
 import 'package:revali_shelf/revali_shelf.dart';
+import 'package:revali_shelf/utils/extract_import.dart';
 
-class ShelfParentRoute implements ShelfRoute {
-  const ShelfParentRoute({
+class ShelfParentRoute with ExtractImport implements ShelfRoute {
+  ShelfParentRoute({
     required this.className,
     required this.importPath,
     required this.routePath,
@@ -38,19 +38,6 @@ class ShelfParentRoute implements ShelfRoute {
 
   String get fileName => routePath.toNoCase().toSnakeCase();
 
-  Iterable<String> get imports sync* {
-    yield* importPath.imports;
-    for (final route in routes) {
-      yield* route.imports;
-    }
-
-    for (final param in params) {
-      yield* param.imports;
-    }
-
-    yield* annotations.imports;
-  }
-
   Iterable<ShelfReflect> get reflects sync* {
     for (final route in routes) {
       yield* route.reflects;
@@ -60,4 +47,14 @@ class ShelfParentRoute implements ShelfRoute {
       yield* param.annotations.reflects;
     }
   }
+
+  @override
+  List<ExtractImport?> get extractors => [
+        ...routes,
+        ...params,
+        annotations,
+      ];
+
+  @override
+  List<ShelfImports?> get imports => [importPath];
 }

@@ -3,9 +3,10 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_shelf/converters/shelf_imports.dart';
 import 'package:revali_shelf/converters/shelf_param_annotations.dart';
+import 'package:revali_shelf/utils/extract_import.dart';
 
-class ShelfParam {
-  const ShelfParam({
+class ShelfParam with ExtractImport {
+  ShelfParam({
     required this.name,
     required this.type,
     required this.isNullable,
@@ -83,15 +84,9 @@ class ShelfParam {
   final ShelfImports? importPath;
   final ShelfParamAnnotations annotations;
 
-  Iterable<String> get imports sync* {
-    if (importPath case final importPath?) {
-      yield* importPath.imports;
-    }
+  @override
+  List<ExtractImport?> get extractors => [annotations];
 
-    if (typeImport case final import?) {
-      yield import;
-    }
-
-    yield* annotations.imports;
-  }
+  @override
+  List<ShelfImports?> get imports => [importPath];
 }

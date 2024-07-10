@@ -2,12 +2,13 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:revali_shelf/converters/shelf_imports.dart';
+import 'package:revali_shelf/utils/extract_import.dart';
 
 /// A class that represents an annotation that will
 /// be written exactly as it is in the source code.
-class ShelfMimic {
-  const ShelfMimic({
-    required this.imports,
+class ShelfMimic with ExtractImport {
+  ShelfMimic({
+    required this.importPaths,
     required this.instance,
   });
 
@@ -18,7 +19,7 @@ class ShelfMimic {
     final objectType = object.type;
 
     final typeImport = objectType?.element?.librarySource?.uri.toString();
-    final imports = <String>{
+    final importPaths = <String>{
       if (typeImport != null) typeImport,
     };
 
@@ -26,14 +27,14 @@ class ShelfMimic {
       final constructorImports = type.constructors
           .map((e) => e.returnType.element.librarySource.uri.toString());
 
-      imports.addAll(constructorImports);
+      importPaths.addAll(constructorImports);
 
       if (type.element case final ClassElement element) {
         for (final field in element.fields) {
           final fieldImport = field.type.element?.librarySource?.uri.toString();
 
           if (fieldImport != null) {
-            imports.add(fieldImport);
+            importPaths.add(fieldImport);
           }
         }
       }
@@ -41,10 +42,16 @@ class ShelfMimic {
 
     return ShelfMimic(
       instance: annotation.toSource().replaceFirst('@', ''),
-      imports: ShelfImports(imports),
+      importPaths: ShelfImports(importPaths),
     );
   }
 
-  final ShelfImports imports;
+  final ShelfImports importPaths;
   final String instance;
+
+  @override
+  List<ExtractImport?> get extractors => const [];
+
+  @override
+  List<ShelfImports?> get imports => [importPaths];
 }

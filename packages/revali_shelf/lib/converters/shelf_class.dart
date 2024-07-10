@@ -2,9 +2,10 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:revali_shelf/converters/shelf_imports.dart';
 import 'package:revali_shelf/converters/shelf_param.dart';
+import 'package:revali_shelf/utils/extract_import.dart';
 
-class ShelfClass {
-  const ShelfClass({
+class ShelfClass with ExtractImport {
+  ShelfClass({
     required this.className,
     required this.params,
     required this.importPath,
@@ -64,11 +65,9 @@ class ShelfClass {
   final Iterable<ShelfParam> params;
   final ShelfImports importPath;
 
-  Iterable<String> get imports sync* {
-    yield* importPath.imports;
+  @override
+  List<ExtractImport> get extractors => [...params];
 
-    for (final param in params) {
-      if (param.importPath case final imports?) yield* imports.imports;
-    }
-  }
+  @override
+  List<ShelfImports> get imports => [importPath];
 }

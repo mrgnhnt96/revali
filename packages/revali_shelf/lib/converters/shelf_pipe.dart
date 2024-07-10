@@ -2,10 +2,12 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_shelf/converters/shelf_class.dart';
+import 'package:revali_shelf/converters/shelf_imports.dart';
 import 'package:revali_shelf/converters/shelf_reflect.dart';
+import 'package:revali_shelf/utils/extract_import.dart';
 
-class ShelfPipe {
-  const ShelfPipe({
+class ShelfPipe with ExtractImport {
+  ShelfPipe({
     required this.pipe,
     required this.reflect,
   });
@@ -33,4 +35,10 @@ class ShelfPipe {
 
   final ShelfClass pipe;
   final ShelfReflect? reflect;
+
+  @override
+  List<ExtractImport> get extractors => [pipe];
+
+  @override
+  List<ShelfImports> get imports => const [];
 }

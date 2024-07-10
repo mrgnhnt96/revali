@@ -3,7 +3,7 @@ import 'package:analyzer/dart/constant/value.dart';
 class ControllerAnnotation {
   const ControllerAnnotation(this.path);
 
-  static ControllerAnnotation fromAnnotation(DartObject annotation) {
+  factory ControllerAnnotation.fromAnnotation(DartObject annotation) {
     final path = annotation.getField('path')?.toStringValue();
 
     if (path == null) {

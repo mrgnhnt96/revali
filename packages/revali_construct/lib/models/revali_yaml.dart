@@ -15,14 +15,14 @@ class revaliYaml extends Equatable {
       _$revaliYamlFromJson(json);
 
   @JsonKey(defaultValue: const [])
-  final List<revaliConstructConfig> constructs;
+  final List<RevaliConstructConfig> constructs;
 
   Map<String, dynamic> toJson() => _$revaliYamlToJson(this);
 
-  revaliConstructConfig configFor(ConstructMaker maker) {
-    final defaultConfig = revaliConstructConfig(name: maker.name);
+  RevaliConstructConfig configFor(ConstructMaker maker) {
+    final defaultConfig = RevaliConstructConfig(name: maker.name);
 
-    final constructsByName = <String, List<revaliConstructConfig>>{};
+    final constructsByName = <String, List<RevaliConstructConfig>>{};
     for (final construct in constructs) {
       (constructsByName[construct.name] ??= []).add(construct);
     }
