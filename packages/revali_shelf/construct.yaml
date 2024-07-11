@@ -1,5 +1,0 @@
-constructs:
-    - name: shelf
-      path: main.dart
-      method: shelfConstruct
-      is_server: true

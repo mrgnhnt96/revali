@@ -10,8 +10,9 @@ class MetaAppConfig {
     required this.constructor,
     required this.params,
     required this.element,
-    required this.annotationsFor,
     required this.appAnnotation,
+    required this.isSecure,
+    required this.annotationsFor,
   });
 
   factory MetaAppConfig.defaultConfig() = _DefaultAppConfig;
@@ -22,6 +23,7 @@ class MetaAppConfig {
   final ClassElement? element;
   final String constructor;
   final List<MetaParam> params;
+  final bool isSecure;
   final AnnotationMapper annotationsFor;
 }
 
@@ -34,6 +36,7 @@ class _DefaultAppConfig extends MetaAppConfig {
           constructor: 'defaultApp',
           params: const [],
           appAnnotation: const AppAnnotation(flavor: null),
+          isSecure: false,
           annotationsFor: _fakeAnnotationsFor,
         );
 }

@@ -1,30 +1,32 @@
+import 'dart:io';
+
 import 'package:revali_router/revali_router.dart';
-import 'package:shelf/shelf_io.dart';
 
 void main() async {
-  final server = await serve(
-    (context) async {
-      final requestContext = RequestContext(context);
-      final router = Router(
-        requestContext,
-        routes: routes,
-        reflects: {
-          Reflect(
-            User,
-            metas: (m) {
-              m['user']..add(Role('admin'));
-            },
-          ),
-        },
-      );
-
-      final response = await router.handle();
-
-      return response;
-    },
+  final server = await HttpServer.bind(
     'localhost',
     8080,
+    backlog: 0,
   );
+
+  handleRequests(server, (context) async {
+    final router = Router(
+      context,
+      routes: routes,
+      reflects: {
+        Reflect(
+          User,
+          metas: (m) {
+            m['user']..add(Role('admin'));
+          },
+        ),
+      },
+    );
+
+    final response = await router.handle();
+
+    return response;
+  });
 
   // ensure that the routes are configured correctly
   routes;
@@ -59,9 +61,14 @@ late final routes = [
       ),
       Route(
         '',
-        method: 'GET',
-        guards: [AuthGuard()],
-        handler: (context) async {},
+        method: 'POST',
+        handler: (context) async {
+          final body = await context.request.body;
+          print(body);
+
+          context.response.statusCode = 200;
+          context.response.body = {'id': 'hi'};
+        },
       ),
     ],
   ),

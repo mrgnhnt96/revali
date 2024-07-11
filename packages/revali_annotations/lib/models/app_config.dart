@@ -6,6 +6,16 @@ base class AppConfig {
     required this.port,
     this.prefix = _defaultPrefix,
     this.onServerStarted,
+  })  : securityContext = null,
+        requestClientCertificate = false;
+
+  const AppConfig.secure({
+    required this.host,
+    required this.port,
+    required SecurityContext this.securityContext,
+    this.requestClientCertificate = false,
+    this.prefix = _defaultPrefix,
+    this.onServerStarted,
   });
 
   factory AppConfig.defaultApp() = _DefaultApp;
@@ -16,6 +26,8 @@ base class AppConfig {
   final int port;
   final String? prefix;
   final void Function(HttpServer)? onServerStarted;
+  final bool requestClientCertificate;
+  final SecurityContext? securityContext;
 }
 
 final class _DefaultApp extends AppConfig {

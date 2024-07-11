@@ -5,14 +5,14 @@ import 'dart:isolate' as _i3;
 
 import 'package:revali/revali.dart' as _i4;
 import 'package:revali_construct/revali_construct.dart' as _i1;
-import 'package:revali_shelf/main.dart' as _i2;
+import 'package:revali_server/main.dart' as _i2;
 
 final _constructs = <_i1.ConstructMaker>[
   _i1.ConstructMaker(
-    package: 'revali_shelf',
+    package: 'revali_server',
     isServer: true,
     name: 'shelf',
-    maker: _i2.shelfConstruct,
+    maker: _i2.serverConstruct,
   )
 ];
 const _routes = '/Users/morgan/Documents/develop.nosync/revali/examples/demo';

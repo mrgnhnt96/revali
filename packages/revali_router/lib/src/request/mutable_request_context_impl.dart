@@ -1,16 +1,13 @@
 import 'package:revali_router/src/request/mutable_request_context.dart';
+import 'package:revali_router/src/request/parts/payload.dart';
 import 'package:revali_router/src/request/request_context.dart';
-import 'package:shelf/shelf.dart';
 
 // ignore: must_be_immutable
 class MutableRequestContextImpl extends RequestContext
     implements MutableRequestContext {
-  MutableRequestContextImpl(Request request)
-      : _headers = Map.from(request.headers),
-        super(request);
   MutableRequestContextImpl.from(RequestContext request)
       : _headers = Map.from(request.headers),
-        super.from(request);
+        super.self(request);
 
   final Map<String, String> _headers;
 
@@ -36,7 +33,7 @@ class MutableRequestContextImpl extends RequestContext
       return _body;
     }
 
-    final body = await this.body;
+    final body = await super.body;
     return _body = body;
   }
 
@@ -48,4 +45,8 @@ class MutableRequestContextImpl extends RequestContext
   Map<String, String> get pathParameters =>
       Map.unmodifiable(_pathParameters ?? {});
   Map<String, String>? _pathParameters;
+
+  Future<void> overrideBody(event) async {
+    _body = await Payload(event).readAsString();
+  }
 }

@@ -15,23 +15,83 @@ import 'package:revali_router/src/route/route_modifiers.dart';
 
 part 'route.g.dart';
 
+typedef Handler = Future<void> Function(EndpointContext);
+
 @CopyWith(constructor: '_')
 class Route extends Equatable implements RouteEntry, RouteModifiers {
   Route(
-    this.path, {
-    this.handler,
+    String path, {
+    Handler? handler,
     String? method,
-    List<Route>? routes,
-    this.middlewares = const [],
-    this.interceptors = const [],
-    this.guards = const [],
-    this.catchers = const [],
+    Iterable<Route>? routes,
+    List<Middleware>? middlewares,
+    List<Interceptor>? interceptors,
+    List<Guard>? guards,
+    List<ExceptionCatcher>? catchers,
     void Function(MetaHandler)? meta,
-    this.redirect,
+    Redirect? redirect,
     List<CombineMeta> combine = const [],
-  })  : parent = null,
-        _meta = meta,
-        method = method?.toUpperCase() {
+  }) : this._(
+          path,
+          routes: routes,
+          meta: meta,
+          handler: handler,
+          parent: null,
+          isWebSocket: false,
+          middlewares: middlewares ?? [],
+          interceptors: interceptors ?? [],
+          guards: guards ?? [],
+          catchers: catchers ?? [],
+          method: method?.toUpperCase(),
+          redirect: redirect,
+          combine: combine,
+        );
+
+  Route.webSocket(
+    String path, {
+    required Handler handler,
+    Iterable<Route>? routes,
+    List<Middleware>? middlewares,
+    List<Interceptor>? interceptors,
+    List<Guard>? guards,
+    List<ExceptionCatcher>? catchers,
+    void Function(MetaHandler)? meta,
+    Redirect? redirect,
+    List<CombineMeta> combine = const [],
+  }) : this._(
+          path,
+          parent: null,
+          isWebSocket: true,
+          handler: handler,
+          method: 'GET',
+          routes: routes,
+          middlewares: middlewares ?? [],
+          interceptors: interceptors ?? [],
+          guards: guards ?? [],
+          catchers: catchers ?? [],
+          meta: meta,
+          redirect: redirect,
+          combine: combine,
+        );
+
+  Route._(
+    this.path, {
+    required Iterable<Route>? routes,
+    required this.middlewares,
+    required this.interceptors,
+    required this.parent,
+    required this.handler,
+    required this.method,
+    required this.guards,
+    required this.catchers,
+    required this.redirect,
+    required this.isWebSocket,
+    required List<CombineMeta> combine,
+    // dynamic is needed bc copyWith has a bug
+    required meta,
+  }) : _meta = meta as void Function(MetaHandler)? {
+    final method = this.method;
+
     if ((method == null) != (handler == null)) {
       throw ArgumentError('method and handler must be both provided or null');
     }
@@ -99,21 +159,6 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
     }
   }
 
-  Route._(
-    this.path, {
-    required this.routes,
-    required this.middlewares,
-    required this.interceptors,
-    required this.parent,
-    required this.handler,
-    required this.method,
-    required this.guards,
-    required this.catchers,
-    required this.redirect,
-    // dynamic is needed bc copyWith has a bug
-    required meta,
-  }) : _meta = meta as void Function(MetaHandler)?;
-
   static void validateRoutes(List<RouteModifiers> routes) {}
 
   final String path;
@@ -124,10 +169,11 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
   final List<Guard> guards;
   @ignore
   final Route? parent;
-  final Future<void> Function(EndpointContext)? handler;
+  final Handler? handler;
   final String? method;
   final void Function(MetaHandler)? _meta;
   final Redirect? redirect;
+  final bool isWebSocket;
 
   bool get isDynamic => segments.any((s) => s.startsWith(':'));
   bool get isStatic => !isDynamic;

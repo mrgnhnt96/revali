@@ -1,0 +1,5 @@
+constructs:
+    - name: revali_server
+      path: main.dart
+      method: serverConstruct
+      is_server: true

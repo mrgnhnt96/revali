@@ -11,5 +11,6 @@ extension _$RouterAutoequal on Router {
         context,
         routes,
         _reflects,
+        _globalModifiers,
       ];
 }

@@ -1,8 +1,8 @@
 import 'package:mockito/mockito.dart';
+import 'package:revali_router/src/request/parts/request.dart';
 import 'package:revali_router/src/request/request_context.dart';
 import 'package:revali_router/src/route/route.dart';
 import 'package:revali_router/src/router.dart';
-import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 
 void main() {

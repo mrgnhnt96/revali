@@ -1,0 +1,18 @@
+name: revali_server
+version: 0.0.1+1
+publish_to: 'none'
+
+environment:
+    sdk: '>=3.2.6 <4.0.0'
+
+dependencies:
+    analyzer: 6.4.1
+    change_case: ^2.1.0
+    code_builder: ^4.10.0
+    dart_style: ^2.3.6
+    revali_construct:
+        path: ../revali_construct
+    revali_router:
+        path: ../revali_router
+    revali_router_annotations:
+        path: ../revali_router_annotations

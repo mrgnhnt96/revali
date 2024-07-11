@@ -2,13 +2,17 @@ import 'package:revali_router/revali_router.dart';
 
 class RouteModifiers {
   RouteModifiers({
-    this.middlewares = const [],
-    this.interceptors = const [],
-    this.guards = const [],
-    this.catchers = const [],
+    List<Middleware>? middlewares,
+    List<Interceptor>? interceptors,
+    List<Guard>? guards,
+    List<ExceptionCatcher>? catchers,
     void Function(MetaHandler)? meta,
     List<CombineMeta> combine = const [],
-  }) : _meta = meta {
+  })  : _meta = meta,
+        middlewares = middlewares ?? [],
+        interceptors = interceptors ?? [],
+        guards = guards ?? [],
+        catchers = catchers ?? [] {
     CombineMetaApplier(this, combine).apply();
   }
 

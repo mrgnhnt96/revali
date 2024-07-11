@@ -18,6 +18,7 @@ extension _$RouteAutoequal on Route {
         method,
         _meta,
         redirect,
+        isWebSocket,
       ];
 }
 
@@ -28,7 +29,7 @@ extension _$RouteAutoequal on Route {
 abstract class _$RouteCWProxy {
   Route path(String path);
 
-  Route routes(Iterable<Route>? routes);
+  Route routes(List<Route>? routes);
 
   Route middlewares(List<Middleware> middlewares);
 
@@ -46,6 +47,10 @@ abstract class _$RouteCWProxy {
 
   Route redirect(Redirect? redirect);
 
+  Route isWebSocket(bool isWebSocket);
+
+  Route combine(List<CombineMeta> combine);
+
   Route meta(dynamic meta);
 
   /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `Route(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
@@ -56,7 +61,7 @@ abstract class _$RouteCWProxy {
   /// ````
   Route call({
     String? path,
-    Iterable<Route>? routes,
+    List<Route>? routes,
     List<Middleware>? middlewares,
     List<Interceptor>? interceptors,
     Route? parent,
@@ -65,6 +70,8 @@ abstract class _$RouteCWProxy {
     List<Guard>? guards,
     List<ExceptionCatcher<Exception>>? catchers,
     Redirect? redirect,
+    bool? isWebSocket,
+    List<CombineMeta>? combine,
     dynamic meta,
   });
 }
@@ -79,7 +86,7 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
   Route path(String path) => this(path: path);
 
   @override
-  Route routes(Iterable<Route>? routes) => this(routes: routes);
+  Route routes(List<Route>? routes) => this(routes: routes);
 
   @override
   Route middlewares(List<Middleware> middlewares) =>
@@ -110,6 +117,12 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
   Route redirect(Redirect? redirect) => this(redirect: redirect);
 
   @override
+  Route isWebSocket(bool isWebSocket) => this(isWebSocket: isWebSocket);
+
+  @override
+  Route combine(List<CombineMeta> combine) => this(combine: combine);
+
+  @override
   Route meta(dynamic meta) => this(meta: meta);
 
   @override
@@ -131,6 +144,8 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
     Object? guards = const $CopyWithPlaceholder(),
     Object? catchers = const $CopyWithPlaceholder(),
     Object? redirect = const $CopyWithPlaceholder(),
+    Object? isWebSocket = const $CopyWithPlaceholder(),
+    Object? combine = const $CopyWithPlaceholder(),
     Object? meta = const $CopyWithPlaceholder(),
   }) {
     return Route._(
@@ -141,7 +156,7 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
       routes: routes == const $CopyWithPlaceholder()
           ? _value.routes
           // ignore: cast_nullable_to_non_nullable
-          : routes as Iterable<Route>?,
+          : routes as List<Route>?,
       middlewares:
           middlewares == const $CopyWithPlaceholder() || middlewares == null
               ? _value.middlewares
@@ -176,6 +191,15 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
           ? _value.redirect
           // ignore: cast_nullable_to_non_nullable
           : redirect as Redirect?,
+      isWebSocket:
+          isWebSocket == const $CopyWithPlaceholder() || isWebSocket == null
+              ? _value.isWebSocket
+              // ignore: cast_nullable_to_non_nullable
+              : isWebSocket as bool,
+      combine: combine == const $CopyWithPlaceholder() || combine == null
+          ? const []
+          // ignore: cast_nullable_to_non_nullable
+          : combine as List<CombineMeta>,
       meta: meta == const $CopyWithPlaceholder() || meta == null
           ? _value._meta
           // ignore: cast_nullable_to_non_nullable

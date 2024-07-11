@@ -1,5 +1,3 @@
-import 'package:examples/repos/repo.dart';
-import 'package:examples/utils/logger.dart';
 import 'package:revali_annotations/revali_annotations.dart';
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
@@ -7,19 +5,12 @@ import 'package:revali_router_annotations/revali_router_annotations.dart';
 @Auth(AuthType.user)
 @Controller('user')
 class ThisController {
-  const ThisController({
-    @Dep() required this.repo,
-    @Dep() required this.logger,
-  });
-
-  final Repo repo;
-  final Logger logger;
+  const ThisController();
 
   @Get()
   Future<void> listPeople() async {}
 
   @AuthCombine()
-  @Catches([NotAuthCatcher])
   @HttpCode(201)
   @SetHeader('method', 'hi')
   @NotAuthCatcher('bye')
@@ -64,9 +55,7 @@ class Role implements Meta {
 }
 
 class StringToIntPipe extends Pipe<String?, int> {
-  const StringToIntPipe(@Dep() this.repo);
-
-  final Repo repo;
+  const StringToIntPipe();
 
   @override
   int transform(value, context) {
@@ -122,7 +111,7 @@ class Lazy {
 class NotAuth implements Exception {}
 
 class NotAuthCatcher extends ExceptionCatcher {
-  const NotAuthCatcher(@Dep() this.value);
+  const NotAuthCatcher(this.value);
 
   final String value;
 

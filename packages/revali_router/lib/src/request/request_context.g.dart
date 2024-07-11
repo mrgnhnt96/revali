@@ -11,5 +11,8 @@ extension _$RequestContextAutoequal on RequestContext {
         segments,
         method,
         headers,
+        queryParameters,
+        queryParametersAll,
+        uri,
       ];
 }

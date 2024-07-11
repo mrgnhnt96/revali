@@ -14,10 +14,7 @@ Route user(ThisController thisController) {
       ),
       Route(
         ':id',
-        catchers: [
-          NotAuthCatcher('bye'),
-          NotAuthCatcher(DI.instance.get()),
-        ],
+        catchers: [NotAuthCatcher('bye')],
         combine: [AuthCombine()],
         meta: (m) {
           m..add(Role(AuthType.admin));
@@ -42,7 +39,7 @@ Route user(ThisController thisController) {
                 type: ParamType.query,
               ),
             ),
-            id: StringToIntPipe(DI.instance.get()).transform(
+            id: StringToIntPipe().transform(
               context.request.pathParameters['id'],
               PipeContextImpl.from(
                 context,
@@ -62,11 +59,15 @@ Route user(ThisController thisController) {
           );
         },
       ),
-      Route(
+      Route.webSocket(
         'create',
-        method: 'POST',
         handler: (context) async {
-          thisController.create(context.request.queryParametersAll['name']);
+          final name = context.request.queryParametersAll['name'];
+          thisController.create(name);
+
+          context.response.addToBody('name', name);
+          final body = await context.request.body;
+          context.response.addToBody('echo', body);
         },
       ),
     ],

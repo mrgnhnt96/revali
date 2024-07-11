@@ -9,6 +9,7 @@ class AppVisitor extends RecursiveElementVisitor<void> {
   ClassElement? _app;
   ConstructorElement? _constructor;
   AppAnnotation? _annotation;
+  bool _isSecure = false;
 
   final _params = <MetaParam>[];
 
@@ -19,12 +20,14 @@ class AppVisitor extends RecursiveElementVisitor<void> {
     ConstructorElement constructor,
     List<MetaParam> params,
     AppAnnotation annotation,
+    bool isSecure,
   }) get values {
     return (
       element: _app!,
       constructor: _constructor!,
       params: _params,
       annotation: _annotation!,
+      isSecure: _isSecure,
     );
   }
 
@@ -54,6 +57,7 @@ class AppVisitor extends RecursiveElementVisitor<void> {
 
     _app = element;
     _constructor = element.constructors.first;
+    _isSecure = _constructor?.superConstructor?.name == 'secure';
     _params.addAll(getParams(_constructor!));
     _annotation = AppAnnotation.fromAnnotation(
       appChecker.firstAnnotationOf(element)!,

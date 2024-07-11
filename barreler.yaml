@@ -18,8 +18,8 @@ dirs:
     include:
       - export: "hot_reload/hot_reload.dart"
         show: hotReload
-  - path: packages/revali_shelf/lib
-    name: revali_shelf
+  - path: packages/revali_server/lib
+    name: revali_server
   - path: packages/revali_router/lib
     name: revali_router
   - path: packages/revali_router_annotations/lib

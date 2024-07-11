@@ -1,7 +1,7 @@
 import 'dart:convert';
 
+import 'package:revali_router/src/request/parts/response.dart';
 import 'package:revali_router/src/response/mutable_response_context.dart';
-import 'package:shelf/shelf.dart';
 
 class MutableResponseContextImpl implements MutableResponseContext {
   MutableResponseContextImpl() : _headers = <String, String>{};
@@ -29,8 +29,11 @@ class MutableResponseContextImpl implements MutableResponseContext {
 // TODO(mrgnhnt): probably create a class for the body
 // That way it will be easier to change from Map to Static file, etc
   Map<String, dynamic>? _body;
+
   @override
-  Map<String, dynamic>? get body => _body;
+  Map<String, dynamic>? get body =>
+      _body == null ? null : Map.unmodifiable(_body!);
+
   @override
   void set body(Object? value) {
     (_body ??= {})['data'] = value;
@@ -58,11 +61,15 @@ class MutableResponseContextImpl implements MutableResponseContext {
   }
 
   @override
-  void addToBody(String key, Object value) async {
+  void addToBody(String key, Object? value) async {
     if (key == 'data') {
       throw ArgumentError('The key `data` is reserved for the body');
     }
 
     (_body ??= {})[key] = value;
+  }
+
+  void clearBody() {
+    _body = null;
   }
 }

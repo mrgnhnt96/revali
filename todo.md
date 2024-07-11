@@ -69,9 +69,9 @@
 
 ---
 
-- [ ] ~~Combine revali and revali_shelf into a single package~~
+- [ ] ~~Combine revali and revali_server into a single package~~
   - ~~This is because shelf is really the only http server that we will be using, and we want consistency~~
-  - ~~We also don't want constructs to run scripts, which is what we would have to do if the revali_shelf package was separate~~
+  - ~~We also don't want constructs to run scripts, which is what we would have to do if the revali_server package was separate~~
   - This is fine actually, we will have a flag within the config file that will determine whether the dependency is a "router" generator or other
 - [x] Create `revali_construct` package to hold the core functionality of revali
   - This way developers don't need to depend on the entire revali package, just the necessary parts
@@ -95,7 +95,7 @@ import 'dart:io' as io;
 import 'dart:isolate';
 
 import 'package:revali/revali.dart';
-import 'package:revali_shelf/revali_shelf.dart';
+import 'package:revali_server/revali_server.dart';
 
 final constructs = <Construct>[
   revaliShelfConstruct(),

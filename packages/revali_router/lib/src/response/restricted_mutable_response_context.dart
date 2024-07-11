@@ -11,5 +11,5 @@ abstract class RestrictedMutableResponseContext
   /// The value to be set as the body of the response
   ///
   /// The key CANNOT be `data` as it is reserved for the body
-  void addToBody(String key, Object value);
+  void addToBody(String key, Object? value);
 }

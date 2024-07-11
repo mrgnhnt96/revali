@@ -28,7 +28,8 @@ class FileTraverser {
       return null;
     }
 
-    final (:element, :constructor, :params, :annotation) = classVisitor.values;
+    final (:element, :constructor, :params, :annotation, :isSecure) =
+        classVisitor.values;
 
     return MetaAppConfig(
       className: element.displayName,
@@ -37,6 +38,7 @@ class FileTraverser {
       constructor: constructor.name,
       params: params,
       appAnnotation: annotation,
+      isSecure: isSecure,
       annotationsFor: ({
         required List<OnMatch> onMatch,
         NonMatch? onNonMatch,

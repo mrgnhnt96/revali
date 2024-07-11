@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:equatable/equatable.dart';
 import 'package:revali_router/src/data/data_handler.dart';
@@ -17,23 +18,48 @@ import 'package:revali_router/src/middleware/middleware_context_impl.dart';
 import 'package:revali_router/src/reflect/reflect.dart';
 import 'package:revali_router/src/reflect/reflect_handler.dart';
 import 'package:revali_router/src/request/mutable_request_context_impl.dart';
+import 'package:revali_router/src/request/parts/response.dart';
+import 'package:revali_router/src/request/parts/web_socket_response.dart';
 import 'package:revali_router/src/request/request_context.dart';
 import 'package:revali_router/src/response/mutable_response_context_impl.dart';
 import 'package:revali_router/src/route/route.dart';
 import 'package:revali_router/src/route/route_match.dart';
 import 'package:revali_router/src/route/route_modifiers.dart';
-import 'package:shelf/shelf.dart';
 
 part 'router.g.dart';
 
 class Router extends Equatable {
-  const Router(
+  const Router._(
     this.context, {
     required this.routes,
-    RouteModifiers? globalModifiers,
-    Set<Reflect> reflects = const {},
+    required RouteModifiers? globalModifiers,
+    required Set<Reflect> reflects,
   })  : _reflects = reflects,
         _globalModifiers = globalModifiers;
+
+  const Router(
+    RequestContext context, {
+    required List<Route> routes,
+    RouteModifiers? globalModifiers,
+    Set<Reflect> reflects = const {},
+  }) : this._(
+          context,
+          routes: routes,
+          globalModifiers: globalModifiers,
+          reflects: reflects,
+        );
+
+  Router.request(
+    HttpRequest request, {
+    required List<Route> routes,
+    RouteModifiers? globalModifiers,
+    Set<Reflect> reflects = const {},
+  }) : this._(
+          RequestContext.from(request),
+          routes: routes,
+          globalModifiers: globalModifiers,
+          reflects: reflects,
+        );
 
   final RequestContext context;
   final List<Route> routes;
@@ -51,7 +77,7 @@ class Router extends Equatable {
     );
 
     if (match == null) {
-      return Response.notFound(null);
+      return Response.notFound('Failed to find ${segments.join('/')}');
     }
 
     final RouteMatch(:route, :pathParameters) = match;
@@ -207,50 +233,80 @@ class Router extends Equatable {
       }
     }
 
-    final interceptors = [
-      ...globalModifiers.interceptors,
-      ...route.allInterceptors,
-    ];
-    for (final interceptor in interceptors) {
-      await interceptor.pre(
-        InterceptorContextImpl(
-          meta: InterceptorMeta(
-            direct: directMeta,
-            inherited: inheritedMeta,
+    Future<void> run() async {
+      final interceptors = [
+        ...globalModifiers.interceptors,
+        ...route.allInterceptors,
+      ];
+      for (final interceptor in interceptors) {
+        await interceptor.pre(
+          InterceptorContextImpl(
+            meta: InterceptorMeta(
+              direct: directMeta,
+              inherited: inheritedMeta,
+            ),
+            reflect: reflectHandler,
+            request: request,
+            response: response,
+            data: dataHandler,
           ),
+        );
+      }
+
+      await handler.call(
+        EndpointContextImpl(
+          meta: directMeta,
           reflect: reflectHandler,
           request: request,
-          response: response,
           data: dataHandler,
+          response: response,
         ),
       );
-    }
 
-    await handler.call(
-      EndpointContextImpl(
-        meta: directMeta,
-        reflect: reflectHandler,
-        request: request,
-        data: dataHandler,
-        response: response,
-      ),
-    );
-
-    for (final interceptor in interceptors) {
-      await interceptor.post(
-        InterceptorContextImpl(
-          meta: InterceptorMeta(
-            direct: directMeta,
-            inherited: inheritedMeta,
+      for (final interceptor in interceptors) {
+        await interceptor.post(
+          InterceptorContextImpl(
+            meta: InterceptorMeta(
+              direct: directMeta,
+              inherited: inheritedMeta,
+            ),
+            reflect: reflectHandler,
+            request: request,
+            response: response,
+            data: dataHandler,
           ),
-          reflect: reflectHandler,
-          request: request,
-          response: response,
-          data: dataHandler,
-        ),
-      );
+        );
+      }
     }
 
+    if (route.isWebSocket) {
+      WebSocket webSocket;
+      try {
+        webSocket = await context.upgradeToWebSocket();
+      } catch (e) {
+        return Response.internalServerError();
+      }
+
+      final sub = webSocket.listen((event) async {
+        response.clearBody();
+        await request.overrideBody(event);
+
+        await run();
+
+        final body = response.body;
+        if (body == null || body.isEmpty) {
+          return;
+        }
+
+        webSocket.add(utf8.encode(jsonEncode(body)));
+      });
+
+      await sub.asFuture();
+
+      return WebSocketStopResponse();
+    }
+
+    await run();
     return response.get();
   }
 

@@ -1,12 +1,15 @@
+import 'dart:io';
+
 import 'package:autoequal/autoequal.dart';
 import 'package:equatable/equatable.dart';
-import 'package:shelf/shelf.dart';
+import 'package:revali_router/src/request/parts/request.dart';
 
 part 'request_context.g.dart';
 
 class RequestContext extends Equatable {
   const RequestContext(this._request);
-  RequestContext.from(RequestContext context) : _request = context._request;
+  RequestContext.from(HttpRequest request) : _request = Request.from(request);
+  RequestContext.self(RequestContext context) : _request = context._request;
 
   @ignore
   final Request _request;
@@ -34,12 +37,21 @@ class RequestContext extends Equatable {
   @include
   Map<String, String> get headers => Map.unmodifiable(_request.headers);
 
+  @include
   Map<String, String> get queryParameters =>
       Map.unmodifiable(_request.url.queryParameters);
 
+  @include
   Map<String, List<String>> get queryParametersAll =>
       Map.unmodifiable(_request.url.queryParametersAll);
 
+  @include
+  Uri get uri => _request.url;
+
   @override
   List<Object?> get props => _$props;
+
+  Future<WebSocket> upgradeToWebSocket() {
+    return _request.upgradeToWebSocket();
+  }
 }

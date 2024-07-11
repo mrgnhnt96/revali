@@ -1,5 +1,5 @@
 constructs:
-    - name: shelf
-      package: revali_shelf
+    - name: revali_server
+      package: revali_server
       options:
         im: awesome
