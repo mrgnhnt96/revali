@@ -71,14 +71,14 @@ Spec createChildRoute(ServerChildRoute route, ServerParentRoute parent) {
     response = null;
   }
 
-  return refer('Route').newInstance([
-    literalString(route.path)
-  ], {
+  final positioned = [literalString(route.path)];
+
+  final named = {
     ...createRouteArgs(
       route: route,
       returnType: route.returnType,
       classVarName: parent.classVarName,
-      method: route.method,
+      method: route.isWebSocket ? null : route.method,
       statusCode: route.httpCode?.code,
       additionalHandlerCode: [
         if (response != null) response.statement,
@@ -86,7 +86,13 @@ Spec createChildRoute(ServerChildRoute route, ServerParentRoute parent) {
     ),
     if (route.redirect case final redirect?)
       'redirect': literal(mimic(redirect)),
-  });
+  };
+
+  if (route.isWebSocket) {
+    return refer('Route').newInstanceNamed('webSocket', positioned, named);
+  } else {
+    return refer('Route').newInstance(positioned, named);
+  }
 }
 
 Map<String, Expression> createModifierArgs({

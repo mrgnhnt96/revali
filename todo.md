@@ -5,10 +5,10 @@
 ## Features
 
 - [ ] Dependency injection for apps
-- [ ] CORs for apps
+- [ ] CORs for apps ([docs](https://github.com/lenniezelk/shelf-cors-headers/blob/main/lib/src/shelf_cors_headers_base.dart#L52))
 - [ ] Wildcard paths
-- [ ] Web sockets
-- [ ] Returning streams (not as web sockets)
+- [x] Web sockets
+- ~~[ ] Returning streams (not as web sockets)~~
 - [ ] Returning files
 - [ ] Public files
   - Routes will be automatically generated for these files

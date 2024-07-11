@@ -8,9 +8,6 @@ final class DevApp extends AppConfig {
       : super(
           host: 'localhost',
           port: 8080,
-          onServerStarted: (server) {
-            print('Serving at http://${server.address.host}:${server.port}');
-          },
         );
 }
 

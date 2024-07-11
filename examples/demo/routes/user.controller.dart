@@ -27,7 +27,7 @@ class ThisController {
     return user;
   }
 
-  @Post('create')
+  @WebSocket('create')
   void create(
     @Query.all() List<String>? name,
   ) {}

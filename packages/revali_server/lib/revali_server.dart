@@ -31,5 +31,6 @@ export 'makers/route_file_maker.dart';
 export 'makers/server_file.dart';
 export 'makers/utils/meta_method_extensions.dart';
 export 'makers/utils/meta_route_extensions.dart';
+export 'makers/utils/try_catch.dart';
 export 'revali_server.construct.dart';
 export 'utils/extract_import.dart';

@@ -13,6 +13,7 @@ class MetaMethod {
     required this.params,
     required this.returnType,
     required this.annotationsMapper,
+    required this.isWebSocket,
   });
 
   final String name;
@@ -21,4 +22,5 @@ class MetaMethod {
   final Iterable<MetaParam> params;
   final MetaReturnType returnType;
   final AnnotationMapper annotationsMapper;
+  final bool isWebSocket;
 }

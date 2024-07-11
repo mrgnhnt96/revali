@@ -12,3 +12,4 @@ export 'models/methods/method.dart';
 export 'models/methods/patch.dart';
 export 'models/methods/post.dart';
 export 'models/methods/put.dart';
+export 'models/methods/web_socket.dart';

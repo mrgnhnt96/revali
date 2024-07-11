@@ -156,7 +156,7 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
           ]),
         ),
         Code('\n'),
-        refer('app').property('onServerStarted').nullSafeProperty('call').call(
+        refer('app').property('onServerStarted').call(
           [refer('server')],
         ).statement,
         Code('\n'),
