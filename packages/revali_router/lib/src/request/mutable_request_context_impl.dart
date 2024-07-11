@@ -46,7 +46,7 @@ class MutableRequestContextImpl extends RequestContext
       Map.unmodifiable(_pathParameters ?? {});
   Map<String, String>? _pathParameters;
 
-  Future<void> overrideBody(event) async {
-    _body = await Payload(event).readAsString();
+  Future<void> overrideBody(Object? event) async {
+    _body = await Payload(event, encoding).readAsString();
   }
 }

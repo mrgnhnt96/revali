@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:autoequal/autoequal.dart';
@@ -50,6 +51,8 @@ class RequestContext extends Equatable {
 
   @override
   List<Object?> get props => _$props;
+
+  Encoding? get encoding => _request.encoding;
 
   Future<WebSocket> upgradeToWebSocket() {
     return _request.upgradeToWebSocket();
