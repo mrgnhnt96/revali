@@ -14,6 +14,7 @@ class MetaMethod {
     required this.returnType,
     required this.annotationsMapper,
     required this.isWebSocket,
+    required this.ping,
   });
 
   final String name;
@@ -23,4 +24,5 @@ class MetaMethod {
   final MetaReturnType returnType;
   final AnnotationMapper annotationsMapper;
   final bool isWebSocket;
+  final Duration? ping;
 }

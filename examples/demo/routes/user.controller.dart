@@ -27,7 +27,7 @@ class ThisController {
     return user;
   }
 
-  @WebSocket('create')
+  @WebSocket.ping(path: 'create', ping: const Duration(milliseconds: 500))
   void create(
     @Query.all() List<String>? name,
   ) {}

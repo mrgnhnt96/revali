@@ -84,6 +84,11 @@ Spec createChildRoute(ServerChildRoute route, ServerParentRoute parent) {
         if (response != null) response.statement,
       ],
     ),
+    if (route.ping case final ping? when route.isWebSocket)
+      'ping': refer('Duration').newInstance(
+        [],
+        {'microseconds': literalNum(ping.inMicroseconds)},
+      ),
     if (route.redirect case final redirect?)
       'redirect': literal(mimic(redirect)),
   };

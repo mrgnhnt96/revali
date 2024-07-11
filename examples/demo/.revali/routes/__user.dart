@@ -64,6 +64,7 @@ Route user(ThisController thisController) {
         handler: (context) async {
           thisController.create(context.request.queryParametersAll['name']);
         },
+        ping: Duration(microseconds: 500000),
       ),
     ],
   );

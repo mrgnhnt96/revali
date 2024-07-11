@@ -62,7 +62,7 @@ Future<HttpServer> createServer() async {
     exit(1);
   }
 
-  app.onServerStarted?.call(server);
+  app.onServerStarted(server);
 
   return server;
 }

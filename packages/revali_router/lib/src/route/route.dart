@@ -38,6 +38,7 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
           handler: handler,
           parent: null,
           isWebSocket: false,
+          ping: null,
           middlewares: middlewares ?? [],
           interceptors: interceptors ?? [],
           guards: guards ?? [],
@@ -58,6 +59,7 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
     void Function(MetaHandler)? meta,
     Redirect? redirect,
     List<CombineMeta> combine = const [],
+    Duration? ping,
   }) : this._(
           path,
           parent: null,
@@ -72,6 +74,7 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
           meta: meta,
           redirect: redirect,
           combine: combine,
+          ping: ping,
         );
 
   Route._(
@@ -87,6 +90,7 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
     required this.redirect,
     required this.isWebSocket,
     required List<CombineMeta> combine,
+    required this.ping,
     // dynamic is needed bc copyWith has a bug
     required meta,
   }) : _meta = meta as void Function(MetaHandler)? {
@@ -174,6 +178,7 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
   final void Function(MetaHandler)? _meta;
   final Redirect? redirect;
   final bool isWebSocket;
+  final Duration? ping;
 
   bool get isDynamic => segments.any((s) => s.startsWith(':'));
   bool get isStatic => !isDynamic;

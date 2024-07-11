@@ -7,6 +7,7 @@ class MethodAnnotation extends Equatable implements Method {
     this.name, {
     required this.path,
     required this.isWebSocket,
+    required this.ping,
   });
 
   static MethodAnnotation fromAnnotation(DartObject annotation) {
@@ -22,10 +23,23 @@ class MethodAnnotation extends Equatable implements Method {
         annotation.type?.getDisplayString(withNullability: false) ==
             '$WebSocket';
 
+    Duration? ping;
+
+    if (isWebSocket) {
+      final pingRaw = getFieldObjectFromDartObject(annotation, 'ping');
+      if (pingRaw != null) {
+        final duration = pingRaw.getField('_duration')?.toIntValue();
+        if (duration != null) {
+          ping = Duration(microseconds: duration);
+        }
+      }
+    }
+
     return MethodAnnotation(
       name,
       path: path,
       isWebSocket: isWebSocket,
+      ping: ping,
     );
   }
 
@@ -36,6 +50,8 @@ class MethodAnnotation extends Equatable implements Method {
   final String? path;
 
   final bool isWebSocket;
+
+  final Duration? ping;
 
   @override
   List<Object?> get props => [name];
@@ -48,6 +64,19 @@ String? getFieldValueFromDartObject(DartObject obj, String fieldName) {
     final field = currentObj.getField(fieldName);
     if (field != null) {
       return field.toStringValue();
+    }
+    currentObj = currentObj.getField('(super)');
+  }
+  return null;
+}
+
+DartObject? getFieldObjectFromDartObject(DartObject obj, String fieldName) {
+  // Traverse the inheritance chain to find the field
+  DartObject? currentObj = obj;
+  while (currentObj != null) {
+    final field = currentObj.getField(fieldName);
+    if (field != null) {
+      return field;
     }
     currentObj = currentObj.getField('(super)');
   }

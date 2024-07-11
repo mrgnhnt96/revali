@@ -187,8 +187,11 @@ class Request extends Message {
 
   DateTime? _ifModifiedSinceCache;
 
-  Future<WebSocket> upgradeToWebSocket() async {
+  Future<WebSocket> upgradeToWebSocket({Duration? ping}) async {
     final webSocket = await WebSocketTransformer.upgrade(request);
+    if (ping != null) {
+      webSocket.pingInterval = ping;
+    }
 
     return webSocket;
   }

@@ -54,7 +54,7 @@ class RequestContext extends Equatable {
 
   Encoding? get encoding => _request.encoding;
 
-  Future<WebSocket> upgradeToWebSocket() {
-    return _request.upgradeToWebSocket();
+  Future<WebSocket> upgradeToWebSocket({Duration? ping}) {
+    return _request.upgradeToWebSocket(ping: ping);
   }
 }

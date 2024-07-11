@@ -19,6 +19,7 @@ extension _$RouteAutoequal on Route {
         _meta,
         redirect,
         isWebSocket,
+        ping,
       ];
 }
 
@@ -29,7 +30,7 @@ extension _$RouteAutoequal on Route {
 abstract class _$RouteCWProxy {
   Route path(String path);
 
-  Route routes(List<Route>? routes);
+  Route routes(Iterable<Route>? routes);
 
   Route middlewares(List<Middleware> middlewares);
 
@@ -51,6 +52,8 @@ abstract class _$RouteCWProxy {
 
   Route combine(List<CombineMeta> combine);
 
+  Route ping(Duration? ping);
+
   Route meta(dynamic meta);
 
   /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `Route(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
@@ -61,7 +64,7 @@ abstract class _$RouteCWProxy {
   /// ````
   Route call({
     String? path,
-    List<Route>? routes,
+    Iterable<Route>? routes,
     List<Middleware>? middlewares,
     List<Interceptor>? interceptors,
     Route? parent,
@@ -72,6 +75,7 @@ abstract class _$RouteCWProxy {
     Redirect? redirect,
     bool? isWebSocket,
     List<CombineMeta>? combine,
+    Duration? ping,
     dynamic meta,
   });
 }
@@ -86,7 +90,7 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
   Route path(String path) => this(path: path);
 
   @override
-  Route routes(List<Route>? routes) => this(routes: routes);
+  Route routes(Iterable<Route>? routes) => this(routes: routes);
 
   @override
   Route middlewares(List<Middleware> middlewares) =>
@@ -123,6 +127,9 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
   Route combine(List<CombineMeta> combine) => this(combine: combine);
 
   @override
+  Route ping(Duration? ping) => this(ping: ping);
+
+  @override
   Route meta(dynamic meta) => this(meta: meta);
 
   @override
@@ -146,6 +153,7 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
     Object? redirect = const $CopyWithPlaceholder(),
     Object? isWebSocket = const $CopyWithPlaceholder(),
     Object? combine = const $CopyWithPlaceholder(),
+    Object? ping = const $CopyWithPlaceholder(),
     Object? meta = const $CopyWithPlaceholder(),
   }) {
     return Route._(
@@ -156,7 +164,7 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
       routes: routes == const $CopyWithPlaceholder()
           ? _value.routes
           // ignore: cast_nullable_to_non_nullable
-          : routes as List<Route>?,
+          : routes as Iterable<Route>?,
       middlewares:
           middlewares == const $CopyWithPlaceholder() || middlewares == null
               ? _value.middlewares
@@ -200,6 +208,10 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
           ? const []
           // ignore: cast_nullable_to_non_nullable
           : combine as List<CombineMeta>,
+      ping: ping == const $CopyWithPlaceholder()
+          ? _value.ping
+          // ignore: cast_nullable_to_non_nullable
+          : ping as Duration?,
       meta: meta == const $CopyWithPlaceholder() || meta == null
           ? _value._meta
           // ignore: cast_nullable_to_non_nullable
