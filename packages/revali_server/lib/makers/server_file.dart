@@ -1,4 +1,5 @@
 import 'package:code_builder/code_builder.dart';
+import 'package:revali_annotations/revali_annotations.dart' show DI;
 import 'package:revali_server/converters/server_app.dart';
 import 'package:revali_server/converters/server_mimic.dart';
 import 'package:revali_server/converters/server_parent_route.dart';
@@ -96,7 +97,17 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
                 )
                 ..modifier = MethodModifier.async
                 ..body = Block.of([
-                  declareVar('_routes').assign(refer('routes')).statement,
+                  declareFinal('di')
+                      .assign(refer('$DI').newInstance([]))
+                      .statement,
+                  refer('app')
+                      .property('configureDependencies')
+                      .call([refer('di')]).statement,
+                  refer('di').property('finishRegistration').call([]).statement,
+                  Code('\n'),
+                  declareVar('_routes')
+                      .assign(refer('routes').call([refer('di')]))
+                      .statement,
                   Block.of([
                     Code('if ('),
                     refer('app').property('prefix').code,
@@ -140,21 +151,13 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
                           refer('router').awaited.property('handle').call([]))
                       .statement,
                   Code('\n'),
+                  refer('di').property('dispose').call([]).statement,
+                  Code('\n'),
                   refer('response').returned.statement,
                 ]),
             ).closure,
           ],
         ).statement,
-        Code('\n'),
-        Code('\t// ensure that the routes are configured correctly'),
-        tryCatch(
-          refer('routes').statement,
-          Block.of([
-            refer('print').call(
-                [literalString('Failed to setup routes:\\n\$e')]).statement,
-            refer('exit').call([literalNum(1)]).statement
-          ]),
-        ),
         Code('\n'),
         refer('app').property('onServerStarted').call(
           [refer('server')],
@@ -167,7 +170,11 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
   final routes = Method((p) => p
     ..name = 'routes'
     ..lambda = true
-    ..type = MethodType.getter
+    ..requiredParameters.add(
+      Parameter((p) => p
+        ..name = 'di'
+        ..type = refer('$DI')),
+    )
     ..returns = TypeReference(
       (b) => b
         ..symbol = 'List'
@@ -198,6 +205,7 @@ Spec createParentReference(ServerParentRoute route) {
 
   return refer(route.handlerName).call([
     refer(route.className).newInstance(positioned, named),
+    refer('di'),
   ]);
 }
 

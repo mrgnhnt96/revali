@@ -1,6 +1,9 @@
 part of '../server.dart';
 
-Route some(Some some) {
+Route some(
+  Some some,
+  DI di,
+) {
   return Route(
     'some',
     routes: [

@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:revali_annotations/revali_annotations.dart';
+
 abstract base class AppConfig {
   const AppConfig({
     required this.host,
@@ -36,6 +38,8 @@ abstract base class AppConfig {
       'Serving at http://${server.address.host}:${server.port}$prefix',
     );
   }
+
+  void configureDependencies(DI di) {}
 }
 
 final class _DefaultApp extends AppConfig {

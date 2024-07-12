@@ -31,7 +31,11 @@ Future<HttpServer> createServer() async {
   handleRequests(
     server,
     (context) async {
-      var _routes = routes;
+      final di = DI();
+      app.configureDependencies(di);
+      di.finishRegistration();
+
+      var _routes = routes(di);
       if (app.prefix case final prefix? when prefix.isNotEmpty) {
         _routes = [
           Route(
@@ -50,26 +54,29 @@ Future<HttpServer> createServer() async {
 
       final response = await router.handle();
 
+      di.dispose();
+
       return response;
     },
   );
-
-  // ensure that the routes are configured correctly
-  try {
-    routes;
-  } catch (e) {
-    print('Failed to setup routes:\n$e');
-    exit(1);
-  }
 
   app.onServerStarted(server);
 
   return server;
 }
 
-List<Route> get routes => [
-      user(ThisController()),
-      some(Some()),
+List<Route> routes(DI di) => [
+      user(
+        ThisController(
+          logger: di.get(),
+          repo: di.get(),
+        ),
+        di,
+      ),
+      some(
+        Some(),
+        di,
+      ),
     ];
 
 Set<Reflect> get reflects => {

@@ -1,6 +1,9 @@
 part of '../server.dart';
 
-Route user(ThisController thisController) {
+Route user(
+  ThisController thisController,
+  DI di,
+) {
   return Route(
     'user',
     middlewares: [Auth(AuthType.user)],

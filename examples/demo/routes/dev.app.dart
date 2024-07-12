@@ -1,3 +1,5 @@
+import 'package:examples/repos/repo.dart';
+import 'package:examples/utils/logger.dart';
 import 'package:revali_annotations/revali_annotations.dart';
 import 'package:revali_router/revali_router.dart';
 
@@ -9,6 +11,13 @@ final class DevApp extends AppConfig {
           host: 'localhost',
           port: 8080,
         );
+
+  @override
+  void configureDependencies(DI di) {
+    di
+      ..registerLazySingleton(Repo.new)
+      ..registerLazySingleton(Logger.new);
+  }
 }
 
 class DumbExceptionCatcher extends ExceptionCatcher<DumbException> {

@@ -1,5 +1,6 @@
 import 'package:change_case/change_case.dart';
 import 'package:code_builder/code_builder.dart';
+import 'package:revali_annotations/revali_annotations.dart' show DI;
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_server/revali_server.dart';
@@ -12,13 +13,18 @@ PartFile routeFileMaker(
     (p) => p
       ..name = route.handlerName
       ..returns = refer('Route')
-      ..requiredParameters.add(
+      ..requiredParameters.addAll([
         Parameter(
           (b) => b
             ..name = route.className.toCamelCase()
             ..type = refer(route.className),
         ),
-      )
+        Parameter(
+          (b) => b
+            ..name = 'di'
+            ..type = refer('$DI'),
+        ),
+      ])
       ..body = Block.of([
         refer('Route')
             .newInstance([
@@ -252,7 +258,7 @@ Expression createParamArg(
   }
 
   if (annotation.dep) {
-    return refer('DI').property('instance').property('get').call([]);
+    return refer('di').property('get').call([]);
   }
 
   if (annotation.body case final body?) {
