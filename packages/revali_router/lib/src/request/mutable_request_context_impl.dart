@@ -1,57 +1,31 @@
-import 'package:collection/collection.dart';
+import 'package:revali_router/src/body/mutable_body_impl.dart';
+import 'package:revali_router/src/body/read_only_body.dart';
+import 'package:revali_router/src/headers/mutable_headers.dart';
+import 'package:revali_router/src/headers/mutable_headers_impl.dart';
 import 'package:revali_router/src/request/mutable_request_context.dart';
-import 'package:revali_router/src/request/parts/payload.dart';
 import 'package:revali_router/src/request/request_context.dart';
+import 'package:revali_router/src/request/request_context_impl.dart';
 
 // ignore: must_be_immutable
-class MutableRequestContextImpl extends RequestContext
+class MutableRequestContextImpl extends RequestContextImpl
     implements MutableRequestContext {
-  MutableRequestContextImpl.from(RequestContext request)
-      : _headers = Map.from(request.headers),
+  MutableRequestContextImpl.fromRequest(RequestContext request)
+      : headers = MutableHeadersImpl.from(request.headers),
+        body = MutableBodyImpl.fromPayload(request.payload),
         super.self(request);
 
-  final Map<String, String> _headers;
-
-  Map<String, String> get headers => Map.unmodifiable(_headers);
-
-  void setHeader(String key, String value) {
-    _headers[key] = value;
-  }
-
-  /// Removed the header with case-insensitive name [name].
-  ///
-  /// Returns a new map without modifying [headers].
-  void removeHeader(String name) {
-    _headers
-        .removeWhere((header, value) => equalsIgnoreAsciiCase(header, name));
-  }
+  final MutableHeaders headers;
+  final ReadOnlyBody body;
 
   MutableRequestContextImpl getRequestContext() {
     return this;
   }
 
-  String? _body;
-
-  @override
-  Future<String?> get body async {
-    if (_body != null) {
-      return _body;
-    }
-
-    final body = await super.body;
-    return _body = body;
-  }
-
-  void setPathParameters(Map<String, String> pathParameters) {
-    _pathParameters = Map.from(pathParameters);
-  }
-
+  Map<String, String>? _pathParameters;
   @override
   Map<String, String> get pathParameters =>
       Map.unmodifiable(_pathParameters ?? {});
-  Map<String, String>? _pathParameters;
-
-  Future<void> overrideBody(Object? event) async {
-    _body = await Payload(event, encoding).readAsString();
+  void set pathParameters(Map<String, String> pathParameters) {
+    _pathParameters = Map.from(pathParameters);
   }
 }

@@ -6,11 +6,4 @@ abstract class MutableResponseContext
 
   int get statusCode;
   void set statusCode(int value);
-
-  Map<String, dynamic>? get body;
-
-  /// The value to be set as the body of the response
-  ///
-  /// The body will be nested under the `data` key in the response
-  void set body(Object? value);
 }

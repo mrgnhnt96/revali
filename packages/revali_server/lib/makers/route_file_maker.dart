@@ -67,10 +67,10 @@ Spec createChildRoute(ServerChildRoute route, ServerParentRoute parent) {
   }
 
   for (final setHeader in headers) {
-    response = response?.cascade('setHeader').call([
-      literalString(setHeader.name),
-      literalString(setHeader.value),
-    ]);
+    response = response
+        ?.cascade('headers')
+        .index(literalString(setHeader.name))
+        .assign(literalString(setHeader.value));
   }
 
   if ('$response' == '$ogResponse') {
@@ -262,27 +262,19 @@ Expression createParamArg(
   }
 
   if (annotation.body case final body?) {
-    final bodyVar = refer('context')
+    var bodyVar = refer('context')
         .property('request')
         .property('body')
-        .awaited
-        .parenthesized;
-
-    var json = refer('jsonDecode')
-        .call([bodyVar.ifNullThen(literalString(''))]).asA(TypeReference(
-      (p) => p
-        ..symbol = 'Map'
-        ..types.addAll([refer('String'), refer('dynamic')]),
-    ));
+        .property('asJson');
 
     if (body.access case final access?) {
       for (final part in access) {
-        json = json.index(literalString(part));
+        bodyVar = bodyVar.index(literalString(part));
 
         final acceptsNull = body.acceptsNull;
         if ((acceptsNull != null && !acceptsNull) ||
             (!param.isNullable && body.pipe == null)) {
-          json = json
+          bodyVar = bodyVar
               // TODO(MRGNHNT): Throw custom exception here
               .ifNullThen(literalString('Missing value!').thrown.parenthesized);
         }
@@ -291,10 +283,10 @@ Expression createParamArg(
     if (body.pipe case final pipe?) {
       final pipeClass = createClass(pipe.pipe);
 
-      return pipeClass.property('transform').call([json]);
+      return pipeClass.property('transform').call([bodyVar]);
     }
 
-    return json;
+    return bodyVar;
   }
 
   if (annotation.param case final paramAnnotation?) {

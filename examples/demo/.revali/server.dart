@@ -49,7 +49,7 @@ Future<HttpServer> createServer() async {
         context,
         routes: [
           ..._routes,
-          public,
+          ...public,
         ],
         reflects: reflects,
         globalModifiers: RouteModifiers(catchers: [DumbExceptionCatcher()]),
@@ -91,7 +91,4 @@ Set<Reflect> get reflects => {
       )
     };
 
-Route get public => Route(
-      'public',
-      routes: [Route('favicon.png')],
-    );
+List<Route> get public => [Route('favicon.png')];

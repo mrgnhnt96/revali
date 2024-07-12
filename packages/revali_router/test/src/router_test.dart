@@ -1,13 +1,15 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:mockito/mockito.dart';
-import 'package:revali_router/src/request/parts/request.dart';
-import 'package:revali_router/src/request/request_context.dart';
+import 'package:revali_router/src/request/request_context_impl.dart';
 import 'package:revali_router/src/route/route.dart';
 import 'package:revali_router/src/router.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('$Router', () {
-    late Request _fakeRequest;
+    late HttpRequest _fakeRequest;
 
     setUp(() {
       _fakeRequest = _FakeRequest();
@@ -16,7 +18,7 @@ void main() {
     group('#find', () {
       test('should return null if no routes are provided', () {
         final router = Router(
-          RequestContext(_fakeRequest),
+          RequestContextImpl.fromRequest(_fakeRequest),
           routes: [],
         );
 
@@ -31,7 +33,7 @@ void main() {
 
       test('should return null if no routes match', () {
         final router = Router(
-          RequestContext(_fakeRequest),
+          RequestContextImpl.fromRequest(_fakeRequest),
           routes: [
             Route(
               'user',
@@ -57,7 +59,7 @@ void main() {
           handler: (_) async {},
         );
         final router = Router(
-          RequestContext(_fakeRequest),
+          RequestContextImpl.fromRequest(_fakeRequest),
           routes: [getter],
         );
 
@@ -80,7 +82,7 @@ void main() {
           routes: [],
         );
         final router = Router(
-          RequestContext(_fakeRequest),
+          RequestContextImpl.fromRequest(_fakeRequest),
           routes: [getter],
         );
 
@@ -101,7 +103,7 @@ void main() {
           handler: (_) async {},
         );
         final router = Router(
-          RequestContext(_fakeRequest),
+          RequestContextImpl.fromRequest(_fakeRequest),
           routes: [
             Route(
               'user',
@@ -131,7 +133,7 @@ void main() {
           handler: (_) async {},
         );
         final router = Router(
-          RequestContext(_fakeRequest),
+          RequestContextImpl.fromRequest(_fakeRequest),
           routes: [
             Route(
               'user',
@@ -159,7 +161,7 @@ void main() {
         );
 
         final router = Router(
-          RequestContext(_fakeRequest),
+          RequestContextImpl.fromRequest(_fakeRequest),
           routes: [
             Route(
               'user',
@@ -195,7 +197,7 @@ void main() {
           );
 
           final router = Router(
-            RequestContext(_fakeRequest),
+            RequestContextImpl.fromRequest(_fakeRequest),
             routes: [
               Route(
                 'user',
@@ -224,7 +226,7 @@ void main() {
           );
 
           final router = Router(
-            RequestContext(_fakeRequest),
+            RequestContextImpl.fromRequest(_fakeRequest),
             routes: [
               Route(
                 'user',
@@ -260,7 +262,7 @@ void main() {
           );
 
           final router = Router(
-            RequestContext(_fakeRequest),
+            RequestContextImpl.fromRequest(_fakeRequest),
             routes: [
               Route(
                 'user',
@@ -301,7 +303,7 @@ void main() {
           );
 
           final router = Router(
-            RequestContext(_fakeRequest),
+            RequestContextImpl.fromRequest(_fakeRequest),
             routes: [
               Route(
                 'user',
@@ -348,7 +350,7 @@ void main() {
           );
 
           final router = Router(
-            RequestContext(_fakeRequest),
+            RequestContextImpl.fromRequest(_fakeRequest),
             routes: [
               Route(
                 'user',
@@ -370,7 +372,19 @@ void main() {
   });
 }
 
-class _FakeRequest extends Fake implements Request {
+class _FakeRequest extends Fake implements HttpRequest {
   @override
-  Map<String, String> get headers => const {};
+  Future<List<Uint8List>> toList() {
+    return Future.value([]);
+  }
+
+  @override
+  HttpHeaders get headers => _FakeHeaders();
+}
+
+class _FakeHeaders extends Fake implements HttpHeaders {
+  @override
+  String? value(String name) {
+    return null;
+  }
 }

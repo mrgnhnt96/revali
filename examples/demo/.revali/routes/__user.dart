@@ -24,13 +24,6 @@ Route user(
         },
         method: 'GET',
         handler: (context) async {
-          context.response
-            ..statusCode = 201
-            ..setHeader(
-              'method',
-              'hi',
-            );
-
           final result = await thisController.getNewPerson(
             name: NamePipe().transform(
               context.request.queryParameters['name'] ??
@@ -56,9 +49,8 @@ Route user(
               name: 'myName',
               type: String,
             )),
-            data: (jsonDecode((await context.request.body) ?? '')
-                    as Map<String, dynamic>)['name'] ??
-                (throw 'Missing value!'),
+            data:
+                context.request.body.asJson['name'] ?? (throw 'Missing value!'),
           );
         },
       ),

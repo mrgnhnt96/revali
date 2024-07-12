@@ -1,9 +1,12 @@
+import 'package:revali_router/src/body/read_only_body.dart';
+import 'package:revali_router/src/headers/read_only_headers.dart';
+
 abstract class ReadOnlyRequestContext {
   const ReadOnlyRequestContext();
 
-  Map<String, String> get headers;
+  ReadOnlyHeaders get headers;
 
-  Future<String?> get body;
+  ReadOnlyBody get body;
 
   Map<String, String> get queryParameters;
 

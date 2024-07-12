@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:equatable/equatable.dart';
@@ -20,10 +19,12 @@ import 'package:revali_router/src/middleware/middleware_context_impl.dart';
 import 'package:revali_router/src/reflect/reflect.dart';
 import 'package:revali_router/src/reflect/reflect_handler.dart';
 import 'package:revali_router/src/request/mutable_request_context_impl.dart';
-import 'package:revali_router/src/request/parts/response.dart';
-import 'package:revali_router/src/request/parts/web_socket_response.dart';
 import 'package:revali_router/src/request/request_context.dart';
+import 'package:revali_router/src/request/request_context_impl.dart';
+import 'package:revali_router/src/request/web_socket_request_context.dart';
+import 'package:revali_router/src/response/canned_response.dart';
 import 'package:revali_router/src/response/mutable_response_context_impl.dart';
+import 'package:revali_router/src/response/read_only_response_context.dart';
 import 'package:revali_router/src/route/route.dart';
 import 'package:revali_router/src/route/route_match.dart';
 import 'package:revali_router/src/route/route_modifiers.dart';
@@ -39,7 +40,7 @@ class Router extends Equatable {
   })  : _reflects = reflects,
         _globalModifiers = globalModifiers;
 
-  const Router(
+  Router(
     RequestContext context, {
     required List<Route> routes,
     RouteModifiers? globalModifiers,
@@ -51,13 +52,13 @@ class Router extends Equatable {
           reflects: reflects,
         );
 
-  Router.request(
+  Router.forRequest(
     HttpRequest request, {
     required List<Route> routes,
     RouteModifiers? globalModifiers,
     Set<Reflect> reflects = const {},
   }) : this._(
-          RequestContext.from(request),
+          RequestContextImpl.fromRequest(request),
           routes: routes,
           globalModifiers: globalModifiers,
           reflects: reflects,
@@ -68,8 +69,10 @@ class Router extends Equatable {
   final Set<Reflect> _reflects;
   final RouteModifiers? _globalModifiers;
 
-  Future<Response> handle() async {
-    final request = MutableRequestContextImpl.from(this.context);
+  Future<ReadOnlyResponseContext> handle() async {
+    final request = MutableRequestContextImpl.fromRequest(context);
+    await request.resolvePayload();
+
     final segments = request.segments;
 
     final match = find(
@@ -79,26 +82,25 @@ class Router extends Equatable {
     );
 
     if (match == null) {
-      return Response.notFound('Failed to find ${segments.join('/')}');
+      return CannedResponse.notFound(
+          body: 'Failed to find ${segments.join('/')}');
     }
 
     final RouteMatch(:route, :pathParameters) = match;
 
     if (route.redirect case final redirect?) {
-      return Response(
-        redirect.code,
-        headers: {
-          'Location': redirect.path,
-        },
+      return CannedResponse.redirect(
+        redirect.path,
+        statusCode: redirect.code,
       );
     }
 
-    request.setPathParameters(pathParameters);
+    request.pathParameters = pathParameters;
 
     final response = MutableResponseContextImpl();
 
     if (route.isPublicFile) {
-      return await _serverPublicFile(route, response) ?? response.get();
+      return await _serverPublicFile(route, response) ?? response;
     }
 
     final globalModifiers = _globalModifiers ?? RouteModifiers();
@@ -123,7 +125,7 @@ class Router extends Equatable {
       return result;
     } catch (e) {
       if (e is! Exception) {
-        return Response.internalServerError();
+        return CannedResponse.internalServerError();
       }
 
       final catchers = [
@@ -155,20 +157,21 @@ class Router extends Equatable {
           final (statusCode, headers, body) =
               result.asHandled.getResponseOverrides();
 
-          return response.overrideWith(
-            statusCode: statusCode,
-            defaultStatusCode: 500,
-            headers: headers,
-            body: body,
-          );
+          return response
+            .._overrideWith(
+              statusCode: statusCode,
+              backupCode: 500,
+              headers: headers,
+              body: body,
+            );
         }
       }
 
-      return Response.internalServerError();
+      return CannedResponse.internalServerError();
     }
   }
 
-  Future<Response> execute({
+  Future<ReadOnlyResponseContext> execute({
     required Route route,
     required RouteModifiers globalModifiers,
     required MutableRequestContextImpl request,
@@ -180,7 +183,7 @@ class Router extends Equatable {
   }) async {
     final handler = route.handler;
     if (handler == null) {
-      return Response.notFound(null);
+      return CannedResponse.notFound();
     }
 
     final middlewares = [
@@ -201,12 +204,13 @@ class Router extends Equatable {
         final (statusCode, headers, body) =
             result.asStop.getResponseOverrides();
 
-        return response.overrideWith(
-          statusCode: statusCode,
-          defaultStatusCode: 400,
-          headers: headers,
-          body: jsonEncode(body),
-        );
+        return response
+          .._overrideWith(
+            statusCode: statusCode,
+            backupCode: 400,
+            headers: headers,
+            body: body,
+          );
       }
     }
 
@@ -231,12 +235,14 @@ class Router extends Equatable {
 
       if (result.isNo) {
         final (statusCode, headers, body) = result.asNo.getResponseOverrides();
-        return response.overrideWith(
-          statusCode: statusCode,
-          defaultStatusCode: 403,
-          headers: headers,
-          body: body,
-        );
+
+        return response
+          .._overrideWith(
+            statusCode: statusCode,
+            backupCode: 403,
+            headers: headers,
+            body: body,
+          );
       }
     }
 
@@ -288,33 +294,36 @@ class Router extends Equatable {
 
     if (route.isWebSocket) {
       WebSocket webSocket;
+      WebSocketRequestContext request;
       try {
-        webSocket = await context.upgradeToWebSocket();
+        final result = await context.upgradeToWebSocket();
+        webSocket = result.$1;
+        request = result.$2;
       } catch (e) {
-        return Response.internalServerError();
+        return CannedResponse.internalServerError();
       }
 
       final sub = webSocket.listen((event) async {
-        response.clearBody();
+        response.body = null;
         await request.overrideBody(event);
 
         await run();
 
         final body = response.body;
-        if (body == null || body.isEmpty) {
+        if (body.isNull) {
           return;
         }
 
-        webSocket.add(utf8.encode(jsonEncode(body)));
+        webSocket.add(body.read());
       });
 
       await sub.asFuture();
 
-      return WebSocketStopResponse();
+      return CannedResponse.webSocket();
     }
 
     await run();
-    return response.get();
+    return response;
   }
 
   RouteMatch? find({
@@ -436,23 +445,25 @@ class Router extends Equatable {
   @override
   List<Object?> get props => _$props;
 
-  Future<Response?> _serverPublicFile(
-      Route route, MutableResponseContextImpl response) async {
+  Future<ReadOnlyResponseContext?> _serverPublicFile(
+    Route route,
+    MutableResponseContextImpl response,
+  ) async {
     final path = await File(route.fullPath).resolveSymbolicLinks();
 
     final file = File(path);
     if (!file.existsSync()) {
-      return Response.notFound('Not Found');
+      return CannedResponse.notFound();
     }
     final stat = file.statSync();
-    final ifModifiedSince = context.ifModifiedSince;
+    final ifModifiedSince = context.headers.ifModifiedSince;
 
     if (ifModifiedSince != null) {
       final fileChangeAtSecResolution = stat.modified.toSecondResolution();
       if (!fileChangeAtSecResolution.isAfter(ifModifiedSince)) {
-        response
-          ..removeHeader(HttpHeaders.contentLengthHeader)
-          ..setHeader(
+        response.headers
+          ..remove(HttpHeaders.contentLengthHeader)
+          ..set(
             HttpHeaders.contentLengthHeader,
             formatHttpDate(DateTime.now()),
           );
@@ -464,90 +475,30 @@ class Router extends Equatable {
     final entityType = FileSystemEntity.typeSync(path);
     if (entityType == FileSystemEntityType.notFound ||
         entityType != FileSystemEntityType.file) {
-      return Response.notFound('Not Found');
+      return CannedResponse.notFound();
     }
 
     final contentType = MimeTypeResolver().lookup(path);
 
-    response
-      ..setHeader(
+    response.headers
+      ..set(
         HttpHeaders.lastModifiedHeader,
         formatHttpDate(stat.modified),
       )
-      ..setHeader(
+      ..set(
         HttpHeaders.acceptRangesHeader,
         'bytes',
       )
-      ..setHeader(HttpHeaders.contentLengthHeader, '${stat.size}');
+      ..set(
+        HttpHeaders.contentLengthHeader,
+        '${stat.size}',
+      );
 
     if (contentType != null) {
-      response.setHeader(
-        HttpHeaders.contentTypeHeader,
-        contentType,
-      );
+      response.headers[HttpHeaders.contentTypeHeader] = contentType;
     }
 
-    return Response.notFound('Not Found');
-  }
-
-  /// Serves a range of [file], if [request] is valid 'bytes' range request.
-  ///
-  /// If the request does not specify a range, specifies a range of the wrong
-  /// type, or has a syntactic error the range is ignored and `null` is returned.
-  ///
-  /// If the range request is valid but the file is not long enough to include the
-  /// start of the range a range not satisfiable response is returned.
-  ///
-  /// Ranges that end past the end of the file are truncated.
-  Response? _fileRangeResponse(
-    RequestContext request,
-    File file,
-    Map<String, Object> headers,
-  ) {
-    final _bytesMatcher = RegExp(r'^bytes=(\d*)-(\d*)$');
-
-    final range = request.headers[HttpHeaders.rangeHeader];
-    if (range == null) return null;
-    final matches = _bytesMatcher.firstMatch(range);
-    // Ignore ranges other than bytes
-    if (matches == null) return null;
-
-    final actualLength = file.lengthSync();
-    final startMatch = matches[1]!;
-    final endMatch = matches[2]!;
-    if (startMatch.isEmpty && endMatch.isEmpty) return null;
-
-    int start; // First byte position - inclusive.
-    int end; // Last byte position - inclusive.
-    if (startMatch.isEmpty) {
-      start = actualLength - int.parse(endMatch);
-      if (start < 0) start = 0;
-      end = actualLength - 1;
-    } else {
-      start = int.parse(startMatch);
-      end = endMatch.isEmpty ? actualLength - 1 : int.parse(endMatch);
-    }
-
-    // If the range is syntactically invalid the Range header
-    // MUST be ignored (RFC 2616 section 14.35.1).
-    if (start > end) return null;
-
-    if (end >= actualLength) {
-      end = actualLength - 1;
-    }
-    if (start >= actualLength) {
-      return Response(
-        HttpStatus.requestedRangeNotSatisfiable,
-        headers: headers,
-      );
-    }
-    return Response(
-      HttpStatus.partialContent,
-      body: request.method == 'HEAD' ? null : file.openRead(start, end + 1),
-      headers: headers
-        ..[HttpHeaders.contentLengthHeader] = (end - start + 1).toString()
-        ..[HttpHeaders.contentRangeHeader] = 'bytes $start-$end/$actualLength',
-    );
+    return CannedResponse.notFound();
   }
 }
 
@@ -555,5 +506,24 @@ extension _DateTimeX on DateTime {
   DateTime toSecondResolution() {
     if (millisecond == 0) return this;
     return subtract(Duration(milliseconds: millisecond));
+  }
+}
+
+extension _MutableResponseX on MutableResponseContextImpl {
+  void _overrideWith({
+    required int? statusCode,
+    required int backupCode,
+    required Map<String, String>? headers,
+    required Object? body,
+  }) {
+    if (body != null) {
+      this.body = body;
+    }
+
+    this.statusCode = statusCode ?? backupCode;
+
+    if (headers != null) {
+      this.headers.addAll(headers);
+    }
   }
 }
