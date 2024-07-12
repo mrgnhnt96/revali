@@ -17,6 +17,7 @@ export 'models/meta_app_config.dart';
 export 'models/meta_method.dart';
 export 'models/meta_middleware.dart';
 export 'models/meta_param.dart';
+export 'models/meta_public.dart';
 export 'models/meta_return_type.dart';
 export 'models/meta_route.dart';
 export 'models/meta_server.dart';

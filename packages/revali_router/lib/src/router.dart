@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:equatable/equatable.dart';
+import 'package:http_parser/http_parser.dart';
+import 'package:mime/mime.dart';
 import 'package:revali_router/src/data/data_handler.dart';
 import 'package:revali_router/src/endpoint/endpoint_context_impl.dart';
 import 'package:revali_router/src/exception_catcher/exception_catcher_action.dart';
@@ -93,8 +95,13 @@ class Router extends Equatable {
 
     request.setPathParameters(pathParameters);
 
-    final globalModifiers = _globalModifiers ?? RouteModifiers();
     final response = MutableResponseContextImpl();
+
+    if (route.isPublicFile) {
+      return await _serverPublicFile(route, response) ?? response.get();
+    }
+
+    final globalModifiers = _globalModifiers ?? RouteModifiers();
     final directMeta = route.getMeta();
     final inheritedMeta = route.getMeta(inherit: true);
     globalModifiers.getMeta(handler: inheritedMeta);
@@ -331,8 +338,8 @@ class Router extends Equatable {
         final _remainingPathSegments = pathSegments.skip(parts.length).toList();
 
         if (_remainingPathSegments.isEmpty &&
-            parent.canInvoke &&
-            parent.method == method) {
+                (parent.canInvoke && parent.method == method) ||
+            parent.isPublicFile) {
           return RouteMatch(
             route: parent,
             pathParameters: pathParameters,
@@ -428,4 +435,125 @@ class Router extends Equatable {
 
   @override
   List<Object?> get props => _$props;
+
+  Future<Response?> _serverPublicFile(
+      Route route, MutableResponseContextImpl response) async {
+    final path = await File(route.fullPath).resolveSymbolicLinks();
+
+    final file = File(path);
+    if (!file.existsSync()) {
+      return Response.notFound('Not Found');
+    }
+    final stat = file.statSync();
+    final ifModifiedSince = context.ifModifiedSince;
+
+    if (ifModifiedSince != null) {
+      final fileChangeAtSecResolution = stat.modified.toSecondResolution();
+      if (!fileChangeAtSecResolution.isAfter(ifModifiedSince)) {
+        response
+          ..removeHeader(HttpHeaders.contentLengthHeader)
+          ..setHeader(
+            HttpHeaders.contentLengthHeader,
+            formatHttpDate(DateTime.now()),
+          );
+
+        throw UnimplementedError();
+      }
+    }
+
+    final entityType = FileSystemEntity.typeSync(path);
+    if (entityType == FileSystemEntityType.notFound ||
+        entityType != FileSystemEntityType.file) {
+      return Response.notFound('Not Found');
+    }
+
+    final contentType = MimeTypeResolver().lookup(path);
+
+    response
+      ..setHeader(
+        HttpHeaders.lastModifiedHeader,
+        formatHttpDate(stat.modified),
+      )
+      ..setHeader(
+        HttpHeaders.acceptRangesHeader,
+        'bytes',
+      )
+      ..setHeader(HttpHeaders.contentLengthHeader, '${stat.size}');
+
+    if (contentType != null) {
+      response.setHeader(
+        HttpHeaders.contentTypeHeader,
+        contentType,
+      );
+    }
+
+    return Response.notFound('Not Found');
+  }
+
+  /// Serves a range of [file], if [request] is valid 'bytes' range request.
+  ///
+  /// If the request does not specify a range, specifies a range of the wrong
+  /// type, or has a syntactic error the range is ignored and `null` is returned.
+  ///
+  /// If the range request is valid but the file is not long enough to include the
+  /// start of the range a range not satisfiable response is returned.
+  ///
+  /// Ranges that end past the end of the file are truncated.
+  Response? _fileRangeResponse(
+    RequestContext request,
+    File file,
+    Map<String, Object> headers,
+  ) {
+    final _bytesMatcher = RegExp(r'^bytes=(\d*)-(\d*)$');
+
+    final range = request.headers[HttpHeaders.rangeHeader];
+    if (range == null) return null;
+    final matches = _bytesMatcher.firstMatch(range);
+    // Ignore ranges other than bytes
+    if (matches == null) return null;
+
+    final actualLength = file.lengthSync();
+    final startMatch = matches[1]!;
+    final endMatch = matches[2]!;
+    if (startMatch.isEmpty && endMatch.isEmpty) return null;
+
+    int start; // First byte position - inclusive.
+    int end; // Last byte position - inclusive.
+    if (startMatch.isEmpty) {
+      start = actualLength - int.parse(endMatch);
+      if (start < 0) start = 0;
+      end = actualLength - 1;
+    } else {
+      start = int.parse(startMatch);
+      end = endMatch.isEmpty ? actualLength - 1 : int.parse(endMatch);
+    }
+
+    // If the range is syntactically invalid the Range header
+    // MUST be ignored (RFC 2616 section 14.35.1).
+    if (start > end) return null;
+
+    if (end >= actualLength) {
+      end = actualLength - 1;
+    }
+    if (start >= actualLength) {
+      return Response(
+        HttpStatus.requestedRangeNotSatisfiable,
+        headers: headers,
+      );
+    }
+    return Response(
+      HttpStatus.partialContent,
+      body: request.method == 'HEAD' ? null : file.openRead(start, end + 1),
+      headers: headers
+        ..[HttpHeaders.contentLengthHeader] = (end - start + 1).toString()
+        ..[HttpHeaders.contentRangeHeader] = 'bytes $start-$end/$actualLength',
+    );
+  }
+}
+
+extension _DateTimeX on DateTime {
+  DateTime toSecondResolution() {
+    if (millisecond == 0) return this;
+    return subtract(Duration(milliseconds: millisecond));
+  }
 }

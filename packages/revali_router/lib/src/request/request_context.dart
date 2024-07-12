@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:autoequal/autoequal.dart';
 import 'package:equatable/equatable.dart';
+import 'package:http_parser/http_parser.dart';
 import 'package:revali_router/src/request/parts/request.dart';
 
 part 'request_context.g.dart';
@@ -56,5 +57,10 @@ class RequestContext extends Equatable {
 
   Future<WebSocket> upgradeToWebSocket({Duration? ping}) {
     return _request.upgradeToWebSocket(ping: ping);
+  }
+
+  DateTime? get ifModifiedSince {
+    if (!headers.containsKey('if-modified-since')) return null;
+    return parseHttpDate(headers['if-modified-since']!);
   }
 }

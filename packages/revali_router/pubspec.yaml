@@ -11,6 +11,7 @@ dependencies:
     copy_with_extension: ^5.0.4
     equatable: ^2.0.5
     http_parser: ^4.1.0
+    mime: ^1.0.5
 
 dev_dependencies:
     autoequal_gen: ^0.9.1

@@ -47,7 +47,10 @@ Future<HttpServer> createServer() async {
 
       final router = Router(
         context,
-        routes: _routes,
+        routes: [
+          ..._routes,
+          public,
+        ],
         reflects: reflects,
         globalModifiers: RouteModifiers(catchers: [DumbExceptionCatcher()]),
       );
@@ -87,3 +90,8 @@ Set<Reflect> get reflects => {
         },
       )
     };
+
+Route get public => Route(
+      'public',
+      routes: [Route('favicon.png')],
+    );

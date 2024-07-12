@@ -2,6 +2,7 @@ import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_server/converters/server_app.dart';
 import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_parent_route.dart';
+import 'package:revali_server/converters/server_public.dart';
 import 'package:revali_server/converters/server_reflect.dart';
 import 'package:revali_server/utils/extract_import.dart';
 
@@ -9,6 +10,7 @@ class ServerServer with ExtractImport {
   ServerServer({
     required this.routes,
     required this.apps,
+    required this.public,
     required this.context,
   });
 
@@ -17,11 +19,13 @@ class ServerServer with ExtractImport {
       context: context,
       routes: server.routes.map((e) => ServerParentRoute.fromMeta(e)).toList(),
       apps: server.apps.map((e) => ServerApp.fromMeta(e)).toList(),
+      public: server.public.map((e) => ServerPublic.fromMeta(e)).toList(),
     );
   }
 
   final List<ServerParentRoute> routes;
   final List<ServerApp> apps;
+  final List<ServerPublic> public;
   final RevaliContext context;
 
   ServerApp? get app {

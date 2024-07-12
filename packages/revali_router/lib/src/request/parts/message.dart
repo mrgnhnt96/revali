@@ -140,6 +140,24 @@ abstract class Message {
   /// This calls [read] internally, which can only be called once.
   Future<String> readAsString([Encoding? encoding]) =>
       _body.readAsString(encoding);
+
+  /// If this is non-`null` and the requested resource hasn't been modified
+  /// since this date and time, the server should return a 304 Not Modified
+  /// response.
+  ///
+  /// This is parsed from the If-Modified-Since header in [headers]. If
+  /// [headers] doesn't have an If-Modified-Since header, this will be `null`.
+  ///
+  /// Throws [FormatException], if incoming HTTP request has an invalid
+  /// If-Modified-Since header.
+  DateTime? get ifModifiedSince {
+    if (_ifModifiedSinceCache != null) return _ifModifiedSinceCache;
+    if (!headers.containsKey('if-modified-since')) return null;
+    _ifModifiedSinceCache = parseHttpDate(headers['if-modified-since']!);
+    return _ifModifiedSinceCache;
+  }
+
+  DateTime? _ifModifiedSinceCache;
 }
 
 /// Adds information about [encoding] to [headers].

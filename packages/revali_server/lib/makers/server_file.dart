@@ -34,23 +34,6 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
       ]),
   );
 
-  final reflects = Method(
-    (p) => p
-      ..name = 'reflects'
-      ..lambda = true
-      ..type = MethodType.getter
-      ..returns = TypeReference(
-        (b) => b
-          ..symbol = 'Set'
-          ..types.add(refer('Reflect')),
-      )
-      ..body = Block.of([
-        literalSet([
-          for (final reflect in server.reflects) createReflect(reflect),
-        ]).statement,
-      ]),
-  );
-
   final createServer = Method(
     (b) => b
       ..name = 'createServer'
@@ -132,7 +115,10 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
                       .assign(refer('Router').newInstance(
                         [refer('context')],
                         {
-                          'routes': refer('_routes'),
+                          'routes': literalList([
+                            refer('_routes').spread,
+                            refer('public').spread,
+                          ]),
                           'reflects': refer('reflects'),
                           if (server.app case final app?
                               when app.globalRouteAnnotations.hasAnnotations)
@@ -186,11 +172,47 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
       ]).statement,
     ]));
 
+  final reflects = Method(
+    (p) => p
+      ..name = 'reflects'
+      ..lambda = true
+      ..type = MethodType.getter
+      ..returns = TypeReference(
+        (b) => b
+          ..symbol = 'Set'
+          ..types.add(refer('Reflect')),
+      )
+      ..body = Block.of([
+        literalSet([
+          for (final reflect in server.reflects) createReflect(reflect),
+        ]).statement,
+      ]),
+  );
+
+  final publics = Method(
+    (p) => p
+      ..name = 'public'
+      ..lambda = true
+      ..type = MethodType.getter
+      ..returns = TypeReference(
+        (b) => b
+          ..symbol = 'List'
+          ..types.add(refer('Route')),
+      )
+      ..body = Block.of([
+        literalList([
+          for (final public in server.public)
+            refer('Route').newInstance([literalString(public.path)]),
+        ]).statement,
+      ]),
+  );
+
   final parts = <Spec>[
     main,
     createServer,
     routes,
     reflects,
+    publics,
   ];
 
   final content = parts.map(formatter).join('\n');

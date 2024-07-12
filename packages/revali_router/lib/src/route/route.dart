@@ -46,6 +46,7 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
           method: method?.toUpperCase(),
           redirect: redirect,
           combine: combine,
+          isPublicFile: false,
         );
 
   Route.webSocket(
@@ -75,6 +76,26 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
           redirect: redirect,
           combine: combine,
           ping: ping,
+          isPublicFile: false,
+        );
+
+  Route.public(String path)
+      : this._(
+          path,
+          parent: null,
+          isWebSocket: true,
+          handler: null,
+          method: 'GET',
+          routes: [],
+          middlewares: [],
+          interceptors: [],
+          guards: [],
+          catchers: [],
+          meta: null,
+          redirect: null,
+          combine: [],
+          ping: null,
+          isPublicFile: true,
         );
 
   Route._(
@@ -91,6 +112,7 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
     required this.isWebSocket,
     required List<CombineMeta> combine,
     required this.ping,
+    required this.isPublicFile,
     // dynamic is needed bc copyWith has a bug
     required meta,
   }) : _meta = meta as void Function(MetaHandler)? {
@@ -178,6 +200,7 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
   final void Function(MetaHandler)? _meta;
   final Redirect? redirect;
   final bool isWebSocket;
+  final bool isPublicFile;
   final Duration? ping;
 
   bool get isDynamic => segments.any((s) => s.startsWith(':'));

@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:revali_router/src/request/mutable_request_context.dart';
 import 'package:revali_router/src/request/parts/payload.dart';
 import 'package:revali_router/src/request/request_context.dart';
@@ -17,8 +18,12 @@ class MutableRequestContextImpl extends RequestContext
     _headers[key] = value;
   }
 
-  void removeHeader(String key) {
-    _headers.remove(key);
+  /// Removed the header with case-insensitive name [name].
+  ///
+  /// Returns a new map without modifying [headers].
+  void removeHeader(String name) {
+    _headers
+        .removeWhere((header, value) => equalsIgnoreAsciiCase(header, name));
   }
 
   MutableRequestContextImpl getRequestContext() {
