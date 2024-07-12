@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:collection/collection.dart';
 import 'package:revali_router/revali_router.dart';
+import 'package:revali_router/src/body/read_only_body.dart';
 import 'package:revali_router/src/headers/common_headers_mixin.dart';
 import 'package:revali_router/src/headers/mutable_headers.dart';
 
@@ -11,6 +14,14 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
   factory MutableHeadersImpl.from(Object? object) {
     if (object is MutableHeadersImpl) {
       return object;
+    } else if (object is HttpHeaders) {
+      final map = <String, List<String>>{};
+
+      object.forEach((key, values) {
+        map[key] = values;
+      });
+
+      return MutableHeadersImpl(map);
     }
 
     final Map<String, List<String>> converted = switch (object) {
@@ -86,11 +97,41 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
     }
   }
 
-  void prepareFor(int statusCode) {}
-
   void syncWith(ReadOnlyRequestContext request) {
     if (request.headers.encoding case final otherEncoding
         when encoding == otherEncoding) {}
+  }
+
+  @override
+  void reactToBody(ReadOnlyBody body) {
+    if (body.contentLength case final length) {
+      if (length == null) {
+        remove(HttpHeaders.contentLengthHeader);
+      } else {
+        set(HttpHeaders.contentLengthHeader, '$length');
+      }
+    }
+
+    // mimetype
+    if (body.mimeType case final mimeType) {
+      if (mimeType == null) {
+        remove(HttpHeaders.contentTypeHeader);
+      } else {
+        set(HttpHeaders.contentTypeHeader, mimeType);
+      }
+    }
+  }
+
+  @override
+  void reactToStatusCode(int code) {
+    switch (code) {
+      case HttpStatus.noContent:
+        remove(HttpHeaders.contentLengthHeader);
+        remove(HttpHeaders.contentTypeHeader);
+        break;
+      default:
+        break;
+    }
   }
 }
 

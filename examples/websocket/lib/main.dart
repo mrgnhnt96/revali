@@ -3,11 +3,12 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 void main() async {
-  _websocket();
-  // _post();
+  // _websocket();
+  _post();
 }
 
 Future<void> _websocket() async {
@@ -41,15 +42,31 @@ Future<void> _websocket() async {
 }
 
 Future<void> _post() async {
+  final dio = Dio()..options.baseUrl = 'http://localhost:8080/api';
   try {
-    final uri = Uri.parse('http://localhost:1234');
-    final request = await HttpClient().postUrl(uri);
-    // set body to {"message": "Hello, World!"}
-    request.write('{"message": "Hello, World!"}');
+    // stdin to send messages to the server.
+    final input = stdin.transform(utf8.decoder).transform(LineSplitter());
+    final uri = Uri.parse('/user/123?name=morgan');
 
-    final response = await request.close();
-    final body = await response.transform(utf8.decoder).join();
-    print(body);
+    await for (final line in input) {
+      final data = utf8.encode(
+        jsonEncode({
+          'name': line,
+        }),
+      );
+
+      final response = await dio.get(
+        uri.toString(),
+        data: data,
+        options: Options(
+          headers: {
+            HttpHeaders.contentTypeHeader: 'application/json',
+          },
+        ),
+      );
+
+      print(response.data);
+    }
   } catch (e) {
     print(e);
   }

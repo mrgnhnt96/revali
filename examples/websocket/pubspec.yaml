@@ -5,6 +5,7 @@ environment:
   sdk: ">=3.2.6 <4.0.0"
 
 dependencies:
+  dio: ^5.5.0+1
   revali_router:
     path: ../../packages/revali_router
   shelf: ^1.4.2

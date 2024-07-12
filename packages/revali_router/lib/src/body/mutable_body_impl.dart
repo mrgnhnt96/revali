@@ -13,9 +13,7 @@ class MutableBodyImpl implements MutableBody {
       Map<String, dynamic>() => JsonBodyData(object),
       List() => ListBodyData(object),
       null => null,
-      _ => throw ArgumentError(
-          'Unsupported data type for $BodyData: ${object.runtimeType}',
-        ),
+      Object() => JsonBodyData(jsonDecode(jsonEncode(object))),
     };
     return MutableBodyImpl(bodyData);
   }
@@ -73,8 +71,18 @@ class MutableBodyImpl implements MutableBody {
     _data = list;
   }
 
+  List<List<int>>? _bytes;
   @override
-  Stream<List<int>>? read() => _data?.read();
+  Stream<List<int>>? read() async* {
+    final bytes = this._bytes;
+    if (bytes != null) {
+      yield* Stream.fromIterable(bytes);
+    }
+
+    _bytes = await _data?.read().toList();
+
+    yield* Stream.fromIterable(_bytes!);
+  }
 
   @override
   int? get contentLength => _data?.contentLength;

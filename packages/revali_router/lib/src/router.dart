@@ -70,8 +70,10 @@ class Router extends Equatable {
   final RouteModifiers? _globalModifiers;
 
   Future<ReadOnlyResponseContext> handle() async {
+    if (context case final RequestContextImpl context) {
+      await context.resolvePayload();
+    }
     final request = MutableRequestContextImpl.fromRequest(context);
-    await request.resolvePayload();
 
     final segments = request.segments;
 
@@ -83,7 +85,7 @@ class Router extends Equatable {
 
     if (match == null) {
       return CannedResponse.notFound(
-          body: 'Failed to find ${segments.join('/')}');
+          body: 'Failed to find ${request.method}: ${segments.join('/')}');
     }
 
     final RouteMatch(:route, :pathParameters) = match;

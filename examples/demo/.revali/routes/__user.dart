@@ -17,11 +17,6 @@ Route user(
       ),
       Route(
         ':id',
-        catchers: [NotAuthCatcher('bye')],
-        combine: [AuthCombine()],
-        meta: (m) {
-          m..add(Role(AuthType.admin));
-        },
         method: 'GET',
         handler: (context) async {
           final result = await thisController.getNewPerson(
@@ -52,6 +47,8 @@ Route user(
             data:
                 context.request.body.asJson['name'] ?? (throw 'Missing value!'),
           );
+
+          context.response.body = result;
         },
       ),
       Route.webSocket(

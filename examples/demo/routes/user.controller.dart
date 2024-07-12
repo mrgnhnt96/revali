@@ -18,11 +18,11 @@ class ThisController {
   @Get()
   Future<void> listPeople() async {}
 
-  @AuthCombine()
+  // @AuthCombine()
   @HttpCode(201)
   @SetHeader('method', 'hi')
-  @NotAuthCatcher('bye')
-  @Role(AuthType.admin)
+  // @NotAuthCatcher('bye')
+  // @Role(AuthType.admin)
   @Get(':id')
   Future<User> getNewPerson({
     @Query.pipe(NamePipe) required String name,

@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:autoequal/autoequal.dart';
 import 'package:equatable/equatable.dart';
 import 'package:revali_router/revali_router.dart';
+import 'package:revali_router/src/body/mutable_body_impl.dart';
+import 'package:revali_router/src/body/read_only_body.dart';
 import 'package:revali_router/src/headers/mutable_headers_impl.dart';
 import 'package:revali_router/src/headers/read_only_headers.dart';
 import 'package:revali_router/src/request/parts/underlying_request.dart';
@@ -28,7 +30,7 @@ class RequestContextImpl with EquatableMixin implements RequestContext {
 
     return RequestContextImpl._noPayload(
       request,
-      payloadResolver: Payload(request, request.headers.encoding).readAsString,
+      payloadResolver: request.body.readAsString,
     );
   }
 
@@ -59,8 +61,10 @@ class RequestContextImpl with EquatableMixin implements RequestContext {
   @include
   String get method => request.method;
 
+  MutableHeadersImpl? _headers;
   @include
-  ReadOnlyHeaders get headers => MutableHeadersImpl.from(request.headers);
+  ReadOnlyHeaders get headers =>
+      _headers ??= MutableHeadersImpl.from(request.headers);
 
   @include
   Map<String, String> get queryParameters =>
@@ -106,5 +110,11 @@ class RequestContextImpl with EquatableMixin implements RequestContext {
     }
 
     return payload;
+  }
+
+  ReadOnlyBody? _body;
+  @override
+  ReadOnlyBody get body {
+    return _body ??= MutableBodyImpl.fromPayload(payload);
   }
 }

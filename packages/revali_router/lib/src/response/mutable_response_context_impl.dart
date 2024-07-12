@@ -5,20 +5,30 @@ import 'package:revali_router/src/headers/mutable_headers_impl.dart';
 import 'package:revali_router/src/response/mutable_response_context.dart';
 
 class MutableResponseContextImpl implements MutableResponseContext {
-  MutableResponseContextImpl();
+  MutableResponseContextImpl()
+      : _body = MutableBodyImpl(),
+        _headers = MutableHeadersImpl();
 
+  int _statusCode = 200;
   @override
-  int statusCode = 200;
+  int get statusCode => _statusCode;
+  void set statusCode(int value) {
+    _statusCode = value;
+    headers.reactToStatusCode(value);
+  }
 
+  final MutableBody _body;
   @override
-  MutableBody get body => MutableBodyImpl();
+  MutableBody get body => _body;
 
   void set body(Object? data) {
     body.replace(data);
+    headers.reactToBody(body);
   }
 
+  final MutableHeadersImpl _headers;
   @override
-  MutableHeaders get headers => MutableHeadersImpl();
+  MutableHeaders get headers => _headers;
 }
 
 // TODO(mrgnhnt): Implement the following methods

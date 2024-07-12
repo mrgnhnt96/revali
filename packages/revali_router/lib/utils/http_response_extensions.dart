@@ -37,9 +37,13 @@ extension HttpResponseX on HttpResponse {
       headers.date = DateTime.now().toUtc();
     }
 
-    body ??= Payload(response.body, encoding).read();
+    body ??= response.body?.read();
 
-    await addStream(body);
+    if (body != null) {
+      await addStream(body);
+    }
+
+    await flush();
     await close();
   }
 }
