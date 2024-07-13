@@ -2,12 +2,17 @@ import 'package:revali_router/src/body/mutable_body.dart';
 import 'package:revali_router/src/body/mutable_body_impl.dart';
 import 'package:revali_router/src/headers/mutable_headers.dart';
 import 'package:revali_router/src/headers/mutable_headers_impl.dart';
+import 'package:revali_router/src/headers/read_only_headers.dart';
 import 'package:revali_router/src/response/mutable_response_context.dart';
 
 class MutableResponseContextImpl implements MutableResponseContext {
-  MutableResponseContextImpl()
-      : _body = MutableBodyImpl(),
+  MutableResponseContextImpl({
+    required ReadOnlyHeaders requestHeaders,
+  })  : _requestHeaders = requestHeaders,
+        _body = MutableBodyImpl(),
         _headers = MutableHeadersImpl();
+
+  final ReadOnlyHeaders _requestHeaders;
 
   int _statusCode = 200;
   @override
@@ -34,6 +39,7 @@ class MutableResponseContextImpl implements MutableResponseContext {
 // TODO(mrgnhnt): Implement the following methods
 // ignore: unused_element
 const _a = '';
+
 /// Serves a range of [file], if [request] is valid 'bytes' range request.
 ///
 /// If the request does not specify a range, specifies a range of the wrong

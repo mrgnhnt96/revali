@@ -96,7 +96,8 @@ class Router extends Equatable {
 
     request.pathParameters = pathParameters;
 
-    final response = MutableResponseContextImpl();
+    final response =
+        MutableResponseContextImpl(requestHeaders: context.headers);
 
     if (route.isPublicFile) {
       return await _serverPublicFile(route, response) ?? response;

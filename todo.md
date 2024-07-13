@@ -1,23 +1,28 @@
 # TODO
 
-## 7.10.2024
+## 7.13.2024
 
-## Features
-
-- [x] Dependency injection for apps
-- [ ] CORs for apps ([docs](https://github.com/lenniezelk/shelf-cors-headers/blob/main/lib/src/shelf_cors_headers_base.dart#L52))
-- ~~[ ] Wildcard paths~~
-  - Maybe later...
-- [x] Web sockets
-- ~~[ ] Returning streams (not as web sockets)~~
+- [ ] Update headers when status code changes
+- [ ] Update headers when body changes
 - [ ] Returning files
+- [ ] CORs for apps ([docs](https://github.com/lenniezelk/shelf-cors-headers/blob/main/lib/src/shelf_cors_headers_base.dart#L52))
 - [ ] Public files
   - Routes will be automatically generated for these files
   - The files will be served from the `public` directory
 - [ ] Static files
   - Routes will _not_ be generated for these files
   - The idea is that the user will be able to return a "ServerFile" class with the path pointing to the file
-  
+
+## 7.10.2024
+
+## Features
+
+- [x] Dependency injection for apps
+- ~~[ ] Wildcard paths~~
+  - Maybe later...
+- [x] Web sockets
+- ~~[ ] Returning streams (not as web sockets)~~
+
 ## Try
 
 - [ ] Attempt to create a variable for combine types as an annotation
