@@ -1,7 +1,8 @@
-import 'package:revali_router/src/body/mutable_body_impl.dart';
+import 'package:revali_router/src/body/body_data.dart';
 import 'package:revali_router/src/body/read_only_body.dart';
 import 'package:revali_router/src/headers/mutable_headers_impl.dart';
 import 'package:revali_router/src/headers/read_only_headers.dart';
+import 'package:revali_router/src/response/mutable_response_context_impl.dart';
 import 'package:revali_router/src/response/read_only_response_context.dart';
 
 class CannedResponse {
@@ -19,7 +20,7 @@ class CannedResponse {
   }
 
   static ReadOnlyResponseContext internalServerError({
-    Object? body,
+    BodyData? body,
     Map<String, String> headers = const {},
   }) {
     return _Response(
@@ -56,12 +57,31 @@ class CannedResponse {
 }
 
 class _Response implements ReadOnlyResponseContext {
-  _Response(
-    this.statusCode, {
+  _Response._({
+    required this.statusCode,
+    required this.headers,
+    required this.body,
+  });
+
+  factory _Response(
+    int statusCode, {
     Map<String, String> headers = const {},
     Object? body,
-  })  : headers = MutableHeadersImpl.from(headers),
-        body = MutableBodyImpl.from(body);
+  }) {
+    final response =
+        MutableResponseContextImpl(requestHeaders: MutableHeadersImpl());
+    response.statusCode = statusCode;
+    response.headers.addAll(headers);
+    if (body != null) {
+      response.body = BodyData.from(body);
+    }
+
+    return _Response._(
+      statusCode: response.statusCode,
+      headers: response.headers,
+      body: response.body,
+    );
+  }
 
   @override
   final int statusCode;

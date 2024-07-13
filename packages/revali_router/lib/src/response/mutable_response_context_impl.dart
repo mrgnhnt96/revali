@@ -1,3 +1,4 @@
+import 'package:revali_router/src/body/body_data.dart';
 import 'package:revali_router/src/body/mutable_body.dart';
 import 'package:revali_router/src/body/mutable_body_impl.dart';
 import 'package:revali_router/src/headers/mutable_headers.dart';
@@ -24,10 +25,10 @@ class MutableResponseContextImpl implements MutableResponseContext {
 
   final MutableBody _body;
   @override
-  MutableBody get body => _body;
+  BodyData get body => _body;
 
-  void set body(Object? data) {
-    body.replace(data);
+  void set body(BodyData? newBody) {
+    _body.replace(newBody);
     headers.reactToBody(body);
   }
 

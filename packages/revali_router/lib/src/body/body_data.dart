@@ -1,9 +1,24 @@
 import 'dart:convert';
 
+import 'package:revali_router/src/body/read_only_body.dart';
 import 'package:revali_router/utils/types.dart';
 
-abstract class BodyData {
+abstract class BodyData extends ReadOnlyBody {
   BodyData();
+
+  factory BodyData.from(Object? data) {
+    return switch (data) {
+      BodyData() => data,
+      String() => StringBodyData(data),
+      Map<String, dynamic>() => JsonBodyData(data),
+      Map() => JsonBodyData({
+          for (final key in data.keys) '$key': data[key],
+        }),
+      Binary() => BinaryBodyData(data),
+      List() => ListBodyData(data),
+      _ => throw UnsupportedError('Unsupported body data type: $data'),
+    };
+  }
 
   bool get isBinary => this is BinaryBodyData;
   bool get isString => this is StringBodyData;
@@ -11,6 +26,7 @@ abstract class BodyData {
   bool get isList => this is ListBodyData;
   bool get isFormData => this is FormDataBodyData;
   bool get isUnknown => this is UnknownBodyData;
+  bool get isNull => false;
 
   BinaryBodyData get asBinary => this as BinaryBodyData;
   StringBodyData get asString => this as StringBodyData;
@@ -23,7 +39,7 @@ abstract class BodyData {
 
   Encoding encoding = utf8;
 
-  Stream<List<int>> read();
+  Stream<List<int>>? read();
 }
 
 sealed class BaseResponseBodyData<T> extends BodyData {

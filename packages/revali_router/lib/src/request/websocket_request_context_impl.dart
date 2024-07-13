@@ -6,18 +6,27 @@ import 'package:revali_router/src/request/web_socket_request_context.dart';
 
 class WebSocketRequestContextImpl extends MutableRequestContextImpl
     implements WebSocketRequestContext {
-  WebSocketRequestContextImpl.fromRequest(super.request)
-      : _body = MutableBodyImpl.from(request),
-        super.fromRequest();
+  WebSocketRequestContextImpl.fromRequest(MutableRequestContextImpl request)
+      : _originalBody = request.body,
+        super.fromRequest(request);
 
-  late final MutableBody _body;
+  var _hasOverriden = false;
+  MutableBody? _overrideBody;
+  final ReadOnlyBody _originalBody;
+
   @override
   ReadOnlyBody get body {
-    return _body;
+    if (_overrideBody case final body? when _hasOverriden) {
+      return body;
+    }
+
+    return _originalBody;
   }
 
   @override
   Future<void> overrideBody(Object? data) async {
-    _body.replace(await Payload(data).resolve(headers));
+    _hasOverriden = true;
+    _overrideBody ??= MutableBodyImpl();
+    _overrideBody!.replace(await Payload(data).resolve(headers));
   }
 }

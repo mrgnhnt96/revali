@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:equatable/equatable.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
+import 'package:revali_router/src/body/body_data.dart';
 import 'package:revali_router/src/data/data_handler.dart';
 import 'package:revali_router/src/endpoint/endpoint_context_impl.dart';
 import 'package:revali_router/src/exception_catcher/exception_catcher_action.dart';
@@ -22,6 +23,7 @@ import 'package:revali_router/src/request/mutable_request_context_impl.dart';
 import 'package:revali_router/src/request/request_context.dart';
 import 'package:revali_router/src/request/request_context_impl.dart';
 import 'package:revali_router/src/request/web_socket_request_context.dart';
+import 'package:revali_router/src/request/websocket_request_context_impl.dart';
 import 'package:revali_router/src/response/canned_response.dart';
 import 'package:revali_router/src/response/mutable_response_context_impl.dart';
 import 'package:revali_router/src/response/read_only_response_context.dart';
@@ -82,7 +84,8 @@ class Router extends Equatable {
 
     if (match == null) {
       return CannedResponse.notFound(
-          body: 'Failed to find ${request.method}: ${segments.join('/')}');
+        body: 'Failed to find ${request.method}: ${segments.join('/')}',
+      );
     }
 
     final RouteMatch(:route, :pathParameters) = match;
@@ -294,18 +297,17 @@ class Router extends Equatable {
 
     if (route.isWebSocket) {
       WebSocket webSocket;
-      WebSocketRequestContext request;
+      WebSocketRequestContext wsRequest;
       try {
-        final result = await context.upgradeToWebSocket();
-        webSocket = result.$1;
-        request = result.$2;
+        webSocket = await request.upgradeToWebSocket();
+        wsRequest = WebSocketRequestContextImpl.fromRequest(request);
       } catch (e) {
         return CannedResponse.internalServerError();
       }
 
       final sub = webSocket.listen((event) async {
         response.body = null;
-        await request.overrideBody(event);
+        await wsRequest.overrideBody(event);
 
         await run();
 
@@ -516,8 +518,9 @@ extension _MutableResponseX on MutableResponseContextImpl {
     required Map<String, String>? headers,
     required Object? body,
   }) {
-    if (body != null) {
-      this.body = body;
+    final _body = BodyData.from(body);
+    if (!_body.isNull) {
+      this.body = _body;
     }
 
     this.statusCode = statusCode ?? backupCode;

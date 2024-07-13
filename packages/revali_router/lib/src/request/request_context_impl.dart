@@ -7,8 +7,6 @@ import 'package:revali_router/src/body/read_only_body.dart';
 import 'package:revali_router/src/headers/mutable_headers_impl.dart';
 import 'package:revali_router/src/headers/read_only_headers.dart';
 import 'package:revali_router/src/request/parts/underlying_request.dart';
-import 'package:revali_router/src/request/web_socket_request_context.dart';
-import 'package:revali_router/src/request/websocket_request_context_impl.dart';
 import 'package:revali_router/utils/types.dart';
 
 part 'request_context_impl.g.dart';
@@ -78,13 +76,10 @@ class RequestContextImpl with EquatableMixin implements RequestContext {
   @override
   List<Object?> get props => _$props;
 
-  Future<(WebSocket, WebSocketRequestContext)> upgradeToWebSocket({
+  Future<WebSocket> upgradeToWebSocket({
     Duration? ping,
   }) async {
-    return (
-      await request.upgradeToWebSocket(ping: ping),
-      WebSocketRequestContextImpl.fromRequest(this)
-    );
+    return await request.upgradeToWebSocket(ping: ping);
   }
 
   ReadOnlyBody? _payload;

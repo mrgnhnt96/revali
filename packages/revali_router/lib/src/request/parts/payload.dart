@@ -6,7 +6,6 @@ import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
 import 'package:revali_router/src/body/body_data.dart';
 import 'package:revali_router/src/body/mutable_body_impl.dart';
-import 'package:revali_router/src/body/read_only_body.dart';
 import 'package:revali_router/src/headers/read_only_headers.dart';
 
 class Payload {
@@ -76,7 +75,7 @@ class Payload {
     yield _bytes!;
   }
 
-  Future<ReadOnlyBody> resolve(ReadOnlyHeaders headers) async {
+  Future<BodyData> resolve(ReadOnlyHeaders headers) async {
     final encoding = headers.encoding;
 
     final bodyData = await switch (headers.mimeType) {

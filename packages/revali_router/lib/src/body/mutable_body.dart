@@ -1,6 +1,6 @@
-import 'package:revali_router/src/body/read_only_body.dart';
+import 'package:revali_router/src/body/body_data.dart';
 
-abstract class MutableBody implements ReadOnlyBody {
-  void replace(Object? data);
+abstract class MutableBody extends BodyData {
+  void replace(BodyData? data);
   void operator []=(String key, Object? data);
 }

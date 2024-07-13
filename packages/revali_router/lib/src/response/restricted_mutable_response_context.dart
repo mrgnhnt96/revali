@@ -1,4 +1,4 @@
-import 'package:revali_router/src/body/mutable_body.dart';
+import 'package:revali_router/src/body/body_data.dart';
 import 'package:revali_router/src/headers/mutable_headers.dart';
 import 'package:revali_router/src/response/read_only_response_context.dart';
 
@@ -8,7 +8,7 @@ abstract class RestrictedMutableResponseContext
 
   MutableHeaders get headers;
 
-  MutableBody get body;
+  BodyData? get body;
 
-  set body(Object? data);
+  set body(BodyData? data);
 }
