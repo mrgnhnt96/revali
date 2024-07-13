@@ -6,7 +6,6 @@ Route user(
 ) {
   return Route(
     'user',
-    middlewares: [Auth(AuthType.user)],
     routes: [
       Route(
         '',
@@ -46,8 +45,8 @@ Route user(
               name: 'myName',
               type: String,
             )),
-            data: context.request.body.maybeJson?['name'] ??
-                (throw 'Missing value!'),
+            data:
+                context.request.body.data?['name'] ?? (throw 'Missing value!'),
           );
         },
       ),

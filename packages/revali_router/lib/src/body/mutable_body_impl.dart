@@ -7,6 +7,9 @@ class MutableBodyImpl extends MutableBody {
   BodyData? _data;
 
   @override
+  dynamic get data => _data?.data;
+
+  @override
   bool get isNull => _data == null;
 
   @override

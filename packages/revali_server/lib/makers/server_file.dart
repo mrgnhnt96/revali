@@ -13,6 +13,7 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
     "import 'dart:io';",
     "import 'dart:convert';",
     "import 'package:revali_router/revali_router.dart';",
+    "import 'package:revali_router_core/revali_router_core.dart';",
     "import 'package:revali_annotations/revali_annotations.dart';",
     "import 'package:revali_router_annotations/revali_router_annotations.dart';",
     "import 'package:revali_construct/revali_construct.dart';",

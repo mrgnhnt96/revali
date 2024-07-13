@@ -273,7 +273,7 @@ Expression createParamArg(
     var bodyVar = refer('context').property('request').property('body');
 
     if (body.access case final access?) {
-      bodyVar = bodyVar.property('maybeJson?');
+      bodyVar = bodyVar.property('data?');
       for (final part in access) {
         bodyVar = bodyVar.index(literalString(part));
 
@@ -286,7 +286,7 @@ Expression createParamArg(
         }
       }
     } else {
-      bodyVar = bodyVar.property('maybeJson');
+      bodyVar = bodyVar.property('data');
     }
 
     if (body.pipe case final pipe?) {
