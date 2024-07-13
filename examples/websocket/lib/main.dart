@@ -48,6 +48,9 @@ Future<void> _post() async {
     final input = stdin.transform(utf8.decoder).transform(LineSplitter());
     final uri = Uri.parse('/user/123?name=morgan');
 
+    final response = await dio.get(uri.toString());
+    print(response.data);
+
     await for (final line in input) {
       final data = utf8.encode(
         jsonEncode({

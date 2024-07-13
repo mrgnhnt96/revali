@@ -262,12 +262,10 @@ Expression createParamArg(
   }
 
   if (annotation.body case final body?) {
-    var bodyVar = refer('context')
-        .property('request')
-        .property('body')
-        .property('asJson');
+    var bodyVar = refer('context').property('request').property('body');
 
     if (body.access case final access?) {
+      bodyVar = bodyVar.property('maybeJson?');
       for (final part in access) {
         bodyVar = bodyVar.index(literalString(part));
 
@@ -279,7 +277,10 @@ Expression createParamArg(
               .ifNullThen(literalString('Missing value!').thrown.parenthesized);
         }
       }
+    } else {
+      bodyVar = bodyVar.property('maybeJson');
     }
+
     if (body.pipe case final pipe?) {
       final pipeClass = createClass(pipe.pipe);
 

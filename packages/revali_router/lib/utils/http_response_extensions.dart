@@ -37,7 +37,9 @@ extension HttpResponseX on HttpResponse {
       headers.date = DateTime.now().toUtc();
     }
 
-    body ??= response.body?.read();
+    if (response.body case final responseBody? when !responseBody.isNull) {
+      body ??= responseBody.read();
+    }
 
     if (body != null) {
       await addStream(body);

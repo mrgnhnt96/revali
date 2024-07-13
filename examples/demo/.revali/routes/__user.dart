@@ -44,11 +44,9 @@ Route user(
               name: 'myName',
               type: String,
             )),
-            data:
-                context.request.body.asJson['name'] ?? (throw 'Missing value!'),
+            data: context.request.body.maybeJson?['name'] ??
+                (throw 'Missing value!'),
           );
-
-          context.response.body = result;
         },
       ),
       Route.webSocket(

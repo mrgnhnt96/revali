@@ -94,6 +94,9 @@ class MutableBodyImpl implements MutableBody {
   bool get isJson => _data?.isJson ?? false;
 
   @override
+  bool get isList => _data?.isList ?? false;
+
+  @override
   bool get isString => _data?.isString ?? false;
 
   @override
@@ -109,35 +112,55 @@ class MutableBodyImpl implements MutableBody {
 
   @override
   File get asFile {
+    return maybeFile ?? (throw StateError('Body is not a file'));
+  }
+
+  @override
+  Map<String, dynamic> get asJson {
+    return maybeJson ?? (throw StateError('Body is not JSON'));
+  }
+
+  @override
+  List get asList {
+    return maybeList ?? (throw StateError('Body is not a list'));
+  }
+
+  @override
+  String get asString {
+    return maybeString ?? (throw StateError('Body is not a string'));
+  }
+
+  @override
+  File? get maybeFile {
     if (!isFile) {
-      throw StateError('Body is not a file');
+      return null;
     }
 
     return _data!.asFile.data;
   }
 
   @override
-  Map<String, dynamic> get asJson {
+  Map<String, dynamic>? get maybeJson {
     if (!isJson) {
-      throw StateError('Body is not JSON');
+      return null;
     }
 
     return _data!.asJson.data;
   }
 
   @override
-  List get asList {
-    if (!isJson) {
-      throw StateError('Body is not a list');
+  List? get maybeList {
+    if (!isList) {
+      return null;
     }
 
     return _data!.asList.data;
   }
 
   @override
-  String get asString {
+  String? get maybeString {
     if (!isString) {
-      throw StateError('Body is not a string');
+      return null;
     }
 
     return _data!.asString.data;
