@@ -1,15 +1,14 @@
 import 'dart:io';
 
-import 'package:revali_router/src/body/read_only_body.dart';
 import 'package:revali_router/src/headers/read_only_headers.dart';
 import 'package:revali_router/src/request/parts/underlying_request.dart';
 import 'package:revali_router/src/request/web_socket_request_context.dart';
+import 'package:revali_router/utils/types.dart';
 
 abstract class RequestContext {
   const RequestContext();
 
-  String get payload;
-  ReadOnlyBody get body;
+  PayloadResolver? get payloadResolver;
   List<String> get segments;
   String get method;
   ReadOnlyHeaders get headers;

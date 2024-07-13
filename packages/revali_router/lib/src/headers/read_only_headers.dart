@@ -13,7 +13,7 @@ abstract class ReadOnlyHeaders {
 
   /// If [headers] doesn't have a Content-Type header or it specifies an
   /// encoding that `dart:convert` doesn't support, this will be `null`.
-  Encoding? get encoding;
+  Encoding get encoding;
 
   MediaType? get contentType;
 

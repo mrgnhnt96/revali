@@ -19,6 +19,8 @@ Route user(
         ':id',
         method: 'GET',
         handler: (context) async {
+          await context.request.resolvePayload();
+
           final result = await thisController.getNewPerson(
             name: NamePipe().transform(
               context.request.queryParameters['name'] ??

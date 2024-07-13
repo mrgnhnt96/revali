@@ -6,10 +6,12 @@ import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_construct/revali_construct.dart';
 import '../routes/user.controller.dart';
 import '../routes/some.controller.dart';
+import '../routes/file.controller.dart';
 import '../routes/dev.app.dart';
 
 part 'routes/__user.dart';
 part 'routes/__some.dart';
+part 'routes/__file.dart';
 
 void main() {
   hotReload(createServer);
@@ -78,6 +80,10 @@ List<Route> routes(DI di) => [
       ),
       some(
         Some(),
+        di,
+      ),
+      file(
+        FileUploader(),
         di,
       ),
     ];

@@ -4,6 +4,8 @@ import 'package:revali_router/src/headers/read_only_headers.dart';
 abstract class ReadOnlyRequestContext {
   const ReadOnlyRequestContext();
 
+  Future<void> resolvePayload();
+
   ReadOnlyHeaders get headers;
 
   ReadOnlyBody get body;

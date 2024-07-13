@@ -1,38 +1,27 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:revali_router/src/body/body_data.dart';
 import 'package:revali_router/src/body/mutable_body.dart';
+import 'package:revali_router/utils/types.dart';
 
 class MutableBodyImpl implements MutableBody {
   MutableBodyImpl([this._data]);
 
   factory MutableBodyImpl.from(Object? object) {
+    if (object is MutableBodyImpl) {
+      return object;
+    }
+
     final bodyData = switch (object) {
+      BodyData() => object,
       String() => StringBodyData(object),
       Map<String, dynamic>() => JsonBodyData(object),
       List() => ListBodyData(object),
       null => null,
       Object() => JsonBodyData(jsonDecode(jsonEncode(object))),
     };
+
     return MutableBodyImpl(bodyData);
-  }
-
-  factory MutableBodyImpl.fromPayload(String payload) {
-    final attempts = [
-      (String data) => MutableBodyImpl.from(jsonDecode(data)),
-      (String data) => MutableBodyImpl.from(data),
-    ];
-
-    for (final attempt in attempts) {
-      try {
-        return attempt(payload);
-      } catch (_) {
-        continue;
-      }
-    }
-
-    throw ArgumentError('Could not parse body');
   }
 
   BodyData? _data;
@@ -88,7 +77,7 @@ class MutableBodyImpl implements MutableBody {
   int? get contentLength => _data?.contentLength;
 
   @override
-  bool get isFile => _data?.isFile ?? false;
+  bool get isBinary => _data?.isBinary ?? false;
 
   @override
   bool get isJson => _data?.isJson ?? false;
@@ -111,8 +100,8 @@ class MutableBodyImpl implements MutableBody {
   }
 
   @override
-  File get asFile {
-    return maybeFile ?? (throw StateError('Body is not a file'));
+  Binary get asBinary {
+    return maybeBinary ?? (throw StateError('Body is not a file'));
   }
 
   @override
@@ -131,12 +120,12 @@ class MutableBodyImpl implements MutableBody {
   }
 
   @override
-  File? get maybeFile {
-    if (!isFile) {
+  Binary? get maybeBinary {
+    if (!isBinary) {
       return null;
     }
 
-    return _data!.asFile.data;
+    return _data!.asBinary.data;
   }
 
   @override

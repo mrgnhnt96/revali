@@ -12,7 +12,7 @@ abstract class CommonHeadersMixin extends ReadOnlyHeaders {
     }
 
     if (get('content-type') case final value?) {
-      return MediaType.parse(value);
+      return _contentType = MediaType.parse(value);
     }
 
     return null;
@@ -20,16 +20,16 @@ abstract class CommonHeadersMixin extends ReadOnlyHeaders {
 
   Encoding? _encoding;
   @override
-  Encoding? get encoding {
+  Encoding get encoding {
     if (_encoding case final value?) {
       return value;
     }
 
     if (contentType?.parameters['charset'] case final value?) {
-      return Encoding.getByName(value);
+      return _encoding = Encoding.getByName(value) ?? utf8;
     }
 
-    return null;
+    return _encoding = utf8;
   }
 
   DateTime? _ifModifiedSince;
@@ -40,7 +40,7 @@ abstract class CommonHeadersMixin extends ReadOnlyHeaders {
     }
 
     if (get('if-modified-since') case final value?) {
-      return parseHttpDate(value);
+      return _ifModifiedSince = parseHttpDate(value);
     }
 
     return null;
@@ -53,7 +53,7 @@ abstract class CommonHeadersMixin extends ReadOnlyHeaders {
       return value;
     }
 
-    return contentType?.mimeType;
+    return _mimeType = contentType?.mimeType;
   }
 
   int? _contentLength;
@@ -64,7 +64,7 @@ abstract class CommonHeadersMixin extends ReadOnlyHeaders {
     }
 
     if (get('content-length') case final value?) {
-      return int.tryParse(value);
+      return _contentLength = int.tryParse(value);
     }
 
     return null;

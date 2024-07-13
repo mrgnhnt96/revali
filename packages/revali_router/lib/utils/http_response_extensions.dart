@@ -19,7 +19,7 @@ extension HttpResponseX on HttpResponse {
       // If the response is already in a chunked encoding, de-chunk it because
       // otherwise `dart:io` will try to add another layer of chunking.
       body = chunkedCoding.decoder.bind(
-        Payload(response.body?.read(), encoding).read(),
+        Payload(response.body?.read()).read(),
       );
 
       headers.set(HttpHeaders.transferEncodingHeader, 'chunked');

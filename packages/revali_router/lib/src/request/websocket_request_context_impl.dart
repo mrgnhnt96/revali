@@ -18,6 +18,6 @@ class WebSocketRequestContextImpl extends MutableRequestContextImpl
 
   @override
   Future<void> overrideBody(Object? data) async {
-    _body.replace(await Payload(data, headers.encoding).readAsString());
+    _body.replace(await Payload(data).resolve(headers));
   }
 }

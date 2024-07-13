@@ -206,6 +206,14 @@ Map<String, Expression> createRouteArgs({
           ..requiredParameters.add(Parameter((b) => b..name = 'context'))
           ..modifier = MethodModifier.async
           ..body = Block.of([
+            if (route.params.any((e) => e.annotations.body != null))
+              refer('context')
+                  .property('request')
+                  .property('resolvePayload')
+                  .call([])
+                  .awaited
+                  .statement,
+            Code('\n'),
             ...additionalHandlerCode,
             Code('\n'),
             handler.statement,

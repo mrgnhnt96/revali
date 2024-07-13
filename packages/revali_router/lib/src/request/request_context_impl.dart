@@ -3,46 +3,44 @@ import 'dart:io';
 import 'package:autoequal/autoequal.dart';
 import 'package:equatable/equatable.dart';
 import 'package:revali_router/revali_router.dart';
-import 'package:revali_router/src/body/mutable_body_impl.dart';
 import 'package:revali_router/src/body/read_only_body.dart';
 import 'package:revali_router/src/headers/mutable_headers_impl.dart';
 import 'package:revali_router/src/headers/read_only_headers.dart';
 import 'package:revali_router/src/request/parts/underlying_request.dart';
 import 'package:revali_router/src/request/web_socket_request_context.dart';
 import 'package:revali_router/src/request/websocket_request_context_impl.dart';
+import 'package:revali_router/utils/types.dart';
 
 part 'request_context_impl.g.dart';
 
 class RequestContextImpl with EquatableMixin implements RequestContext {
   RequestContextImpl(
     this.request, {
-    required String payload,
+    required ReadOnlyBody payload,
   })  : _payload = payload,
-        _payloadResolver = null;
+        payloadResolver = null;
 
   RequestContextImpl._noPayload(
     this.request, {
-    required Future<String> Function() payloadResolver,
-  }) : _payloadResolver = payloadResolver;
+    required PayloadResolver payloadResolver,
+  }) : payloadResolver = payloadResolver;
 
   factory RequestContextImpl.fromRequest(HttpRequest httpRequest) {
     final request = UnderlyingRequest.fromRequest(httpRequest);
 
     return RequestContextImpl._noPayload(
       request,
-      payloadResolver: request.body.readAsString,
+      payloadResolver: () => request.body.resolve(request.headers),
     );
   }
 
   RequestContextImpl.self(RequestContext context)
       : request = context.request,
-        _payload = context.payload,
-        _payloadResolver = null;
+        payloadResolver = context.payloadResolver;
 
   RequestContextImpl.base(RequestContext context, HttpRequest httpRequest)
       : request = UnderlyingRequest.fromRequest(httpRequest),
-        _payload = context.payload,
-        _payloadResolver = null;
+        payloadResolver = context.payloadResolver;
 
   @ignore
   final UnderlyingRequest request;
@@ -89,32 +87,26 @@ class RequestContextImpl with EquatableMixin implements RequestContext {
     );
   }
 
-  String? _payload;
-  final Future<String> Function()? _payloadResolver;
+  ReadOnlyBody? _payload;
+  final PayloadResolver? payloadResolver;
 
   Future<void> resolvePayload() async {
     if (_payload != null) return;
 
-    if (_payloadResolver == null) {
+    final resolver = payloadResolver;
+    if (resolver == null) {
       throw StateError('Payload resolver not set');
     }
 
-    _payload = await _payloadResolver();
+    _payload = await resolver();
   }
 
-  @override
-  String get payload {
+  ReadOnlyBody get payload {
     final payload = this._payload;
     if (payload == null) {
       throw StateError('Payload not resolved');
     }
 
     return payload;
-  }
-
-  ReadOnlyBody? _body;
-  @override
-  ReadOnlyBody get body {
-    return _body ??= MutableBodyImpl.fromPayload(payload);
   }
 }

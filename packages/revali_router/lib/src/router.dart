@@ -70,9 +70,6 @@ class Router extends Equatable {
   final RouteModifiers? _globalModifiers;
 
   Future<ReadOnlyResponseContext> handle() async {
-    if (context case final RequestContextImpl context) {
-      await context.resolvePayload();
-    }
     final request = MutableRequestContextImpl.fromRequest(context);
 
     final segments = request.segments;

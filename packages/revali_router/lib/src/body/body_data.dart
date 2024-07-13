@@ -1,20 +1,22 @@
 import 'dart:convert';
-import 'dart:io';
 
-import 'package:mime/mime.dart';
+import 'package:revali_router/utils/types.dart';
 
-sealed class BodyData {
+abstract class BodyData {
   BodyData();
 
-  bool get isFile => this is FileBodyData;
+  bool get isBinary => this is BinaryBodyData;
   bool get isString => this is StringBodyData;
   bool get isJson => this is JsonBodyData;
   bool get isList => this is ListBodyData;
+  bool get isFormData => this is FormDataBodyData;
+  bool get isUnknown => this is UnknownBodyData;
 
-  FileBodyData get asFile => this as FileBodyData;
+  BinaryBodyData get asBinary => this as BinaryBodyData;
   StringBodyData get asString => this as StringBodyData;
   JsonBodyData get asJson => this as JsonBodyData;
   ListBodyData get asList => this as ListBodyData;
+  FormDataBodyData get asFormData => this as FormDataBodyData;
 
   String? get mimeType => null;
   int? get contentLength => null;
@@ -30,29 +32,31 @@ sealed class BaseResponseBodyData<T> extends BodyData {
   final T data;
 }
 
-final class FileBodyData extends BaseResponseBodyData<File> {
-  FileBodyData(super.data);
+final class BinaryBodyData extends BaseResponseBodyData<Binary> {
+  BinaryBodyData(
+    super.data, {
+    this.mimeType = 'application/octet-stream',
+  });
 
   @override
-  String? get mimeType {
-    if (!data.existsSync()) return null;
-
-    final mimeType = lookupMimeType(data.path);
-
-    return mimeType ?? 'application/octet-stream';
-  }
+  final String? mimeType;
 
   @override
   int? get contentLength {
-    if (!data.existsSync()) return null;
-
-    return data.lengthSync();
+    return data.length;
   }
 
   @override
   Stream<List<int>> read() {
-    return data.openRead();
+    return Stream.fromIterable(data);
   }
+}
+
+final class UnknownBodyData extends BinaryBodyData {
+  UnknownBodyData(super.data, {required this.mimeType});
+
+  @override
+  final String? mimeType;
 }
 
 final class StringBodyData extends BaseResponseBodyData<String> {
@@ -92,6 +96,10 @@ abstract class JsonData<T> extends BaseResponseBodyData<T> {
 final class JsonBodyData extends JsonData<Map<String, dynamic>> {
   JsonBodyData(super.data);
 
+  factory JsonBodyData.fromString(String data) {
+    return JsonBodyData(jsonDecode(data) as Map<String, dynamic>);
+  }
+
   void operator []=(String key, Object? value) {
     data[key] = value;
     _clearCache();
@@ -114,5 +122,31 @@ final class ListBodyData extends JsonData<List<dynamic>> {
   @override
   Stream<List<int>> read() {
     return Stream.value(encoding.encode(toJson()));
+  }
+}
+
+final class FormDataBodyData extends JsonBodyData {
+  FormDataBodyData(super.data);
+
+  FormDataBodyData.fromString(String data)
+      : super(jsonDecode(data) as Map<String, dynamic>);
+
+  @override
+  String? get mimeType => 'application/x-www-form-urlencoded';
+
+  @override
+  int? get contentLength {
+    return data.keys.fold<int>(0, (previousValue, element) {
+      return previousValue + element.length + data[element].toString().length;
+    });
+  }
+
+  @override
+  Stream<List<int>> read() {
+    final encoded = data.keys.map((key) {
+      return '${Uri.encodeQueryComponent(key)}=${Uri.encodeQueryComponent(data[key].toString())}';
+    }).join('&');
+
+    return Stream.value(encoding.encode(encoded));
   }
 }

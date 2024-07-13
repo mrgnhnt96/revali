@@ -10,11 +10,11 @@ class MutableRequestContextImpl extends RequestContextImpl
     implements MutableRequestContext {
   MutableRequestContextImpl.fromRequest(RequestContext request)
       : headers = MutableHeadersImpl.from(request.headers),
-        body = request.body,
         super.self(request);
 
   final MutableHeaders headers;
-  final ReadOnlyBody body;
+
+  ReadOnlyBody get body => super.payload;
 
   MutableRequestContextImpl getRequestContext() {
     return this;
