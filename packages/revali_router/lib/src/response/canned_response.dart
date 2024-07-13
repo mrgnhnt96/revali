@@ -1,9 +1,9 @@
-import 'package:revali_router/src/body/body_data.dart';
-import 'package:revali_router/src/body/read_only_body.dart';
 import 'package:revali_router/src/headers/mutable_headers_impl.dart';
-import 'package:revali_router/src/headers/read_only_headers.dart';
 import 'package:revali_router/src/response/mutable_response_context_impl.dart';
-import 'package:revali_router/src/response/read_only_response_context.dart';
+import 'package:revali_router_core/body/body_data.dart';
+import 'package:revali_router_core/body/read_only_body.dart';
+import 'package:revali_router_core/headers/read_only_headers.dart';
+import 'package:revali_router_core/response/read_only_response_context.dart';
 
 class CannedResponse {
   CannedResponse._();

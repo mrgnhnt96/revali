@@ -1,17 +1,8 @@
 import 'package:autoequal/autoequal.dart';
 import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:equatable/equatable.dart';
-import 'package:revali_router/src/endpoint/endpoint_context.dart';
-import 'package:revali_router/src/exception_catcher/exception_catcher.dart';
-import 'package:revali_router/src/guard/guard.dart';
-import 'package:revali_router/src/interceptor/interceptor.dart';
-import 'package:revali_router/src/meta/combine_meta.dart';
 import 'package:revali_router/src/meta/combine_meta_applier.dart';
-import 'package:revali_router/src/meta/meta_handler.dart';
-import 'package:revali_router/src/middleware/middleware.dart';
-import 'package:revali_router/src/redirect/redirect.dart';
-import 'package:revali_router/src/route/route_entry.dart';
-import 'package:revali_router/src/route/route_modifiers.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 
 part 'route.g.dart';
 

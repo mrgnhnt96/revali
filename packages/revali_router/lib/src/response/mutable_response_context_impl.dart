@@ -1,10 +1,10 @@
-import 'package:revali_router/src/body/body_data.dart';
-import 'package:revali_router/src/body/mutable_body.dart';
 import 'package:revali_router/src/body/mutable_body_impl.dart';
-import 'package:revali_router/src/headers/mutable_headers.dart';
 import 'package:revali_router/src/headers/mutable_headers_impl.dart';
-import 'package:revali_router/src/headers/read_only_headers.dart';
-import 'package:revali_router/src/response/mutable_response_context.dart';
+import 'package:revali_router_core/body/body_data.dart';
+import 'package:revali_router_core/body/mutable_body.dart';
+import 'package:revali_router_core/headers/mutable_headers.dart';
+import 'package:revali_router_core/headers/read_only_headers.dart';
+import 'package:revali_router_core/response/mutable_response_context.dart';
 
 class MutableResponseContextImpl implements MutableResponseContext {
   MutableResponseContextImpl({
@@ -32,7 +32,7 @@ class MutableResponseContextImpl implements MutableResponseContext {
     headers.reactToBody(body);
   }
 
-  final MutableHeadersImpl _headers;
+  final MutableHeaders _headers;
   @override
   MutableHeaders get headers => _headers;
 }

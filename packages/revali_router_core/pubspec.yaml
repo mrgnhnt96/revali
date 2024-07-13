@@ -1,0 +1,13 @@
+name: revali_router_core
+description: a package used to share classes between revali_router and revali_router_annotations
+
+environment:
+    sdk: '>=3.2.6 <4.0.0'
+
+dependencies:
+    equatable: ^2.0.5
+    http_parser: ^4.1.0
+
+dev_dependencies:
+    autoequal_gen: ^0.9.1
+    build_runner: ^2.4.11

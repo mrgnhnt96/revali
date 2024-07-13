@@ -2,9 +2,7 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:revali_router/revali_router.dart';
-import 'package:revali_router/src/body/read_only_body.dart';
-import 'package:revali_router/src/headers/common_headers_mixin.dart';
-import 'package:revali_router/src/headers/mutable_headers.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 
 typedef _Headers = Map<String, List<String>>;
 

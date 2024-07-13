@@ -1,5 +1,4 @@
-import 'package:revali_router/src/data/read_only_data_handler.dart';
-import 'package:revali_router/src/meta/read_only_meta.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 
 import 'param_type.dart';
 

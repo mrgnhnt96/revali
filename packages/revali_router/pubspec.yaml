@@ -12,6 +12,8 @@ dependencies:
     equatable: ^2.0.5
     http_parser: ^4.1.0
     mime: ^1.0.5
+    revali_router_core:
+      path: ../revali_router_core
 
 dev_dependencies:
     autoequal_gen: ^0.9.1

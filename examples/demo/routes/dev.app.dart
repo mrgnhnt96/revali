@@ -1,7 +1,7 @@
 import 'package:examples/repos/repo.dart';
 import 'package:examples/utils/logger.dart';
 import 'package:revali_annotations/revali_annotations.dart';
-import 'package:revali_router/revali_router.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 
 @DumbExceptionCatcher()
 @App(flavor: 'dev')

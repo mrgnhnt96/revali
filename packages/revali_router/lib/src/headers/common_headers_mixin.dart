@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:http_parser/http_parser.dart';
-import 'package:revali_router/src/headers/read_only_headers.dart';
+import 'package:revali_router_core/headers/read_only_headers.dart';
 
 abstract class CommonHeadersMixin extends ReadOnlyHeaders {
   MediaType? _contentType;

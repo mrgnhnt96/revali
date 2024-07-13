@@ -1,9 +1,9 @@
-import 'package:revali_router/src/body/read_only_body.dart';
-import 'package:revali_router/src/headers/mutable_headers.dart';
 import 'package:revali_router/src/headers/mutable_headers_impl.dart';
-import 'package:revali_router/src/request/mutable_request_context.dart';
-import 'package:revali_router/src/request/request_context.dart';
+import 'package:revali_router_core/request/request_context.dart';
 import 'package:revali_router/src/request/request_context_impl.dart';
+import 'package:revali_router_core/body/read_only_body.dart';
+import 'package:revali_router_core/headers/mutable_headers.dart';
+import 'package:revali_router_core/request/mutable_request_context.dart';
 
 // ignore: must_be_immutable
 class MutableRequestContextImpl extends RequestContextImpl

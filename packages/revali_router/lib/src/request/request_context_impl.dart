@@ -2,12 +2,9 @@ import 'dart:io';
 
 import 'package:autoequal/autoequal.dart';
 import 'package:equatable/equatable.dart';
-import 'package:revali_router/revali_router.dart';
-import 'package:revali_router/src/body/read_only_body.dart';
 import 'package:revali_router/src/headers/mutable_headers_impl.dart';
-import 'package:revali_router/src/headers/read_only_headers.dart';
-import 'package:revali_router/src/request/parts/underlying_request.dart';
-import 'package:revali_router/utils/types.dart';
+import 'package:revali_router/src/request/underlying_request_impl.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 
 part 'request_context_impl.g.dart';
 
@@ -24,7 +21,7 @@ class RequestContextImpl with EquatableMixin implements RequestContext {
   }) : payloadResolver = payloadResolver;
 
   factory RequestContextImpl.fromRequest(HttpRequest httpRequest) {
-    final request = UnderlyingRequest.fromRequest(httpRequest);
+    final request = UnderlyingRequestImpl.fromRequest(httpRequest);
 
     return RequestContextImpl._noPayload(
       request,
@@ -37,7 +34,7 @@ class RequestContextImpl with EquatableMixin implements RequestContext {
         payloadResolver = context.payloadResolver;
 
   RequestContextImpl.base(RequestContext context, HttpRequest httpRequest)
-      : request = UnderlyingRequest.fromRequest(httpRequest),
+      : request = UnderlyingRequestImpl.fromRequest(httpRequest),
         payloadResolver = context.payloadResolver;
 
   @ignore
@@ -57,7 +54,7 @@ class RequestContextImpl with EquatableMixin implements RequestContext {
   @include
   String get method => request.method;
 
-  MutableHeadersImpl? _headers;
+  MutableHeaders? _headers;
   @include
   ReadOnlyHeaders get headers =>
       _headers ??= MutableHeadersImpl.from(request.headers);

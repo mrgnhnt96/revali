@@ -1,9 +1,4 @@
-import 'package:revali_router/src/data/data_handler.dart';
-import 'package:revali_router/src/interceptor/interceptor_context.dart';
-import 'package:revali_router/src/interceptor/interceptor_meta.dart';
-import 'package:revali_router/src/reflect/reflect_handler.dart';
-import 'package:revali_router/src/request/mutable_request_context.dart';
-import 'package:revali_router/src/response/mutable_response_context.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 
 class InterceptorContextImpl implements InterceptorContext {
   const InterceptorContextImpl({

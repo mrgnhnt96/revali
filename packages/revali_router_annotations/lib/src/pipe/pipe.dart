@@ -1,4 +1,4 @@
-import 'package:revali_router/src/response/override_error_response.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 
 import 'pipe_context.dart';
 

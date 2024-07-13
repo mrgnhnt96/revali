@@ -15,6 +15,7 @@ export 'converters/server_param_annotation.dart';
 export 'converters/server_param_annotations.dart';
 export 'converters/server_parent_route.dart';
 export 'converters/server_pipe.dart';
+export 'converters/server_public.dart';
 export 'converters/server_query_annotation.dart';
 export 'converters/server_redirect.dart';
 export 'converters/server_reflect.dart';

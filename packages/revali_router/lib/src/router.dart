@@ -3,33 +3,23 @@ import 'dart:io';
 import 'package:equatable/equatable.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
-import 'package:revali_router/src/body/body_data.dart';
-import 'package:revali_router/src/data/data_handler.dart';
 import 'package:revali_router/src/endpoint/endpoint_context_impl.dart';
-import 'package:revali_router/src/exception_catcher/exception_catcher_action.dart';
 import 'package:revali_router/src/exception_catcher/exception_catcher_context_impl.dart';
 import 'package:revali_router/src/exception_catcher/exception_catcher_meta_impl.dart';
-import 'package:revali_router/src/guard/guard_action.dart';
 import 'package:revali_router/src/guard/guard_context_impl.dart';
-import 'package:revali_router/src/guard/guard_meta.dart';
+import 'package:revali_router/src/guard/guard_meta_impl.dart';
 import 'package:revali_router/src/interceptor/interceptor_context_impl.dart';
-import 'package:revali_router/src/interceptor/interceptor_meta.dart';
-import 'package:revali_router/src/meta/meta_handler.dart';
-import 'package:revali_router/src/middleware/middleware_action.dart';
+import 'package:revali_router/src/interceptor/interceptor_meta_impl.dart';
 import 'package:revali_router/src/middleware/middleware_context_impl.dart';
-import 'package:revali_router/src/reflect/reflect.dart';
-import 'package:revali_router/src/reflect/reflect_handler.dart';
 import 'package:revali_router/src/request/mutable_request_context_impl.dart';
-import 'package:revali_router/src/request/request_context.dart';
 import 'package:revali_router/src/request/request_context_impl.dart';
-import 'package:revali_router/src/request/web_socket_request_context.dart';
 import 'package:revali_router/src/request/websocket_request_context_impl.dart';
 import 'package:revali_router/src/response/canned_response.dart';
 import 'package:revali_router/src/response/mutable_response_context_impl.dart';
-import 'package:revali_router/src/response/read_only_response_context.dart';
 import 'package:revali_router/src/route/route.dart';
 import 'package:revali_router/src/route/route_match.dart';
-import 'package:revali_router/src/route/route_modifiers.dart';
+import 'package:revali_router/src/route/route_modifiers_impl.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 
 part 'router.g.dart';
 
@@ -37,7 +27,7 @@ class Router extends Equatable {
   const Router._(
     this.context, {
     required this.routes,
-    required RouteModifiers? globalModifiers,
+    required RouteModifiersImpl? globalModifiers,
     required Set<Reflect> reflects,
   })  : _reflects = reflects,
         _globalModifiers = globalModifiers;
@@ -45,7 +35,7 @@ class Router extends Equatable {
   Router(
     RequestContext context, {
     required List<Route> routes,
-    RouteModifiers? globalModifiers,
+    RouteModifiersImpl? globalModifiers,
     Set<Reflect> reflects = const {},
   }) : this._(
           context,
@@ -57,7 +47,7 @@ class Router extends Equatable {
   Router.forRequest(
     HttpRequest request, {
     required List<Route> routes,
-    RouteModifiers? globalModifiers,
+    RouteModifiersImpl? globalModifiers,
     Set<Reflect> reflects = const {},
   }) : this._(
           RequestContextImpl.fromRequest(request),
@@ -69,7 +59,7 @@ class Router extends Equatable {
   final RequestContext context;
   final List<Route> routes;
   final Set<Reflect> _reflects;
-  final RouteModifiers? _globalModifiers;
+  final RouteModifiersImpl? _globalModifiers;
 
   Future<ReadOnlyResponseContext> handle() async {
     final request = MutableRequestContextImpl.fromRequest(context);
@@ -106,7 +96,7 @@ class Router extends Equatable {
       return await _serverPublicFile(route, response) ?? response;
     }
 
-    final globalModifiers = _globalModifiers ?? RouteModifiers();
+    final globalModifiers = _globalModifiers ?? RouteModifiersImpl();
     final directMeta = route.getMeta();
     final inheritedMeta = route.getMeta(inherit: true);
     globalModifiers.getMeta(handler: inheritedMeta);
@@ -177,8 +167,8 @@ class Router extends Equatable {
   Future<ReadOnlyResponseContext> execute({
     required Route route,
     required RouteModifiers globalModifiers,
-    required MutableRequestContextImpl request,
-    required MutableResponseContextImpl response,
+    required MutableRequestContext request,
+    required MutableResponseContext response,
     required DataHandler dataHandler,
     required MetaHandler directMeta,
     required MetaHandler inheritedMeta,
@@ -224,7 +214,7 @@ class Router extends Equatable {
     for (final guard in guards) {
       final result = await guard.canActivate(
         GuardContextImpl(
-          meta: GuardMeta(
+          meta: GuardMetaImpl(
             direct: directMeta,
             inherited: inheritedMeta,
             route: route,
@@ -257,7 +247,7 @@ class Router extends Equatable {
       for (final interceptor in interceptors) {
         await interceptor.pre(
           InterceptorContextImpl(
-            meta: InterceptorMeta(
+            meta: InterceptorMetaImpl(
               direct: directMeta,
               inherited: inheritedMeta,
             ),
@@ -282,7 +272,7 @@ class Router extends Equatable {
       for (final interceptor in interceptors) {
         await interceptor.post(
           InterceptorContextImpl(
-            meta: InterceptorMeta(
+            meta: InterceptorMetaImpl(
               direct: directMeta,
               inherited: inheritedMeta,
             ),
@@ -312,7 +302,7 @@ class Router extends Equatable {
         await run();
 
         final body = response.body;
-        if (body.isNull) {
+        if (body == null || body.isNull) {
           return;
         }
 
@@ -511,7 +501,7 @@ extension _DateTimeX on DateTime {
   }
 }
 
-extension _MutableResponseX on MutableResponseContextImpl {
+extension _MutableResponseX on MutableResponseContext {
   void _overrideWith({
     required int? statusCode,
     required int backupCode,

@@ -1,5 +1,4 @@
-import 'package:revali_router/src/meta/combine_meta.dart';
-import 'package:revali_router/src/route/route_modifiers.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 
 class CombineMetaApplier {
   const CombineMetaApplier(this.route, this.combine);

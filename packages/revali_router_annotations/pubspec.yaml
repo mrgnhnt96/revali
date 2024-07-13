@@ -6,5 +6,5 @@ environment:
     sdk: '>=3.2.6 <4.0.0'
 
 dependencies:
-  revali_router:
-    path: ../revali_router
+  revali_router_core:
+    path: ../revali_router_core

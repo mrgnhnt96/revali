@@ -1,4 +1,4 @@
-import 'package:revali_router/revali_router.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 
 abstract class CustomParamContext {
   const CustomParamContext();

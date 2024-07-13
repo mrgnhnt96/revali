@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:revali_router/revali_router.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 
 void main() async {
   final server = await HttpServer.bind(

@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:http_parser/http_parser.dart';
-import 'package:revali_router/src/request/parts/payload.dart';
-import 'package:revali_router/src/response/read_only_response_context.dart';
+import 'package:revali_router/src/payload/payload_impl.dart';
+import 'package:revali_router_core/response/read_only_response_context.dart';
 
 extension HttpResponseX on HttpResponse {
   Future<void> send(ReadOnlyResponseContext response) async {
@@ -19,7 +19,7 @@ extension HttpResponseX on HttpResponse {
       // If the response is already in a chunked encoding, de-chunk it because
       // otherwise `dart:io` will try to add another layer of chunking.
       body = chunkedCoding.decoder.bind(
-        Payload(response.body?.read()).read(),
+        PayloadImpl(response.body?.read()).read(),
       );
 
       headers.set(HttpHeaders.transferEncodingHeader, 'chunked');
