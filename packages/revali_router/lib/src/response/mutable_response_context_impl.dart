@@ -28,8 +28,9 @@ class MutableResponseContextImpl implements MutableResponseContext {
   BodyData get body => _body;
 
   void set body(Object? newBody) {
-    _body.replace(newBody);
-    headers.reactToBody(body);
+    _body.replace(newBody).then((_) {
+      headers.reactToBody(body);
+    });
   }
 
   final MutableHeaders _headers;
