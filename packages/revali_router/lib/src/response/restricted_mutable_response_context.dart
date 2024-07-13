@@ -10,5 +10,5 @@ abstract class RestrictedMutableResponseContext
 
   BodyData? get body;
 
-  set body(BodyData? data);
+  set body(Object? data);
 }

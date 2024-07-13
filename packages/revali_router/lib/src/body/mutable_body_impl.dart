@@ -67,7 +67,7 @@ class MutableBodyImpl extends MutableBody {
   String? get mimeType => _data?.mimeType;
 
   @override
-  void replace(BodyData? data) {
-    _data = data;
+  void replace(Object? data) {
+    _data = BodyData.from(data);
   }
 }
