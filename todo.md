@@ -6,6 +6,7 @@
 - [ ] Handle range file requests
 - [ ] Handle if modified since file requests
 - [ ] Send back last modified header for files
+- [ ] Update the content disposition header for files
 
 ## 7.13.2024
 
