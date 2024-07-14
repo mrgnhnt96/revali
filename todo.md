@@ -1,15 +1,21 @@
 # TODO
 
+## 7.13.2024 (2)
+
+- [ ] CORs for apps ([docs](https://github.com/lenniezelk/shelf-cors-headers/blob/main/lib/src/shelf_cors_headers_base.dart#L52))
+- [ ] Handle range file requests
+- [ ] Handle if modified since file requests
+- [ ] Send back last modified header for files
+
 ## 7.13.2024
 
-- [ ] Update headers when status code changes
-- [ ] Update headers when body changes
-- [ ] Returning files
-- [ ] CORs for apps ([docs](https://github.com/lenniezelk/shelf-cors-headers/blob/main/lib/src/shelf_cors_headers_base.dart#L52))
-- [ ] Public files
+- [x] Update headers when status code changes
+- [x] Update headers when body changes
+- [x] Returning files
+- [x] Public files
   - Routes will be automatically generated for these files
   - The files will be served from the `public` directory
-- [ ] Static files
+- [x] Static files
   - Routes will _not_ be generated for these files
   - The idea is that the user will be able to return a "ServerFile" class with the path pointing to the file
 

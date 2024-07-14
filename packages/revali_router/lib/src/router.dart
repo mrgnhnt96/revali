@@ -452,7 +452,7 @@ class Router extends Equatable {
           ..remove(HttpHeaders.contentLengthHeader)
           ..set(
             HttpHeaders.contentLengthHeader,
-            formatHttpDate(DateTime.now()),
+            formatHttpDate(DateTime.now()), // this doesn't seem right
           );
 
         throw UnimplementedError();
