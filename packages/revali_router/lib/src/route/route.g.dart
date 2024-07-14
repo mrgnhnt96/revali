@@ -19,7 +19,6 @@ extension _$RouteAutoequal on Route {
         _meta,
         redirect,
         isWebSocket,
-        isPublicFile,
         ping,
       ];
 }
@@ -55,8 +54,6 @@ abstract class _$RouteCWProxy {
 
   Route ping(Duration? ping);
 
-  Route isPublicFile(bool isPublicFile);
-
   Route meta(dynamic meta);
 
   /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `Route(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
@@ -79,7 +76,6 @@ abstract class _$RouteCWProxy {
     bool? isWebSocket,
     List<CombineMeta>? combine,
     Duration? ping,
-    bool? isPublicFile,
     dynamic meta,
   });
 }
@@ -134,9 +130,6 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
   Route ping(Duration? ping) => this(ping: ping);
 
   @override
-  Route isPublicFile(bool isPublicFile) => this(isPublicFile: isPublicFile);
-
-  @override
   Route meta(dynamic meta) => this(meta: meta);
 
   @override
@@ -161,7 +154,6 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
     Object? isWebSocket = const $CopyWithPlaceholder(),
     Object? combine = const $CopyWithPlaceholder(),
     Object? ping = const $CopyWithPlaceholder(),
-    Object? isPublicFile = const $CopyWithPlaceholder(),
     Object? meta = const $CopyWithPlaceholder(),
   }) {
     return Route._(
@@ -213,18 +205,13 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
               // ignore: cast_nullable_to_non_nullable
               : isWebSocket as bool,
       combine: combine == const $CopyWithPlaceholder() || combine == null
-          ? []
+          ? const []
           // ignore: cast_nullable_to_non_nullable
           : combine as List<CombineMeta>,
       ping: ping == const $CopyWithPlaceholder()
           ? _value.ping
           // ignore: cast_nullable_to_non_nullable
           : ping as Duration?,
-      isPublicFile:
-          isPublicFile == const $CopyWithPlaceholder() || isPublicFile == null
-              ? _value.isPublicFile
-              // ignore: cast_nullable_to_non_nullable
-              : isPublicFile as bool,
       meta: meta == const $CopyWithPlaceholder() || meta == null
           ? _value._meta
           // ignore: cast_nullable_to_non_nullable

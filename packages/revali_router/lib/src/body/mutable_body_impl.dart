@@ -1,5 +1,5 @@
-import 'package:revali_router_core/body/mutable_body.dart';
 import 'package:revali_router_core/body/body_data.dart';
+import 'package:revali_router_core/body/mutable_body.dart';
 
 class MutableBodyImpl extends MutableBody {
   MutableBodyImpl([this._data]);
@@ -70,7 +70,7 @@ class MutableBodyImpl extends MutableBody {
   String? get mimeType => _data?.mimeType;
 
   @override
-  Future<void> replace(Object? data) async {
+  void replace(Object? data) async {
     _data = BodyData.from(data);
   }
 }

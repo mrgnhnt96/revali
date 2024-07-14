@@ -12,6 +12,7 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
   final imports = [
     "import 'dart:io';",
     "import 'dart:convert';",
+    "import 'package:path/path.dart' as p;",
     "import 'package:revali_router/revali_router.dart';",
     "import 'package:revali_router_core/revali_router_core.dart';",
     "import 'package:revali_annotations/revali_annotations.dart';",
@@ -203,7 +204,39 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
       ..body = Block.of([
         literalList([
           for (final public in server.public)
-            refer('Route').newInstance([literalString(public.path)]),
+            refer('Route').newInstance(
+              [literalString(public.path)],
+              {
+                'method': literalString('GET'),
+                'handler': Method(
+                  (p) => p
+                    ..modifier = MethodModifier.async
+                    ..requiredParameters.add(
+                      Parameter((p) => p
+                        ..name = 'context'
+                        ..type = refer('EndpointContext')),
+                    )
+                    ..body = Block.of([
+                      declareFinal('file')
+                          .assign(
+                            refer('File').call([
+                              refer('p').property('join').call([
+                                literalString('public'),
+                                literalString(public.path)
+                              ])
+                            ]),
+                          )
+                          .statement,
+                      Code('\n'),
+                      refer('context')
+                          .property('response')
+                          .property('body')
+                          .assign(refer('file'))
+                          .statement,
+                    ]),
+                ).closure,
+              },
+            ),
         ]).statement,
       ]),
   );

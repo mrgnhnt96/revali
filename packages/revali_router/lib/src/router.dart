@@ -92,10 +92,6 @@ class Router extends Equatable {
     final response =
         MutableResponseContextImpl(requestHeaders: context.headers);
 
-    if (route.isPublicFile) {
-      return await _serverPublicFile(route, response) ?? response;
-    }
-
     final globalModifiers = _globalModifiers ?? RouteModifiersImpl();
     final directMeta = route.getMeta();
     final inheritedMeta = route.getMeta(inherit: true);
@@ -339,8 +335,7 @@ class Router extends Equatable {
         final _remainingPathSegments = pathSegments.skip(parts.length).toList();
 
         if (_remainingPathSegments.isEmpty &&
-                (parent.canInvoke && parent.method == method) ||
-            parent.isPublicFile) {
+            (parent.canInvoke && parent.method == method)) {
           return RouteMatch(
             route: parent,
             pathParameters: pathParameters,

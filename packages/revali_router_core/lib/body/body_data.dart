@@ -1,23 +1,30 @@
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:mime/mime.dart';
 import 'package:revali_router_core/body/read_only_body.dart';
+import 'package:revali_router_core/file/memory_file.dart';
 import 'package:revali_router_core/utils/types.dart';
 
 abstract class BodyData extends ReadOnlyBody {
   BodyData();
 
   factory BodyData.from(Object? data) {
-    return switch (data) {
+    final result = switch (data) {
       BodyData() => data,
       String() => StringBodyData(data),
       Map<String, dynamic>() => JsonBodyData(data),
       Map() => JsonBodyData({
           for (final key in data.keys) '$key': data[key],
         }),
+      File() => FileBodyData(data),
+      MemoryFile() => MemoryFileBodyData(data),
       Binary() => BinaryBodyData(data),
       List() => ListBodyData(data),
       _ => throw UnsupportedError('Unsupported body data type: $data'),
     };
+
+    return result;
   }
 
   bool get isBinary => this is BinaryBodyData;
@@ -46,6 +53,52 @@ sealed class BaseResponseBodyData<T> extends BodyData {
   BaseResponseBodyData(this.data);
 
   final T data;
+}
+
+final class FileBodyData extends BaseResponseBodyData<File> {
+  FileBodyData(super.data);
+
+  String? _mimeType;
+  @override
+  String? get mimeType {
+    return _mimeType ??= lookupMimeType(data.path);
+  }
+
+  int? _length;
+  @override
+  int? get contentLength {
+    return _length ??= data.lengthSync();
+  }
+
+  List<int>? _bytes;
+  @override
+  Stream<List<int>> read() async* {
+    if (_bytes case final bytes?) {
+      yield* Stream.fromIterable([bytes]);
+    }
+    final bytes = _bytes = await data.readAsBytesSync();
+
+    yield* Stream.fromIterable([bytes]);
+  }
+}
+
+final class MemoryFileBodyData extends BaseResponseBodyData<MemoryFile> {
+  MemoryFileBodyData(super.data);
+
+  @override
+  String? get mimeType {
+    return data.mimeType;
+  }
+
+  @override
+  int? get contentLength {
+    return data.bytes.length;
+  }
+
+  @override
+  Stream<List<int>> read() {
+    return Stream.fromIterable([data.bytes]);
+  }
 }
 
 final class BinaryBodyData extends BaseResponseBodyData<Binary> {

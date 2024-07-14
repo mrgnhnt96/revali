@@ -17,6 +17,7 @@ export 'exception_catcher/exception_catcher_action.dart';
 export 'exception_catcher/exception_catcher_context.dart';
 export 'exception_catcher/exception_catcher_meta.dart';
 export 'exception_catcher/exception_catcher_result.dart';
+export 'file/memory_file.dart';
 export 'guard/guard.dart';
 export 'guard/guard_action.dart';
 export 'guard/guard_context.dart';

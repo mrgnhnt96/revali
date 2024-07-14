@@ -14,7 +14,8 @@ void main() async {
   // _form();
   // _text();
   // _stream();
-  _file();
+  // _file();
+  _getFavicon();
 }
 
 Future<void> _websocket() async {
@@ -219,6 +220,24 @@ Future<void> _file() async {
     );
 
     print(response.data);
+  } catch (e) {
+    print(e);
+  }
+}
+
+Future<void> _getFavicon() async {
+  final dio = Dio()..options.baseUrl = 'http://localhost:8080/api';
+  try {
+    final response = await dio.get(
+      '/file',
+      options: Options(
+        responseType: ResponseType.bytes,
+      ),
+    );
+    // save to file
+    final file = File('file.text');
+    final bytes = response.data;
+    await file.writeAsBytes(bytes);
   } catch (e) {
     print(e);
   }

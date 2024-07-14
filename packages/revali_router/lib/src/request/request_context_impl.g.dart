@@ -6,8 +6,11 @@ part of 'request_context_impl.dart';
 // AutoequalGenerator
 // **************************************************************************
 
-extension _$RequestContextAutoequal on RequestContextImpl {
+extension _$RequestContextImplAutoequal on RequestContextImpl {
   List<Object?> get _$props => [
+        _headers,
+        _payload,
+        payloadResolver,
         segments,
         method,
         headers,
