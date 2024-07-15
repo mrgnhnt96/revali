@@ -27,6 +27,16 @@ Map<String, Expression> createRouteArgs({
     }
   }
 
+  Expression? setBody;
+  if (returnType != null && !returnType.isVoid) {
+    Expression result = refer('result');
+    if (returnType.hasToJsonMember) {
+      result = result.property('toJson').call([]);
+    }
+    setBody =
+        refer('context').property('response').property('body').assign(result);
+  }
+
   return {
     ...createModifierArgs(annotations: route.annotations),
     if (method != null) 'method': literalString(method),
@@ -47,6 +57,10 @@ Map<String, Expression> createRouteArgs({
             ...additionalHandlerCode,
             Code('\n'),
             handler.statement,
+            if (setBody != null) ...[
+              Code('\n'),
+              setBody.statement,
+            ],
           ]),
       ).closure,
   };
