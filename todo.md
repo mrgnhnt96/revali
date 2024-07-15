@@ -1,5 +1,9 @@
 # TODO
 
+## 7.15.2024
+
+- [ ] Find a way to support partial content requests
+
 ## 7.13.2024 (2)
 
 - [ ] CORs for apps ([docs](https://github.com/lenniezelk/shelf-cors-headers/blob/main/lib/src/shelf_cors_headers_base.dart#L52))
@@ -7,7 +11,7 @@
 - [ ] Handle if modified since file requests
 - [ ] Send back last modified header for files
 - [ ] Set headers based on body data type (within the send request method only!)
-   - Create headers getter on the body data type
+  - Create headers getter on the body data type
 - [ ] Update the content disposition header for files
 
 ## 7.13.2024

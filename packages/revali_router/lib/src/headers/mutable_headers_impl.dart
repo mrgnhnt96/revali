@@ -71,6 +71,10 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
     (_headers[key] ??= []).add(value);
   }
 
+  void setAll(String key, List<String> value) {
+    (_headers[key] ??= []).addAll(value);
+  }
+
   @override
   Iterable<String> get keys {
     return _headers.keys;
@@ -100,35 +104,11 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
         when encoding == otherEncoding) {}
   }
 
-  @override
-  void reactToBody(ReadOnlyBody body) {
-    if (body.contentLength case final length) {
-      if (length == null) {
-        remove(HttpHeaders.contentLengthHeader);
-      } else {
-        set(HttpHeaders.contentLengthHeader, '$length');
-      }
-    }
+  Map<String, List<String>> get values => Map.unmodifiable(_headers);
 
-    // mimetype
-    if (body.mimeType case final mimeType) {
-      if (mimeType == null) {
-        remove(HttpHeaders.contentTypeHeader);
-      } else {
-        set(HttpHeaders.contentTypeHeader, mimeType);
-      }
-    }
-  }
-
-  @override
-  void reactToStatusCode(int code) {
-    switch (code) {
-      case HttpStatus.noContent:
-        remove(HttpHeaders.contentLengthHeader);
-        remove(HttpHeaders.contentTypeHeader);
-        break;
-      default:
-        break;
+  void setIfAbsent(String contentTypeHeader, String Function() setter) {
+    if (_headers[contentTypeHeader] == null) {
+      set(contentTypeHeader, setter());
     }
   }
 }

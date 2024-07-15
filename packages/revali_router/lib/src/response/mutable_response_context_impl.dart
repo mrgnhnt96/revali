@@ -1,10 +1,7 @@
-import 'package:revali_router/src/body/mutable_body_impl.dart';
-import 'package:revali_router/src/headers/mutable_headers_impl.dart';
-import 'package:revali_router_core/body/body_data.dart';
-import 'package:revali_router_core/body/mutable_body.dart';
-import 'package:revali_router_core/headers/mutable_headers.dart';
-import 'package:revali_router_core/headers/read_only_headers.dart';
-import 'package:revali_router_core/response/mutable_response_context.dart';
+import 'dart:io';
+
+import 'package:revali_router/revali_router.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 
 class MutableResponseContextImpl implements MutableResponseContext {
   MutableResponseContextImpl({
@@ -20,7 +17,6 @@ class MutableResponseContextImpl implements MutableResponseContext {
   int get statusCode => _statusCode;
   void set statusCode(int value) {
     _statusCode = value;
-    headers.reactToStatusCode(value);
   }
 
   final MutableBody _body;
@@ -29,12 +25,66 @@ class MutableResponseContextImpl implements MutableResponseContext {
 
   void set body(Object? newBody) {
     _body.replace(newBody);
-    headers.reactToBody(body);
   }
 
-  final MutableHeaders _headers;
+  MutableHeaders _headers;
   @override
-  MutableHeaders get headers => _headers;
+  MutableHeaders get headers {
+    final headers = MutableHeadersImpl();
+
+    _headers.forEach((key, value) {
+      headers.setAll(key, value);
+    });
+
+    body.headers(_requestHeaders).forEach((key, value) {
+      headers.setAll(key, value);
+    });
+    headers.setIfAbsent(HttpHeaders.contentTypeHeader, () {
+      return body.mimeType ?? 'text/plain';
+    });
+
+    void removeContentRelated(MutableHeaders headers) {
+      headers
+        ..remove(HttpHeaders.contentTypeHeader)
+        ..remove(HttpHeaders.contentLengthHeader)
+        ..remove(HttpHeaders.contentEncodingHeader)
+        ..remove(HttpHeaders.transferEncodingHeader)
+        ..remove(HttpHeaders.contentRangeHeader)
+        ..remove(HttpHeaders.acceptRangesHeader)
+        ..remove(HttpHeaders.contentDisposition)
+        ..remove(HttpHeaders.contentLanguageHeader)
+        ..remove(HttpHeaders.contentLocationHeader)
+        ..remove(HttpHeaders.contentMD5Header);
+    }
+
+    void removeAccessControl(MutableHeaders headers) {
+      headers
+        ..remove(HttpHeaders.allowHeader)
+        ..remove(HttpHeaders.accessControlAllowOriginHeader)
+        ..remove(HttpHeaders.accessControlAllowCredentialsHeader)
+        ..remove(HttpHeaders.accessControlExposeHeadersHeader)
+        ..remove(HttpHeaders.accessControlMaxAgeHeader)
+        ..remove(HttpHeaders.accessControlAllowMethodsHeader)
+        ..remove(HttpHeaders.accessControlAllowHeadersHeader)
+        ..remove(HttpHeaders.accessControlRequestHeadersHeader)
+        ..remove(HttpHeaders.accessControlRequestMethodHeader);
+    }
+
+    switch (statusCode) {
+      case HttpStatus.notModified:
+      case HttpStatus.noContent:
+        removeContentRelated(headers);
+        break;
+      case HttpStatus.notFound:
+        removeContentRelated(headers);
+        removeAccessControl(headers);
+        break;
+      default:
+        break;
+    }
+
+    return headers;
+  }
 }
 
 // TODO(mrgnhnt): Implement the following methods
