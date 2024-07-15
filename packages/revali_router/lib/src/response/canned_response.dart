@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:revali_router/src/body/response_body/base_body_data.dart';
 import 'package:revali_router/src/headers/mutable_headers_impl.dart';
 import 'package:revali_router/src/response/mutable_response_context_impl.dart';
@@ -28,6 +30,17 @@ class CannedResponse {
       500,
       body: body,
       headers: headers,
+    );
+  }
+
+  static ReadOnlyResponseContext options({
+    required Set<String> allowedMethods,
+  }) {
+    return _Response(
+      200,
+      headers: {
+        HttpHeaders.allowHeader: allowedMethods.join(', '),
+      },
     );
   }
 

@@ -106,7 +106,7 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
     }
 
     if (path.isNotEmpty) {
-      final noSpecials = RegExp(r'[^a-z\/\-_.:]', caseSensitive: false);
+      final noSpecials = RegExp(r'[^a-z0-9\/\-_.:]', caseSensitive: false);
       if (noSpecials.hasMatch(path)) {
         throw ArgumentError(
           'path should not contain special characters, allowed: a-z, A-Z, 0-9, :, - and _ (pattern: ${noSpecials.pattern})',
@@ -152,6 +152,33 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
         );
       }
     }
+  }
+
+  Set<String> get allowedMethods {
+    final methods = <String>{'OPTIONS'};
+
+    void add(String method) {
+      methods.add(method);
+      if (method == 'GET') {
+        methods.add('HEAD');
+      }
+    }
+
+    if (method case final value?) {
+      add(value);
+    }
+
+    if (parent?.routes case final routes?) {
+      for (final route in routes) {
+        if (!route.matchesPath(this)) continue;
+
+        if (route.method case final method?) {
+          add(method);
+        }
+      }
+    }
+
+    return methods;
   }
 
   static void validateRoutes(List<RouteModifiers> routes) {}
@@ -269,6 +296,34 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
   }
 
   List<String> get segments => path.split('/');
+
+  bool matchesPath(Route other) {
+    if (path == other.path) {
+      return true;
+    }
+
+    final segments = path.split('/');
+    final otherSegments = other.path.split('/');
+
+    if (segments.length != otherSegments.length) {
+      return false;
+    }
+
+    for (var i = 0; i < segments.length; i++) {
+      final segment = segments[i];
+      final otherSegment = otherSegments[i];
+
+      if (segment.startsWith(':') || otherSegment.startsWith(':')) {
+        continue;
+      }
+
+      if (segment != otherSegment) {
+        return false;
+      }
+    }
+
+    return true;
+  }
 
   @override
   List<Object?> get props => _$props;

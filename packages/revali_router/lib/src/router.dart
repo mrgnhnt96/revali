@@ -79,6 +79,12 @@ class Router extends Equatable {
       );
     }
 
+    if (request.method == 'OPTIONS') {
+      return CannedResponse.options(
+        allowedMethods: match.route.allowedMethods,
+      );
+    }
+
     final RouteMatch(:route, :pathParameters) = match;
 
     if (route.redirect case final redirect?) {
@@ -395,7 +401,8 @@ class Router extends Equatable {
           if (_segments.isEmpty) {
             if (route.canInvoke) {
               if (route.method == method ||
-                  route.method == 'GET' && method == 'HEAD') {
+                  (route.method == 'GET' && method == 'HEAD') ||
+                  method == 'OPTIONS') {
                 return RouteMatch(
                   route: route,
                   pathParameters: pathParameters,

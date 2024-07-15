@@ -249,6 +249,128 @@ void main() {
       });
     });
 
+    group('#allowedMethods', () {
+      test('should return GET and HEAD for GET route', () {
+        final getter = Route(
+          'user',
+          method: 'GET',
+          handler: (_) async {},
+        );
+
+        final result = getter.allowedMethods;
+
+        expect(result, containsAll(['GET', 'HEAD']));
+      });
+
+      test('should only return sibling methods', () {
+        final getter = Route(
+          ':id',
+          method: 'GET',
+          handler: (_) async {},
+        );
+
+        final poster = Route(
+          ':id',
+          method: 'POST',
+          handler: (_) async {},
+        );
+
+        final parent = Route(
+          'user',
+          routes: [getter, poster],
+        );
+
+        final result = parent.routes!.first.allowedMethods;
+
+        expect(result, ['OPTIONS', 'GET', 'HEAD', 'POST']);
+      });
+
+      test('should not return non-matching siblings', () {
+        final getter = Route(
+          'some',
+          method: 'GET',
+          handler: (_) async {},
+        );
+
+        final poster = Route(
+          'thing',
+          method: 'POST',
+          handler: (_) async {},
+        );
+
+        final parent = Route(
+          'user',
+          routes: [getter, poster],
+        );
+
+        final result = parent.routes!.last.allowedMethods;
+
+        expect(result, ['OPTIONS', 'POST']);
+      });
+    });
+
+    group('#matchesPath', () {
+      test('should match simple route', () {
+        final route = Route(
+          'user',
+          method: 'GET',
+          handler: (_) async {},
+        );
+
+        final result = route.matchesPath(Route('user'));
+
+        expect(result, isTrue);
+      });
+
+      test('should match dynamic route', () {
+        final route = Route(
+          ':id',
+          method: 'GET',
+          handler: (_) async {},
+        );
+
+        final result = route.matchesPath(Route('123'));
+
+        expect(result, isTrue);
+      });
+
+      test('should match multiple simple segments', () {
+        final route = Route(
+          'user/profile',
+          method: 'GET',
+          handler: (_) async {},
+        );
+
+        final result = route.matchesPath(Route('user/profile'));
+
+        expect(result, isTrue);
+      });
+
+      test('should match multiple complex segments', () {
+        final route = Route(
+          'user/:id/profile',
+          method: 'GET',
+          handler: (_) async {},
+        );
+
+        final result = route.matchesPath(Route('user/123/profile'));
+
+        expect(result, isTrue);
+      });
+
+      test('should not match different paths', () {
+        final route = Route(
+          'user',
+          method: 'GET',
+          handler: (_) async {},
+        );
+
+        final result = route.matchesPath(Route('profile'));
+
+        expect(result, isFalse);
+      });
+    });
+
     group('#getMeta', () {
       group('direct', () {
         test('should only return the direct meta', () {

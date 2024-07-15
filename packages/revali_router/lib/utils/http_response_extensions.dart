@@ -14,14 +14,13 @@ extension HttpResponseX on HttpResponse {
     final _headers = response.headers;
     final http = this;
 
-    Stream<List<int>>? _body;
+    bool chunk = false;
 
     if (_headers[HttpHeaders.transferEncodingHeader] case final coding?) {
       if (!equalsIgnoreAsciiCase(coding, 'identity')) {
         // If the response is already in a chunked encoding, de-chunk it because
         // otherwise `dart:io` will try to add another layer of chunking.
-        _body = chunkedCoding.decoder
-            .bind(PayloadImpl(response.body?.read()).read());
+        chunk = true;
 
         http.headers.set(HttpHeaders.transferEncodingHeader, 'chunked');
       } else if (response.statusCode >= 200 &&
@@ -39,19 +38,28 @@ extension HttpResponseX on HttpResponse {
       http.headers.date = DateTime.now().toUtc();
     }
 
-    if (response.body case final responseBody? when !responseBody.isNull) {
-      if (_headers.range case final range? when responseBody is FileBodyData) {
-        final (start, end) = range;
-        _body ??= responseBody.range(start, end);
-      } else {
-        _body ??= responseBody.read();
-      }
-    }
-
-    if (_body != null &&
-        requestMethod != 'HEAD' &&
+    if (requestMethod != 'HEAD' &&
+        requestMethod != 'OPTIONS' &&
         response.statusCode != HttpStatus.noContent) {
-      await http.addStream(_body);
+      Stream<List<int>>? _body;
+      if (response.body case final responseBody? when !responseBody.isNull) {
+        if (_headers.range case final range?
+            when responseBody is FileBodyData) {
+          final (start, end) = range;
+          _body = responseBody.range(start, end);
+        } else {
+          _body = responseBody.read();
+        }
+      }
+
+      if (chunk && _body != null) {
+        _body = chunkedCoding.decoder
+            .bind(PayloadImpl(response.body?.read()).read());
+      }
+
+      if (_body != null) {
+        await http.addStream(_body);
+      }
     }
 
     await http.flush();
