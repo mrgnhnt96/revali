@@ -10,25 +10,18 @@ class _Entry<T> {
 class DI {
   DI()
       : _singletons = {},
-        _lazySingletons = {},
-        _factories = {};
+        _lazySingletons = {};
 
-  final Map<Type, _Entry> _singletons;
-  final Map<Type, _Entry> _lazySingletons;
-  final Map<Type, _Entry> _factories;
+  final Map<Type, dynamic> _singletons;
+  final Map<Type, dynamic> _lazySingletons;
   bool _canRegister = true;
 
-  void registerSingleton<T>(T instance, {void Function(T)? onDispose}) =>
-      _register<T>(_singletons, _Entry<T>(instance, onDispose: onDispose));
+  void registerInstance<T>(T instance) => _register<T>(_singletons, instance);
 
-  void registerLazySingleton<T>(Factory<T> factory,
-          {void Function(T)? onDispose}) =>
-      _register<T>(_lazySingletons, _Entry<T>(factory, onDispose: onDispose));
+  void register<T>(Factory<T> factory) =>
+      _register<T>(_lazySingletons, factory);
 
-  void registerFactory<T>(Factory<T> factory) =>
-      _register<T>(_factories, _Entry<T>(factory, onDispose: null));
-
-  void _register<T>(Map<Type, dynamic> map, _Entry value) {
+  void _register<T>(Map<Type, dynamic> map, dynamic value) {
     if (!_canRegister) {
       throw Exception('Registration is closed, cannot register new types');
     }
@@ -38,9 +31,7 @@ class DI {
   }
 
   void _ensureUnique<T>() {
-    if (_singletons.containsKey(T) ||
-        _lazySingletons.containsKey(T) ||
-        _factories.containsKey(T)) {
+    if (_singletons.containsKey(T) || _lazySingletons.containsKey(T)) {
       throw Exception('Type $T already registered');
     }
   }
@@ -61,14 +52,9 @@ class DI {
       return value;
     }
 
-    final entry = _factories[T];
-    final result = entry?.value();
-
-    if (result == null) {
-      throw Exception('No factory found for type $T');
-    }
-
-    return result;
+    throw Exception(
+      'Nothing found for type $T within $DI, did you forget to register it?',
+    );
   }
 
   T call<T>() => get<T>();

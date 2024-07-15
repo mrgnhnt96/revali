@@ -1,18 +1,9 @@
-import 'package:mockito/mockito.dart';
-import 'package:revali_router/src/request/request_context_impl.dart';
 import 'package:revali_router/src/route/route.dart';
 import 'package:revali_router/src/router.dart';
-import 'package:revali_router_core/revali_router_core.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('$Router', () {
-    late RequestContext _fakeRequest;
-
-    setUp(() {
-      _fakeRequest = _FakeRequestContext();
-    });
-
     group('#find', () {
       test('should return GET route when method is HEAD', () {
         final getter = Route(
@@ -21,7 +12,6 @@ void main() {
           handler: (_) async {},
         );
         final router = Router(
-          _fakeRequest,
           routes: [getter],
         );
 
@@ -37,7 +27,6 @@ void main() {
 
       test('should return null if no routes are provided', () {
         final router = Router(
-          _fakeRequest,
           routes: [],
         );
 
@@ -52,7 +41,6 @@ void main() {
 
       test('should return null if no routes match', () {
         final router = Router(
-          _fakeRequest,
           routes: [
             Route(
               'user',
@@ -78,7 +66,6 @@ void main() {
           handler: (_) async {},
         );
         final router = Router(
-          _fakeRequest,
           routes: [getter],
         );
 
@@ -101,7 +88,6 @@ void main() {
           routes: [],
         );
         final router = Router(
-          _FakeRequestContext(),
           routes: [getter],
         );
 
@@ -122,7 +108,6 @@ void main() {
           handler: (_) async {},
         );
         final router = Router(
-          _fakeRequest,
           routes: [
             Route(
               'user',
@@ -152,7 +137,6 @@ void main() {
           handler: (_) async {},
         );
         final router = Router(
-          _fakeRequest,
           routes: [
             Route(
               'user',
@@ -180,7 +164,6 @@ void main() {
         );
 
         final router = Router(
-          _fakeRequest,
           routes: [
             Route(
               'user',
@@ -216,7 +199,6 @@ void main() {
           );
 
           final router = Router(
-            _fakeRequest,
             routes: [
               Route(
                 'user',
@@ -245,7 +227,6 @@ void main() {
           );
 
           final router = Router(
-            _fakeRequest,
             routes: [
               Route(
                 'user',
@@ -281,7 +262,6 @@ void main() {
           );
 
           final router = Router(
-            _fakeRequest,
             routes: [
               Route(
                 'user',
@@ -322,7 +302,6 @@ void main() {
           );
 
           final router = Router(
-            _fakeRequest,
             routes: [
               Route(
                 'user',
@@ -369,7 +348,6 @@ void main() {
           );
 
           final router = Router(
-            _fakeRequest,
             routes: [
               Route(
                 'user',
@@ -389,11 +367,4 @@ void main() {
       });
     });
   });
-}
-
-class _FakeRequestContext extends Fake implements RequestContextImpl {
-  _FakeRequestContext({this.method = 'GET'});
-
-  @override
-  final String method;
 }

@@ -39,7 +39,7 @@ abstract base class AppConfig {
     );
   }
 
-  void configureDependencies(DI di) {}
+  Future<void> configureDependencies(DI di) async {}
 }
 
 final class _DefaultApp extends AppConfig {

@@ -72,78 +72,61 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
           ]),
         ),
         Code('\n'),
+        declareFinal('di').assign(refer('$DI').newInstance([])).statement,
+        refer('app')
+            .property('configureDependencies')
+            .call([refer('di')])
+            .awaited
+            .statement,
+        refer('di').property('finishRegistration').call([]).statement,
+        Code('\n'),
+        declareVar('_routes')
+            .assign(refer('routes').call([refer('di')]))
+            .statement,
+        Block.of([
+          Code('if ('),
+          refer('app').property('prefix').code,
+          Code(' case'),
+          declareFinal('prefix?').code,
+          Code(' when '),
+          refer('prefix').property('isNotEmpty').code,
+          Code(') {'),
+          refer('_routes')
+              .assign(literalList([
+                refer('Route').newInstance([
+                  refer('prefix')
+                ], {
+                  'routes': refer('_routes'),
+                }),
+              ]))
+              .statement,
+          Code('}'),
+        ]),
+        Code('\n'),
+        declareFinal('router')
+            .assign(refer('Router').newInstance(
+              [],
+              {
+                'routes': literalList([
+                  refer('_routes').spread,
+                  refer('public').spread,
+                ]),
+                'reflects': refer('reflects'),
+                if (server.app case final app?
+                    when app.globalRouteAnnotations.hasAnnotations)
+                  'globalModifiers': refer('RouteModifiers').newInstance([], {
+                    ...createModifierArgs(
+                      annotations: app.globalRouteAnnotations,
+                    )
+                  })
+              },
+            ))
+            .statement,
+        Code('\n'),
         refer('handleRequests').call(
           [
             refer('server'),
-            Method(
-              (p) => p
-                ..requiredParameters.add(
-                  Parameter((b) => b..name = 'context'),
-                )
-                ..modifier = MethodModifier.async
-                ..body = Block.of([
-                  declareFinal('di')
-                      .assign(refer('$DI').newInstance([]))
-                      .statement,
-                  refer('app')
-                      .property('configureDependencies')
-                      .call([refer('di')]).statement,
-                  refer('di').property('finishRegistration').call([]).statement,
-                  Code('\n'),
-                  declareVar('_routes')
-                      .assign(refer('routes').call([refer('di')]))
-                      .statement,
-                  Block.of([
-                    Code('if ('),
-                    refer('app').property('prefix').code,
-                    Code(' case'),
-                    declareFinal('prefix?').code,
-                    Code(' when '),
-                    refer('prefix').property('isNotEmpty').code,
-                    Code(') {'),
-                    refer('_routes')
-                        .assign(literalList([
-                          refer('Route').newInstance([
-                            refer('prefix')
-                          ], {
-                            'routes': refer('_routes'),
-                          }),
-                        ]))
-                        .statement,
-                    Code('}'),
-                  ]),
-                  Code('\n'),
-                  declareFinal('router')
-                      .assign(refer('Router').newInstance(
-                        [refer('context')],
-                        {
-                          'routes': literalList([
-                            refer('_routes').spread,
-                            refer('public').spread,
-                          ]),
-                          'reflects': refer('reflects'),
-                          if (server.app case final app?
-                              when app.globalRouteAnnotations.hasAnnotations)
-                            'globalModifiers':
-                                refer('RouteModifiers').newInstance([], {
-                              ...createModifierArgs(
-                                annotations: app.globalRouteAnnotations,
-                              )
-                            })
-                        },
-                      ))
-                      .statement,
-                  Code('\n'),
-                  declareFinal('response')
-                      .assign(
-                          refer('router').awaited.property('handle').call([]))
-                      .statement,
-                  Code('\n'),
-                  refer('di').property('dispose').call([]).statement,
-                  Code('\n'),
-                  refer('response').returned.statement,
-                ]),
-            ).closure,
+            refer('router').property('handle'),
           ],
         ).statement,
         Code('\n'),
@@ -212,12 +195,12 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
                   (p) => p
                     ..modifier = MethodModifier.async
                     ..requiredParameters.add(
-                      Parameter((p) => p
-                        ..name = 'context'
-                        ..type = refer('EndpointContext')),
+                      Parameter((p) => p..name = 'context'),
                     )
                     ..body = Block.of([
-                      declareFinal('file')
+                      refer('context')
+                          .property('response')
+                          .property('body')
                           .assign(
                             refer('File').call([
                               refer('p').property('join').call([
@@ -226,12 +209,6 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
                               ])
                             ]),
                           )
-                          .statement,
-                      Code('\n'),
-                      refer('context')
-                          .property('response')
-                          .property('body')
-                          .assign(refer('file'))
                           .statement,
                     ]),
                 ).closure,

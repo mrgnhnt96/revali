@@ -12,7 +12,6 @@ void main() async {
 
   handleRequests(server, (context) async {
     final router = Router(
-      context,
       routes: routes,
       reflects: {
         Reflect(
@@ -24,7 +23,7 @@ void main() async {
       },
     );
 
-    final response = await router.handle();
+    final response = await router.handle(context);
 
     return response;
   });

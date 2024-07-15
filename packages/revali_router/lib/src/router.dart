@@ -23,44 +23,36 @@ import 'package:revali_router_core/revali_router_core.dart';
 part 'router.g.dart';
 
 class Router extends Equatable {
-  const Router._(
-    this.context, {
+  const Router._({
     required this.routes,
     required RouteModifiersImpl? globalModifiers,
     required Set<Reflect> reflects,
   })  : _reflects = reflects,
         _globalModifiers = globalModifiers;
 
-  Router(
-    RequestContext context, {
+  Router({
     required List<Route> routes,
     RouteModifiersImpl? globalModifiers,
     Set<Reflect> reflects = const {},
   }) : this._(
-          context,
           routes: routes,
           globalModifiers: globalModifiers,
           reflects: reflects,
         );
 
-  Router.forRequest(
-    HttpRequest request, {
-    required List<Route> routes,
-    RouteModifiersImpl? globalModifiers,
-    Set<Reflect> reflects = const {},
-  }) : this._(
-          RequestContextImpl.fromRequest(request),
-          routes: routes,
-          globalModifiers: globalModifiers,
-          reflects: reflects,
-        );
-
-  final RequestContext context;
   final List<Route> routes;
   final Set<Reflect> _reflects;
   final RouteModifiersImpl? _globalModifiers;
 
-  Future<ReadOnlyResponseContext> handle() async {
+  /// Handles an HTTP request.
+  ///
+  /// Passes the request to the [handle] method.
+  Future<ReadOnlyResponseContext> handleHttpRequest(HttpRequest request) async {
+    final context = RequestContextImpl.fromRequest(request);
+    return handle(context);
+  }
+
+  Future<ReadOnlyResponseContext> handle(RequestContext context) async {
     final request = MutableRequestContextImpl.fromRequest(context);
 
     final segments = request.segments;
