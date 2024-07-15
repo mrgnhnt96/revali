@@ -55,7 +55,7 @@ extension HttpResponseX on HttpResponse {
       }
     }
 
-    if (body != null) {
+    if (body != null && request?.method != 'HEAD') {
       await addStream(body);
     }
 

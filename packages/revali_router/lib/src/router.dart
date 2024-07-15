@@ -336,7 +336,9 @@ class Router extends Equatable {
         final _remainingPathSegments = pathSegments.skip(parts.length).toList();
 
         if (_remainingPathSegments.isEmpty &&
-            (parent.canInvoke && parent.method == method)) {
+            (parent.canInvoke &&
+                (parent.method == method ||
+                    parent.method == 'GET' && method == 'HEAD'))) {
           return RouteMatch(
             route: parent,
             pathParameters: pathParameters,
@@ -392,7 +394,8 @@ class Router extends Equatable {
 
           if (_segments.isEmpty) {
             if (route.canInvoke) {
-              if (route.method == method) {
+              if (route.method == method ||
+                  route.method == 'GET' && method == 'HEAD') {
                 return RouteMatch(
                   route: route,
                   pathParameters: pathParameters,
