@@ -5,7 +5,9 @@ import 'package:revali_server/converters/server_mimic.dart';
 import 'package:revali_server/converters/server_parent_route.dart';
 import 'package:revali_server/converters/server_reflect.dart';
 import 'package:revali_server/converters/server_server.dart';
-import 'package:revali_server/makers/route_file_maker.dart';
+import 'package:revali_server/makers/parts/create_modifier_args.dart';
+import 'package:revali_server/makers/parts/get_params.dart';
+import 'package:revali_server/makers/parts/mimic.dart';
 import 'package:revali_server/makers/utils/try_catch.dart';
 
 String serverFile(ServerServer server, String Function(Spec) formatter) {

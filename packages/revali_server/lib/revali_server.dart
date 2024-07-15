@@ -29,7 +29,7 @@ export 'converters/server_set_meta.dart';
 export 'converters/server_type_reference.dart';
 export 'main.dart';
 export 'makers/route_file_maker.dart';
-export 'makers/server_file.dart';
+export 'makers/server_file_maker.dart';
 export 'makers/utils/meta_method_extensions.dart';
 export 'makers/utils/meta_route_extensions.dart';
 export 'makers/utils/try_catch.dart';
