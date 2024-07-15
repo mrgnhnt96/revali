@@ -6,7 +6,7 @@ final class FileBodyData extends BaseBodyData<File> {
   String? _mimeType;
   @override
   String? get mimeType {
-    return _mimeType ??= lookupMimeType(data.path);
+    return _mimeType ??= lookupMimeType(file.path);
   }
 
   int? _length;
@@ -26,6 +26,29 @@ final class FileBodyData extends BaseBodyData<File> {
     yield* Stream.fromIterable([bytes]);
   }
 
+  File? _file;
+  File get file {
+    if (_file case final file?) {
+      return file;
+    }
+
+    final path = File(data.path).resolveSymbolicLinksSync();
+
+    return _file = File(path);
+  }
+
+  Stream<List<int>> range(int start, int end) async* {
+    final (_start, _, _length) = cleanRange(start, end);
+
+    final content = file.openSync();
+    try {
+      content.setPositionSync(_start);
+      yield* content.read(_length).asStream();
+    } finally {
+      content.closeSync();
+    }
+  }
+
   (int, int, int) cleanRange(int start, int end) {
     final length = contentLength;
     if (start >= length) {
@@ -38,21 +61,8 @@ final class FileBodyData extends BaseBodyData<File> {
     return (start, realEnd, realLength);
   }
 
-  Stream<List<int>> range(int start, int end) async* {
-    final (_start, _, _length) = cleanRange(start, end);
-
-    final file = data.openSync();
-    try {
-      file.setPositionSync(_start);
-      yield* file.read(_length).asStream();
-    } finally {
-      file.closeSync();
-    }
-  }
-
-  @override
   ReadOnlyHeaders headers(ReadOnlyHeaders? requestHeaders) {
-    final stat = data.statSync();
+    final stat = file.statSync();
     final headers = MutableHeadersImpl();
 
     if (requestHeaders?.range case final range?) {
@@ -72,7 +82,7 @@ final class FileBodyData extends BaseBodyData<File> {
     headers[HttpHeaders.lastModifiedHeader] = HttpDate.format(stat.modified);
     headers[HttpHeaders.contentDisposition] = [
       'attachment',
-      'filename=${Uri.encodeComponent(data.path)}',
+      'filename=${Uri.encodeComponent(p.basename(file.path))}',
     ].join('; ');
     headers[HttpHeaders.acceptRangesHeader] = 'bytes';
 

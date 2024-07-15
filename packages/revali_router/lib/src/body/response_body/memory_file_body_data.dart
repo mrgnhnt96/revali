@@ -24,6 +24,8 @@ final class MemoryFileBodyData extends BaseBodyData<MemoryFile> {
 
     headers[HttpHeaders.contentTypeHeader] = mimeType;
     headers[HttpHeaders.contentLengthHeader] = '$contentLength';
+    headers[HttpHeaders.contentDisposition] =
+        'attachment; filename="${data.filename}"';
 
     return headers;
   }
