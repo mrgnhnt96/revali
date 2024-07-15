@@ -1,5 +1,6 @@
-import 'package:revali_router_core/body/body_data.dart';
-import 'package:revali_router_core/body/mutable_body.dart';
+import 'package:revali_router/src/body/response_body/base_body_data.dart';
+import 'package:revali_router/src/headers/mutable_headers_impl.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 
 class MutableBodyImpl extends MutableBody {
   MutableBodyImpl([this._data]);
@@ -19,6 +20,10 @@ class MutableBodyImpl extends MutableBody {
       data = JsonBodyData({});
     }
 
+    if (data is! BaseBodyData) {
+      throw StateError('Cannot set key-value pairs on non-$BaseBodyData body');
+    }
+
     if (!data.isJson) {
       throw StateError('Cannot set key-value pairs on non-JSON body');
     }
@@ -33,6 +38,10 @@ class MutableBodyImpl extends MutableBody {
     var data = _data;
     if (data == null) {
       data = ListBodyData([]);
+    }
+
+    if (data is! BaseBodyData) {
+      throw StateError('Cannot add to non-$BaseBodyData body');
     }
 
     if (!data.isList) {
@@ -71,6 +80,13 @@ class MutableBodyImpl extends MutableBody {
 
   @override
   void replace(Object? data) async {
-    _data = BodyData.from(data);
+    _data = switch (data) {
+      BodyData() => data,
+      _ => BaseBodyData.from(data),
+    };
   }
+
+  @override
+  ReadOnlyHeaders headers(ReadOnlyHeaders? requestHeaders) =>
+      _data?.headers(requestHeaders) ?? MutableHeadersImpl();
 }

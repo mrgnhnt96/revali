@@ -18,7 +18,7 @@ void handleRequests(
 
           final response = await handler(context);
 
-          request.response.send(response);
+          request.response.send(response, request: context);
         } catch (e) {
           print('Failed to handle request: $e');
           request.response.send(CannedResponse.internalServerError());

@@ -2,19 +2,27 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:http_parser/http_parser.dart';
+import 'package:revali_router/src/body/response_body/base_body_data.dart';
 import 'package:revali_router/src/payload/payload_impl.dart';
-import 'package:revali_router_core/response/read_only_response_context.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 
 extension HttpResponseX on HttpResponse {
-  Future<void> send(ReadOnlyResponseContext response) async {
+  Future<void> send(
+    ReadOnlyResponseContext response, {
+    RequestContext? request,
+  }) async {
     statusCode = response.statusCode;
     response.headers.forEach((key, value) {
       headers.add(key, value);
     });
 
+    response.body?.headers(request?.headers).forEach((key, value) {
+      headers.add(key, value);
+    });
+
     Stream<List<int>>? body;
 
-    var coding = response.headers['transfer-encoding'];
+    var coding = response.headers[HttpHeaders.transferEncodingHeader];
     if (coding != null && !equalsIgnoreAsciiCase(coding, 'identity')) {
       // If the response is already in a chunked encoding, de-chunk it because
       // otherwise `dart:io` will try to add another layer of chunking.
@@ -38,7 +46,13 @@ extension HttpResponseX on HttpResponse {
     }
 
     if (response.body case final responseBody? when !responseBody.isNull) {
-      body ??= responseBody.read();
+      if (response.headers.range case final range?
+          when responseBody is FileBodyData) {
+        final (start, end) = range;
+        body ??= responseBody.range(start, end);
+      } else {
+        body ??= responseBody.read();
+      }
     }
 
     if (body != null) {

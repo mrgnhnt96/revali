@@ -35,4 +35,6 @@ abstract class ReadOnlyHeaders {
   String? get mimeType;
 
   int? get contentLength;
+
+  (int, int)? get range;
 }

@@ -69,4 +69,26 @@ abstract class CommonHeadersMixin extends ReadOnlyHeaders {
 
     return null;
   }
+
+  (int, int)? _range;
+  @override
+  (int, int)? get range {
+    if (_range case final value?) {
+      return value;
+    }
+
+    if (get('range') case final value?) {
+      final match = RegExp(r'bytes=(\d+)-(\d+)?').firstMatch(value);
+      if (match == null) {
+        return null;
+      }
+
+      final start = int.tryParse(match.group(1)!) ?? 0;
+      final end = int.tryParse(match.group(2)!) ?? -1;
+
+      return _range = (start, end);
+    }
+
+    return null;
+  }
 }

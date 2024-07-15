@@ -1,3 +1,4 @@
+import 'package:revali_router/src/body/response_body/base_body_data.dart';
 import 'package:revali_router/src/headers/mutable_headers_impl.dart';
 import 'package:revali_router/src/response/mutable_response_context_impl.dart';
 import 'package:revali_router_core/body/body_data.dart';
@@ -73,7 +74,10 @@ class _Response implements ReadOnlyResponseContext {
     response.statusCode = statusCode;
     response.headers.addAll(headers);
     if (body != null) {
-      response.body = BodyData.from(body);
+      response.body = switch (body) {
+        BodyData() => body,
+        _ => BaseBodyData.from(body),
+      };
     }
 
     return _Response._(

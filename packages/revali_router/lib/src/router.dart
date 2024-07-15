@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:equatable/equatable.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
+import 'package:revali_router/src/body/response_body/base_body_data.dart';
 import 'package:revali_router/src/endpoint/endpoint_context_impl.dart';
 import 'package:revali_router/src/exception_catcher/exception_catcher_context_impl.dart';
 import 'package:revali_router/src/exception_catcher/exception_catcher_meta_impl.dart';
@@ -503,7 +504,11 @@ extension _MutableResponseX on MutableResponseContext {
     required Map<String, String>? headers,
     required Object? body,
   }) {
-    final _body = BodyData.from(body);
+    final _body = switch (body) {
+      BodyData() => body,
+      _ => BaseBodyData.from(body),
+    };
+
     if (!_body.isNull) {
       this.body = _body;
     }

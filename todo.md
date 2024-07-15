@@ -6,6 +6,8 @@
 - [ ] Handle range file requests
 - [ ] Handle if modified since file requests
 - [ ] Send back last modified header for files
+- [ ] Set headers based on body data type (within the send request method only!)
+   - Create headers getter on the body data type
 - [ ] Update the content disposition header for files
 
 ## 7.13.2024
