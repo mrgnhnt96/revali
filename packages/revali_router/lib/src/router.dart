@@ -1,8 +1,6 @@
 import 'dart:io';
 
 import 'package:equatable/equatable.dart';
-import 'package:http_parser/http_parser.dart';
-import 'package:mime/mime.dart';
 import 'package:revali_router/src/body/response_body/base_body_data.dart';
 import 'package:revali_router/src/endpoint/endpoint_context_impl.dart';
 import 'package:revali_router/src/exception_catcher/exception_catcher_context_impl.dart';
@@ -442,69 +440,6 @@ class Router extends Equatable {
 
   @override
   List<Object?> get props => _$props;
-
-  Future<ReadOnlyResponseContext?> _serverPublicFile(
-    Route route,
-    MutableResponseContextImpl response,
-  ) async {
-    final path = await File(route.fullPath).resolveSymbolicLinks();
-
-    final file = File(path);
-    if (!file.existsSync()) {
-      return CannedResponse.notFound();
-    }
-    final stat = file.statSync();
-    final ifModifiedSince = context.headers.ifModifiedSince;
-
-    if (ifModifiedSince != null) {
-      final fileChangeAtSecResolution = stat.modified.toSecondResolution();
-      if (!fileChangeAtSecResolution.isAfter(ifModifiedSince)) {
-        response.headers
-          ..remove(HttpHeaders.contentLengthHeader)
-          ..set(
-            HttpHeaders.contentLengthHeader,
-            formatHttpDate(DateTime.now()), // this doesn't seem right
-          );
-
-        throw UnimplementedError();
-      }
-    }
-
-    final entityType = FileSystemEntity.typeSync(path);
-    if (entityType == FileSystemEntityType.notFound ||
-        entityType != FileSystemEntityType.file) {
-      return CannedResponse.notFound();
-    }
-
-    final contentType = MimeTypeResolver().lookup(path);
-
-    response.headers
-      ..set(
-        HttpHeaders.lastModifiedHeader,
-        formatHttpDate(stat.modified),
-      )
-      ..set(
-        HttpHeaders.acceptRangesHeader,
-        'bytes',
-      )
-      ..set(
-        HttpHeaders.contentLengthHeader,
-        '${stat.size}',
-      );
-
-    if (contentType != null) {
-      response.headers[HttpHeaders.contentTypeHeader] = contentType;
-    }
-
-    return CannedResponse.notFound();
-  }
-}
-
-extension _DateTimeX on DateTime {
-  DateTime toSecondResolution() {
-    if (millisecond == 0) return this;
-    return subtract(Duration(milliseconds: millisecond));
-  }
 }
 
 extension _MutableResponseX on MutableResponseContext {

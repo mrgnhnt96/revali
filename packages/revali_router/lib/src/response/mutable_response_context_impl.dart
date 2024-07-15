@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:revali_router/revali_router.dart';
+import 'package:revali_router/src/body/response_body/base_body_data.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
 class MutableResponseContextImpl implements MutableResponseContext {
@@ -25,12 +26,31 @@ class MutableResponseContextImpl implements MutableResponseContext {
 
   void set body(Object? newBody) {
     _body.replace(newBody);
+
+    if (_body is FileBodyData) {
+      final file = (_body as FileBodyData).file;
+      final stat = file.statSync();
+      if (stat.type == FileSystemEntityType.notFound) {
+        _statusCode = HttpStatus.notFound;
+        return;
+      }
+
+      if (_requestHeaders.ifModifiedSince case final date?) {
+        final modified = stat.modified.toSecondResolution();
+        if (modified.isBefore(date)) {
+          _statusCode = HttpStatus.notModified;
+          return;
+        }
+      }
+    }
   }
 
   MutableHeaders _headers;
   @override
   MutableHeaders get headers {
-    final headers = MutableHeadersImpl();
+    final headers = MutableHeadersImpl({
+      HttpHeaders.contentLengthHeader: ['0'],
+    });
 
     _headers.forEach((key, value) {
       headers.setAll(key, value);
@@ -87,66 +107,9 @@ class MutableResponseContextImpl implements MutableResponseContext {
   }
 }
 
-// TODO(mrgnhnt): Implement the following methods
-// ignore: unused_element
-const _a = '';
-
-/// Serves a range of [file], if [request] is valid 'bytes' range request.
-///
-/// If the request does not specify a range, specifies a range of the wrong
-/// type, or has a syntactic error the range is ignored and `null` is returned.
-///
-/// If the range request is valid but the file is not long enough to include the
-/// start of the range a range not satisfiable response is returned.
-///
-/// Ranges that end past the end of the file are truncated.
-// Response? _fileRangeResponse(
-//   RequestContext request,
-//   File file,
-//   Map<String, Object> headers,
-// ) {
-//   final _bytesMatcher = RegExp(r'^bytes=(\d*)-(\d*)$');
-
-//   final range = request.headers[HttpHeaders.rangeHeader];
-//   if (range == null) return null;
-//   final matches = _bytesMatcher.firstMatch(range);
-//   // Ignore ranges other than bytes
-//   if (matches == null) return null;
-
-//   final actualLength = file.lengthSync();
-//   final startMatch = matches[1]!;
-//   final endMatch = matches[2]!;
-//   if (startMatch.isEmpty && endMatch.isEmpty) return null;
-
-//   int start; // First byte position - inclusive.
-//   int end; // Last byte position - inclusive.
-//   if (startMatch.isEmpty) {
-//     start = actualLength - int.parse(endMatch);
-//     if (start < 0) start = 0;
-//     end = actualLength - 1;
-//   } else {
-//     start = int.parse(startMatch);
-//     end = endMatch.isEmpty ? actualLength - 1 : int.parse(endMatch);
-//   }
-
-//   // If the range is syntactically invalid the Range header
-//   // MUST be ignored (RFC 2616 section 14.35.1).
-//   if (start > end) return null;
-
-//   if (end >= actualLength) {
-//     end = actualLength - 1;
-//   }
-//   if (start >= actualLength) {
-//     return Response(
-//       HttpStatus.requestedRangeNotSatisfiable,
-//       headers: headers,
-//     );
-//   }
-//   return Response(
-//     HttpStatus.partialContent,
-//     body: request.method == 'HEAD' ? null : file.openRead(start, end + 1),
-//     headers: headers
-//       ..[HttpHeaders.contentLengthHeader] = (end - start + 1).toString()
-//       ..[HttpHeaders.contentRangeHeader] = 'bytes $start-$end/$actualLength',
-//   );
-// }
+extension _DateTimeX on DateTime {
+  DateTime toSecondResolution() {
+    if (millisecond == 0) return this;
+    return subtract(Duration(milliseconds: millisecond));
+  }
+}

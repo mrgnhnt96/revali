@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:collection/collection.dart';
+import 'package:http_parser/http_parser.dart';
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
@@ -104,7 +105,8 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
         when encoding == otherEncoding) {}
   }
 
-  Map<String, List<String>> get values => Map.unmodifiable(_headers);
+  Map<String, List<String>> get values =>
+      CaseInsensitiveMap.from(Map.unmodifiable(_headers));
 
   void setIfAbsent(String contentTypeHeader, String Function() setter) {
     if (_headers[contentTypeHeader] == null) {
@@ -112,73 +114,3 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
     }
   }
 }
-
-// TODO(mrgnhnt): Implement the following methods
-// ignore: unused_element
-const _a = '';
-// /// Adds content-type information to [headers].
-// ///
-// /// Returns a new map without modifying [headers]. This is used to add
-// /// content-type information when creating a 500 response with a default body.
-// Map<String, Object> _adjustErrorHeaders(
-//     Map<String, /* String | List<String> */ Object>? headers) {
-//   if (headers == null || headers['content-type'] == null) {
-//     return addHeader(headers, 'content-type', 'text/plain');
-//   }
-
-//   final contentTypeValue =
-//       expandHeaderValue(headers['content-type']!).join(',');
-//   var contentType =
-//       MediaType.parse(contentTypeValue).change(mimeType: 'text/plain');
-//   return addHeader(headers, 'content-type', contentType.toString());
-// }
-
-// /// Adds information about [encoding] to [headers].
-// ///
-// /// Returns a new map without modifying [headers].
-// Map<String, List<String>> _adjustHeaders(
-//   Map<String, List<String>>? headers,
-//   Payload body,
-// ) {
-//   var sameEncoding = _sameEncoding(headers, body);
-//   if (sameEncoding) {
-//     if (body.contentLength == null ||
-//         findHeader(headers, 'content-length') == '${body.contentLength}') {
-//       return headers ?? {};
-//     } else if (body.contentLength == 0 &&
-//         (headers == null || headers.isEmpty)) {
-//       return {
-//         'content-length': ['0'],
-//       };
-//     }
-//   }
-
-//   var newHeaders = headers == null
-//       ? CaseInsensitiveMap<List<String>>()
-//       : CaseInsensitiveMap<List<String>>.from(headers);
-
-//   if (!sameEncoding) {
-//     if (newHeaders['content-type'] == null) {
-//       newHeaders['content-type'] = [
-//         'application/octet-stream; charset=${body.encoding!.name}'
-//       ];
-//     } else {
-//       final contentType =
-//           MediaType.parse(joinHeaderValues(newHeaders['content-type'])!)
-//               .change(parameters: {'charset': body.encoding!.name});
-//       newHeaders['content-type'] = [contentType.toString()];
-//     }
-//   }
-
-//   final explicitOverrideOfZeroLength =
-//       body.contentLength == 0 && findHeader(headers, 'content-length') != null;
-
-//   if (body.contentLength != null && !explicitOverrideOfZeroLength) {
-//     final coding = joinHeaderValues(newHeaders['transfer-encoding']);
-//     if (coding == null || equalsIgnoreAsciiCase(coding, 'identity')) {
-//       newHeaders['content-length'] = [body.contentLength.toString()];
-//     }
-//   }
-
-//   return newHeaders;
-// }

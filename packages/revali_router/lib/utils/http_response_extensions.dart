@@ -38,9 +38,18 @@ extension HttpResponseX on HttpResponse {
       http.headers.date = DateTime.now().toUtc();
     }
 
-    if (requestMethod != 'HEAD' &&
-        requestMethod != 'OPTIONS' &&
-        response.statusCode != HttpStatus.noContent) {
+    const disallowedStatuses = {
+      HttpStatus.noContent,
+      HttpStatus.notModified,
+    };
+
+    const disallowedMethods = {
+      'HEAD',
+      'OPTIONS',
+    };
+
+    if (!disallowedMethods.contains(requestMethod) &&
+        !disallowedStatuses.contains(response.statusCode)) {
       Stream<List<int>>? _body;
       if (response.body case final responseBody? when !responseBody.isNull) {
         if (_headers.range case final range?
