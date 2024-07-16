@@ -8,7 +8,8 @@ dependencies:
     equatable: ^2.0.5
     http_parser: ^4.1.0
     mime: ^1.0.5
-
+    revali_core:
+        path: ../revali_core
 dev_dependencies:
     autoequal_gen: ^0.9.1
     build_runner: ^2.4.11

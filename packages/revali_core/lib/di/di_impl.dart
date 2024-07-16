@@ -1,14 +1,7 @@
-typedef Factory<T> = T Function();
+import 'package:revali_core/revali_core.dart';
 
-class _Entry<T> {
-  _Entry(this.value, {required this.onDispose});
-
-  final dynamic value;
-  void Function(T)? onDispose;
-}
-
-class DI {
-  DI()
+class DIImpl implements DI {
+  DIImpl()
       : _singletons = {},
         _lazySingletons = {};
 
@@ -48,7 +41,7 @@ class DI {
     if (_lazySingletons.containsKey(T)) {
       final entry = _lazySingletons[T]!;
       final value = entry.value();
-      _singletons[T] = _Entry(value, onDispose: entry.onDispose);
+      _singletons[T] = value;
       return value;
     }
 

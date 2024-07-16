@@ -1,9 +1,7 @@
 import 'package:change_case/change_case.dart';
 import 'package:code_builder/code_builder.dart';
-import 'package:revali_annotations/revali_annotations.dart' show DI;
 import 'package:revali_construct/revali_construct.dart';
-import 'package:revali_server/makers/parts/create_child_route.dart';
-import 'package:revali_server/makers/parts/create_route_args.dart';
+import 'package:revali_core/revali_core.dart';
 import 'package:revali_server/revali_server.dart';
 
 PartFile routeFileMaker(
@@ -23,7 +21,7 @@ PartFile routeFileMaker(
         Parameter(
           (b) => b
             ..name = 'di'
-            ..type = refer('$DI'),
+            ..type = refer('$DIImpl'),
         ),
       ])
       ..body = Block.of([

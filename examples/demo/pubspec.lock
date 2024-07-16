@@ -286,6 +286,13 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
+  revali_core:
+    dependency: transitive
+    description:
+      path: "../../packages/revali_core"
+      relative: true
+    source: path
+    version: "0.0.0"
   revali_router:
     dependency: "direct main"
     description:

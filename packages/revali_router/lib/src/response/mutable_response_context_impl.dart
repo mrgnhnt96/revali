@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:revali_router/revali_router.dart';
-import 'package:revali_router/src/body/response_body/base_body_data.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
 class MutableResponseContextImpl implements MutableResponseContext {

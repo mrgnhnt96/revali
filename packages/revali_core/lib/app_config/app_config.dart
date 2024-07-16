@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:revali_annotations/revali_annotations.dart';
+import '../di/di.dart';
 
 abstract base class AppConfig {
   const AppConfig({

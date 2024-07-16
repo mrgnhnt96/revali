@@ -2,7 +2,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:revali/ast/checkers/checkers.dart';
 import 'package:revali/ast/visitors/get_params.dart';
-import 'package:revali_annotations/revali_annotations.dart';
 import 'package:revali_construct/revali_construct.dart';
 
 class AppVisitor extends RecursiveElementVisitor<void> {
@@ -51,9 +50,9 @@ class AppVisitor extends RecursiveElementVisitor<void> {
       throw Exception('No public constructor found in ${element.name}');
     }
 
-    if (element.allSupertypes.every((e) => e.element.name != '$AppConfig')) {
-      throw Exception('App class must extend `$AppConfig`');
-    }
+    // if (element.allSupertypes.every((e) => e.element.name != '$AppConfig')) {
+    //   throw Exception('App class must extend `$AppConfig`');
+    // }
 
     _app = element;
     _constructor = element.constructors.first;

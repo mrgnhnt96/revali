@@ -1,0 +1,5 @@
+name: revali_core
+description: Classes to share between Revali and Revali Annotations
+
+environment:
+    sdk: '>=3.2.6 <4.0.0'

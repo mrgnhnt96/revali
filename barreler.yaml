@@ -13,6 +13,8 @@ dirs:
     name: revali_annotations
   - path: packages/revali/lib
     name: revali
+  - path: packages/revali_core/lib
+    name: revali_core
   - path: packages/revali_construct/lib
     name: revali_construct
     include:
@@ -22,7 +24,21 @@ dirs:
     name: revali_server
   - path: packages/revali_router/lib
     name: revali_router
+    exclude:
+      - '**/response_body/binary_body_data.dart'
+      - '**/response_body/file_body_data.dart'
+      - '**/response_body/form_body_data.dart'
+      - '**/response_body/json_body_data.dart'
+      - '**/response_body/json_data.dart'
+      - '**/response_body/list_body_data.dart'
+      - '**/response_body/memory_file_body_data.dart'
+      - '**/response_body/unknown_body_data.dart'
   - path: packages/revali_router_core/lib
     name: revali_router_core
+    exports:
+      - export: 'package:revali_core/revali_core.dart'
+        show:
+          - AppConfig
+          - DI
   - path: packages/revali_router_annotations/lib
     name: revali_router_annotations

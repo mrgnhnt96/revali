@@ -1,5 +1,5 @@
 import 'package:code_builder/code_builder.dart';
-import 'package:revali_annotations/revali_annotations.dart' show DI;
+import 'package:revali_core/revali_core.dart';
 import 'package:revali_server/converters/server_app.dart';
 import 'package:revali_server/converters/server_mimic.dart';
 import 'package:revali_server/converters/server_parent_route.dart';
@@ -73,7 +73,7 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
           ]),
         ),
         Code('\n'),
-        declareFinal('di').assign(refer('$DI').newInstance([])).statement,
+        declareFinal('di').assign(refer('$DIImpl').newInstance([])).statement,
         refer('app')
             .property('configureDependencies')
             .call([refer('di')])
