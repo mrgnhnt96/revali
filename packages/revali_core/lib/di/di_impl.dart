@@ -49,12 +49,4 @@ class DIImpl implements DI {
       'Nothing found for type $T within $DI, did you forget to register it?',
     );
   }
-
-  T call<T>() => get<T>();
-
-  void dispose() {
-    for (final entry in _singletons.values) {
-      entry.onDispose?.call(entry.value);
-    }
-  }
 }

@@ -40,5 +40,6 @@ dirs:
         show:
           - AppConfig
           - DI
+          - DIImpl
   - path: packages/revali_router_annotations/lib
     name: revali_router_annotations

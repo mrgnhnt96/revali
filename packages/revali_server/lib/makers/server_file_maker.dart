@@ -13,12 +13,13 @@ import 'package:revali_server/makers/utils/try_catch.dart';
 String serverFile(ServerServer server, String Function(Spec) formatter) {
   final imports = [
     "import 'dart:io';",
+    '',
     "import 'package:path/path.dart' as p;",
     "import 'package:revali_router/revali_router.dart';",
     "import 'package:revali_router_core/revali_router_core.dart';",
-    "import 'package:revali_annotations/revali_annotations.dart';",
     "import 'package:revali_router_annotations/revali_router_annotations.dart';",
     "import 'package:revali_construct/revali_construct.dart';",
+    '',
     for (final imprt in {...server.packageImports()}) "import '$imprt';",
     for (final imprt in {...server.pathImports()}) "import '../$imprt';",
   ];

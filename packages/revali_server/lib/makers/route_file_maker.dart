@@ -21,7 +21,7 @@ PartFile routeFileMaker(
         Parameter(
           (b) => b
             ..name = 'di'
-            ..type = refer('$DIImpl'),
+            ..type = refer('$DI'),
         ),
       ])
       ..body = Block.of([

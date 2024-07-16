@@ -6,4 +6,6 @@ abstract class DI {
   void registerInstance<T>(T instance);
 
   void register<T>(Factory<T> factory);
+
+  T get<T>();
 }
