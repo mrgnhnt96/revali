@@ -1,8 +1,8 @@
 import 'package:examples/repos/repo.dart';
 import 'package:examples/utils/logger.dart';
 import 'package:revali_annotations/revali_annotations.dart';
-import 'package:revali_router_core/revali_router_core.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 
 @Auth(AuthType.user)
 @Controller('user')
@@ -18,11 +18,11 @@ class ThisController {
   @Get()
   Future<void> listPeople() async {}
 
-  // @AuthCombine()
+  @AuthCombine()
   @HttpCode(201)
   @SetHeader('method', 'hi')
-  // @NotAuthCatcher('bye')
-  // @Role(AuthType.admin)
+  @NotAuthCatcher('bye')
+  @Role(AuthType.admin)
   @Get(':id')
   Future<User> getNewPerson({
     @Query.pipe(NamePipe) required String name,

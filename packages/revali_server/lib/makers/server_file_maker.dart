@@ -65,6 +65,7 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
                 if (app.isSecure)
                   'requestClientCertificate':
                       refer('app').property('requestClientCertificate'),
+                'shared': literalTrue,
               }).awaited)
               .statement,
           Block.of([

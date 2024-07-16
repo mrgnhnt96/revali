@@ -16,6 +16,9 @@ Route user(
       ),
       Route(
         ':id',
+        meta: (m) {
+          m..add(Role(AuthType.admin));
+        },
         method: 'GET',
         handler: (context) async {
           await context.request.resolvePayload();

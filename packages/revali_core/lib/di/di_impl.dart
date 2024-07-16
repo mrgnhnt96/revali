@@ -34,15 +34,12 @@ class DIImpl implements DI {
   }
 
   T get<T>() {
-    if (_singletons.containsKey(T)) {
-      return _singletons[T]!.value;
+    if (_singletons[T] case final value?) {
+      return value;
     }
 
-    if (_lazySingletons.containsKey(T)) {
-      final entry = _lazySingletons[T]!;
-      final value = entry.value();
-      _singletons[T] = value;
-      return value;
+    if (_lazySingletons[T] case final factory?) {
+      return _singletons[T] = factory();
     }
 
     throw Exception(

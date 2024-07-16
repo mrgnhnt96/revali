@@ -1,10 +1,11 @@
 import 'dart:io';
+
 import 'package:path/path.dart' as p;
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_router_core/revali_router_core.dart';
-import 'package:revali_annotations/revali_annotations.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_construct/revali_construct.dart';
+
 import '../routes/user.controller.dart';
 import '../routes/some.controller.dart';
 import '../routes/file.controller.dart';
@@ -25,13 +26,14 @@ Future<HttpServer> createServer() async {
     server = await HttpServer.bind(
       app.host,
       app.port,
+      shared: true,
     );
   } catch (e) {
     print('Failed to bind server:\n$e');
     exit(1);
   }
 
-  final di = DI();
+  final di = DIImpl();
   await app.configureDependencies(di);
   di.finishRegistration();
 

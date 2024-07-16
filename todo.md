@@ -3,6 +3,7 @@
 ## 7.15.2024
 
 - [ ] Find a way to support partial content requests
+- [ ] I don't know if I should keep the revali_core package.. does it make sense?
 - [ ] CORs for apps ([docs](https://github.com/lenniezelk/shelf-cors-headers/blob/main/lib/src/shelf_cors_headers_base.dart#L52))
 
 ## 7.13.2024 (2)
