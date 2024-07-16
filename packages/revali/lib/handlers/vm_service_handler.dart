@@ -61,9 +61,10 @@ class VMServiceHandler {
 
     _isReloading = true;
     _cancelWatcherSubscription();
-    logger.detail('Reloading...');
+    final progress = logger.progress('Reloading...');
 
     final server = await codeGenerator();
+    progress.complete('Reloaded');
     clearConsole();
     printVmServiceUri();
     printParsedRoutes(server.routes);
@@ -402,6 +403,8 @@ extension _MethodX on MetaMethod {
         return lightRed.wrap(padded);
       case 'TRACE':
         return lightBlue.wrap(padded);
+      case 'WS':
+        return lightMagenta.wrap(padded);
       default:
         return padded;
     }
