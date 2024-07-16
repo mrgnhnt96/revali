@@ -1,7 +1,6 @@
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_router_core/revali_router_core.dart';
-import 'package:revali_server/converters/server_allow_headers.dart';
 import 'package:revali_server/revali_server.dart';
 
 class ServerRouteAnnotations with ExtractImport {
@@ -9,7 +8,6 @@ class ServerRouteAnnotations with ExtractImport {
     required this.coreMimics,
     required this.coreTypeReferences,
     required this.data,
-    required this.combine,
     required this.meta,
     required this.setHeaders,
     required this.allowOrigins,
@@ -33,7 +31,6 @@ class ServerRouteAnnotations with ExtractImport {
 
     final data = <ServerMimic>[];
     final setHeaders = <ServerSetHeader>[];
-    final combine = <ServerMimic>[];
     final meta = <ServerMimic>[];
     final allowOrigins = <ServerAllowOrigin>[];
     final allowHeaders = <ServerAllowHeaders>[];
@@ -42,7 +39,7 @@ class ServerRouteAnnotations with ExtractImport {
       onMatch: [
         OnMatch(
           classType: Middleware,
-          package: 'revali_router',
+          package: 'revali_router_core',
           convert: (object, annotation) {
             mimics.middlewares
                 .add(ServerMimic.fromDartObject(object, annotation));
@@ -50,7 +47,7 @@ class ServerRouteAnnotations with ExtractImport {
         ),
         OnMatch(
           classType: Interceptor,
-          package: 'revali_router',
+          package: 'revali_router_core',
           convert: (object, annotation) {
             mimics.interceptors
                 .add(ServerMimic.fromDartObject(object, annotation));
@@ -58,7 +55,7 @@ class ServerRouteAnnotations with ExtractImport {
         ),
         OnMatch(
           classType: ExceptionCatcher,
-          package: 'revali_router',
+          package: 'revali_router_core',
           ignoreGenerics: true,
           convert: (object, annotation) {
             mimics.catchers.add(ServerMimic.fromDartObject(object, annotation));
@@ -102,24 +99,33 @@ class ServerRouteAnnotations with ExtractImport {
         ),
         OnMatch(
           classType: Guard,
-          package: 'revali_router',
+          package: 'revali_router_core',
           convert: (object, annotation) {
             mimics.guards.add(ServerMimic.fromDartObject(object, annotation));
           },
         ),
         OnMatch(
-          classType: Data,
-          package: 'revali_router',
-          ignoreGenerics: true,
+          classType: CombineMeta,
+          package: 'revali_router_core',
           convert: (object, annotation) {
-            data.add(ServerMimic.fromDartObject(object, annotation));
+            mimics.combines.add(ServerMimic.fromDartObject(object, annotation));
           },
         ),
         OnMatch(
-          classType: CombineMeta,
-          package: 'revali_router',
+          classType: Combines,
+          package: 'revali_router_annotations',
           convert: (object, annotation) {
-            combine.add(ServerMimic.fromDartObject(object, annotation));
+            types.combines.add(
+              ServerTypeReference.fromElement(object, superType: CombineMeta),
+            );
+          },
+        ),
+        OnMatch(
+          classType: Data,
+          package: 'revali_router_core',
+          ignoreGenerics: true,
+          convert: (object, annotation) {
+            data.add(ServerMimic.fromDartObject(object, annotation));
           },
         ),
         OnMatch(
@@ -157,7 +163,6 @@ class ServerRouteAnnotations with ExtractImport {
       coreMimics: mimics,
       coreTypeReferences: types,
       data: data,
-      combine: combine,
       meta: meta,
       setHeaders: setHeaders,
       allowOrigins: allowOrigins,
@@ -168,7 +173,6 @@ class ServerRouteAnnotations with ExtractImport {
   final _AnnotationTypeReferences coreTypeReferences;
   final _AnnotationMimics coreMimics;
   final Iterable<ServerMimic> data;
-  final Iterable<ServerMimic> combine;
   final Iterable<ServerMimic> meta;
   final Iterable<ServerSetHeader> setHeaders;
   final Iterable<ServerAllowOrigin> allowOrigins;
@@ -178,7 +182,6 @@ class ServerRouteAnnotations with ExtractImport {
     if (coreMimics.all.isNotEmpty) return true;
     if (coreTypeReferences.all.isNotEmpty) return true;
     if (data.isNotEmpty) return true;
-    if (combine.isNotEmpty) return true;
     if (meta.isNotEmpty) return true;
     if (setHeaders.isNotEmpty) return true;
     if (allowOrigins.isNotEmpty) return true;
@@ -190,7 +193,6 @@ class ServerRouteAnnotations with ExtractImport {
         ...coreMimics.all,
         ...coreTypeReferences.all,
         ...data,
-        ...combine,
         ...meta,
       ];
 
@@ -203,6 +205,7 @@ abstract class BaseAnnotations<T> {
   Iterable<T> get interceptors;
   Iterable<T> get catchers;
   Iterable<T> get guards;
+  Iterable<T> get combines;
 }
 
 class _AnnotationTypeReferences
@@ -219,11 +222,15 @@ class _AnnotationTypeReferences
   @override
   List<ServerTypeReference> middlewares = [];
 
+  @override
+  List<ServerTypeReference> combines = [];
+
   Iterable<ServerTypeReference> get all => [
         ...middlewares,
         ...interceptors,
         ...catchers,
         ...guards,
+        ...combines,
       ];
 }
 
@@ -240,10 +247,14 @@ class _AnnotationMimics implements BaseAnnotations<ServerMimic> {
   @override
   List<ServerMimic> middlewares = [];
 
+  @override
+  List<ServerMimic> combines = [];
+
   Iterable<ServerMimic> get all => [
         ...middlewares,
         ...interceptors,
         ...catchers,
         ...guards,
+        ...combines,
       ];
 }

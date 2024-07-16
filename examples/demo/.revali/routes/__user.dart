@@ -6,6 +6,7 @@ Route user(
 ) {
   return Route(
     'user',
+    middlewares: [Auth(AuthType.user)],
     allowedOrigins: {
       'http://localhost:8080',
       'http://localhost:8081',
@@ -21,6 +22,11 @@ Route user(
       ),
       Route(
         ':id',
+        catchers: [NotAuthCatcher('bye')],
+        combine: [
+          AuthCombine(),
+          OtherCombine(di),
+        ],
         meta: (m) {
           m..add(Role(AuthType.admin));
         },

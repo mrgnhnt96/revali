@@ -1,4 +1,5 @@
 import 'package:code_builder/code_builder.dart';
+import 'package:revali_core/revali_core.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_server/revali_server.dart';
 
@@ -6,6 +7,10 @@ Expression createParamArg(
   ServerParam param,
 ) {
   final annotation = param.annotations;
+
+  if (param.type == '$DI') {
+    return refer('di');
+  }
 
   if (!annotation.hasAnnotation && !param.hasDefaultValue) {
     throw ArgumentError(

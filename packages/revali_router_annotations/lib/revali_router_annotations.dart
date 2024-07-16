@@ -6,6 +6,7 @@ export 'src/allow_headers.dart';
 export 'src/allow_origins.dart';
 export 'src/body.dart';
 export 'src/catches.dart';
+export 'src/combines.dart';
 export 'src/custom_param/custom_param.dart';
 export 'src/custom_param/custom_param_context.dart';
 export 'src/custom_param/custom_param_context_impl.dart';

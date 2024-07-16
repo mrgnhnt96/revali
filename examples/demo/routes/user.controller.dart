@@ -23,6 +23,7 @@ class ThisController {
   @Get()
   Future<void> listPeople() async {}
 
+  @Combines([OtherCombine])
   @AuthCombine()
   @HttpCode(201)
   @SetHeader('method', 'hi')
@@ -148,6 +149,24 @@ final class AuthCombine implements CombineMeta {
 
   @override
   List<Middleware> get middlewares => [Auth(AuthType.admin)];
+}
+
+final class OtherCombine implements CombineMeta {
+  const OtherCombine(this.di);
+
+  final DI di;
+
+  @override
+  List<ExceptionCatcher<Exception>> get catchers => [];
+
+  @override
+  List<Guard> get guards => [];
+
+  @override
+  List<Interceptor> get interceptors => [];
+
+  @override
+  List<Middleware> get middlewares => [];
 }
 
 class MyParam extends CustomParam<String> {

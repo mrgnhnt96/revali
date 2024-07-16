@@ -55,12 +55,14 @@ Map<String, Expression> createModifierArgs({
       'allowedHeaders': literalSet([
         for (final allowHeader in allowedHeaders) literalString(allowHeader),
       ]),
-    if (annotations.combine.isNotEmpty)
-      'combine': literalList(
-        [
-          for (final combine in annotations.combine) mimic(combine),
-        ],
-      ),
+    if (mimics.combines.isNotEmpty || typeReferences.combines.isNotEmpty)
+      'combine': literalList([
+        if (mimics.combines.isNotEmpty)
+          for (final combine in mimics.combines) mimic(combine),
+        if (typeReferences.combines.isNotEmpty)
+          for (final uses in typeReferences.combines)
+            for (final combine in uses.types) createClass(combine),
+      ]),
     if (annotations.meta.isNotEmpty)
       ...() {
         final m = refer('m');

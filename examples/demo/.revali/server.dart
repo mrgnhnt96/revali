@@ -54,6 +54,7 @@ Future<HttpServer> createServer() async {
     ],
     reflects: reflects,
     globalModifiers: RouteModifiersImpl(
+      catchers: [DumbExceptionCatcher()],
       allowedOrigins: {'*'},
       allowedHeaders: {'X-IM-AWESOME'},
     ),
