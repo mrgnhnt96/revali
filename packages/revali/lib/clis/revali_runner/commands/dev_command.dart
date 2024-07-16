@@ -14,6 +14,11 @@ class DevCommand extends Command<int> {
             'Re-compiles the construct kernel. Needed to sync changes for a local construct.',
         negatable: false,
         defaultsTo: false,
+      )
+      ..addOption(
+        'flavor',
+        abbr: 'f',
+        help: 'The flavor to use for the app (case-sensitive)',
       );
   }
 
