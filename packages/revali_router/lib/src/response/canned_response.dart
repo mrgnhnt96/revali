@@ -33,6 +33,10 @@ class CannedResponse {
     );
   }
 
+  static ReadOnlyResponseContext failedCors() {
+    return _Response(403);
+  }
+
   static ReadOnlyResponseContext options({
     required Set<String> allowedMethods,
   }) {

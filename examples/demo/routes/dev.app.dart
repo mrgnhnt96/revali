@@ -1,8 +1,10 @@
 import 'package:examples/repos/repo.dart';
 import 'package:examples/utils/logger.dart';
 import 'package:revali_annotations/revali_annotations.dart';
+import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
+@AllowOrigins.all()
 @DumbExceptionCatcher()
 @App(flavor: 'dev')
 final class DevApp extends AppConfig {

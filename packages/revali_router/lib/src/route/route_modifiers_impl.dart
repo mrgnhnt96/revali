@@ -9,11 +9,13 @@ class RouteModifiersImpl implements RouteModifiers {
     List<ExceptionCatcher>? catchers,
     void Function(MetaHandler)? meta,
     List<CombineMeta> combine = const [],
+    Set<String>? allowedOrigins,
   })  : _meta = meta,
         middlewares = middlewares ?? [],
         interceptors = interceptors ?? [],
         guards = guards ?? [],
-        catchers = catchers ?? [] {
+        catchers = catchers ?? [],
+        allowedOrigins = allowedOrigins ?? {} {
     CombineMetaApplier(this, combine).apply();
   }
 
@@ -22,6 +24,7 @@ class RouteModifiersImpl implements RouteModifiers {
   final List<ExceptionCatcher> catchers;
   final List<Guard> guards;
   final void Function(MetaHandler)? _meta;
+  final Set<String> allowedOrigins;
 
   MetaHandler getMeta({MetaHandler? handler}) {
     final meta = handler ?? MetaHandler();

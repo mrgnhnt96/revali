@@ -91,4 +91,14 @@ abstract class CommonHeadersMixin extends ReadOnlyHeaders {
 
     return null;
   }
+
+  String? _origin;
+  @override
+  String? get origin {
+    if (_origin case final value?) {
+      return value;
+    }
+
+    return _origin = get('origin');
+  }
 }

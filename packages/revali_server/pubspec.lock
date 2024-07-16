@@ -33,6 +33,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.11.0"
+  autoequal:
+    dependency: transitive
+    description:
+      name: autoequal
+      sha256: "186f99b614d8dd5b5756b26b6208d21ab948d7798ecfdf84669fff18eed7aab2"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.9.1"
   boolean_selector:
     dependency: transitive
     description:
@@ -89,6 +97,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.1"
+  copy_with_extension:
+    dependency: transitive
+    description:
+      name: copy_with_extension
+      sha256: fbcf890b0c34aedf0894f91a11a579994b61b4e04080204656b582708b5b1125
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.0.4"
   crypto:
     dependency: transitive
     description:
@@ -238,6 +254,13 @@ packages:
       relative: true
     source: path
     version: "0.0.0"
+  revali_router:
+    dependency: "direct main"
+    description:
+      path: "../revali_router"
+      relative: true
+    source: path
+    version: "0.0.1+1"
   revali_router_annotations:
     dependency: "direct main"
     description:

@@ -1,11 +1,7 @@
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_router_core/revali_router_core.dart';
-import 'package:revali_server/converters/server_imports.dart';
-import 'package:revali_server/converters/server_mimic.dart';
-import 'package:revali_server/converters/server_set_header.dart';
-import 'package:revali_server/converters/server_type_reference.dart';
-import 'package:revali_server/utils/extract_import.dart';
+import 'package:revali_server/revali_server.dart';
 
 class ServerRouteAnnotations with ExtractImport {
   ServerRouteAnnotations({
@@ -15,6 +11,7 @@ class ServerRouteAnnotations with ExtractImport {
     required this.combine,
     required this.meta,
     required this.setHeaders,
+    required this.allowOrigins,
   });
 
   factory ServerRouteAnnotations.fromApp(MetaAppConfig app) {
@@ -36,6 +33,7 @@ class ServerRouteAnnotations with ExtractImport {
     final setHeaders = <ServerSetHeader>[];
     final combine = <ServerMimic>[];
     final meta = <ServerMimic>[];
+    final allowOrigins = <ServerAllowOrigin>[];
 
     getter(
       onMatch: [
@@ -135,6 +133,13 @@ class ServerRouteAnnotations with ExtractImport {
             setHeaders.add(ServerSetHeader.fromDartObject(object));
           },
         ),
+        OnMatch(
+          classType: AllowOrigins,
+          package: 'revali_router_annotations',
+          convert: (object, annotation) {
+            allowOrigins.add(ServerAllowOrigin.fromDartObject(object));
+          },
+        ),
       ],
     );
 
@@ -145,6 +150,7 @@ class ServerRouteAnnotations with ExtractImport {
       combine: combine,
       meta: meta,
       setHeaders: setHeaders,
+      allowOrigins: allowOrigins,
     );
   }
 
@@ -154,6 +160,7 @@ class ServerRouteAnnotations with ExtractImport {
   final Iterable<ServerMimic> combine;
   final Iterable<ServerMimic> meta;
   final Iterable<ServerSetHeader> setHeaders;
+  final Iterable<ServerAllowOrigin> allowOrigins;
 
   bool get hasAnnotations {
     if (coreMimics.all.isNotEmpty) return true;
@@ -162,6 +169,7 @@ class ServerRouteAnnotations with ExtractImport {
     if (combine.isNotEmpty) return true;
     if (meta.isNotEmpty) return true;
     if (setHeaders.isNotEmpty) return true;
+    if (allowOrigins.isNotEmpty) return true;
     return false;
   }
 

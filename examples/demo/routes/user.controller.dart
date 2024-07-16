@@ -4,6 +4,10 @@ import 'package:revali_annotations/revali_annotations.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
+@AllowOrigins({
+  'http://localhost:8080',
+  'http://localhost:8081',
+})
 @Auth(AuthType.user)
 @Controller('user')
 class ThisController {

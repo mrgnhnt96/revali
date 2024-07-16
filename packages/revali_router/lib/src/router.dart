@@ -25,14 +25,14 @@ part 'router.g.dart';
 class Router extends Equatable {
   const Router._({
     required this.routes,
-    required RouteModifiersImpl? globalModifiers,
+    required RouteModifiers? globalModifiers,
     required Set<Reflect> reflects,
   })  : _reflects = reflects,
         _globalModifiers = globalModifiers;
 
   Router({
     required List<Route> routes,
-    RouteModifiersImpl? globalModifiers,
+    RouteModifiers? globalModifiers,
     Set<Reflect> reflects = const {},
   }) : this._(
           routes: routes,
@@ -42,7 +42,7 @@ class Router extends Equatable {
 
   final List<Route> routes;
   final Set<Reflect> _reflects;
-  final RouteModifiersImpl? _globalModifiers;
+  final RouteModifiers? _globalModifiers;
 
   /// Handles an HTTP request.
   ///
@@ -69,13 +69,14 @@ class Router extends Equatable {
       );
     }
 
+    final RouteMatch(:route, :pathParameters) = match;
+    final globalModifiers = _globalModifiers ?? RouteModifiersImpl();
+
     if (request.method == 'OPTIONS') {
       return CannedResponse.options(
-        allowedMethods: match.route.allowedMethods,
+        allowedMethods: route.allowedMethods,
       );
     }
-
-    final RouteMatch(:route, :pathParameters) = match;
 
     if (route.redirect case final redirect?) {
       return CannedResponse.redirect(
@@ -84,12 +85,54 @@ class Router extends Equatable {
       );
     }
 
+    final allAllowedOrigins = {
+      ...globalModifiers.allowedOrigins,
+      ...route.allAllowedOrigins
+    };
+
+    if (allAllowedOrigins case final allowedOrigins
+        when allowedOrigins.isNotEmpty) {
+      final origin = request.headers.origin;
+
+      if (origin == null) {
+        return CannedResponse.failedCors();
+      }
+
+      var isAllowed = false;
+      for (final pattern in allowedOrigins) {
+        if (pattern == '*' || pattern == origin) {
+          isAllowed = true;
+          break;
+        }
+
+        try {
+          final regex = RegExp(pattern);
+          if (regex.hasMatch(origin)) {
+            isAllowed = true;
+            break;
+          }
+        } catch (_) {
+          // ignore the pattern if it is not a valid regex
+        }
+      }
+
+      if (!isAllowed) {
+        return CannedResponse.failedCors();
+      }
+
+      request.headers
+        ..set(HttpHeaders.accessControlAllowOriginHeader, origin)
+        ..set(HttpHeaders.accessControlAllowMethodsHeader,
+            route.allowedMethods.join(', '))
+        ..set(HttpHeaders.accessControlAllowCredentialsHeader, 'true');
+      // TODO: SUPPORT ACCESS CONTROL ALLOW HEADERS
+    }
+
     request.pathParameters = pathParameters;
 
     final response =
         MutableResponseContextImpl(requestHeaders: context.headers);
 
-    final globalModifiers = _globalModifiers ?? RouteModifiersImpl();
     final directMeta = route.getMeta();
     final inheritedMeta = route.getMeta(inherit: true);
     globalModifiers.getMeta(handler: inheritedMeta);

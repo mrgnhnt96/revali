@@ -21,7 +21,7 @@ mixin ExtractImport {
       }
     }
 
-    return _packageImports ??= extract().toSet();
+    return _packageImports ??= {...extract().toList()..sort()};
   }
 
   Iterable<String> pathImports() {
@@ -38,6 +38,6 @@ mixin ExtractImport {
       }
     }
 
-    return _pathImports ??= extract().toSet();
+    return _pathImports ??= {...extract().toList()..sort()};
   }
 }

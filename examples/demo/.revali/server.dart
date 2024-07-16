@@ -1,15 +1,15 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
-import 'package:revali_router/revali_router.dart';
-import 'package:revali_router_core/revali_router_core.dart';
-import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_construct/revali_construct.dart';
+import 'package:revali_router_annotations/revali_router_annotations.dart';
+import 'package:revali_router_core/revali_router_core.dart';
+import 'package:revali_router/revali_router.dart';
 
-import '../routes/user.controller.dart';
-import '../routes/some.controller.dart';
-import '../routes/file.controller.dart';
 import '../routes/dev.app.dart';
+import '../routes/file.controller.dart';
+import '../routes/some.controller.dart';
+import '../routes/user.controller.dart';
 
 part 'routes/__user.dart';
 part 'routes/__some.dart';
@@ -53,6 +53,7 @@ Future<HttpServer> createServer() async {
       ...public,
     ],
     reflects: reflects,
+    globalModifiers: RouteModifiersImpl(allowedOrigins: {'*'}),
   );
 
   handleRequests(
@@ -96,6 +97,7 @@ List<Route> get public => [
       Route(
         'favicon.png',
         method: 'GET',
+        allowedOrigins: {'*'},
         handler: (context) async {
           context.response.body = File(p.join(
             'public',

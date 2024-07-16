@@ -1,13 +1,13 @@
+import 'dart:io';
+
 import 'package:code_builder/code_builder.dart';
-import 'package:revali_core/revali_core.dart';
-import 'package:revali_server/converters/server_app.dart';
-import 'package:revali_server/converters/server_mimic.dart';
-import 'package:revali_server/converters/server_parent_route.dart';
-import 'package:revali_server/converters/server_reflect.dart';
+import 'package:revali_router/revali_router.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 import 'package:revali_server/converters/server_server.dart';
+import 'package:revali_server/makers/parts/create_app.dart';
 import 'package:revali_server/makers/parts/create_modifier_args.dart';
-import 'package:revali_server/makers/parts/get_params.dart';
-import 'package:revali_server/makers/parts/mimic.dart';
+import 'package:revali_server/makers/parts/create_parent_ref.dart';
+import 'package:revali_server/makers/parts/create_reflect.dart';
 import 'package:revali_server/makers/utils/try_catch.dart';
 
 String serverFile(ServerServer server, String Function(Spec) formatter) {
@@ -15,10 +15,10 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
     "import 'dart:io';",
     '',
     "import 'package:path/path.dart' as p;",
-    "import 'package:revali_router/revali_router.dart';",
-    "import 'package:revali_router_core/revali_router_core.dart';",
-    "import 'package:revali_router_annotations/revali_router_annotations.dart';",
     "import 'package:revali_construct/revali_construct.dart';",
+    "import 'package:revali_router_annotations/revali_router_annotations.dart';",
+    "import 'package:revali_router_core/revali_router_core.dart';",
+    "import 'package:revali_router/revali_router.dart';",
     '',
     for (final imprt in {...server.packageImports()}) "import '$imprt';",
     for (final imprt in {...server.pathImports()}) "import '../$imprt';",
@@ -96,7 +96,7 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
           Code(') {'),
           refer('_routes')
               .assign(literalList([
-                refer('Route').newInstance([
+                refer('$Route').newInstance([
                   refer('prefix')
                 ], {
                   'routes': refer('_routes'),
@@ -107,7 +107,7 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
         ]),
         Code('\n'),
         declareFinal('router')
-            .assign(refer('Router').newInstance(
+            .assign(refer('$Router').newInstance(
               [],
               {
                 'routes': literalList([
@@ -117,7 +117,8 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
                 'reflects': refer('reflects'),
                 if (server.app case final app?
                     when app.globalRouteAnnotations.hasAnnotations)
-                  'globalModifiers': refer('RouteModifiers').newInstance([], {
+                  'globalModifiers':
+                      refer('$RouteModifiersImpl').newInstance([], {
                     ...createModifierArgs(
                       annotations: app.globalRouteAnnotations,
                     )
@@ -152,11 +153,11 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
     ..returns = TypeReference(
       (b) => b
         ..symbol = 'List'
-        ..types.add(refer('Route')),
+        ..types.add(refer('$Route')),
     )
     ..body = Block.of([
       literalList([
-        for (final route in server.routes) createParentReference(route),
+        for (final route in server.routes) createParentRef(route),
       ]).statement,
     ]));
 
@@ -168,7 +169,7 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
       ..returns = TypeReference(
         (b) => b
           ..symbol = 'Set'
-          ..types.add(refer('Reflect')),
+          ..types.add(refer('$Reflect')),
       )
       ..body = Block.of([
         literalSet([
@@ -185,15 +186,16 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
       ..returns = TypeReference(
         (b) => b
           ..symbol = 'List'
-          ..types.add(refer('Route')),
+          ..types.add(refer('$Route')),
       )
       ..body = Block.of([
         literalList([
           for (final public in server.public)
-            refer('Route').newInstance(
+            refer('$Route').newInstance(
               [literalString(public.path)],
               {
                 'method': literalString('GET'),
+                'allowedOrigins': literalSet(['*']),
                 'handler': Method(
                   (p) => p
                     ..modifier = MethodModifier.async
@@ -205,7 +207,7 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
                           .property('response')
                           .property('body')
                           .assign(
-                            refer('File').call([
+                            refer('$File').call([
                               refer('p').property('join').call([
                                 literalString('public'),
                                 literalString(public.path)
@@ -234,62 +236,4 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
   return '''
 ${imports.join('\n')}
 $content''';
-}
-
-Spec createParentReference(ServerParentRoute route) {
-  final (:positioned, :named) = getParams(route.params);
-
-  return refer(route.handlerName).call([
-    refer(route.className).newInstance(positioned, named),
-    refer('di'),
-  ]);
-}
-
-Spec createReflect(ServerReflect possibleReflect) {
-  final reflect = possibleReflect.valid;
-
-  if (reflect == null) {
-    return Code('');
-  }
-
-  Expression metaExp(MapEntry<String, Iterable<ServerMimic>> data) {
-    final MapEntry(:key, value: meta) = data;
-
-    var m = refer('m').index(literalString(key));
-
-    for (final item in meta) {
-      m = m.cascade('add').call([mimic(item)]);
-    }
-
-    return m;
-  }
-
-  return refer('Reflect').newInstance(
-    [
-      refer(reflect.className),
-    ],
-    {
-      'metas': Method(
-        (p) => p
-          ..requiredParameters.add(
-            Parameter((p) => p..name = 'm'),
-          )
-          ..body = Block.of([
-            for (final meta in reflect.metas.entries) metaExp(meta).statement,
-          ]),
-      ).closure,
-    },
-  );
-}
-
-Expression createApp(ServerApp app) {
-  final (:positioned, :named) = getParams(app.params);
-
-  var expression = refer(app.className);
-
-  if (app.constructor.isEmpty) {
-    return expression.newInstance(positioned, named);
-  } else {
-    return expression.newInstanceNamed(app.constructor, positioned, named);
-  }
 }

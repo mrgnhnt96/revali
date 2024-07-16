@@ -20,6 +20,7 @@ extension _$RouteAutoequal on Route {
         redirect,
         isWebSocket,
         ping,
+        allowedOrigins,
       ];
 }
 
@@ -54,6 +55,8 @@ abstract class _$RouteCWProxy {
 
   Route ping(Duration? ping);
 
+  Route allowedOrigins(Set<String> allowedOrigins);
+
   Route meta(dynamic meta);
 
   /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `Route(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
@@ -76,6 +79,7 @@ abstract class _$RouteCWProxy {
     bool? isWebSocket,
     List<CombineMeta>? combine,
     Duration? ping,
+    Set<String>? allowedOrigins,
     dynamic meta,
   });
 }
@@ -130,6 +134,10 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
   Route ping(Duration? ping) => this(ping: ping);
 
   @override
+  Route allowedOrigins(Set<String> allowedOrigins) =>
+      this(allowedOrigins: allowedOrigins);
+
+  @override
   Route meta(dynamic meta) => this(meta: meta);
 
   @override
@@ -154,6 +162,7 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
     Object? isWebSocket = const $CopyWithPlaceholder(),
     Object? combine = const $CopyWithPlaceholder(),
     Object? ping = const $CopyWithPlaceholder(),
+    Object? allowedOrigins = const $CopyWithPlaceholder(),
     Object? meta = const $CopyWithPlaceholder(),
   }) {
     return Route._(
@@ -212,6 +221,11 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
           ? _value.ping
           // ignore: cast_nullable_to_non_nullable
           : ping as Duration?,
+      allowedOrigins: allowedOrigins == const $CopyWithPlaceholder() ||
+              allowedOrigins == null
+          ? _value.allowedOrigins
+          // ignore: cast_nullable_to_non_nullable
+          : allowedOrigins as Set<String>,
       meta: meta == const $CopyWithPlaceholder() || meta == null
           ? _value._meta
           // ignore: cast_nullable_to_non_nullable

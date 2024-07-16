@@ -36,5 +36,7 @@ abstract class ReadOnlyHeaders {
 
   int? get contentLength;
 
+  String? get origin;
+
   (int, int)? get range;
 }

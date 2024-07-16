@@ -5,10 +5,9 @@ import 'package:http_parser/http_parser.dart';
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
-typedef _Headers = Map<String, List<String>>;
-
 class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
-  MutableHeadersImpl([_Headers? headers]) : _headers = headers ?? {};
+  MutableHeadersImpl([Map<String, List<String>>? headers])
+      : _headers = CaseInsensitiveMap.from(headers ?? {});
 
   factory MutableHeadersImpl.from(Object? object) {
     if (object is MutableHeadersImpl) {
@@ -37,7 +36,7 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
     return MutableHeadersImpl(converted);
   }
 
-  final _Headers _headers;
+  final CaseInsensitiveMap<List<String>> _headers;
 
   @override
   String? operator [](String value) {
@@ -105,8 +104,7 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
         when encoding == otherEncoding) {}
   }
 
-  Map<String, List<String>> get values =>
-      CaseInsensitiveMap.from(Map.unmodifiable(_headers));
+  Map<String, List<String>> get values => Map.unmodifiable(_headers);
 
   void setIfAbsent(String contentTypeHeader, String Function() setter) {
     if (_headers[contentTypeHeader] == null) {

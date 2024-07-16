@@ -12,6 +12,7 @@ abstract class RouteModifiers {
   List<ExceptionCatcher> get catchers;
   List<Guard> get guards;
   void Function(MetaHandler)? get _meta;
+  Set<String> get allowedOrigins;
 
   MetaHandler getMeta({MetaHandler? handler}) {
     final meta = handler ?? MetaHandler();

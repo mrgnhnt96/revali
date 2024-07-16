@@ -2,6 +2,7 @@ import 'package:change_case/change_case.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_core/revali_core.dart';
+import 'package:revali_router/revali_router.dart';
 import 'package:revali_server/revali_server.dart';
 
 PartFile routeFileMaker(
@@ -11,7 +12,7 @@ PartFile routeFileMaker(
   final closure = Method(
     (p) => p
       ..name = route.handlerName
-      ..returns = refer('Route')
+      ..returns = refer('$Route')
       ..requiredParameters.addAll([
         Parameter(
           (b) => b
@@ -25,7 +26,7 @@ PartFile routeFileMaker(
         ),
       ])
       ..body = Block.of([
-        refer('Route')
+        refer('$Route')
             .newInstance([
               literalString(route.routePath)
             ], {

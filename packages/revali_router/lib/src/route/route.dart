@@ -22,6 +22,7 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
     void Function(MetaHandler)? meta,
     Redirect? redirect,
     List<CombineMeta> combine = const [],
+    Set<String>? allowedOrigins,
   }) : this._(
           path,
           routes: routes,
@@ -37,6 +38,7 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
           method: method?.toUpperCase(),
           redirect: redirect,
           combine: combine,
+          allowedOrigins: allowedOrigins ?? {},
         );
 
   Route.webSocket(
@@ -51,6 +53,7 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
     Redirect? redirect,
     List<CombineMeta> combine = const [],
     Duration? ping,
+    Set<String>? allowedOrigins,
   }) : this._(
           path,
           parent: null,
@@ -66,6 +69,7 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
           redirect: redirect,
           combine: combine,
           ping: ping,
+          allowedOrigins: allowedOrigins ?? {},
         );
 
   Route._(
@@ -82,6 +86,7 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
     required this.isWebSocket,
     required List<CombineMeta> combine,
     required this.ping,
+    required this.allowedOrigins,
     // dynamic is needed bc copyWith has a bug
     required meta,
   }) : _meta = meta as void Function(MetaHandler)? {
@@ -197,6 +202,7 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
   final Redirect? redirect;
   final bool isWebSocket;
   final Duration? ping;
+  final Set<String> allowedOrigins;
 
   bool get isDynamic => segments.any((s) => s.startsWith(':'));
   bool get isStatic => !isDynamic;
@@ -290,6 +296,19 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
 
       yield* route.catchers;
       yield* traverse(route.parent);
+    }
+
+    yield* traverse(this);
+  }
+
+  Iterable<String> get allAllowedOrigins sync* {
+    Iterable<String> traverse(Route? route) sync* {
+      if (route == null) {
+        return;
+      }
+
+      yield* traverse(route.parent);
+      yield* route.allowedOrigins;
     }
 
     yield* traverse(this);
