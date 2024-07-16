@@ -85,47 +85,12 @@ class Router extends Equatable {
       );
     }
 
-    final allAllowedOrigins = {
-      ...globalModifiers.allowedOrigins,
-      ...route.allAllowedOrigins
-    };
-
-    if (allAllowedOrigins case final allowedOrigins
-        when allowedOrigins.isNotEmpty) {
-      final origin = request.headers.origin;
-
-      if (origin == null) {
-        return CannedResponse.failedCors();
-      }
-
-      var isAllowed = false;
-      for (final pattern in allowedOrigins) {
-        if (pattern == '*' || pattern == origin) {
-          isAllowed = true;
-          break;
-        }
-
-        try {
-          final regex = RegExp(pattern);
-          if (regex.hasMatch(origin)) {
-            isAllowed = true;
-            break;
-          }
-        } catch (_) {
-          // ignore the pattern if it is not a valid regex
-        }
-      }
-
-      if (!isAllowed) {
-        return CannedResponse.failedCors();
-      }
-
-      request.headers
-        ..set(HttpHeaders.accessControlAllowOriginHeader, origin)
-        ..set(HttpHeaders.accessControlAllowMethodsHeader,
-            route.allowedMethods.join(', '))
-        ..set(HttpHeaders.accessControlAllowCredentialsHeader, 'true');
-      // TODO: SUPPORT ACCESS CONTROL ALLOW HEADERS
+    if (!isOriginAllowed(
+      request,
+      route,
+      globalAllowedOrigins: globalModifiers.allowedOrigins,
+    )) {
+      return CannedResponse.forbidden();
     }
 
     request.pathParameters = pathParameters;
@@ -198,6 +163,62 @@ class Router extends Equatable {
 
       return CannedResponse.internalServerError();
     }
+  }
+
+  bool isOriginAllowed(
+    MutableRequestContext request,
+    Route route, {
+    required Set<String> globalAllowedOrigins,
+  }) {
+    final allAllowedOrigins = {
+      ...globalAllowedOrigins,
+      ...route.allAllowedOrigins
+    };
+
+    var isAllowed = true;
+    final origin = request.headers.origin;
+    if (allAllowedOrigins case final allowedOrigins
+        when allowedOrigins.isNotEmpty) {
+      isAllowed = false;
+
+      if (origin == null) {
+        return false;
+      }
+
+      for (final pattern in allowedOrigins) {
+        if (pattern == '*' || pattern == origin) {
+          isAllowed = true;
+          break;
+        }
+
+        try {
+          final regex = RegExp(pattern);
+          if (regex.hasMatch(origin)) {
+            isAllowed = true;
+            break;
+          }
+        } catch (_) {
+          // ignore the pattern if it is not a valid regex
+        }
+      }
+    }
+
+    if (!isAllowed) {
+      return false;
+    }
+
+    if (origin != null) {
+      request.headers.set(HttpHeaders.accessControlAllowOriginHeader, origin);
+    }
+
+    request.headers
+      ..set(HttpHeaders.accessControlAllowMethodsHeader,
+          route.allowedMethods.join(', '))
+      ..set(HttpHeaders.accessControlAllowCredentialsHeader, 'true')
+      ..set(HttpHeaders.accessControlAllowHeadersHeader,
+          route.allowedHeaders.join(', '));
+
+    return true;
   }
 
   Future<ReadOnlyResponseContext> execute({

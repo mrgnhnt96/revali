@@ -10,6 +10,7 @@ Route user(
       'http://localhost:8080',
       'http://localhost:8081',
     },
+    allowedHeaders: {'X-UR-AWESOME'},
     routes: [
       Route(
         '',

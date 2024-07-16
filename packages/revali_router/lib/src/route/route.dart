@@ -23,6 +23,7 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
     Redirect? redirect,
     List<CombineMeta> combine = const [],
     Set<String>? allowedOrigins,
+    Set<String>? allowedHeaders,
   }) : this._(
           path,
           routes: routes,
@@ -39,6 +40,7 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
           redirect: redirect,
           combine: combine,
           allowedOrigins: allowedOrigins ?? {},
+          allowedHeaders: allowedHeaders ?? {},
         );
 
   Route.webSocket(
@@ -54,6 +56,7 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
     List<CombineMeta> combine = const [],
     Duration? ping,
     Set<String>? allowedOrigins,
+    Set<String>? allowedHeaders,
   }) : this._(
           path,
           parent: null,
@@ -70,6 +73,7 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
           combine: combine,
           ping: ping,
           allowedOrigins: allowedOrigins ?? {},
+          allowedHeaders: allowedHeaders ?? {},
         );
 
   Route._(
@@ -87,6 +91,7 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
     required List<CombineMeta> combine,
     required this.ping,
     required this.allowedOrigins,
+    required this.allowedHeaders,
     // dynamic is needed bc copyWith has a bug
     required meta,
   }) : _meta = meta as void Function(MetaHandler)? {
@@ -203,6 +208,7 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
   final bool isWebSocket;
   final Duration? ping;
   final Set<String> allowedOrigins;
+  final Set<String> allowedHeaders;
 
   bool get isDynamic => segments.any((s) => s.startsWith(':'));
   bool get isStatic => !isDynamic;
@@ -309,6 +315,19 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
 
       yield* traverse(route.parent);
       yield* route.allowedOrigins;
+    }
+
+    yield* traverse(this);
+  }
+
+  Iterable<String> get allAllowedHeaders sync* {
+    Iterable<String> traverse(Route? route) sync* {
+      if (route == null) {
+        return;
+      }
+
+      yield* traverse(route.parent);
+      yield* route.allowedHeaders;
     }
 
     yield* traverse(this);

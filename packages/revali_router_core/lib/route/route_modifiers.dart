@@ -13,6 +13,7 @@ abstract class RouteModifiers {
   List<Guard> get guards;
   void Function(MetaHandler)? get _meta;
   Set<String> get allowedOrigins;
+  Set<String> get allowedHeaders;
 
   MetaHandler getMeta({MetaHandler? handler}) {
     final meta = handler ?? MetaHandler();

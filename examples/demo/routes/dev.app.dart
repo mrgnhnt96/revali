@@ -5,6 +5,7 @@ import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
 @AllowOrigins.all()
+@AllowHeaders({'X-IM-AWESOME'})
 @DumbExceptionCatcher()
 @App(flavor: 'dev')
 final class DevApp extends AppConfig {

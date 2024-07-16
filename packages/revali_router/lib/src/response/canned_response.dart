@@ -33,8 +33,15 @@ class CannedResponse {
     );
   }
 
-  static ReadOnlyResponseContext failedCors() {
-    return _Response(403);
+  static ReadOnlyResponseContext forbidden({
+    BodyData? body,
+    Map<String, String> headers = const {},
+  }) {
+    return _Response(
+      403,
+      body: body,
+      headers: headers,
+    );
   }
 
   static ReadOnlyResponseContext options({

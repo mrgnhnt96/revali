@@ -53,7 +53,10 @@ Future<HttpServer> createServer() async {
       ...public,
     ],
     reflects: reflects,
-    globalModifiers: RouteModifiersImpl(allowedOrigins: {'*'}),
+    globalModifiers: RouteModifiersImpl(
+      allowedOrigins: {'*'},
+      allowedHeaders: {'X-IM-AWESOME'},
+    ),
   );
 
   handleRequests(

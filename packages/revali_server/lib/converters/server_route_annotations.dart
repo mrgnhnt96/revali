@@ -1,6 +1,7 @@
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_router_core/revali_router_core.dart';
+import 'package:revali_server/converters/server_allow_headers.dart';
 import 'package:revali_server/revali_server.dart';
 
 class ServerRouteAnnotations with ExtractImport {
@@ -12,6 +13,7 @@ class ServerRouteAnnotations with ExtractImport {
     required this.meta,
     required this.setHeaders,
     required this.allowOrigins,
+    required this.allowHeaders,
   });
 
   factory ServerRouteAnnotations.fromApp(MetaAppConfig app) {
@@ -34,6 +36,7 @@ class ServerRouteAnnotations with ExtractImport {
     final combine = <ServerMimic>[];
     final meta = <ServerMimic>[];
     final allowOrigins = <ServerAllowOrigin>[];
+    final allowHeaders = <ServerAllowHeaders>[];
 
     getter(
       onMatch: [
@@ -140,6 +143,13 @@ class ServerRouteAnnotations with ExtractImport {
             allowOrigins.add(ServerAllowOrigin.fromDartObject(object));
           },
         ),
+        OnMatch(
+          classType: AllowHeaders,
+          package: 'revali_router_annotations',
+          convert: (object, annotation) {
+            allowHeaders.add(ServerAllowHeaders.fromDartObject(object));
+          },
+        ),
       ],
     );
 
@@ -151,6 +161,7 @@ class ServerRouteAnnotations with ExtractImport {
       meta: meta,
       setHeaders: setHeaders,
       allowOrigins: allowOrigins,
+      allowHeaders: allowHeaders,
     );
   }
 
@@ -161,6 +172,7 @@ class ServerRouteAnnotations with ExtractImport {
   final Iterable<ServerMimic> meta;
   final Iterable<ServerSetHeader> setHeaders;
   final Iterable<ServerAllowOrigin> allowOrigins;
+  final Iterable<ServerAllowHeaders> allowHeaders;
 
   bool get hasAnnotations {
     if (coreMimics.all.isNotEmpty) return true;

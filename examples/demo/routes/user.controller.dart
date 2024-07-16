@@ -8,6 +8,7 @@ import 'package:revali_router_core/revali_router_core.dart';
   'http://localhost:8080',
   'http://localhost:8081',
 })
+@AllowHeaders({'X-UR-AWESOME'})
 @Auth(AuthType.user)
 @Controller('user')
 class ThisController {

@@ -21,6 +21,7 @@ extension _$RouteAutoequal on Route {
         isWebSocket,
         ping,
         allowedOrigins,
+        allowedHeaders,
       ];
 }
 
@@ -57,6 +58,8 @@ abstract class _$RouteCWProxy {
 
   Route allowedOrigins(Set<String> allowedOrigins);
 
+  Route allowedHeaders(Set<String> allowedHeaders);
+
   Route meta(dynamic meta);
 
   /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `Route(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
@@ -80,6 +83,7 @@ abstract class _$RouteCWProxy {
     List<CombineMeta>? combine,
     Duration? ping,
     Set<String>? allowedOrigins,
+    Set<String>? allowedHeaders,
     dynamic meta,
   });
 }
@@ -138,6 +142,10 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
       this(allowedOrigins: allowedOrigins);
 
   @override
+  Route allowedHeaders(Set<String> allowedHeaders) =>
+      this(allowedHeaders: allowedHeaders);
+
+  @override
   Route meta(dynamic meta) => this(meta: meta);
 
   @override
@@ -163,6 +171,7 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
     Object? combine = const $CopyWithPlaceholder(),
     Object? ping = const $CopyWithPlaceholder(),
     Object? allowedOrigins = const $CopyWithPlaceholder(),
+    Object? allowedHeaders = const $CopyWithPlaceholder(),
     Object? meta = const $CopyWithPlaceholder(),
   }) {
     return Route._(
@@ -226,6 +235,11 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
           ? _value.allowedOrigins
           // ignore: cast_nullable_to_non_nullable
           : allowedOrigins as Set<String>,
+      allowedHeaders: allowedHeaders == const $CopyWithPlaceholder() ||
+              allowedHeaders == null
+          ? _value.allowedHeaders
+          // ignore: cast_nullable_to_non_nullable
+          : allowedHeaders as Set<String>,
       meta: meta == const $CopyWithPlaceholder() || meta == null
           ? _value._meta
           // ignore: cast_nullable_to_non_nullable

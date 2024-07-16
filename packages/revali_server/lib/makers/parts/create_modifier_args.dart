@@ -8,6 +8,7 @@ Map<String, Expression> createModifierArgs({
   final mimics = annotations.coreMimics;
 
   final allowedOrigins = annotations.allowOrigins.expand((e) => e.origins);
+  final allowedHeaders = annotations.allowHeaders.expand((e) => e.headers);
 
   return {
     if (mimics.catchers.isNotEmpty || typeReferences.catchers.isNotEmpty)
@@ -49,6 +50,10 @@ Map<String, Expression> createModifierArgs({
     if (allowedOrigins.isNotEmpty)
       'allowedOrigins': literalSet([
         for (final allowOrigin in allowedOrigins) literalString(allowOrigin),
+      ]),
+    if (allowedHeaders.isNotEmpty)
+      'allowedHeaders': literalSet([
+        for (final allowHeader in allowedHeaders) literalString(allowHeader),
       ]),
     if (annotations.combine.isNotEmpty)
       'combine': literalList(
