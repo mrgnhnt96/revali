@@ -78,7 +78,7 @@ class ServerServer with ExtractImport {
 
   Iterable<ServerReflect> get reflects sync* {
     for (final route in routes) {
-      yield* route.reflects;
+      yield* route.reflects.where((e) => e.isValid);
     }
   }
 
