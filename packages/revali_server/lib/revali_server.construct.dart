@@ -2,7 +2,10 @@ import 'package:code_builder/code_builder.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_server/converters/server_server.dart';
+import 'package:revali_server/makers/part_files/public_file_maker.dart';
+import 'package:revali_server/makers/part_files/reflects_file_maker.dart';
 import 'package:revali_server/makers/part_files/route_file_maker.dart';
+import 'package:revali_server/makers/part_files/routes_file_maker.dart';
 import 'package:revali_server/makers/server_file_maker.dart';
 
 class RevaliServerConstruct implements ServerConstruct {
@@ -21,12 +24,13 @@ class RevaliServerConstruct implements ServerConstruct {
       return formatter.format(spec.accept(emitter).toString());
     }
 
-    final content = serverFile(serverServer, format);
-
     return ServerFile(
-      content: content,
+      content: serverFile(serverServer, format),
       parts: [
         for (final route in serverServer.routes) routeFileMaker(route, format),
+        reflectsFileMaker(serverServer, format),
+        publicFileMaker(serverServer, format),
+        routesFileMaker(serverServer, format),
       ],
     );
   }

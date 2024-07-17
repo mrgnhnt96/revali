@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
+import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 import 'package:revali_router_core/revali_router_core_access_control.dart';
@@ -14,9 +15,12 @@ import '../routes/user.controller.dart';
 part 'routes/__user.dart';
 part 'routes/__some.dart';
 part 'routes/__file.dart';
+part 'definitions/__reflects.dart';
+part 'definitions/__public.dart';
+part 'definitions/__routes.dart';
 
 void main() {
-  createServer();
+  hotReload(createServer);
 }
 
 Future<HttpServer> createServer() async {
@@ -26,6 +30,7 @@ Future<HttpServer> createServer() async {
     server = await HttpServer.bind(
       app.host,
       app.port,
+      shared: true,
     );
   } catch (e) {
     print('Failed to bind server:\n$e');
@@ -74,44 +79,3 @@ Future<HttpServer> createServer() async {
 
   return server;
 }
-
-List<Route> routes(DI di) => [
-      user(
-        ThisController(
-          logger: di.get(),
-          repo: di.get(),
-        ),
-        di,
-      ),
-      some(
-        Some(),
-        di,
-      ),
-      file(
-        FileUploader(),
-        di,
-      ),
-    ];
-
-Set<Reflect> get reflects => {
-      Reflect(
-        User,
-        metas: (m) {
-          m['id']..add(Role(AuthType.admin));
-        },
-      )
-    };
-
-List<Route> get public => [
-      Route(
-        'favicon.png',
-        method: 'GET',
-        allowedOrigins: AllowOrigins.all(),
-        handler: (context) async {
-          context.response.body = File(p.join(
-            'public',
-            'favicon.png',
-          ));
-        },
-      )
-    ];
