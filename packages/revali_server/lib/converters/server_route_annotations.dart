@@ -32,8 +32,8 @@ class ServerRouteAnnotations with ExtractImport {
     final data = <ServerMimic>[];
     final setHeaders = <ServerSetHeader>[];
     final meta = <ServerMimic>[];
-    final allowOrigins = <ServerAllowOrigin>[];
-    final allowHeaders = <ServerAllowHeaders>[];
+    ServerAllowOrigins? allowOrigins;
+    ServerAllowHeaders? allowHeaders;
 
     getter(
       onMatch: [
@@ -144,16 +144,24 @@ class ServerRouteAnnotations with ExtractImport {
         ),
         OnMatch(
           classType: AllowOrigins,
-          package: 'revali_router_annotations',
+          package: 'revali_router_core',
           convert: (object, annotation) {
-            allowOrigins.add(ServerAllowOrigin.fromDartObject(object));
+            if (allowOrigins != null) {
+              throw ArgumentError(
+                  'Only one $AllowOrigins annotation is allowed');
+            }
+            allowOrigins = ServerAllowOrigins.fromDartObject(object);
           },
         ),
         OnMatch(
           classType: AllowHeaders,
-          package: 'revali_router_annotations',
+          package: 'revali_router_core',
           convert: (object, annotation) {
-            allowHeaders.add(ServerAllowHeaders.fromDartObject(object));
+            if (allowHeaders != null) {
+              throw ArgumentError(
+                  'Only one $AllowHeaders annotation is allowed');
+            }
+            allowHeaders = ServerAllowHeaders.fromDartObject(object);
           },
         ),
       ],
@@ -175,8 +183,8 @@ class ServerRouteAnnotations with ExtractImport {
   final Iterable<ServerMimic> data;
   final Iterable<ServerMimic> meta;
   final Iterable<ServerSetHeader> setHeaders;
-  final Iterable<ServerAllowOrigin> allowOrigins;
-  final Iterable<ServerAllowHeaders> allowHeaders;
+  final ServerAllowOrigins? allowOrigins;
+  final ServerAllowHeaders? allowHeaders;
 
   bool get hasAnnotations {
     if (coreMimics.all.isNotEmpty) return true;
@@ -184,7 +192,8 @@ class ServerRouteAnnotations with ExtractImport {
     if (data.isNotEmpty) return true;
     if (meta.isNotEmpty) return true;
     if (setHeaders.isNotEmpty) return true;
-    if (allowOrigins.isNotEmpty) return true;
+    if (allowOrigins != null) return true;
+    if (allowHeaders != null) return true;
     return false;
   }
 

@@ -1,4 +1,5 @@
 import 'package:code_builder/code_builder.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 import 'package:revali_server/revali_server.dart';
 
 Map<String, Expression> createModifierArgs({
@@ -6,9 +7,6 @@ Map<String, Expression> createModifierArgs({
 }) {
   final typeReferences = annotations.coreTypeReferences;
   final mimics = annotations.coreMimics;
-
-  final allowedOrigins = annotations.allowOrigins.expand((e) => e.origins);
-  final allowedHeaders = annotations.allowHeaders.expand((e) => e.headers);
 
   return {
     if (mimics.catchers.isNotEmpty || typeReferences.catchers.isNotEmpty)
@@ -47,14 +45,24 @@ Map<String, Expression> createModifierArgs({
           for (final uses in typeReferences.middlewares)
             for (final middleware in uses.types) createClass(middleware),
       ]),
-    if (allowedOrigins.isNotEmpty)
-      'allowedOrigins': literalSet([
-        for (final allowOrigin in allowedOrigins) literalString(allowOrigin),
-      ]),
-    if (allowedHeaders.isNotEmpty)
-      'allowedHeaders': literalSet([
-        for (final allowHeader in allowedHeaders) literalString(allowHeader),
-      ]),
+    if (annotations.allowOrigins case final allow?
+        when allow.origins.isNotEmpty)
+      'allowedOrigins': refer('$AllowOrigins').newInstance([
+        literalSet([
+          for (final allowOrigin in allow.origins) literalString(allowOrigin),
+        ])
+      ], {
+        'inherit': literalBool(allow.inherit),
+      }),
+    if (annotations.allowHeaders case final allow?
+        when allow.headers.isNotEmpty)
+      'allowedHeaders': refer('$AllowHeaders').newInstance([
+        literalSet([
+          for (final allowHeader in allow.headers) literalString(allowHeader),
+        ])
+      ], {
+        'inherit': literalBool(allow.inherit),
+      }),
     if (mimics.combines.isNotEmpty || typeReferences.combines.isNotEmpty)
       'combine': literalList([
         if (mimics.combines.isNotEmpty)

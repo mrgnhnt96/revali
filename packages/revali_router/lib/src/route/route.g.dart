@@ -56,9 +56,9 @@ abstract class _$RouteCWProxy {
 
   Route ping(Duration? ping);
 
-  Route allowedOrigins(Set<String> allowedOrigins);
+  Route allowedOrigins(AllowOrigins? allowedOrigins);
 
-  Route allowedHeaders(Set<String> allowedHeaders);
+  Route allowedHeaders(AllowHeaders? allowedHeaders);
 
   Route meta(dynamic meta);
 
@@ -82,8 +82,8 @@ abstract class _$RouteCWProxy {
     bool? isWebSocket,
     List<CombineMeta>? combine,
     Duration? ping,
-    Set<String>? allowedOrigins,
-    Set<String>? allowedHeaders,
+    AllowOrigins? allowedOrigins,
+    AllowHeaders? allowedHeaders,
     dynamic meta,
   });
 }
@@ -138,11 +138,11 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
   Route ping(Duration? ping) => this(ping: ping);
 
   @override
-  Route allowedOrigins(Set<String> allowedOrigins) =>
+  Route allowedOrigins(AllowOrigins? allowedOrigins) =>
       this(allowedOrigins: allowedOrigins);
 
   @override
-  Route allowedHeaders(Set<String> allowedHeaders) =>
+  Route allowedHeaders(AllowHeaders? allowedHeaders) =>
       this(allowedHeaders: allowedHeaders);
 
   @override
@@ -230,16 +230,14 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
           ? _value.ping
           // ignore: cast_nullable_to_non_nullable
           : ping as Duration?,
-      allowedOrigins: allowedOrigins == const $CopyWithPlaceholder() ||
-              allowedOrigins == null
+      allowedOrigins: allowedOrigins == const $CopyWithPlaceholder()
           ? _value.allowedOrigins
           // ignore: cast_nullable_to_non_nullable
-          : allowedOrigins as Set<String>,
-      allowedHeaders: allowedHeaders == const $CopyWithPlaceholder() ||
-              allowedHeaders == null
+          : allowedOrigins as AllowOrigins?,
+      allowedHeaders: allowedHeaders == const $CopyWithPlaceholder()
           ? _value.allowedHeaders
           // ignore: cast_nullable_to_non_nullable
-          : allowedHeaders as Set<String>,
+          : allowedHeaders as AllowHeaders?,
       meta: meta == const $CopyWithPlaceholder() || meta == null
           ? _value._meta
           // ignore: cast_nullable_to_non_nullable

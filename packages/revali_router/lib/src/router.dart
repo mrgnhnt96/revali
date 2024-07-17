@@ -88,7 +88,8 @@ class Router extends Equatable {
     if (!isOriginAllowed(
       request,
       route,
-      globalAllowedOrigins: globalModifiers.allowedOrigins,
+      globalAllowedOrigins: globalModifiers.allowedOrigins?.origins,
+      globalAllowedHeaders: globalModifiers.allowedHeaders?.headers,
     )) {
       return CannedResponse.forbidden();
     }
@@ -168,10 +169,12 @@ class Router extends Equatable {
   bool isOriginAllowed(
     MutableRequestContext request,
     Route route, {
-    required Set<String> globalAllowedOrigins,
+    required Set<String>? globalAllowedOrigins,
+    required Set<String>? globalAllowedHeaders,
   }) {
+    final inheritGlobal = route.allowedOrigins?.inherit != false;
     final allAllowedOrigins = {
-      ...globalAllowedOrigins,
+      if (inheritGlobal) ...?globalAllowedOrigins,
       ...route.allAllowedOrigins
     };
 
@@ -215,8 +218,12 @@ class Router extends Equatable {
       ..set(HttpHeaders.accessControlAllowMethodsHeader,
           route.allowedMethods.join(', '))
       ..set(HttpHeaders.accessControlAllowCredentialsHeader, 'true')
-      ..set(HttpHeaders.accessControlAllowHeadersHeader,
-          route.allowedHeaders.join(', '));
+      ..set(
+          HttpHeaders.accessControlAllowHeadersHeader,
+          {
+            if (inheritGlobal) ...?globalAllowedHeaders,
+            ...?route.allowedHeaders?.headers,
+          }.join(', '));
 
     return true;
   }

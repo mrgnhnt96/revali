@@ -195,7 +195,8 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
               [literalString(public.path)],
               {
                 'method': literalString('GET'),
-                'allowedOrigins': literalSet(['*']),
+                'allowedOrigins':
+                    refer('$AllowOrigins').newInstanceNamed('all', []),
                 'handler': Method(
                   (p) => p
                     ..modifier = MethodModifier.async

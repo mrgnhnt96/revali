@@ -55,8 +55,14 @@ Future<HttpServer> createServer() async {
     reflects: reflects,
     globalModifiers: RouteModifiersImpl(
       catchers: [DumbExceptionCatcher()],
-      allowedOrigins: {'*'},
-      allowedHeaders: {'X-IM-AWESOME'},
+      allowedOrigins: AllowOrigins(
+        {'*'},
+        inherit: false,
+      ),
+      allowedHeaders: AllowHeaders(
+        {'X-IM-AWESOME'},
+        inherit: true,
+      ),
     ),
   );
 
@@ -101,7 +107,7 @@ List<Route> get public => [
       Route(
         'favicon.png',
         method: 'GET',
-        allowedOrigins: {'*'},
+        allowedOrigins: AllowOrigins.all(),
         handler: (context) async {
           context.response.body = File(p.join(
             'public',

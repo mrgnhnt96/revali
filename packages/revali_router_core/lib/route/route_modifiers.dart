@@ -1,3 +1,5 @@
+import 'package:revali_router_core/access_control/allow_headers.dart';
+import 'package:revali_router_core/access_control/allow_origins.dart';
 import 'package:revali_router_core/exception_catcher/exception_catcher.dart';
 import 'package:revali_router_core/guard/guard.dart';
 import 'package:revali_router_core/interceptor/interceptor.dart';
@@ -12,8 +14,8 @@ abstract class RouteModifiers {
   List<ExceptionCatcher> get catchers;
   List<Guard> get guards;
   void Function(MetaHandler)? get _meta;
-  Set<String> get allowedOrigins;
-  Set<String> get allowedHeaders;
+  AllowOrigins? get allowedOrigins;
+  AllowHeaders? get allowedHeaders;
 
   MetaHandler getMeta({MetaHandler? handler}) {
     final meta = handler ?? MetaHandler();

@@ -22,8 +22,8 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
     void Function(MetaHandler)? meta,
     Redirect? redirect,
     List<CombineMeta> combine = const [],
-    Set<String>? allowedOrigins,
-    Set<String>? allowedHeaders,
+    AllowOrigins? allowedOrigins,
+    AllowHeaders? allowedHeaders,
   }) : this._(
           path,
           routes: routes,
@@ -39,8 +39,8 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
           method: method?.toUpperCase(),
           redirect: redirect,
           combine: combine,
-          allowedOrigins: allowedOrigins ?? {},
-          allowedHeaders: allowedHeaders ?? {},
+          allowedOrigins: allowedOrigins,
+          allowedHeaders: allowedHeaders,
         );
 
   Route.webSocket(
@@ -55,8 +55,8 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
     Redirect? redirect,
     List<CombineMeta> combine = const [],
     Duration? ping,
-    Set<String>? allowedOrigins,
-    Set<String>? allowedHeaders,
+    AllowOrigins? allowedOrigins,
+    AllowHeaders? allowedHeaders,
   }) : this._(
           path,
           parent: null,
@@ -72,8 +72,8 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
           redirect: redirect,
           combine: combine,
           ping: ping,
-          allowedOrigins: allowedOrigins ?? {},
-          allowedHeaders: allowedHeaders ?? {},
+          allowedOrigins: allowedOrigins,
+          allowedHeaders: allowedHeaders,
         );
 
   Route._(
@@ -207,8 +207,8 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
   final Redirect? redirect;
   final bool isWebSocket;
   final Duration? ping;
-  final Set<String> allowedOrigins;
-  final Set<String> allowedHeaders;
+  final AllowOrigins? allowedOrigins;
+  final AllowHeaders? allowedHeaders;
 
   bool get isDynamic => segments.any((s) => s.startsWith(':'));
   bool get isStatic => !isDynamic;
@@ -313,8 +313,13 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
         return;
       }
 
+      if (route.allowedOrigins case final value? when !value.inherit) {
+        yield* value.origins;
+        return;
+      }
+
       yield* traverse(route.parent);
-      yield* route.allowedOrigins;
+      yield* route.allowedOrigins?.origins ?? [];
     }
 
     yield* traverse(this);
@@ -326,8 +331,13 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
         return;
       }
 
+      if (route.allowedHeaders case final value? when !value.inherit) {
+        yield* value.headers;
+        return;
+      }
+
       yield* traverse(route.parent);
-      yield* route.allowedHeaders;
+      yield* route.allowedHeaders?.headers ?? [];
     }
 
     yield* traverse(this);
