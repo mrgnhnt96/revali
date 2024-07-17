@@ -10,6 +10,8 @@ dependencies:
     change_case: ^2.1.0
     code_builder: ^4.10.0
     dart_style: ^2.3.6
+    revali_annotations:
+        path: ../revali_annotations
     revali_core:
         path: ../revali_core
     revali_construct:

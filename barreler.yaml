@@ -35,11 +35,21 @@ dirs:
       - '**/response_body/unknown_body_data.dart'
   - path: packages/revali_router_core/lib
     name: revali_router_core
+    exclude:
+      - '**access_control**'
+      - 'revali_router_core.dart'
     exports:
       - export: 'package:revali_core/revali_core.dart'
         show:
           - AppConfig
           - DI
           - DIImpl
+  - path: packages/revali_router_core/lib
+    name: revali_router_core_access_control
+    exclude:
+      - '**.dart'
+    exports:
+      - export: 'access_control/allow_headers.dart'
+      - export: 'access_control/allow_origins.dart'
   - path: packages/revali_router_annotations/lib
     name: revali_router_annotations

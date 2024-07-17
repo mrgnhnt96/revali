@@ -1,6 +1,7 @@
+import 'package:revali_annotations/revali_annotations.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
-import 'package:revali_router_core/revali_router_core.dart';
+import 'package:revali_router_core/revali_router_core_without_access_control.dart';
 import 'package:revali_server/revali_server.dart';
 
 class ServerRouteAnnotations with ExtractImport {
@@ -144,7 +145,7 @@ class ServerRouteAnnotations with ExtractImport {
         ),
         OnMatch(
           classType: AllowOrigins,
-          package: 'revali_router_core',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             if (allowOrigins != null) {
               throw ArgumentError(
@@ -155,7 +156,7 @@ class ServerRouteAnnotations with ExtractImport {
         ),
         OnMatch(
           classType: AllowHeaders,
-          package: 'revali_router_core',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             if (allowHeaders != null) {
               throw ArgumentError(

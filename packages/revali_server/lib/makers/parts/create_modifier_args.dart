@@ -1,5 +1,5 @@
 import 'package:code_builder/code_builder.dart';
-import 'package:revali_router_core/revali_router_core.dart';
+import 'package:revali_router_core/revali_router_core_access_control.dart';
 import 'package:revali_server/revali_server.dart';
 
 Map<String, Expression> createModifierArgs({

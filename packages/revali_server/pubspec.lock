@@ -234,7 +234,7 @@ packages:
     source: hosted
     version: "2.1.4"
   revali_annotations:
-    dependency: transitive
+    dependency: "direct main"
     description:
       path: "../revali_annotations"
       relative: true

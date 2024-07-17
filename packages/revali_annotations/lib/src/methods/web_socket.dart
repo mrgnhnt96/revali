@@ -1,4 +1,4 @@
-import 'package:revali_annotations/models/methods/method.dart';
+import 'package:revali_annotations/src/methods/method.dart';
 
 final class WebSocket extends Method {
   const WebSocket(String? path)

@@ -3,6 +3,7 @@ import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:equatable/equatable.dart';
 import 'package:revali_router/src/meta/combine_meta_applier.dart';
 import 'package:revali_router_core/revali_router_core.dart';
+import 'package:revali_router_core/revali_router_core_access_control.dart';
 
 part 'route.g.dart';
 
