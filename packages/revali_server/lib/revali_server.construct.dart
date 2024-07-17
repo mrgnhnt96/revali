@@ -2,7 +2,7 @@ import 'package:code_builder/code_builder.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_server/converters/server_server.dart';
-import 'package:revali_server/makers/route_file_maker.dart';
+import 'package:revali_server/makers/part_files/route_file_maker.dart';
 import 'package:revali_server/makers/server_file_maker.dart';
 
 class RevaliServerConstruct implements ServerConstruct {
