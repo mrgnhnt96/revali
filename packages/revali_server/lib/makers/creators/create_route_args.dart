@@ -31,6 +31,13 @@ Map<String, Expression> createRouteArgs({
     if (returnType.hasToJsonMember) {
       result = result.property('toJson').call([]);
     }
+
+    if (returnType.isPrimitive || returnType.hasToJsonMember) {
+      result = literalMap({
+        'data': result,
+      });
+    }
+
     setBody =
         refer('context').property('response').property('body').assign(result);
   }
