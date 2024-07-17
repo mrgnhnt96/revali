@@ -1,6 +1,6 @@
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_server/converters/server_app.dart';
-import 'package:revali_server/makers/parts/get_params.dart';
+import 'package:revali_server/makers/utils/get_params.dart';
 
 Expression createApp(ServerApp app) {
   final (:positioned, :named) = getParams(app.params);

@@ -12,17 +12,18 @@ Map<String, Expression> createModifierArgs({
     if (mimics.catchers.isNotEmpty || typeReferences.catchers.isNotEmpty)
       'catchers': literalList([
         if (mimics.catchers.isNotEmpty)
-          for (final catcher in mimics.catchers) mimic(catcher),
+          for (final catcher in mimics.catchers) createMimic(catcher),
         if (typeReferences.catchers.isNotEmpty)
           for (final catches in typeReferences.catchers)
             for (final catcher in catches.types) createClass(catcher),
       ]),
     if (annotations.data.isNotEmpty)
-      'data': literalList([for (final data in annotations.data) mimic(data)]),
+      'data':
+          literalList([for (final data in annotations.data) createMimic(data)]),
     if (mimics.guards.isNotEmpty || typeReferences.guards.isNotEmpty)
       'guards': literalList([
         if (mimics.guards.isNotEmpty)
-          for (final guard in mimics.guards) mimic(guard),
+          for (final guard in mimics.guards) createMimic(guard),
         if (typeReferences.guards.isNotEmpty)
           for (final guards in typeReferences.guards)
             for (final guard in guards.types) createClass(guard),
@@ -31,7 +32,8 @@ Map<String, Expression> createModifierArgs({
         typeReferences.interceptors.isNotEmpty)
       'interceptors': literalList([
         if (mimics.interceptors.isNotEmpty)
-          for (final interceptor in mimics.interceptors) mimic(interceptor),
+          for (final interceptor in mimics.interceptors)
+            createMimic(interceptor),
         if (typeReferences.interceptors.isNotEmpty)
           for (final intercepts in typeReferences.interceptors)
             for (final interceptor in intercepts.types)
@@ -40,7 +42,7 @@ Map<String, Expression> createModifierArgs({
     if (mimics.middlewares.isNotEmpty || typeReferences.middlewares.isNotEmpty)
       'middlewares': literalList([
         if (mimics.middlewares.isNotEmpty)
-          for (final middleware in mimics.middlewares) mimic(middleware),
+          for (final middleware in mimics.middlewares) createMimic(middleware),
         if (typeReferences.middlewares.isNotEmpty)
           for (final uses in typeReferences.middlewares)
             for (final middleware in uses.types) createClass(middleware),
@@ -66,7 +68,7 @@ Map<String, Expression> createModifierArgs({
     if (mimics.combines.isNotEmpty || typeReferences.combines.isNotEmpty)
       'combine': literalList([
         if (mimics.combines.isNotEmpty)
-          for (final combine in mimics.combines) mimic(combine),
+          for (final combine in mimics.combines) createMimic(combine),
         if (typeReferences.combines.isNotEmpty)
           for (final uses in typeReferences.combines)
             for (final combine in uses.types) createClass(combine),
@@ -81,7 +83,7 @@ Map<String, Expression> createModifierArgs({
             ..body = Block.of([
               for (final meta in annotations.meta)
                 m.cascade('add').call([
-                  mimic(meta),
+                  createMimic(meta),
                 ]).statement,
             ])).closure
         };

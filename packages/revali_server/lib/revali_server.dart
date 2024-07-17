@@ -38,7 +38,7 @@ export 'makers/parts/create_param_arg.dart';
 export 'makers/parts/create_parent_ref.dart';
 export 'makers/parts/create_reflect.dart';
 export 'makers/parts/create_route_args.dart';
-export 'makers/parts/get_params.dart';
+export 'makers/utils/get_params.dart';
 export 'makers/parts/mimic.dart';
 export 'makers/route_file_maker.dart';
 export 'makers/server_file_maker.dart';

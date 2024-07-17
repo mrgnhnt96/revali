@@ -17,7 +17,7 @@ Spec createReflect(ServerReflect possibleReflect) {
     var m = refer('m').index(literalString(key));
 
     for (final item in meta) {
-      m = m.cascade('add').call([mimic(item)]);
+      m = m.cascade('add').call([createMimic(item)]);
     }
 
     return m;

@@ -44,7 +44,7 @@ Spec createChildRoute(ServerChildRoute route, ServerParentRoute parent) {
         {'microseconds': literalNum(ping.inMicroseconds)},
       ),
     if (route.redirect case final redirect?)
-      'redirect': literal(mimic(redirect)),
+      'redirect': literal(createMimic(redirect)),
   };
 
   if (route.isWebSocket) {

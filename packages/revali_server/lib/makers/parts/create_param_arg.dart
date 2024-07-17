@@ -149,7 +149,7 @@ Expression createParamArg(
       },
     );
 
-    return mimic(customParam).property('parse').call([context]);
+    return createMimic(customParam).property('parse').call([context]);
   }
 
   throw ArgumentError('Unknown annotation for param ${param.name}');
