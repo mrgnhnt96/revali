@@ -36,6 +36,8 @@ Map<String, Expression> createRouteArgs({
       result = literalMap({
         'data': result,
       });
+    } else if (returnType.isStringContent) {
+      result = result.property('value');
     }
 
     setBody =
