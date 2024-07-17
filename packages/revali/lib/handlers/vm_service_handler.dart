@@ -24,6 +24,7 @@ class VMServiceHandler {
     required this.serverFile,
     required this.codeGenerator,
     required this.logger,
+    required this.canHotReload,
     this.dartVmServicePort = '8080',
   }) : assert(
           dartVmServicePort.isNotEmpty,
@@ -35,6 +36,7 @@ class VMServiceHandler {
   final Directory root;
   final String serverFile;
   final Future<MetaServer> Function() codeGenerator;
+  final bool canHotReload;
 
   bool _isReloading = false;
 
@@ -74,9 +76,11 @@ class VMServiceHandler {
 
   void clearConsole() {
     print("\x1B[2J\x1B[0;0H");
-    logger.info(
-      '${yellow.wrap(_formatTime(DateTime.now()))} ${darkGray.wrap('[RELOAD]')}',
-    );
+    var message = '${yellow.wrap(_formatTime(DateTime.now()))}';
+    if (canHotReload) {
+      message += ' ${darkGray.wrap('[RELOAD]')}';
+    }
+    logger.info(message);
   }
 
   void printVmServiceUri() {
@@ -146,7 +150,9 @@ class VMServiceHandler {
     _watcherSubscription = null;
   }
 
-  Future<void> start() async {
+  Future<void> start({
+    required bool enableHotReload,
+  }) async {
     logger.detail('Starting dev server...');
     if (isCompleted) {
       throw Exception(
@@ -162,9 +168,13 @@ class VMServiceHandler {
 
     final server = await codeGenerator();
     await serve(
+      enableHotReload: enableHotReload,
       onReady: () => printParsedRoutes(server.routes),
     );
-    watchForChanges();
+
+    if (enableHotReload) {
+      watchForChanges();
+    }
   }
 
   void watchForChanges() {
@@ -202,6 +212,7 @@ class VMServiceHandler {
   }
 
   Future<void> serve({
+    required bool enableHotReload,
     void Function()? onReady,
   }) async {
     var isHotReloadingEnabled = false;
@@ -213,8 +224,10 @@ class VMServiceHandler {
     final process = _serverProcess = await io.Process.start(
       'dart',
       [
-        '--enable-vm-service=$dartVmServicePort',
-        '--enable-asserts',
+        if (enableHotReload) ...[
+          '--enable-vm-service=$dartVmServicePort',
+          '--enable-asserts',
+        ],
         serverFile,
       ],
       runInShell: true,

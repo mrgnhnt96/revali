@@ -16,9 +16,9 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
     "import 'dart:io';",
     '',
     "import 'package:path/path.dart' as p;",
-    "import 'package:revali_construct/revali_construct.dart';",
     "import 'package:revali_router_annotations/revali_router_annotations.dart';",
     "import 'package:revali_router_core/revali_router_core.dart';",
+    "import 'package:revali_router_core/revali_router_core_access_control.dart';",
     "import 'package:revali_router/revali_router.dart';",
     '',
     for (final imprt in {...server.packageImports()}) "import '$imprt';",
@@ -35,7 +35,10 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
       ..name = 'main'
       ..returns = refer('void')
       ..body = Block.of([
-        refer('hotReload').call([refer('createServer')]).statement,
+        if (server.context.mode.isDebug)
+          refer('hotReload').call([refer('createServer')]).statement
+        else
+          refer('createServer').call([]).statement,
       ]),
   );
 
@@ -66,7 +69,7 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
                 if (app.isSecure)
                   'requestClientCertificate':
                       refer('app').property('requestClientCertificate'),
-                'shared': literalTrue,
+                if (server.context.mode.isDebug) 'shared': literalTrue,
               }).awaited)
               .statement,
           Block.of([

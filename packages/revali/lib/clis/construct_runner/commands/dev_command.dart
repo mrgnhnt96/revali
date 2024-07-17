@@ -7,6 +7,7 @@ import 'package:revali/handlers/routes_handler.dart';
 import 'package:revali/handlers/vm_service_handler.dart';
 import 'package:revali/utils/extensions/directory_extensions.dart';
 import 'package:revali/utils/mixins/directories_mixin.dart';
+import 'package:revali_construct/enums/mode.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:yaml/yaml.dart';
 
@@ -22,11 +23,21 @@ class DevCommand extends Command<int> with DirectoriesMixin {
               fs: fs,
               rootPath: rootPath,
             ) {
-    argParser.addOption(
-      'flavor',
-      abbr: 'f',
-      help: 'The flavor to use for the app (case-sensitive)',
-    );
+    argParser
+      ..addOption(
+        'flavor',
+        abbr: 'f',
+        help: 'The flavor to use for the app (case-sensitive)',
+      )
+      ..addFlag(
+        'release',
+        help:
+            'Whether to run in release mode. Disabled hot reload and debugger',
+      )
+      ..addFlag(
+        'debug',
+        help: 'Whether to run in debug mode. Enables hot reload and debugger',
+      );
   }
 
   final RoutesHandler routesHandler;
@@ -45,8 +56,15 @@ class DevCommand extends Command<int> with DirectoriesMixin {
   @override
   Future<int>? run() async {
     final flavor = argResults?['flavor'] as String?;
+    final debug = argResults?['debug'] as bool? ?? false;
+    final release = argResults?['release'] as bool? ?? false;
 
-    final context = RevaliContext(flavor: flavor);
+    final runInRelease = release && !debug;
+
+    final context = RevaliContext(
+      flavor: flavor,
+      mode: runInRelease ? Mode.release : Mode.debug,
+    );
 
     final root = await rootOf(rootPath);
 
@@ -84,6 +102,7 @@ class DevCommand extends Command<int> with DirectoriesMixin {
       serverFile: (await root.getRevaliFile(ServerFile.fileName)).path,
       codeGenerator: codeGenerator,
       logger: logger,
+      canHotReload: !runInRelease,
     );
 
     final revali = await root.getRevali();
@@ -91,7 +110,7 @@ class DevCommand extends Command<int> with DirectoriesMixin {
       await revali.delete(recursive: true);
     }
 
-    await serverHandler.start();
+    await serverHandler.start(enableHotReload: !runInRelease);
     return await serverHandler.exitCode;
   }
 

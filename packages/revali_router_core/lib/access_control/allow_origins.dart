@@ -1,12 +1,6 @@
 import 'package:revali_annotations/revali_annotations.dart' as annotations;
 
-class AllowOrigins implements annotations.AllowOrigins {
-  const AllowOrigins(this.origins, {this.inherit = true});
-
-  /// Whether to inherit the origins from the parent route.
-  @override
-  final bool inherit;
-
-  @override
-  final Set<String> origins;
+class AllowOrigins extends annotations.AllowOrigins {
+  const AllowOrigins(super.origins, {super.inherit = true});
+  const AllowOrigins.all() : super.all();
 }

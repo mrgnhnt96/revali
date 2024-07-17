@@ -19,6 +19,18 @@ class DevCommand extends Command<int> {
         'flavor',
         abbr: 'f',
         help: 'The flavor to use for the app (case-sensitive)',
+      )
+      ..addFlag(
+        'release',
+        help:
+            'Whether to run in release mode. Disabled hot reload and debugger',
+        negatable: false,
+      )
+      ..addFlag(
+        'debug',
+        help:
+            '(Default) Whether to run in debug mode. Enables hot reload and debugger',
+        negatable: false,
       );
   }
 
