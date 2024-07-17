@@ -366,7 +366,7 @@ class Router extends Equatable {
         await run();
 
         final body = response.body;
-        if (body == null || body.isNull) {
+        if (body.isNull) {
           return;
         }
 

@@ -32,16 +32,20 @@ Map<String, Expression> createRouteArgs({
       result = result.property('toJson').call([]);
     }
 
+    setBody = refer('context').property('response').property('body');
+
     if (returnType.isPrimitive || returnType.hasToJsonMember) {
       result = literalMap({
         'data': result,
       });
+
+      setBody = setBody.index(literalString('data')).assign(result);
     } else if (returnType.isStringContent) {
       result = result.property('value');
+      setBody = setBody.assign(result);
+    } else {
+      setBody = setBody.assign(result);
     }
-
-    setBody =
-        refer('context').property('response').property('body').assign(result);
   }
 
   return {

@@ -7,7 +7,6 @@ import 'package:revali/handlers/routes_handler.dart';
 import 'package:revali/handlers/vm_service_handler.dart';
 import 'package:revali/utils/extensions/directory_extensions.dart';
 import 'package:revali/utils/mixins/directories_mixin.dart';
-import 'package:revali_construct/enums/mode.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:yaml/yaml.dart';
 
