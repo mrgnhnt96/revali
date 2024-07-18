@@ -1,19 +1,40 @@
 import 'package:revali_router_core/revali_router_core.dart';
 
-import 'param_type.dart';
+import 'annotation_type.dart';
 
 abstract class PipeContext<T> {
   const PipeContext();
 
   /// Indicates whether argument is a body, query, param, or custom parameter
-  ParamType get type;
+  ///
+  /// Example:
+  /// ```dart
+  /// @Body('userId', UserIdPipe) String id,
+  /// ```
+  ///
+  /// would yield [AnnotationType.body]
+  AnnotationType get type;
 
-  /// String passed as an argument to the decorator.
-  /// Example: `@Body('userId')` would yield `userId`
-  T get arg;
+  /// The value passed as an argument to the annotation.
+  ///
+  /// Example:
+  /// ```dart
+  /// @Body('userId', UserIdPipe) String id,
+  /// ```
+  ///
+  /// would yield "userId"
+  T get annotationArgument;
 
-  /// the name of the parameter that corresponds to the pipe annotation.
-  String get paramName;
+  /// The name of the parameter that corresponds to the pipe annotation.
+  ///
+  /// Example:
+  ///
+  /// ```dart
+  /// @Body('userId', UserIdPipe) String id,
+  /// ```
+  ///
+  ///  would yield "id"
+  String get nameOfParameter;
 
   ReadOnlyDataHandler get data;
 

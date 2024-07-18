@@ -8,10 +8,18 @@ Route file(
     'file',
     routes: [
       Route(
-        '',
+        ':id',
         method: 'POST',
         handler: (context) async {
-          fileUploader.uploadFile();
+          fileUploader.uploadFile(ParamPipe().transform(
+            context.request.pathParameters['hi'] ?? (throw 'Missing value!'),
+            PipeContextImpl.from(
+              context,
+              arg: 'hi',
+              paramName: 'id',
+              type: ParamType.param,
+            ),
+          ));
         },
       )
     ],

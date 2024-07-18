@@ -1,4 +1,4 @@
-enum ParamType {
+enum AnnotationType {
   body,
   query,
   queryAll,

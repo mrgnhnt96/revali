@@ -1,12 +1,12 @@
 import 'package:revali_router_core/revali_router_core.dart';
 
-import 'param_type.dart';
+import 'annotation_type.dart';
 import 'pipe_context.dart';
 
 class PipeContextImpl<T> implements PipeContext<T> {
   const PipeContextImpl({
-    required this.arg,
-    required this.paramName,
+    required this.annotationArgument,
+    required this.nameOfParameter,
     required this.data,
     required this.meta,
     required this.type,
@@ -14,8 +14,8 @@ class PipeContextImpl<T> implements PipeContext<T> {
 
   PipeContextImpl.from(
     EndpointContext context, {
-    required this.arg,
-    required this.paramName,
+    required this.annotationArgument,
+    required this.nameOfParameter,
     required this.type,
   })  : data = context.data,
         meta = context.meta;
@@ -27,11 +27,11 @@ class PipeContextImpl<T> implements PipeContext<T> {
   final ReadOnlyMeta meta;
 
   @override
-  final ParamType type;
+  final AnnotationType type;
 
   @override
-  final T arg;
+  final T annotationArgument;
 
   @override
-  final String paramName;
+  final String nameOfParameter;
 }

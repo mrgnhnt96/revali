@@ -79,11 +79,11 @@ Expression createParamArg(
           refer('context'),
         ],
         {
-          'arg': paramAnnotation.name == null
+          'annotationArgument': paramAnnotation.name == null
               ? literalNull
               : literalString(paramAnnotation.name!),
-          'paramName': literalString(paramAnnotation.name ?? param.name),
-          'type': refer('${ParamType.param}'),
+          'nameOfParameter': literalString(param.name),
+          'type': refer('${AnnotationType.param}'),
         },
       );
 
@@ -124,10 +124,12 @@ Expression createParamArg(
           refer('context'),
         ],
         {
-          'arg': query.name == null ? literalNull : literalString(query.name!),
-          'paramName': literalString(query.name ?? param.name),
-          'type':
-              refer(query.all ? '${ParamType.queryAll}' : '${ParamType.query}'),
+          'annotationArgument':
+              query.name == null ? literalNull : literalString(query.name!),
+          'nameOfParameter': literalString(param.name),
+          'type': refer(query.all
+              ? '${AnnotationType.queryAll}'
+              : '${AnnotationType.query}'),
         },
       );
 

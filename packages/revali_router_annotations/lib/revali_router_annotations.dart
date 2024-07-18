@@ -15,7 +15,7 @@ export 'src/http_code.dart';
 export 'src/intercepts.dart';
 export 'src/meta.dart';
 export 'src/param.dart';
-export 'src/pipe/param_type.dart';
+export 'src/pipe/annotation_type.dart';
 export 'src/pipe/pipe.dart';
 export 'src/pipe/pipe_context.dart';
 export 'src/pipe/pipe_context_impl.dart';
