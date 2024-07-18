@@ -24,7 +24,7 @@ class _AppEntry {
 class AppVisitor extends RecursiveElementVisitor<void> {
   final entries = <_AppEntry>[];
 
-  bool get hasApp => entries.isEmpty;
+  bool get hasApp => entries.isNotEmpty;
 
   @override
   void visitClassElement(ClassElement element) {
