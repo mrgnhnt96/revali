@@ -4,6 +4,7 @@ import 'package:path/path.dart' as p;
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router/revali_router.dart';
 
+import '../routes/dev.app.dart';
 import '../routes/file.controller.dart';
 import '../routes/some.controller.dart';
 import '../routes/user.controller.dart';
@@ -20,7 +21,7 @@ void main() {
 }
 
 Future<HttpServer> createServer() async {
-  final app = AppConfig.defaultApp();
+  final app = DevApp();
   late final HttpServer server;
   try {
     server = await HttpServer.bind(
@@ -53,6 +54,17 @@ Future<HttpServer> createServer() async {
       ...public,
     ],
     reflects: reflects,
+    globalModifiers: RouteModifiersImpl(
+      catchers: [DumbExceptionCatcher()],
+      allowedOrigins: AllowedOriginsImpl(
+        {'*'},
+        inherit: false,
+      ),
+      allowedHeaders: AllowedHeadersImpl(
+        {'X-IM-AWESOME'},
+        inherit: true,
+      ),
+    ),
   );
 
   handleRequests(

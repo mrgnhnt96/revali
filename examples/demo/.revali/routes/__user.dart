@@ -7,14 +7,14 @@ Route user(
   return Route(
     'user',
     middlewares: [Auth(AuthType.user)],
-    allowedOrigins: AllowOrigins(
+    allowedOrigins: AllowedOriginsImpl(
       {
         'http://localhost:8080',
         'http://localhost:8081',
       },
       inherit: true,
     ),
-    allowedHeaders: AllowHeaders(
+    allowedHeaders: AllowedHeadersImpl(
       {'X-UR-AWESOME'},
       inherit: true,
     ),
