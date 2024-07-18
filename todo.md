@@ -4,7 +4,7 @@
 
 ## Feedback
 
-- [ ] Figure out why we got an error when calling `body['data'] = value.toJson()
+- [x] Figure out why we got an error when calling `body['data'] = value.toJson()
 - [ ] Delete "old" files within .revali directory on hot reload
   - Create a Set of paths, remove a path when the file is updated/created. Delete any remaining paths
 - [ ] When a value is provided to 'arg', the `paramName` also gets that value, instead of the name of the parameter
