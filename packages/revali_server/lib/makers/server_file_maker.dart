@@ -10,14 +10,14 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
     "import 'dart:io';",
     '',
     "import 'package:path/path.dart' as p;",
-    if (server.context.mode.isDebug)
-      "import 'package:revali_construct/revali_construct.dart';",
-    "import 'package:revali_router_annotations/revali_router_annotations.dart';",
-    "import 'package:revali_router_core/revali_router_core.dart';",
-    "import 'package:revali_router_core/revali_router_core_access_control.dart';",
-    "import 'package:revali_router/revali_router.dart';",
+    for (final imprt in {
+      if (server.context.mode.isDebug)
+        'package:revali_construct/revali_construct.dart',
+      'package:revali_router/revali_router.dart',
+      ...server.packageImports(),
+    })
+      "import '$imprt';",
     '',
-    for (final imprt in {...server.packageImports()}) "import '$imprt';",
     for (final imprt in {...server.pathImports()}) "import '../$imprt';",
   ];
 

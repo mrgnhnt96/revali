@@ -4,6 +4,8 @@
 
 export 'package:revali_core/revali_core.dart' show AppConfig, DI, DIImpl;
 
+export 'access_control/allowed_headers.dart';
+export 'access_control/allowed_origins.dart';
 export 'body/body_data.dart';
 export 'body/mutable_body.dart';
 export 'body/read_only_body.dart';

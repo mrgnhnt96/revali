@@ -1,5 +1,5 @@
 import 'package:code_builder/code_builder.dart';
-import 'package:revali_router_core/revali_router_core_access_control.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 import 'package:revali_server/revali_server.dart';
 
 Map<String, Expression> createModifierArgs({
@@ -49,7 +49,7 @@ Map<String, Expression> createModifierArgs({
       ]),
     if (annotations.allowOrigins case final allow?
         when allow.origins.isNotEmpty)
-      'allowedOrigins': refer('$AllowOrigins').newInstance([
+      'allowedOrigins': refer((AllowedOrigins).name).newInstance([
         literalSet([
           for (final allowOrigin in allow.origins) literalString(allowOrigin),
         ])
@@ -58,7 +58,7 @@ Map<String, Expression> createModifierArgs({
       }),
     if (annotations.allowHeaders case final allow?
         when allow.headers.isNotEmpty)
-      'allowedHeaders': refer('$AllowHeaders').newInstance([
+      'allowedHeaders': refer((AllowedHeaders).name).newInstance([
         literalSet([
           for (final allowHeader in allow.headers) literalString(allowHeader),
         ])

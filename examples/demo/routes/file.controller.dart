@@ -4,17 +4,8 @@ import 'package:revali_router/revali_router.dart';
 class FileUploader {
   const FileUploader();
 
-  @Post(':id')
-  void uploadFile(
-    @Param('hi', ParamPipe) String id,
-  ) {
+  @Post()
+  void uploadFile() {
     // Upload file
-  }
-}
-
-class ParamPipe extends Pipe<String, String> {
-  @override
-  String transform(String value, PipeContext context) {
-    return value;
   }
 }

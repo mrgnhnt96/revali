@@ -1,7 +1,5 @@
-import 'package:revali_annotations/revali_annotations.dart';
 import 'package:revali_construct/revali_construct.dart';
-import 'package:revali_router_annotations/revali_router_annotations.dart';
-import 'package:revali_router_core/revali_router_core_without_access_control.dart';
+import 'package:revali_router/revali_router.dart';
 import 'package:revali_server/revali_server.dart';
 
 class ServerRouteAnnotations with ExtractImport {

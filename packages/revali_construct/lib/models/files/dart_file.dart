@@ -43,7 +43,9 @@ class DartFile {
 
   String getContent() {
     final partDirectives =
-        parts.map((part) => "part '${p.joinAll(part.path)}';").join('\n');
+        parts.map((part) => "part '${p.joinAll(part.path)}';").toList()..sort();
+
+    final partString = partDirectives.join('\n');
 
     // inject part directives after all import statements
     final importIndex = content.lastIndexOf('import');
@@ -59,7 +61,7 @@ class DartFile {
     return '''
 $importStatements
 
-$partDirectives
+$partString
 $contentWithoutImports'''
         .trim();
   }

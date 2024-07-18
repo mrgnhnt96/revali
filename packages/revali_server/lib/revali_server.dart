@@ -36,6 +36,7 @@ export 'makers/creators/create_mimic.dart';
 export 'makers/creators/create_modifier_args.dart';
 export 'makers/creators/create_param_arg.dart';
 export 'makers/creators/create_parent_ref.dart';
+export 'makers/creators/create_pipe_context.dart';
 export 'makers/creators/create_reflect.dart';
 export 'makers/creators/create_route_args.dart';
 export 'makers/part_files/public_file_maker.dart';

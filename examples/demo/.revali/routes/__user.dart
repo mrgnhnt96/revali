@@ -62,8 +62,8 @@ Route user(
             ),
             myName: await MyParam().parse(CustomParamContextImpl.from(
               context,
-              name: 'myName',
-              type: String,
+              nameOfParameter: 'myName',
+              parameterType: String,
             )),
             data:
                 context.request.body.data?['name'] ?? (throw 'Missing value!'),

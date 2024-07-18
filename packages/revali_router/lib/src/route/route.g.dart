@@ -56,9 +56,9 @@ abstract class _$RouteCWProxy {
 
   Route ping(Duration? ping);
 
-  Route allowedOrigins(AllowOrigins? allowedOrigins);
+  Route allowedOrigins(AllowedOrigins? allowedOrigins);
 
-  Route allowedHeaders(AllowHeaders? allowedHeaders);
+  Route allowedHeaders(AllowedHeaders? allowedHeaders);
 
   Route meta(dynamic meta);
 
@@ -82,8 +82,8 @@ abstract class _$RouteCWProxy {
     bool? isWebSocket,
     List<CombineMeta>? combine,
     Duration? ping,
-    AllowOrigins? allowedOrigins,
-    AllowHeaders? allowedHeaders,
+    AllowedOrigins? allowedOrigins,
+    AllowedHeaders? allowedHeaders,
     dynamic meta,
   });
 }
@@ -138,11 +138,11 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
   Route ping(Duration? ping) => this(ping: ping);
 
   @override
-  Route allowedOrigins(AllowOrigins? allowedOrigins) =>
+  Route allowedOrigins(AllowedOrigins? allowedOrigins) =>
       this(allowedOrigins: allowedOrigins);
 
   @override
-  Route allowedHeaders(AllowHeaders? allowedHeaders) =>
+  Route allowedHeaders(AllowedHeaders? allowedHeaders) =>
       this(allowedHeaders: allowedHeaders);
 
   @override
@@ -233,11 +233,11 @@ class _$RouteCWProxyImpl implements _$RouteCWProxy {
       allowedOrigins: allowedOrigins == const $CopyWithPlaceholder()
           ? _value.allowedOrigins
           // ignore: cast_nullable_to_non_nullable
-          : allowedOrigins as AllowOrigins?,
+          : allowedOrigins as AllowedOrigins?,
       allowedHeaders: allowedHeaders == const $CopyWithPlaceholder()
           ? _value.allowedHeaders
           // ignore: cast_nullable_to_non_nullable
-          : allowedHeaders as AllowHeaders?,
+          : allowedHeaders as AllowedHeaders?,
       meta: meta == const $CopyWithPlaceholder() || meta == null
           ? _value._meta
           // ignore: cast_nullable_to_non_nullable

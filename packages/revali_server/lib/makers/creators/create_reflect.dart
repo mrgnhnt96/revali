@@ -3,6 +3,7 @@ import 'package:revali_router_core/revali_router_core.dart';
 import 'package:revali_server/converters/server_mimic.dart';
 import 'package:revali_server/converters/server_reflect.dart';
 import 'package:revali_server/makers/creators/create_mimic.dart';
+import 'package:revali_server/makers/utils/type_extensions.dart';
 
 Spec createReflect(ServerReflect possibleReflect) {
   final reflect = possibleReflect.valid;
@@ -23,7 +24,7 @@ Spec createReflect(ServerReflect possibleReflect) {
     return m;
   }
 
-  return refer('$Reflect').newInstance(
+  return refer((Reflect).name).newInstance(
     [
       refer(reflect.className),
     ],

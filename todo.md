@@ -26,10 +26,6 @@
   - Clear the console, then print the error
   - We want to avoid exiting the process at all costs!
   - Maybe we can handle this with the Isolate?
-- [ ] Handle iterable types, call to json on each item if available
-  - Should be added to the `data` key of the body
-- [ ] Handle Map types
-  - Should be added to the `data` key of the body
 
 ## 7.15.2024
 

@@ -10,7 +10,7 @@ Expression createParamArg(
 ) {
   final annotation = param.annotations;
 
-  if (param.type == '$DI') {
+  if (param.type == (DI).name) {
     return refer('di');
   }
 

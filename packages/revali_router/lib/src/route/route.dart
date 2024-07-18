@@ -3,7 +3,6 @@ import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:equatable/equatable.dart';
 import 'package:revali_router/src/meta/combine_meta_applier.dart';
 import 'package:revali_router_core/revali_router_core.dart';
-import 'package:revali_router_core/revali_router_core_access_control.dart';
 
 part 'route.g.dart';
 
@@ -23,8 +22,8 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
     void Function(MetaHandler)? meta,
     Redirect? redirect,
     List<CombineMeta> combine = const [],
-    AllowOrigins? allowedOrigins,
-    AllowHeaders? allowedHeaders,
+    AllowedOrigins? allowedOrigins,
+    AllowedHeaders? allowedHeaders,
   }) : this._(
           path,
           routes: routes,
@@ -56,8 +55,8 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
     Redirect? redirect,
     List<CombineMeta> combine = const [],
     Duration? ping,
-    AllowOrigins? allowedOrigins,
-    AllowHeaders? allowedHeaders,
+    AllowedOrigins? allowedOrigins,
+    AllowedHeaders? allowedHeaders,
   }) : this._(
           path,
           parent: null,
@@ -208,8 +207,8 @@ class Route extends Equatable implements RouteEntry, RouteModifiers {
   final Redirect? redirect;
   final bool isWebSocket;
   final Duration? ping;
-  final AllowOrigins? allowedOrigins;
-  final AllowHeaders? allowedHeaders;
+  final AllowedOrigins? allowedOrigins;
+  final AllowedHeaders? allowedHeaders;
 
   bool get isDynamic => segments.any((s) => s.startsWith(':'));
   bool get isStatic => !isDynamic;
