@@ -1,6 +1,9 @@
 import 'package:code_builder/code_builder.dart';
-import 'package:revali_router_core/revali_router_core.dart';
-import 'package:revali_server/revali_server.dart';
+import 'package:revali_router/revali_router.dart' hide Method;
+import 'package:revali_server/converters/server_route_annotations.dart';
+import 'package:revali_server/makers/creators/create_class.dart';
+import 'package:revali_server/makers/creators/create_mimic.dart';
+import 'package:revali_server/makers/utils/type_extensions.dart';
 
 Map<String, Expression> createModifierArgs({
   required ServerRouteAnnotations annotations,
@@ -49,7 +52,7 @@ Map<String, Expression> createModifierArgs({
       ]),
     if (annotations.allowOrigins case final allow?
         when allow.origins.isNotEmpty)
-      'allowedOrigins': refer((AllowedOrigins).name).newInstance([
+      'allowedOrigins': refer((AllowedOriginsImpl).name).newInstance([
         literalSet([
           for (final allowOrigin in allow.origins) literalString(allowOrigin),
         ])
@@ -58,7 +61,7 @@ Map<String, Expression> createModifierArgs({
       }),
     if (annotations.allowHeaders case final allow?
         when allow.headers.isNotEmpty)
-      'allowedHeaders': refer((AllowedHeaders).name).newInstance([
+      'allowedHeaders': refer((AllowedHeadersImpl).name).newInstance([
         literalSet([
           for (final allowHeader in allow.headers) literalString(allowHeader),
         ])
