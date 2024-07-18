@@ -35,7 +35,7 @@ class VMServiceHandler {
   final String dartVmServicePort;
   final Directory root;
   final String serverFile;
-  final Future<MetaServer> Function() codeGenerator;
+  final Future<MetaServer?> Function() codeGenerator;
   final bool canHotReload;
 
   bool _isReloading = false;
@@ -66,6 +66,17 @@ class VMServiceHandler {
     final progress = logger.progress('Reloading...');
 
     final server = await codeGenerator();
+    if (server == null) {
+      clearConsole();
+      progress.fail('Failed to reload');
+      logger
+        ..write('\n')
+        ..flush();
+      watchForChanges();
+      _isReloading = false;
+      return;
+    }
+
     progress.complete('Reloaded');
     clearConsole();
     printVmServiceUri();
@@ -167,6 +178,15 @@ class VMServiceHandler {
     }
 
     final server = await codeGenerator();
+    if (server == null) {
+      logger
+        ..err('Failed to start up server')
+        ..write('\n')
+        ..flush();
+      await stop(1);
+      return;
+    }
+
     await serve(
       enableHotReload: enableHotReload,
       onReady: () => printParsedRoutes(server.routes),

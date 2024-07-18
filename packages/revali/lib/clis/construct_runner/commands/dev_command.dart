@@ -83,15 +83,21 @@ class DevCommand extends Command<int> with DirectoriesMixin {
       }
     }
 
-    Future<MetaServer> codeGenerator() async {
+    Future<MetaServer?> codeGenerator() async {
       final server = await routesHandler.parse();
 
-      await generate(
-        root: root,
-        context: context,
-        server: server,
-        revaliConfig: revaliConfig ??= revaliYaml.none(),
-      );
+      try {
+        await generate(
+          root: root,
+          context: context,
+          server: server,
+          revaliConfig: revaliConfig ??= revaliYaml.none(),
+        );
+      } catch (e) {
+        logger.delayed(red.wrap('Error occurred while generating constructs'));
+        logger.delayed(red.wrap('$e'));
+        return null;
+      }
 
       return server;
     }
