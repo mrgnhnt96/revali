@@ -185,7 +185,7 @@ class Router extends Equatable {
       isAllowed = false;
 
       if (origin == null) {
-        return false;
+        return allowedOrigins.contains('*');
       }
 
       for (final pattern in allowedOrigins) {

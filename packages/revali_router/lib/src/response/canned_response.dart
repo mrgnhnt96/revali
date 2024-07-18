@@ -39,7 +39,7 @@ class CannedResponse {
   }) {
     return _Response(
       403,
-      body: body,
+      body: body ?? 'Forbidden',
       headers: headers,
     );
   }

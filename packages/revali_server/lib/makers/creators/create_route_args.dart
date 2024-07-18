@@ -35,10 +35,6 @@ Map<String, Expression> createRouteArgs({
     setBody = refer('context').property('response').property('body');
 
     if (returnType.isPrimitive || returnType.hasToJsonMember) {
-      result = literalMap({
-        'data': result,
-      });
-
       setBody = setBody.index(literalString('data')).assign(result);
     } else if (returnType.isStringContent) {
       result = result.property('value');

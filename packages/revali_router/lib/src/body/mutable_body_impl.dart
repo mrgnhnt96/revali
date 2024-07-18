@@ -15,40 +15,40 @@ class MutableBodyImpl extends MutableBody {
 
   @override
   void operator []=(String key, Object? data) {
-    var data = _data;
-    if (data == null) {
-      data = JsonBodyData({});
+    var newData = _data;
+    if (newData == null) {
+      newData = JsonBodyData({});
     }
 
-    if (data is! BaseBodyData) {
+    if (newData is! BaseBodyData) {
       throw StateError('Cannot set key-value pairs on non-$BaseBodyData body');
     }
 
-    if (!data.isJson) {
+    if (!newData.isJson) {
       throw StateError('Cannot set key-value pairs on non-JSON body');
     }
 
-    final json = data.asJson;
+    final json = newData.asJson;
 
     json[key] = data;
     _data = json;
   }
 
   void add(Object? data) {
-    var data = _data;
-    if (data == null) {
-      data = ListBodyData([]);
+    var newData = _data;
+    if (newData == null) {
+      newData = ListBodyData([]);
     }
 
-    if (data is! BaseBodyData) {
+    if (newData is! BaseBodyData) {
       throw StateError('Cannot add to non-$BaseBodyData body');
     }
 
-    if (!data.isList) {
+    if (!newData.isList) {
       throw StateError('Cannot add to non-List body');
     }
 
-    final list = data.asList;
+    final list = newData.asList;
 
     list.add(data);
 

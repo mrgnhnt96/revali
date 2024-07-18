@@ -1,8 +1,40 @@
 # TODO
 
+## 7.17.2024
+
+## Feedback
+
+- [ ] Figure out why we got an error when calling `body['data'] = value.toJson()
+- [ ] Delete "old" files within .revali directory on hot reload
+  - Create a Set of paths, remove a path when the file is updated/created. Delete any remaining paths
+- [ ] When a value is provided to 'arg', the `paramName` also gets that value, instead of the name of the parameter
+- [ ] Think of new names (?) for `arg` and `paramName`
+- [ ] Change `transform` to a `FutureOr` type to allow for async methods
+- [ ] Remove check to force only one app in `*.app.dart`
+- [ ] Create general package for revali server that exports all annotations and core functionality
+- [ ] Ensure we can return streams from endpoints
+- [ ] Handle streams in websocket responses
+
+## Features
+
+- [ ] revali build
+  - Compiles the server code and prepares the "out-going" directory with any Public files
+    - We may need to have a configuration file to handle what to ignore/include
+- [ ] revali upload
+  - Uploads the "out-going" directory to a server
+- [ ] Catch errors thrown by the generator
+  - Clear the console, then print the error
+  - We want to avoid exiting the process at all costs!
+  - Maybe we can handle this with the Isolate?
+- [ ] Handle iterable types, call to json on each item if available
+  - Should be added to the `data` key of the body
+- [ ] Handle Map types
+  - Should be added to the `data` key of the body
+
 ## 7.15.2024
 
-- [ ] Find a way to support partial content requests
+- [ ] ~~Find a way to support partial content requests~~
+  - Maybe later
 - [x] CORs for apps ([docs](https://github.com/lenniezelk/shelf-cors-headers/blob/main/lib/src/shelf_cors_headers_base.dart#L52))
 
 ## 7.13.2024 (2)

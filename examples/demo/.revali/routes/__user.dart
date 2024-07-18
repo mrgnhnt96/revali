@@ -69,7 +69,7 @@ Route user(
                 context.request.body.data?['name'] ?? (throw 'Missing value!'),
           );
 
-          context.response.body['data'] = {'data': result.toJson()};
+          context.response.body['data'] = result.toJson();
         },
       ),
       Route.webSocket(
