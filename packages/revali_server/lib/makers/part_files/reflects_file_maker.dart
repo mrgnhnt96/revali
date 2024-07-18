@@ -3,6 +3,7 @@ import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 import 'package:revali_server/converters/server_server.dart';
 import 'package:revali_server/makers/creators/create_reflect.dart';
+import 'package:revali_server/makers/utils/type_extensions.dart';
 
 PartFile reflectsFileMaker(
     ServerServer server, String Function(Spec) formatter) {
@@ -14,7 +15,7 @@ PartFile reflectsFileMaker(
       ..returns = TypeReference(
         (b) => b
           ..symbol = 'Set'
-          ..types.add(refer('$Reflect')),
+          ..types.add(refer((Reflect).name)),
       )
       ..body = Block.of([
         literalSet([

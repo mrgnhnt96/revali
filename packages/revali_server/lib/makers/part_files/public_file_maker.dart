@@ -4,6 +4,7 @@ import 'package:code_builder/code_builder.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router/revali_router.dart' hide Method;
 import 'package:revali_server/converters/server_server.dart';
+import 'package:revali_server/makers/utils/type_extensions.dart';
 
 PartFile publicFileMaker(ServerServer server, String Function(Spec) formatter) {
   final publics = Method(
@@ -14,17 +15,17 @@ PartFile publicFileMaker(ServerServer server, String Function(Spec) formatter) {
       ..returns = TypeReference(
         (b) => b
           ..symbol = 'List'
-          ..types.add(refer('$Route')),
+          ..types.add(refer((Route).name)),
       )
       ..body = Block.of([
         literalList([
           for (final public in server.public)
-            refer('$Route').newInstance(
+            refer((Route).name).newInstance(
               [literalString(public.path)],
               {
                 'method': literalString('GET'),
-                'allowedOrigins':
-                    refer('$AllowOrigins').newInstanceNamed('all', []),
+                'allowedOrigins': refer((AllowedOriginsImpl).name)
+                    .newInstanceNamed('all', []),
                 'handler': Method(
                   (p) => p
                     ..modifier = MethodModifier.async
@@ -36,7 +37,7 @@ PartFile publicFileMaker(ServerServer server, String Function(Spec) formatter) {
                           .property('response')
                           .property('body')
                           .assign(
-                            refer('$File').call([
+                            refer((File).name).call([
                               refer('p').property('join').call([
                                 literalString('public'),
                                 literalString(public.path)

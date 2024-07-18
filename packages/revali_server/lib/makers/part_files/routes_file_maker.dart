@@ -3,6 +3,7 @@ import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router/revali_router.dart' hide Method, AllowOrigins;
 import 'package:revali_server/converters/server_server.dart';
 import 'package:revali_server/makers/creators/create_parent_ref.dart';
+import 'package:revali_server/makers/utils/type_extensions.dart';
 
 PartFile routesFileMaker(ServerServer server, String Function(Spec) formatter) {
   final routes = Method((p) => p
@@ -11,12 +12,12 @@ PartFile routesFileMaker(ServerServer server, String Function(Spec) formatter) {
     ..requiredParameters.add(
       Parameter((p) => p
         ..name = 'di'
-        ..type = refer('$DI')),
+        ..type = refer((DI).name)),
     )
     ..returns = TypeReference(
       (b) => b
         ..symbol = 'List'
-        ..types.add(refer('$Route')),
+        ..types.add(refer((Route).name)),
     )
     ..body = Block.of([
       literalList([

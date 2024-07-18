@@ -4,6 +4,7 @@ import 'package:revali_server/converters/server_server.dart';
 import 'package:revali_server/makers/creators/create_app.dart';
 import 'package:revali_server/makers/creators/create_modifier_args.dart';
 import 'package:revali_server/makers/utils/try_catch.dart';
+import 'package:revali_server/makers/utils/type_extensions.dart';
 
 String serverFile(ServerServer server, String Function(Spec) formatter) {
   final imports = [
@@ -75,7 +76,9 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
           ]),
         ),
         Code('\n'),
-        declareFinal('di').assign(refer('$DIImpl').newInstance([])).statement,
+        declareFinal('di')
+            .assign(refer((DIImpl).name).newInstance([]))
+            .statement,
         refer('app')
             .property('configureDependencies')
             .call([refer('di')])
@@ -96,7 +99,7 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
           Code(') {'),
           refer('_routes')
               .assign(literalList([
-                refer('$Route').newInstance([
+                refer((Route).name).newInstance([
                   refer('prefix')
                 ], {
                   'routes': refer('_routes'),
@@ -107,7 +110,7 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
         ]),
         Code('\n'),
         declareFinal('router')
-            .assign(refer('$Router').newInstance(
+            .assign(refer((Router).name).newInstance(
               [],
               {
                 'routes': literalList([
@@ -118,7 +121,7 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
                 if (server.app case final app?
                     when app.globalRouteAnnotations.hasAnnotations)
                   'globalModifiers':
-                      refer('$RouteModifiersImpl').newInstance([], {
+                      refer((RouteModifiersImpl).name).newInstance([], {
                     ...createModifierArgs(
                       annotations: app.globalRouteAnnotations,
                     )

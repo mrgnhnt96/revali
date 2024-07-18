@@ -5,6 +5,7 @@ import 'package:revali_router/revali_router.dart' hide Method, AllowOrigins;
 import 'package:revali_server/converters/server_parent_route.dart';
 import 'package:revali_server/makers/creators/create_child_route.dart';
 import 'package:revali_server/makers/creators/create_route_args.dart';
+import 'package:revali_server/makers/utils/type_extensions.dart';
 
 PartFile routeFileMaker(
   ServerParentRoute route,
@@ -13,7 +14,7 @@ PartFile routeFileMaker(
   final closure = Method(
     (p) => p
       ..name = route.handlerName
-      ..returns = refer('$Route')
+      ..returns = refer((Route).name)
       ..requiredParameters.addAll([
         Parameter(
           (b) => b
@@ -23,11 +24,11 @@ PartFile routeFileMaker(
         Parameter(
           (b) => b
             ..name = 'di'
-            ..type = refer('$DI'),
+            ..type = refer((DI).name),
         ),
       ])
       ..body = Block.of([
-        refer('$Route')
+        refer((Route).name)
             .newInstance([
               literalString(route.routePath)
             ], {
