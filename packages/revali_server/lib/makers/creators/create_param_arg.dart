@@ -1,7 +1,9 @@
 import 'package:code_builder/code_builder.dart';
-import 'package:revali_core/revali_core.dart';
-import 'package:revali_router_annotations/revali_router_annotations.dart';
-import 'package:revali_server/revali_server.dart';
+import 'package:revali_router/revali_router.dart';
+import 'package:revali_server/converters/server_param.dart';
+import 'package:revali_server/makers/creators/create_mimic.dart';
+import 'package:revali_server/makers/creators/create_pipe_context.dart';
+import 'package:revali_server/makers/utils/type_extensions.dart';
 
 Expression createParamArg(
   ServerParam param,
@@ -26,17 +28,17 @@ Expression createParamArg(
     return refer('di').property('get').call([]);
   }
 
-  if (annotation.body case final body?) {
+  if (annotation.body case final bodyAnnotation?) {
     var bodyVar = refer('context').property('request').property('body');
 
-    if (body.access case final access?) {
+    if (bodyAnnotation.access case final access?) {
       bodyVar = bodyVar.property('data?');
       for (final part in access) {
         bodyVar = bodyVar.index(literalString(part));
 
-        final acceptsNull = body.acceptsNull;
+        final acceptsNull = bodyAnnotation.acceptsNull;
         if ((acceptsNull != null && !acceptsNull) ||
-            (!param.isNullable && body.pipe == null)) {
+            (!param.isNullable && bodyAnnotation.pipe == null)) {
           bodyVar = bodyVar
               // TODO(MRGNHNT): Throw custom exception here
               .ifNullThen(literalString('Missing value!').thrown.parenthesized);
@@ -46,10 +48,19 @@ Expression createParamArg(
       bodyVar = bodyVar.property('data');
     }
 
-    if (body.pipe case final pipe?) {
-      final pipeClass = createClass(pipe.pipe);
-
-      return pipeClass.property('transform').call([bodyVar]);
+    if (bodyAnnotation.pipe case final pipe?) {
+      final access = bodyAnnotation.access;
+      return createPipeContext(
+        pipe,
+        annotationArgument: access == null
+            ? literalNull
+            : literalList([
+                for (final part in access) literalString(part),
+              ]),
+        nameOfParameter: param.name,
+        type: AnnotationType.body,
+        access: bodyVar,
+      );
     }
 
     return bodyVar;
@@ -71,73 +82,50 @@ Expression createParamArg(
     }
 
     if (paramAnnotation.pipe case final pipe?) {
-      final pipeClass = createClass(pipe.pipe);
-
-      final context = refer((PipeContextImpl).name).newInstanceNamed(
-        'from',
-        [
-          refer('context'),
-        ],
-        {
-          'annotationArgument': paramAnnotation.name == null
-              ? literalNull
-              : literalString(paramAnnotation.name!),
-          'nameOfParameter': literalString(param.name),
-          'type': refer('${AnnotationType.param}'),
-        },
+      final name = paramAnnotation.name;
+      return createPipeContext(
+        pipe,
+        annotationArgument: name == null ? literalNull : literalString(name),
+        nameOfParameter: param.name,
+        type: AnnotationType.param,
+        access: paramValue,
       );
-
-      return pipeClass
-          .property('transform')
-          .call([paramValue, context]).awaited;
     }
 
     return paramValue;
   }
 
-  if (annotation.query case final query?) {
-    Expression queryVar;
+  if (annotation.query case final queryAnnotation?) {
+    Expression queryVar = refer('context').property('request');
 
-    if (query.all) {
-      queryVar =
-          refer('context').property('request').property('queryParametersAll');
+    if (queryAnnotation.all) {
+      queryVar = queryVar.property('queryParametersAll');
     } else {
-      queryVar =
-          refer('context').property('request').property('queryParameters');
+      queryVar = queryVar.property('queryParameters');
     }
 
-    var queryValue = queryVar.index(literalString(query.name ?? param.name));
+    var queryValue =
+        queryVar.index(literalString(queryAnnotation.name ?? param.name));
 
-    final acceptsNull = query.acceptsNull;
+    final acceptsNull = queryAnnotation.acceptsNull;
     if ((acceptsNull != null && !acceptsNull) ||
-        (!param.isNullable && query.pipe == null)) {
+        (!param.isNullable && queryAnnotation.pipe == null)) {
       queryValue = queryValue
           // TODO(MRGNHNT): Throw custom exception here
           .ifNullThen(literalString('Missing value!').thrown.parenthesized);
-      ;
     }
 
-    if (query.pipe case final pipe?) {
-      final pipeClass = createClass(pipe.pipe);
-
-      final context = refer((PipeContextImpl).name).newInstanceNamed(
-        'from',
-        [
-          refer('context'),
-        ],
-        {
-          'annotationArgument':
-              query.name == null ? literalNull : literalString(query.name!),
-          'nameOfParameter': literalString(param.name),
-          'type': refer(query.all
-              ? '${AnnotationType.queryAll}'
-              : '${AnnotationType.query}'),
-        },
+    if (queryAnnotation.pipe case final pipe?) {
+      final name = queryAnnotation.name;
+      return createPipeContext(
+        pipe,
+        annotationArgument: name == null ? literalNull : literalString(name),
+        nameOfParameter: param.name,
+        type: queryAnnotation.all
+            ? AnnotationType.queryAll
+            : AnnotationType.query,
+        access: queryValue,
       );
-
-      return pipeClass
-          .property('transform')
-          .call([queryValue, context]).awaited;
     }
 
     return queryValue;
@@ -150,8 +138,8 @@ Expression createParamArg(
         refer('context'),
       ],
       {
-        'name': literalString(param.name),
-        'type': refer(param.type),
+        'nameOfParameter': literalString(param.name),
+        'parameterType': refer(param.type),
       },
     );
 

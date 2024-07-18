@@ -12,7 +12,7 @@ abstract class CustomParamContext {
   /// ```
   ///
   ///  would yield "id"
-  String get name;
+  String get nameOfParameter;
 
   /// The expected type for the parameter.
   ///
@@ -23,7 +23,7 @@ abstract class CustomParamContext {
   /// ```
   ///
   /// would yield `String`
-  Type get type;
+  Type get parameterType;
 
   ReadOnlyDataHandler get data;
 

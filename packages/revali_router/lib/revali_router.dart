@@ -8,6 +8,7 @@ export 'package:revali_router_core/revali_router_core.dart';
 
 export 'src/body/mutable_body_impl.dart';
 export 'src/body/response_body/base_body_data.dart';
+export 'src/custom_param/custom_param_context_impl.dart';
 export 'src/endpoint/endpoint_context_impl.dart';
 export 'src/exception_catcher/exception_catcher_context_impl.dart';
 export 'src/exception_catcher/exception_catcher_meta_impl.dart';
@@ -21,6 +22,7 @@ export 'src/meta/combine_meta_applier.dart';
 export 'src/meta/meta_arg_impl.dart';
 export 'src/middleware/middleware_context_impl.dart';
 export 'src/payload/payload_impl.dart';
+export 'src/pipe/pipe_context_impl.dart';
 export 'src/request/mutable_request_context_impl.dart';
 export 'src/request/request_context_impl.dart';
 export 'src/request/underlying_request_impl.dart';

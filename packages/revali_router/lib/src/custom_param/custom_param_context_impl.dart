@@ -1,10 +1,9 @@
-import 'package:revali_router_annotations/src/custom_param/custom_param_context.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
 class CustomParamContextImpl implements CustomParamContext {
   const CustomParamContextImpl({
-    required this.name,
-    required this.type,
+    required this.nameOfParameter,
+    required this.parameterType,
     required this.data,
     required this.meta,
     required this.request,
@@ -12,8 +11,8 @@ class CustomParamContextImpl implements CustomParamContext {
   });
   CustomParamContextImpl.from(
     EndpointContext context, {
-    required this.name,
-    required this.type,
+    required this.nameOfParameter,
+    required this.parameterType,
   })  : data = context.data,
         meta = context.meta,
         request = context.request,
@@ -32,8 +31,8 @@ class CustomParamContextImpl implements CustomParamContext {
   final ReadOnlyResponseContext response;
 
   @override
-  final String name;
+  final String nameOfParameter;
 
   @override
-  final Type type;
+  final Type parameterType;
 }
