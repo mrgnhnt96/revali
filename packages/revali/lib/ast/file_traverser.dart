@@ -14,9 +14,9 @@ class FileTraverser {
 
   final FileSystem fs;
 
-  Future<MetaAppConfig?> parseApp(File file) async {
+  Stream<MetaAppConfig> parseApps(File file) async* {
     if (!path.basename(file.path).endsWith('.app.dart')) {
-      return null;
+      return;
     }
 
     final resolved = await _resolve(file.path, fs);
@@ -25,30 +25,30 @@ class FileTraverser {
     resolved.libraryElement.accept(classVisitor);
 
     if (!classVisitor.hasApp) {
-      return null;
+      return;
     }
 
-    final (:element, :constructor, :params, :annotation, :isSecure) =
-        classVisitor.values;
-
-    return MetaAppConfig(
-      className: element.displayName,
-      importPath: element.librarySource.uri.toString(),
-      element: element,
-      constructor: constructor.name,
-      params: params,
-      appAnnotation: annotation,
-      isSecure: isSecure,
-      annotationsFor: ({
-        required List<OnMatch> onMatch,
-        NonMatch? onNonMatch,
-      }) =>
-          getAnnotations(
+    for (final entry in classVisitor.entries) {
+      final element = entry.element;
+      yield MetaAppConfig(
+        className: element.displayName,
+        importPath: element.librarySource.uri.toString(),
         element: element,
-        onMatch: onMatch,
-        onNonMatch: onNonMatch,
-      ),
-    );
+        constructor: entry.constructor.name,
+        params: entry.params,
+        appAnnotation: entry.annotation,
+        isSecure: entry.isSecure,
+        annotationsFor: ({
+          required List<OnMatch> onMatch,
+          NonMatch? onNonMatch,
+        }) =>
+            getAnnotations(
+          element: element,
+          onMatch: onMatch,
+          onNonMatch: onNonMatch,
+        ),
+      );
+    }
   }
 
   Future<ResolvedUnitResult> _resolve(String file, FileSystem fs) async {

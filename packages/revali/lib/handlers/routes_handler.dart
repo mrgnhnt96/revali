@@ -92,10 +92,10 @@ class RoutesHandler with DirectoriesMixin {
         continue;
       }
 
-      final app = await traverser.parseApp(file);
+      final result = await traverser.parseApps(file).toList();
 
-      if (app != null) {
-        apps.add(app);
+      if (result.isNotEmpty) {
+        apps.addAll(result);
         continue;
       }
     }

@@ -9,8 +9,8 @@
   - Create a Set of paths, remove a path when the file is updated/created. Delete any remaining paths
 - [x] When a value is provided to 'arg', the `paramName` also gets that value, instead of the name of the parameter
 - [x] Think of new names (?) for `arg` and `paramName`
-- [ ] Change `transform` to a `FutureOr` type to allow for async methods
-- [ ] Remove check to force only one app in `*.app.dart`
+- [x] Change `transform` to a `FutureOr` type to allow for async methods
+- [x] Remove check to force only one app in `*.app.dart`
 - [ ] Create general package for revali server that exports all annotations and core functionality
 - [ ] Ensure we can return streams from endpoints
 - [ ] Handle streams in websocket responses

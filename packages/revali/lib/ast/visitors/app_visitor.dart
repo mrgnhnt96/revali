@@ -3,32 +3,28 @@ import 'package:analyzer/dart/element/visitor.dart';
 import 'package:revali/ast/checkers/checkers.dart';
 import 'package:revali/ast/visitors/get_params.dart';
 import 'package:revali_construct/revali_construct.dart';
+import 'package:revali_core/revali_core.dart';
+
+class _AppEntry {
+  const _AppEntry({
+    required this.element,
+    required this.constructor,
+    required this.params,
+    required this.annotation,
+    required this.isSecure,
+  });
+
+  final ClassElement element;
+  final ConstructorElement constructor;
+  final Iterable<MetaParam> params;
+  final AppAnnotation annotation;
+  final bool isSecure;
+}
 
 class AppVisitor extends RecursiveElementVisitor<void> {
-  ClassElement? _app;
-  ConstructorElement? _constructor;
-  AppAnnotation? _annotation;
-  bool _isSecure = false;
+  final entries = <_AppEntry>[];
 
-  final _params = <MetaParam>[];
-
-  bool get hasApp => _app != null && _constructor != null;
-
-  ({
-    ClassElement element,
-    ConstructorElement constructor,
-    List<MetaParam> params,
-    AppAnnotation annotation,
-    bool isSecure,
-  }) get values {
-    return (
-      element: _app!,
-      constructor: _constructor!,
-      params: _params,
-      annotation: _annotation!,
-      isSecure: _isSecure,
-    );
-  }
+  bool get hasApp => entries.isEmpty;
 
   @override
   void visitClassElement(ClassElement element) {
@@ -36,10 +32,6 @@ class AppVisitor extends RecursiveElementVisitor<void> {
 
     if (!appChecker.hasAnnotationOf(element)) {
       return;
-    }
-
-    if (_app != null) {
-      throw Exception('Only one app class per file is allowed');
     }
 
     if (element.constructors.isEmpty) {
@@ -50,16 +42,22 @@ class AppVisitor extends RecursiveElementVisitor<void> {
       throw Exception('No public constructor found in ${element.name}');
     }
 
-    // if (element.allSupertypes.every((e) => e.element.name != '$AppConfig')) {
-    //   throw Exception('App class must extend `$AppConfig`');
-    // }
+    if (element.allSupertypes.every((e) => e.element.name != '$AppConfig')) {
+      throw Exception('App class must extend `$AppConfig`');
+    }
 
-    _app = element;
-    _constructor = element.constructors.first;
-    _isSecure = _constructor?.superConstructor?.name == 'secure';
-    _params.addAll(getParams(_constructor!));
-    _annotation = AppAnnotation.fromAnnotation(
-      appChecker.firstAnnotationOf(element)!,
+    final constructor = element.constructors.first;
+
+    entries.add(
+      _AppEntry(
+        element: element,
+        constructor: constructor,
+        params: getParams(constructor),
+        annotation: AppAnnotation.fromAnnotation(
+          appChecker.firstAnnotationOf(element)!,
+        ),
+        isSecure: constructor.superConstructor?.name == 'secure',
+      ),
     );
   }
 }
