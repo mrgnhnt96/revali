@@ -41,26 +41,26 @@ Route user(
           await context.request.resolvePayload();
 
           final result = await thisController.getNewPerson(
-            name: NamePipe().transform(
+            name: await NamePipe().transform(
               context.request.queryParameters['name'] ??
                   (throw 'Missing value!'),
               PipeContextImpl.from(
                 context,
-                arg: null,
-                paramName: 'name',
-                type: ParamType.query,
+                annotationArgument: null,
+                nameOfParameter: 'name',
+                type: AnnotationType.query,
               ),
             ),
-            id: StringToIntPipe().transform(
+            id: await StringToIntPipe().transform(
               context.request.pathParameters['id'],
               PipeContextImpl.from(
                 context,
-                arg: null,
-                paramName: 'id',
-                type: ParamType.param,
+                annotationArgument: null,
+                nameOfParameter: 'id',
+                type: AnnotationType.param,
               ),
             ),
-            myName: MyParam().parse(CustomParamContextImpl.from(
+            myName: await MyParam().parse(CustomParamContextImpl.from(
               context,
               name: 'myName',
               type: String,

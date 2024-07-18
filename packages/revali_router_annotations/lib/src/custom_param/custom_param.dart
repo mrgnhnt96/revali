@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:revali_router_annotations/src/custom_param/custom_param_context.dart';
 
 /// A custom parameter that can be used in routes.
@@ -6,5 +8,5 @@ import 'package:revali_router_annotations/src/custom_param/custom_param_context.
 abstract class CustomParam<T> {
   const CustomParam();
 
-  T parse(CustomParamContext context);
+  FutureOr<T> parse(CustomParamContext context);
 }

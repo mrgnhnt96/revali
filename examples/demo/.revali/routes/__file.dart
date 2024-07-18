@@ -11,13 +11,13 @@ Route file(
         ':id',
         method: 'POST',
         handler: (context) async {
-          fileUploader.uploadFile(ParamPipe().transform(
+          fileUploader.uploadFile(await ParamPipe().transform(
             context.request.pathParameters['hi'] ?? (throw 'Missing value!'),
             PipeContextImpl.from(
               context,
-              arg: 'hi',
-              paramName: 'id',
-              type: ParamType.param,
+              annotationArgument: 'hi',
+              nameOfParameter: 'id',
+              type: AnnotationType.param,
             ),
           ));
         },

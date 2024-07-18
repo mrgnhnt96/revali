@@ -87,7 +87,9 @@ Expression createParamArg(
         },
       );
 
-      return pipeClass.property('transform').call([paramValue, context]);
+      return pipeClass
+          .property('transform')
+          .call([paramValue, context]).awaited;
     }
 
     return paramValue;
@@ -133,7 +135,9 @@ Expression createParamArg(
         },
       );
 
-      return pipeClass.property('transform').call([queryValue, context]);
+      return pipeClass
+          .property('transform')
+          .call([queryValue, context]).awaited;
     }
 
     return queryValue;
@@ -151,7 +155,7 @@ Expression createParamArg(
       },
     );
 
-    return createMimic(customParam).property('parse').call([context]);
+    return createMimic(customParam).property('parse').call([context]).awaited;
   }
 
   throw ArgumentError('Unknown annotation for param ${param.name}');

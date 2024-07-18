@@ -5,10 +5,10 @@
 ## Feedback
 
 - [x] Figure out why we got an error when calling `body['data'] = value.toJson()
-- [ ] Delete "old" files within .revali directory on hot reload
+- [x] Delete "old" files within .revali directory on hot reload
   - Create a Set of paths, remove a path when the file is updated/created. Delete any remaining paths
-- [ ] When a value is provided to 'arg', the `paramName` also gets that value, instead of the name of the parameter
-- [ ] Think of new names (?) for `arg` and `paramName`
+- [x] When a value is provided to 'arg', the `paramName` also gets that value, instead of the name of the parameter
+- [x] Think of new names (?) for `arg` and `paramName`
 - [ ] Change `transform` to a `FutureOr` type to allow for async methods
 - [ ] Remove check to force only one app in `*.app.dart`
 - [ ] Create general package for revali server that exports all annotations and core functionality
