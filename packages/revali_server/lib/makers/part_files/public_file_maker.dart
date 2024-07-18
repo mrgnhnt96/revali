@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_construct/revali_construct.dart';
-import 'package:revali_router/revali_router.dart';
+import 'package:revali_router/revali_router.dart' hide Method, AllowOrigins;
 import 'package:revali_router_core/revali_router_core_access_control.dart';
 import 'package:revali_server/converters/server_server.dart';
 

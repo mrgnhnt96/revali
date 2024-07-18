@@ -1,6 +1,5 @@
 import 'package:code_builder/code_builder.dart';
-import 'package:revali_router/revali_router.dart';
-import 'package:revali_router_core/revali_router_core.dart';
+import 'package:revali_router/revali_router.dart' hide Method, AllowOrigins;
 import 'package:revali_server/converters/server_server.dart';
 import 'package:revali_server/makers/creators/create_app.dart';
 import 'package:revali_server/makers/creators/create_modifier_args.dart';

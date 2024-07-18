@@ -1,4 +1,4 @@
-import 'package:revali_router/revali_router.dart';
+import 'package:revali_router/src/meta/combine_meta_applier.dart';
 import 'package:revali_router_core/access_control/allow_headers.dart';
 import 'package:revali_router_core/access_control/allow_origins.dart';
 import 'package:revali_router_core/revali_router_core.dart';

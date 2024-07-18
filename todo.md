@@ -11,7 +11,7 @@
 - [x] Think of new names (?) for `arg` and `paramName`
 - [x] Change `transform` to a `FutureOr` type to allow for async methods
 - [x] Remove check to force only one app in `*.app.dart`
-- [ ] Create general package for revali server that exports all annotations and core functionality
+- [x] Create general package for revali server that exports all annotations and core functionality
 - [ ] Ensure we can return streams from endpoints
 - [ ] Handle streams in websocket responses
 
@@ -22,7 +22,7 @@
     - We may need to have a configuration file to handle what to ignore/include
 - [ ] revali upload
   - Uploads the "out-going" directory to a server
-- [ ] Catch errors thrown by the generator
+- [x] Catch errors thrown by the generator
   - Clear the console, then print the error
   - We want to avoid exiting the process at all costs!
   - Maybe we can handle this with the Isolate?

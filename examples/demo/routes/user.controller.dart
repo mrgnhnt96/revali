@@ -1,8 +1,6 @@
 import 'package:examples/repos/repo.dart';
 import 'package:examples/utils/logger.dart';
-import 'package:revali_annotations/revali_annotations.dart';
-import 'package:revali_router_annotations/revali_router_annotations.dart';
-import 'package:revali_router_core/revali_router_core.dart';
+import 'package:revali_router/revali_router.dart';
 
 @AllowOrigins({
   'http://localhost:8080',

@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:http_parser/http_parser.dart';
-import 'package:revali_router/revali_router.dart';
+import 'package:revali_router/src/headers/common_headers_mixin.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
 class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {

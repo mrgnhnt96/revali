@@ -1,9 +1,10 @@
 import 'package:change_case/change_case.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_construct/revali_construct.dart';
-import 'package:revali_core/revali_core.dart';
-import 'package:revali_router/revali_router.dart';
-import 'package:revali_server/revali_server.dart';
+import 'package:revali_router/revali_router.dart' hide Method, AllowOrigins;
+import 'package:revali_server/converters/server_parent_route.dart';
+import 'package:revali_server/makers/creators/create_child_route.dart';
+import 'package:revali_server/makers/creators/create_route_args.dart';
 
 PartFile routeFileMaker(
   ServerParentRoute route,

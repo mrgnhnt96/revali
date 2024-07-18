@@ -1,5 +1,4 @@
-import 'package:revali_annotations/revali_annotations.dart';
-import 'package:revali_router_annotations/revali_router_annotations.dart';
+import 'package:revali_router/revali_router.dart';
 
 @Controller('file')
 class FileUploader {
