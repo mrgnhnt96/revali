@@ -176,15 +176,27 @@ class DevCommand extends Command<int> with DirectoriesMixin {
   ) async {
     final result = construct.generate(context, server);
 
-    final router = await root.getRevaliFile(result.basename);
+    final revali = await root.getRevali();
 
-    if (!await router.exists()) {
-      await router.create(recursive: true);
+    final revaliEntities = switch (await revali.exists()) {
+      true => await revali.list(recursive: true, followLinks: false).toList(),
+      false => <FileSystemEntity>[],
+    };
+
+    final revaliFiles = revaliEntities.whereType<File>();
+
+    final paths = {
+      for (final file in revaliFiles) file.path,
+    };
+
+    final serverFile = await root.getRevaliFile(result.basename);
+
+    if (!await serverFile.exists()) {
+      await serverFile.create(recursive: true);
     }
 
-    await router.writeAsString(result.getContent());
-
-    final revali = await root.getRevali();
+    paths.remove(serverFile.path);
+    await serverFile.writeAsString(result.getContent());
 
     for (final MapEntry(key: basename, value: content)
         in result.getPartContent()) {
@@ -195,7 +207,17 @@ class DevCommand extends Command<int> with DirectoriesMixin {
         await partFile.create(recursive: true);
       }
 
+      paths.remove(partFile.path);
+
       await partFile.writeAsString(content);
+    }
+
+    for (final stale in paths) {
+      final file = fs.file(stale);
+
+      if (!await file.exists()) continue;
+
+      await file.delete();
     }
   }
 }

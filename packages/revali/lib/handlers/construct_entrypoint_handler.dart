@@ -312,7 +312,7 @@ class ConstructEntrypointHandler with DirectoriesMixin {
         .statement;
 
     final _path =
-        declareConst('_routes').assign(literalString(root.path)).statement;
+        declareConst('_root').assign(literalString(root.path)).statement;
 
     final main = Method((b) => b
       ..name = 'main'
@@ -336,7 +336,7 @@ class ConstructEntrypointHandler with DirectoriesMixin {
                 refer('args'),
               ], {
                 'constructs': refer('_constructs'),
-                'path': refer('_routes'),
+                'path': refer('_root'),
               }).awaited,
             )
             .statement,
