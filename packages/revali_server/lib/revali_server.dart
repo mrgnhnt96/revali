@@ -27,7 +27,6 @@ export 'converters/server_route_annotations.dart';
 export 'converters/server_route_modifiers.dart';
 export 'converters/server_server.dart';
 export 'converters/server_set_header.dart';
-export 'converters/server_set_meta.dart';
 export 'converters/server_type_reference.dart';
 export 'main.dart';
 export 'makers/creators/create_app.dart';
