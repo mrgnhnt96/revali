@@ -53,6 +53,20 @@ class Router extends Equatable {
   }
 
   Future<ReadOnlyResponseContext> handle(RequestContext context) async {
+    try {
+      final result = await _handle(
+        context,
+      );
+
+      return result;
+    } catch (e) {
+      final response = CannedResponse.internalServerError();
+
+      return response;
+    }
+  }
+
+  Future<ReadOnlyResponseContext> _handle(RequestContext context) async {
     final request = MutableRequestContextImpl.fromRequest(context);
 
     final segments = request.segments;
@@ -185,23 +199,27 @@ class Router extends Equatable {
       isAllowed = false;
 
       if (origin == null) {
-        return allowedOrigins.contains('*');
-      }
-
-      for (final pattern in allowedOrigins) {
-        if (pattern == '*' || pattern == origin) {
-          isAllowed = true;
-          break;
+        if (!allowedOrigins.contains('*')) {
+          return false;
         }
 
-        try {
-          final regex = RegExp(pattern);
-          if (regex.hasMatch(origin)) {
+        isAllowed = true;
+      } else {
+        for (final pattern in allowedOrigins) {
+          if (pattern == '*' || pattern == origin) {
             isAllowed = true;
             break;
           }
-        } catch (_) {
-          // ignore the pattern if it is not a valid regex
+
+          try {
+            final regex = RegExp(pattern);
+            if (regex.hasMatch(origin)) {
+              isAllowed = true;
+              break;
+            }
+          } catch (_) {
+            // ignore the pattern if it is not a valid regex
+          }
         }
       }
     }
