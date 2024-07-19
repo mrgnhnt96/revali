@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:equatable/equatable.dart';
@@ -27,6 +28,7 @@ class Router extends Equatable {
     required this.routes,
     required RouteModifiers? globalModifiers,
     required Set<Reflect> reflects,
+    this.observers = const [],
   })  : _reflects = reflects,
         _globalModifiers = globalModifiers;
 
@@ -34,12 +36,15 @@ class Router extends Equatable {
     required List<Route> routes,
     RouteModifiers? globalModifiers,
     Set<Reflect> reflects = const {},
+    List<Observer> observers = const [],
   }) : this._(
           routes: routes,
           globalModifiers: globalModifiers,
           reflects: reflects,
+          observers: observers,
         );
 
+  final List<Observer> observers;
   final List<Route> routes;
   final Set<Reflect> _reflects;
   final RouteModifiers? _globalModifiers;
@@ -53,22 +58,31 @@ class Router extends Equatable {
   }
 
   Future<ReadOnlyResponseContext> handle(RequestContext context) async {
+    final responseCompleter = Completer<ReadOnlyResponseContext>();
+
     try {
-      final result = await _handle(
-        context,
-      );
+      final request = MutableRequestContextImpl.fromRequest(context);
+
+      for (final observer in observers) {
+        observer.see(request, responseCompleter.future);
+      }
+
+      final result = await _handle(request);
+
+      responseCompleter.complete(result);
 
       return result;
     } catch (e) {
       final response = CannedResponse.internalServerError();
 
+      responseCompleter.complete(response);
+
       return response;
     }
   }
 
-  Future<ReadOnlyResponseContext> _handle(RequestContext context) async {
-    final request = MutableRequestContextImpl.fromRequest(context);
-
+  Future<ReadOnlyResponseContext> _handle(
+      MutableRequestContextImpl request) async {
     final segments = request.segments;
 
     final match = find(
@@ -111,7 +125,7 @@ class Router extends Equatable {
     request.pathParameters = pathParameters;
 
     final response =
-        MutableResponseContextImpl(requestHeaders: context.headers);
+        MutableResponseContextImpl(requestHeaders: request.headers);
 
     final directMeta = route.getMeta();
     final inheritedMeta = route.getMeta(inherit: true);

@@ -42,6 +42,7 @@ export 'middleware/middleware.dart';
 export 'middleware/middleware_action.dart';
 export 'middleware/middleware_context.dart';
 export 'middleware/middleware_result.dart';
+export 'observer/observer.dart';
 export 'payload/payload.dart';
 export 'pipe/annotation_type.dart';
 export 'pipe/pipe_context.dart';

@@ -251,6 +251,7 @@ class VMServiceHandler {
         serverFile,
       ],
       runInShell: true,
+      includeParentEnvironment: true,
     );
 
     // On Windows listen for CTRL-C and use taskkill to kill

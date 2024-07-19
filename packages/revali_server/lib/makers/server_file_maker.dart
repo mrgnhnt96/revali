@@ -115,6 +115,10 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
                   refer('_routes').spread,
                   refer('public').spread,
                 ]),
+                if (app.observers.isNotEmpty)
+                  'observers': literalList([
+                    for (final observer in app.observers) createMimic(observer)
+                  ]),
                 'reflects': refer('reflects'),
                 if (server.app case final app?
                     when app.globalRouteAnnotations.hasAnnotations)
