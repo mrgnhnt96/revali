@@ -11,6 +11,8 @@ extension HttpResponseX on HttpResponse {
     ReadOnlyResponseContext response, {
     String? requestMethod,
   }) async {
+    statusCode = response.statusCode;
+
     final _headers = response.headers;
     final http = this;
 
