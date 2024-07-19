@@ -1,10 +1,8 @@
+import 'dart:io';
+
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_router/revali_router.dart' hide Method, AllowOrigins;
-import 'package:revali_server/converters/server_server.dart';
-import 'package:revali_server/makers/creators/create_app.dart';
-import 'package:revali_server/makers/creators/create_modifier_args.dart';
-import 'package:revali_server/makers/utils/try_catch.dart';
-import 'package:revali_server/makers/utils/type_extensions.dart';
+import 'package:revali_server/revali_server.dart';
 
 String serverFile(ServerServer server, String Function(Spec) formatter) {
   final imports = [
@@ -44,9 +42,9 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
       ..name = 'createServer'
       ..returns = TypeReference(
         (p) => p
-          ..symbol = 'Future'
+          ..symbol = (Future).name
           ..types.add(
-            refer('HttpServer'),
+            refer((HttpServer).name),
           ),
       )
       ..modifier = MethodModifier.async
@@ -55,7 +53,7 @@ String serverFile(ServerServer server, String Function(Spec) formatter) {
         declareFinal('server', late: true, type: refer('HttpServer')).statement,
         tryCatch(
           refer('server')
-              .assign(refer('HttpServer')
+              .assign(refer((HttpServer).name)
                   .property(app.isSecure ? 'bindSecure' : 'bind')
                   .call([
                 refer('app').property('host'),

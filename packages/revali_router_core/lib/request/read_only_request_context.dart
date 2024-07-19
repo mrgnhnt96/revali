@@ -19,4 +19,10 @@ abstract class ReadOnlyRequestContext {
   // This will be implemented in the future
   // ignore: unused_element
   Map<String, List<String>> get _wildcardParameters;
+
+  String get method;
+
+  Uri get uri;
+
+  List<String> get segments;
 }
