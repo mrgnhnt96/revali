@@ -94,11 +94,11 @@ class AddAuth extends Middleware {
   @override
   Future<MiddlewareResult> use(
     MiddlewareContext context,
-    MiddlewareAction canActivate,
+    MiddlewareAction action,
   ) async {
     context.data.add(HasAuth(true));
 
-    return canActivate.next();
+    return action.next();
   }
 }
 
