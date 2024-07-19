@@ -9,14 +9,19 @@ mixin ExtractImport {
 
   Iterable<String> packageImports() {
     Iterable<String> extract() sync* {
-      final imports = [
-        for (final extractor in extractors) ...?extractor?.imports,
-        ...this.imports,
-      ];
+      Iterable<ServerImports> traverse(ExtractImport import) sync* {
+        yield* import.imports.whereType<ServerImports>();
+
+        for (final extractor in import.extractors) {
+          if (extractor == null) continue;
+
+          yield* traverse(extractor);
+        }
+      }
+
+      final imports = traverse(this);
 
       for (final import in imports) {
-        if (import == null) continue;
-
         yield* import.packages;
       }
     }

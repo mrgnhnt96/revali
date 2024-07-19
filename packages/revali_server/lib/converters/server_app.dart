@@ -37,7 +37,7 @@ class ServerApp with ExtractImport {
   final bool isSecure;
 
   @override
-  List<ExtractImport?> get extractors => [...params];
+  List<ExtractImport?> get extractors => [...params, globalRouteAnnotations];
 
   @override
   List<ServerImports?> get imports => [importPath];

@@ -234,10 +234,10 @@ class _AnnotationTypeReferences
   List<ServerTypeReference> combines = [];
 
   Iterable<ServerTypeReference> get all => [
-        ...middlewares,
-        ...interceptors,
         ...catchers,
         ...guards,
+        ...interceptors,
+        ...middlewares,
         ...combines,
       ];
 }
@@ -259,10 +259,10 @@ class _AnnotationMimics implements BaseAnnotations<ServerMimic> {
   List<ServerMimic> combines = [];
 
   Iterable<ServerMimic> get all => [
-        ...middlewares,
-        ...interceptors,
         ...catchers,
         ...guards,
+        ...interceptors,
+        ...middlewares,
         ...combines,
       ];
 }
