@@ -16,10 +16,10 @@ class EndpointContextImpl implements EndpointContext {
   final ReadOnlyMeta meta;
 
   @override
-  final MutableRequestContext request;
+  final MutableRequest request;
 
   @override
-  final MutableResponseContext response;
+  final MutableResponse response;
 
   @override
   final ReflectHandler reflect;

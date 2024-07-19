@@ -29,7 +29,7 @@ abstract class CustomParamContext {
 
   ReadOnlyMeta get meta;
 
-  ReadOnlyRequestContext get request;
+  ReadOnlyRequest get request;
 
-  ReadOnlyResponseContext get response;
+  ReadOnlyResponse get response;
 }

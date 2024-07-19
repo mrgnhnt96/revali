@@ -12,10 +12,10 @@ final class GuardContextImpl implements GuardContext {
   final DataHandler data;
 
   @override
-  final MutableRequestContext request;
+  final MutableRequest request;
 
   @override
-  final MutableResponseContext response;
+  final MutableResponse response;
 
   @override
   final GuardMeta meta;

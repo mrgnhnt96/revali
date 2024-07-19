@@ -99,7 +99,7 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
     }
   }
 
-  void syncWith(ReadOnlyRequestContext request) {
+  void syncWith(ReadOnlyRequest request) {
     if (request.headers.encoding case final otherEncoding
         when encoding == otherEncoding) {}
   }

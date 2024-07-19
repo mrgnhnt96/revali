@@ -8,7 +8,7 @@ import 'package:revali_router_core/revali_router_core.dart';
 
 extension HttpResponseX on HttpResponse {
   Future<void> send(
-    ReadOnlyResponseContext response, {
+    ReadOnlyResponse response, {
     String? requestMethod,
   }) async {
     statusCode = response.statusCode;

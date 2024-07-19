@@ -25,10 +25,10 @@ class CustomParamContextImpl implements CustomParamContext {
   final ReadOnlyMeta meta;
 
   @override
-  final ReadOnlyRequestContext request;
+  final ReadOnlyRequest request;
 
   @override
-  final ReadOnlyResponseContext response;
+  final ReadOnlyResponse response;
 
   @override
   final String nameOfParameter;

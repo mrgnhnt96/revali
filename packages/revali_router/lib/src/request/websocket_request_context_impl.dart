@@ -1,11 +1,11 @@
 import 'package:revali_router/src/body/mutable_body_impl.dart';
 import 'package:revali_router/src/payload/payload_impl.dart';
-import 'package:revali_router/src/request/mutable_request_context_impl.dart';
+import 'package:revali_router/src/request/mutable_request_impl.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
-class WebSocketRequestContextImpl extends MutableRequestContextImpl
-    implements WebSocketRequestContext {
-  WebSocketRequestContextImpl.fromRequest(MutableRequestContext request)
+class MutableWebSocketRequestImpl extends MutableRequestImpl
+    implements MutableWebSocketRequest {
+  MutableWebSocketRequestImpl.fromRequest(MutableRequest request)
       : _originalBody = request.body,
         super.fromRequest(request);
 

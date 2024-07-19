@@ -11,8 +11,8 @@ class MiddlewareContextImpl implements MiddlewareContext {
   final DataHandler data;
 
   @override
-  final MutableRequestContext request;
+  final MutableRequest request;
 
   @override
-  final MutableResponseContext response;
+  final MutableResponse response;
 }

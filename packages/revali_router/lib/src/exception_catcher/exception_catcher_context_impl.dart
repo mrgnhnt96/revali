@@ -11,6 +11,6 @@ class ExceptionCatcherContextImpl implements ExceptionCatcherContext {
   final ExceptionCatcherMeta meta;
   @override
   final ReadOnlyDataHandler data;
-  final ReadOnlyRequestContext request;
-  final MutableResponseContext response;
+  final ReadOnlyRequest request;
+  final MutableResponse response;
 }

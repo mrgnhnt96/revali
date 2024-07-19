@@ -11,11 +11,11 @@ import 'package:revali_router/src/guard/guard_meta_impl.dart';
 import 'package:revali_router/src/interceptor/interceptor_context_impl.dart';
 import 'package:revali_router/src/interceptor/interceptor_meta_impl.dart';
 import 'package:revali_router/src/middleware/middleware_context_impl.dart';
-import 'package:revali_router/src/request/mutable_request_context_impl.dart';
+import 'package:revali_router/src/request/mutable_request_impl.dart';
 import 'package:revali_router/src/request/request_context_impl.dart';
 import 'package:revali_router/src/request/websocket_request_context_impl.dart';
 import 'package:revali_router/src/response/canned_response.dart';
-import 'package:revali_router/src/response/mutable_response_context_impl.dart';
+import 'package:revali_router/src/response/mutable_response_impl.dart';
 import 'package:revali_router/src/route/route.dart';
 import 'package:revali_router/src/route/route_match.dart';
 import 'package:revali_router/src/route/route_modifiers_impl.dart';
@@ -52,16 +52,16 @@ class Router extends Equatable {
   /// Handles an HTTP request.
   ///
   /// Passes the request to the [handle] method.
-  Future<ReadOnlyResponseContext> handleHttpRequest(HttpRequest request) async {
+  Future<ReadOnlyResponse> handleHttpRequest(HttpRequest request) async {
     final context = RequestContextImpl.fromRequest(request);
     return handle(context);
   }
 
-  Future<ReadOnlyResponseContext> handle(RequestContext context) async {
-    final responseCompleter = Completer<ReadOnlyResponseContext>();
+  Future<ReadOnlyResponse> handle(RequestContext context) async {
+    final responseCompleter = Completer<ReadOnlyResponse>();
 
     try {
-      final request = MutableRequestContextImpl.fromRequest(context);
+      final request = MutableRequestImpl.fromRequest(context);
 
       for (final observer in observers) {
         observer.see(request, responseCompleter.future);
@@ -81,8 +81,7 @@ class Router extends Equatable {
     }
   }
 
-  Future<ReadOnlyResponseContext> _handle(
-      MutableRequestContextImpl request) async {
+  Future<ReadOnlyResponse> _handle(MutableRequestImpl request) async {
     final segments = request.segments;
 
     final match = find(
@@ -124,8 +123,7 @@ class Router extends Equatable {
 
     request.pathParameters = pathParameters;
 
-    final response =
-        MutableResponseContextImpl(requestHeaders: request.headers);
+    final response = MutableResponseImpl(requestHeaders: request.headers);
 
     final directMeta = route.getMeta();
     final inheritedMeta = route.getMeta(inherit: true);
@@ -195,7 +193,7 @@ class Router extends Equatable {
   }
 
   bool isOriginAllowed(
-    MutableRequestContext request,
+    MutableRequest request,
     Route route, {
     required Set<String>? globalAllowedOrigins,
     required Set<String>? globalAllowedHeaders,
@@ -260,11 +258,11 @@ class Router extends Equatable {
     return true;
   }
 
-  Future<ReadOnlyResponseContext> execute({
+  Future<ReadOnlyResponse> execute({
     required Route route,
     required RouteModifiers globalModifiers,
-    required MutableRequestContext request,
-    required MutableResponseContext response,
+    required MutableRequest request,
+    required MutableResponse response,
     required DataHandler dataHandler,
     required MetaHandler directMeta,
     required MetaHandler inheritedMeta,
@@ -383,10 +381,10 @@ class Router extends Equatable {
 
     if (route.isWebSocket) {
       WebSocket webSocket;
-      WebSocketRequestContext wsRequest;
+      MutableWebSocketRequest wsRequest;
       try {
         webSocket = await request.upgradeToWebSocket();
-        wsRequest = WebSocketRequestContextImpl.fromRequest(request);
+        wsRequest = MutableWebSocketRequestImpl.fromRequest(request);
       } catch (e) {
         return CannedResponse.internalServerError();
       }
@@ -537,7 +535,7 @@ class Router extends Equatable {
   List<Object?> get props => _$props;
 }
 
-extension _MutableResponseX on MutableResponseContext {
+extension _MutableResponseX on MutableResponse {
   void _overrideWith({
     required int? statusCode,
     required int backupCode,

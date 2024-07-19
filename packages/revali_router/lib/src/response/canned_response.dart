@@ -2,16 +2,16 @@ import 'dart:io';
 
 import 'package:revali_router/src/body/response_body/base_body_data.dart';
 import 'package:revali_router/src/headers/mutable_headers_impl.dart';
-import 'package:revali_router/src/response/mutable_response_context_impl.dart';
+import 'package:revali_router/src/response/mutable_response_impl.dart';
 import 'package:revali_router_core/body/body_data.dart';
 import 'package:revali_router_core/body/read_only_body.dart';
 import 'package:revali_router_core/headers/read_only_headers.dart';
-import 'package:revali_router_core/response/read_only_response_context.dart';
+import 'package:revali_router_core/response/read_only_response.dart';
 
 class CannedResponse {
   CannedResponse._();
 
-  static ReadOnlyResponseContext notFound({
+  static ReadOnlyResponse notFound({
     Object? body,
     Map<String, String> headers = const {},
   }) {
@@ -22,7 +22,7 @@ class CannedResponse {
     );
   }
 
-  static ReadOnlyResponseContext internalServerError({
+  static ReadOnlyResponse internalServerError({
     BodyData? body,
     Map<String, String> headers = const {},
   }) {
@@ -33,7 +33,7 @@ class CannedResponse {
     );
   }
 
-  static ReadOnlyResponseContext forbidden({
+  static ReadOnlyResponse forbidden({
     BodyData? body,
     Map<String, String> headers = const {},
   }) {
@@ -44,7 +44,7 @@ class CannedResponse {
     );
   }
 
-  static ReadOnlyResponseContext options({
+  static ReadOnlyResponse options({
     required Set<String> allowedMethods,
   }) {
     return _Response(
@@ -62,11 +62,11 @@ class CannedResponse {
   ///
   /// This is a special case and should not be used for any other purpose.
   /// Status Code: 1000
-  static ReadOnlyResponseContext webSocket() {
+  static ReadOnlyResponse webSocket() {
     return _Response(1000);
   }
 
-  static ReadOnlyResponseContext redirect(
+  static ReadOnlyResponse redirect(
     String location, {
     int statusCode = 302,
     Map<String, String> headers = const {},
@@ -81,7 +81,7 @@ class CannedResponse {
   }
 }
 
-class _Response implements ReadOnlyResponseContext {
+class _Response implements ReadOnlyResponse {
   _Response._({
     required this.statusCode,
     required this.headers,
@@ -93,8 +93,7 @@ class _Response implements ReadOnlyResponseContext {
     Map<String, String> headers = const {},
     Object? body,
   }) {
-    final response =
-        MutableResponseContextImpl(requestHeaders: MutableHeadersImpl());
+    final response = MutableResponseImpl(requestHeaders: MutableHeadersImpl());
     response.statusCode = statusCode;
     response.headers.addAll(headers);
     if (body != null) {

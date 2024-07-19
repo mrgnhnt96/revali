@@ -5,8 +5,8 @@ import 'package:revali_router/src/body/response_body/base_body_data.dart';
 import 'package:revali_router/src/headers/mutable_headers_impl.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
-class MutableResponseContextImpl implements MutableResponseContext {
-  MutableResponseContextImpl({
+class MutableResponseImpl implements MutableResponse {
+  MutableResponseImpl({
     required ReadOnlyHeaders requestHeaders,
   })  : _requestHeaders = requestHeaders,
         _body = MutableBodyImpl(),
