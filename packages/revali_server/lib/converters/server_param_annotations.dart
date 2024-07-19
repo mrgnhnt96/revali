@@ -2,6 +2,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_server/converters/server_body_annotation.dart';
+import 'package:revali_server/converters/server_header_annotation.dart';
 import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_mimic.dart';
 import 'package:revali_server/converters/server_param_annotation.dart';
@@ -15,6 +16,7 @@ class ServerParamAnnotations with ExtractImport {
     required this.query,
     required this.param,
     required this.dep,
+    required this.header,
     required this.customParam,
   });
 
@@ -39,6 +41,7 @@ class ServerParamAnnotations with ExtractImport {
     ServerBodyAnnotation? body;
     ServerQueryAnnotation? query;
     ServerParamAnnotation? param;
+    ServerHeaderAnnotation? header;
     ServerMimic? customParam;
     bool? dep;
 
@@ -56,6 +59,13 @@ class ServerParamAnnotations with ExtractImport {
           package: 'revali_router_annotations',
           convert: (object, annotation) {
             query = ServerQueryAnnotation.fromElement(object, annotation);
+          },
+        ),
+        OnMatch(
+          classType: Header,
+          package: 'revali_router_annotations',
+          convert: (object, annotation) {
+            header = ServerHeaderAnnotation.fromElement(object, annotation);
           },
         ),
         OnMatch(
@@ -87,6 +97,7 @@ class ServerParamAnnotations with ExtractImport {
     for (final annotation in <Object?>[
       body,
       query,
+      header,
       param,
       customParam,
       dep,
@@ -110,12 +121,14 @@ class ServerParamAnnotations with ExtractImport {
       query: query,
       param: param,
       customParam: customParam,
+      header: header,
       dep: dep ?? false,
     );
   }
 
   final ServerBodyAnnotation? body;
   final ServerQueryAnnotation? query;
+  final ServerHeaderAnnotation? header;
   final ServerParamAnnotation? param;
   final ServerMimic? customParam;
   final bool dep;
@@ -123,6 +136,7 @@ class ServerParamAnnotations with ExtractImport {
   bool get hasAnnotation =>
       body != null ||
       query != null ||
+      header != null ||
       param != null ||
       customParam != null ||
       dep;
@@ -139,10 +153,20 @@ class ServerParamAnnotations with ExtractImport {
     if (param?.pipe?.reflect case final reflect?) {
       yield reflect;
     }
+
+    if (header?.pipe?.reflect case final reflect?) {
+      yield reflect;
+    }
   }
 
   @override
-  List<ExtractImport?> get extractors => [body, query, param, customParam];
+  List<ExtractImport?> get extractors => [
+        body,
+        query,
+        header,
+        param,
+        customParam,
+      ];
 
   @override
   List<ServerImports?> get imports => const [];

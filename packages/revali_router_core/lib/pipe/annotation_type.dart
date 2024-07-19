@@ -4,4 +4,5 @@ enum AnnotationType {
   queryAll,
   param,
   custom,
+  header,
 }
