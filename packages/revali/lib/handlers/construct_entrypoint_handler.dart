@@ -321,7 +321,7 @@ class ConstructEntrypointHandler with DirectoriesMixin {
       ..requiredParameters.add(Parameter((b) => b
         ..name = 'args'
         ..type = TypeReference((b) => b
-          ..symbol = 'List'
+          ..symbol = ('List')
           ..types.add(refer('String')))))
       ..optionalParameters.add(Parameter((b) => b
         ..name = 'sendPort'
