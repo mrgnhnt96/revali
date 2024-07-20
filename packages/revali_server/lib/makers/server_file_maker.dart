@@ -4,10 +4,17 @@ import 'package:code_builder/code_builder.dart';
 import 'package:revali_router/revali_router.dart' hide Method, AllowOrigins;
 import 'package:revali_server/makers/creators/create_dependency_injection.dart';
 import 'package:revali_server/makers/creators/create_routes_variable.dart';
+import 'package:revali_server/models/options.dart';
 import 'package:revali_server/revali_server.dart';
 
-String serverFile(ServerServer server, String Function(Spec) formatter) {
+String serverFile(
+  ServerServer server,
+  String Function(Spec) formatter, {
+  required Options options,
+}) {
   final imports = [
+    if (options.ignoreLints case final lints when lints.isNotEmpty)
+      "// ignore_for_file: ${options.ignoreLints.join(', ')}\n",
     "import 'dart:io';",
     '',
     "import 'package:path/path.dart' as p;",

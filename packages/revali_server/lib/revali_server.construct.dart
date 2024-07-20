@@ -7,9 +7,12 @@ import 'package:revali_server/makers/part_files/reflects_file_maker.dart';
 import 'package:revali_server/makers/part_files/route_file_maker.dart';
 import 'package:revali_server/makers/part_files/routes_file_maker.dart';
 import 'package:revali_server/makers/server_file_maker.dart';
+import 'package:revali_server/models/options.dart';
 
 class RevaliServerConstruct implements ServerConstruct {
-  const RevaliServerConstruct();
+  const RevaliServerConstruct(this.options);
+
+  final Options options;
 
   @override
   ServerFile generate(RevaliContext context, MetaServer server) {
@@ -25,7 +28,7 @@ class RevaliServerConstruct implements ServerConstruct {
     }
 
     return ServerFile(
-      content: serverFile(serverServer, format),
+      content: serverFile(serverServer, format, options: options),
       parts: [
         for (final route in serverServer.routes) routeFileMaker(route, format),
         reflectsFileMaker(serverServer, format),
