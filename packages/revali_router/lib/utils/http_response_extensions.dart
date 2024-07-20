@@ -11,10 +11,13 @@ extension HttpResponseX on HttpResponse {
     ReadOnlyResponse response, {
     String? requestMethod,
   }) async {
+    final http = this;
     statusCode = response.statusCode;
 
     final _headers = response.headers;
-    final http = this;
+    _headers.forEach((key, values) {
+      http.headers.set(key, values.join(','));
+    });
 
     bool chunk = false;
 

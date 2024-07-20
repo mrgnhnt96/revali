@@ -49,9 +49,7 @@ class MutableResponseImpl implements MutableResponse {
   MutableHeaders _headers;
   @override
   MutableHeaders get headers {
-    final headers = MutableHeadersImpl({
-      HttpHeaders.contentLengthHeader: ['0'],
-    });
+    final headers = MutableHeadersImpl();
 
     _headers.forEach((key, value) {
       headers.setAll(key, value);
@@ -103,6 +101,10 @@ class MutableResponseImpl implements MutableResponse {
       default:
         break;
     }
+
+    headers.setIfAbsent(HttpHeaders.contentLengthHeader, () {
+      return '0';
+    });
 
     return headers;
   }
