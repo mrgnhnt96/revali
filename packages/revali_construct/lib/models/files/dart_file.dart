@@ -58,11 +58,13 @@ class DartFile {
       contentWithoutImports = content.substring(importEndIndex + 1);
     }
 
-    return '''
+    final trimmed = '''
 $importStatements
 
 $partString
 $contentWithoutImports'''
         .trim();
+
+    return '$trimmed\n';
   }
 }
