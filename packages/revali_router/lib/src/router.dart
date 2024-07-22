@@ -179,17 +179,14 @@ ${stackString.join('\n')}''',
       );
     }
 
-    if (!isOriginAllowed(
+    if (isOriginAllowed(
       request,
       route,
       globalAllowedOrigins: globalModifiers.allowedOrigins?.origins,
       globalAllowedHeaders: globalModifiers.allowedHeaders?.headers,
-    )) {
-      return _debugResponse(
-        defaultResponses.failedCors,
-        error: 'Failed CORS',
-        stackTrace: StackTrace.current,
-      );
+    )
+        case final response?) {
+      return response;
     }
 
     request.pathParameters = pathParameters;
@@ -274,7 +271,7 @@ ${stackString.join('\n')}''',
     }
   }
 
-  bool isOriginAllowed(
+  ReadOnlyResponse? isOriginAllowed(
     MutableRequest request,
     Route route, {
     required Set<String>? globalAllowedOrigins,
@@ -294,7 +291,11 @@ ${stackString.join('\n')}''',
 
       if (origin == null) {
         if (!allowedOrigins.contains('*')) {
-          return false;
+          return _debugResponse(
+            defaultResponses.failedCors,
+            error: 'Origin header is missing.',
+            stackTrace: StackTrace.current,
+          );
         }
 
         isAllowed = true;
@@ -319,7 +320,11 @@ ${stackString.join('\n')}''',
     }
 
     if (!isAllowed) {
-      return false;
+      return _debugResponse(
+        defaultResponses.failedCors,
+        error: 'Origin is not allowed.',
+        stackTrace: StackTrace.current,
+      );
     }
 
     if (origin != null) {
@@ -337,7 +342,7 @@ ${stackString.join('\n')}''',
             ...?route.allowedHeaders?.headers,
           }.join(', '));
 
-    return true;
+    return null;
   }
 
   Future<ReadOnlyResponse> execute({
