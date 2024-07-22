@@ -2,6 +2,7 @@ import 'package:code_builder/code_builder.dart';
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_server/converters/server_body_annotation.dart';
 import 'package:revali_server/converters/server_param.dart';
+import 'package:revali_server/makers/creators/create_missing_argument_exception.dart';
 import 'package:revali_server/makers/creators/create_pipe_context.dart';
 
 Expression createArgFromBody(
@@ -18,9 +19,12 @@ Expression createArgFromBody(
       final acceptsNull = annotation.acceptsNull;
       if ((acceptsNull != null && !acceptsNull) ||
           (!param.isNullable && annotation.pipe == null)) {
-        bodyVar = bodyVar
-            // TODO(MRGNHNT): Throw custom exception here
-            .ifNullThen(literalString('Missing value!').thrown.parenthesized);
+        bodyVar = bodyVar.ifNullThen(
+          createMissingArgumentException(
+            key: param.name,
+            location: '@${AnnotationType.body.name}#${access.join('.')}',
+          ).thrown.parenthesized,
+        );
       }
     }
   } else {

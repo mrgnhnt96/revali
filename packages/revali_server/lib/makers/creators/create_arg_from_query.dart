@@ -2,6 +2,7 @@ import 'package:code_builder/code_builder.dart';
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_server/converters/server_param.dart';
 import 'package:revali_server/converters/server_query_annotation.dart';
+import 'package:revali_server/makers/creators/create_missing_argument_exception.dart';
 import 'package:revali_server/makers/creators/create_pipe_context.dart';
 
 Expression createArgFromQuery(
@@ -21,9 +22,12 @@ Expression createArgFromQuery(
   final acceptsNull = annotation.acceptsNull;
   if ((acceptsNull != null && !acceptsNull) ||
       (!param.isNullable && annotation.pipe == null)) {
-    queryValue = queryValue
-        // TODO(MRGNHNT): Throw custom exception here
-        .ifNullThen(literalString('Missing value!').thrown.parenthesized);
+    queryValue = queryValue.ifNullThen(
+      createMissingArgumentException(
+        key: annotation.name ?? param.name,
+        location: '@${AnnotationType.query.name}',
+      ).thrown.parenthesized,
+    );
   }
 
   if (annotation.pipe case final pipe?) {

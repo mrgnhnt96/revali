@@ -40,6 +40,7 @@ export 'makers/creators/create_child_route.dart';
 export 'makers/creators/create_class.dart';
 export 'makers/creators/create_dependency_injection.dart';
 export 'makers/creators/create_mimic.dart';
+export 'makers/creators/create_missing_argument_exception.dart';
 export 'makers/creators/create_modifier_args.dart';
 export 'makers/creators/create_param_arg.dart';
 export 'makers/creators/create_parent_ref.dart';

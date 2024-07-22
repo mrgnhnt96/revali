@@ -17,6 +17,7 @@ export 'src/exception_catcher/exception_catcher_context_impl.dart';
 export 'src/exception_catcher/exception_catcher_meta_impl.dart';
 export 'src/exceptions/guard_stop_exception.dart';
 export 'src/exceptions/middleware_stop_exception.dart';
+export 'src/exceptions/missing_argument_exception.dart';
 export 'src/exceptions/missing_handler_exception.dart';
 export 'src/exceptions/route_not_found_exception.dart';
 export 'src/guard/guard_context_impl.dart';
