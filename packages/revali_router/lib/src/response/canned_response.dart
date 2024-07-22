@@ -23,7 +23,7 @@ class CannedResponse {
   }
 
   static ReadOnlyResponse internalServerError({
-    BodyData? body,
+    Object? body,
     Map<String, String> headers = const {},
   }) {
     return _Response(
@@ -34,7 +34,7 @@ class CannedResponse {
   }
 
   static ReadOnlyResponse forbidden({
-    BodyData? body,
+    Object? body,
     Map<String, String> headers = const {},
   }) {
     return _Response(

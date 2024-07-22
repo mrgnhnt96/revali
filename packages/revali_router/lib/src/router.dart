@@ -6,6 +6,8 @@ import 'package:revali_router/src/body/response_body/base_body_data.dart';
 import 'package:revali_router/src/endpoint/endpoint_context_impl.dart';
 import 'package:revali_router/src/exception_catcher/exception_catcher_context_impl.dart';
 import 'package:revali_router/src/exception_catcher/exception_catcher_meta_impl.dart';
+import 'package:revali_router/src/exceptions/guard_stop_exception.dart';
+import 'package:revali_router/src/exceptions/middleware_stop_exception.dart';
 import 'package:revali_router/src/guard/guard_context_impl.dart';
 import 'package:revali_router/src/guard/guard_meta_impl.dart';
 import 'package:revali_router/src/interceptor/interceptor_context_impl.dart';
@@ -24,30 +26,20 @@ import 'package:revali_router_core/revali_router_core.dart';
 part 'router.g.dart';
 
 class Router extends Equatable {
-  const Router._({
-    required this.routes,
-    required RouteModifiers? globalModifiers,
-    required Set<Reflect> reflects,
-    this.observers = const [],
-  })  : _reflects = reflects,
-        _globalModifiers = globalModifiers;
-
   Router({
-    required List<Route> routes,
+    required this.routes,
     RouteModifiers? globalModifiers,
     Set<Reflect> reflects = const {},
-    List<Observer> observers = const [],
-  }) : this._(
-          routes: routes,
-          globalModifiers: globalModifiers,
-          reflects: reflects,
-          observers: observers,
-        );
+    this.observers = const [],
+    this.debug = false,
+  })  : _reflects = reflects,
+        _globalModifiers = globalModifiers;
 
   final List<Observer> observers;
   final List<Route> routes;
   final Set<Reflect> _reflects;
   final RouteModifiers? _globalModifiers;
+  final bool debug;
 
   /// Handles an HTTP request.
   ///
@@ -55,6 +47,29 @@ class Router extends Equatable {
   Future<ReadOnlyResponse> handleHttpRequest(HttpRequest request) async {
     final context = RequestContextImpl.fromRequest(request);
     return handle(context);
+  }
+
+  Object? bodyForError(
+    Object? body, {
+    required Object error,
+    required StackTrace stackTrace,
+  }) {
+    if (!debug) {
+      return body;
+    }
+
+    return switch (body) {
+      Map() => {
+          ...body,
+          'error': error.toString(),
+          'stackTrace': stackTrace.toString(),
+        },
+      String() => '''$body
+Error: $error
+
+$stackTrace''',
+      _ => body,
+    };
   }
 
   Future<ReadOnlyResponse> handle(RequestContext context) async {
@@ -72,8 +87,14 @@ class Router extends Equatable {
       responseCompleter.complete(result);
 
       return result;
-    } catch (e) {
-      final response = CannedResponse.internalServerError();
+    } catch (e, stackTrace) {
+      final response = CannedResponse.internalServerError(
+        body: bodyForError(
+          'Internal Server Error',
+          error: e,
+          stackTrace: stackTrace,
+        ),
+      );
 
       responseCompleter.complete(response);
 
@@ -144,9 +165,15 @@ class Router extends Equatable {
       );
 
       return result;
-    } catch (e) {
+    } catch (e, stackTrace) {
       if (e is! Exception) {
-        return CannedResponse.internalServerError();
+        return CannedResponse.internalServerError(
+          body: bodyForError(
+            'Internal Server Error',
+            error: e,
+            stackTrace: stackTrace,
+          ),
+        );
       }
 
       final catchers = [
@@ -183,12 +210,22 @@ class Router extends Equatable {
               statusCode: statusCode,
               backupCode: 500,
               headers: headers,
-              body: body,
+              body: bodyForError(
+                body ?? response.body,
+                error: e,
+                stackTrace: stackTrace,
+              ),
             );
         }
       }
 
-      return CannedResponse.internalServerError();
+      return CannedResponse.internalServerError(
+        body: bodyForError(
+          'Internal Server Error',
+          error: e,
+          stackTrace: stackTrace,
+        ),
+      );
     }
   }
 
@@ -296,7 +333,11 @@ class Router extends Equatable {
             statusCode: statusCode,
             backupCode: 400,
             headers: headers,
-            body: body,
+            body: bodyForError(
+              body ?? response.body,
+              error: MiddlewareStopException(),
+              stackTrace: StackTrace.current,
+            ),
           );
       }
     }
@@ -328,7 +369,11 @@ class Router extends Equatable {
             statusCode: statusCode,
             backupCode: 403,
             headers: headers,
-            body: body,
+            body: bodyForError(
+              body ?? response.body,
+              error: GuardStopException(),
+              stackTrace: StackTrace.current,
+            ),
           );
       }
     }

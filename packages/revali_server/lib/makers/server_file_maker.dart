@@ -114,6 +114,7 @@ String serverFile(
             .assign(refer((Router).name).newInstance(
               [],
               {
+                if (server.context.mode.isDebug) 'debug': literalTrue,
                 'routes': literalList([
                   refer('_routes').spread,
                   refer('public').spread,
