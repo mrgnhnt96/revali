@@ -1,5 +1,5 @@
 import 'package:revali_router/src/route/route.dart';
-import 'package:revali_router/src/router.dart';
+import 'package:revali_router/src/router/router.dart';
 import 'package:test/test.dart';
 
 void main() {

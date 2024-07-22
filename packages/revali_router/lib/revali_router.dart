@@ -42,6 +42,6 @@ export 'src/response/simple_response.dart';
 export 'src/route/route.dart';
 export 'src/route/route_match.dart';
 export 'src/route/route_modifiers_impl.dart';
-export 'src/router.dart';
+export 'src/router/router.dart';
 export 'src/server/handle_requests.dart';
 export 'utils/http_response_extensions.dart';

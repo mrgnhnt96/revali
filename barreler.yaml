@@ -26,6 +26,8 @@ dirs:
     name: revali_router
     exclude:
       - '**/response_body/*_data.dart'
+      - '**/router/*_*.dart'
+      - '**/router/{find,execute}.dart'
     exports:
       - src/body/response_body/base_body_data.dart
       - export: 'package:revali_annotations/revali_annotations.dart'
