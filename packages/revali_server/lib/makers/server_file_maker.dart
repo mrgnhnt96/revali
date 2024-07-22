@@ -2,9 +2,6 @@ import 'dart:io';
 
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_router/revali_router.dart' hide Method, AllowOrigins;
-import 'package:revali_server/makers/creators/create_dependency_injection.dart';
-import 'package:revali_server/makers/creators/create_routes_variable.dart';
-import 'package:revali_server/models/options.dart';
 import 'package:revali_server/revali_server.dart';
 
 String serverFile(
@@ -124,6 +121,7 @@ String serverFile(
                     for (final observer in app.observers) createMimic(observer)
                   ]),
                 'reflects': refer('reflects'),
+                'defaultResponses': refer('app').property('defaultResponses'),
                 if (server.app case final app?
                     when app.globalRouteAnnotations.hasAnnotations)
                   'globalModifiers':

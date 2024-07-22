@@ -18,6 +18,7 @@ dependencies:
       path: ../revali_router_annotations
     revali_router_core:
       path: ../revali_router_core
+    stack_trace: ^1.11.1
 
 dev_dependencies:
     autoequal_gen: ^0.9.1

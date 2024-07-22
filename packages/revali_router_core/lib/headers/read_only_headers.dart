@@ -39,4 +39,8 @@ abstract class ReadOnlyHeaders {
   String? get origin;
 
   (int, int)? get range;
+
+  Map<K2, V2> map<K2, V2>(
+    MapEntry<K2, V2> convert(String key, List<String> values),
+  );
 }

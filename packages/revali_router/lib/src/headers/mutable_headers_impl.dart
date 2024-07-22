@@ -111,4 +111,11 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
       set(contentTypeHeader, setter());
     }
   }
+
+  @override
+  Map<K2, V2> map<K2, V2>(
+    MapEntry<K2, V2> Function(String key, List<String> values) convert,
+  ) {
+    return _headers.map(convert);
+  }
 }

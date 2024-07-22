@@ -8,6 +8,8 @@ import 'package:revali_router/src/exception_catcher/exception_catcher_context_im
 import 'package:revali_router/src/exception_catcher/exception_catcher_meta_impl.dart';
 import 'package:revali_router/src/exceptions/guard_stop_exception.dart';
 import 'package:revali_router/src/exceptions/middleware_stop_exception.dart';
+import 'package:revali_router/src/exceptions/missing_handler_exception.dart';
+import 'package:revali_router/src/exceptions/route_not_found_exception.dart';
 import 'package:revali_router/src/guard/guard_context_impl.dart';
 import 'package:revali_router/src/guard/guard_meta_impl.dart';
 import 'package:revali_router/src/interceptor/interceptor_context_impl.dart';
@@ -17,11 +19,14 @@ import 'package:revali_router/src/request/mutable_request_impl.dart';
 import 'package:revali_router/src/request/request_context_impl.dart';
 import 'package:revali_router/src/request/websocket_request_context_impl.dart';
 import 'package:revali_router/src/response/canned_response.dart';
+import 'package:revali_router/src/response/default_responses.dart';
 import 'package:revali_router/src/response/mutable_response_impl.dart';
+import 'package:revali_router/src/response/simple_response.dart';
 import 'package:revali_router/src/route/route.dart';
 import 'package:revali_router/src/route/route_match.dart';
 import 'package:revali_router/src/route/route_modifiers_impl.dart';
 import 'package:revali_router_core/revali_router_core.dart';
+import 'package:stack_trace/stack_trace.dart';
 
 part 'router.g.dart';
 
@@ -32,6 +37,7 @@ class Router extends Equatable {
     Set<Reflect> reflects = const {},
     this.observers = const [],
     this.debug = false,
+    this.defaultResponses = const DefaultResponses(),
   })  : _reflects = reflects,
         _globalModifiers = globalModifiers;
 
@@ -40,6 +46,7 @@ class Router extends Equatable {
   final Set<Reflect> _reflects;
   final RouteModifiers? _globalModifiers;
   final bool debug;
+  final DefaultResponses defaultResponses;
 
   /// Handles an HTTP request.
   ///
@@ -49,27 +56,63 @@ class Router extends Equatable {
     return handle(context);
   }
 
-  Object? bodyForError(
-    Object? body, {
+  ReadOnlyResponse _debugResponse(
+    ReadOnlyResponse response, {
     required Object error,
     required StackTrace stackTrace,
   }) {
     if (!debug) {
-      return body;
+      return response;
     }
 
-    return switch (body) {
-      Map() => {
-          ...body,
-          'error': error.toString(),
-          'stackTrace': stackTrace.toString(),
-        },
-      String() => '''$body
+    ReadOnlyBody? bodyForError(
+      ReadOnlyBody? body, {
+      required Object error,
+      required StackTrace stackTrace,
+    }) {
+      if (!debug) {
+        return body;
+      }
+
+      final data = body?.data;
+      final stackString = Trace.format(stackTrace).trim().split('\n');
+
+      final newData = switch (data) {
+        Map() => {
+            ...data,
+            'error': error.toString(),
+            'stackTrace': stackString,
+          },
+        List() => [
+            ...data,
+            {
+              'error': error.toString(),
+              'stackTrace': stackString,
+            },
+          ],
+        String() => '''$body
+
 Error: $error
 
-$stackTrace''',
-      _ => body,
-    };
+Stack Trace:
+${stackString.join('\n')}''',
+        Null() => {
+            'error': error.toString(),
+            'stackTrace': stackString,
+          },
+        _ => body,
+      };
+
+      return BaseBodyData.from(newData);
+    }
+
+    return response.debugBody(
+      (body) => bodyForError(
+        body,
+        error: error,
+        stackTrace: stackTrace,
+      ),
+    );
   }
 
   Future<ReadOnlyResponse> handle(RequestContext context) async {
@@ -88,12 +131,10 @@ $stackTrace''',
 
       return result;
     } catch (e, stackTrace) {
-      final response = CannedResponse.internalServerError(
-        body: bodyForError(
-          'Internal Server Error',
-          error: e,
-          stackTrace: stackTrace,
-        ),
+      final response = _debugResponse(
+        defaultResponses.internalServerError,
+        error: e,
+        stackTrace: stackTrace,
       );
 
       responseCompleter.complete(response);
@@ -112,8 +153,13 @@ $stackTrace''',
     );
 
     if (match == null) {
-      return CannedResponse.notFound(
-        body: 'Failed to find ${request.method}: ${segments.join('/')}',
+      return _debugResponse(
+        defaultResponses.notFound,
+        error: RouteNotFoundException(
+          method: request.method,
+          path: segments.join('/'),
+        ),
+        stackTrace: StackTrace.current,
       );
     }
 
@@ -139,7 +185,11 @@ $stackTrace''',
       globalAllowedOrigins: globalModifiers.allowedOrigins?.origins,
       globalAllowedHeaders: globalModifiers.allowedHeaders?.headers,
     )) {
-      return CannedResponse.forbidden();
+      return _debugResponse(
+        defaultResponses.failedCors,
+        error: 'Failed CORS',
+        stackTrace: StackTrace.current,
+      );
     }
 
     request.pathParameters = pathParameters;
@@ -167,12 +217,10 @@ $stackTrace''',
       return result;
     } catch (e, stackTrace) {
       if (e is! Exception) {
-        return CannedResponse.internalServerError(
-          body: bodyForError(
-            'Internal Server Error',
-            error: e,
-            stackTrace: stackTrace,
-          ),
+        return _debugResponse(
+          defaultResponses.internalServerError,
+          error: e,
+          stackTrace: stackTrace,
         );
       }
 
@@ -205,26 +253,23 @@ $stackTrace''',
           final (statusCode, headers, body) =
               result.asHandled.getResponseOverrides();
 
-          return response
-            .._overrideWith(
-              statusCode: statusCode,
-              backupCode: 500,
-              headers: headers,
-              body: bodyForError(
-                body ?? response.body,
-                error: e,
-                stackTrace: stackTrace,
-              ),
-            );
+          return _debugResponse(
+            response
+              .._overrideWith(
+                  statusCode: statusCode,
+                  backupCode: 500,
+                  headers: headers,
+                  body: body),
+            error: e,
+            stackTrace: stackTrace,
+          );
         }
       }
 
-      return CannedResponse.internalServerError(
-        body: bodyForError(
-          'Internal Server Error',
-          error: e,
-          stackTrace: stackTrace,
-        ),
+      return _debugResponse(
+        defaultResponses.internalServerError,
+        error: e,
+        stackTrace: stackTrace,
       );
     }
   }
@@ -307,7 +352,14 @@ $stackTrace''',
   }) async {
     final handler = route.handler;
     if (handler == null) {
-      return CannedResponse.notFound();
+      return _debugResponse(
+        defaultResponses.notFound,
+        error: MissingHandlerException(
+          method: request.method,
+          path: request.segments.join('/'),
+        ),
+        stackTrace: StackTrace.current,
+      );
     }
 
     final middlewares = [
@@ -328,17 +380,17 @@ $stackTrace''',
         final (statusCode, headers, body) =
             result.asStop.getResponseOverrides();
 
-        return response
-          .._overrideWith(
-            statusCode: statusCode,
-            backupCode: 400,
-            headers: headers,
-            body: bodyForError(
-              body ?? response.body,
-              error: MiddlewareStopException(),
-              stackTrace: StackTrace.current,
+        return _debugResponse(
+          response
+            .._overrideWith(
+              statusCode: statusCode,
+              backupCode: 400,
+              headers: headers,
+              body: body,
             ),
-          );
+          error: MiddlewareStopException('${middleware.runtimeType}'),
+          stackTrace: StackTrace.current,
+        );
       }
     }
 
@@ -364,17 +416,16 @@ $stackTrace''',
       if (result.isNo) {
         final (statusCode, headers, body) = result.asNo.getResponseOverrides();
 
-        return response
-          .._overrideWith(
-            statusCode: statusCode,
-            backupCode: 403,
-            headers: headers,
-            body: bodyForError(
-              body ?? response.body,
-              error: GuardStopException(),
-              stackTrace: StackTrace.current,
-            ),
-          );
+        return _debugResponse(
+          response
+            .._overrideWith(
+                statusCode: statusCode,
+                backupCode: 403,
+                headers: headers,
+                body: body),
+          error: GuardStopException('${guard.runtimeType}'),
+          stackTrace: StackTrace.current,
+        );
       }
     }
 
@@ -430,8 +481,12 @@ $stackTrace''',
       try {
         webSocket = await request.upgradeToWebSocket();
         wsRequest = MutableWebSocketRequestImpl.fromRequest(request);
-      } catch (e) {
-        return CannedResponse.internalServerError();
+      } catch (e, stackTrace) {
+        return _debugResponse(
+          defaultResponses.internalServerError,
+          error: e,
+          stackTrace: stackTrace,
+        );
       }
 
       final sub = webSocket.listen((event) async {
@@ -601,5 +656,17 @@ extension _MutableResponseX on MutableResponse {
     if (headers != null) {
       this.headers.addAll(headers);
     }
+  }
+}
+
+extension _ReadOnlyResponseX on ReadOnlyResponse {
+  ReadOnlyResponse debugBody(
+    Object? Function(ReadOnlyBody? body) body,
+  ) {
+    return SimpleResponse(
+      statusCode,
+      headers: headers.map((key, value) => MapEntry(key, value.join(','))),
+      body: body(this.body),
+    );
   }
 }

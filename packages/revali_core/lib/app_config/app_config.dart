@@ -18,7 +18,11 @@ abstract base class AppConfig {
     this.prefix = _defaultPrefix,
   });
 
-  factory AppConfig.defaultApp() = _DefaultApp;
+  const AppConfig.defaultApp()
+      : this(
+          host: 'localhost',
+          port: 8080,
+        );
 
   static const String _defaultPrefix = 'api';
 
@@ -40,12 +44,4 @@ abstract base class AppConfig {
   }
 
   Future<void> configureDependencies(DI di) async {}
-}
-
-final class _DefaultApp extends AppConfig {
-  _DefaultApp()
-      : super(
-          host: 'localhost',
-          port: 8080,
-        );
 }

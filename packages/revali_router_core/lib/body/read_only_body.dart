@@ -6,4 +6,7 @@ abstract class ReadOnlyBody {
   Stream<List<int>>? read();
 
   bool get isNull;
+
+  @override
+  String toString() => '$data';
 }

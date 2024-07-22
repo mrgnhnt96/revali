@@ -187,7 +187,9 @@ class ConstructEntrypointHandler with DirectoriesMixin {
     );
 
     if (result.exitCode != 0) {
-      throw Exception('Failed to compile entrypoint');
+      throw Exception('''Failed to compile entrypoint
+Error:
+${result.stderr}''');
     }
 
     return kernel;

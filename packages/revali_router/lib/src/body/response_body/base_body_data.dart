@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:path/path.dart' as p;
 import 'package:mime/mime.dart';
+import 'package:path/path.dart' as p;
 import 'package:revali_router/src/headers/mutable_headers_impl.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
@@ -14,6 +14,7 @@ part 'json_body_data.dart';
 part 'json_data.dart';
 part 'list_body_data.dart';
 part 'memory_file_body_data.dart';
+part 'null_body_data.dart';
 part 'unknown_body_data.dart';
 
 sealed class BaseBodyData<T> extends BodyData {
@@ -33,6 +34,8 @@ sealed class BaseBodyData<T> extends BodyData {
       MemoryFile() => MemoryFileBodyData(data),
       Binary() => BinaryBodyData(data),
       List() => ListBodyData(data),
+      Null() => NullBodyData(),
+      ReadOnlyBody() => BaseBodyData.from(data.data),
       _ => throw UnsupportedError('Unsupported body data type: $data'),
     };
 

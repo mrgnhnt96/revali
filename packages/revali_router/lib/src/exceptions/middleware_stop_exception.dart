@@ -1,3 +1,8 @@
 class MiddlewareStopException implements Exception {
-  MiddlewareStopException();
+  const MiddlewareStopException(this.name);
+
+  final String name;
+
+  @override
+  String toString() => 'MiddlewareStopException: $name';
 }
