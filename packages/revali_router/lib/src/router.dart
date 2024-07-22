@@ -367,71 +367,33 @@ ${stackString.join('\n')}''',
       );
     }
 
-    final middlewares = [
-      ...globalModifiers.middlewares,
-      ...route.allMiddlewares,
-    ];
-    for (final middleware in middlewares) {
-      final result = await middleware.use(
-        MiddlewareContextImpl(
-          request: request,
-          response: response,
-          data: dataHandler,
-        ),
-        const MiddlewareAction(),
-      );
-
-      if (result.isStop) {
-        final (statusCode, headers, body) =
-            result.asStop.getResponseOverrides();
-
-        return _debugResponse(
-          response
-            .._overrideWith(
-              statusCode: statusCode,
-              backupCode: 400,
-              headers: headers,
-              body: body,
-            ),
-          error: MiddlewareStopException('${middleware.runtimeType}'),
-          stackTrace: StackTrace.current,
-        );
-      }
+    if (await runMiddlewares(
+      [
+        ...globalModifiers.middlewares,
+        ...route.allMiddlewares,
+      ],
+      request: request,
+      response: response,
+      dataHandler: dataHandler,
+    )
+        case final response?) {
+      return response;
     }
 
-    final guards = [
-      ...globalModifiers.guards,
-      ...route.allGuards,
-    ];
-    for (final guard in guards) {
-      final result = await guard.canActivate(
-        GuardContextImpl(
-          meta: GuardMetaImpl(
-            direct: directMeta,
-            inherited: inheritedMeta,
-            route: route,
-          ),
-          response: response,
-          request: request,
-          data: dataHandler,
-        ),
-        const GuardAction(),
-      );
-
-      if (result.isNo) {
-        final (statusCode, headers, body) = result.asNo.getResponseOverrides();
-
-        return _debugResponse(
-          response
-            .._overrideWith(
-                statusCode: statusCode,
-                backupCode: 403,
-                headers: headers,
-                body: body),
-          error: GuardStopException('${guard.runtimeType}'),
-          stackTrace: StackTrace.current,
-        );
-      }
+    if (await runGuards(
+      [
+        ...globalModifiers.guards,
+        ...route.allGuards,
+      ],
+      request: request,
+      response: response,
+      dataHandler: dataHandler,
+      directMeta: directMeta,
+      inheritedMeta: inheritedMeta,
+      route: route,
+    )
+        case final response?) {
+      return response;
     }
 
     Future<void> run() async {
@@ -481,36 +443,11 @@ ${stackString.join('\n')}''',
     }
 
     if (route.isWebSocket) {
-      WebSocket webSocket;
-      MutableWebSocketRequest wsRequest;
-      try {
-        webSocket = await request.upgradeToWebSocket();
-        wsRequest = MutableWebSocketRequestImpl.fromRequest(request);
-      } catch (e, stackTrace) {
-        return _debugResponse(
-          defaultResponses.internalServerError,
-          error: e,
-          stackTrace: stackTrace,
-        );
-      }
-
-      final sub = webSocket.listen((event) async {
-        response.body = null;
-        await wsRequest.overrideBody(event);
-
-        await run();
-
-        final body = response.body;
-        if (body.isNull) {
-          return;
-        }
-
-        webSocket.add(body.read());
-      });
-
-      await sub.asFuture();
-
-      return CannedResponse.webSocket();
+      return handleWebsocket(
+        request: request,
+        response: response,
+        run: run,
+      );
     }
 
     await run();
@@ -634,6 +571,122 @@ ${stackString.join('\n')}''',
       method: method,
       pathParameters: {},
     );
+  }
+
+  Future<ReadOnlyResponse> handleWebsocket({
+    required MutableRequest request,
+    required MutableResponse response,
+    required Future<void> Function() run,
+  }) async {
+    WebSocket webSocket;
+    MutableWebSocketRequest wsRequest;
+    try {
+      webSocket = await request.upgradeToWebSocket();
+      wsRequest = MutableWebSocketRequestImpl.fromRequest(request);
+    } catch (e, stackTrace) {
+      return _debugResponse(
+        defaultResponses.internalServerError,
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final sub = webSocket.listen((event) async {
+      response.body = null;
+      await wsRequest.overrideBody(event);
+
+      await run();
+
+      final body = response.body;
+      if (body.isNull) {
+        return;
+      }
+
+      webSocket.add(body.read());
+    });
+
+    await sub.asFuture();
+
+    return CannedResponse.webSocket();
+  }
+
+  Future<ReadOnlyResponse?> runGuards(
+    List<Guard> guards, {
+    required MutableRequest request,
+    required MutableResponse response,
+    required DataHandler dataHandler,
+    required MetaHandler directMeta,
+    required MetaHandler inheritedMeta,
+    required Route route,
+  }) async {
+    for (final guard in guards) {
+      final result = await guard.canActivate(
+        GuardContextImpl(
+          meta: GuardMetaImpl(
+            direct: directMeta,
+            inherited: inheritedMeta,
+            route: route,
+          ),
+          response: response,
+          request: request,
+          data: dataHandler,
+        ),
+        const GuardAction(),
+      );
+
+      if (result.isNo) {
+        final (statusCode, headers, body) = result.asNo.getResponseOverrides();
+
+        return _debugResponse(
+          response
+            .._overrideWith(
+                statusCode: statusCode,
+                backupCode: 403,
+                headers: headers,
+                body: body),
+          error: GuardStopException('${guard.runtimeType}'),
+          stackTrace: StackTrace.current,
+        );
+      }
+    }
+
+    return null;
+  }
+
+  Future<ReadOnlyResponse?> runMiddlewares(
+    List<Middleware> middlewares, {
+    required MutableRequest request,
+    required MutableResponse response,
+    required DataHandler dataHandler,
+  }) async {
+    for (final middleware in middlewares) {
+      final result = await middleware.use(
+        MiddlewareContextImpl(
+          request: request,
+          response: response,
+          data: dataHandler,
+        ),
+        const MiddlewareAction(),
+      );
+
+      if (result.isStop) {
+        final (statusCode, headers, body) =
+            result.asStop.getResponseOverrides();
+
+        return _debugResponse(
+          response
+            .._overrideWith(
+              statusCode: statusCode,
+              backupCode: 400,
+              headers: headers,
+              body: body,
+            ),
+          error: MiddlewareStopException('${middleware.runtimeType}'),
+          stackTrace: StackTrace.current,
+        );
+      }
+    }
+    return null;
   }
 
   @override
