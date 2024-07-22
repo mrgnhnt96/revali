@@ -41,7 +41,7 @@ class DefaultResponses {
 
     return SimpleResponse(
       403,
-      body: 'failedCors Failed',
+      body: 'CORS policy does not allow access from this origin.',
     );
   }
 }
