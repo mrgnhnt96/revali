@@ -10,7 +10,7 @@ extension RunCatchers on Router {
     required DataHandler dataHandler,
     required MetaHandler directMeta,
     required MetaHandler inheritedMeta,
-    required Route route,
+    required BaseRoute route,
   }) async {
     for (final catcher in catchers) {
       if (!catcher.canCatch(e)) {

@@ -3,7 +3,7 @@ part of 'router.dart';
 extension IsOriginAllowed on Router {
   ReadOnlyResponse? isOriginAllowed(
     MutableRequest request,
-    Route route, {
+    BaseRoute route, {
     required Set<String>? globalAllowedOrigins,
     required Set<String>? globalAllowedHeaders,
   }) {

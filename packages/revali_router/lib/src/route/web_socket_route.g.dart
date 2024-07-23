@@ -1,13 +1,14 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'route.dart';
+part of 'web_socket_route.dart';
 
 // **************************************************************************
 // AutoequalGenerator
 // **************************************************************************
 
-extension _$RouteAutoequal on Route {
+extension _$WebSocketRouteAutoequal on WebSocketRoute {
   List<Object?> get _$props => [
+        mode,
         handler,
         path,
         routes,

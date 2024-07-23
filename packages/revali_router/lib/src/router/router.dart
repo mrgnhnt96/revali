@@ -7,6 +7,7 @@ import 'package:revali_router/src/endpoint/endpoint_context_impl.dart';
 import 'package:revali_router/src/exception_catcher/exception_catcher_context_impl.dart';
 import 'package:revali_router/src/exception_catcher/exception_catcher_meta_impl.dart';
 import 'package:revali_router/src/exceptions/guard_stop_exception.dart';
+import 'package:revali_router/src/exceptions/invalid_handler_result_exception.dart';
 import 'package:revali_router/src/exceptions/middleware_stop_exception.dart';
 import 'package:revali_router/src/exceptions/missing_handler_exception.dart';
 import 'package:revali_router/src/exceptions/route_not_found_exception.dart';
@@ -22,23 +23,25 @@ import 'package:revali_router/src/response/canned_response.dart';
 import 'package:revali_router/src/response/default_responses.dart';
 import 'package:revali_router/src/response/mutable_response_impl.dart';
 import 'package:revali_router/src/response/simple_response.dart';
-import 'package:revali_router/src/route/route.dart';
+import 'package:revali_router/src/route/base_route.dart';
 import 'package:revali_router/src/route/route_match.dart';
 import 'package:revali_router/src/route/route_modifiers_impl.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 import 'package:stack_trace/stack_trace.dart';
 
+import '../route/web_socket_route.dart';
+
 part 'body_for_error.dart';
-part 'override_response.dart';
 part 'debug_response.dart';
 part 'execute.dart';
 part 'find.dart';
 part 'handle_web_socket.dart';
 part 'is_origin_allowed.dart';
+part 'override_response.dart';
+part 'router.g.dart';
 part 'run_catchers.dart';
 part 'run_guards.dart';
 part 'run_middlewares.dart';
-part 'router.g.dart';
 
 class Router extends Equatable {
   Router({
@@ -52,7 +55,7 @@ class Router extends Equatable {
         _globalModifiers = globalModifiers;
 
   final List<Observer> observers;
-  final List<Route> routes;
+  final List<BaseRoute> routes;
   final Set<Reflect> _reflects;
   final RouteModifiers? _globalModifiers;
   final bool debug;

@@ -8,7 +8,7 @@ extension RunGuards on Router {
     required DataHandler dataHandler,
     required MetaHandler directMeta,
     required MetaHandler inheritedMeta,
-    required Route route,
+    required BaseRoute route,
   }) async {
     for (final guard in guards) {
       final result = await guard.canActivate(

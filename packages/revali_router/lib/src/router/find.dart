@@ -3,13 +3,13 @@ part of 'router.dart';
 extension Find on Router {
   RouteMatch? find({
     required Iterable<String> segments,
-    required Iterable<Route>? routes,
+    required Iterable<BaseRoute>? routes,
     required String method,
   }) {
     RouteMatch? _find({
       required Iterable<String> pathSegments,
-      required Iterable<Route>? routes,
-      required Route? parent,
+      required Iterable<BaseRoute>? routes,
+      required BaseRoute? parent,
       required String method,
       required Map<String, String> pathParameters,
     }) {

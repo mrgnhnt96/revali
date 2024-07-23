@@ -1,14 +1,13 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'route.dart';
+part of 'base_route.dart';
 
 // **************************************************************************
 // AutoequalGenerator
 // **************************************************************************
 
-extension _$RouteAutoequal on Route {
+extension _$BaseRouteAutoequal on BaseRoute {
   List<Object?> get _$props => [
-        handler,
         path,
         routes,
         middlewares,
@@ -18,6 +17,7 @@ extension _$RouteAutoequal on Route {
         parent,
         handler,
         method,
+        _meta,
         redirect,
         allowedOrigins,
         allowedHeaders,

@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:revali_router/src/route/route.dart';
+import 'package:revali_router/src/route/base_route.dart';
 
 part 'route_match.g.dart';
 
@@ -9,7 +9,7 @@ class RouteMatch extends Equatable {
     required this.pathParameters,
   });
 
-  final Route route;
+  final BaseRoute route;
   final Map<String, String> pathParameters;
 
   @override

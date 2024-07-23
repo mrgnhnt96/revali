@@ -8,8 +8,11 @@ part of 'router.dart';
 
 extension _$RouterAutoequal on Router {
   List<Object?> get _$props => [
+        observers,
         routes,
         _reflects,
         _globalModifiers,
+        debug,
+        defaultResponses,
       ];
 }
