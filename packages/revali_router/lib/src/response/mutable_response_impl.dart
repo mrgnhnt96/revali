@@ -95,7 +95,6 @@ class MutableResponseImpl implements MutableResponse {
         removeContentRelated(headers);
         break;
       case HttpStatus.notFound:
-        removeContentRelated(headers);
         removeAccessControl(headers);
         break;
       default:
