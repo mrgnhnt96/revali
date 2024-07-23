@@ -11,6 +11,11 @@ extension HttpResponseX on HttpResponse {
     ReadOnlyResponse response, {
     String? requestMethod,
   }) async {
+    // WebSockets are a special case.
+    if (response.statusCode >= 1000) {
+      return;
+    }
+
     final http = this;
     statusCode = response.statusCode;
 
