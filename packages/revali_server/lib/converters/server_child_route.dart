@@ -21,8 +21,7 @@ class ServerChildRoute with ExtractImport implements ServerRoute {
     required this.annotations,
     required this.handlerName,
     required this.params,
-    required this.isWebSocket,
-    required this.ping,
+    required this.webSocket,
   });
 
   factory ServerChildRoute.fromMeta(MetaMethod method) {
@@ -71,8 +70,7 @@ class ServerChildRoute with ExtractImport implements ServerRoute {
       annotations: serverRoute.annotations,
       handlerName: serverRoute.handlerName,
       params: serverRoute.params,
-      isWebSocket: method.isWebSocket,
-      ping: method.ping,
+      webSocket: method.webSocketMethod,
     );
   }
 
@@ -81,8 +79,7 @@ class ServerChildRoute with ExtractImport implements ServerRoute {
   final ServerMimic? redirect;
   final String method;
   final String path;
-  final bool isWebSocket;
-  final Duration? ping;
+  final MetaWebSocketMethod? webSocket;
 
   @override
   final ServerRouteAnnotations annotations;
@@ -108,4 +105,6 @@ class ServerChildRoute with ExtractImport implements ServerRoute {
 
   @override
   List<ServerImports?> get imports => const [];
+
+  bool get isWebSocket => webSocket != null;
 }

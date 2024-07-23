@@ -1,4 +1,5 @@
 import 'package:code_builder/code_builder.dart';
+import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_server/revali_server.dart';
 
 Map<String, Expression> createRouteArgs({
@@ -7,6 +8,7 @@ Map<String, Expression> createRouteArgs({
   String? classVarName,
   String? method,
   int? statusCode,
+  MetaWebSocketMethod? webSocket,
   List<Code> additionalHandlerCode = const [],
 }) {
   var handler = literalNull;

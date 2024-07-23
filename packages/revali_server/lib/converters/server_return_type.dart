@@ -7,6 +7,7 @@ class ServerReturnType {
   const ServerReturnType({
     required this.isVoid,
     required this.isFuture,
+    required this.isStream,
     required this.type,
     required this.isNullable,
     required this.isPrimitive,
@@ -33,6 +34,7 @@ class ServerReturnType {
     return ServerReturnType(
       isVoid: type.isVoid,
       isFuture: type.isFuture,
+      isStream: type.isStream,
       type: type.type,
       isNullable: type.isNullable,
       isPrimitive: type.isPrimitive,
@@ -44,6 +46,7 @@ class ServerReturnType {
 
   final bool isVoid;
   final bool isFuture;
+  final bool isStream;
   final String type;
   final bool isNullable;
   final bool isPrimitive;

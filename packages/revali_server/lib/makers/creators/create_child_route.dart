@@ -1,4 +1,5 @@
 import 'package:code_builder/code_builder.dart';
+import 'package:revali_router/revali_router.dart';
 import 'package:revali_server/revali_server.dart';
 
 Spec createChildRoute(ServerChildRoute route, ServerParentRoute parent) {
@@ -34,11 +35,14 @@ Spec createChildRoute(ServerChildRoute route, ServerParentRoute parent) {
       classVarName: parent.classVarName,
       method: route.isWebSocket ? null : route.method,
       statusCode: route.httpCode?.code,
+      webSocket: route.webSocket,
       additionalHandlerCode: [
         if (response != null) response.statement,
       ],
     ),
-    if (route.ping case final ping? when route.isWebSocket)
+    if (route.webSocket?.mode case final mode?)
+      'mode': refer((WebSocketMode).name).property(mode.name),
+    if (route.webSocket?.ping case final ping?)
       'ping': refer('Duration').newInstance(
         [],
         {'microseconds': literalNum(ping.inMicroseconds)},
@@ -48,8 +52,8 @@ Spec createChildRoute(ServerChildRoute route, ServerParentRoute parent) {
   };
 
   if (route.isWebSocket) {
-    return refer('Route').newInstanceNamed('webSocket', positioned, named);
+    return refer((WebSocketRoute).name).newInstance(positioned, named);
   } else {
-    return refer('Route').newInstance(positioned, named);
+    return refer((Route).name).newInstance(positioned, named);
   }
 }
