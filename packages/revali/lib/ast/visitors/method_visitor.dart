@@ -67,8 +67,9 @@ class MethodVisitor extends RecursiveElementVisitor<void> {
           isFuture: isFuture,
           isStream: isStream,
         ),
-        isWebSocket: method.isWebSocket,
-        ping: method.ping,
+        webSocketMethod: method.isWebSocket
+            ? MetaWebSocketMethod.fromMeta(method.asWebSocket)
+            : null,
         annotationsMapper: ({
           required List<OnMatch> onMatch,
           NonMatch? onNonMatch,

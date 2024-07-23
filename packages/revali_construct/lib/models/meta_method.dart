@@ -1,5 +1,6 @@
 import 'dart:core';
 
+import 'package:revali_construct/models/meta_web_socket_method.dart';
 import 'package:revali_construct/types/annotation_getter.dart';
 
 import 'meta_param.dart';
@@ -13,8 +14,7 @@ class MetaMethod {
     required this.params,
     required this.returnType,
     required this.annotationsMapper,
-    required this.isWebSocket,
-    required this.ping,
+    required this.webSocketMethod,
   });
 
   final String name;
@@ -23,6 +23,7 @@ class MetaMethod {
   final Iterable<MetaParam> params;
   final MetaReturnType returnType;
   final AnnotationMapper annotationsMapper;
-  final bool isWebSocket;
-  final Duration? ping;
+  final MetaWebSocketMethod? webSocketMethod;
+
+  bool get isWebSocket => webSocketMethod != null;
 }
