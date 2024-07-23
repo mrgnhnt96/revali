@@ -18,7 +18,11 @@ void handleRequests(
 
           final response = await handler(context);
 
-          request.response.send(response, requestMethod: context.method);
+          await request.response
+              .send(response, requestMethod: context.method)
+              .catchError((e) {
+            print('Failed to send response: $e');
+          });
         } catch (e) {
           print('Failed to handle request: $e');
           request.response.send(
