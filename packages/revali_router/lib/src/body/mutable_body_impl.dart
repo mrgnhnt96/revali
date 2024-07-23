@@ -3,9 +3,14 @@ import 'package:revali_router/src/headers/mutable_headers_impl.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
 class MutableBodyImpl extends MutableBody {
-  MutableBodyImpl([this._data]);
+  MutableBodyImpl([this.__data]);
 
-  BodyData? _data;
+  BodyData? __data;
+  BodyData? get _data => __data;
+  set _data(BodyData? value) {
+    __data = value;
+    _bytes = null;
+  }
 
   @override
   dynamic get data => _data?.data;
@@ -16,7 +21,7 @@ class MutableBodyImpl extends MutableBody {
   @override
   void operator []=(String key, Object? data) {
     var newData = _data;
-    if (newData == null) {
+    if (newData == null || newData.isNull) {
       newData = JsonBodyData({});
     }
 
@@ -61,6 +66,7 @@ class MutableBodyImpl extends MutableBody {
     final bytes = this._bytes;
     if (bytes != null) {
       yield* Stream.fromIterable(bytes);
+      return;
     }
 
     _bytes = await _data?.read()?.toList();

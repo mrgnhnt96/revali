@@ -1,10 +1,11 @@
+import 'dart:async';
+
 import 'package:revali_annotations/revali_annotations.dart';
+import 'package:revali_router/src/handler/web_socket_handler.dart';
 import 'package:revali_router/src/route/base_route.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
 part 'web_socket_route.g.dart';
-
-typedef WebSocketHandler = Stream<void> Function(EndpointContext);
 
 // ignore: must_be_immutable
 class WebSocketRoute extends BaseRoute {
@@ -30,7 +31,7 @@ class WebSocketRoute extends BaseRoute {
   final WebSocketMode mode;
 
   @override
-  final Stream<void> Function(EndpointContext) handler;
+  final FutureOr<WebSocketHandler> Function(EndpointContext) handler;
 
   @override
   List<Object?> get props => _$props;

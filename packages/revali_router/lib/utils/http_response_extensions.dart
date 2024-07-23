@@ -11,7 +11,7 @@ extension HttpResponseX on HttpResponse {
     ReadOnlyResponse response, {
     String? requestMethod,
   }) async {
-    // WebSockets are a special case.
+    // WebSockets are already responded to, and cannot be responded to again.
     if (response.statusCode >= 1000) {
       return;
     }

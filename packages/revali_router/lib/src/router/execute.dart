@@ -2,7 +2,7 @@ part of 'router.dart';
 
 extension Execute on Router {
   Future<ReadOnlyResponse> execute({
-    required Route route,
+    required BaseRoute route,
     required RouteModifiers globalModifiers,
     required MutableRequest request,
     required MutableResponse response,
@@ -52,11 +52,11 @@ extension Execute on Router {
       return response;
     }
 
-    Future<void> run() async {
-      final interceptors = [
-        ...globalModifiers.interceptors,
-        ...route.allInterceptors,
-      ];
+    final interceptors = [
+      ...globalModifiers.interceptors,
+      ...route.allInterceptors,
+    ];
+    Future<void> pre() async {
       for (final interceptor in interceptors) {
         await interceptor.pre(
           InterceptorContextImpl(
@@ -71,17 +71,9 @@ extension Execute on Router {
           ),
         );
       }
+    }
 
-      await handler.call(
-        EndpointContextImpl(
-          meta: directMeta,
-          reflect: reflectHandler,
-          request: request,
-          data: dataHandler,
-          response: response,
-        ),
-      );
-
+    Future<void> post() async {
       for (final interceptor in interceptors) {
         await interceptor.post(
           InterceptorContextImpl(
@@ -98,15 +90,47 @@ extension Execute on Router {
       }
     }
 
-    if (route.isWebSocket) {
+    final result = handler.call(
+      EndpointContextImpl(
+        meta: directMeta,
+        reflect: reflectHandler,
+        request: request,
+        data: dataHandler,
+        response: response,
+      ),
+    );
+
+    if (route is WebSocketRoute) {
+      if (result is! FutureOr<WebSocketHandler>) {
+        throw InvalidHandlerResultException('${result.runtimeType}', [
+          '$WebSocketHandler',
+          'Future<$WebSocketHandler>',
+        ]);
+      }
+
       return handleWebsocket(
         request: request,
         response: response,
-        run: run,
+        handler: await result,
+        mode: route.mode,
+        pre: pre,
+        post: post,
       );
     }
 
-    await run();
+    if (result is! Future<void>) {
+      throw InvalidHandlerResultException(
+        '${result.runtimeType}',
+        ['Future<void>'],
+      );
+    }
+
+    await pre();
+
+    await result;
+
+    await post();
+
     return response;
   }
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:equatable/equatable.dart';
+import 'package:revali_annotations/revali_annotations.dart' hide WebSocket;
 import 'package:revali_router/src/body/response_body/base_body_data.dart';
 import 'package:revali_router/src/endpoint/endpoint_context_impl.dart';
 import 'package:revali_router/src/exception_catcher/exception_catcher_context_impl.dart';
@@ -13,6 +14,7 @@ import 'package:revali_router/src/exceptions/missing_handler_exception.dart';
 import 'package:revali_router/src/exceptions/route_not_found_exception.dart';
 import 'package:revali_router/src/guard/guard_context_impl.dart';
 import 'package:revali_router/src/guard/guard_meta_impl.dart';
+import 'package:revali_router/src/handler/web_socket_handler.dart';
 import 'package:revali_router/src/interceptor/interceptor_context_impl.dart';
 import 'package:revali_router/src/interceptor/interceptor_meta_impl.dart';
 import 'package:revali_router/src/middleware/middleware_context_impl.dart';
@@ -26,10 +28,9 @@ import 'package:revali_router/src/response/simple_response.dart';
 import 'package:revali_router/src/route/base_route.dart';
 import 'package:revali_router/src/route/route_match.dart';
 import 'package:revali_router/src/route/route_modifiers_impl.dart';
+import 'package:revali_router/src/route/web_socket_route.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 import 'package:stack_trace/stack_trace.dart';
-
-import '../route/web_socket_route.dart';
 
 part 'body_for_error.dart';
 part 'debug_response.dart';
