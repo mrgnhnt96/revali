@@ -65,8 +65,28 @@ extension HandleWebSocket on Router {
         : webSocket.listen(
             (event) async {
               response.body = null;
-              print('event: $event');
-              await wsRequest.overrideBody(event);
+              final raw = switch (event) {
+                String() => event,
+                List<int>() => utf8.decode(event),
+                List() => utf8.decode(event.cast()),
+                _ => event.toString(),
+              };
+
+              final attempts = [
+                () => JsonBodyData(json.decode(raw)),
+                () => StringBodyData(raw),
+                () => BinaryBodyData(event),
+              ];
+
+              dynamic payload;
+              for (final attempt in attempts) {
+                try {
+                  payload = attempt();
+                  break;
+                } catch (_) {}
+              }
+
+              await wsRequest.overrideBody(payload);
 
               await pre();
 
