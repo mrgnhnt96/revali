@@ -12,7 +12,7 @@ Expression createWebSocketHandler(
   required ServerReturnType returnType,
   required String classVarName,
 }) {
-  final onMessage = <Code>[];
+  final trigger = <Code>[];
 
   final bodyAssignment = refer('context')
       .property('response')
@@ -36,7 +36,7 @@ Expression createWebSocketHandler(
       ).closure,
     ]).statement;
 
-    onMessage.addAll([
+    trigger.addAll([
       Code('yield*'),
       stream,
     ]);
@@ -48,7 +48,7 @@ Expression createWebSocketHandler(
       invoke = invoke.awaited;
     }
 
-    onMessage.add(invoke.statement);
+    trigger.add(invoke.statement);
   } else if (returnType.isFuture) {
     final futureResult = declareFinal('result')
         .assign(
@@ -59,7 +59,7 @@ Expression createWebSocketHandler(
         )
         .statement;
 
-    onMessage.addAll([
+    trigger.addAll([
       futureResult,
       bodyAssignment,
       Code('yield null;'),
@@ -73,12 +73,17 @@ Expression createWebSocketHandler(
         )
         .statement;
 
-    onMessage.addAll([
+    trigger.addAll([
       result,
       bodyAssignment,
       Code('yield null;'),
     ]);
   }
+  final handler = Method(
+    (p) => p
+      ..modifier = MethodModifier.asyncStar
+      ..body = Block.of(trigger),
+  ).closure;
 
   return Method(
     (p) => p
@@ -89,11 +94,9 @@ Expression createWebSocketHandler(
             .newInstance(
               [],
               {
-                'onMessage': Method(
-                  (p) => p
-                    ..modifier = MethodModifier.asyncStar
-                    ..body = Block.of(onMessage),
-                ).closure,
+                if (webSocket.triggerOnConnect || !webSocket.mode.canReceive)
+                  'onConnect': handler,
+                if (webSocket.mode.canReceive) 'onMessage': handler,
               },
             )
             .returned

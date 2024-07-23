@@ -9,6 +9,7 @@ class WebSocketAnnotation extends MethodAnnotation {
     required this.mode,
     required super.path,
     required this.ping,
+    required this.triggerOnConnect,
   });
 
   factory WebSocketAnnotation.fromAnnotation(
@@ -36,17 +37,30 @@ class WebSocketAnnotation extends MethodAnnotation {
       }
     }
 
+    final triggerOnConnect =
+        getFieldObjectFromDartObject(annotation, 'triggerOnConnect')
+                ?.toBoolValue() ??
+            false;
+
     return WebSocketAnnotation(
       name,
       mode: mode,
       ping: ping,
       path: path,
+      triggerOnConnect: triggerOnConnect,
     );
   }
 
   final Duration? ping;
   final WebSocketMode mode;
+  final bool triggerOnConnect;
 
   @override
-  List<Object?> get props => [name, path, mode, ping];
+  List<Object?> get props => [
+        name,
+        path,
+        mode,
+        ping,
+        triggerOnConnect,
+      ];
 }

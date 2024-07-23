@@ -8,4 +8,6 @@ enum WebSocketMode {
   bool get isTwoWay => this == WebSocketMode.twoWay;
 
   bool get canOverrideRequestBody => isTwoWay || isSendOnly;
+  bool get canReceive => isTwoWay || isReceiveOnly;
+  bool get canSend => isTwoWay || isSendOnly;
 }
