@@ -7,7 +7,7 @@ import 'package:dio/dio.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 void main() async {
-  // _websocket();
+  _websocket();
   // _json();
   // _list();
   // _multiPartForm();
@@ -15,18 +15,23 @@ void main() async {
   // _text();
   // _stream();
   // _file();
-  _getFavicon();
+  // _getFavicon();
 }
 
 Future<void> _websocket() async {
   try {
     // Connect to the remote WebSocket endpoint.
-    final uri = Uri.parse('ws://localhost:8080/api/user/create?name=John');
+    final uri = Uri.parse('ws://localhost:1234/api/subscriptions/socket');
     final channel = WebSocketChannel.connect(uri);
 
     // Subscribe to messages from the server.
     channel.stream.listen((message) {
-      final decoded = jsonDecode(utf8.decode(message));
+      if (message is String) {
+        print('SERVER: $message');
+        return;
+      }
+
+      final decoded = utf8.decode(message);
       print('SERVER: $decoded');
     }, onError: (e) {
       print(e);
