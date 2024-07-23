@@ -1,6 +1,9 @@
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_construct/revali_construct.dart';
-import 'package:revali_server/revali_server.dart';
+import 'package:revali_server/converters/server_return_type.dart';
+import 'package:revali_server/converters/server_route.dart';
+import 'package:revali_server/makers/creators/create_handler.dart';
+import 'package:revali_server/makers/creators/create_modifier_args.dart';
 
 Map<String, Expression> createRouteArgs({
   required ServerRoute route,
@@ -11,66 +14,16 @@ Map<String, Expression> createRouteArgs({
   MetaWebSocketMethod? webSocket,
   List<Code> additionalHandlerCode = const [],
 }) {
-  var handler = literalNull;
-
-  if (returnType != null && classVarName != null) {
-    final (:positioned, :named) = getParams(route.params);
-    handler =
-        refer(classVarName).property(route.handlerName).call(positioned, named);
-
-    if (returnType.isFuture) {
-      handler = handler.awaited;
-    }
-
-    if (!returnType.isVoid) {
-      handler = declareFinal('result').assign(handler);
-    }
-  }
-
-  Expression? setBody;
-  if (returnType != null && !returnType.isVoid) {
-    Expression result = refer('result');
-    if (returnType.hasToJsonMember) {
-      result = result.property('toJson').call([]);
-    }
-
-    setBody = refer('context').property('response').property('body');
-
-    if (returnType.isPrimitive || returnType.hasToJsonMember) {
-      setBody = setBody.index(literalString('data')).assign(result);
-    } else if (returnType.isStringContent) {
-      result = result.property('value');
-      setBody = setBody.assign(result);
-    } else {
-      setBody = setBody.assign(result);
-    }
-  }
-
   return {
     ...createModifierArgs(annotations: route.annotations),
     if (method != null) 'method': literalString(method),
-    if ('$handler' != '$literalNull')
-      'handler': Method(
-        (p) => p
-          ..requiredParameters.add(Parameter((b) => b..name = 'context'))
-          ..modifier = MethodModifier.async
-          ..body = Block.of([
-            if (route.params.any((e) => e.annotations.body != null))
-              refer('context')
-                  .property('request')
-                  .property('resolvePayload')
-                  .call([])
-                  .awaited
-                  .statement,
-            Code('\n'),
-            ...additionalHandlerCode,
-            Code('\n'),
-            handler.statement,
-            if (setBody != null) ...[
-              Code('\n'),
-              setBody.statement,
-            ],
-          ]),
-      ).closure,
+    if (createHandler(
+      route: route,
+      returnType: returnType,
+      classVarName: classVarName,
+      webSocket: webSocket,
+    )
+        case final handler?)
+      'handler': handler,
   };
 }
