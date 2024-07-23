@@ -15,6 +15,7 @@ part 'json_data.dart';
 part 'list_body_data.dart';
 part 'memory_file_body_data.dart';
 part 'null_body_data.dart';
+part 'string_body_data.dart';
 part 'unknown_body_data.dart';
 
 sealed class BaseBodyData<T> extends BodyData {
