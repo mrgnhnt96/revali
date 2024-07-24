@@ -113,6 +113,7 @@ extension Execute on Router {
         response: response,
         handler: await result,
         mode: route.mode,
+        ping: route.ping,
         pre: pre,
         post: post,
       );

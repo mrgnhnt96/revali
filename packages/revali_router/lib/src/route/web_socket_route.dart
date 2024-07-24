@@ -23,12 +23,14 @@ class WebSocketRoute extends BaseRoute {
     super.middlewares,
     super.redirect,
     super.routes,
+    this.ping,
   }) : super(
           method: 'GET',
           handler: handler,
         );
 
   final WebSocketMode mode;
+  final Duration? ping;
 
   @override
   final FutureOr<WebSocketHandler> Function(EndpointContext) handler;
