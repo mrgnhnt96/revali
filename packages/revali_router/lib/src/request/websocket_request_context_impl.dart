@@ -1,5 +1,4 @@
 import 'package:revali_router/src/body/mutable_body_impl.dart';
-import 'package:revali_router/src/payload/payload_impl.dart';
 import 'package:revali_router/src/request/mutable_request_impl.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 

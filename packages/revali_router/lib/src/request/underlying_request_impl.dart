@@ -18,7 +18,10 @@ class UnderlyingRequestImpl implements UnderlyingRequest {
     final headers = MutableHeadersImpl.from(request.headers);
 
     return UnderlyingRequestImpl(
-      body: PayloadImpl(request),
+      body: PayloadImpl(
+        request,
+        encoding: headers.encoding,
+      ),
       headers: headers,
       uri: request.uri,
       method: request.method,

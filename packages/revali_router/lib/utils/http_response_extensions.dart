@@ -72,7 +72,10 @@ extension HttpResponseX on HttpResponse {
       }
 
       if (chunk && _body != null) {
-        final payload = PayloadImpl(response.body?.read());
+        final payload = PayloadImpl(
+          response.body?.read(),
+          encoding: _headers.encoding,
+        );
         _body = chunkedCoding.decoder.bind(payload.read());
 
         http.headers.contentLength = payload.contentLength ?? 0;

@@ -19,6 +19,7 @@ import 'package:revali_router/src/handler/web_socket_handler.dart';
 import 'package:revali_router/src/interceptor/interceptor_context_impl.dart';
 import 'package:revali_router/src/interceptor/interceptor_meta_impl.dart';
 import 'package:revali_router/src/middleware/middleware_context_impl.dart';
+import 'package:revali_router/src/payload/payload_impl.dart';
 import 'package:revali_router/src/request/mutable_request_impl.dart';
 import 'package:revali_router/src/request/request_context_impl.dart';
 import 'package:revali_router/src/request/websocket_request_context_impl.dart';
