@@ -152,7 +152,11 @@ class Router extends Equatable {
     }
 
     // ignore: argument_type_not_assignable_to_error_handler
-    return _handle(helper).catchError(helper.run.catchers.call);
+    final response = await _handle(helper).catchError(helper.run.catchers.call);
+
+    responseCompleter.complete(response);
+
+    return response;
   }
 
   Future<ReadOnlyResponse> _handle(HelperMixin helper) async {
