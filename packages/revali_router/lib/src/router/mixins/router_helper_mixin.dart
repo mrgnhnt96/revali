@@ -58,15 +58,22 @@ mixin RouterHelperMixin {
   Execute get execute => Execute(this);
 
   Future<WebSocketResponse> handleWebSocket(
-    Future<WebSocketHandler> handler,
+    dynamic handler,
   ) async {
     final route = this.route;
     if (route is! WebSocketRoute) {
       throw StateError('Route is not a WebSocketRoute');
     }
 
+    if (handler is! WebSocketHandler) {
+      throw InvalidHandlerResultException('${handler.runtimeType}', [
+        '$WebSocketHandler',
+        'Future<$WebSocketHandler>',
+      ]);
+    }
+
     return _HandleWebSocket(
-      handler: await handler,
+      handler: handler,
       mode: route.mode,
       ping: route.ping,
       helper: this,
