@@ -17,33 +17,34 @@ mixin RouterHelperMixin {
   ReflectHandler get reflectHandler;
   DebugErrorResponse get debugErrorResponse;
   DefaultResponses get defaultResponses;
-
   bool get debugResponses;
+
+  ContextHelperMixin get context;
 
   List<Middleware> get middlewares {
     return [
       ...globalModifiers.middlewares,
-      ...route.middlewares,
+      ...route.allMiddlewares,
     ];
   }
 
   List<Interceptor> get interceptors {
     return [
       ...globalModifiers.interceptors,
-      ...route.interceptors,
+      ...route.allInterceptors,
     ];
   }
 
   List<Guard> get guards {
     return [
       ...globalModifiers.guards,
-      ...route.guards,
+      ...route.allGuards,
     ];
   }
 
   List<ExceptionCatcher> get catchers {
     return [
-      ...route.catchers,
+      ...route.allCatchers,
       ...globalModifiers.catchers,
     ];
   }
@@ -55,37 +56,13 @@ mixin RouterHelperMixin {
   RunOptions get runOptions => RunOptions(this);
   RunRedirect get runRedirect => RunRedirect(this);
   RunOriginCheck get runOriginCheck => RunOriginCheck(this);
-  Execute get execute => Execute(this);
+  Execute get execute => Execute(this, context);
 
-  Future<WebSocketResponse> handleWebSocket(
-    dynamic handler,
-  ) async {
-    final route = this.route;
-    if (route is! WebSocketRoute) {
-      throw StateError('Route is not a WebSocketRoute');
-    }
-
-    if (handler is! WebSocketHandler) {
-      throw InvalidHandlerResultException('${handler.runtimeType}', [
-        '$WebSocketHandler',
-        'Future<$WebSocketHandler>',
-      ]);
-    }
-
-    return _HandleWebSocket(
-      handler: handler,
-      mode: route.mode,
-      ping: route.ping,
-      helper: this,
-    ).handle();
-  }
-
-  EndpointContext get endpointContext => EndpointContextImpl(
-        meta: directMeta,
-        reflect: reflectHandler,
-        request: request,
-        data: dataHandler,
-        response: response,
+  HandleWebSocket handleWebSocket(dynamic handler) => HandleWebSocket(
+        handler: handler,
+        mode: (route as WebSocketRoute).mode,
+        ping: (route as WebSocketRoute).ping,
+        helper: this,
       );
 
   Set<String> get allowedOrigins => {

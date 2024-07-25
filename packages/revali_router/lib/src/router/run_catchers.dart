@@ -18,15 +18,11 @@ class RunCatchers {
     ReadOnlyResponse? defaultResponse,
   }) async {
     final RouterHelperMixin(
-      :request,
       :catchers,
       :response,
-      :dataHandler,
-      :directMeta,
-      :inheritedMeta,
-      :route,
       :debugErrorResponse,
       :defaultResponses,
+      context: ContextHelperMixin(exceptionCatcher: context),
     ) = helper;
 
     defaultResponse ??= defaultResponses.internalServerError;
@@ -46,16 +42,7 @@ class RunCatchers {
 
       final result = catcher.catchException(
         e,
-        ExceptionCatcherContextImpl(
-          data: dataHandler,
-          meta: ExceptionCatcherMetaImpl(
-            direct: directMeta,
-            inherited: inheritedMeta,
-            route: route,
-          ),
-          request: request,
-          response: response,
-        ),
+        context,
         const ExceptionCatcherAction(),
       );
 

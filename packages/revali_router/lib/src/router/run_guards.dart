@@ -9,30 +9,14 @@ class RunGuards {
 
   Future<ReadOnlyResponse?> run() async {
     final RouterHelperMixin(
-      :request,
       :guards,
       :response,
-      :dataHandler,
-      :directMeta,
-      :inheritedMeta,
-      :route,
+      context: ContextHelperMixin(guard: context),
       :debugErrorResponse,
     ) = helper;
 
     for (final guard in guards) {
-      final result = await guard.canActivate(
-        GuardContextImpl(
-          meta: GuardMetaImpl(
-            direct: directMeta,
-            inherited: inheritedMeta,
-            route: route,
-          ),
-          response: response,
-          request: request,
-          data: dataHandler,
-        ),
-        const GuardAction(),
-      );
+      final result = await guard.canActivate(context, const GuardAction());
 
       if (result.isNo) {
         final (statusCode, headers, body) = result.asNo.getResponseOverrides();

@@ -1,14 +1,24 @@
 part of 'router.dart';
 
-class _HandleWebSocket {
-  _HandleWebSocket({
-    required this.handler,
+class HandleWebSocket {
+  HandleWebSocket({
+    required dynamic handler,
     required this.mode,
     required this.ping,
     required this.helper,
-  });
+  }) {
+    if (handler is! WebSocketHandler) {
+      throw InvalidHandlerResultException('${handler.runtimeType}', [
+        '$WebSocketHandler',
+        'Future<$WebSocketHandler>',
+      ]);
+    }
 
-  final WebSocketHandler handler;
+    // ignore: prefer_initializing_formals
+    this.handler = handler;
+  }
+
+  late final WebSocketHandler handler;
   final WebSocketMode mode;
   final Duration? ping;
   final RouterHelperMixin helper;
@@ -37,7 +47,7 @@ class _HandleWebSocket {
     return webSocket;
   }
 
-  Future<WebSocketResponse> handle() async {
+  Future<WebSocketResponse> execute() async {
     if (await upgradeRequest() case final response?) {
       return response.toWebSocketResponse();
     }

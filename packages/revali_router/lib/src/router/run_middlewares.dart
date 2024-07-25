@@ -9,22 +9,14 @@ class RunMiddlewares {
 
   Future<ReadOnlyResponse?> run() async {
     final RouterHelperMixin(
-      :request,
       :middlewares,
       :response,
-      :dataHandler,
       :debugErrorResponse,
+      context: ContextHelperMixin(middleware: context),
     ) = helper;
 
     for (final middleware in middlewares) {
-      final result = await middleware.use(
-        MiddlewareContextImpl(
-          request: request,
-          response: response,
-          data: dataHandler,
-        ),
-        const MiddlewareAction(),
-      );
+      final result = await middleware.use(context, const MiddlewareAction());
 
       if (result.isStop) {
         final (statusCode, headers, body) =

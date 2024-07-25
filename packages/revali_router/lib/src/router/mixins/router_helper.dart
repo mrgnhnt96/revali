@@ -1,6 +1,6 @@
 part of '../router.dart';
 
-class RouterHelper with RouterHelperMixin {
+class RouterHelper with RouterHelperMixin, ContextHelperMixin {
   RouterHelper({
     required this.globalModifiers,
     required this.reflectHandler,
@@ -49,4 +49,7 @@ class RouterHelper with RouterHelperMixin {
 
   @override
   final DefaultResponses defaultResponses;
+
+  @override
+  ContextHelperMixin get context => this;
 }

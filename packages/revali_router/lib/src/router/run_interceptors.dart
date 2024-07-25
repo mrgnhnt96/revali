@@ -7,55 +7,23 @@ class RunInterceptors {
 
   Future<void> pre() async {
     final RouterHelperMixin(
-      :request,
       :interceptors,
-      :response,
-      :dataHandler,
-      :directMeta,
-      :inheritedMeta,
-      :reflectHandler,
+      context: ContextHelperMixin(interceptor: context),
     ) = helper;
 
     for (final interceptor in interceptors) {
-      await interceptor.pre(
-        InterceptorContextImpl(
-          meta: InterceptorMetaImpl(
-            direct: directMeta,
-            inherited: inheritedMeta,
-          ),
-          reflect: reflectHandler,
-          request: request,
-          response: response,
-          data: dataHandler,
-        ),
-      );
+      await interceptor.pre(context);
     }
   }
 
   Future<void> post() async {
     final RouterHelperMixin(
-      :request,
       :interceptors,
-      :response,
-      :dataHandler,
-      :directMeta,
-      :inheritedMeta,
-      :reflectHandler,
+      context: ContextHelperMixin(interceptor: context),
     ) = helper;
 
     for (final interceptor in interceptors) {
-      await interceptor.post(
-        InterceptorContextImpl(
-          meta: InterceptorMetaImpl(
-            direct: directMeta,
-            inherited: inheritedMeta,
-          ),
-          reflect: reflectHandler,
-          request: request,
-          response: response,
-          data: dataHandler,
-        ),
-      );
+      await interceptor.post(context);
     }
   }
 }

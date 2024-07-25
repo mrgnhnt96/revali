@@ -37,10 +37,11 @@ import 'package:revali_router/src/web_socket/web_socket_handler.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 import 'package:stack_trace/stack_trace.dart';
 
-part '__handle_web_socket.dart';
 part 'body_for_error.dart';
 part 'execute.dart';
 part 'find.dart';
+part 'handle_web_socket.dart';
+part 'mixins/context_helper_mixin.dart';
 part 'mixins/router_helper.dart';
 part 'mixins/router_helper_mixin.dart';
 part 'override_response.dart';
