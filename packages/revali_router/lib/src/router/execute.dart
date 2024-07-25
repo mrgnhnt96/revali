@@ -108,7 +108,7 @@ extension Execute on Router {
         ]);
       }
 
-      return handleWebsocket(
+      return await _HandleWebSocket(
         request: request,
         response: response,
         handler: await result,
@@ -116,7 +116,25 @@ extension Execute on Router {
         ping: route.ping,
         pre: pre,
         post: post,
-      );
+        debugResponse: _debugResponse,
+        debugResponses: debug,
+        onCatch: (e, stackTrace) async {
+          return await runCatcher(
+            [
+              ...route.allCatchers,
+              ...globalModifiers.catchers,
+            ],
+            e: e,
+            stackTrace: stackTrace,
+            request: request,
+            response: response,
+            dataHandler: dataHandler,
+            directMeta: directMeta,
+            inheritedMeta: inheritedMeta,
+            route: route,
+          );
+        },
+      ).handle();
     }
 
     if (result is! Future<void>) {

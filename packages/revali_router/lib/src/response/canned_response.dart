@@ -24,8 +24,11 @@ class CannedResponse {
   ///
   /// This is a special case and should not be used for any other purpose.
   /// Status Code: 1000
-  static ReadOnlyResponse webSocket() {
-    return SimpleResponse(1000);
+  static ReadOnlyResponse webSocket({
+    required int statusCode,
+    required String reason,
+  }) {
+    return SimpleResponse(statusCode, body: reason);
   }
 
   static ReadOnlyResponse redirect(

@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:revali_annotations/revali_annotations.dart';
-import 'package:revali_router/src/handler/web_socket_handler.dart';
 import 'package:revali_router/src/route/base_route.dart';
+import 'package:revali_router/src/web_socket/web_socket_handler.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
 part 'web_socket_route.g.dart';
