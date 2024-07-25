@@ -151,11 +151,8 @@ class Router extends Equatable {
       return response;
     }
 
-    try {
-      return _handle(helper);
-    } catch (e, stackTrace) {
-      return helper.run.catchers(e, stackTrace);
-    }
+    // ignore: argument_type_not_assignable_to_error_handler
+    return _handle(helper).catchError(helper.run.catchers.call);
   }
 
   Future<ReadOnlyResponse> _handle(HelperMixin helper) async {
@@ -165,6 +162,7 @@ class Router extends Equatable {
         :redirect,
         :originCheck,
         :execute,
+        :catchers,
       ),
     ) = helper;
 
@@ -180,7 +178,8 @@ class Router extends Equatable {
       return response;
     }
 
-    return execute();
+    // ignore: argument_type_not_assignable_to_error_handler
+    return execute().catchError(catchers.call);
   }
 
   HelperMixin _createHelper(BaseRoute route, MutableRequestImpl request) {
