@@ -5,7 +5,7 @@ import 'package:revali_server/makers/utils/get_params.dart';
 Expression createApp(ServerApp app) {
   final (:positioned, :named) = getParams(app.params);
 
-  var expression = refer(app.className);
+  final expression = refer(app.className);
 
   if (app.constructor.isEmpty) {
     return expression.newInstance(positioned, named);

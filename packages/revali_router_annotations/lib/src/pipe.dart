@@ -6,7 +6,7 @@ abstract class Pipe<T, R> extends OverrideErrorResponse
     with OverrideErrorResponseMixin {
   const Pipe();
 
-  FutureOr<R> transform(T value, PipeContext context);
+  FutureOr<R> transform(T value, PipeContext<dynamic> context);
 
   @override
   Object? get body => null;

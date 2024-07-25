@@ -1,12 +1,13 @@
 import 'dart:io' as io;
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:file/file.dart' show FileSystem, FileSystemEvent;
+import 'package:file/file.dart' show FileSystem;
 import 'package:path/path.dart' as p;
-import 'package:watcher/src/watch_event.dart';
 import 'package:revali/ast/file_system/analyzer_file.dart';
 import 'package:revali/ast/file_system/file_resource_provider.dart';
 import 'package:revali/ast/file_system/util/watch_event_extension.dart';
+// ignore: implementation_imports
+import 'package:watcher/src/watch_event.dart';
 
 class AnalyzerFolder implements Folder {
   AnalyzerFolder(this.fileSystem, this.directory, this.provider);
@@ -22,7 +23,7 @@ class AnalyzerFolder implements Folder {
 
   @override
   Stream<WatchEvent> get changes {
-    return directory.watch(events: FileSystemEvent.all).toAnalyzerStream();
+    return directory.watch().toAnalyzerStream();
   }
 
   @override
@@ -139,9 +140,7 @@ class AnalyzerFolder implements Folder {
 
   @override
   ResourceWatcher watch() {
-    final watcher = directory
-        .watch(events: FileSystemEvent.all, recursive: true)
-        .toAnalyzerStream();
+    final watcher = directory.watch(recursive: true).toAnalyzerStream();
 
     return ResourceWatcher(watcher, () async {});
   }

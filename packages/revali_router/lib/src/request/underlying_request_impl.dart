@@ -30,15 +30,21 @@ class UnderlyingRequestImpl implements UnderlyingRequest {
     );
   }
 
+  @override
   final Payload body;
+  @override
   final ReadOnlyHeaders headers;
+  @override
   final Uri uri;
+  @override
   final String method;
   final HttpRequest _request;
 
   /// The HTTP protocol version used in the request, either "1.0" or "1.1".
+  @override
   final String protocolVersion;
 
+  @override
   Future<WebSocket> upgradeToWebSocket({Duration? ping}) async {
     final webSocket = await WebSocketTransformer.upgrade(_request);
     if (ping != null) {

@@ -69,11 +69,11 @@ Expression? createHandler({
               .call([])
               .awaited
               .statement,
-        Code('\n'),
-        Code('\n'),
+        const Code('\n'),
+        const Code('\n'),
         handler.statement,
         if (setBody != null) ...[
-          Code('\n'),
+          const Code('\n'),
           setBody.statement,
         ],
       ]),

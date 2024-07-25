@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
-
-import 'construct_config.dart';
+import 'package:revali_construct/models/construct_config.dart';
 
 part 'construct_yaml.g.dart';
 
@@ -15,6 +14,7 @@ class ConstructYaml extends Equatable {
     required this.packageRootUri,
   });
 
+  // ignore: strict_raw_type
   static ConstructYaml fromJson(Map json) => _$ConstructYamlFromJson(json);
 
   Map<String, dynamic> toJson() => _$ConstructYamlToJson(this);

@@ -5,8 +5,8 @@ import 'package:mason_logger/mason_logger.dart';
 import 'package:revali/clis/revali_runner/commands/dev_command.dart';
 import 'package:revali/handlers/construct_entrypoint_handler.dart';
 
-class revaliRunner extends CommandRunner<int> {
-  revaliRunner({
+class RevaliRunner extends CommandRunner<int> {
+  RevaliRunner({
     required this.logger,
     required String initialDirectory,
     required FileSystem fs,
@@ -45,8 +45,8 @@ class revaliRunner extends CommandRunner<int> {
   }
 
   @override
-  Future<int> runCommand(ArgResults args) async {
-    final result = await super.runCommand(args);
+  Future<int> runCommand(ArgResults topLevelResults) async {
+    final result = await super.runCommand(topLevelResults);
 
     return result ?? 0;
   }

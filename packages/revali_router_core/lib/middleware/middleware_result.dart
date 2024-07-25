@@ -15,6 +15,7 @@ sealed class MiddlewareResult {
 
   bool get isNext => this is _Next;
   bool get isStop => this is _Stop;
+  // ignore: library_private_types_in_public_api
   _Stop get asStop => this as _Stop;
 }
 

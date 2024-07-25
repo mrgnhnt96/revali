@@ -1,3 +1,5 @@
+// ignore_for_file: unnecessary_parenthesis
+
 import 'dart:io';
 
 import 'package:code_builder/code_builder.dart';
@@ -40,8 +42,8 @@ PartFile publicFileMaker(ServerServer server, String Function(Spec) formatter) {
                             refer((File).name).call([
                               refer('p').property('join').call([
                                 literalString('public'),
-                                literalString(public.path)
-                              ])
+                                literalString(public.path),
+                              ]),
                             ]),
                           )
                           .statement,

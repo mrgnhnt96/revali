@@ -1,6 +1,7 @@
 import 'dart:io' as io;
 
 import 'package:file/file.dart' show FileSystemEvent;
+// ignore: implementation_imports
 import 'package:watcher/src/watch_event.dart';
 
 extension StreamFileSystemX on Stream<FileSystemEvent> {

@@ -9,5 +9,6 @@ class ExceptionCatcherMetaImpl extends MetaArgImpl
     required this.route,
   });
 
+  @override
   final RouteEntry route;
 }

@@ -1,6 +1,6 @@
 part of '../router.dart';
 
-typedef _DebugErrorResponse = ReadOnlyResponse Function(
+typedef DebugErrorResponse = ReadOnlyResponse Function(
   ReadOnlyResponse response, {
   required Object error,
   required StackTrace stackTrace,
@@ -15,7 +15,7 @@ mixin RouterHelperMixin {
   MetaHandler get directMeta;
   MetaHandler get inheritedMeta;
   ReflectHandler get reflectHandler;
-  _DebugErrorResponse get debugErrorResponse;
+  DebugErrorResponse get debugErrorResponse;
   DefaultResponses get defaultResponses;
 
   bool get debugResponses;
@@ -48,17 +48,18 @@ mixin RouterHelperMixin {
     ];
   }
 
-  _RunInterceptors get runInterceptors => _RunInterceptors(this);
-  _RunGuards get runGuards => _RunGuards(this);
-  _RunMiddlewares get runMiddlewares => _RunMiddlewares(this);
-  _RunCatchers get runCatchers => _RunCatchers(this);
-  _RunOptions get runOptions => _RunOptions(this);
-  _RunRedirect get runRedirect => _RunRedirect(this);
-  _RunOriginCheck get runOriginCheck => _RunOriginCheck(this);
-  _Execute get execute => _Execute(this);
+  RunInterceptors get runInterceptors => RunInterceptors(this);
+  RunGuards get runGuards => RunGuards(this);
+  RunMiddlewares get runMiddlewares => RunMiddlewares(this);
+  RunCatchers get runCatchers => RunCatchers(this);
+  RunOptions get runOptions => RunOptions(this);
+  RunRedirect get runRedirect => RunRedirect(this);
+  RunOriginCheck get runOriginCheck => RunOriginCheck(this);
+  Execute get execute => Execute(this);
 
   Future<WebSocketResponse> handleWebSocket(
-      FutureOr<WebSocketHandler> handler) async {
+    FutureOr<WebSocketHandler> handler,
+  ) async {
     final route = this.route;
     if (route is! WebSocketRoute) {
       throw StateError('Route is not a WebSocketRoute');

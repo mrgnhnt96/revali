@@ -20,14 +20,21 @@ class RouteModifiersImpl implements RouteModifiers {
     CombineMetaApplier(this, combine).apply();
   }
 
+  @override
   final List<Middleware> middlewares;
+  @override
   final List<Interceptor> interceptors;
+  @override
   final List<ExceptionCatcher> catchers;
+  @override
   final List<Guard> guards;
   final void Function(MetaHandler)? _meta;
+  @override
   final AllowOrigins? allowedOrigins;
+  @override
   final AllowHeaders? allowedHeaders;
 
+  @override
   MetaHandler getMeta({MetaHandler? handler}) {
     final meta = handler ?? MetaHandler();
 

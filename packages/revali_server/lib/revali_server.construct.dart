@@ -16,8 +16,7 @@ class RevaliServerConstruct implements ServerConstruct {
 
   @override
   ServerFile generate(RevaliContext context, MetaServer server) {
-    final serverServer = ServerServer.fromMeta(context, server);
-    serverServer.validate();
+    final serverServer = ServerServer.fromMeta(context, server)..validate();
 
     final formatter = DartFormatter();
     final emitter = DartEmitter.scoped(useNullSafetySyntax: true);

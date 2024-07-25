@@ -14,6 +14,7 @@ class ConstructConfig extends Equatable {
     this.isServer = false,
   });
 
+  // ignore: strict_raw_type
   static ConstructConfig fromJson(Map json) => _$ConstructConfigFromJson(json);
 
   final String name;

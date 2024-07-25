@@ -68,7 +68,7 @@ class DevCommand extends Command<int> with DirectoriesMixin {
     final root = await rootOf(rootPath);
 
     final constructYamlFile = root.childFile('revali.yaml');
-    revaliYaml? revaliConfig;
+    RevaliYaml? revaliConfig;
     if (await constructYamlFile.exists()) {
       final yamlContent = await constructYamlFile.readAsString();
       final yaml = loadYaml(yamlContent) as YamlMap?;
@@ -76,7 +76,7 @@ class DevCommand extends Command<int> with DirectoriesMixin {
       try {
         if (yaml != null) {
           revaliConfig =
-              revaliYaml.fromJson(Map<String, dynamic>.from(yaml.value));
+              RevaliYaml.fromJson(Map<String, dynamic>.from(yaml.value));
         }
       } catch (_) {
         logger.err('Failed to parse revali.yaml, using default configuration.');
@@ -91,11 +91,12 @@ class DevCommand extends Command<int> with DirectoriesMixin {
           root: root,
           context: context,
           server: server,
-          revaliConfig: revaliConfig ??= revaliYaml.none(),
+          revaliConfig: revaliConfig ??= const RevaliYaml.none(),
         );
       } catch (e) {
-        logger.delayed(red.wrap('Error occurred while generating constructs'));
-        logger.delayed(red.wrap('$e'));
+        logger
+          ..delayed(red.wrap('Error occurred while generating constructs'))
+          ..delayed(red.wrap('$e'));
         return null;
       }
 
@@ -116,14 +117,14 @@ class DevCommand extends Command<int> with DirectoriesMixin {
     }
 
     await serverHandler.start(enableHotReload: !runInRelease);
-    return await serverHandler.exitCode;
+    return serverHandler.exitCode;
   }
 
   Future<void> generate({
     required Directory root,
     required RevaliContext context,
     required MetaServer server,
-    required revaliYaml revaliConfig,
+    required RevaliYaml revaliConfig,
   }) async {
     for (final maker in constructs) {
       final constructConfig = revaliConfig.configFor(maker);
@@ -150,7 +151,9 @@ class DevCommand extends Command<int> with DirectoriesMixin {
     if (!config.enabled) {
       if (maker.isServer) {
         logger.warn(
-            '${config.name} cannot be disabled, because it is the $ServerConstruct');
+          '${config.name} cannot be disabled,'
+          ' because it is the $ServerConstruct',
+        );
       } else {
         logger.detail('skipping ${config.name}');
         return;

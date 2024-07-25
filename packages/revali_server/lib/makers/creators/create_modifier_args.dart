@@ -1,3 +1,5 @@
+// ignore_for_file: unnecessary_parenthesis
+
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_router/revali_router.dart' hide Method;
 import 'package:revali_server/converters/server_route_annotations.dart';
@@ -55,7 +57,7 @@ Map<String, Expression> createModifierArgs({
       'allowedOrigins': refer((AllowedOriginsImpl).name).newInstance([
         literalSet([
           for (final allowOrigin in allow.origins) literalString(allowOrigin),
-        ])
+        ]),
       ], {
         'inherit': literalBool(allow.inherit),
       }),
@@ -64,7 +66,7 @@ Map<String, Expression> createModifierArgs({
       'allowedHeaders': refer((AllowedHeadersImpl).name).newInstance([
         literalSet([
           for (final allowHeader in allow.headers) literalString(allowHeader),
-        ])
+        ]),
       ], {
         'inherit': literalBool(allow.inherit),
       }),
@@ -81,14 +83,16 @@ Map<String, Expression> createModifierArgs({
         final m = refer('m');
 
         return {
-          'meta': Method((p) => p
-            ..requiredParameters.add(Parameter((b) => b..name = 'm'))
-            ..body = Block.of([
-              for (final meta in annotations.meta)
-                m.cascade('add').call([
-                  createMimic(meta),
-                ]).statement,
-            ])).closure
+          'meta': Method(
+            (p) => p
+              ..requiredParameters.add(Parameter((b) => b..name = 'm'))
+              ..body = Block.of([
+                for (final meta in annotations.meta)
+                  m.cascade('add').call([
+                    createMimic(meta),
+                  ]).statement,
+              ]),
+          ).closure,
         };
       }(),
   };

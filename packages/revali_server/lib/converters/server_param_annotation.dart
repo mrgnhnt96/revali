@@ -14,6 +14,7 @@ class ServerParamAnnotation with ExtractImport {
 
   factory ServerParamAnnotation.fromElement(
     DartObject object,
+    // ignore: avoid_unused_constructor_parameters
     ElementAnnotation annotation,
   ) {
     final name = object.getField('name')?.toStringValue();

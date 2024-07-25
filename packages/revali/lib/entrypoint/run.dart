@@ -8,7 +8,7 @@ Future<int> run(
   required List<ConstructMaker> constructs,
   required String path,
 }) async {
-  final fs = LocalFileSystem();
+  const fs = LocalFileSystem();
 
   var isLoud = false;
   var isQuiet = false;

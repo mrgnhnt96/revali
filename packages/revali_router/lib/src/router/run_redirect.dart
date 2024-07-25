@@ -1,7 +1,7 @@
 part of 'router.dart';
 
-class _RunRedirect {
-  const _RunRedirect(this.helper);
+class RunRedirect {
+  const RunRedirect(this.helper);
 
   final RouterHelperMixin helper;
 

@@ -21,9 +21,9 @@ final class FileBodyData extends BaseBodyData<File> {
     if (_bytes case final bytes?) {
       yield* Stream.fromIterable([bytes]);
     }
-    final bytes = _bytes = await data.readAsBytesSync();
+    final bytes = _bytes = data.readAsBytesSync();
 
-    yield* Stream.fromIterable([bytes]);
+    yield* Stream.value(bytes);
   }
 
   File? _file;
@@ -38,12 +38,12 @@ final class FileBodyData extends BaseBodyData<File> {
   }
 
   Stream<List<int>> range(int start, int end) async* {
-    final (_start, _, _length) = cleanRange(start, end);
+    final (start0, _, length) = cleanRange(start, end);
 
     final content = file.openSync();
     try {
-      content.setPositionSync(_start);
-      yield* content.read(_length).asStream();
+      content.setPositionSync(start0);
+      yield* content.read(length).asStream();
     } finally {
       content.closeSync();
     }
@@ -61,6 +61,7 @@ final class FileBodyData extends BaseBodyData<File> {
     return (start, realEnd, realLength);
   }
 
+  @override
   ReadOnlyHeaders headers(ReadOnlyHeaders? requestHeaders) {
     final stat = file.statSync();
     final headers = MutableHeadersImpl();

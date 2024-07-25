@@ -1,3 +1,5 @@
+// ignore_for_file: unnecessary_parenthesis
+
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_server/revali_server.dart';
@@ -22,6 +24,7 @@ Spec createChildRoute(ServerChildRoute route, ServerParentRoute parent) {
         .assign(literalString(setHeader.value));
   }
 
+  // ignore: literal_only_boolean_expressions
   if ('$response' == '$ogResponse') {
     response = null;
   }

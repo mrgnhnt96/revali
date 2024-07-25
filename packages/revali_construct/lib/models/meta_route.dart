@@ -1,8 +1,7 @@
 import 'package:analyzer/dart/element/element.dart';
+import 'package:revali_construct/models/meta_method.dart';
+import 'package:revali_construct/models/meta_param.dart';
 import 'package:revali_construct/types/annotation_getter.dart';
-
-import 'meta_method.dart';
-import 'meta_param.dart';
 
 class MetaRoute {
   const MetaRoute({

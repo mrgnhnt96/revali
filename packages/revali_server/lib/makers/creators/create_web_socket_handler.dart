@@ -1,3 +1,5 @@
+// ignore_for_file: unnecessary_parenthesis
+
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_construct/models/meta_web_socket_method.dart';
 import 'package:revali_router/revali_router.dart' show WebSocketHandler;
@@ -37,7 +39,7 @@ Expression createWebSocketHandler(
     ]).statement;
 
     trigger.addAll([
-      Code('yield*'),
+      const Code('yield*'),
       stream,
     ]);
   } else if (returnType.isVoid) {
@@ -62,7 +64,7 @@ Expression createWebSocketHandler(
     trigger.addAll([
       futureResult,
       bodyAssignment,
-      Code('yield null;'),
+      const Code('yield null;'),
     ]);
   } else {
     final result = declareFinal('result')
@@ -76,7 +78,7 @@ Expression createWebSocketHandler(
     trigger.addAll([
       result,
       bodyAssignment,
-      Code('yield null;'),
+      const Code('yield null;'),
     ]);
   }
   final handler = Method(

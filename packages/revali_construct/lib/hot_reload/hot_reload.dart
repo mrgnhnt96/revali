@@ -44,13 +44,13 @@ class HotReload {
     HotReloader.logLevel = logLevel;
 
     /// Function in charge of replacing the running http server
-    final obtainNewServer = (FutureOr<HttpServer> Function() create) async {
+    Future<void> obtainNewServer(FutureOr<HttpServer> Function() create) async {
       /// Shut down existing server
       await runningServer?.close(force: true);
 
       /// Create a new server
       runningServer = await create();
-    };
+    }
 
     try {
       /// Register the server reload mechanism to the generic HotReloader.
@@ -105,6 +105,7 @@ class HotReload {
 
       /// Hot-reload is available
       _onHotReloadAvailable();
+      // ignore: avoid_catching_errors
     } on StateError catch (e) {
       if (e.message.contains('VM service not available')) {
         /// Hot-reload is not available

@@ -3,14 +3,16 @@ import 'dart:typed_data';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source.dart';
+// ignore: implementation_imports
 import 'package:analyzer/src/source/source_resource.dart';
 import 'package:file/file.dart' as f;
-import 'package:file/file.dart' show FileSystem, FileSystemEvent;
+import 'package:file/file.dart' show FileSystem;
 import 'package:path/path.dart' as p;
-import 'package:watcher/src/watch_event.dart';
 import 'package:revali/ast/file_system/analyzer_folder.dart';
 import 'package:revali/ast/file_system/file_resource_provider.dart';
 import 'package:revali/ast/file_system/util/watch_event_extension.dart';
+// ignore: implementation_imports
+import 'package:watcher/src/watch_event.dart';
 
 class AnalyzerFile implements File {
   AnalyzerFile(
@@ -26,7 +28,7 @@ class AnalyzerFile implements File {
 
   @override
   Stream<WatchEvent> get changes {
-    return file.watch(events: FileSystemEvent.all).toAnalyzerStream();
+    return file.watch().toAnalyzerStream();
   }
 
   @override
@@ -106,7 +108,7 @@ class AnalyzerFile implements File {
 
   @override
   ResourceWatcher watch() {
-    final watcher = file.watch(events: FileSystemEvent.all).toAnalyzerStream();
+    final watcher = file.watch().toAnalyzerStream();
 
     return ResourceWatcher(watcher, () async {});
   }

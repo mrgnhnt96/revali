@@ -11,6 +11,7 @@ abstract class BodyData extends ReadOnlyBody {
 
   Encoding encoding = utf8;
 
+  @override
   Stream<List<int>>? read();
 
   ReadOnlyHeaders headers(ReadOnlyHeaders? requestHeaders);

@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;
@@ -62,7 +64,7 @@ class VMServiceHandler {
     }
 
     _isReloading = true;
-    _cancelWatcherSubscription();
+    await _cancelWatcherSubscription();
     final progress = logger.progress('Reloading...');
 
     final server = await codeGenerator();
@@ -86,7 +88,7 @@ class VMServiceHandler {
   }
 
   void clearConsole() {
-    print("\x1B[2J\x1B[0;0H");
+    print('\x1B[2J\x1B[0;0H');
     var message = '${yellow.wrap(_formatTime(DateTime.now()))}';
     if (canHotReload) {
       message += ' ${darkGray.wrap('[RELOAD]')}';
@@ -103,7 +105,8 @@ class VMServiceHandler {
   }
 
   List<MetaRoute> __lastRoutes = [];
-  void printParsedRoutes(List<MetaRoute>? routes) {
+  void printParsedRoutes(List<MetaRoute>? routes0) {
+    var routes = routes0;
     if (routes == null) {
       if (__lastRoutes.isEmpty) {
         return;
@@ -121,7 +124,7 @@ class VMServiceHandler {
       for (final method in route.methods) {
         logger.detail('method: ${method.path}');
 
-        final fullPath = path.join(root, (method.path ?? ''));
+        final fullPath = path.join(root, method.path ?? '');
         logger.info(
           '${method.wrappedMethod}'
           '${darkGray.wrap('-> ')}'
@@ -239,7 +242,7 @@ class VMServiceHandler {
     clearConsole();
     logger.detail('Starting server...');
 
-    var _hasStartedServer = false;
+    var hasStartedServer = false;
 
     final process = _serverProcess = await io.Process.start(
       'dart',
@@ -251,7 +254,6 @@ class VMServiceHandler {
         serverFile,
       ],
       runInShell: true,
-      includeParentEnvironment: true,
     );
 
     // On Windows listen for CTRL-C and use taskkill to kill
@@ -290,7 +292,8 @@ class VMServiceHandler {
       if (isDartVMServiceAlreadyInUseError) {
         logger.err(
           '$message '
-          'Try specifying a different port using the `--dart-vm-service-port` argument',
+          'Try specifying a different port using the '
+          '`--dart-vm-service-port` argument',
         );
       } else if (isSDKWarning) {
         // Do not kill the process if the error is a warning from the SDK.
@@ -324,8 +327,8 @@ class VMServiceHandler {
         return;
       }
 
-      if (message.contains(HotReload.revaliStarted) && !_hasStartedServer) {
-        _hasStartedServer = true;
+      if (message.contains(HotReload.revaliStarted) && !hasStartedServer) {
+        hasStartedServer = true;
         progress?.complete();
         onReady?.call();
         return;

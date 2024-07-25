@@ -9,8 +9,10 @@ class DIImpl implements DI {
   final Map<Type, dynamic> _lazySingletons;
   bool _canRegister = true;
 
+  @override
   void registerInstance<T>(T instance) => _register<T>(_singletons, instance);
 
+  @override
   void register<T>(Factory<T> factory) =>
       _register<T>(_lazySingletons, factory);
 
@@ -33,12 +35,13 @@ class DIImpl implements DI {
     _canRegister = false;
   }
 
+  @override
   T get<T>() {
-    if (_singletons[T] case final value?) {
+    if (_singletons[T] case final T value?) {
       return value;
     }
 
-    if (_lazySingletons[T] case final factory?) {
+    if (_lazySingletons[T] case final T Function() factory?) {
       return _singletons[T] = factory();
     }
 

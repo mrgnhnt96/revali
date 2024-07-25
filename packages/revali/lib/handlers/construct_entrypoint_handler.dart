@@ -28,6 +28,7 @@ class ConstructEntrypointHandler with DirectoriesMixin {
 
   final String initialDirectory;
   final ConstructsHandler constructHandler;
+  @override
   final FileSystem fs;
   final Logger logger;
 
@@ -44,8 +45,9 @@ class ConstructEntrypointHandler with DirectoriesMixin {
     final constructs = await constructHandler.constructDepsFrom(root);
     constructProgress.complete('Retrieved constructs');
 
-    logger.detail('Constructs: ${constructs.length}');
-    logger.detail(constructs.map((e) => '$e').join('\n'));
+    logger
+      ..detail('Constructs: ${constructs.length}')
+      ..detail(constructs.map((e) => '$e').join('\n'));
 
     final needsNewKernel = await checkAssets(constructs, root);
 
@@ -53,8 +55,9 @@ class ConstructEntrypointHandler with DirectoriesMixin {
       final kernel = await root.getInternalRevaliFile(kernelFile);
 
       if (await kernel.exists()) {
-        logger.detail('Skipping entrypoint generation, using existing kernel');
-        logger.success('Construct entrypoint is up to date');
+        logger
+          ..detail('Skipping entrypoint generation, using existing kernel')
+          ..success('Construct entrypoint is up to date');
         return;
       }
     }
@@ -106,13 +109,13 @@ class ConstructEntrypointHandler with DirectoriesMixin {
           jsonDecode(await assetsFile.readAsString()) as List;
 
       existingConstructs =
-          existingAssets.map((e) => ConstructYaml.fromJson(e)).toList();
+          existingAssets.map((e) => ConstructYaml.fromJson(e as Map)).toList();
     } catch (e) {
       await saveAssets();
       return true;
     }
 
-    final deepEquality = const DeepCollectionEquality();
+    const deepEquality = DeepCollectionEquality();
 
     if (deepEquality.equals(constructs, existingConstructs)) {
       logger.detail('Assets are up to date');
@@ -139,7 +142,7 @@ class ConstructEntrypointHandler with DirectoriesMixin {
 
     await entrypointFile.create();
 
-    final content = this.entrypointContent(
+    final content = entrypointContent(
       constructs,
       root: root,
     );
@@ -187,7 +190,8 @@ class ConstructEntrypointHandler with DirectoriesMixin {
     );
 
     if (result.exitCode != 0) {
-      throw Exception('''Failed to compile entrypoint
+      throw Exception('''
+Failed to compile entrypoint
 Error:
 ${result.stderr}''');
     }
@@ -199,7 +203,7 @@ ${result.stderr}''');
     ReceivePort? exitPort;
     ReceivePort? errorPort;
     ReceivePort? messagePort;
-    StreamSubscription? errorListener;
+    StreamSubscription<dynamic>? errorListener;
     int? scriptExitCode;
 
     final root = await rootOf(initialDirectory);
@@ -226,8 +230,9 @@ ${result.stderr}''');
         final error = e[0] ?? TypeError();
         final trace = Trace.parse(e[1] as String? ?? '').terse;
 
-        logger.err('Error in script: $error');
-        logger.err(trace.toString());
+        logger
+          ..err('Error in script: $error')
+          ..err(trace.toString());
         if (scriptExitCode == 0) scriptExitCode = 1;
       });
       try {
@@ -235,7 +240,6 @@ ${result.stderr}''');
           Uri.file(file.path),
           args,
           messagePort.sendPort,
-          errorsAreFatal: true,
           onExit: exitPort.sendPort,
           onError: errorPort.sendPort,
         );
@@ -251,8 +255,10 @@ ${result.stderr}''');
           exitPort.sendPort.send(null);
         } else {
           logger.err(
-              'Error spawning build script isolate, this is likely due to a Dart '
-              'SDK update. Deleting precompiled script and retrying...');
+            'Error spawning build script isolate, '
+            'this is likely due to a Dart '
+            'SDK update. Deleting precompiled script and retrying...',
+          );
         }
 
         try {
@@ -263,7 +269,7 @@ ${result.stderr}''');
       }
     }
 
-    StreamSubscription? exitCodeListener;
+    StreamSubscription<dynamic>? exitCodeListener;
     exitCodeListener = messagePort!.listen((isolateExitCode) {
       if (isolateExitCode is int) {
         scriptExitCode = isolateExitCode;
@@ -284,13 +290,13 @@ ${result.stderr}''');
     Iterable<ConstructYaml> constructs, {
     required Directory root,
   }) {
-    const revali_construct = 'package:revali_construct/revali_construct.dart';
+    const revaliConstruct = 'package:revali_construct/revali_construct.dart';
     const revali = 'package:revali/revali.dart';
 
     final constructItems = [
       for (final yaml in constructs)
         for (final construct in yaml.constructs)
-          refer('$ConstructMaker', revali_construct).newInstance(
+          refer('$ConstructMaker', revaliConstruct).newInstance(
             [],
             {
               'package': literalString(yaml.packageName),
@@ -304,64 +310,80 @@ ${result.stderr}''');
           ),
     ];
 
-    final _constructs = declareFinal('_constructs')
+    final constructs0 = declareConst('_constructs')
         .assign(
           literalList(
             constructItems,
-            refer('$ConstructMaker', revali_construct),
+            refer('$ConstructMaker', revaliConstruct),
           ),
         )
         .statement;
 
-    final _path =
+    final path =
         declareConst('_root').assign(literalString(root.path)).statement;
 
-    final main = Method((b) => b
-      ..name = 'main'
-      ..returns = refer('void')
-      ..modifier = MethodModifier.async
-      ..requiredParameters.add(Parameter((b) => b
-        ..name = 'args'
-        ..type = TypeReference((b) => b
-          ..symbol = ('List')
-          ..types.add(refer('String')))))
-      ..optionalParameters.add(Parameter((b) => b
-        ..name = 'sendPort'
-        ..type = TypeReference((b) => b
-          ..symbol = 'SendPort'
-          ..url = 'dart:isolate'
-          ..isNullable = true)))
-      ..body = Block.of([
-        declareFinal('result')
-            .assign(
-              refer('run', revali).call([
-                refer('args'),
-              ], {
-                'constructs': refer('_constructs'),
-                'path': refer('_root'),
-              }).awaited,
-            )
-            .statement,
-        Code('\n'),
-        refer('sendPort')
-            .nullSafeProperty('send')
-            .call([refer('result')]).statement,
-        Code('\n'),
-        refer('exitCode', 'dart:io').assign(refer('result')).statement,
-      ]));
+    final main = Method(
+      (b) => b
+        ..name = 'main'
+        ..returns = refer('void')
+        ..modifier = MethodModifier.async
+        ..requiredParameters.add(
+          Parameter(
+            (b) => b
+              ..name = 'args'
+              ..type = TypeReference(
+                (b) => b
+                  ..symbol = ('List')
+                  ..types.add(refer('String')),
+              ),
+          ),
+        )
+        ..optionalParameters.add(
+          Parameter(
+            (b) => b
+              ..name = 'sendPort'
+              ..type = TypeReference(
+                (b) => b
+                  ..symbol = 'SendPort'
+                  ..url = 'dart:isolate'
+                  ..isNullable = true,
+              ),
+          ),
+        )
+        ..body = Block.of([
+          declareFinal('result')
+              .assign(
+                refer('run', revali).call([
+                  refer('args'),
+                ], {
+                  'constructs': refer('_constructs'),
+                  'path': refer('_root'),
+                }).awaited,
+              )
+              .statement,
+          const Code('\n'),
+          refer('sendPort')
+              .nullSafeProperty('send')
+              .call([refer('result')]).statement,
+          const Code('\n'),
+          refer('exitCode', 'dart:io').assign(refer('result')).statement,
+        ]),
+    );
 
     final library = Library(
       (b) => b.body.addAll(
         [
-          _constructs,
-          _path,
+          constructs0,
+          path,
           main,
         ],
       ),
     );
 
     final emitter = DartEmitter(
-        allocator: Allocator.simplePrefixing(), useNullSafetySyntax: true);
+      allocator: Allocator.simplePrefixing(),
+      useNullSafetySyntax: true,
+    );
     try {
       final content = StringBuffer()
         ..writeln('// ignore_for_file: directives_ordering')

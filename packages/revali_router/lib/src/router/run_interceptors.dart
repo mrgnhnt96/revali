@@ -1,7 +1,7 @@
 part of './router.dart';
 
-class _RunInterceptors {
-  const _RunInterceptors(this.helper);
+class RunInterceptors {
+  const RunInterceptors(this.helper);
 
   final RouterHelperMixin helper;
 

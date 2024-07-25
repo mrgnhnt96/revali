@@ -8,9 +8,12 @@ class ExceptionCatcherContextImpl implements ExceptionCatcherContext {
     required this.response,
   });
 
+  @override
   final ExceptionCatcherMeta meta;
   @override
   final ReadOnlyDataHandler data;
+  @override
   final ReadOnlyRequest request;
+  @override
   final MutableResponse response;
 }

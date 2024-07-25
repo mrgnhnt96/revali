@@ -1,7 +1,7 @@
 part of 'router.dart';
 
-class _RunGuards {
-  const _RunGuards(this.helper);
+class RunGuards {
+  const RunGuards(this.helper);
 
   final RouterHelperMixin helper;
 
@@ -40,10 +40,11 @@ class _RunGuards {
         return debugErrorResponse(
           response
             .._overrideWith(
-                statusCode: statusCode,
-                backupCode: 403,
-                headers: headers,
-                body: body),
+              statusCode: statusCode,
+              backupCode: 403,
+              headers: headers,
+              body: body,
+            ),
           error: GuardStopException('${guard.runtimeType}'),
           stackTrace: StackTrace.current,
         );

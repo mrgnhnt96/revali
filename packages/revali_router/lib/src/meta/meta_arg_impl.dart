@@ -12,6 +12,7 @@ class MetaArgImpl implements MetaArg {
   final MetaHandler _inherited;
 
   /// {@macro ReadOnlyMetaArg_get}
+  @override
   List<T>? get<T>() {
     final inherited = _inherited.get<T>();
     final direct = _direct.get<T>();

@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'dart:io';
 
 import 'package:revali_router/revali_router.dart';
@@ -6,7 +8,6 @@ void main() async {
   final server = await HttpServer.bind(
     'localhost',
     8080,
-    backlog: 0,
   );
 
   handleRequests(server, (context) async {
@@ -16,7 +17,7 @@ void main() async {
         Reflect(
           User,
           metas: (m) {
-            m['user']..add(Role('admin'));
+            m['user'].add(const Role('admin'));
           },
         ),
       },
@@ -27,13 +28,10 @@ void main() async {
     return response;
   });
 
-  // ensure that the routes are configured correctly
-  routes;
-
   print('Serving at http://${server.address.host}:${server.port}');
 }
 
-late final routes = [
+final routes = [
   Route(
     '',
     method: 'GET',
@@ -45,24 +43,23 @@ late final routes = [
     routes: [
       Route(
         ':id',
-        catchers: [],
+        catchers: const [],
         guards: [AuthGuard()],
         handler: (context) async {
           context.response.statusCode = 200;
           context.response.body = {'id': 'hi'};
         },
-        interceptors: [BodyInterceptor()],
+        interceptors: const [BodyInterceptor()],
         meta: (m) {},
         method: 'GET',
         middlewares: [AddAuth()],
-        redirect: null,
-        routes: [],
+        routes: const [],
       ),
       Route(
         '',
         method: 'POST',
         handler: (context) async {
-          final body = await context.request.body;
+          final body = context.request.body;
           print(body);
 
           context.response.statusCode = 200;
@@ -75,7 +72,10 @@ late final routes = [
 
 class AuthGuard extends Guard {
   @override
-  Future<GuardResult> canActivate(context, canActivate) async {
+  Future<GuardResult> canActivate(
+    GuardContext context,
+    GuardAction canActivate,
+  ) async {
     final hasAuth = context.data.get<HasAuth>();
 
     if (hasAuth case null) {
@@ -96,16 +96,15 @@ class AddAuth extends Middleware {
     MiddlewareContext context,
     MiddlewareAction action,
   ) async {
-    context.data.add(HasAuth(true));
+    context.data.add(HasAuth(hasAuth: true));
 
     return action.next();
   }
 }
 
 class HasAuth {
+  HasAuth({required this.hasAuth});
   final bool hasAuth;
-
-  HasAuth(this.hasAuth);
 }
 
 class AuthException implements Exception {}

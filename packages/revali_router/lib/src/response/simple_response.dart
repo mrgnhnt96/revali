@@ -7,25 +7,18 @@ import 'package:revali_router_core/headers/read_only_headers.dart';
 import 'package:revali_router_core/response/read_only_response.dart';
 
 class SimpleResponse implements ReadOnlyResponse {
-  const SimpleResponse._({
-    required this.statusCode,
-    required this.headers,
-    required this.rawHeaders,
-    required this.body,
-  });
-
   factory SimpleResponse(
     int statusCode, {
     Map<String, String> headers = const {},
     Object? body,
   }) {
-    final response = MutableResponseImpl(requestHeaders: MutableHeadersImpl());
-    response.statusCode = statusCode;
+    final response = MutableResponseImpl(requestHeaders: MutableHeadersImpl())
+      ..statusCode = statusCode;
     response.headers.addAll(headers);
     if (body != null) {
       response.body = switch (body) {
         BodyData() => body,
-        _ => BaseBodyData.from(body),
+        _ => BaseBodyData<dynamic>.from(body),
       };
     }
 
@@ -36,6 +29,12 @@ class SimpleResponse implements ReadOnlyResponse {
       body: response.body,
     );
   }
+  const SimpleResponse._({
+    required this.statusCode,
+    required this.headers,
+    required this.rawHeaders,
+    required this.body,
+  });
 
   @override
   final int statusCode;
@@ -45,5 +44,6 @@ class SimpleResponse implements ReadOnlyResponse {
 
   final Map<String, String> rawHeaders;
 
+  @override
   final ReadOnlyBody body;
 }

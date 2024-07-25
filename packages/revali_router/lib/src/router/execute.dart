@@ -1,7 +1,7 @@
 part of 'router.dart';
 
-class _Execute {
-  const _Execute(this.helper);
+class Execute {
+  const Execute(this.helper);
 
   final RouterHelperMixin helper;
 

@@ -12,7 +12,7 @@ class Find {
   final String method;
 
   RouteMatch? run() {
-    RouteMatch? _find({
+    RouteMatch? find({
       required Iterable<String> pathSegments,
       required Iterable<BaseRoute>? routes,
       required BaseRoute? parent,
@@ -25,9 +25,9 @@ class Find {
         }
 
         final parts = pathSegments.take(parent.segments.length);
-        final _remainingPathSegments = pathSegments.skip(parts.length).toList();
+        final remainingPathSegments = pathSegments.skip(parts.length).toList();
 
-        if (_remainingPathSegments.isEmpty &&
+        if (remainingPathSegments.isEmpty &&
             (parent.canInvoke &&
                 (parent.method == method ||
                     parent.method == 'GET' && method == 'HEAD'))) {
@@ -49,28 +49,29 @@ class Find {
           continue;
         }
 
-        final _pathSegments = pathSegments.take(route.segments.length);
+        final possibleSameSegments = pathSegments.take(route.segments.length);
 
         if (route.isDynamic) {
-          final _segments = [
-            for (final segment in route.segments.take(_pathSegments.length))
-              if (segment.startsWith(':')) r'(.+)' else segment
+          final segments = [
+            for (final segment
+                in route.segments.take(possibleSameSegments.length))
+              if (segment.startsWith(':')) '(.+)' else segment,
           ];
 
-          final pattern = RegExp('^${_segments.join(r'\/')}\$');
+          final pattern = RegExp('^${segments.join(r'\/')}\$');
 
-          if (pattern.hasMatch(_pathSegments.join('/')) &&
+          if (pattern.hasMatch(possibleSameSegments.join('/')) &&
               route.method == method) {
             for (var i = 0; i < route.segments.length; i++) {
               final segment = route.segments[i];
               if (segment.startsWith(':')) {
                 pathParameters[segment.substring(1)] =
-                    _pathSegments.elementAt(i);
+                    possibleSameSegments.elementAt(i);
               }
             }
 
-            final poss = _find(
-              pathSegments: pathSegments.skip(_pathSegments.length),
+            final poss = find(
+              pathSegments: pathSegments.skip(possibleSameSegments.length),
               routes: route.routes,
               parent: route,
               method: method,
@@ -81,10 +82,11 @@ class Find {
               return poss;
             }
           }
-        } else if (_pathSegments.join('/') == route.path) {
-          final _segments = pathSegments.skip(_pathSegments.length).toList();
+        } else if (possibleSameSegments.join('/') == route.path) {
+          final segments =
+              pathSegments.skip(possibleSameSegments.length).toList();
 
-          if (_segments.isEmpty) {
+          if (segments.isEmpty) {
             if (route.canInvoke) {
               if (route.method == method ||
                   (route.method == 'GET' && method == 'HEAD') ||
@@ -100,12 +102,12 @@ class Find {
               // If the route cannot be invoked, we need to add an empty segment
               // to the segments list to continue the search for the nested
               // route that can be invoked and is empty
-              _segments.add('');
+              segments.add('');
             }
           }
 
-          return _find(
-            pathSegments: _segments,
+          return find(
+            pathSegments: segments,
             routes: route.routes,
             parent: route,
             method: method,
@@ -117,7 +119,7 @@ class Find {
       return null;
     }
 
-    return _find(
+    return find(
       pathSegments: segments,
       routes: routes,
       parent: null,

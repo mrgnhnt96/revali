@@ -1,7 +1,7 @@
 part of 'router.dart';
 
-class _RunOptions {
-  const _RunOptions(this.helper);
+class RunOptions {
+  const RunOptions(this.helper);
 
   final RouterHelperMixin helper;
 

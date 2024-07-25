@@ -4,11 +4,12 @@ import 'package:revali_router_core/meta/write_only_meta.dart';
 class MetaHandler implements ReadOnlyMeta, WriteOnlyMeta {
   MetaHandler();
 
-  Map<Type, List<dynamic>> _registered = {};
+  final _registered = <Type, List<dynamic>>{};
 
   /// Adds an instance to meta, which can be retrieved later.
   ///
   /// The key for the instance is the type of the instance.
+  @override
   void add<T>(T instance) {
     (_registered[T] ??= []).add(instance);
   }
@@ -17,7 +18,7 @@ class MetaHandler implements ReadOnlyMeta, WriteOnlyMeta {
   List<T>? get<T>() {
     final result = _registered[T];
 
-    return List<T>.from(result as List<T>, growable: false);
+    return List<T>.from(result! as List<T>, growable: false);
   }
 
   @override

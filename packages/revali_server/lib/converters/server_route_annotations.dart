@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_server/revali_server.dart';
@@ -65,8 +67,10 @@ class ServerRouteAnnotations with ExtractImport {
           package: 'revali_router_annotations',
           convert: (object, annotation) {
             types.catchers.add(
-              ServerTypeReference.fromElement(object,
-                  superType: ExceptionCatcher),
+              ServerTypeReference.fromElement(
+                object,
+                superType: ExceptionCatcher,
+              ),
             );
           },
         ),
@@ -75,7 +79,8 @@ class ServerRouteAnnotations with ExtractImport {
           package: 'revali_router_annotations',
           convert: (object, annotation) {
             types.middlewares.add(
-                ServerTypeReference.fromElement(object, superType: Middleware));
+              ServerTypeReference.fromElement(object, superType: Middleware),
+            );
           },
         ),
         OnMatch(
@@ -147,7 +152,8 @@ class ServerRouteAnnotations with ExtractImport {
           convert: (object, annotation) {
             if (allowOrigins != null) {
               throw ArgumentError(
-                  'Only one $AllowOrigins annotation is allowed');
+                'Only one $AllowOrigins annotation is allowed',
+              );
             }
             allowOrigins = ServerAllowOrigins.fromDartObject(object);
           },
@@ -158,7 +164,8 @@ class ServerRouteAnnotations with ExtractImport {
           convert: (object, annotation) {
             if (allowHeaders != null) {
               throw ArgumentError(
-                  'Only one $AllowHeaders annotation is allowed');
+                'Only one $AllowHeaders annotation is allowed',
+              );
             }
             allowHeaders = ServerAllowHeaders.fromDartObject(object);
           },

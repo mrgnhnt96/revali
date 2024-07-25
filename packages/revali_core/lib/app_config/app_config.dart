@@ -1,6 +1,8 @@
+// ignore_for_file: avoid_print
+
 import 'dart:io';
 
-import '../di/di.dart';
+import 'package:revali_core/di/di.dart';
 
 abstract base class AppConfig {
   const AppConfig({

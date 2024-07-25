@@ -1,3 +1,5 @@
+// ignore_for_file: overridden_fields
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
@@ -50,6 +52,7 @@ class ServerReflect {
   final String? className;
   final Map<String, Iterable<ServerMimic>>? metas;
 
+  // ignore: library_private_types_in_public_api
   _ValidServerReflect? get valid {
     if (!isValid) return null;
 
@@ -67,7 +70,9 @@ class _ValidServerReflect extends ServerReflect {
   const _ValidServerReflect({
     required String super.className,
     required Map<String, Iterable<ServerMimic>> super.metas,
+    // ignore: prefer_initializing_formals
   })  : className = className,
+        // ignore: prefer_initializing_formals
         metas = metas;
 
   @override

@@ -16,6 +16,7 @@ final class ExceptionCatcherAction {
         statusCode: statusCode,
       );
 
+  // ignore: use_to_and_as_if_applicable
   ExceptionCatcherResult notHandled() =>
       ExceptionCatcherResult.notHandled(this);
 }

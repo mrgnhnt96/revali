@@ -25,7 +25,7 @@ void main() {
     });
 
     test('should return null if no routes are provided', () {
-      final result = Find(
+      final result = const Find(
         segments: [],
         routes: null,
         method: 'GET',
@@ -80,7 +80,7 @@ void main() {
         'user',
         method: 'GET',
         handler: (_) async {},
-        routes: [],
+        routes: const [],
       );
       final router = Router(
         routes: [getter],
@@ -135,7 +135,6 @@ void main() {
         routes: [
           Route(
             'user',
-            handler: null,
             routes: [getter],
           ),
         ],
@@ -162,7 +161,6 @@ void main() {
         routes: [
           Route(
             'user',
-            handler: null,
             routes: [
               Route(
                 '',

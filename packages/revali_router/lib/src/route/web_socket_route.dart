@@ -33,6 +33,7 @@ class WebSocketRoute extends BaseRoute {
   final Duration? ping;
 
   @override
+  // ignore: overridden_fields
   final FutureOr<WebSocketHandler> Function(EndpointContext) handler;
 
   @override

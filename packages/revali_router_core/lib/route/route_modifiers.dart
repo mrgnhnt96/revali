@@ -1,9 +1,9 @@
+import 'package:revali_annotations/revali_annotations.dart';
 import 'package:revali_router_core/exception_catcher/exception_catcher.dart';
 import 'package:revali_router_core/guard/guard.dart';
 import 'package:revali_router_core/interceptor/interceptor.dart';
 import 'package:revali_router_core/meta/meta_handler.dart';
 import 'package:revali_router_core/middleware/middleware.dart';
-import 'package:revali_annotations/revali_annotations.dart';
 
 abstract class RouteModifiers {
   const RouteModifiers();

@@ -1,7 +1,9 @@
+// ignore_for_file: unnecessary_parenthesis
+
 import 'dart:io';
 
 import 'package:code_builder/code_builder.dart';
-import 'package:revali_router/revali_router.dart' hide Method, AllowOrigins;
+import 'package:revali_router/revali_router.dart' hide AllowOrigins, Method;
 import 'package:revali_server/revali_server.dart';
 
 String serverFile(
@@ -59,92 +61,100 @@ String serverFile(
         declareFinal('server', late: true, type: refer('HttpServer')).statement,
         tryCatch(
           refer('server')
-              .assign(refer((HttpServer).name)
-                  .property(app.isSecure ? 'bindSecure' : 'bind')
-                  .call([
-                refer('app').property('host'),
-                refer('app').property('port'),
-                if (app.isSecure)
-                  refer('app').property('securityContext').nullChecked,
-              ], {
-                if (app.isSecure)
-                  'requestClientCertificate':
-                      refer('app').property('requestClientCertificate'),
-                if (server.context.mode.isDebug) 'shared': literalTrue,
-              }).awaited)
+              .assign(
+                refer((HttpServer).name)
+                    .property(app.isSecure ? 'bindSecure' : 'bind')
+                    .call([
+                  refer('app').property('host'),
+                  refer('app').property('port'),
+                  if (app.isSecure)
+                    refer('app').property('securityContext').nullChecked,
+                ], {
+                  if (app.isSecure)
+                    'requestClientCertificate':
+                        refer('app').property('requestClientCertificate'),
+                  if (server.context.mode.isDebug) 'shared': literalTrue,
+                }).awaited,
+              )
               .statement,
           Block.of([
             refer('print').call(
-                [literalString('Failed to bind server:\\n\$e')]).statement,
+              [literalString(r'Failed to bind server:\n$e')],
+            ).statement,
             refer('exit').call([literalNum(1)]).statement,
           ]),
         ),
-        Code('\n'),
+        const Code('\n'),
         declareFinal('di')
             .assign(refer((DIImpl).name).newInstance([]))
             .statement,
         ...createDependencyInjection(server),
-        Code('\n'),
+        const Code('\n'),
         ...createRoutesVariable(server),
-        Code('\n'),
+        const Code('\n'),
         Block.of([
-          Code('if ('),
+          const Code('if ('),
           refer('app').property('prefix').code,
-          Code(' case'),
+          const Code(' case'),
           declareFinal('prefix?').code,
-          Code(' when '),
+          const Code(' when '),
           refer('prefix').property('isNotEmpty').code,
-          Code(') {'),
+          const Code(') {'),
           refer('_routes')
-              .assign(literalList([
-                refer((Route).name).newInstance([
-                  refer('prefix')
-                ], {
-                  'routes': refer('_routes'),
-                }),
-              ]))
-              .statement,
-          Code('}'),
-        ]),
-        Code('\n'),
-        declareFinal('router')
-            .assign(refer((Router).name).newInstance(
-              [],
-              {
-                if (server.context.mode.isDebug) 'debug': literalTrue,
-                'routes': literalList([
-                  refer('_routes').spread,
-                  refer('public').spread,
+              .assign(
+                literalList([
+                  refer((Route).name).newInstance([
+                    refer('prefix'),
+                  ], {
+                    'routes': refer('_routes'),
+                  }),
                 ]),
-                if (app.observers.isNotEmpty)
-                  'observers': literalList([
-                    for (final observer in app.observers) createMimic(observer)
+              )
+              .statement,
+          const Code('}'),
+        ]),
+        const Code('\n'),
+        declareFinal('router')
+            .assign(
+              refer((Router).name).newInstance(
+                [],
+                {
+                  if (server.context.mode.isDebug) 'debug': literalTrue,
+                  'routes': literalList([
+                    refer('_routes').spread,
+                    refer('public').spread,
                   ]),
-                'reflects': refer('reflects'),
-                'defaultResponses': refer('app').property('defaultResponses'),
-                if (server.app case final app?
-                    when app.globalRouteAnnotations.hasAnnotations)
-                  'globalModifiers':
-                      refer((RouteModifiersImpl).name).newInstance([], {
-                    ...createModifierArgs(
-                      annotations: app.globalRouteAnnotations,
-                    )
-                  })
-              },
-            ))
+                  if (app.observers.isNotEmpty)
+                    'observers': literalList([
+                      for (final observer in app.observers)
+                        createMimic(observer),
+                    ]),
+                  'reflects': refer('reflects'),
+                  'defaultResponses': refer('app').property('defaultResponses'),
+                  if (server.app case final app?
+                      when app.globalRouteAnnotations.hasAnnotations)
+                    'globalModifiers':
+                        refer((RouteModifiersImpl).name).newInstance([], {
+                      ...createModifierArgs(
+                        annotations: app.globalRouteAnnotations,
+                      ),
+                    }),
+                },
+              ),
+            )
             .statement,
-        Code('\n'),
+        const Code('\n'),
         refer('handleRequests').call(
           [
             refer('server'),
             refer('router').property('handle'),
           ],
         ).statement,
-        Code('\n'),
+        const Code('\n'),
         refer('app').property('onServerStarted').call(
           [refer('server')],
         ).statement,
-        Code('\n'),
+        const Code('\n'),
         refer('server').returned.statement,
       ]),
   );

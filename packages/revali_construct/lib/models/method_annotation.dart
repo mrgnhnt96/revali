@@ -10,7 +10,7 @@ class MethodAnnotation extends Equatable implements Method {
     required this.path,
   });
 
-  static MethodAnnotation fromAnnotation(DartObject annotation) {
+  factory MethodAnnotation.fromAnnotation(DartObject annotation) {
     final name = getFieldValueFromDartObject(annotation, 'name');
 
     if (name == null) {

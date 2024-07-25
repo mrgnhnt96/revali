@@ -5,10 +5,10 @@ Block tryCatch(
   Code catchBlock,
 ) {
   return Block.of([
-    Code('try {'),
+    const Code('try {'),
     tryBlock,
-    Code('} catch (e) {'),
+    const Code('} catch (e) {'),
     catchBlock,
-    Code('}'),
+    const Code('}'),
   ]);
 }

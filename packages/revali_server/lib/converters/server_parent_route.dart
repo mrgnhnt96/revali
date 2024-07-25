@@ -33,10 +33,13 @@ class ServerParentRoute with ExtractImport implements ServerRoute {
   final String className;
   final ServerImports importPath;
   final String routePath;
+  @override
   final Iterable<ServerParam> params;
   final Iterable<ServerChildRoute> routes;
+  @override
   final ServerRouteAnnotations annotations;
 
+  @override
   String get handlerName => routePath.toNoCase().toCamelCase();
 
   String get classVarName => className.toNoCase().toCamelCase();

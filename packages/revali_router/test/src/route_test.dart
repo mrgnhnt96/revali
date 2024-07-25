@@ -172,7 +172,7 @@ void main() {
             '!',
             '@',
             '#',
-            '\$',
+            r'$',
             '%',
             '^',
             '&',
@@ -391,7 +391,7 @@ void main() {
 
           final child = route.routes!.first;
 
-          final direct = child.getMeta(inherit: false);
+          final direct = child.getMeta();
 
           expect(direct.has<_Auth>(), isFalse);
           expect(direct.has<_Public>(), isTrue);

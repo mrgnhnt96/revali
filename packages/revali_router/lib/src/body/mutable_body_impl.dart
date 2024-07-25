@@ -39,11 +39,10 @@ class MutableBodyImpl extends MutableBody {
     _data = json;
   }
 
+  @override
   void add(Object? data) {
     var newData = _data;
-    if (newData == null) {
-      newData = ListBodyData([]);
-    }
+    newData ??= ListBodyData([]);
 
     if (newData is! BaseBodyData) {
       throw StateError('Cannot add to non-$BaseBodyData body');
@@ -53,17 +52,13 @@ class MutableBodyImpl extends MutableBody {
       throw StateError('Cannot add to non-List body');
     }
 
-    final list = newData.asList;
-
-    list.add(data);
-
-    _data = list;
+    _data = newData.asList..add(data);
   }
 
   List<List<int>>? _bytes;
   @override
   Stream<List<int>>? read() async* {
-    final bytes = this._bytes;
+    final bytes = _bytes;
     if (bytes != null) {
       yield* Stream.fromIterable(bytes);
       return;
@@ -85,10 +80,10 @@ class MutableBodyImpl extends MutableBody {
   String? get mimeType => _data?.mimeType;
 
   @override
-  void replace(Object? data) async {
+  Future<void> replace(Object? data) async {
     _data = switch (data) {
       BodyData() => data,
-      _ => BaseBodyData.from(data),
+      _ => BaseBodyData<dynamic>.from(data),
     };
   }
 

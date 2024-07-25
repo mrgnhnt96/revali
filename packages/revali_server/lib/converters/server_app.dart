@@ -39,7 +39,7 @@ class ServerApp with ExtractImport {
       isSecure: app.isSecure,
       importPath: ServerImports([app.importPath]),
       constructor: app.constructor,
-      params: app.params.map((param) => ServerParam.fromMeta(param)).toList(),
+      params: app.params.map(ServerParam.fromMeta).toList(),
       appAnnotation: ServerAppAnnotation.fromMeta(app.appAnnotation),
       globalRouteAnnotations: ServerRouteAnnotations.fromApp(app),
       observers: observers,

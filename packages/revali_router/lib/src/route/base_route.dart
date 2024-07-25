@@ -48,7 +48,7 @@ class BaseRoute extends Equatable implements RouteEntry, RouteModifiers {
     required this.allowedOrigins,
     required this.allowedHeaders,
     // dynamic is needed bc copyWith has a bug
-    required meta,
+    required dynamic meta,
   }) : _meta = meta as void Function(MetaHandler)? {
     final method = this.method;
 
@@ -62,7 +62,7 @@ class BaseRoute extends Equatable implements RouteEntry, RouteModifiers {
       }
     }
 
-    if (path.isEmpty && routes?.isNotEmpty == true) {
+    if (path.isEmpty && routes != null && routes.isNotEmpty) {
       throw ArgumentError('path cannot be empty if routes are provided');
     }
 
@@ -74,14 +74,15 @@ class BaseRoute extends Equatable implements RouteEntry, RouteModifiers {
       final noSpecials = RegExp(r'[^a-z0-9\/\-_.:]', caseSensitive: false);
       if (noSpecials.hasMatch(path)) {
         throw ArgumentError(
-          'path should not contain special characters, allowed: a-z, A-Z, 0-9, :, - and _ (pattern: ${noSpecials.pattern})',
+          'path should not contain special characters, allowed: a-z, A-Z, 0-9, '
+          ':, - and _ (pattern: ${noSpecials.pattern})',
         );
       }
 
       final segmentPattern =
           RegExp(r'^:?[a-z0-9]+(?:[-_.][a-z0-9]+)*$', caseSensitive: false);
       final segments = path.split('/');
-      if (!segments.every((p) => segmentPattern.hasMatch(p))) {
+      if (!segments.every(segmentPattern.hasMatch)) {
         throw ArgumentError(
           'Invalid path format. Valid formats: /path/to/resource, path/:id (Segment pattern: ${segmentPattern.pattern})',
         );
@@ -108,29 +109,39 @@ class BaseRoute extends Equatable implements RouteEntry, RouteModifiers {
 
       final conflicts = [
         for (final entry in nonDynamicPaths.entries)
-          if (entry.value.length > 1) entry.value
+          if (entry.value.length > 1) entry.value,
       ];
 
       if (conflicts.isNotEmpty) {
         throw ArgumentError(
-          'Conflicting paths found:\n\t${conflicts.map((e) => e.join('\n\t')).join('\n\n\t')}',
+          'Conflicting paths found:\n\t'
+          '${conflicts.map((e) => e.join('\n\t')).join('\n\n\t')}',
         );
       }
     }
   }
 
+  @override
   final String path;
   late final Iterable<BaseRoute>? routes;
+  @override
   final List<Middleware> middlewares;
+  @override
   final List<Interceptor> interceptors;
+  @override
   final List<ExceptionCatcher> catchers;
+  @override
   final List<Guard> guards;
+  @override
   BaseRoute? parent;
   final dynamic Function(EndpointContext)? handler;
+  @override
   final String? method;
   final void Function(MetaHandler)? _meta;
   final Redirect? redirect;
+  @override
   final AllowedOrigins? allowedOrigins;
+  @override
   final AllowedHeaders? allowedHeaders;
 
   bool get canInvoke => handler != null && method != null;
@@ -140,9 +151,11 @@ class BaseRoute extends Equatable implements RouteEntry, RouteModifiers {
 
   BaseRoute setParent(BaseRoute route) {
     parent = route;
+    // ignore: avoid_returning_this
     return this;
   }
 
+  @override
   MetaHandler getMeta({MetaHandler? handler, bool inherit = false}) {
     final meta = handler ?? MetaHandler();
 
@@ -219,6 +232,7 @@ class BaseRoute extends Equatable implements RouteEntry, RouteModifiers {
     return true;
   }
 
+  @override
   String get fullPath {
     final buffer = StringBuffer();
 

@@ -11,6 +11,7 @@ class RoutesHandler with DirectoriesMixin {
     required this.rootPath,
   });
 
+  @override
   final FileSystem fs;
   final String rootPath;
 
@@ -57,7 +58,8 @@ class RoutesHandler with DirectoriesMixin {
   }
 
   Future<({List<MetaRoute> routes, List<MetaAppConfig> apps})> _getRoutes(
-      Directory root) async {
+    Directory root,
+  ) async {
     final routesDir = await root.getRoutes();
 
     if (routesDir == null || !await routesDir.exists()) {

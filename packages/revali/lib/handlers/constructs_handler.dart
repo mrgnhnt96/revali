@@ -4,9 +4,9 @@ import 'dart:isolate';
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart' as p;
-import 'package:yaml/yaml.dart';
 import 'package:revali/utils/extensions/directory_extensions.dart';
 import 'package:revali_construct/revali_construct.dart';
+import 'package:yaml/yaml.dart';
 
 class ConstructsHandler {
   ConstructsHandler({
@@ -21,8 +21,8 @@ class ConstructsHandler {
 
   static const String constructYamlFileName = 'construct.yaml';
 
-  /// Gets the [ConstructYaml]s based on the dependencies of the project requesting
-  /// revali
+  /// Gets the [ConstructYaml]s based on the dependencies
+  /// of the project requesting revali
   Future<List<ConstructYaml>> constructDepsFrom(Directory root) async {
     if (__constructs case final constructs?) {
       return constructs;
@@ -30,7 +30,7 @@ class ConstructsHandler {
 
     final pubspec = root.childFile('pubspec.yaml');
 
-    final pubspecYaml = loadYaml(await pubspec.readAsString());
+    final pubspecYaml = loadYaml(await pubspec.readAsString()) as YamlMap;
 
     final devDependencies = pubspecYaml['dev_dependencies'] as YamlMap?;
 
@@ -43,11 +43,18 @@ class ConstructsHandler {
 
     final packageJson = jsonDecode(await packageJsonFile.readAsString()) as Map;
     final packages = <String, String>{};
-    for (final package in packageJson['packages']) {
-      final packageUri = package['packageUri'] as String;
-      final name = package['name'] as String;
 
-      packages[name] = packageUri;
+    if (packageJson['packages']
+        case final List<Map<String, dynamic>> rawPackages) {
+      for (final package in rawPackages) {
+        if (package
+            case {
+              'packageUri': final String packageUri,
+              'name': final String name
+            }) {
+          packages[name] = packageUri;
+        }
+      }
     }
 
     for (final key in devDependencies?.keys ?? []) {
@@ -90,7 +97,7 @@ class ConstructsHandler {
   ///
   /// - Contains only 1 config where [ConstructConfig.isServer] is true
   Future<void> checkConstructs(Iterable<ConstructYaml> constructs) async {
-    bool hasRouter = false;
+    var hasRouter = false;
     for (final construct in constructs) {
       for (final config in construct.constructs) {
         if (config.isServer) {

@@ -5,16 +5,16 @@ import 'package:revali_construct/revali_construct.dart';
 part 'revali_yaml.g.dart';
 
 @JsonSerializable()
-class revaliYaml extends Equatable {
-  const revaliYaml({
+class RevaliYaml extends Equatable {
+  const RevaliYaml({
     required this.constructs,
   });
-  const revaliYaml.none() : constructs = const [];
+  const RevaliYaml.none() : constructs = const [];
 
-  factory revaliYaml.fromJson(Map<String, dynamic> json) =>
+  factory RevaliYaml.fromJson(Map<String, dynamic> json) =>
       _$revaliYamlFromJson(json);
 
-  @JsonKey(defaultValue: const [])
+  @JsonKey(defaultValue: [])
   final List<RevaliConstructConfig> constructs;
 
   Map<String, dynamic> toJson() => _$revaliYamlToJson(this);
@@ -47,7 +47,7 @@ class revaliYaml extends Equatable {
 
     throw Exception(
       'Multiple configs with the same name. '
-      'Try adding the `package` key to identify'
+      'Try adding the `package` key to identify '
       'the different constructs',
     );
   }

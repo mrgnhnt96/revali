@@ -14,6 +14,7 @@ class ServerBodyAnnotation with ExtractImport {
 
   factory ServerBodyAnnotation.fromElement(
     DartObject object,
+    // ignore: avoid_unused_constructor_parameters
     ElementAnnotation annotation,
   ) {
     final access = object.getField('access')?.toListValue()?.map((e) {

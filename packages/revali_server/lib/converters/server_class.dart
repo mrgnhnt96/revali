@@ -27,9 +27,11 @@ class ServerClass with ExtractImport {
 
     final superTypeWithoutGenerics = '$superType'.split('<').first;
 
-    if (!element.allSupertypes.any((e) => e
-        .getDisplayString(withNullability: false)
-        .startsWith(superTypeWithoutGenerics))) {
+    if (!element.allSupertypes.any(
+      (e) => e
+          .getDisplayString(withNullability: false)
+          .startsWith(superTypeWithoutGenerics),
+    )) {
       throw ArgumentError.value(
         type,
         'type',

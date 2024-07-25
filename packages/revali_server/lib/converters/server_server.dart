@@ -17,9 +17,9 @@ class ServerServer with ExtractImport {
   factory ServerServer.fromMeta(RevaliContext context, MetaServer server) {
     return ServerServer(
       context: context,
-      routes: server.routes.map((e) => ServerParentRoute.fromMeta(e)).toList(),
-      apps: server.apps.map((e) => ServerApp.fromMeta(e)).toList(),
-      public: server.public.map((e) => ServerPublic.fromMeta(e)).toList(),
+      routes: server.routes.map(ServerParentRoute.fromMeta).toList(),
+      apps: server.apps.map(ServerApp.fromMeta).toList(),
+      public: server.public.map(ServerPublic.fromMeta).toList(),
     );
   }
 
@@ -63,7 +63,8 @@ class ServerServer with ExtractImport {
 
     if (context.flavor == null) {
       throw Exception(
-        'No app found, did you forget pass the --flavor arg?\n$configuredFlavors',
+        'No app found, did you forget pass the '
+        '--flavor arg?\n$configuredFlavors',
       );
     }
 

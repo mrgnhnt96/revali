@@ -1,6 +1,6 @@
-import 'package:revali_router_core/exception_catcher/exception_catcher_action.dart';
 import 'package:revali_router_core/error/override_error_response.dart';
 import 'package:revali_router_core/error/override_error_response_mixin.dart';
+import 'package:revali_router_core/exception_catcher/exception_catcher_action.dart';
 
 sealed class ExceptionCatcherResult {
   const ExceptionCatcherResult();
@@ -19,6 +19,7 @@ sealed class ExceptionCatcherResult {
   bool get isHandled => this is _Handled;
   bool get isNotHandled => this is _NotHandled;
 
+  // ignore: library_private_types_in_public_api
   _Handled get asHandled => this as _Handled;
 }
 
@@ -37,8 +38,11 @@ final class _Handled extends ExceptionCatcherResult
     this.statusCode,
   });
 
+  @override
   final int? statusCode;
+  @override
   final Map<String, String>? headers;
+  @override
   final Object? body;
 
   final ExceptionCatcherAction action;

@@ -1,7 +1,7 @@
 part of 'router.dart';
 
-class _RunOriginCheck {
-  const _RunOriginCheck(this.helper);
+class RunOriginCheck {
+  const RunOriginCheck(this.helper);
 
   final RouterHelperMixin helper;
 
@@ -65,8 +65,10 @@ class _RunOriginCheck {
     }
 
     request.headers
-      ..set(HttpHeaders.accessControlAllowMethodsHeader,
-          route.allowedMethods.join(', '))
+      ..set(
+        HttpHeaders.accessControlAllowMethodsHeader,
+        route.allowedMethods.join(', '),
+      )
       ..set(HttpHeaders.accessControlAllowCredentialsHeader, 'true')
       ..set(
         HttpHeaders.accessControlAllowHeadersHeader,

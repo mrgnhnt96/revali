@@ -22,6 +22,7 @@ class Route extends BaseRoute {
   }) : super(handler: handler);
 
   @override
+  // ignore: overridden_fields
   final Future<void> Function(EndpointContext)? handler;
 
   @override

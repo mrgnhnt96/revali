@@ -4,7 +4,7 @@ import 'package:revali_construct/models/method_annotation.dart';
 import 'package:revali_construct/utils/get_field_value_from_dart_object.dart';
 
 class WebSocketAnnotation extends MethodAnnotation {
-  WebSocketAnnotation(
+  const WebSocketAnnotation(
     super.name, {
     required this.mode,
     required super.path,
@@ -17,12 +17,6 @@ class WebSocketAnnotation extends MethodAnnotation {
     required String name,
     required String? path,
   }) {
-    final name = getFieldValueFromDartObject(annotation, 'name');
-
-    if (name == null) {
-      throw Exception('Method name is required');
-    }
-
     final modeRaw = getFieldObjectFromDartObject(annotation, 'mode');
     final modeName = modeRaw?.getField('_name')?.toStringValue();
     var mode = WebSocketMode.twoWay;

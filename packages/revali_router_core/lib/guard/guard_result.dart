@@ -1,6 +1,6 @@
-import 'package:revali_router_core/guard/guard_action.dart';
 import 'package:revali_router_core/error/override_error_response.dart';
 import 'package:revali_router_core/error/override_error_response_mixin.dart';
+import 'package:revali_router_core/guard/guard_action.dart';
 
 sealed class GuardResult {
   const GuardResult();
@@ -15,6 +15,7 @@ sealed class GuardResult {
 
   bool get isYes => this is _Yes;
   bool get isNo => this is _No;
+  // ignore: library_private_types_in_public_api
   _No get asNo => this as _No;
 }
 

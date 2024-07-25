@@ -13,34 +13,29 @@ import 'package:revali_router_core/headers/read_only_headers.dart';
 import 'package:revali_router_core/payload/payload.dart';
 
 class PayloadImpl implements Payload {
-  PayloadImpl._({
-    required Stream<List<int>> stream,
-    this.contentLength,
-  }) : _stream = stream;
-
   factory PayloadImpl(
     Object? body, {
     required Encoding encoding,
   }) {
     if (body is PayloadImpl) return body;
 
-    final List<int>? encoded = switch (body) {
+    final encoded = switch (body) {
       String() => encoding.encode(body),
       List<int>() => body,
-      List() => body.cast(),
-      null => [],
+      List() => body.cast<int>(),
+      null => <int>[],
       Stream() => null,
       _ => throw ArgumentError(
           'Body must be a String, List<int>, or a Stream.',
         ),
     };
 
-    final Stream<List<int>> stream = switch (body) {
+    final stream = switch (body) {
       String() => Stream.fromIterable([encoded!]),
       null => Stream.fromIterable([encoded!]),
       List() => Stream.value(encoded!),
       Stream<List<int>>() => body,
-      Stream() => body.cast(),
+      Stream() => body.cast<List<int>>(),
       _ => throw ArgumentError(
           'Body must be a String, List<int>, or a Stream.',
         ),
@@ -81,23 +76,20 @@ class PayloadImpl implements Payload {
     );
   }
 
+  PayloadImpl._({
+    required Stream<List<int>> stream,
+    this.contentLength,
+  }) : _stream = stream;
+
   static Map<String, Future<BodyData> Function(Encoding, Stream<List<int>>)>
       additionalParsers = {};
 
   final Stream<List<int>> _stream;
+  @override
   final int? contentLength;
 
-  static bool _isPlainAscii(List<int> bytes, int codeUnits) {
-    // Most non-ASCII code units will produce multiple bytes and make the text
-    // longer.
-    if (bytes.length != codeUnits) return false;
-
-    // Non-ASCII code units between U+0080 and U+009F produce 8-bit characters
-    // with the high bit set.
-    return bytes.every((byte) => byte & 0x80 == 0);
-  }
-
   List<int>? _bytes;
+  @override
   Stream<List<int>> read() async* {
     if (_bytes != null) {
       yield _bytes!;
@@ -111,6 +103,7 @@ class PayloadImpl implements Payload {
     yield _bytes!;
   }
 
+  @override
   Future<BodyData> resolve(ReadOnlyHeaders headers) async {
     final encoding = headers.encoding;
 
@@ -143,7 +136,7 @@ class PayloadImpl implements Payload {
     }
   }
 
-  Future<JsonData> _resolveJson(Encoding encoding) async {
+  Future<JsonData<dynamic>> _resolveJson(Encoding encoding) async {
     final json = await encoding.decodeStream(read());
 
     if (json.isEmpty) {
@@ -164,7 +157,7 @@ class PayloadImpl implements Payload {
       }
     }
 
-    throw FormatException('Invalid JSON data');
+    throw const FormatException('Invalid JSON data');
   }
 
   Future<FormDataBodyData> _resolveFormUrl(
@@ -186,18 +179,18 @@ class PayloadImpl implements Payload {
     MediaType? contentType,
   ) async {
     if (contentType == null) {
-      throw FormatException('Content-Type header is missing');
+      throw const FormatException('Content-Type header is missing');
     }
 
     final boundary = contentType.parameters['boundary'];
     if (boundary == null) {
-      throw FormatException('Boundary parameter is missing');
+      throw const FormatException('Boundary parameter is missing');
     }
 
     final transformer = MimeMultipartTransformer(boundary);
     final parts = await transformer.bind(read()).toList();
 
-    final data = Map<String, dynamic>();
+    final data = <String, dynamic>{};
     for (final part in parts) {
       final disposition = part.headers['content-disposition'];
       if (disposition == null) continue;
@@ -210,7 +203,7 @@ class PayloadImpl implements Payload {
 
       if (filename != null) {
         final bytes = await part.fold<List<int>>([], (a, b) => a..addAll(b));
-        final content = await encoding.decode(bytes);
+        final content = encoding.decode(bytes);
         data[name] = {
           'filename': filename,
           'content': content,

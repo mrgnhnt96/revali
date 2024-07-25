@@ -24,12 +24,14 @@ class ConstructRunner extends CommandRunner<int> {
         hide: true,
       );
 
-    addCommand(DevCommand(
-      fs: fs,
-      rootPath: rootPath,
-      constructs: constructs,
-      logger: logger,
-    ));
+    addCommand(
+      DevCommand(
+        fs: fs,
+        rootPath: rootPath,
+        constructs: constructs,
+        logger: logger,
+      ),
+    );
   }
 
   final List<ConstructMaker> constructs;
@@ -44,8 +46,8 @@ class ConstructRunner extends CommandRunner<int> {
   }
 
   @override
-  Future<int> runCommand(ArgResults args) async {
-    final result = await super.runCommand(args);
+  Future<int> runCommand(ArgResults topLevelResults) async {
+    final result = await super.runCommand(topLevelResults);
 
     return result ?? 0;
   }

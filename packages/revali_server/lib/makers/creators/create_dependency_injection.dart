@@ -26,7 +26,7 @@ List<Code> createDependencyInjection(ServerServer server) {
       Block.of(
         [
           refer('print').call([
-            literalString('Failed to configure dependencies:\\n\$e')
+            literalString(r'Failed to configure dependencies:\n$e'),
           ]).statement,
           refer('server').returned.statement,
         ],

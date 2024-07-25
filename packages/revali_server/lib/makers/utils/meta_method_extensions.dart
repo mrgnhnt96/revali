@@ -12,7 +12,7 @@ extension MetaMethodX on MetaMethod {
   String get cleanPath => '/${path ?? ''}'.replaceAll('//', '/');
 
   String get formattedPath {
-    final path = this.cleanPath;
+    final path = cleanPath;
 
     final segments = path.split('/');
 

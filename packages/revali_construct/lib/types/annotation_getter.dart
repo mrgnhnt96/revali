@@ -14,8 +14,11 @@ class OnMatch implements Matcher {
     this.ignoreGenerics = false,
   }) : classType = '$classType';
 
+  @override
   final String classType;
+  @override
   final String package;
+  @override
   final bool ignoreGenerics;
   final void Function(DartObject object, ElementAnnotation annotation) convert;
 }
@@ -39,8 +42,8 @@ class Matcher {
 
 class NonMatch {
   const NonMatch({
-    this.ignore = const [],
     required this.convert,
+    this.ignore = const [],
   });
 
   final Iterable<Matcher> ignore;

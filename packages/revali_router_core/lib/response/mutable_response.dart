@@ -4,8 +4,9 @@ import 'package:revali_router_core/response/restricted_mutable_response.dart';
 abstract class MutableResponse implements RestrictedMutableResponse {
   const MutableResponse();
 
+  @override
   int get statusCode;
-  void set statusCode(int value);
+  set statusCode(int value);
 
   @override
   MutableBody get body;

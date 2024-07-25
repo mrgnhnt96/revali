@@ -1,3 +1,5 @@
+// ignore_for_file: unnecessary_parenthesis
+
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 import 'package:revali_server/converters/server_mimic.dart';
@@ -9,7 +11,7 @@ Spec createReflect(ServerReflect possibleReflect) {
   final reflect = possibleReflect.valid;
 
   if (reflect == null) {
-    return Code('');
+    return const Code('');
   }
 
   Expression metaExp(MapEntry<String, Iterable<ServerMimic>> data) {

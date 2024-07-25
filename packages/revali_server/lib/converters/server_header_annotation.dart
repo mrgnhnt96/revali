@@ -14,6 +14,7 @@ class ServerHeaderAnnotation with ExtractImport {
 
   factory ServerHeaderAnnotation.fromElement(
     DartObject object,
+    // ignore: avoid_unused_constructor_parameters
     ElementAnnotation annotation,
   ) {
     final name = object.getField('name')?.toStringValue();

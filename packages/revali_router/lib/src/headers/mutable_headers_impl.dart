@@ -22,14 +22,15 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
       return MutableHeadersImpl(map);
     }
 
-    final Map<String, List<String>> converted = switch (object) {
+    final converted = switch (object) {
       Map<String, List<String>>() => {...object},
       Map<String, String>() => {
           for (final entry in object.entries) entry.key: [entry.value],
         },
-      null => {},
+      null => <String, List<String>>{},
       _ => throw ArgumentError(
-          'Unsupported data type for $MutableHeadersImpl: ${object.runtimeType}',
+          'Unsupported data type for '
+          '$MutableHeadersImpl: ${object.runtimeType}',
         ),
     };
 

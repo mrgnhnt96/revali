@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:file/file.dart';
@@ -60,8 +58,7 @@ class FileTraverser {
     final context = collection.contexts.first;
     final result = await context.currentSession.getResolvedUnit(file);
     if (result is! ResolvedUnitResult) {
-      print('Failed to resolve the unit.');
-      exit(1);
+      throw ArgumentError('Could not resolve file: $file');
     }
 
     return result;

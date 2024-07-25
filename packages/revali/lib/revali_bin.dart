@@ -9,7 +9,7 @@ void main(List<String> args) {
 }
 
 Future<void> _run(List<String> args) async {
-  final fs = LocalFileSystem();
+  const fs = LocalFileSystem();
 
   var isLoud = false;
   var isQuiet = false;
@@ -27,7 +27,7 @@ Future<void> _run(List<String> args) async {
             : Level.info,
   );
 
-  final runner = revaliRunner(
+  final runner = RevaliRunner(
     initialDirectory: fs.currentDirectory.path,
     fs: fs,
     logger: logger,

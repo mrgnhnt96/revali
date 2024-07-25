@@ -20,14 +20,15 @@ extension HttpResponseX on HttpResponse {
     final http = this;
     statusCode = response.statusCode;
 
-    final _headers = response.headers;
-    _headers.forEach((key, values) {
-      http.headers.set(key, values.join(','));
-    });
+    final responseHeaders = response.headers
+      ..forEach((key, values) {
+        http.headers.set(key, values.join(','));
+      });
 
-    bool chunk = false;
+    var chunk = false;
 
-    if (_headers[HttpHeaders.transferEncodingHeader] case final coding?) {
+    if (responseHeaders[HttpHeaders.transferEncodingHeader]
+        case final coding?) {
       if (!equalsIgnoreAsciiCase(coding, 'identity')) {
         // If the response is already in a chunked encoding, de-chunk it because
         // otherwise `dart:io` will try to add another layer of chunking.
@@ -37,15 +38,16 @@ extension HttpResponseX on HttpResponse {
       } else if (response.statusCode >= 200 &&
           response.statusCode != 204 &&
           response.statusCode != 304 &&
-          _headers.contentLength == null &&
-          _headers.mimeType != 'multipart/byteranges') {
-        // If the response isn't chunked yet and there's no other way to tell its
+          responseHeaders.contentLength == null &&
+          responseHeaders.mimeType != 'multipart/byteranges') {
+        // If the response isn't chunked yet and
+        // there's no other way to tell its
         // length, enable `dart:io`'s chunked encoding.
         http.headers.set(HttpHeaders.transferEncodingHeader, 'chunked');
       }
     }
 
-    if (!_headers.keys.contains(HttpHeaders.dateHeader)) {
+    if (!responseHeaders.keys.contains(HttpHeaders.dateHeader)) {
       http.headers.date = DateTime.now().toUtc();
     }
 
@@ -61,29 +63,29 @@ extension HttpResponseX on HttpResponse {
 
     if (!disallowedMethods.contains(requestMethod) &&
         !disallowedStatuses.contains(response.statusCode)) {
-      Stream<List<int>>? _body;
+      Stream<List<int>>? body;
       if (response.body case final responseBody? when !responseBody.isNull) {
-        if (_headers.range case final range?
+        if (responseHeaders.range case final range?
             when responseBody is FileBodyData) {
           final (start, end) = range;
-          _body = responseBody.range(start, end);
+          body = responseBody.range(start, end);
         } else {
-          _body = responseBody.read();
+          body = responseBody.read();
         }
       }
 
-      if (chunk && _body != null) {
+      if (chunk && body != null) {
         final payload = PayloadImpl(
           response.body?.read(),
-          encoding: _headers.encoding,
+          encoding: responseHeaders.encoding,
         );
-        _body = chunkedCoding.decoder.bind(payload.read());
+        body = chunkedCoding.decoder.bind(payload.read());
 
         http.headers.contentLength = payload.contentLength ?? 0;
       }
 
-      if (_body != null) {
-        await http.addStream(_body);
+      if (body != null) {
+        await http.addStream(body);
       }
     }
 

@@ -1,3 +1,5 @@
+// ignore_for_file: unnecessary_parenthesis
+
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_core/revali_router_core.dart';
@@ -6,7 +8,9 @@ import 'package:revali_server/makers/creators/create_reflect.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
 
 PartFile reflectsFileMaker(
-    ServerServer server, String Function(Spec) formatter) {
+  ServerServer server,
+  String Function(Spec) formatter,
+) {
   final reflects = Method(
     (p) => p
       ..name = 'reflects'

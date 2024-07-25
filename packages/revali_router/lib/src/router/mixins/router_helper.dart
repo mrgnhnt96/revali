@@ -42,7 +42,7 @@ class RouterHelper with RouterHelperMixin {
   final BaseRoute route;
 
   @override
-  final _DebugErrorResponse debugErrorResponse;
+  final DebugErrorResponse debugErrorResponse;
 
   @override
   final bool debugResponses;

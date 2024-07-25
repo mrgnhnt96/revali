@@ -12,7 +12,7 @@ class ServerMimic with ExtractImport {
     required this.instance,
   });
 
-  static ServerMimic fromDartObject(
+  factory ServerMimic.fromDartObject(
     DartObject object,
     ElementAnnotation annotation,
   ) {

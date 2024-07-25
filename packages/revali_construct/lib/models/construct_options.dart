@@ -8,6 +8,7 @@ class ConstructOptions extends Equatable {
   const ConstructOptions(this.values);
   const ConstructOptions.empty() : values = const {};
 
+  // ignore: strict_raw_type
   static ConstructOptions fromJson(Map json) =>
       _$ConstructOptionsFromJson(json);
 

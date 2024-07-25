@@ -1,7 +1,7 @@
 part of './router.dart';
 
-class _RunCatchers {
-  const _RunCatchers(this.helper);
+class RunCatchers {
+  const RunCatchers(this.helper);
 
   final RouterHelperMixin helper;
 
@@ -44,7 +44,7 @@ class _RunCatchers {
         continue;
       }
 
-      final result = await catcher.catchException(
+      final result = catcher.catchException(
         e,
         ExceptionCatcherContextImpl(
           data: dataHandler,
@@ -66,10 +66,11 @@ class _RunCatchers {
         return debugErrorResponse(
           response
             .._overrideWith(
-                statusCode: statusCode,
-                backupCode: 500,
-                headers: headers,
-                body: body),
+              statusCode: statusCode,
+              backupCode: 500,
+              headers: headers,
+              body: body,
+            ),
           error: e,
           stackTrace: stackTrace,
         );

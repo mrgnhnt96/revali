@@ -10,8 +10,8 @@ final class WebSocket extends Method {
         super('WS', path: path);
 
   const WebSocket.ping({
-    String? path,
     required Duration this.ping,
+    String? path,
     this.mode = WebSocketMode.twoWay,
     this.triggerOnConnect = false,
   }) : super('WS', path: path);

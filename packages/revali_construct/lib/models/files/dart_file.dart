@@ -49,8 +49,8 @@ class DartFile {
 
     // inject part directives after all import statements
     final importIndex = content.lastIndexOf('import');
-    String importStatements = '';
-    String contentWithoutImports = content;
+    var importStatements = '';
+    var contentWithoutImports = content;
     if (importIndex != -1) {
       final importEndIndex = content.indexOf(';', importIndex);
       importStatements = content.substring(0, importEndIndex + 1);

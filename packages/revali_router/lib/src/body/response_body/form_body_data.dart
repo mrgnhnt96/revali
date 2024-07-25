@@ -19,7 +19,9 @@ final class FormDataBodyData extends JsonBodyData {
   @override
   Stream<List<int>> read() {
     final encoded = data.keys.map((key) {
-      return '${Uri.encodeQueryComponent(key)}=${Uri.encodeQueryComponent(data[key].toString())}';
+      return '${Uri.encodeQueryComponent(key)}'
+          '='
+          '${Uri.encodeQueryComponent(data[key].toString())}';
     }).join('&');
 
     return Stream.value(encoding.encode(encoded));

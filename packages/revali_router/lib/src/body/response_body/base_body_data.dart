@@ -21,8 +21,6 @@ part 'unknown_body_data.dart';
 sealed class BaseBodyData<T> extends BodyData {
   BaseBodyData(this.data);
 
-  final T data;
-
   factory BaseBodyData.from(Object? data) {
     final result = switch (data) {
       BaseBodyData() => data,
@@ -35,13 +33,17 @@ sealed class BaseBodyData<T> extends BodyData {
       MemoryFile() => MemoryFileBodyData(data),
       Binary() => BinaryBodyData(data),
       List() => ListBodyData(data),
+      // ignore: prefer_void_to_null
       Null() => NullBodyData(),
-      ReadOnlyBody() => BaseBodyData.from(data.data),
+      ReadOnlyBody() => BaseBodyData<dynamic>.from(data.data),
       _ => throw UnsupportedError('Unsupported body data type: $data'),
     };
 
     return result as BaseBodyData<T>;
   }
+
+  @override
+  final T data;
 
   bool get isBinary => this is BinaryBodyData;
   bool get isString => this is StringBodyData;
@@ -49,6 +51,8 @@ sealed class BaseBodyData<T> extends BodyData {
   bool get isList => this is ListBodyData;
   bool get isFormData => this is FormDataBodyData;
   bool get isUnknown => this is UnknownBodyData;
+
+  @override
   bool get isNull => false;
 
   BinaryBodyData get asBinary => this as BinaryBodyData;

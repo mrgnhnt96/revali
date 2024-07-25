@@ -9,7 +9,7 @@ Expression createArgFromQuery(
   ServerQueryAnnotation annotation,
   ServerParam param,
 ) {
-  Expression queryVar = refer('context').property('request');
+  var queryVar = refer('context').property('request');
 
   if (annotation.all) {
     queryVar = queryVar.property('queryParametersAll');

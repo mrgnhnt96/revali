@@ -7,6 +7,7 @@ class Reflector implements WriteOnlyReflector {
 
   Map<String, MetaHandler> get meta => Map.unmodifiable(_meta);
 
+  @override
   WriteOnlyMeta operator [](String key) {
     return _meta[key] ??= MetaHandler();
   }

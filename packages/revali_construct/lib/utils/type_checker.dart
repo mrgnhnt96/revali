@@ -47,7 +47,8 @@ abstract class TypeChecker {
   /// Checks that the element has a specific name, and optionally checks that it
   /// is defined from a specific package.
   ///
-  /// This is similar to [TypeChecker.fromUrl] but does not rely on exactly where
+  /// This is similar to [TypeChecker.fromUrl] but does
+  /// not rely on exactly where
   /// the definition of the element comes from.
   /// The downside is that if somehow a package exposes two elements with the
   /// same name, there could be a conflict.

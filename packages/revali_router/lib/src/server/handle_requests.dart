@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'dart:io';
 
 import 'package:revali_router/src/request/request_context_impl.dart';
@@ -14,18 +16,18 @@ void handleRequests(
     server.listen(
       (request) async {
         try {
-          final context = await RequestContextImpl.fromRequest(request);
+          final context = RequestContextImpl.fromRequest(request);
 
           final response = await handler(context);
 
           await request.response
               .send(response, requestMethod: context.method)
-              .catchError((e) {
+              .catchError((dynamic e) {
             print('Failed to send response: $e');
           });
         } catch (e) {
           print('Failed to handle request: $e');
-          request.response.send(
+          await request.response.send(
             SimpleResponse(
               500,
               body: 'Internal Server Error (ROOT)',
@@ -33,7 +35,7 @@ void handleRequests(
           );
         }
       },
-      onError: (e) {
+      onError: (dynamic e) {
         print('Failed to handle request: $e');
       },
     );

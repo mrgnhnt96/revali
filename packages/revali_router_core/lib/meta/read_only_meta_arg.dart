@@ -4,7 +4,8 @@ abstract class ReadOnlyMetaArg {
   /// {@template ReadOnlyMetaArg_get}
   /// Get the metadata of type [T] if it exists.
   ///
-  /// Traverses the metadata hierarchy to find the metadata of type [T]. Meaning that
+  /// Traverses the metadata hierarchy to find the metadata of type [T].
+  /// Meaning that
   /// that parent metadata is also considered.
   ///
   /// If [T] is not found, returns `null`.
@@ -14,7 +15,8 @@ abstract class ReadOnlyMetaArg {
   /// {@template ReadOnlyMetaArg_has}
   /// Check if the metadata of type [T] exists.
   ///
-  /// Traverses the metadata hierarchy to find the metadata of type [T]. Meaning that
+  /// Traverses the metadata hierarchy to find the metadata of type [T].
+  /// Meaning that
   /// that parent metadata is also considered.
   ///
   /// Returns `true` if the metadata of type [T] exists, otherwise `false`.

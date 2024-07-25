@@ -1,16 +1,5 @@
 part of 'router.dart';
 
-typedef _DebugResponse = ReadOnlyResponse Function(
-  ReadOnlyResponse response, {
-  required Object error,
-  required StackTrace stackTrace,
-});
-
-typedef _OnCatch = Future<ReadOnlyResponse?> Function(
-  Exception e,
-  StackTrace stackTrace,
-);
-
 class _HandleWebSocket {
   _HandleWebSocket({
     required this.handler,

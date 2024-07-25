@@ -3,7 +3,7 @@ import 'package:revali_router_core/data/read_only_data_handler.dart';
 class DataHandler implements ReadOnlyDataHandler {
   DataHandler();
 
-  Map<Type, dynamic> _registered = {};
+  final _registered = <Type, dynamic>{};
 
   /// Register an instance of [T] to be used later.
   void add<T>(T instance) {

@@ -17,8 +17,8 @@ class RequestContextImpl with EquatableMixin implements RequestContext {
 
   RequestContextImpl._noPayload(
     this.request, {
-    required PayloadResolver payloadResolver,
-  }) : payloadResolver = payloadResolver;
+    required this.payloadResolver,
+  });
 
   factory RequestContextImpl.fromRequest(HttpRequest httpRequest) {
     final request = UnderlyingRequestImpl.fromRequest(httpRequest);
@@ -37,9 +37,11 @@ class RequestContextImpl with EquatableMixin implements RequestContext {
       : request = UnderlyingRequestImpl.fromRequest(httpRequest),
         payloadResolver = context.payloadResolver;
 
+  @override
   @ignore
   final UnderlyingRequest request;
 
+  @override
   @include
   List<String> get segments {
     final segments = request.uri.pathSegments;
@@ -51,35 +53,42 @@ class RequestContextImpl with EquatableMixin implements RequestContext {
     return segments;
   }
 
+  @override
   @include
   String get method => request.method;
 
   MutableHeaders? _headers;
+  @override
   @include
   ReadOnlyHeaders get headers =>
       _headers ??= MutableHeadersImpl.from(request.headers);
 
+  @override
   @include
   Map<String, String> get queryParameters =>
       Map.unmodifiable(request.uri.queryParameters);
 
+  @override
   @include
   Map<String, List<String>> get queryParametersAll =>
       Map.unmodifiable(request.uri.queryParametersAll);
 
+  @override
   @include
   Uri get uri => request.uri;
 
   @override
   List<Object?> get props => _$props;
 
+  @override
   Future<WebSocket> upgradeToWebSocket({
     Duration? ping,
   }) async {
-    return await request.upgradeToWebSocket(ping: ping);
+    return request.upgradeToWebSocket(ping: ping);
   }
 
   ReadOnlyBody? _payload;
+  @override
   final PayloadResolver? payloadResolver;
 
   Future<void> resolvePayload() async {
@@ -94,7 +103,7 @@ class RequestContextImpl with EquatableMixin implements RequestContext {
   }
 
   ReadOnlyBody get payload {
-    final payload = this._payload;
+    final payload = _payload;
     if (payload == null) {
       throw StateError('Payload not resolved');
     }

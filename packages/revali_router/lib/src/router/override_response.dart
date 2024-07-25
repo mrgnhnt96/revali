@@ -7,13 +7,13 @@ extension OverrideResponse on MutableResponse {
     required Map<String, String>? headers,
     required Object? body,
   }) {
-    final _body = switch (body) {
+    final newBody = switch (body) {
       BodyData() => body,
-      _ => BaseBodyData.from(body),
+      _ => BaseBodyData<dynamic>.from(body),
     };
 
-    if (!_body.isNull) {
-      this.body = _body;
+    if (!newBody.isNull) {
+      this.body = newBody;
     }
 
     this.statusCode = statusCode ?? backupCode;

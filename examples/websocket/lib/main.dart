@@ -1,4 +1,4 @@
-// ignore_for_file: unused_element
+// ignore_for_file: unused_element, inference_failure_on_function_invocation
 
 import 'dart:convert';
 import 'dart:io';
@@ -7,7 +7,7 @@ import 'package:dio/dio.dart';
 import 'package:web_socket_channel/io.dart';
 
 void main() async {
-  _websocket();
+  await _websocket();
   // _json();
   // _list();
   // _multiPartForm();
@@ -23,7 +23,7 @@ Future<void> _websocket() async {
     final uri = Uri.parse('ws://localhost:1234/api/subscriptions/ws');
 
     // Connect to the remote WebSocket endpoint.
-    final channel = await IOWebSocketChannel.connect(
+    final channel = IOWebSocketChannel.connect(
       uri.toString(),
       headers: {
         Headers.contentEncodingHeader: 'utf-8',
@@ -39,10 +39,10 @@ Future<void> _websocket() async {
           return;
         }
 
-        final decoded = utf8.decode(message);
+        final decoded = utf8.decode(List<int>.from(message as List));
         print('SERVER: $decoded');
       },
-      onError: (e) {
+      onError: (dynamic e) {
         print(e);
       },
       onDone: () async {
@@ -55,7 +55,7 @@ Future<void> _websocket() async {
     );
 
     // stdin to send messages to the server.
-    final input = stdin.transform(utf8.decoder).transform(LineSplitter());
+    final input = stdin.transform(utf8.decoder).transform(const LineSplitter());
 
     await for (final line in input) {
       final data = utf8.encode(
@@ -74,7 +74,7 @@ Future<void> _json() async {
   final dio = Dio()..options.baseUrl = 'http://localhost:8080/api';
   try {
     // stdin to send messages to the server.
-    final input = stdin.transform(utf8.decoder).transform(LineSplitter());
+    final input = stdin.transform(utf8.decoder).transform(const LineSplitter());
     final uri = Uri.parse('/user/123?name=morgan');
 
     final response = await dio.get(uri.toString());
@@ -259,7 +259,7 @@ Future<void> _getFavicon() async {
     // save to file
     final file = File('file.text');
     final bytes = response.data;
-    await file.writeAsBytes(bytes);
+    await file.writeAsBytes(List<int>.from(bytes as List));
   } catch (e) {
     print(e);
   }

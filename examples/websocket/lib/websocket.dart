@@ -1,10 +1,8 @@
 import 'dart:io';
 
 void main() async {
-  HttpServer server = await HttpServer.bind('localhost', 1234);
-  final requests = server.asBroadcastStream();
-
-  requests.listen(handle);
+  final server = await HttpServer.bind('localhost', 1234);
+  server.asBroadcastStream().listen(handle);
 
   print('Server running on http://${server.address.host}:${server.port}');
 }
@@ -24,7 +22,7 @@ void handle(HttpRequest request) {
   }
 }
 
-void onHttpRequest(HttpRequest request) async {
+Future<void> onHttpRequest(HttpRequest request) async {
   request.response.write('{ "message": "Hello, World!"}');
-  request.response.close();
+  await request.response.close();
 }

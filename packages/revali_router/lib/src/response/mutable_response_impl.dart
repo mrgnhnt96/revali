@@ -17,7 +17,8 @@ class MutableResponseImpl implements MutableResponse {
   int _statusCode = 200;
   @override
   int get statusCode => _statusCode;
-  void set statusCode(int value) {
+  @override
+  set statusCode(int value) {
     _statusCode = value;
   }
 
@@ -25,7 +26,8 @@ class MutableResponseImpl implements MutableResponse {
   @override
   MutableBody get body => _body;
 
-  void set body(Object? newBody) {
+  @override
+  set body(Object? newBody) {
     _body.replace(newBody);
 
     if (_body is FileBodyData) {
@@ -46,18 +48,14 @@ class MutableResponseImpl implements MutableResponse {
     }
   }
 
-  MutableHeaders _headers;
+  final MutableHeaders _headers;
   @override
   MutableHeaders get headers {
     final headers = MutableHeadersImpl();
 
-    _headers.forEach((key, value) {
-      headers.setAll(key, value);
-    });
+    _headers.forEach(headers.setAll);
 
-    body.headers(_requestHeaders).forEach((key, value) {
-      headers.setAll(key, value);
-    });
+    body.headers(_requestHeaders).forEach(headers.setAll);
     headers.setIfAbsent(HttpHeaders.contentTypeHeader, () {
       return body.mimeType ?? 'text/plain';
     });
@@ -93,10 +91,8 @@ class MutableResponseImpl implements MutableResponse {
       case HttpStatus.notModified:
       case HttpStatus.noContent:
         removeContentRelated(headers);
-        break;
       case HttpStatus.notFound:
         removeAccessControl(headers);
-        break;
       default:
         break;
     }

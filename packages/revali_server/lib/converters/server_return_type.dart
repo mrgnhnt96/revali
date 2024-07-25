@@ -26,8 +26,11 @@ class ServerReturnType {
       if (element is ClassElement) {
         hasToJsonMember = element.methods.any((e) => e.name == 'toJson');
         isStringContent = element.name == '$StringContent' ||
-            element.allSupertypes.any((e) =>
-                e.getDisplayString(withNullability: false) == '$StringContent');
+            element.allSupertypes.any(
+              (e) =>
+                  e.getDisplayString(withNullability: false) ==
+                  '$StringContent',
+            );
       }
     }
 

@@ -39,7 +39,7 @@ class ThisController {
     return user;
   }
 
-  @WebSocket.ping(path: 'create', ping: const Duration(milliseconds: 500))
+  @WebSocket.ping(path: 'create', ping: Duration(milliseconds: 500))
   void create(
     @Query.all() List<String>? name,
   ) {}
@@ -55,7 +55,7 @@ class NamePipe extends Pipe<String, String> {
   const NamePipe();
 
   @override
-  String transform(value, context) {
+  String transform(String value, PipeContext<dynamic> context) {
     return 'value: ($value)';
   }
 }
@@ -70,7 +70,7 @@ class StringToIntPipe extends Pipe<String?, int> {
   const StringToIntPipe();
 
   @override
-  int transform(value, context) {
+  int transform(String? value, PipeContext<dynamic> context) {
     return int.parse(value ?? '0');
   }
 }
@@ -98,7 +98,10 @@ class Auth extends Middleware {
   String get hi => 'hi';
 
   @override
-  Future<MiddlewareResult> use(context, action) async {
+  Future<MiddlewareResult> use(
+    MiddlewareContext context,
+    MiddlewareAction action,
+  ) async {
     return action.next();
   }
 }
@@ -128,7 +131,11 @@ class NotAuthCatcher extends ExceptionCatcher {
   final String value;
 
   @override
-  ExceptionCatcherResult catchException(exception, context, action) {
+  ExceptionCatcherResult catchException(
+    Exception exception,
+    ExceptionCatcherContext context,
+    ExceptionCatcherAction action,
+  ) {
     return action.handled();
   }
 }
@@ -137,7 +144,8 @@ final class AuthCombine implements CombineMeta {
   const AuthCombine();
 
   @override
-  List<ExceptionCatcher<Exception>> get catchers => [NotAuthCatcher('bye')];
+  List<ExceptionCatcher<Exception>> get catchers =>
+      [const NotAuthCatcher('bye')];
 
   @override
   List<Guard> get guards => [];
@@ -146,7 +154,7 @@ final class AuthCombine implements CombineMeta {
   List<Interceptor> get interceptors => [];
 
   @override
-  List<Middleware> get middlewares => [Auth(AuthType.admin)];
+  List<Middleware> get middlewares => [const Auth(AuthType.admin)];
 }
 
 final class OtherCombine implements CombineMeta {

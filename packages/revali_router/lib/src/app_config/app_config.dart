@@ -18,5 +18,5 @@ base class AppConfig extends core.AppConfig {
 
   AppConfig.defaultApp() : super.defaultApp();
 
-  DefaultResponses get defaultResponses => DefaultResponses();
+  DefaultResponses get defaultResponses => const DefaultResponses();
 }

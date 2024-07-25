@@ -37,24 +37,24 @@ import 'package:revali_router/src/web_socket/web_socket_handler.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 import 'package:stack_trace/stack_trace.dart';
 
-part '__execute.dart';
 part '__handle_web_socket.dart';
-part '__run_catchers.dart';
-part '__run_guards.dart';
-part '__run_interceptors.dart';
-part '__run_middlewares.dart';
-part '__run_options.dart';
-part '__run_origin_check.dart';
-part '__run_redirect.dart';
 part 'body_for_error.dart';
+part 'execute.dart';
 part 'find.dart';
 part 'mixins/router_helper.dart';
 part 'mixins/router_helper_mixin.dart';
 part 'override_response.dart';
 part 'router.g.dart';
+part 'run_catchers.dart';
+part 'run_guards.dart';
+part 'run_interceptors.dart';
+part 'run_middlewares.dart';
+part 'run_options.dart';
+part 'run_origin_check.dart';
+part 'run_redirect.dart';
 
 class Router extends Equatable {
-  Router({
+  const Router({
     required this.routes,
     RouteModifiers? globalModifiers,
     Set<Reflect> reflects = const {},

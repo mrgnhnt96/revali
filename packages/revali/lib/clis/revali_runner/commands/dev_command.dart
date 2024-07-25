@@ -10,10 +10,9 @@ class DevCommand extends Command<int> {
     argParser
       ..addFlag(
         'recompile',
-        help:
-            'Re-compiles the construct kernel. Needed to sync changes for a local construct.',
+        help: 'Re-compiles the construct kernel. '
+            'Needed to sync changes for a local construct.',
         negatable: false,
-        defaultsTo: false,
       )
       ..addOption(
         'flavor',
@@ -28,8 +27,8 @@ class DevCommand extends Command<int> {
       )
       ..addFlag(
         'debug',
-        help:
-            '(Default) Whether to run in debug mode. Enables hot reload and debugger',
+        help: '(Default) Whether to run in debug mode. '
+            'Enables hot reload and debugger',
         negatable: false,
       );
   }
@@ -59,8 +58,7 @@ class DevCommand extends Command<int> {
   List<String> get constructRunnerArgs {
     final argResults = this.argResults!;
 
-    final argsToPass = ['dev', ...argResults.arguments];
-    argsToPass.remove('--recompile');
+    final argsToPass = ['dev', ...argResults.arguments]..remove('--recompile');
 
     logger.detail('Construct Args: $argsToPass');
 

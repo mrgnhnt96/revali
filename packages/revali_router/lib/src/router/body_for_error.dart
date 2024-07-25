@@ -21,7 +21,8 @@ ReadOnlyBody? bodyForError(
           'stackTrace': stackString,
         },
       ],
-    String() => '''$body
+    String() => '''
+$body
 
 Error: $error
 
@@ -34,5 +35,5 @@ ${stackString.join('\n')}''',
     _ => body,
   };
 
-  return BaseBodyData.from(newData);
+  return BaseBodyData<dynamic>.from(newData);
 }

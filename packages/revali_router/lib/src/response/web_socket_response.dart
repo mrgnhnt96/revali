@@ -1,25 +1,18 @@
 import 'package:revali_router/revali_router.dart';
 
 class WebSocketResponse implements ReadOnlyResponse {
-  const WebSocketResponse._({
-    required this.statusCode,
-    required this.headers,
-    required this.rawHeaders,
-    required this.body,
-  });
-
   factory WebSocketResponse(
     int statusCode, {
     Map<String, String> headers = const {},
     Object? body,
   }) {
-    final response = MutableResponseImpl(requestHeaders: MutableHeadersImpl());
-    response.statusCode = statusCode;
+    final response = MutableResponseImpl(requestHeaders: MutableHeadersImpl())
+      ..statusCode = statusCode;
     response.headers.addAll(headers);
     if (body != null) {
       response.body = switch (body) {
         BodyData() => body,
-        _ => BaseBodyData.from(body),
+        _ => BaseBodyData<dynamic>.from(body),
       };
     }
 
@@ -30,6 +23,12 @@ class WebSocketResponse implements ReadOnlyResponse {
       body: response.body,
     );
   }
+  const WebSocketResponse._({
+    required this.statusCode,
+    required this.headers,
+    required this.rawHeaders,
+    required this.body,
+  });
   @override
   final int statusCode;
 
@@ -38,5 +37,6 @@ class WebSocketResponse implements ReadOnlyResponse {
 
   final Map<String, String> rawHeaders;
 
+  @override
   final ReadOnlyBody body;
 }

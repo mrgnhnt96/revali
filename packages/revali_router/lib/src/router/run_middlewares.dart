@@ -1,7 +1,7 @@
 part of 'router.dart';
 
-class _RunMiddlewares {
-  const _RunMiddlewares(this.helper);
+class RunMiddlewares {
+  const RunMiddlewares(this.helper);
 
   final RouterHelperMixin helper;
 

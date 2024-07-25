@@ -4,7 +4,6 @@ import 'package:revali_router/revali_router.dart';
 
 @AllowOrigins.all()
 @AllowHeaders({'X-IM-AWESOME'})
-@DumbExceptionCatcher()
 @App(flavor: 'dev')
 final class DevApp extends AppConfig {
   DevApp()
@@ -20,14 +19,3 @@ final class DevApp extends AppConfig {
       ..register(Logger.new);
   }
 }
-
-class DumbExceptionCatcher extends ExceptionCatcher<DumbException> {
-  const DumbExceptionCatcher();
-
-  @override
-  ExceptionCatcherResult catchException(exception, context, action) {
-    return action.handled();
-  }
-}
-
-class DumbException implements Exception {}
