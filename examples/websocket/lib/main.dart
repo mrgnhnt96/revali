@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:web_socket_channel/io.dart';
 
 void main() async {
   _websocket();
@@ -20,22 +20,39 @@ void main() async {
 
 Future<void> _websocket() async {
   try {
+    final uri = Uri.parse('ws://localhost:1234/api/subscriptions/ws');
+
     // Connect to the remote WebSocket endpoint.
-    final uri = Uri.parse('ws://localhost:1234/api/subscriptions/socket');
-    final channel = WebSocketChannel.connect(uri);
+    final channel = await IOWebSocketChannel.connect(
+      uri.toString(),
+      headers: {
+        Headers.contentEncodingHeader: 'utf-8',
+        Headers.contentTypeHeader: 'application/json',
+      },
+    );
 
     // Subscribe to messages from the server.
-    channel.stream.listen((message) {
-      if (message is String) {
-        print('SERVER: $message');
-        return;
-      }
+    channel.stream.listen(
+      (message) {
+        if (message is String) {
+          print('SERVER: $message');
+          return;
+        }
 
-      final decoded = utf8.decode(message);
-      print('SERVER: $decoded');
-    }, onError: (e) {
-      print(e);
-    });
+        final decoded = utf8.decode(message);
+        print('SERVER: $decoded');
+      },
+      onError: (e) {
+        print(e);
+      },
+      onDone: () async {
+        await Future<void>.delayed(const Duration(seconds: 5));
+        print('Connection closed');
+        print('  code: ${channel.closeCode}');
+        print('  reason: ${channel.closeReason}');
+        exit(1);
+      },
+    );
 
     // stdin to send messages to the server.
     final input = stdin.transform(utf8.decoder).transform(LineSplitter());
