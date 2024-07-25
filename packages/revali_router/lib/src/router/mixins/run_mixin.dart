@@ -1,7 +1,7 @@
 part of '../router.dart';
 
-mixin RunnersHelperMixin {
-  RouterHelperMixin get helper;
+mixin RunMixin {
+  HelperMixin get helper;
 
   RunInterceptors get interceptors => RunInterceptors(helper);
   RunGuards get guards => RunGuards(helper);

@@ -3,15 +3,15 @@ part of 'router.dart';
 class RunGuards {
   const RunGuards(this.helper);
 
-  final RouterHelperMixin helper;
+  final HelperMixin helper;
 
   Future<ReadOnlyResponse?> call() => run();
 
   Future<ReadOnlyResponse?> run() async {
-    final RouterHelperMixin(
+    final HelperMixin(
       :guards,
       :response,
-      context: ContextHelperMixin(guard: context),
+      context: ContextMixin(guard: context),
       :debugErrorResponse,
     ) = helper;
 

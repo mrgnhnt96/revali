@@ -3,12 +3,12 @@ part of 'router.dart';
 class RunRedirect {
   const RunRedirect(this.helper);
 
-  final RouterHelperMixin helper;
+  final HelperMixin helper;
 
   ReadOnlyResponse? call() => run();
 
   ReadOnlyResponse? run() {
-    final RouterHelperMixin(
+    final HelperMixin(
       :route,
     ) = helper;
 

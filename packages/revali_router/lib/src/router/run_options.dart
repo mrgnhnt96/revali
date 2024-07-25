@@ -3,12 +3,12 @@ part of 'router.dart';
 class RunOptions {
   const RunOptions(this.helper);
 
-  final RouterHelperMixin helper;
+  final HelperMixin helper;
 
   ReadOnlyResponse? call() => run();
 
   ReadOnlyResponse? run() {
-    final RouterHelperMixin(
+    final HelperMixin(
       :request,
       :route,
     ) = helper;

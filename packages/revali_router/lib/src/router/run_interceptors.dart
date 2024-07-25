@@ -3,12 +3,12 @@ part of './router.dart';
 class RunInterceptors {
   const RunInterceptors(this.helper);
 
-  final RouterHelperMixin helper;
+  final HelperMixin helper;
 
   Future<void> pre() async {
-    final RouterHelperMixin(
+    final HelperMixin(
       :interceptors,
-      context: ContextHelperMixin(interceptor: context),
+      context: ContextMixin(interceptor: context),
     ) = helper;
 
     for (final interceptor in interceptors) {
@@ -17,9 +17,9 @@ class RunInterceptors {
   }
 
   Future<void> post() async {
-    final RouterHelperMixin(
+    final HelperMixin(
       :interceptors,
-      context: ContextHelperMixin(interceptor: context),
+      context: ContextMixin(interceptor: context),
     ) = helper;
 
     for (final interceptor in interceptors) {

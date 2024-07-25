@@ -21,7 +21,7 @@ class HandleWebSocket {
   late final WebSocketHandler handler;
   final WebSocketMode mode;
   final Duration? ping;
-  final RouterHelperMixin helper;
+  final HelperMixin helper;
 
   Completer<void>? sending;
 
@@ -77,7 +77,7 @@ class HandleWebSocket {
   }
 
   Future<WebSocketResponse?> listenToMessages() async {
-    final RouterHelperMixin(
+    final HelperMixin(
       :debugResponses,
       :debugErrorResponse,
       :response,
@@ -114,7 +114,7 @@ class HandleWebSocket {
   }
 
   Future<WebSocketResponse?> resolvePayload(dynamic event) async {
-    final RouterHelperMixin(
+    final HelperMixin(
       :debugResponses,
       :debugErrorResponse,
     ) = helper;
@@ -147,7 +147,7 @@ class HandleWebSocket {
   }
 
   Future<WebSocketResponse?> upgradeRequest() async {
-    final RouterHelperMixin(
+    final HelperMixin(
       :debugErrorResponse,
       :request,
     ) = helper;
@@ -172,9 +172,9 @@ class HandleWebSocket {
       return;
     }
 
-    final RouterHelperMixin(
+    final HelperMixin(
       :response,
-      run: RunnersHelperMixin(
+      run: RunMixin(
         :interceptors,
       )
     ) = helper;
@@ -213,8 +213,8 @@ class HandleWebSocket {
   }
 
   Future<WebSocketResponse?> runHandler(Stream<void> Function() stream) async {
-    final RouterHelperMixin(
-      run: RunnersHelperMixin(
+    final HelperMixin(
+      run: RunMixin(
         :interceptors,
         :catchers,
       ),

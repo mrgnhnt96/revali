@@ -1,6 +1,6 @@
 part of '../router.dart';
 
-mixin ContextHelperMixin on RouterHelperMixin {
+mixin ContextMixin on HelperMixin {
   EndpointContext get endpoint => EndpointContextImpl(
         meta: directMeta,
         reflect: reflectHandler,

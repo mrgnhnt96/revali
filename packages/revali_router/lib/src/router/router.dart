@@ -41,11 +41,11 @@ part 'body_for_error.dart';
 part 'execute.dart';
 part 'find.dart';
 part 'handle_web_socket.dart';
-part 'mixins/context_helper_mixin.dart';
-part 'mixins/router_helper.dart';
-part 'mixins/router_helper_mixin.dart';
-part 'mixins/runners_helper.dart';
-part 'mixins/runners_helper_mixin.dart';
+part 'mixins/context_mixin.dart';
+part 'mixins/helper.dart';
+part 'mixins/helper_mixin.dart';
+part 'mixins/run.dart';
+part 'mixins/run_mixin.dart';
 part 'override_response.dart';
 part 'router.g.dart';
 part 'run_catchers.dart';
@@ -107,7 +107,7 @@ class Router extends Equatable {
   Future<ReadOnlyResponse> handle(RequestContext context) async {
     final responseCompleter = Completer<ReadOnlyResponse>();
 
-    RouterHelperMixin helper;
+    HelperMixin helper;
 
     try {
       final request = MutableRequestImpl.fromRequest(context);
@@ -158,9 +158,9 @@ class Router extends Equatable {
     }
   }
 
-  Future<ReadOnlyResponse> _handle(RouterHelperMixin helper) async {
-    final RouterHelperMixin(
-      run: RunnersHelperMixin(
+  Future<ReadOnlyResponse> _handle(HelperMixin helper) async {
+    final HelperMixin(
+      run: RunMixin(
         :options,
         :redirect,
         :originCheck,
@@ -183,8 +183,8 @@ class Router extends Equatable {
     return execute();
   }
 
-  RouterHelperMixin _createHelper(BaseRoute route, MutableRequestImpl request) {
-    return RouterHelper(
+  HelperMixin _createHelper(BaseRoute route, MutableRequestImpl request) {
+    return Helper(
       route: route,
       request: request,
       router: this,

@@ -3,12 +3,12 @@ part of 'router.dart';
 class RunOriginCheck {
   const RunOriginCheck(this.helper);
 
-  final RouterHelperMixin helper;
+  final HelperMixin helper;
 
   ReadOnlyResponse? call() => run();
 
   ReadOnlyResponse? run() {
-    final RouterHelperMixin(
+    final HelperMixin(
       :request,
       :route,
       :debugErrorResponse,

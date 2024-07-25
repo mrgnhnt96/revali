@@ -1,7 +1,7 @@
 part of '../router.dart';
 
-class RouterHelper with RouterHelperMixin, ContextHelperMixin {
-  RouterHelper({
+class Helper with HelperMixin, ContextMixin {
+  Helper({
     required this.route,
     required this.request,
     required Router router,
@@ -53,8 +53,8 @@ class RouterHelper with RouterHelperMixin, ContextHelperMixin {
   late final DefaultResponses defaultResponses;
 
   @override
-  ContextHelperMixin get context => this;
+  ContextMixin get context => this;
 
   @override
-  RunnersHelperMixin get run => RunnersHelper(this);
+  RunMixin get run => Run(this);
 }

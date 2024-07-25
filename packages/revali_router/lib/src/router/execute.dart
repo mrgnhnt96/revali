@@ -3,19 +3,19 @@ part of 'router.dart';
 class Execute {
   const Execute(this.helper);
 
-  final RouterHelperMixin helper;
+  final HelperMixin helper;
 
   Future<ReadOnlyResponse> call() => run();
 
   Future<ReadOnlyResponse> run() async {
-    final RouterHelperMixin(
+    final HelperMixin(
       :route,
       :request,
       :response,
       :debugErrorResponse,
       :defaultResponses,
-      context: ContextHelperMixin(endpoint: context),
-      run: RunnersHelperMixin(
+      context: ContextMixin(endpoint: context),
+      run: RunMixin(
         :interceptors,
         :guards,
         :middlewares,

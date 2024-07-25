@@ -3,16 +3,16 @@ part of 'router.dart';
 class RunMiddlewares {
   const RunMiddlewares(this.helper);
 
-  final RouterHelperMixin helper;
+  final HelperMixin helper;
 
   Future<ReadOnlyResponse?> call() => run();
 
   Future<ReadOnlyResponse?> run() async {
-    final RouterHelperMixin(
+    final HelperMixin(
       :middlewares,
       :response,
       :debugErrorResponse,
-      context: ContextHelperMixin(middleware: context),
+      context: ContextMixin(middleware: context),
     ) = helper;
 
     for (final middleware in middlewares) {

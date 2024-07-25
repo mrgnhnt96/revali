@@ -6,7 +6,7 @@ typedef DebugErrorResponse = ReadOnlyResponse Function(
   required StackTrace stackTrace,
 });
 
-mixin RouterHelperMixin {
+mixin HelperMixin {
   BaseRoute get route;
   RouteModifiers get globalModifiers;
   MutableRequest get request;
@@ -19,8 +19,8 @@ mixin RouterHelperMixin {
   DefaultResponses get defaultResponses;
   bool get debugResponses;
 
-  ContextHelperMixin get context;
-  RunnersHelperMixin get run;
+  ContextMixin get context;
+  RunMixin get run;
 
   List<Middleware> get middlewares {
     return [

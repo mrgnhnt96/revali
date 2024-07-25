@@ -3,7 +3,7 @@ part of './router.dart';
 class RunCatchers {
   const RunCatchers(this.helper);
 
-  final RouterHelperMixin helper;
+  final HelperMixin helper;
 
   Future<ReadOnlyResponse> call(
     Object e,
@@ -17,12 +17,12 @@ class RunCatchers {
     StackTrace stackTrace, {
     ReadOnlyResponse? defaultResponse,
   }) async {
-    final RouterHelperMixin(
+    final HelperMixin(
       :catchers,
       :response,
       :debugErrorResponse,
       :defaultResponses,
-      context: ContextHelperMixin(exceptionCatcher: context),
+      context: ContextMixin(exceptionCatcher: context),
     ) = helper;
 
     defaultResponse ??= defaultResponses.internalServerError;
