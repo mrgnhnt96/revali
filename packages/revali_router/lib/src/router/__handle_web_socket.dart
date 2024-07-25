@@ -60,36 +60,36 @@ class _HandleWebSocket {
     return webSocket;
   }
 
-  Future<ReadOnlyResponse> handle() async {
+  Future<WebSocketResponse> handle() async {
     if (await upgradeRequest() case final response?) {
-      return response;
+      return response.toWebSocketResponse();
     }
 
     if (handler.onConnect case final onConnect?) {
       if (await runHandler(onConnect) case final response?) {
-        return response;
+        return response.toWebSocketResponse();
       }
     }
 
     if (!mode.canReceive) {
       await close(1000, 'Normal closure');
 
-      return SimpleResponse(
+      return WebSocketResponse(
         1000,
         body: 'Normal closure, WebSocket is not open for receiving',
       );
     }
 
     if (await listenToMessages() case final response?) {
-      return response;
+      return response.toWebSocketResponse();
     }
 
     await close(1000, 'Normal closure');
 
-    return SimpleResponse(1000, body: 'Normal closure');
+    return WebSocketResponse(1000, body: 'Normal closure');
   }
 
-  Future<ReadOnlyResponse?> listenToMessages() async {
+  Future<WebSocketResponse?> listenToMessages() async {
     final onMessage = handler.onMessage;
     if (onMessage == null) {
       final reason = debugResponses
@@ -99,17 +99,17 @@ class _HandleWebSocket {
       await close(1011, reason);
 
       return debugResponse(
-        SimpleResponse(1011),
+        WebSocketResponse(1011),
         error: 'Message handler not implemented',
         stackTrace: StackTrace.current,
-      );
+      ).toWebSocketResponse();
     }
 
     await for (final event in webSocket) {
       response.body = null;
 
       if (await resolvePayload(event) case final response?) {
-        return response;
+        return response.toWebSocketResponse();
       }
 
       if (await runHandler(onMessage) case final response) {
@@ -120,7 +120,7 @@ class _HandleWebSocket {
     return null;
   }
 
-  Future<ReadOnlyResponse?> resolvePayload(dynamic event) async {
+  Future<WebSocketResponse?> resolvePayload(dynamic event) async {
     try {
       final payload = PayloadImpl.encoded(
         event,
@@ -134,7 +134,7 @@ class _HandleWebSocket {
       return null;
     } catch (e, stackTrace) {
       final response = debugResponse(
-        SimpleResponse(1007),
+        WebSocketResponse(1007),
         stackTrace: stackTrace,
         error: e,
       );
@@ -144,11 +144,11 @@ class _HandleWebSocket {
 
       await close(response.webSocketErrorCode, reason);
 
-      return response;
+      return response.toWebSocketResponse();
     }
   }
 
-  Future<ReadOnlyResponse?> upgradeRequest() async {
+  Future<WebSocketResponse?> upgradeRequest() async {
     try {
       await request.resolvePayload();
       _webSocket = await request.upgradeToWebSocket(ping: ping);
@@ -157,10 +157,10 @@ class _HandleWebSocket {
       return null;
     } catch (e, stackTrace) {
       return debugResponse(
-        SimpleResponse(1007),
+        WebSocketResponse(1007),
         error: e,
         stackTrace: stackTrace,
-      );
+      ).toWebSocketResponse();
     }
   }
 
@@ -202,7 +202,7 @@ class _HandleWebSocket {
     await webSocket.close(code, truncated);
   }
 
-  Future<ReadOnlyResponse?> runHandler(Stream<void> Function() stream) async {
+  Future<WebSocketResponse?> runHandler(Stream<void> Function() stream) async {
     try {
       await pre();
 
@@ -213,17 +213,17 @@ class _HandleWebSocket {
       return null;
     } on CloseWebSocketException catch (e, stackTrace) {
       final response = debugResponse(
-        SimpleResponse(e.code, body: e.reason),
+        WebSocketResponse(e.code, body: e.reason),
         stackTrace: stackTrace,
         error: e,
       );
 
       await close(e.code, e.reason);
 
-      return response;
+      return response.toWebSocketResponse();
     } catch (e, stackTrace) {
       final response = debugResponse(
-        SimpleResponse(1011),
+        WebSocketResponse(1011),
         error: e,
         stackTrace: stackTrace,
       );
@@ -233,18 +233,18 @@ class _HandleWebSocket {
       if (e is! Exception) {
         await close(response.webSocketErrorCode, reason);
 
-        return response;
+        return response.toWebSocketResponse();
       }
 
       if (await onCatch(e, stackTrace) case final response?) {
         await close(response.webSocketErrorCode, reason);
 
-        return response;
+        return response.toWebSocketResponse();
       }
 
       await close(response.webSocketErrorCode, reason);
 
-      return response;
+      return response.toWebSocketResponse();
     }
   }
 }
@@ -256,5 +256,15 @@ extension _ResponseX on ReadOnlyResponse {
     }
 
     return statusCode;
+  }
+
+  WebSocketResponse toWebSocketResponse() {
+    return WebSocketResponse(
+      statusCode,
+      body: body,
+      headers: headers.map(
+        (key, value) => MapEntry(key, value.join(',')),
+      ),
+    );
   }
 }

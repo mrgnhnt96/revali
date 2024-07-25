@@ -28,6 +28,7 @@ import 'package:revali_router/src/response/canned_response.dart';
 import 'package:revali_router/src/response/default_responses.dart';
 import 'package:revali_router/src/response/mutable_response_impl.dart';
 import 'package:revali_router/src/response/simple_response.dart';
+import 'package:revali_router/src/response/web_socket_response.dart';
 import 'package:revali_router/src/route/base_route.dart';
 import 'package:revali_router/src/route/route_match.dart';
 import 'package:revali_router/src/route/route_modifiers_impl.dart';

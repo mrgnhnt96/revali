@@ -42,6 +42,7 @@ export 'src/response/canned_response.dart';
 export 'src/response/default_responses.dart';
 export 'src/response/mutable_response_impl.dart';
 export 'src/response/simple_response.dart';
+export 'src/response/web_socket_response.dart';
 export 'src/route/base_route.dart';
 export 'src/route/route.dart';
 export 'src/route/route_match.dart';

@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:revali_router/src/body/response_body/base_body_data.dart';
 import 'package:revali_router/src/payload/payload_impl.dart';
+import 'package:revali_router/src/response/web_socket_response.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
 extension HttpResponseX on HttpResponse {
@@ -12,7 +13,7 @@ extension HttpResponseX on HttpResponse {
     String? requestMethod,
   }) async {
     // WebSockets are already responded to, and cannot be responded to again.
-    if (response.statusCode >= 1000) {
+    if (response is WebSocketResponse) {
       return;
     }
 
