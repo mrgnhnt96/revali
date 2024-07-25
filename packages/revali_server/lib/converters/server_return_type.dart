@@ -14,6 +14,7 @@ class ServerReturnType {
     required this.reflect,
     required this.hasToJsonMember,
     required this.isStringContent,
+    required this.isMap,
   });
 
   factory ServerReturnType.fromMeta(MetaReturnType type) {
@@ -44,6 +45,7 @@ class ServerReturnType {
       reflect: reflect,
       hasToJsonMember: hasToJsonMember,
       isStringContent: isStringContent,
+      isMap: type.isMap,
     );
   }
 
@@ -56,4 +58,5 @@ class ServerReturnType {
   final bool isStringContent;
   final ServerReflect? reflect;
   final bool hasToJsonMember;
+  final bool isMap;
 }

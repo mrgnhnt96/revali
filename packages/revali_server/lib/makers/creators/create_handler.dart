@@ -47,7 +47,9 @@ Expression? createHandler({
 
     setBody = refer('context').property('response').property('body');
 
-    if (returnType.isPrimitive || returnType.hasToJsonMember) {
+    if (returnType.isPrimitive ||
+        returnType.hasToJsonMember ||
+        returnType.isMap) {
       setBody = setBody.index(literalString('data')).assign(result);
     } else if (returnType.isStringContent) {
       result = result.property('value');
