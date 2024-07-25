@@ -13,28 +13,16 @@ typedef _OnCatch = Future<ReadOnlyResponse?> Function(
 
 class _HandleWebSocket {
   _HandleWebSocket({
-    required this.request,
-    required this.response,
     required this.handler,
     required this.mode,
     required this.ping,
-    required this.pre,
-    required this.post,
-    required this.debugResponse,
-    required this.onCatch,
-    required this.debugResponses,
+    required this.helper,
   });
 
-  final MutableRequest request;
-  final MutableResponse response;
   final WebSocketHandler handler;
   final WebSocketMode mode;
   final Duration? ping;
-  final Future<void> Function() pre;
-  final Future<void> Function() post;
-  final _DebugResponse debugResponse;
-  final bool debugResponses;
-  final _OnCatch onCatch;
+  final RouterHelperMixin helper;
 
   Completer<void>? sending;
 
@@ -90,6 +78,12 @@ class _HandleWebSocket {
   }
 
   Future<WebSocketResponse?> listenToMessages() async {
+    final RouterHelperMixin(
+      :debugResponses,
+      :debugErrorResponse,
+      :response,
+    ) = helper;
+
     final onMessage = handler.onMessage;
     if (onMessage == null) {
       final reason = debugResponses
@@ -98,7 +92,7 @@ class _HandleWebSocket {
 
       await close(1011, reason);
 
-      return debugResponse(
+      return debugErrorResponse(
         WebSocketResponse(1011),
         error: 'Message handler not implemented',
         stackTrace: StackTrace.current,
@@ -121,6 +115,11 @@ class _HandleWebSocket {
   }
 
   Future<WebSocketResponse?> resolvePayload(dynamic event) async {
+    final RouterHelperMixin(
+      :debugResponses,
+      :debugErrorResponse,
+    ) = helper;
+
     try {
       final payload = PayloadImpl.encoded(
         event,
@@ -133,7 +132,7 @@ class _HandleWebSocket {
 
       return null;
     } catch (e, stackTrace) {
-      final response = debugResponse(
+      final response = debugErrorResponse(
         WebSocketResponse(1007),
         stackTrace: stackTrace,
         error: e,
@@ -149,6 +148,11 @@ class _HandleWebSocket {
   }
 
   Future<WebSocketResponse?> upgradeRequest() async {
+    final RouterHelperMixin(
+      :debugErrorResponse,
+      :request,
+    ) = helper;
+
     try {
       await request.resolvePayload();
       _webSocket = await request.upgradeToWebSocket(ping: ping);
@@ -156,7 +160,7 @@ class _HandleWebSocket {
 
       return null;
     } catch (e, stackTrace) {
-      return debugResponse(
+      return debugErrorResponse(
         WebSocketResponse(1007),
         error: e,
         stackTrace: stackTrace,
@@ -169,9 +173,14 @@ class _HandleWebSocket {
       return;
     }
 
+    final RouterHelperMixin(
+      :response,
+      :runInterceptors,
+    ) = helper;
+
     sending = Completer<void>();
 
-    await post();
+    await runInterceptors.post();
 
     final body = response.body;
     if (body.isNull) {
@@ -203,8 +212,15 @@ class _HandleWebSocket {
   }
 
   Future<WebSocketResponse?> runHandler(Stream<void> Function() stream) async {
+    final RouterHelperMixin(
+      :runInterceptors,
+      :debugErrorResponse,
+      :debugResponses,
+      :runCatchers,
+    ) = helper;
+
     try {
-      await pre();
+      await runInterceptors.pre();
 
       await for (final _ in stream()) {
         await sendResponse();
@@ -212,7 +228,7 @@ class _HandleWebSocket {
 
       return null;
     } on CloseWebSocketException catch (e, stackTrace) {
-      final response = debugResponse(
+      final response = debugErrorResponse(
         WebSocketResponse(e.code, body: e.reason),
         stackTrace: stackTrace,
         error: e,
@@ -222,27 +238,16 @@ class _HandleWebSocket {
 
       return response.toWebSocketResponse();
     } catch (e, stackTrace) {
-      final response = debugResponse(
-        WebSocketResponse(1011),
-        error: e,
-        stackTrace: stackTrace,
+      final response = await runCatchers(
+        e,
+        stackTrace,
+        defaultResponse: WebSocketResponse(1011),
       );
 
-      final reason = debugResponses ? e.toString() : 'Internal server error';
-
-      if (e is! Exception) {
-        await close(response.webSocketErrorCode, reason);
-
-        return response.toWebSocketResponse();
-      }
-
-      if (await onCatch(e, stackTrace) case final response?) {
-        await close(response.webSocketErrorCode, reason);
-
-        return response.toWebSocketResponse();
-      }
-
-      await close(response.webSocketErrorCode, reason);
+      await close(
+        response.webSocketErrorCode,
+        debugResponses ? '$e' : 'Internal server error',
+      );
 
       return response.toWebSocketResponse();
     }

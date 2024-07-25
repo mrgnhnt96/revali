@@ -1,11 +1,17 @@
 part of 'router.dart';
 
-extension Find on Router {
-  RouteMatch? find({
-    required Iterable<String> segments,
-    required Iterable<BaseRoute>? routes,
-    required String method,
-  }) {
+class Find {
+  const Find({
+    required this.segments,
+    required this.routes,
+    required this.method,
+  });
+
+  final List<String> segments;
+  final List<BaseRoute>? routes;
+  final String method;
+
+  RouteMatch? run() {
     RouteMatch? _find({
       required Iterable<String> pathSegments,
       required Iterable<BaseRoute>? routes,

@@ -37,17 +37,21 @@ import 'package:revali_router/src/web_socket/web_socket_handler.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 import 'package:stack_trace/stack_trace.dart';
 
+part '__execute.dart';
 part '__handle_web_socket.dart';
+part '__run_catchers.dart';
+part '__run_guards.dart';
+part '__run_interceptors.dart';
+part '__run_middlewares.dart';
+part '__run_options.dart';
+part '__run_origin_check.dart';
+part '__run_redirect.dart';
 part 'body_for_error.dart';
-part 'debug_response.dart';
-part 'execute.dart';
 part 'find.dart';
-part 'is_origin_allowed.dart';
+part 'mixins/router_helper.dart';
+part 'mixins/router_helper_mixin.dart';
 part 'override_response.dart';
 part 'router.g.dart';
-part 'run_catchers.dart';
-part 'run_guards.dart';
-part 'run_middlewares.dart';
 
 class Router extends Equatable {
   Router({
@@ -75,8 +79,32 @@ class Router extends Equatable {
     return handle(context);
   }
 
+  ReadOnlyResponse _debugResponse(
+    ReadOnlyResponse response, {
+    required Object error,
+    required StackTrace stackTrace,
+  }) {
+    if (!debug) {
+      return response;
+    }
+
+    final ReadOnlyResponse(:body, :headers, :statusCode) = response;
+
+    return SimpleResponse(
+      statusCode,
+      headers: headers.map((key, value) => MapEntry(key, value.join(','))),
+      body: bodyForError(
+        body,
+        error: error,
+        stackTrace: stackTrace,
+      ),
+    );
+  }
+
   Future<ReadOnlyResponse> handle(RequestContext context) async {
     final responseCompleter = Completer<ReadOnlyResponse>();
+
+    RouterHelperMixin helper;
 
     try {
       final request = MutableRequestImpl.fromRequest(context);
@@ -85,11 +113,29 @@ class Router extends Equatable {
         observer.see(request, responseCompleter.future);
       }
 
-      final result = await _handle(request);
+      final segments = request.segments;
 
-      responseCompleter.complete(result);
+      final match = Find(
+        segments: segments,
+        routes: routes,
+        method: request.method,
+      ).run();
 
-      return result;
+      if (match == null) {
+        return _debugResponse(
+          defaultResponses.notFound,
+          error: RouteNotFoundException(
+            method: request.method,
+            path: segments.join('/'),
+          ),
+          stackTrace: StackTrace.current,
+        );
+      }
+
+      final RouteMatch(:route, :pathParameters) = match;
+      request.pathParameters = pathParameters;
+
+      helper = createHelper(route, request);
     } catch (e, stackTrace) {
       final response = _debugResponse(
         defaultResponses.internalServerError,
@@ -101,112 +147,43 @@ class Router extends Equatable {
 
       return response;
     }
+
+    try {
+      return _handle(helper);
+    } catch (e, stackTrace) {
+      return helper.runCatchers(e, stackTrace);
+    }
   }
 
-  Future<ReadOnlyResponse> _handle(MutableRequestImpl request) async {
-    final segments = request.segments;
-
-    final match = find(
-      segments: segments,
-      routes: routes,
-      method: request.method,
-    );
-
-    if (match == null) {
-      return _debugResponse(
-        defaultResponses.notFound,
-        error: RouteNotFoundException(
-          method: request.method,
-          path: segments.join('/'),
-        ),
-        stackTrace: StackTrace.current,
-      );
-    }
-
-    final RouteMatch(:route, :pathParameters) = match;
-    final globalModifiers = _globalModifiers ?? RouteModifiersImpl();
-
-    if (request.method == 'OPTIONS') {
-      return CannedResponse.options(
-        allowedMethods: route.allowedMethods,
-      );
-    }
-
-    if (route.redirect case final redirect?) {
-      return CannedResponse.redirect(
-        redirect.path,
-        statusCode: redirect.code,
-      );
-    }
-
-    if (isOriginAllowed(
-      request,
-      route,
-      globalAllowedOrigins: globalModifiers.allowedOrigins?.origins,
-      globalAllowedHeaders: globalModifiers.allowedHeaders?.headers,
-    )
-        case final response?) {
+  Future<ReadOnlyResponse> _handle(RouterHelperMixin helper) async {
+    if (helper.runOptions() case final response?) {
       return response;
     }
 
-    request.pathParameters = pathParameters;
-
-    final response = MutableResponseImpl(requestHeaders: request.headers);
-
-    final directMeta = route.getMeta();
-    final inheritedMeta = route.getMeta(inherit: true);
-    globalModifiers.getMeta(handler: inheritedMeta);
-    final dataHandler = DataHandler();
-    final reflectHandler = ReflectHandler(_reflects);
-
-    try {
-      final result = await execute(
-        route: route,
-        globalModifiers: globalModifiers,
-        request: request,
-        response: response,
-        dataHandler: dataHandler,
-        directMeta: directMeta,
-        inheritedMeta: inheritedMeta,
-        reflectHandler: reflectHandler,
-      );
-
-      return result;
-    } catch (e, stackTrace) {
-      if (e is! Exception) {
-        return _debugResponse(
-          defaultResponses.internalServerError,
-          error: e,
-          stackTrace: stackTrace,
-        );
-      }
-
-      if (await runCatcher(
-        [
-          ...route.allCatchers,
-          ...globalModifiers.catchers,
-        ],
-        e: e,
-        stackTrace: stackTrace,
-        request: request,
-        response: response,
-        dataHandler: dataHandler,
-        directMeta: directMeta,
-        inheritedMeta: inheritedMeta,
-        route: route,
-      )
-          case final response?) {
-        return response;
-      }
-
-      return _debugResponse(
-        defaultResponses.internalServerError,
-        error: e,
-        stackTrace: stackTrace,
-      );
+    if (helper.runRedirect() case final response?) {
+      return response;
     }
+
+    if (helper.runOriginCheck() case final response?) {
+      return response;
+    }
+
+    return helper.execute();
   }
 
   @override
   List<Object?> get props => _$props;
+
+  RouterHelperMixin createHelper(BaseRoute route, MutableRequestImpl request) {
+    return RouterHelper(
+      globalModifiers: _globalModifiers ?? RouteModifiersImpl(),
+      reflectHandler: ReflectHandler(_reflects),
+      request: request,
+      response: MutableResponseImpl(requestHeaders: request.headers),
+      route: route,
+      debugErrorResponse: _debugResponse,
+      debugResponses: debug,
+      defaultResponses: defaultResponses,
+    );
+  }
 }

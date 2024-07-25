@@ -1,12 +1,21 @@
 part of 'router.dart';
 
-extension RunMiddlewares on Router {
-  Future<ReadOnlyResponse?> runMiddlewares(
-    List<Middleware> middlewares, {
-    required MutableRequest request,
-    required MutableResponse response,
-    required DataHandler dataHandler,
-  }) async {
+class _RunMiddlewares {
+  const _RunMiddlewares(this.helper);
+
+  final RouterHelperMixin helper;
+
+  Future<ReadOnlyResponse?> call() => run();
+
+  Future<ReadOnlyResponse?> run() async {
+    final RouterHelperMixin(
+      :request,
+      :middlewares,
+      :response,
+      :dataHandler,
+      :debugErrorResponse,
+    ) = helper;
+
     for (final middleware in middlewares) {
       final result = await middleware.use(
         MiddlewareContextImpl(
@@ -21,7 +30,7 @@ extension RunMiddlewares on Router {
         final (statusCode, headers, body) =
             result.asStop.getResponseOverrides();
 
-        return _debugResponse(
+        return debugErrorResponse(
           response
             .._overrideWith(
               statusCode: statusCode,
@@ -34,6 +43,7 @@ extension RunMiddlewares on Router {
         );
       }
     }
+
     return null;
   }
 }

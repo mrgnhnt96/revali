@@ -1,27 +1,30 @@
 part of 'router.dart';
 
-extension IsOriginAllowed on Router {
-  ReadOnlyResponse? isOriginAllowed(
-    MutableRequest request,
-    BaseRoute route, {
-    required Set<String>? globalAllowedOrigins,
-    required Set<String>? globalAllowedHeaders,
-  }) {
-    final inheritGlobal = route.allowedOrigins?.inherit != false;
-    final allAllowedOrigins = {
-      if (inheritGlobal) ...?globalAllowedOrigins,
-      ...route.allAllowedOrigins
-    };
+class _RunOriginCheck {
+  const _RunOriginCheck(this.helper);
+
+  final RouterHelperMixin helper;
+
+  ReadOnlyResponse? call() => run();
+
+  ReadOnlyResponse? run() {
+    final RouterHelperMixin(
+      :request,
+      :route,
+      :debugErrorResponse,
+      :defaultResponses,
+      :allowedHeaders,
+      :allowedOrigins,
+    ) = helper;
 
     var isAllowed = true;
     final origin = request.headers.origin;
-    if (allAllowedOrigins case final allowedOrigins
-        when allowedOrigins.isNotEmpty) {
+    if (allowedOrigins.isNotEmpty) {
       isAllowed = false;
 
       if (origin == null) {
         if (!allowedOrigins.contains('*')) {
-          return _debugResponse(
+          return debugErrorResponse(
             defaultResponses.failedCors,
             error: 'Origin header is missing.',
             stackTrace: StackTrace.current,
@@ -50,7 +53,7 @@ extension IsOriginAllowed on Router {
     }
 
     if (!isAllowed) {
-      return _debugResponse(
+      return debugErrorResponse(
         defaultResponses.failedCors,
         error: 'Origin is not allowed.',
         stackTrace: StackTrace.current,
@@ -66,11 +69,9 @@ extension IsOriginAllowed on Router {
           route.allowedMethods.join(', '))
       ..set(HttpHeaders.accessControlAllowCredentialsHeader, 'true')
       ..set(
-          HttpHeaders.accessControlAllowHeadersHeader,
-          {
-            if (inheritGlobal) ...?globalAllowedHeaders,
-            ...?route.allowedHeaders?.headers,
-          }.join(', '));
+        HttpHeaders.accessControlAllowHeadersHeader,
+        allowedHeaders.join(', '),
+      );
 
     return null;
   }

@@ -1,44 +1,38 @@
 part of 'router.dart';
 
-extension BodyForError on Router {
-  ReadOnlyBody? bodyForError(
-    ReadOnlyBody? body, {
-    required Object error,
-    required StackTrace stackTrace,
-  }) {
-    if (!debug) {
-      return body;
-    }
+ReadOnlyBody? bodyForError(
+  ReadOnlyBody? body, {
+  required Object error,
+  required StackTrace stackTrace,
+}) {
+  final data = body?.data;
+  final stackString = Trace.format(stackTrace).trim().split('\n');
 
-    final data = body?.data;
-    final stackString = Trace.format(stackTrace).trim().split('\n');
-
-    final newData = switch (data) {
-      Map() => {
-          ...data,
+  final newData = switch (data) {
+    Map() => {
+        ...data,
+        'error': error.toString(),
+        'stackTrace': stackString,
+      },
+    List() => [
+        ...data,
+        {
           'error': error.toString(),
           'stackTrace': stackString,
         },
-      List() => [
-          ...data,
-          {
-            'error': error.toString(),
-            'stackTrace': stackString,
-          },
-        ],
-      String() => '''$body
+      ],
+    String() => '''$body
 
 Error: $error
 
 Stack Trace:
 ${stackString.join('\n')}''',
-      Null() => {
-          'error': error.toString(),
-          'stackTrace': stackString,
-        },
-      _ => body,
-    };
+    Null() => {
+        'error': error.toString(),
+        'stackTrace': stackString,
+      },
+    _ => body,
+  };
 
-    return BaseBodyData.from(newData);
-  }
+  return BaseBodyData.from(newData);
 }

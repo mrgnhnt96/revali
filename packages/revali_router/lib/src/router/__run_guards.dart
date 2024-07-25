@@ -1,15 +1,24 @@
 part of 'router.dart';
 
-extension RunGuards on Router {
-  Future<ReadOnlyResponse?> runGuards(
-    List<Guard> guards, {
-    required MutableRequest request,
-    required MutableResponse response,
-    required DataHandler dataHandler,
-    required MetaHandler directMeta,
-    required MetaHandler inheritedMeta,
-    required BaseRoute route,
-  }) async {
+class _RunGuards {
+  const _RunGuards(this.helper);
+
+  final RouterHelperMixin helper;
+
+  Future<ReadOnlyResponse?> call() => run();
+
+  Future<ReadOnlyResponse?> run() async {
+    final RouterHelperMixin(
+      :request,
+      :guards,
+      :response,
+      :dataHandler,
+      :directMeta,
+      :inheritedMeta,
+      :route,
+      :debugErrorResponse,
+    ) = helper;
+
     for (final guard in guards) {
       final result = await guard.canActivate(
         GuardContextImpl(
@@ -28,7 +37,7 @@ extension RunGuards on Router {
       if (result.isNo) {
         final (statusCode, headers, body) = result.asNo.getResponseOverrides();
 
-        return _debugResponse(
+        return debugErrorResponse(
           response
             .._overrideWith(
                 statusCode: statusCode,
