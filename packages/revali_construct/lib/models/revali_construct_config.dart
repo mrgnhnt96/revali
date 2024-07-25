@@ -14,7 +14,7 @@ class RevaliConstructConfig extends Equatable {
   });
 
   factory RevaliConstructConfig.fromJson(Map<String, dynamic> json) =>
-      _$revaliConstructConfigFromJson(json);
+      _$RevaliConstructConfigFromJson(json);
 
   final String name;
   final String? package;
@@ -23,7 +23,7 @@ class RevaliConstructConfig extends Equatable {
 
   ConstructOptions get constructOptions => ConstructOptions(options);
 
-  Map<String, dynamic> toJson() => _$revaliConstructConfigToJson(this);
+  Map<String, dynamic> toJson() => _$RevaliConstructConfigToJson(this);
 
   @override
   List<Object?> get props => [

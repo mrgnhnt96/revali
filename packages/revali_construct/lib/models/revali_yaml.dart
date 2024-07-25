@@ -12,12 +12,12 @@ class RevaliYaml extends Equatable {
   const RevaliYaml.none() : constructs = const [];
 
   factory RevaliYaml.fromJson(Map<String, dynamic> json) =>
-      _$revaliYamlFromJson(json);
+      _$RevaliYamlFromJson(json);
 
   @JsonKey(defaultValue: [])
   final List<RevaliConstructConfig> constructs;
 
-  Map<String, dynamic> toJson() => _$revaliYamlToJson(this);
+  Map<String, dynamic> toJson() => _$RevaliYamlToJson(this);
 
   RevaliConstructConfig configFor(ConstructMaker maker) {
     final defaultConfig = RevaliConstructConfig(name: maker.name);

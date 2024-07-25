@@ -6,7 +6,7 @@ part of 'revali_construct_config.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-RevaliConstructConfig _$revaliConstructConfigFromJson(Map json) =>
+RevaliConstructConfig _$RevaliConstructConfigFromJson(Map json) =>
     RevaliConstructConfig(
       name: json['name'] as String,
       enabled: json['enabled'] as bool? ?? true,
@@ -17,7 +17,7 @@ RevaliConstructConfig _$revaliConstructConfigFromJson(Map json) =>
           const {},
     );
 
-Map<String, dynamic> _$revaliConstructConfigToJson(
+Map<String, dynamic> _$RevaliConstructConfigToJson(
         RevaliConstructConfig instance) =>
     <String, dynamic>{
       'name': instance.name,

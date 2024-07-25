@@ -6,7 +6,7 @@ part of 'revali_yaml.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-revaliYaml _$revaliYamlFromJson(Map json) => revaliYaml(
+RevaliYaml _$RevaliYamlFromJson(Map json) => RevaliYaml(
       constructs: (json['constructs'] as List<dynamic>?)
               ?.map((e) => RevaliConstructConfig.fromJson(
                   Map<String, dynamic>.from(e as Map)))
@@ -14,7 +14,7 @@ revaliYaml _$revaliYamlFromJson(Map json) => revaliYaml(
           [],
     );
 
-Map<String, dynamic> _$revaliYamlToJson(revaliYaml instance) =>
+Map<String, dynamic> _$RevaliYamlToJson(RevaliYaml instance) =>
     <String, dynamic>{
       'constructs': instance.constructs.map((e) => e.toJson()).toList(),
     };

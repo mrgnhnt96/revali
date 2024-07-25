@@ -9,6 +9,7 @@ part of 'web_socket_route.dart';
 extension _$WebSocketRouteAutoequal on WebSocketRoute {
   List<Object?> get _$props => [
         mode,
+        ping,
         handler,
         path,
         routes,
