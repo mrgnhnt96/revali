@@ -26,7 +26,7 @@ void main() async {
     final response = await router.handle(context);
 
     return response;
-  });
+  }).ignore();
 
   print('Serving at http://${server.address.host}:${server.port}');
 }

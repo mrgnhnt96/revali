@@ -144,12 +144,16 @@ String serverFile(
             )
             .statement,
         const Code('\n'),
-        refer('handleRequests').call(
-          [
-            refer('server'),
-            refer('router').property('handle'),
-          ],
-        ).statement,
+        refer('handleRequests')
+            .call(
+              [
+                refer('server'),
+                refer('router').property('handle'),
+              ],
+            )
+            .property('ignore')
+            .call([])
+            .statement,
         const Code('\n'),
         refer('app').property('onServerStarted').call(
           [refer('server')],

@@ -7,7 +7,7 @@ part 'base_route.g.dart';
 class BaseRoute extends Equatable implements RouteEntry, RouteModifiers {
   BaseRoute(
     String path, {
-    dynamic Function(EndpointContext)? handler,
+    Future<dynamic> Function(EndpointContext)? handler,
     String? method,
     Iterable<BaseRoute>? routes,
     List<Middleware>? middlewares,
@@ -134,7 +134,7 @@ class BaseRoute extends Equatable implements RouteEntry, RouteModifiers {
   final List<Guard> guards;
   @override
   BaseRoute? parent;
-  final dynamic Function(EndpointContext)? handler;
+  final Future<dynamic> Function(EndpointContext)? handler;
   @override
   final String? method;
   final void Function(MetaHandler)? _meta;

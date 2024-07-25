@@ -58,7 +58,7 @@ mixin RouterHelperMixin {
   Execute get execute => Execute(this);
 
   Future<WebSocketResponse> handleWebSocket(
-    FutureOr<WebSocketHandler> handler,
+    Future<WebSocketHandler> handler,
   ) async {
     final route = this.route;
     if (route is! WebSocketRoute) {

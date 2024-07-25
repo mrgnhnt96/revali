@@ -22,7 +22,6 @@ class WebSocketRoute extends BaseRoute {
     super.meta,
     super.middlewares,
     super.redirect,
-    super.routes,
     this.ping,
   }) : super(
           method: 'GET',
@@ -34,7 +33,7 @@ class WebSocketRoute extends BaseRoute {
 
   @override
   // ignore: overridden_fields
-  final FutureOr<WebSocketHandler> Function(EndpointContext) handler;
+  final Future<WebSocketHandler> Function(EndpointContext) handler;
 
   @override
   List<Object?> get props => _$props;

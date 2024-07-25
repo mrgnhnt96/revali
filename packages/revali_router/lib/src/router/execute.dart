@@ -36,10 +36,12 @@ class Execute {
       return response;
     }
 
-    final result = handler.call(helper.endpointContext);
+    Future<dynamic> result;
+
+    result = handler.call(helper.endpointContext);
 
     if (route is WebSocketRoute) {
-      if (result is! FutureOr<WebSocketHandler>) {
+      if (result is! Future<WebSocketHandler>) {
         throw InvalidHandlerResultException('${result.runtimeType}', [
           '$WebSocketHandler',
           'Future<$WebSocketHandler>',
@@ -47,13 +49,6 @@ class Execute {
       }
 
       return helper.handleWebSocket(result);
-    }
-
-    if (result is! Future<void>) {
-      throw InvalidHandlerResultException(
-        '${result.runtimeType}',
-        ['Future<void>'],
-      );
     }
 
     final RouterHelperMixin(:runInterceptors) = helper;
