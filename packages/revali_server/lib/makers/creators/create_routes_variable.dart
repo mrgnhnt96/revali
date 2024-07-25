@@ -3,7 +3,7 @@ import 'package:revali_router/revali_router.dart' hide Method, AllowOrigins;
 import 'package:revali_server/revali_server.dart';
 
 List<Code> createRoutesVariable(ServerServer server) {
-  if (server.context.mode.isDebug) {
+  if (server.context.mode.isRelease) {
     return [
       declareVar('_routes')
           .assign(refer('routes').call([refer('di')]))

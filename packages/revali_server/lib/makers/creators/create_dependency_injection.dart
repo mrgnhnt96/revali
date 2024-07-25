@@ -2,7 +2,7 @@ import 'package:code_builder/code_builder.dart';
 import 'package:revali_server/revali_server.dart';
 
 List<Code> createDependencyInjection(ServerServer server) {
-  if (server.context.mode.isDebug) {
+  if (server.context.mode.isRelease) {
     return [
       refer('app')
           .property('configureDependencies')
