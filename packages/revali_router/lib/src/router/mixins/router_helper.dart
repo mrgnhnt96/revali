@@ -2,19 +2,21 @@ part of '../router.dart';
 
 class RouterHelper with RouterHelperMixin, ContextHelperMixin {
   RouterHelper({
-    required this.globalModifiers,
-    required this.reflectHandler,
-    required this.request,
-    required this.response,
     required this.route,
-    required this.debugErrorResponse,
-    required this.debugResponses,
-    required this.defaultResponses,
+    required this.request,
+    required Router router,
   }) {
+    globalModifiers = router._globalModifiers ?? RouteModifiersImpl();
+    reflectHandler = ReflectHandler(router._reflects);
+    debugErrorResponse = router._debugResponse;
+    debugResponses = router.debug;
+    defaultResponses = router.defaultResponses;
+
     dataHandler = DataHandler();
     directMeta = route.getMeta();
     inheritedMeta = route.getMeta(inherit: true);
     globalModifiers.getMeta(handler: inheritedMeta);
+    response = MutableResponseImpl(requestHeaders: request.headers);
   }
 
   @override
@@ -24,32 +26,35 @@ class RouterHelper with RouterHelperMixin, ContextHelperMixin {
   late final MetaHandler directMeta;
 
   @override
-  final RouteModifiers globalModifiers;
+  late final RouteModifiers globalModifiers;
 
   @override
   late final MetaHandler inheritedMeta;
 
   @override
-  final ReflectHandler reflectHandler;
+  late final ReflectHandler reflectHandler;
 
   @override
   final MutableRequest request;
 
   @override
-  final MutableResponse response;
+  late final MutableResponse response;
 
   @override
   final BaseRoute route;
 
   @override
-  final DebugErrorResponse debugErrorResponse;
+  late final DebugErrorResponse debugErrorResponse;
 
   @override
-  final bool debugResponses;
+  late final bool debugResponses;
 
   @override
-  final DefaultResponses defaultResponses;
+  late final DefaultResponses defaultResponses;
 
   @override
   ContextHelperMixin get context => this;
+
+  @override
+  RunnersHelperMixin get run => RunnersHelper(this);
 }

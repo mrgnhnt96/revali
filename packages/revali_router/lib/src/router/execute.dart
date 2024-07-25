@@ -1,13 +1,9 @@
 part of 'router.dart';
 
 class Execute {
-  const Execute(
-    this.helper,
-    this.context,
-  );
+  const Execute(this.helper);
 
   final RouterHelperMixin helper;
-  final ContextHelperMixin context;
 
   Future<ReadOnlyResponse> call() => run();
 
@@ -18,9 +14,13 @@ class Execute {
       :response,
       :debugErrorResponse,
       :defaultResponses,
-      context: ContextHelperMixin(endpoint: endpointContext),
-      :runInterceptors,
-      :handleWebSocket,
+      context: ContextHelperMixin(endpoint: context),
+      run: RunnersHelperMixin(
+        :interceptors,
+        :guards,
+        :middlewares,
+        :handleWebSocket,
+      ),
     ) = helper;
 
     final handler = route.handler;
@@ -35,23 +35,23 @@ class Execute {
       );
     }
 
-    if (await helper.runMiddlewares() case final response?) {
+    if (await middlewares() case final response?) {
       return response;
     }
 
-    if (await helper.runGuards() case final response?) {
+    if (await guards() case final response?) {
       return response;
     }
 
     if (route is WebSocketRoute) {
-      return handleWebSocket(await handler(endpointContext)).execute();
+      return handleWebSocket(await handler(context)).execute();
     }
 
-    await runInterceptors.pre();
+    await interceptors.pre();
 
-    await handler(endpointContext);
+    await handler(context);
 
-    await runInterceptors.post();
+    await interceptors.post();
 
     return response;
   }

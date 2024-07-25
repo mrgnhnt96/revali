@@ -174,12 +174,14 @@ class HandleWebSocket {
 
     final RouterHelperMixin(
       :response,
-      :runInterceptors,
+      run: RunnersHelperMixin(
+        :interceptors,
+      )
     ) = helper;
 
     sending = Completer<void>();
 
-    await runInterceptors.post();
+    await interceptors.post();
 
     final body = response.body;
     if (body.isNull) {
@@ -212,14 +214,16 @@ class HandleWebSocket {
 
   Future<WebSocketResponse?> runHandler(Stream<void> Function() stream) async {
     final RouterHelperMixin(
-      :runInterceptors,
+      run: RunnersHelperMixin(
+        :interceptors,
+        :catchers,
+      ),
       :debugErrorResponse,
       :debugResponses,
-      :runCatchers,
     ) = helper;
 
     try {
-      await runInterceptors.pre();
+      await interceptors.pre();
 
       await for (final _ in stream()) {
         await sendResponse();
@@ -237,7 +241,7 @@ class HandleWebSocket {
 
       return response.toWebSocketResponse();
     } catch (e, stackTrace) {
-      final response = await runCatchers(
+      final response = await catchers(
         e,
         stackTrace,
         defaultResponse: WebSocketResponse(1011),
