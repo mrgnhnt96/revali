@@ -44,6 +44,7 @@ class MethodVisitor extends RecursiveElementVisitor<void> {
     final isStream = element.returnType.isDartAsyncStream;
     Element? returnTypeElement;
     final typeArguments = <String>[];
+    var isNullable = false;
 
     if (isFuture || isStream) {
       final returnType = element.returnType as InterfaceType;
@@ -52,9 +53,16 @@ class MethodVisitor extends RecursiveElementVisitor<void> {
           type.getDisplayString(withNullability: false),
       ]);
 
-      returnTypeElement = returnType.typeArguments.first.element;
+      final typeArg = returnType.typeArguments.first;
+
+      returnTypeElement = typeArg.element;
+      if (typeArg is InterfaceType) {
+        isNullable = typeArg.nullabilitySuffix != NullabilitySuffix.none;
+      }
     } else {
       returnTypeElement = element.returnType.element;
+      isNullable =
+          element.returnType.nullabilitySuffix != NullabilitySuffix.none;
     }
 
     (methods[method.name] ??= []).add(
@@ -65,8 +73,7 @@ class MethodVisitor extends RecursiveElementVisitor<void> {
         params: params,
         returnType: MetaReturnType(
           isVoid: element.returnType is VoidType || type.contains('<void>'),
-          isNullable:
-              element.returnType.nullabilitySuffix != NullabilitySuffix.none,
+          isNullable: isNullable,
           type: type,
           typeArguments: typeArguments,
           element: returnTypeElement,

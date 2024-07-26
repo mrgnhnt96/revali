@@ -41,8 +41,13 @@ Expression? createHandler({
   Expression? setBody;
   if (!returnType.isVoid) {
     Expression result = refer('result');
+
     if (returnType.hasToJsonMember) {
-      result = result.property('toJson').call([]);
+      if (returnType.isNullable) {
+        result = result.nullSafeProperty('toJson').call([]);
+      } else {
+        result = result.property('toJson').call([]);
+      }
     }
 
     setBody = refer('context').property('response').property('body');
