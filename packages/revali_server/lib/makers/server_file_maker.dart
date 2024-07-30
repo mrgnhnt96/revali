@@ -125,7 +125,7 @@ String serverFile(
                     refer('public').spread,
                   ]),
                   if (app.observers.isNotEmpty)
-                    'observers': literalList([
+                    'observers': literalConstList([
                       for (final observer in app.observers)
                         createMimic(observer),
                     ]),

@@ -54,7 +54,7 @@ Map<String, Expression> createModifierArgs({
       ]),
     if (annotations.allowOrigins case final allow?
         when allow.origins.isNotEmpty)
-      'allowedOrigins': refer((AllowedOriginsImpl).name).newInstance([
+      'allowedOrigins': refer((AllowedOriginsImpl).name).constInstance([
         literalSet([
           for (final allowOrigin in allow.origins) literalString(allowOrigin),
         ]),
@@ -63,7 +63,7 @@ Map<String, Expression> createModifierArgs({
       }),
     if (annotations.allowHeaders case final allow?
         when allow.headers.isNotEmpty)
-      'allowedHeaders': refer((AllowedHeadersImpl).name).newInstance([
+      'allowedHeaders': refer((AllowedHeadersImpl).name).constInstance([
         literalSet([
           for (final allowHeader in allow.headers) literalString(allowHeader),
         ]),
