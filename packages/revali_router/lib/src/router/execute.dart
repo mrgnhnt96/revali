@@ -49,7 +49,30 @@ class Execute {
 
     await interceptors.pre();
 
-    await handler(context);
+    await runZonedGuarded(() async {
+      await handler(context);
+    }, (e, stack) {
+      // ignore: avoid_print
+      print('''
+
+================ !!!! WARNING !!!! ================
+
+An uncaught exception was thrown after the handler was resolved.
+This will result in unexpected behavior and may cause the server to crash.
+
+This is likely because the handlers return type is not a `Future`.
+
+Please ensure that all handlers that use the `await` keyword or invoke asynchronous methods are returning a `Future`.
+
+Error:
+$e
+
+Stack Trace:
+${Trace.from(stack)}
+================ !!!! WARNING !!!! ================
+
+''');
+    });
 
     await interceptors.post();
 
