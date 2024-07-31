@@ -8,6 +8,7 @@ import 'package:revali_router/src/headers/mutable_headers_impl.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
 part 'binary_body_data.dart';
+part 'byte_stream_body_data.dart';
 part 'file_body_data.dart';
 part 'form_body_data.dart';
 part 'json_body_data.dart';
@@ -15,6 +16,7 @@ part 'json_data.dart';
 part 'list_body_data.dart';
 part 'memory_file_body_data.dart';
 part 'null_body_data.dart';
+part 'stream_body_data.dart';
 part 'string_body_data.dart';
 part 'unknown_body_data.dart';
 
@@ -35,6 +37,8 @@ sealed class BaseBodyData<T> extends BodyData {
       List() => ListBodyData(data),
       // ignore: prefer_void_to_null
       Null() => NullBodyData(),
+      Stream<List<int>>() => ByteStreamBodyData(data, contentLength: 0),
+      Stream<dynamic>() => StreamBodyData(data, contentLength: 0),
       ReadOnlyBody() => BaseBodyData<dynamic>.from(data.data),
       _ => throw UnsupportedError('Unsupported body data type: $data'),
     };
@@ -51,6 +55,7 @@ sealed class BaseBodyData<T> extends BodyData {
   bool get isList => this is ListBodyData;
   bool get isFormData => this is FormDataBodyData;
   bool get isUnknown => this is UnknownBodyData;
+  bool get isStream => this is StreamBodyData;
 
   @override
   bool get isNull => false;
@@ -60,4 +65,5 @@ sealed class BaseBodyData<T> extends BodyData {
   JsonBodyData get asJson => this as JsonBodyData;
   ListBodyData get asList => this as ListBodyData;
   FormDataBodyData get asFormData => this as FormDataBodyData;
+  StreamBodyData get asStream => this as StreamBodyData;
 }
