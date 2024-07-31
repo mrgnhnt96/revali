@@ -20,6 +20,7 @@ class Execute {
         :guards,
         :middlewares,
         :handleWebSocket,
+        :catchers,
       ),
     ) = helper;
 
@@ -49,8 +50,18 @@ class Execute {
 
     await interceptors.pre();
 
+    final errorResponse = Completer<ReadOnlyResponse?>();
     await runZonedGuarded(() async {
-      await handler(context);
+      try {
+        await handler(context);
+      } catch (e, stackTrace) {
+        final response = await catchers(e, stackTrace);
+        errorResponse.complete(response);
+      }
+
+      if (!errorResponse.isCompleted) {
+        errorResponse.complete(null);
+      }
     }, (e, stack) {
       // ignore: avoid_print
       print('''
@@ -73,6 +84,10 @@ ${Trace.from(stack)}
 
 ''');
     });
+
+    if (await errorResponse.future case final response?) {
+      return response;
+    }
 
     await interceptors.post();
 
