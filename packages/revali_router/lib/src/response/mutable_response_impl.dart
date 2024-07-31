@@ -10,7 +10,7 @@ class MutableResponseImpl implements MutableResponse {
     required ReadOnlyHeaders requestHeaders,
   })  : _requestHeaders = requestHeaders,
         _body = MutableBodyImpl(),
-        _headers = MutableHeadersImpl();
+        headers = MutableHeadersImpl();
 
   final ReadOnlyHeaders _requestHeaders;
 
@@ -48,57 +48,15 @@ class MutableResponseImpl implements MutableResponse {
     }
   }
 
-  final MutableHeaders _headers;
   @override
-  MutableHeaders get headers {
-    final headers = MutableHeadersImpl();
+  final MutableHeaders headers;
 
-    _headers.forEach(headers.setAll);
+  @override
+  MutableHeaders get headersToSend {
+    final headers = MutableHeadersImpl.from(this.headers);
 
-    body.headers(_requestHeaders).forEach(headers.setAll);
-    headers.setIfAbsent(HttpHeaders.contentTypeHeader, () {
-      return body.mimeType ?? 'text/plain';
-    });
-
-    void removeContentRelated(MutableHeaders headers) {
-      headers
-        ..remove(HttpHeaders.contentTypeHeader)
-        ..remove(HttpHeaders.contentLengthHeader)
-        ..remove(HttpHeaders.contentEncodingHeader)
-        ..remove(HttpHeaders.transferEncodingHeader)
-        ..remove(HttpHeaders.contentRangeHeader)
-        ..remove(HttpHeaders.acceptRangesHeader)
-        ..remove(HttpHeaders.contentDisposition)
-        ..remove(HttpHeaders.contentLanguageHeader)
-        ..remove(HttpHeaders.contentLocationHeader)
-        ..remove(HttpHeaders.contentMD5Header);
-    }
-
-    void removeAccessControl(MutableHeaders headers) {
-      headers
-        ..remove(HttpHeaders.allowHeader)
-        ..remove(HttpHeaders.accessControlAllowOriginHeader)
-        ..remove(HttpHeaders.accessControlAllowCredentialsHeader)
-        ..remove(HttpHeaders.accessControlExposeHeadersHeader)
-        ..remove(HttpHeaders.accessControlMaxAgeHeader)
-        ..remove(HttpHeaders.accessControlAllowMethodsHeader)
-        ..remove(HttpHeaders.accessControlAllowHeadersHeader)
-        ..remove(HttpHeaders.accessControlRequestHeadersHeader)
-        ..remove(HttpHeaders.accessControlRequestMethodHeader);
-    }
-
-    switch (statusCode) {
-      case HttpStatus.notModified:
-      case HttpStatus.noContent:
-        removeContentRelated(headers);
-      case HttpStatus.notFound:
-        removeAccessControl(headers);
-      default:
-        break;
-    }
-
-    headers.setIfAbsent(HttpHeaders.contentLengthHeader, () {
-      return '0';
+    _body.headers(_requestHeaders).forEach((key, values) {
+      headers[key] ??= values.join(',');
     });
 
     return headers;

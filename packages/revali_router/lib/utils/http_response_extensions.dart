@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:revali_router/src/body/response_body/base_body_data.dart';
+import 'package:revali_router/src/headers/mutable_headers_impl.dart';
 import 'package:revali_router/src/payload/payload_impl.dart';
 import 'package:revali_router/src/response/web_socket_response.dart';
 import 'package:revali_router_core/revali_router_core.dart';
@@ -20,10 +21,26 @@ extension HttpResponseX on HttpResponse {
     final http = this;
     statusCode = response.statusCode;
 
-    final responseHeaders = response.headers
-      ..forEach((key, values) {
-        http.headers.set(key, values.join(','));
-      });
+    MutableHeaders responseHeaders;
+    if (response is MutableResponse) {
+      responseHeaders = response.headersToSend;
+    } else {
+      responseHeaders = MutableHeadersImpl.from(response.headers);
+    }
+
+    responseHeaders
+      ..contentLength ??= 0
+      ..mimeType ??= 'text/plain';
+
+    switch (statusCode) {
+      case HttpStatus.notModified:
+      case HttpStatus.noContent:
+        _removeContentRelated(responseHeaders);
+      case HttpStatus.notFound:
+        _removeAccessControl(responseHeaders);
+      default:
+        break;
+    }
 
     var chunk = false;
 
@@ -34,7 +51,7 @@ extension HttpResponseX on HttpResponse {
         // otherwise `dart:io` will try to add another layer of chunking.
         chunk = true;
 
-        http.headers.set(HttpHeaders.transferEncodingHeader, 'chunked');
+        responseHeaders.set(HttpHeaders.transferEncodingHeader, 'chunked');
       } else if (response.statusCode >= 200 &&
           response.statusCode != 204 &&
           response.statusCode != 304 &&
@@ -43,7 +60,7 @@ extension HttpResponseX on HttpResponse {
         // If the response isn't chunked yet and
         // there's no other way to tell its
         // length, enable `dart:io`'s chunked encoding.
-        http.headers.set(HttpHeaders.transferEncodingHeader, 'chunked');
+        responseHeaders.set(HttpHeaders.transferEncodingHeader, 'chunked');
       }
     }
 
@@ -81,8 +98,12 @@ extension HttpResponseX on HttpResponse {
         );
         body = chunkedCoding.decoder.bind(payload.read());
 
-        http.headers.contentLength = payload.contentLength ?? 0;
+        responseHeaders.contentLength = payload.contentLength ?? 0;
       }
+
+      responseHeaders.forEach((key, values) {
+        http.headers.set(key, values.join(','));
+      });
 
       if (body != null) {
         await http.addStream(body);
@@ -92,4 +113,31 @@ extension HttpResponseX on HttpResponse {
     await http.flush();
     await http.close();
   }
+}
+
+void _removeContentRelated(MutableHeaders headers) {
+  headers
+    ..remove(HttpHeaders.contentTypeHeader)
+    ..remove(HttpHeaders.contentLengthHeader)
+    ..remove(HttpHeaders.contentEncodingHeader)
+    ..remove(HttpHeaders.transferEncodingHeader)
+    ..remove(HttpHeaders.contentRangeHeader)
+    ..remove(HttpHeaders.acceptRangesHeader)
+    ..remove(HttpHeaders.contentDisposition)
+    ..remove(HttpHeaders.contentLanguageHeader)
+    ..remove(HttpHeaders.contentLocationHeader)
+    ..remove(HttpHeaders.contentMD5Header);
+}
+
+void _removeAccessControl(MutableHeaders headers) {
+  headers
+    ..remove(HttpHeaders.allowHeader)
+    ..remove(HttpHeaders.accessControlAllowOriginHeader)
+    ..remove(HttpHeaders.accessControlAllowCredentialsHeader)
+    ..remove(HttpHeaders.accessControlExposeHeadersHeader)
+    ..remove(HttpHeaders.accessControlMaxAgeHeader)
+    ..remove(HttpHeaders.accessControlAllowMethodsHeader)
+    ..remove(HttpHeaders.accessControlAllowHeadersHeader)
+    ..remove(HttpHeaders.accessControlRequestHeadersHeader)
+    ..remove(HttpHeaders.accessControlRequestMethodHeader);
 }
