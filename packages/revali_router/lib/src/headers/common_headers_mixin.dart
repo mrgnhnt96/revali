@@ -1,83 +1,62 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http_parser/http_parser.dart';
 import 'package:revali_router_core/headers/read_only_headers.dart';
 
 abstract class CommonHeadersMixin extends ReadOnlyHeaders {
-  MediaType? _contentType;
   @override
   MediaType? get contentType {
-    if (_contentType case final value?) {
-      return value;
-    }
-
-    if (get('content-type') case final value?) {
-      return _contentType = MediaType.parse(value);
+    if (get(HttpHeaders.contentTypeHeader) case final value?) {
+      return MediaType.parse(value);
     }
 
     return null;
   }
 
-  Encoding? _encoding;
   @override
   Encoding get encoding {
-    if (_encoding case final value?) {
-      return value;
-    }
-
     if (contentType?.parameters['charset'] case final value?) {
-      return _encoding = Encoding.getByName(value) ?? utf8;
+      return Encoding.getByName(value) ?? utf8;
     }
 
-    return _encoding = utf8;
+    return utf8;
   }
 
-  DateTime? _ifModifiedSince;
   @override
   DateTime? get ifModifiedSince {
-    if (_ifModifiedSince case final value?) {
-      return value;
-    }
-
-    if (get('if-modified-since') case final value?) {
-      return _ifModifiedSince = parseHttpDate(value);
+    if (get(HttpHeaders.ifModifiedSinceHeader) case final value?) {
+      return parseHttpDate(value);
     }
 
     return null;
   }
 
-  String? _mimeType;
+  DateTime? get lastModified {
+    if (get(HttpHeaders.ifModifiedSinceHeader) case final value?) {
+      return parseHttpDate(value);
+    }
+
+    return null;
+  }
+
   @override
   String? get mimeType {
-    if (_mimeType case final value?) {
-      return value;
-    }
-
-    return _mimeType = contentType?.mimeType;
+    return contentType?.mimeType;
   }
 
-  int? _contentLength;
   @override
   int? get contentLength {
-    if (_contentLength case final value?) {
-      return value;
-    }
-
-    if (get('content-length') case final value?) {
-      return _contentLength = int.tryParse(value);
+    if (get(HttpHeaders.contentLengthHeader) case final value?) {
+      return int.tryParse(value);
     }
 
     return null;
   }
 
-  (int, int)? _range;
   @override
   (int, int)? get range {
-    if (_range case final value?) {
-      return value;
-    }
-
-    if (get('range') case final value?) {
+    if (get(HttpHeaders.rangeHeader) case final value?) {
       final match = RegExp(r'bytes=(\d+)-(\d+)?').firstMatch(value);
       if (match == null) {
         return null;
@@ -86,19 +65,33 @@ abstract class CommonHeadersMixin extends ReadOnlyHeaders {
       final start = int.tryParse(match.group(1)!) ?? 0;
       final end = int.tryParse(match.group(2)!) ?? -1;
 
-      return _range = (start, end);
+      return (start, end);
     }
 
     return null;
   }
 
-  String? _origin;
+  String? get acceptRanges {
+    return get(HttpHeaders.acceptRangesHeader);
+  }
+
   @override
   String? get origin {
-    if (_origin case final value?) {
+    return get(HttpHeaders.accessControlAllowOriginHeader);
+  }
+
+  @override
+  String? get filename {
+    if (get(HttpHeaders.contentDisposition) case final value?) {
+      if (RegExp('filename="([^"]+)"').firstMatch(value) case final match?) {
+        return match.group(1);
+      }
+    }
+
+    if (contentType?.parameters['filename'] case final value?) {
       return value;
     }
 
-    return _origin = get('origin');
+    return null;
   }
 }

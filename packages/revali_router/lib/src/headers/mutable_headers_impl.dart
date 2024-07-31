@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
@@ -68,12 +69,17 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
   }
 
   @override
-  void set(String key, String value) {
+  void add(String key, String value) {
     (_headers[key] ??= []).add(value);
   }
 
+  @override
+  void set(String key, String value) {
+    _headers[key] = [value];
+  }
+
   void setAll(String key, List<String> value) {
-    (_headers[key] ??= []).addAll(value);
+    _headers[key] = value;
   }
 
   @override
@@ -107,16 +113,101 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
 
   Map<String, List<String>> get values => Map.unmodifiable(_headers);
 
-  void setIfAbsent(String contentTypeHeader, String Function() setter) {
-    if (_headers[contentTypeHeader] == null) {
-      set(contentTypeHeader, setter());
-    }
-  }
-
   @override
   Map<K2, V2> map<K2, V2>(
     MapEntry<K2, V2> Function(String key, List<String> values) convert,
   ) {
     return _headers.map(convert);
+  }
+
+  @override
+  set contentLength(int? value) {
+    if (value == null) {
+      remove(HttpHeaders.contentLengthHeader);
+    } else {
+      set(HttpHeaders.contentLengthHeader, '$value');
+    }
+  }
+
+  @override
+  set contentType(MediaType? value) {
+    if (value == null) {
+      remove(HttpHeaders.contentTypeHeader);
+    } else {
+      set(HttpHeaders.contentTypeHeader, value.toString());
+    }
+  }
+
+  @override
+  set encoding(Encoding value) {
+    set(HttpHeaders.contentEncodingHeader, value.name);
+  }
+
+  @override
+  set ifModifiedSince(DateTime? value) {
+    if (value == null) {
+      remove(HttpHeaders.ifModifiedSinceHeader);
+    } else {
+      set(HttpHeaders.ifModifiedSinceHeader, formatHttpDate(value));
+    }
+  }
+
+  @override
+  set mimeType(String? value) {
+    if (value == null) {
+      remove(HttpHeaders.contentTypeHeader);
+    } else {
+      set(HttpHeaders.contentTypeHeader, value);
+    }
+  }
+
+  @override
+  set lastModified(DateTime? value) {
+    if (value == null) {
+      remove(HttpHeaders.lastModifiedHeader);
+    } else {
+      set(HttpHeaders.lastModifiedHeader, formatHttpDate(value));
+    }
+  }
+
+  @override
+  set origin(String? value) {
+    if (value == null) {
+      remove(HttpHeaders.accessControlAllowOriginHeader);
+    } else {
+      set(HttpHeaders.accessControlAllowOriginHeader, value);
+    }
+  }
+
+  @override
+  set range((int, int)? value) {
+    if (value == null) {
+      remove(HttpHeaders.rangeHeader);
+    } else {
+      final (start, end) = value;
+      final total = contentLength == null ? '' : '/$contentLength';
+      set(HttpHeaders.rangeHeader, 'bytes=$start-$end$total');
+    }
+  }
+
+  @override
+  set filename(String? value) {
+    if (value == null) {
+      remove(HttpHeaders.contentDisposition);
+    } else {
+      set(
+        HttpHeaders.contentDisposition,
+        'attachment; filename="${Uri.encodeComponent(value)}"',
+      );
+    }
+  }
+
+  @override
+  set acceptRanges(String? value) {
+    if (value == null) {
+      remove(HttpHeaders.acceptRangesHeader);
+    } else {
+      set(HttpHeaders.acceptRangesHeader, value);
+    }
   }
 }
