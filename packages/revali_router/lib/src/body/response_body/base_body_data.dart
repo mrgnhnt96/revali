@@ -37,8 +37,8 @@ sealed class BaseBodyData<T> extends BodyData {
       List() => ListBodyData(data),
       // ignore: prefer_void_to_null
       Null() => NullBodyData(),
-      Stream<List<int>>() => ByteStreamBodyData(data, contentLength: 0),
-      Stream<dynamic>() => StreamBodyData(data, contentLength: 0),
+      Stream<List<int>>() => ByteStreamBodyData(data),
+      Stream<dynamic>() => StreamBodyData(data),
       ReadOnlyBody() => BaseBodyData<dynamic>.from(data.data),
       _ => throw UnsupportedError('Unsupported body data type: $data'),
     };
