@@ -40,6 +40,8 @@ abstract class ReadOnlyHeaders {
 
   String? get origin;
 
+  String? get filename;
+
   (int, int)? get range;
 
   Map<K2, V2> map<K2, V2>(
