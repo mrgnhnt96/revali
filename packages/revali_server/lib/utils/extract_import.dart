@@ -31,16 +31,21 @@ mixin ExtractImport {
 
   Iterable<String> pathImports() {
     Iterable<String> extract() sync* {
-      final imports = [
-        for (final extractor in extractors) ...?extractor?.imports,
-        ...this.imports,
-      ];
+      Iterable<String> traverse(ExtractImport extract) sync* {
+        for (final item in extract.extractors) {
+          if (item == null) continue;
 
-      for (final import in imports) {
-        if (import == null) continue;
+          yield* traverse(item);
+        }
 
-        yield* import.paths;
+        for (final import in extract.imports) {
+          if (import == null) continue;
+
+          yield* import.paths;
+        }
       }
+
+      yield* traverse(this);
     }
 
     return _pathImports ??= {...extract().toList()..sort()};
