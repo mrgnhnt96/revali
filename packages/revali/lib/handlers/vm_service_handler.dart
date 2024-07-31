@@ -42,12 +42,22 @@ class VMServiceHandler {
 
   bool _isReloading = false;
 
+  Progress? __progress;
+  Progress? get _progress => __progress;
+  set _progress(Progress? value) {
+    __progress?.cancel();
+
+    __progress = value;
+  }
+
   io.Process? _serverProcess;
   StreamSubscription<WatchEvent>? _watcherSubscription;
+  StreamSubscription<List<int>>? _inputSubscription;
 
   bool get isServerRunning => _serverProcess != null;
 
   bool get isWatching => _watcherSubscription != null;
+  bool get isInputWatching => _inputSubscription != null;
 
   bool get isCompleted => _exitCodeCompleter.isCompleted;
 
@@ -65,26 +75,45 @@ class VMServiceHandler {
 
     _isReloading = true;
     await _cancelWatcherSubscription();
-    final progress = logger.progress('Reloading...');
+
+    _progress = logger.progress('Reloading...');
 
     final server = await codeGenerator();
     if (server == null) {
       clearConsole();
-      progress.fail('Failed to reload');
+      _progress?.fail('Failed to reload');
       logger
         ..write('\n')
         ..flush();
-      watchForChanges();
+      watchForFileChanges();
       _isReloading = false;
       return;
     }
 
-    progress.complete('Reloaded');
+    _progress?.complete('Reloaded');
     clearConsole();
     printVmServiceUri();
     printParsedRoutes(server.routes);
-    watchForChanges();
+    watchForFileChanges();
     _isReloading = false;
+  }
+
+  void lockInput() {
+    if (!io.stdin.hasTerminal) return;
+
+    io.stdin.echoMode = false;
+    io.stdin.lineMode = false;
+    // hide cursor
+    io.stdout.write('\x1B[?25l');
+  }
+
+  void unlockInput() {
+    if (!io.stdin.hasTerminal) return;
+
+    io.stdin.echoMode = true;
+    io.stdin.lineMode = true;
+    // show cursor
+    io.stdout.write('\x1B[?25h');
   }
 
   void clearConsole() {
@@ -102,6 +131,22 @@ class VMServiceHandler {
     }
 
     logger.success(_vmServiceUri);
+    printInputCommands();
+  }
+
+  void printInputCommands() {
+    if (!io.stdin.hasTerminal) {
+      return;
+    }
+
+    final buffer = StringBuffer()
+      ..write(darkGray.wrap('Press: '))
+      ..write(yellow.wrap('r'))
+      ..write(darkGray.wrap(' to reload, '))
+      ..write(yellow.wrap('q'))
+      ..write(darkGray.wrap(' to quit'));
+
+    logger.write('$buffer\n');
   }
 
   List<MetaRoute> __lastRoutes = [];
@@ -139,6 +184,10 @@ class VMServiceHandler {
   // Make sure to call `stop` after calling this method to also stop the
   // watcher.
   Future<void> _killServerProcess() async {
+    if (!isServerRunning) {
+      return;
+    }
+
     logger.detail('Killing server process...');
     _isReloading = false;
     final process = _serverProcess;
@@ -160,13 +209,27 @@ class VMServiceHandler {
     if (!isWatching) {
       return;
     }
+
+    logger.detail('Cancelling file watcher...');
     await _watcherSubscription!.cancel();
     _watcherSubscription = null;
+  }
+
+  Future<void> _cancelInputSubscription() async {
+    if (!isInputWatching) {
+      return;
+    }
+
+    logger.detail('Cancelling input watcher...');
+    await _inputSubscription!.cancel();
+    _inputSubscription = null;
   }
 
   Future<void> start({
     required bool enableHotReload,
   }) async {
+    lockInput();
+
     logger.detail('Starting dev server...');
     if (isCompleted) {
       throw Exception(
@@ -196,11 +259,28 @@ class VMServiceHandler {
     );
 
     if (enableHotReload) {
-      watchForChanges();
+      watchForFileChanges();
+      watchForInput();
     }
   }
 
-  void watchForChanges() {
+  void watchForInput() {
+    _inputSubscription = io.stdin.listen((event) {
+      var key = utf8.decode(event).toLowerCase();
+      if (key.isEmpty && event.length == 1) {
+        key = '${event[0]}';
+      }
+      logger.detail('key: $key');
+
+      final _ = switch (key) {
+        'r' => _reload().ignore(),
+        'q' => stop().ignore(),
+        _ => null,
+      };
+    });
+  }
+
+  void watchForFileChanges() {
     logger.detail('Watching ${root.path} for changes...');
     final watcher = DirectoryWatcher(root.path);
     _watcherSubscription = watcher.events
@@ -218,18 +298,17 @@ class VMServiceHandler {
   }
 
   Future<void> stop([int exitCode = 0]) async {
+    unlockInput();
+
     if (isCompleted) {
       return;
     }
-
     logger.detail('Stopping dev server...');
+    _progress?.cancel();
 
-    if (isWatching) {
-      await _cancelWatcherSubscription();
-    }
-    if (isServerRunning) {
-      await _killServerProcess();
-    }
+    await _cancelWatcherSubscription();
+    await _killServerProcess();
+    await _cancelInputSubscription();
 
     _exitCodeCompleter.complete(exitCode);
   }
@@ -267,9 +346,8 @@ class VMServiceHandler {
       });
     }
 
-    Progress? progress;
     process.stderr.listen((_) async {
-      progress?.fail('Failed to start server');
+      _progress?.fail('Failed to start server');
 
       if (_isReloading) {
         return;
@@ -329,7 +407,7 @@ class VMServiceHandler {
 
       if (message.contains(HotReload.revaliStarted) && !hasStartedServer) {
         hasStartedServer = true;
-        progress?.complete();
+        _progress?.complete();
         onReady?.call();
         return;
       }
@@ -344,10 +422,10 @@ class VMServiceHandler {
         logger.success(message);
       } else if (message.contains('Dart DevTools debugger')) {
         _vmServiceUri += '\n$message';
-        logger
-          ..success(message)
-          ..write('\n');
-        progress = logger.progress('Starting server...');
+        logger.success(message);
+        printInputCommands();
+        logger.write('\n');
+        _progress = logger.progress('Starting server...');
       } else {
         logger.write('$message\n');
       }
