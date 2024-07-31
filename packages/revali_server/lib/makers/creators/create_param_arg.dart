@@ -10,15 +10,22 @@ import 'package:revali_server/makers/creators/create_arg_from_param.dart';
 import 'package:revali_server/makers/creators/create_arg_from_query.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
 
+final impliedArguments = <String, Expression>{
+  (DI).name: refer('di'),
+  (MutableHeaders).name:
+      refer('context').property('response').property('headers'),
+  (ReadOnlyHeaders).name:
+      refer('context').property('request').property('headers'),
+};
+
 Expression createParamArg(
   ServerParam param,
 ) {
-  final annotation = param.annotations;
-
-  if (param.type == (DI).name) {
-    return refer('di');
+  if (impliedArguments[param.type] case final expression?) {
+    return expression;
   }
 
+  final annotation = param.annotations;
   if (!annotation.hasAnnotation && !param.hasDefaultValue) {
     throw ArgumentError(
       'No annotation or default value for param ${param.name}',
