@@ -3,16 +3,14 @@ part of 'base_body_data.dart';
 final class FileBodyData extends BaseBodyData<File> {
   FileBodyData(super.data);
 
-  String? _mimeType;
   @override
   String? get mimeType {
-    return _mimeType ??= lookupMimeType(file.path);
+    return lookupMimeType(file.path);
   }
 
-  int? _length;
   @override
   int get contentLength {
-    return _length ??= data.lengthSync();
+    return data.lengthSync();
   }
 
   List<int>? _bytes;
@@ -64,28 +62,22 @@ final class FileBodyData extends BaseBodyData<File> {
   @override
   ReadOnlyHeaders headers(ReadOnlyHeaders? requestHeaders) {
     final stat = file.statSync();
-    final headers = MutableHeadersImpl();
+    final headers = MutableHeadersImpl()
+      ..lastModified = stat.modified
+      ..filename = p.basename(file.path)
+      ..mimeType = mimeType
+      ..acceptRanges = 'bytes';
 
     if (requestHeaders?.range case final range?) {
       final (start, end) = range;
       final (realStart, realEnd, realLength) = cleanRange(start, end);
 
-      headers[HttpHeaders.contentRangeHeader] =
-          'bytes $realStart-$realEnd/$contentLength';
-      headers[HttpHeaders.contentLengthHeader] = '$realLength';
+      headers
+        ..range = (realStart, realEnd)
+        ..contentLength = realLength;
     } else {
-      headers[HttpHeaders.contentLengthHeader] = '$contentLength';
+      headers.contentLength = contentLength;
     }
-    if (mimeType case final value?) {
-      headers[HttpHeaders.contentTypeHeader] = value;
-    }
-
-    headers[HttpHeaders.lastModifiedHeader] = HttpDate.format(stat.modified);
-    headers[HttpHeaders.contentDisposition] = [
-      'attachment',
-      'filename=${Uri.encodeComponent(p.basename(file.path))}',
-    ].join('; ');
-    headers[HttpHeaders.acceptRangesHeader] = 'bytes';
 
     return headers;
   }

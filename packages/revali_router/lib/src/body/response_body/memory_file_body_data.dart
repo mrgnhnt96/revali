@@ -20,13 +20,9 @@ final class MemoryFileBodyData extends BaseBodyData<MemoryFile> {
 
   @override
   ReadOnlyHeaders headers(ReadOnlyHeaders? requestHeaders) {
-    final headers = MutableHeadersImpl();
-
-    headers[HttpHeaders.contentTypeHeader] = mimeType;
-    headers[HttpHeaders.contentLengthHeader] = '$contentLength';
-    headers[HttpHeaders.contentDisposition] =
-        'attachment; filename="${data.filename}"';
-
-    return headers;
+    return MutableHeadersImpl()
+      ..mimeType = mimeType
+      ..contentLength = contentLength
+      ..filename = data.filename;
   }
 }
