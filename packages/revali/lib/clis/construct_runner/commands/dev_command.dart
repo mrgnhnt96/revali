@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:args/command_runner.dart';
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
+import 'package:revali/dart_define/dart_define.dart';
 import 'package:revali/handlers/routes_handler.dart';
 import 'package:revali/handlers/vm_service_handler.dart';
 import 'package:revali/utils/extensions/directory_extensions.dart';
@@ -36,6 +37,22 @@ class DevCommand extends Command<int> with DirectoriesMixin {
       ..addFlag(
         'debug',
         help: 'Whether to run in debug mode. Enables hot reload and debugger',
+      )
+      ..addOption(
+        'dart-vm-service-port',
+        help: 'The port to use for the Dart VM service',
+        defaultsTo: '8080',
+      )
+      ..addMultiOption(
+        'dart-define',
+        help: 'Additional key-value pairs that will be available as constants.',
+        valueHelp: 'BASE_URL=https://api.example.com',
+      )
+      ..addMultiOption(
+        'dart-define-from-file',
+        help: 'A file containing additional key-value '
+            'pairs that will be available as constants.',
+        valueHelp: '.env',
       );
   }
 
@@ -52,11 +69,33 @@ class DevCommand extends Command<int> with DirectoriesMixin {
   @override
   String get name => 'dev';
 
+  DartDefine get defines {
+    final argResults = this.argResults!;
+
+    final defines = <String>[];
+    final files = <String>[];
+
+    if (argResults.wasParsed('dart-define')) {
+      defines.addAll(argResults['dart-define'] as List<String>);
+    }
+
+    if (argResults.wasParsed('dart-define-from-file')) {
+      files.addAll(argResults['dart-define-from-file'] as List<String>);
+    }
+
+    return DartDefine.fromFilesAndEntries(
+      files: files,
+      entries: defines,
+      fs: fs,
+    );
+  }
+
   @override
   Future<int>? run() async {
     final flavor = argResults?['flavor'] as String?;
     final debug = argResults?['debug'] as bool? ?? false;
     final release = argResults?['release'] as bool? ?? false;
+    final dartVmServicePort = argResults?['dart-vm-service-port'] as String;
 
     final runInRelease = release && !debug;
 
@@ -109,6 +148,8 @@ class DevCommand extends Command<int> with DirectoriesMixin {
       codeGenerator: codeGenerator,
       logger: logger,
       canHotReload: !runInRelease,
+      dartDefine: defines,
+      dartVmServicePort: dartVmServicePort,
     );
 
     final revali = await root.getRevali();

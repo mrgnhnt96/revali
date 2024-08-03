@@ -7,6 +7,7 @@ import 'dart:io' as io;
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart' as path;
+import 'package:revali/dart_define/dart_define.dart';
 import 'package:revali/utils/extensions/directory_extensions.dart';
 import 'package:revali_construct/hot_reload/hot_reload.dart';
 import 'package:revali_construct/revali_construct.dart';
@@ -27,6 +28,7 @@ class VMServiceHandler {
     required this.codeGenerator,
     required this.logger,
     required this.canHotReload,
+    this.dartDefine = const DartDefine(),
     this.dartVmServicePort = '8080',
   }) : assert(
           dartVmServicePort.isNotEmpty,
@@ -39,6 +41,7 @@ class VMServiceHandler {
   final String serverFile;
   final Future<MetaServer?> Function() codeGenerator;
   final bool canHotReload;
+  final DartDefine dartDefine;
 
   bool _isReloading = false;
 
@@ -329,6 +332,9 @@ class VMServiceHandler {
         if (enableHotReload) ...[
           '--enable-vm-service=$dartVmServicePort',
           '--enable-asserts',
+        ],
+        if (dartDefine.isNotEmpty) ...[
+          for (final entry in dartDefine.entries) '-D$entry',
         ],
         serverFile,
       ],

@@ -25,6 +25,7 @@ class RevaliRunner extends CommandRunner<int> {
 
     addCommand(
       DevCommand(
+        fs: fs,
         logger: logger,
         generator: ConstructEntrypointHandler(
           logger: logger,
