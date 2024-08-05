@@ -238,4 +238,14 @@ class PayloadImpl implements Payload {
 
     return UnknownBodyData(data, mimeType: mimeType);
   }
+
+  @override
+  String readAsString({Encoding encoding = utf8}) {
+    final bytes = _bytes;
+    if (bytes == null) {
+      throw StateError('Payload has not been resolved');
+    }
+
+    return encoding.decode(bytes);
+  }
 }

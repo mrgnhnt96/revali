@@ -10,6 +10,8 @@ abstract class ReadOnlyRequest {
 
   ReadOnlyBody get body;
 
+  String get originalPayload;
+
   Map<String, String> get queryParameters;
 
   Map<String, List<String>> get queryParametersAll;

@@ -78,9 +78,6 @@ class RequestContextImpl with EquatableMixin implements RequestContext {
   Uri get uri => request.uri;
 
   @override
-  List<Object?> get props => _$props;
-
-  @override
   Future<WebSocket> upgradeToWebSocket({
     Duration? ping,
   }) async {
@@ -110,4 +107,9 @@ class RequestContextImpl with EquatableMixin implements RequestContext {
 
     return payload;
   }
+
+  String get originalPayload => request.body.readAsString();
+
+  @override
+  List<Object?> get props => _$props;
 }

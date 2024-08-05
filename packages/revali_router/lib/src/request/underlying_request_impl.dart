@@ -53,4 +53,6 @@ class UnderlyingRequestImpl implements UnderlyingRequest {
 
     return webSocket;
   }
+
+  String get originalPayload => body.readAsString();
 }
