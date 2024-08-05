@@ -2,6 +2,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:collection/collection.dart';
 import 'package:revali/ast/checkers/checkers.dart';
 import 'package:revali/ast/visitors/get_params.dart';
 import 'package:revali_construct/revali_construct.dart';
@@ -43,14 +44,15 @@ class MethodVisitor extends RecursiveElementVisitor<void> {
         element.returnType.isDartAsyncFutureOr;
     final isStream = element.returnType.isDartAsyncStream;
     Element? returnTypeElement;
-    final typeArguments = <String>[];
+    final typeArguments = <(String, DartType)>[];
     var isNullable = false;
+    var isIterable = false;
 
     if (isFuture || isStream) {
       final returnType = element.returnType as InterfaceType;
       typeArguments.addAll([
         for (final type in returnType.typeArguments)
-          type.getDisplayString(withNullability: false),
+          (type.getDisplayString(withNullability: false), type),
       ]);
 
       final typeArg = returnType.typeArguments.first;
@@ -58,11 +60,21 @@ class MethodVisitor extends RecursiveElementVisitor<void> {
       returnTypeElement = typeArg.element;
       if (typeArg is InterfaceType) {
         isNullable = typeArg.nullabilitySuffix != NullabilitySuffix.none;
+        if (typeFromIterable(typeArg) case final element?) {
+          isIterable = true;
+          returnTypeElement = element;
+        }
       }
     } else {
-      returnTypeElement = element.returnType.element;
-      isNullable =
-          element.returnType.nullabilitySuffix != NullabilitySuffix.none;
+      final returnType = element.returnType;
+      returnTypeElement = returnType.element;
+
+      isNullable = returnType.nullabilitySuffix != NullabilitySuffix.none;
+
+      if (typeFromIterable(returnType) case final element?) {
+        isIterable = true;
+        returnTypeElement = element;
+      }
     }
 
     (methods[method.name] ??= []).add(
@@ -76,9 +88,11 @@ class MethodVisitor extends RecursiveElementVisitor<void> {
           isNullable: isNullable,
           type: type,
           typeArguments: typeArguments,
-          element: returnTypeElement,
+          resolvedElement: returnTypeElement,
+          element: element,
           isFuture: isFuture,
           isStream: isStream,
+          isIterable: isIterable,
         ),
         webSocketMethod: method.isWebSocket
             ? MetaWebSocketMethod.fromMeta(method.asWebSocket)
@@ -95,4 +109,32 @@ class MethodVisitor extends RecursiveElementVisitor<void> {
       ),
     );
   }
+}
+
+Element? typeFromIterable(DartType type) {
+  if (type is! InterfaceType) {
+    return null;
+  }
+
+  final element = type.element;
+
+  if (element is! ClassElement || type.typeArguments.isEmpty) {
+    return null;
+  }
+
+  final iterableType = element.allSupertypes.firstWhereOrNull(
+    (e) => e.getDisplayString(withNullability: false).startsWith('Iterable'),
+  );
+
+  if (iterableType == null) {
+    return null;
+  }
+
+  final iterableTypeArg = type.typeArguments.first;
+
+  if (iterableTypeArg is! InterfaceType) {
+    return null;
+  }
+
+  return iterableTypeArg.element;
 }

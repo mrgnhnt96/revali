@@ -8,9 +8,27 @@ import 'package:revali_router_core/revali_router_core.dart';
 class MutableResponseImpl implements MutableResponse {
   MutableResponseImpl({
     required ReadOnlyHeaders requestHeaders,
+    ReadOnlyHeaders? headers,
   })  : _requestHeaders = requestHeaders,
         _body = MutableBodyImpl(),
-        headers = MutableHeadersImpl();
+        headers = headers != null
+            ? MutableHeadersImpl({
+                for (final key in headers.keys) key: headers.getAll(key) ?? [],
+              })
+            : MutableHeadersImpl();
+
+  factory MutableResponseImpl.from(ReadOnlyResponse response) {
+    if (response is MutableResponseImpl) {
+      return response;
+    }
+
+    return MutableResponseImpl(
+      requestHeaders: MutableHeadersImpl(),
+      headers: response.headers,
+    )
+      ..statusCode = response.statusCode
+      ..body = response.body;
+  }
 
   final ReadOnlyHeaders _requestHeaders;
 

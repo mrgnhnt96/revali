@@ -43,7 +43,26 @@ Expression? createHandler({
     Expression result = refer('result');
 
     if (returnType.hasToJsonMember) {
-      if (returnType.isNullable) {
+      if (returnType.isIterable) {
+        final iterates = Method(
+          (p) => p
+            ..requiredParameters.add(Parameter((b) => b..name = 'e'))
+            ..lambda = true
+            ..body = switch (returnType.isIterableNullable) {
+              true => refer('e').nullSafeProperty('toJson').call([]),
+              false => refer('e').property('toJson').call([]),
+            }
+                .code,
+        ).closure;
+
+        if (returnType.isNullable) {
+          result = result.nullSafeProperty('map');
+        } else {
+          result = result.property('map');
+        }
+
+        result = result.call([iterates]).property('toList').call([]);
+      } else if (returnType.isNullable) {
         result = result.nullSafeProperty('toJson').call([]);
       } else {
         result = result.property('toJson').call([]);

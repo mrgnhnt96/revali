@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:revali_router/src/body/response_body/base_body_data.dart';
-import 'package:revali_router/src/headers/mutable_headers_impl.dart';
 import 'package:revali_router/src/payload/payload_impl.dart';
+import 'package:revali_router/src/response/mutable_response_impl.dart';
 import 'package:revali_router/src/response/web_socket_response.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
@@ -25,7 +25,9 @@ extension HttpResponseX on HttpResponse {
     if (response is MutableResponse) {
       responseHeaders = response.headersToSend;
     } else {
-      responseHeaders = MutableHeadersImpl.from(response.headers);
+      final mutableResponse = MutableResponseImpl.from(response);
+
+      responseHeaders = mutableResponse.headersToSend;
     }
 
     responseHeaders

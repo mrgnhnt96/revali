@@ -1,4 +1,5 @@
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 class MetaReturnType {
   MetaReturnType({
@@ -8,16 +9,20 @@ class MetaReturnType {
     required this.isFuture,
     required this.isStream,
     required this.typeArguments,
+    required this.isIterable,
+    this.resolvedElement,
     this.element,
   });
 
   final bool isVoid;
   final bool isNullable;
   final String type;
-  final List<String> typeArguments;
+  final List<(String, DartType)> typeArguments;
+  final Element? resolvedElement;
   final Element? element;
   final bool isFuture;
   final bool isStream;
+  final bool isIterable;
   bool get isMap {
     if (type.startsWith('Map')) {
       return true;
@@ -27,7 +32,7 @@ class MetaReturnType {
       return false;
     }
 
-    return typeArguments.first.startsWith('Map');
+    return typeArguments.first.$1.startsWith('Map');
   }
 
   bool get isPrimitive {
@@ -44,7 +49,7 @@ class MetaReturnType {
         return false;
       }
 
-      return isPrimitive(typeArguments.first);
+      return isPrimitive(typeArguments.first.$1);
     }
 
     if (isVoid) {
