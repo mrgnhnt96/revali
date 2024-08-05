@@ -72,14 +72,14 @@ class VMServiceHandler {
 
   Future<void> _reload() async {
     if (_isReloading) {
-      logger.detail('Still reloading, skipping...');
+      logger.detail('Still reloading, skipping');
       return;
     }
 
     _isReloading = true;
     await _cancelWatcherSubscription();
 
-    _progress = logger.progress('Reloading...');
+    _progress = logger.progress('Reloading');
 
     final server = await codeGenerator();
     if (server == null) {
@@ -191,7 +191,7 @@ class VMServiceHandler {
       return;
     }
 
-    logger.detail('Killing server process...');
+    logger.detail('Killing server process');
     _isReloading = false;
     final process = _serverProcess;
     if (process == null) {
@@ -213,7 +213,7 @@ class VMServiceHandler {
       return;
     }
 
-    logger.detail('Cancelling file watcher...');
+    logger.detail('Cancelling file watcher');
     await _watcherSubscription!.cancel();
     _watcherSubscription = null;
   }
@@ -223,7 +223,7 @@ class VMServiceHandler {
       return;
     }
 
-    logger.detail('Cancelling input watcher...');
+    logger.detail('Cancelling input watcher');
     await _inputSubscription!.cancel();
     _inputSubscription = null;
   }
@@ -233,7 +233,7 @@ class VMServiceHandler {
   }) async {
     lockInput();
 
-    logger.detail('Starting dev server...');
+    logger.detail('Starting dev server');
     if (isCompleted) {
       throw Exception(
         'Cannot start a dev server after it has been stopped.',
@@ -246,6 +246,8 @@ class VMServiceHandler {
       );
     }
 
+    final progress = logger.progress('Generating server code');
+
     final server = await codeGenerator();
     if (server == null) {
       logger
@@ -256,18 +258,21 @@ class VMServiceHandler {
       return;
     }
 
+    progress.complete('Generated server code');
+
     await serve(
       enableHotReload: enableHotReload,
       onReady: () => printParsedRoutes(server.routes),
     );
 
     if (enableHotReload) {
-      watchForFileChanges();
-      watchForInput();
+      await watchForFileChanges();
+      await watchForInput();
     }
   }
 
-  void watchForInput() {
+  Future<void> watchForInput() async {
+    await _inputSubscription?.cancel();
     _inputSubscription = io.stdin.listen((event) {
       var key = utf8.decode(event).toLowerCase();
       if (key.isEmpty && event.length == 1) {
@@ -278,14 +283,16 @@ class VMServiceHandler {
       final _ = switch (key) {
         'r' => _reload().ignore(),
         'q' => stop().ignore(),
+        'Q' => stop().ignore(),
         _ => null,
       };
     });
   }
 
-  void watchForFileChanges() {
-    logger.detail('Watching ${root.path} for changes...');
+  Future<void> watchForFileChanges() async {
+    logger.detail('Watching ${root.path} for changes');
     final watcher = DirectoryWatcher(root.path);
+    await _watcherSubscription?.cancel();
     _watcherSubscription = watcher.events
         .asyncWhere(shouldReload)
         .debounce(Duration.zero)
@@ -306,14 +313,13 @@ class VMServiceHandler {
     if (isCompleted) {
       return;
     }
+
     logger.detail('Stopping dev server...');
     _progress?.cancel();
 
     await _cancelWatcherSubscription();
     await _killServerProcess();
     await _cancelInputSubscription();
-
-    _exitCodeCompleter.complete(exitCode);
   }
 
   Future<void> serve({
@@ -322,7 +328,7 @@ class VMServiceHandler {
   }) async {
     var isHotReloadingEnabled = false;
     clearConsole();
-    logger.detail('Starting server...');
+    logger.detail('Starting server');
 
     var hasStartedServer = false;
 
@@ -431,7 +437,7 @@ class VMServiceHandler {
         logger.success(message);
         printInputCommands();
         logger.write('\n');
-        _progress = logger.progress('Starting server...');
+        _progress = logger.progress('Starting server');
       } else {
         logger.write('$message\n');
       }
@@ -448,7 +454,7 @@ class VMServiceHandler {
     logger.detail('File ${event.type}: ${event.path}');
 
     if (_isReloading) {
-      logger.detail('Skipping reload, hot reload in progress...');
+      logger.detail('Skipping reload, hot reload in progress');
       return false;
     }
 
