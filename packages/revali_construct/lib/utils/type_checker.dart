@@ -88,7 +88,11 @@ abstract class TypeChecker {
     }
     final results =
         annotationsOf(element, throwOnUnresolved: throwOnUnresolved);
-    return results.isEmpty ? null : results.first;
+    try {
+      return results.isEmpty ? null : results.first;
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Returns if a constant annotating [element] is assignable to this type.
