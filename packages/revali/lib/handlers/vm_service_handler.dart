@@ -88,7 +88,7 @@ class VMServiceHandler {
       logger
         ..write('\n')
         ..flush();
-      watchForFileChanges();
+      await watchForFileChanges();
       _isReloading = false;
       return;
     }
@@ -97,7 +97,7 @@ class VMServiceHandler {
     clearConsole();
     printVmServiceUri();
     printParsedRoutes(server.routes);
-    watchForFileChanges();
+    await watchForFileChanges();
     _isReloading = false;
   }
 
