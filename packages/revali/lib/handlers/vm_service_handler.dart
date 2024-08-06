@@ -6,7 +6,7 @@ import 'dart:io' as io;
 
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:revali/dart_define/dart_define.dart';
 import 'package:revali/utils/extensions/directory_extensions.dart';
 import 'package:revali_construct/hot_reload/hot_reload.dart';
@@ -54,7 +54,7 @@ class VMServiceHandler {
   }
 
   io.Process? _serverProcess;
-  StreamSubscription<WatchEvent>? _watcherSubscription;
+  StreamSubscription<(bool, String)>? _watcherSubscription;
   StreamSubscription<List<int>>? _inputSubscription;
 
   bool get isServerRunning => _serverProcess != null;
@@ -70,7 +70,8 @@ class VMServiceHandler {
 
   String _vmServiceUri = '';
 
-  Future<void> _reload() async {
+  MetaServer? _server;
+  Future<void> _reload([String? path]) async {
     if (_isReloading) {
       logger.detail('Still reloading, skipping');
       return;
@@ -81,16 +82,26 @@ class VMServiceHandler {
 
     _progress = logger.progress('Reloading');
 
-    final server = await codeGenerator();
+    final revali = await root.getRevali();
+
+    if (path == null || p.isWithin(revali.path, path) || _server == null) {
+      final server = await codeGenerator();
+      if (server == null) {
+        clearConsole();
+        _progress?.fail('Failed to reload');
+        logger
+          ..write('\n')
+          ..flush();
+        await watchForFileChanges();
+        _isReloading = false;
+        return;
+      }
+      _server = server;
+    }
+
+    final server = _server;
     if (server == null) {
-      clearConsole();
-      _progress?.fail('Failed to reload');
-      logger
-        ..write('\n')
-        ..flush();
-      await watchForFileChanges();
-      _isReloading = false;
-      return;
+      throw Exception('Expected server to be non-null');
     }
 
     _progress?.complete('Reloaded');
@@ -172,7 +183,7 @@ class VMServiceHandler {
       for (final method in route.methods) {
         logger.detail('method: ${method.path}');
 
-        final fullPath = path.join(root, method.path ?? '');
+        final fullPath = p.join(root, method.path ?? '');
         logger.info(
           '${method.wrappedMethod}'
           '${darkGray.wrap('-> ')}'
@@ -294,9 +305,10 @@ class VMServiceHandler {
     final watcher = DirectoryWatcher(root.path);
     await _watcherSubscription?.cancel();
     _watcherSubscription = watcher.events
-        .asyncWhere(shouldReload)
+        .asyncMap(shouldReload)
+        .where((event) => event.$1)
         .debounce(Duration.zero)
-        .listen((_) => _reload());
+        .listen((event) => _reload(event.$2));
 
     _watcherSubscription!.asFuture<void>().then((_) async {
       await _cancelWatcherSubscription();
@@ -450,39 +462,38 @@ class VMServiceHandler {
     }).ignore();
   }
 
-  Future<bool> shouldReload(WatchEvent event) async {
+  Future<(bool, String)> shouldReload(WatchEvent event) async {
     logger.detail('File ${event.type}: ${event.path}');
 
     if (_isReloading) {
       logger.detail('Skipping reload, hot reload in progress');
-      return false;
+      return (false, event.path);
     }
 
     final revali = await root.getRevali();
 
     final server =
-        path.equals(revali.childFile(ServerFile.fileName).path, event.path);
-    final pubspec =
-        path.equals(revali.childFile('pubspec.yaml').path, event.path);
+        p.equals(revali.childFile(ServerFile.fileName).path, event.path);
+    final pubspec = p.equals(revali.childFile('pubspec.yaml').path, event.path);
 
     if (server || pubspec) {
-      return true;
+      return (true, event.path);
     }
     final routesDir = await root.getRoutes();
     if (routesDir != null) {
-      if (path.isWithin(routesDir.path, event.path)) {
-        return true;
+      if (p.isWithin(routesDir.path, event.path)) {
+        return (true, event.path);
       }
     }
 
     final public = await root.getPublic();
 
-    if (path.isWithin(public.path, event.path)) {
-      return true;
+    if (p.isWithin(public.path, event.path)) {
+      return (true, event.path);
     }
 
     logger.detail('No construct reload needed');
-    return false;
+    return (false, event.path);
   }
 
   String _formatTime(DateTime time) {
