@@ -10,6 +10,7 @@ Expression? createHandler({
   required ServerReturnType? returnType,
   required String? classVarName,
   required MetaWebSocketMethod? webSocket,
+  List<Code> additionalHandlerCode = const [],
 }) {
   if (returnType == null || classVarName == null) {
     return null;
@@ -96,6 +97,7 @@ Expression? createHandler({
               .awaited
               .statement,
         const Code('\n'),
+        ...additionalHandlerCode,
         const Code('\n'),
         handler.statement,
         if (setBody != null) ...[

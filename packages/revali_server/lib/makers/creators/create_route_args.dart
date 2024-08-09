@@ -22,6 +22,7 @@ Map<String, Expression> createRouteArgs({
       returnType: returnType,
       classVarName: classVarName,
       webSocket: webSocket,
+      additionalHandlerCode: additionalHandlerCode,
     )
         case final handler?)
       'handler': handler,

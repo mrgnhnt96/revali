@@ -24,8 +24,7 @@ Spec createChildRoute(ServerChildRoute route, ServerParentRoute parent) {
         .assign(literalString(setHeader.value));
   }
 
-  // ignore: literal_only_boolean_expressions
-  if ('$response' == '$ogResponse') {
+  if (response == ogResponse) {
     response = null;
   }
 
