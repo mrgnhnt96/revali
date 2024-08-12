@@ -261,6 +261,7 @@ class VMServiceHandler {
 
     final server = await codeGenerator();
     if (server == null) {
+      progress.fail('Failed to generate server code');
       logger
         ..err('Failed to start up server')
         ..write('\n')
@@ -397,6 +398,7 @@ class VMServiceHandler {
           'Try specifying a different port using the '
           '`--dart-vm-service-port` argument',
         );
+        _progress?.fail('Failed to start server');
       } else if (isSDKWarning) {
         // Do not kill the process if the error is a warning from the SDK.
         logger.warn(message);
