@@ -19,10 +19,15 @@ final impliedArguments = <String, Expression>{
 };
 
 Expression createParamArg(
-  ServerParam param,
-) {
+  ServerParam param, {
+  Expression? defaultExpression,
+}) {
   if (impliedArguments[param.type] case final expression?) {
     return expression;
+  }
+
+  if (defaultExpression != null) {
+    return defaultExpression;
   }
 
   final annotation = param.annotations;

@@ -2,13 +2,14 @@ import 'package:code_builder/code_builder.dart';
 import 'package:revali_server/revali_server.dart';
 
 ({Iterable<Expression> positioned, Map<String, Expression> named}) getParams(
-  Iterable<ServerParam> params,
-) {
+  Iterable<ServerParam> params, {
+  Expression? defaultExpression,
+}) {
   final positioned = <Expression>[];
   final named = <String, Expression>{};
 
   for (final param in params) {
-    final arg = createParamArg(param);
+    final arg = createParamArg(param, defaultExpression: defaultExpression);
 
     if (param.isNamed) {
       named[param.name] = arg;
