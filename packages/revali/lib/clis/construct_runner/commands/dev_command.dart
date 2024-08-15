@@ -102,10 +102,7 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
       dartVmServicePort: dartVmServicePort,
     );
 
-    final revali = await root.getRevali();
-    if (await revali.exists()) {
-      await revali.delete(recursive: true);
-    }
+    await generator.clean();
 
     await serverHandler.start(enableHotReload: !runInRelease);
     return serverHandler.exitCode;
