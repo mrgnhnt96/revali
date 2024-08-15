@@ -1,4 +1,3 @@
-import 'package:path/path.dart' as p;
 import 'package:revali_construct/models/files/any_file.dart';
 import 'package:revali_construct/models/files/part_file.dart';
 
@@ -22,28 +21,26 @@ class DartFile extends AnyFile {
             }
           }
 
-          if (!e.path.last.endsWith('.dart')) {
-            throw Exception('Part file path must end with .dart.');
+          if (e.path.last.endsWith('.dart')) {
+            throw Exception('Part file path must not end with .dart.');
           }
 
           return e;
         }).toList(),
-        super(extension: '.dart');
+        super(extension: 'dart') {
+    for (final part in parts) {
+      part.parent = this;
+    }
+  }
 
   final List<PartFile> parts;
 
-  Iterable<MapEntry<String, String>> getPartContent() {
-    return parts.map(
-      (part) => MapEntry(
-        p.joinAll(part.path),
-        part.getContent(this),
-      ),
-    );
-  }
+  @override
+  String get content {
+    final content = super.content;
 
-  String getContent() {
     final partDirectives =
-        parts.map((part) => "part '${p.joinAll(part.path)}';").toList()..sort();
+        parts.map((part) => "part '${part.fileName}';").toList()..sort();
 
     final partString = partDirectives.join('\n');
 

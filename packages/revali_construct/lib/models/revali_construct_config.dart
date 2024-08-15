@@ -21,6 +21,8 @@ class RevaliConstructConfig extends Equatable {
   final bool enabled;
   final Map<String, dynamic> options;
 
+  bool get disabled => !enabled;
+
   ConstructOptions get constructOptions => ConstructOptions(options);
 
   Map<String, dynamic> toJson() => _$RevaliConstructConfigToJson(this);

@@ -1,12 +1,14 @@
 import 'package:args/command_runner.dart';
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
+import 'package:revali/clis/construct_runner/commands/mixins/dart_defines_mixin.dart';
 import 'package:revali/clis/construct_runner/generator/construct_generator.dart';
 import 'package:revali/handlers/routes_handler.dart';
 import 'package:revali/utils/mixins/directories_mixin.dart';
 import 'package:revali_construct/models/construct_maker.dart';
 
-class BuildCommand extends Command<int> with DirectoriesMixin {
+class BuildCommand extends Command<int>
+    with DirectoriesMixin, DartDefinesMixin {
   BuildCommand({
     required this.rootPath,
     required this.constructs,
@@ -59,15 +61,24 @@ class BuildCommand extends Command<int> with DirectoriesMixin {
     final generator = ConstructGenerator.release(
       flavor: flavor,
       routesHandler: routesHandler,
-      constructs: constructs,
+      makers: constructs,
       logger: logger,
       fs: fs,
       rootPath: root.path,
+      dartDefines: defines,
+      generateBuild: true,
     );
+
+    await generator.clean();
 
     final progress = logger.progress('Generating server code');
 
-    await generator.generate();
+    final success = await generator.generate();
+
+    if (!success) {
+      progress.fail('Failed to generate server code');
+      return 1;
+    }
 
     progress.complete('Generated server code');
 

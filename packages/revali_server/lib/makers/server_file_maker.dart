@@ -25,7 +25,7 @@ String serverFile(
     })
       "import '$imprt';",
     '',
-    for (final imprt in {...server.pathImports()}) "import '../$imprt';",
+    for (final imprt in {...server.pathImports()}) "import '../../$imprt';",
   ];
 
   final app = server.app;

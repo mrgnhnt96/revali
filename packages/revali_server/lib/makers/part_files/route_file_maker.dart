@@ -50,7 +50,7 @@ PartFile routeFileMaker(
   );
 
   return PartFile(
-    path: ['routes', '__${route.fileName}.dart'],
+    path: ['routes', '__${route.fileName}'],
     content: format(closure),
   );
 }

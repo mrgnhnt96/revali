@@ -34,7 +34,7 @@ PartFile routesFileMaker(ServerServer server, String Function(Spec) formatter) {
   final content = formatter(routes);
 
   return PartFile(
-    path: ['definitions', '__routes.dart'],
+    path: ['definitions', '__routes'],
     content: content,
   );
 }

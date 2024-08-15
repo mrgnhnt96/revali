@@ -2,9 +2,10 @@ import 'package:file/file.dart';
 
 class DartDefine {
   const DartDefine({
-    this.defined = const {},
-    this.files = const [],
-  });
+    Map<String, String> defined = const {},
+    List<String> files = const [],
+  })  : _files = files,
+        _defined = defined;
 
   factory DartDefine.fromFile(String path, {required FileSystem fs}) {
     final file = fs.file(path);
@@ -42,7 +43,7 @@ class DartDefine {
 
     for (final file in files) {
       final dartDefine = DartDefine.fromFile(file, fs: fs);
-      defined.addAll(dartDefine.defined);
+      defined.addAll(dartDefine._defined);
     }
 
     for (final entry in entries) {
@@ -54,18 +55,21 @@ class DartDefine {
     return DartDefine(defined: defined, files: files);
   }
 
-  final Map<String, String> defined;
-  final List<String> files;
+  final Map<String, String> _defined;
+  Map<String, String> get defined => Map.unmodifiable(_defined);
+
+  final List<String> _files;
+  List<String> get files => List.unmodifiable(_files);
 
   DartDefine mergeWith(DartDefine define) {
     final merged = <String, String>{};
     final mergedFiles = <String>[];
 
-    merged.addAll(define.defined);
-    mergedFiles.addAll(define.files);
+    merged.addAll(define._defined);
+    mergedFiles.addAll(define._files);
 
-    merged.addAll(defined);
-    mergedFiles.addAll(files);
+    merged.addAll(_defined);
+    mergedFiles.addAll(_files);
 
     return DartDefine(defined: merged, files: mergedFiles);
   }
@@ -73,16 +77,16 @@ class DartDefine {
   List<String> get entries {
     final entries = <String>[];
 
-    for (final MapEntry(:key, :value) in defined.entries) {
+    for (final MapEntry(:key, :value) in _defined.entries) {
       entries.add('$key=$value');
     }
 
-    return entries;
+    return List.unmodifiable(entries);
   }
 
   @override
   String toString() {
-    return 'DartDefine(defined: $defined, files: $files)';
+    return 'DartDefine(defined: $_defined, files: $_files)';
   }
 
   static String _sanitized(String value) {
@@ -109,10 +113,10 @@ class DartDefine {
     return (key: _sanitized(parts[0]), value: _sanitized(parts[1]));
   }
 
-  bool get isEmpty => defined.isEmpty;
-  bool get isNotEmpty => defined.isNotEmpty;
+  bool get isEmpty => _defined.isEmpty;
+  bool get isNotEmpty => _defined.isNotEmpty;
 
   String? operator [](String key) {
-    return defined[key];
+    return _defined[key];
   }
 }

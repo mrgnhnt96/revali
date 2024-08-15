@@ -31,7 +31,7 @@ PartFile reflectsFileMaker(
   final content = formatter(reflects);
 
   return PartFile(
-    path: ['definitions', '__reflects.dart'],
+    path: ['definitions', '__reflects'],
     content: content,
   );
 }

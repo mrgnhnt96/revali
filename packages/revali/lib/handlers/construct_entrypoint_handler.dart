@@ -45,9 +45,13 @@ class ConstructEntrypointHandler with DirectoriesMixin {
     final constructs = await constructHandler.constructDepsFrom(root);
     constructProgress.complete('Retrieved constructs');
 
-    logger
-      ..detail('Constructs: ${constructs.length}')
-      ..detail(constructs.map((e) => '$e').join('\n'));
+    logger.detail('Constructs Dependencies: ${constructs.length}');
+    for (final dep in constructs) {
+      logger.detail('Package: ${dep.packageName}');
+      for (final construct in dep.constructs) {
+        logger.detail(' - ${construct.name}');
+      }
+    }
 
     final needsNewKernel = await checkAssets(constructs, root);
 
@@ -304,6 +308,7 @@ ${result.stderr}''');
             {
               'package': literalString(yaml.packageName),
               'isServer': refer('${construct.isServer}'),
+              'isBuild': refer('${construct.isBuild}'),
               'name': literalString(construct.name),
               'maker': refer(
                 construct.method,

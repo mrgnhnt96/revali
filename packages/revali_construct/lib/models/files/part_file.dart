@@ -1,24 +1,36 @@
 import 'package:path/path.dart' as p;
 import 'package:revali_construct/models/files/dart_file.dart';
 
-final class PartFile {
+final class PartFile extends DartFile {
   PartFile({
     required this.path,
-    required this.content,
+    required super.content,
   })  : assert(path.isNotEmpty, 'Path cannot be empty.'),
-        assert(path.last.endsWith('.dart'), 'Path must end with .dart.');
+        assert(!path.last.endsWith('.dart'), 'Path must not end with .dart.'),
+        super(
+          basename: p.joinAll(path),
+        );
 
   final List<String> path;
-  final String content;
 
-  String getContent(DartFile parent) {
+  DartFile? parent;
+
+  @override
+  String get content {
+    final parent = this.parent;
+
+    if (parent == null) {
+      throw Exception('Part files must have a parent.');
+    }
+
+    final content = super.content;
     if (content.contains(RegExp("^import '"))) {
       throw Exception('Part files cannot contain import statements.');
     }
 
     final partsToParent = [
       for (final _ in path.skip(1)) '..',
-      parent.basename,
+      parent.fileName,
     ];
 
     final parentPath = p.joinAll(partsToParent);

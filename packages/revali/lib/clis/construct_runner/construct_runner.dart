@@ -58,6 +58,8 @@ class ConstructRunner extends CommandRunner<int> {
   Future<int> runCommand(ArgResults topLevelResults) async {
     final result = await super.runCommand(topLevelResults);
 
+    logger.flush();
+
     return result ?? 0;
   }
 }

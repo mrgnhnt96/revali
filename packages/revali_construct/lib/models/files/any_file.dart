@@ -1,19 +1,19 @@
 class AnyFile {
   const AnyFile({
     required this.basename,
-    required this.extension,
     required this.content,
+    this.extension,
   });
 
   final String basename;
-  final String extension;
+  final String? extension;
   final String content;
 
   String get fileName {
-    if (extension.isEmpty) {
-      return basename;
+    if (extension case final ext? when ext.trim().isNotEmpty) {
+      return '$basename.${ext.trim().replaceAll(RegExp(r'^\.+'), '')}';
     }
 
-    return '$basename.$extension';
+    return basename;
   }
 }

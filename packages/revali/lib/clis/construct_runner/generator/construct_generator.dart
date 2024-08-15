@@ -2,6 +2,7 @@ import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:revali/revali.dart';
 import 'package:revali_construct/models/files/server_directory.dart';
+import 'package:revali_construct/models/revali_build_context.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:yaml/yaml.dart';
 
@@ -10,53 +11,67 @@ class ConstructGenerator with DirectoriesMixin {
     required this.mode,
     required this.flavor,
     required this.routesHandler,
-    required this.constructs,
+    required this.makers,
     required this.logger,
     required this.fs,
     required String rootPath,
+    this.dartDefines,
+    this.generateBuild = false,
   }) : _rootPath = rootPath;
   ConstructGenerator.release({
     required this.flavor,
     required this.routesHandler,
-    required this.constructs,
+    required this.makers,
     required this.logger,
     required this.fs,
     required String rootPath,
+    this.dartDefines,
+    this.generateBuild = false,
   })  : mode = Mode.release,
         _rootPath = rootPath;
   ConstructGenerator.debug({
     required this.flavor,
     required this.routesHandler,
-    required this.constructs,
+    required this.makers,
     required this.logger,
     required this.fs,
     required String rootPath,
+    this.dartDefines,
+    this.generateBuild = false,
   })  : mode = Mode.debug,
         _rootPath = rootPath;
 
   final Mode mode;
   final String? flavor;
   final RoutesHandler routesHandler;
-  final List<ConstructMaker> constructs;
+  final List<ConstructMaker> makers;
   final Logger logger;
   @override
   final FileSystem fs;
   final String _rootPath;
+  final DartDefine? dartDefines;
+  final bool generateBuild;
 
-  Directory? _root;
+  Directory? __root;
   Future<Directory> get root async {
-    if (_root case final root?) {
+    if (__root case final root?) {
       return root;
     }
 
     final root = await rootOf(_rootPath);
 
-    return _root = root;
+    return __root = root;
   }
 
   RevaliContext get context => RevaliContext(
         flavor: flavor,
         mode: mode,
+      );
+
+  RevaliBuildContext get buildContext => RevaliBuildContext(
+        flavor: flavor,
+        mode: mode,
+        defines: dartDefines?.defined ?? const {},
       );
 
   Future<void> clean() async {
@@ -68,57 +83,74 @@ class ConstructGenerator with DirectoriesMixin {
     }
   }
 
-  Future<MetaServer?> generate() async {
-    final server = await routesHandler.parse();
+  MetaServer? __server;
+  Future<MetaServer> get server async {
+    if (__server case final server?) {
+      return server;
+    }
 
-    final root = await this.root;
+    return __server = await routesHandler.parse();
+  }
 
+  Future<bool> generate() async {
     try {
-      await _generate(
-        root: root,
-        context: context,
-        server: server,
-        revaliConfig: await revaliConfig(),
-      );
+      await _generate();
+
+      return true;
     } catch (e) {
       logger
         ..delayed(red.wrap('Error occurred while generating constructs'))
         ..delayed(red.wrap('$e'));
-      return null;
     }
 
-    return server;
+    return false;
   }
 
-  Future<void> _generate({
-    required Directory root,
-    required RevaliContext context,
-    required MetaServer server,
-    required RevaliYaml revaliConfig,
-  }) async {
-    for (final maker in constructs) {
-      final constructConfig = revaliConfig.configFor(maker);
+  Future<void> _generate() async {
+    final buildMakers = <ConstructMaker>[];
 
-      await _generateConstruct(
-        maker,
-        constructConfig,
-        context,
-        server,
-        root,
-      );
+    if (generateBuild) {
+      for (final construct in makers) {
+        if (!construct.isBuild) continue;
+
+        buildMakers.add(construct);
+      }
+    }
+
+    for (final maker in buildMakers) {
+      final construct = await constructFromMaker<BuildConstruct>(maker);
+      if (construct == null) continue;
+
+      await construct.preBuild(buildContext, await server);
+    }
+
+    for (final maker in makers) {
+      if (maker.isBuild && !generateBuild) {
+        logger.detail(
+          'Skipping build construct ${maker.name} '
+          'because build is disabled',
+        );
+
+        continue;
+      }
+      await _generateConstruct(maker);
+    }
+
+    for (final maker in buildMakers) {
+      final construct = await constructFromMaker<BuildConstruct>(maker);
+      if (construct == null) continue;
+
+      await construct.postBuild(buildContext, await server);
     }
   }
 
-  Future<void> _generateConstruct(
+  Future<T?> constructFromMaker<T extends Construct>(
     ConstructMaker maker,
-    RevaliConstructConfig config,
-    RevaliContext context,
-    MetaServer server,
-    Directory root,
   ) async {
-    logger.detail('Constructing ${maker.name}...');
+    final revaliConfig = await this.revaliConfig;
+    final config = revaliConfig.configFor(maker);
 
-    if (!config.enabled) {
+    if (config.disabled) {
       if (maker.isServer) {
         logger.warn(
           '${config.name} cannot be disabled,'
@@ -126,40 +158,79 @@ class ConstructGenerator with DirectoriesMixin {
         );
       } else {
         logger.detail('skipping ${config.name}');
-        return;
+        return null;
       }
     }
 
-    final options = config.constructOptions;
+    final result = maker.maker(config.constructOptions);
 
-    final construct = maker.maker(options);
+    if (result is! T) {
+      throw Exception(
+        'Invalid type for construct! ${result.runtimeType} '
+        'must be of type $T',
+      );
+    }
 
+    return result;
+  }
+
+  Future<void> _generateConstruct(ConstructMaker maker) async {
     if (maker.isServer) {
-      if (construct is! ServerConstruct) {
-        throw Exception(
-          'Invalid type for router! ${construct.runtimeType} '
-          'must be of type $ServerConstruct',
-        );
+      final construct = await constructFromMaker<ServerConstruct>(maker);
+      if (construct == null) {
+        throw Exception('Server construct cannot be null');
       }
 
-      await _generateServerConstruct(construct, context, server, root);
-      return;
+      await _generateServerConstruct(construct);
+    } else if (maker.isBuild) {
+      final construct = await constructFromMaker<BuildConstruct>(maker);
+      if (construct == null) return;
+
+      await _generateBuildConstruct(construct);
+    } else {
+      final construct = await constructFromMaker<Construct>(maker);
+      if (construct == null) return;
+
+      await _generateOtherConstruct(construct, maker);
     }
   }
 
-  Future<void> _generateServerConstruct(
-    ServerConstruct construct,
-    RevaliContext context,
-    MetaServer server,
-    Directory root,
+  Future<void> _generateBuildConstruct(BuildConstruct construct) async {
+    final constructResult = construct.generate(buildContext, await server);
+
+    await _generateDirectory(
+      revaliDirectory: constructResult,
+      directoryName: 'build',
+    );
+  }
+
+  Future<void> _generateOtherConstruct(
+    Construct construct,
+    ConstructMaker maker,
   ) async {
-    final ServerDirectory(files: [result]) =
-        construct.generate(context, server);
+    final constructResult = construct.generate(context, await server);
 
-    final revali = await root.getRevali();
+    await _generateDirectory(
+      revaliDirectory: constructResult,
+      directoryName: maker.name,
+    );
+  }
 
-    final revaliEntities = switch (await revali.exists()) {
-      true => await revali.list(recursive: true, followLinks: false).toList(),
+  Future<void> _generateDirectory({
+    required String directoryName,
+    required RevaliDirectory revaliDirectory,
+  }) async {
+    final revali = await (await root).getRevali();
+
+    final fsDirectory = revali.sanitizedChildDirectory(directoryName);
+
+    if (!await fsDirectory.exists()) {
+      await fsDirectory.create(recursive: true);
+    }
+
+    final revaliEntities = switch (await fsDirectory.exists()) {
+      true =>
+        await fsDirectory.list(recursive: true, followLinks: false).toList(),
       false => <FileSystemEntity>[],
     };
 
@@ -169,27 +240,16 @@ class ConstructGenerator with DirectoriesMixin {
       for (final file in revaliFiles) file.path,
     };
 
-    final serverFile = await root.getRevaliFile(result.basename);
+    for (final file in revaliDirectory.files) {
+      final fileEntity = fsDirectory.sanitizedChildFile(file.fileName);
 
-    if (!await serverFile.exists()) {
-      await serverFile.create(recursive: true);
-    }
-
-    paths.remove(serverFile.path);
-    await serverFile.writeAsString(result.getContent());
-
-    for (final MapEntry(key: basename, value: content)
-        in result.getPartContent()) {
-      // ensure that the path is within the revali directory
-      final partFile = revali.sanitizedChildFile(basename);
-
-      if (!await partFile.exists()) {
-        await partFile.create(recursive: true);
+      if (!await fileEntity.exists()) {
+        await fileEntity.create(recursive: true);
       }
 
-      paths.remove(partFile.path);
+      paths.remove(fileEntity.path);
 
-      await partFile.writeAsString(content);
+      await fileEntity.writeAsString(file.content);
     }
 
     for (final stale in paths) {
@@ -201,7 +261,25 @@ class ConstructGenerator with DirectoriesMixin {
     }
   }
 
-  Future<RevaliYaml> revaliConfig() async {
+  Future<void> _generateServerConstruct(ServerConstruct construct) async {
+    final ServerDirectory(files: [result]) =
+        construct.generate(context, await server);
+
+    await _generateDirectory(
+      revaliDirectory: RevaliDirectory(
+        name: '',
+        files: [result, ...result.parts],
+      ),
+      directoryName: 'server',
+    );
+  }
+
+  RevaliYaml? __revaliConfig;
+  Future<RevaliYaml> get revaliConfig async {
+    if (__revaliConfig case final revaliConfig?) {
+      return revaliConfig;
+    }
+
     final root = await this.root;
 
     final constructYamlFile = root.childFile('revali.yaml');
@@ -221,6 +299,6 @@ class ConstructGenerator with DirectoriesMixin {
       }
     }
 
-    return revaliConfig ?? const RevaliYaml.none();
+    return __revaliConfig = revaliConfig ?? const RevaliYaml.none();
   }
 }

@@ -84,6 +84,18 @@ extension DirectoryX on Directory {
     return root.childDirectory('public');
   }
 
+  Future<Directory> getServer() async {
+    final root = await getRevali();
+
+    return root.childDirectory('server');
+  }
+
+  Future<Directory> getBuild() async {
+    final root = await getRevali();
+
+    return root.childDirectory('build');
+  }
+
   /// The directory within the root directory
   /// specifically used for revali
   ///
@@ -116,5 +128,12 @@ extension DirectoryX on Directory {
     final relative = p.relative(normalized, from: path);
 
     return childFile(relative);
+  }
+
+  Directory sanitizedChildDirectory(String basename) {
+    final normalized = p.normalize(p.join(path, basename));
+    final relative = p.relative(normalized, from: path);
+
+    return childDirectory(relative);
   }
 }

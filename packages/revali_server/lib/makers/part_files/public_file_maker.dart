@@ -58,7 +58,7 @@ PartFile publicFileMaker(ServerServer server, String Function(Spec) formatter) {
   final content = formatter(publics);
 
   return PartFile(
-    path: ['definitions', '__public.dart'],
+    path: ['definitions', '__public'],
     content: content,
   );
 }

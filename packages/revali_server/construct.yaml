@@ -3,6 +3,7 @@ constructs:
       path: server.dart
       method: serverConstruct
       is_server: true
+
     - name: revali_build
       path: build.dart
       method: buildConstruct

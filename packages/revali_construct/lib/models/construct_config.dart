@@ -13,7 +13,10 @@ class ConstructConfig extends Equatable {
     this.options = const ConstructOptions.empty(),
     this.isServer = false,
     this.isBuild = false,
-  });
+  }) : assert(
+          !(isBuild & isServer),
+          'Construct cannot be both a build and server construct',
+        );
 
   // ignore: strict_raw_type
   static ConstructConfig fromJson(Map json) => _$ConstructConfigFromJson(json);

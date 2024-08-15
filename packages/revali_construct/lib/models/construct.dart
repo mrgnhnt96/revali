@@ -5,5 +5,5 @@ import 'package:revali_construct/models/revali_context.dart';
 abstract class Construct<T extends RevaliDirectory> {
   const Construct();
 
-  T generate(RevaliContext context, MetaServer server);
+  T generate(covariant RevaliContext context, MetaServer server);
 }
