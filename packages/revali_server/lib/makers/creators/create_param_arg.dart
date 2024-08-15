@@ -16,6 +16,7 @@ final impliedArguments = <String, Expression>{
       refer('context').property('response').property('headers'),
   (ReadOnlyHeaders).name:
       refer('context').property('request').property('headers'),
+  (ReadOnlyRequest).name: refer('context').property('request'),
 };
 
 Expression createParamArg(
