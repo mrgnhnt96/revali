@@ -474,8 +474,10 @@ class VMServiceHandler {
 
     final revali = await root.getRevali();
 
-    final server =
-        p.equals(revali.childFile(ServerFile.fileName).path, event.path);
+    final server = p.equals(
+      revali.childFile(ServerFile.nameWithExtension).path,
+      event.path,
+    );
     final pubspec = p.equals(revali.childFile('pubspec.yaml').path, event.path);
 
     if (server || pubspec) {

@@ -1,12 +1,13 @@
 import 'package:path/path.dart' as p;
+import 'package:revali_construct/models/files/any_file.dart';
 import 'package:revali_construct/models/files/part_file.dart';
 
-class DartFile {
+class DartFile extends AnyFile {
   DartFile({
-    required this.basename,
-    required this.content,
+    required super.basename,
+    required super.content,
     List<PartFile> parts = const [],
-  }) : parts = parts.map((e) {
+  })  : parts = parts.map((e) {
           if (e.path.isEmpty) {
             throw Exception('Part file path cannot be empty.');
           }
@@ -26,10 +27,9 @@ class DartFile {
           }
 
           return e;
-        }).toList();
+        }).toList(),
+        super(extension: '.dart');
 
-  final String basename;
-  final String content;
   final List<PartFile> parts;
 
   Iterable<MapEntry<String, String>> getPartContent() {

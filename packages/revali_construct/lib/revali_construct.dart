@@ -7,14 +7,18 @@
 export 'enums/mode.dart';
 export 'hot_reload/hot_reload.dart' show hotReload;
 export 'models/app_annotation.dart';
+export 'models/build_construct.dart';
 export 'models/construct.dart';
 export 'models/construct_config.dart';
 export 'models/construct_maker.dart';
 export 'models/construct_options.dart';
 export 'models/construct_yaml.dart';
 export 'models/controller_annotation.dart';
+export 'models/files/build_directory.dart';
+export 'models/files/construct_directory.dart';
 export 'models/files/dart_file.dart';
 export 'models/files/part_file.dart';
+export 'models/files/revali_directory.dart';
 export 'models/files/server_file.dart';
 export 'models/meta_app_config.dart';
 export 'models/meta_method.dart';

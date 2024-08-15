@@ -94,7 +94,7 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
 
     final serverHandler = VMServiceHandler(
       root: root,
-      serverFile: (await root.getRevaliFile(ServerFile.fileName)).path,
+      serverFile: (await root.getRevaliFile(ServerFile.nameWithExtension)).path,
       codeGenerator: generator.generate,
       logger: logger,
       canHotReload: !runInRelease,

@@ -1,6 +1,7 @@
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:revali/revali.dart';
+import 'package:revali_construct/models/files/server_directory.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:yaml/yaml.dart';
 
@@ -152,7 +153,8 @@ class ConstructGenerator with DirectoriesMixin {
     MetaServer server,
     Directory root,
   ) async {
-    final result = construct.generate(context, server);
+    final ServerDirectory(files: [result]) =
+        construct.generate(context, server);
 
     final revali = await root.getRevali();
 

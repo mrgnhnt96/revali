@@ -6,7 +6,7 @@ import 'dart:isolate' as _i3;
 import 'package:revali/revali.dart' as _i4;
 // ignore: depend_on_referenced_packages
 import 'package:revali_construct/revali_construct.dart' as _i1;
-import 'package:revali_server/main.dart' as _i2;
+import 'package:revali_server/server.dart' as _i2;
 
 const _constructs = <_i1.ConstructMaker>[
   _i1.ConstructMaker(

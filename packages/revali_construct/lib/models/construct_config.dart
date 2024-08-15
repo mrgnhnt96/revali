@@ -12,6 +12,7 @@ class ConstructConfig extends Equatable {
     required this.method,
     this.options = const ConstructOptions.empty(),
     this.isServer = false,
+    this.isBuild = false,
   });
 
   // ignore: strict_raw_type
@@ -22,6 +23,7 @@ class ConstructConfig extends Equatable {
   final String method;
   final ConstructOptions options;
   final bool isServer;
+  final bool isBuild;
 
   Map<String, dynamic> toJson() => _$ConstructConfigToJson(this);
 
@@ -32,5 +34,6 @@ class ConstructConfig extends Equatable {
         method,
         options,
         isServer,
+        isBuild,
       ];
 }

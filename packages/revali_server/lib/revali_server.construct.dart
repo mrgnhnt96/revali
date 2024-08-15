@@ -1,5 +1,6 @@
 import 'package:code_builder/code_builder.dart';
 import 'package:dart_style/dart_style.dart';
+import 'package:revali_construct/models/files/server_directory.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_server/converters/server_server.dart';
 import 'package:revali_server/makers/part_files/public_file_maker.dart';
@@ -15,7 +16,7 @@ class RevaliServerConstruct implements ServerConstruct {
   final Options options;
 
   @override
-  ServerFile generate(RevaliContext context, MetaServer server) {
+  ServerDirectory generate(RevaliContext context, MetaServer server) {
     final serverServer = ServerServer.fromMeta(context, server)..validate();
 
     final formatter = DartFormatter();
@@ -26,14 +27,17 @@ class RevaliServerConstruct implements ServerConstruct {
       return formatter.format(spec.accept(emitter).toString());
     }
 
-    return ServerFile(
-      content: serverFile(serverServer, format, options: options),
-      parts: [
-        for (final route in serverServer.routes) routeFileMaker(route, format),
-        reflectsFileMaker(serverServer, format),
-        publicFileMaker(serverServer, format),
-        routesFileMaker(serverServer, format),
-      ],
+    return ServerDirectory(
+      serverFile: ServerFile(
+        content: serverFile(serverServer, format, options: options),
+        parts: [
+          for (final route in serverServer.routes)
+            routeFileMaker(route, format),
+          reflectsFileMaker(serverServer, format),
+          publicFileMaker(serverServer, format),
+          routesFileMaker(serverServer, format),
+        ],
+      ),
     );
   }
 }

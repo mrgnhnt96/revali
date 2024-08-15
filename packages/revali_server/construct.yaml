@@ -1,5 +1,9 @@
 constructs:
     - name: revali_server
-      path: main.dart
+      path: server.dart
       method: serverConstruct
       is_server: true
+    - name: revali_build
+      path: build.dart
+      method: buildConstruct
+      is_build: true

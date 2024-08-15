@@ -12,5 +12,5 @@ class ConstructMaker {
   final String package;
   final bool isServer;
   final String name;
-  final Construct Function(ConstructOptions) maker;
+  final Construct<dynamic> Function(ConstructOptions) maker;
 }
