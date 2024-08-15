@@ -2,6 +2,7 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
+import 'package:revali/clis/construct_runner/commands/build_command.dart';
 import 'package:revali/clis/construct_runner/commands/dev_command.dart';
 import 'package:revali_construct/revali_construct.dart';
 
@@ -26,6 +27,14 @@ class ConstructRunner extends CommandRunner<int> {
 
     addCommand(
       DevCommand(
+        fs: fs,
+        rootPath: rootPath,
+        constructs: constructs,
+        logger: logger,
+      ),
+    );
+    addCommand(
+      BuildCommand(
         fs: fs,
         rootPath: rootPath,
         constructs: constructs,

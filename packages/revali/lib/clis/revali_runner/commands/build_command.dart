@@ -4,40 +4,23 @@ import 'package:mason_logger/mason_logger.dart';
 import 'package:revali/clis/revali_runner/commands/mixins/construct_runner_args.dart';
 import 'package:revali/handlers/construct_entrypoint_handler.dart';
 
-class DevCommand extends Command<int> with ConstructRunnerArgs {
-  DevCommand({
+class BuildCommand extends Command<int> with ConstructRunnerArgs {
+  BuildCommand({
     required ConstructEntrypointHandler generator,
     required this.logger,
     required this.fs,
   }) : _generator = generator {
     argParser
-      ..addFlag(
-        'recompile',
-        help: 'Re-compiles the construct kernel. '
-            'Needed to sync changes for a local construct.',
-        negatable: false,
-      )
       ..addOption(
         'flavor',
         abbr: 'f',
         help: 'The flavor to use for the app (case-sensitive)',
       )
       ..addFlag(
-        'release',
-        help:
-            'Whether to run in release mode. Disables hot reload and debugger',
+        'recompile',
+        help: 'Re-compiles the construct kernel. '
+            'Needed to sync changes for a local construct.',
         negatable: false,
-      )
-      ..addFlag(
-        'debug',
-        help: '(Default) Whether to run in debug mode. '
-            'Enables hot reload and debugger',
-        negatable: false,
-      )
-      ..addOption(
-        'dart-vm-service-port',
-        help: 'The port to use for the Dart VM service',
-        defaultsTo: '8080',
       )
       ..addMultiOption(
         'dart-define',
@@ -52,22 +35,21 @@ class DevCommand extends Command<int> with ConstructRunnerArgs {
       );
   }
 
-  final ConstructEntrypointHandler _generator;
   @override
   final Logger logger;
   final FileSystem fs;
+  final ConstructEntrypointHandler _generator;
 
   @override
-  String get name => 'dev';
+  String get name => 'build';
 
   @override
-  String get description => 'Starts the development server';
+  String get description => 'Compiles the server';
+
+  late final recompile = argResults?['recompile'] as bool;
 
   @override
   Future<int> run() async {
-    final argResults = this.argResults!;
-    final recompile = argResults['recompile'] as bool;
-
     await _generator.generate(recompile: recompile);
     logger.write('\n');
 

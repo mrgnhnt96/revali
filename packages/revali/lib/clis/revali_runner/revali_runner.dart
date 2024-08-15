@@ -2,6 +2,7 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
+import 'package:revali/clis/revali_runner/commands/build_command.dart';
 import 'package:revali/clis/revali_runner/commands/dev_command.dart';
 import 'package:revali/handlers/construct_entrypoint_handler.dart';
 
@@ -23,15 +24,24 @@ class RevaliRunner extends CommandRunner<int> {
         hide: true,
       );
 
+    final entrypointHandler = ConstructEntrypointHandler(
+      logger: logger,
+      initialDirectory: initialDirectory,
+      fs: fs,
+    );
+
     addCommand(
       DevCommand(
         fs: fs,
         logger: logger,
-        generator: ConstructEntrypointHandler(
-          logger: logger,
-          initialDirectory: initialDirectory,
-          fs: fs,
-        ),
+        generator: entrypointHandler,
+      ),
+    );
+    addCommand(
+      BuildCommand(
+        fs: fs,
+        logger: logger,
+        generator: entrypointHandler,
       ),
     );
   }

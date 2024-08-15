@@ -199,7 +199,7 @@ ${result.stderr}''');
     return kernel;
   }
 
-  Future<void> run(List<String> args) async {
+  Future<void> run(Iterable<String> args) async {
     ReceivePort? exitPort;
     ReceivePort? errorPort;
     ReceivePort? messagePort;
@@ -238,7 +238,10 @@ ${result.stderr}''');
       try {
         await Isolate.spawnUri(
           Uri.file(file.path),
-          args,
+          switch (args) {
+            List() => args,
+            _ => args.toList(),
+          },
           messagePort.sendPort,
           onExit: exitPort.sendPort,
           onError: errorPort.sendPort,
