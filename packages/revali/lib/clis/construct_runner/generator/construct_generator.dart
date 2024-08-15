@@ -29,6 +29,17 @@ class ConstructGenerator with DirectoriesMixin {
     this.generateBuild = false,
   })  : mode = Mode.release,
         _rootPath = rootPath;
+  ConstructGenerator.profile({
+    required this.flavor,
+    required this.routesHandler,
+    required this.makers,
+    required this.logger,
+    required this.fs,
+    required String rootPath,
+    this.dartDefines,
+    this.generateBuild = false,
+  })  : mode = Mode.profile,
+        _rootPath = rootPath;
   ConstructGenerator.debug({
     required this.flavor,
     required this.routesHandler,
@@ -199,8 +210,10 @@ class ConstructGenerator with DirectoriesMixin {
     final constructResult = construct.generate(buildContext, await server);
 
     await _generateDirectory(
-      revaliDirectory: constructResult,
-      directoryName: 'build',
+      RevaliDirectory(
+        name: 'build',
+        files: constructResult.files,
+      ),
     );
   }
 
@@ -211,18 +224,19 @@ class ConstructGenerator with DirectoriesMixin {
     final constructResult = construct.generate(context, await server);
 
     await _generateDirectory(
-      revaliDirectory: constructResult,
-      directoryName: maker.name,
+      RevaliDirectory(
+        name: maker.name,
+        files: constructResult.files,
+      ),
     );
   }
 
-  Future<void> _generateDirectory({
-    required String directoryName,
-    required RevaliDirectory revaliDirectory,
-  }) async {
+  Future<void> _generateDirectory(
+    RevaliDirectory revaliDirectory,
+  ) async {
     final revali = await (await root).getRevali();
 
-    final fsDirectory = revali.sanitizedChildDirectory(directoryName);
+    final fsDirectory = revali.sanitizedChildDirectory(revaliDirectory.name);
 
     if (!await fsDirectory.exists()) {
       await fsDirectory.create(recursive: true);
@@ -266,11 +280,10 @@ class ConstructGenerator with DirectoriesMixin {
         construct.generate(context, await server);
 
     await _generateDirectory(
-      revaliDirectory: RevaliDirectory(
-        name: '',
+      RevaliDirectory(
+        name: 'server',
         files: [result, ...result.parts],
       ),
-      directoryName: 'server',
     );
   }
 

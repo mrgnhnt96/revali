@@ -31,12 +31,18 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
       )
       ..addFlag(
         'release',
-        help:
-            'Whether to run in release mode. Disabled hot reload and debugger',
+        help: 'Whether to run in release mode. Disabled hot reload, '
+            'debugger, and logger',
+      )
+      ..addFlag(
+        'profile',
+        help: 'Whether to run in profile mode. Enables logger, '
+            'but disables hot reload and debugger',
       )
       ..addFlag(
         'debug',
-        help: 'Whether to run in debug mode. Enables hot reload and debugger',
+        help: '(Default) Whether to run in debug mode. Enables hot reload, '
+            'debugger, and logger',
       )
       ..addOption(
         'dart-vm-service-port',
@@ -72,15 +78,17 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
   late final flavor = argResults?['flavor'] as String?;
   late final debug = argResults?['debug'] as bool? ?? false;
   late final release = argResults?['release'] as bool? ?? false;
+  late final profile = argResults?['profile'] as bool? ?? false;
   late final dartVmServicePort = argResults?['dart-vm-service-port'] as String;
 
   @override
   Future<int>? run() async {
     final runInRelease = release && !debug;
 
-    final generator = switch (runInRelease) {
-      true => ConstructGenerator.release,
-      false => ConstructGenerator.debug,
+    final generator = switch ((debug, profile, release)) {
+      (_, true, _) => ConstructGenerator.profile,
+      (_, _, true) => ConstructGenerator.release,
+      _ => ConstructGenerator.debug,
     }(
       flavor: flavor,
       routesHandler: routesHandler,
@@ -91,6 +99,23 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
     );
 
     final root = await generator.root;
+
+    if (profile) {
+      await generator.clean();
+
+      final progress = logger.progress('Generating server code');
+
+      final success = await generator.generate();
+
+      if (!success) {
+        progress.fail('Failed to generate server code');
+        return 1;
+      }
+
+      progress.complete('Generated server code');
+
+      return 0;
+    }
 
     final serverHandler = VMServiceHandler(
       root: root,

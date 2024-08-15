@@ -26,6 +26,16 @@ class BuildCommand extends Command<int>
         abbr: 'f',
         help: 'The flavor to use for the app (case-sensitive)',
       )
+      ..addFlag(
+        'release',
+        help: '(Default) Whether to run in release mode. Disabled hot reload, '
+            'debugger, and logger',
+      )
+      ..addFlag(
+        'profile',
+        help: 'Whether to run in profile mode. Enables logger, '
+            'but disables hot reload and debugger',
+      )
       ..addMultiOption(
         'dart-define',
         help: 'Additional key-value pairs that will be available as constants.',
@@ -53,12 +63,17 @@ class BuildCommand extends Command<int>
   String get description => 'Compiles the server';
 
   late final flavor = argResults?['flavor'] as String?;
+  late final release = argResults?['release'] as bool? ?? true;
+  late final profile = argResults?['profile'] as bool? ?? false;
 
   @override
   Future<int> run() async {
     final root = await rootOf(rootPath);
 
-    final generator = ConstructGenerator.release(
+    final generator = switch ((profile, release)) {
+      (true, _) => ConstructGenerator.profile,
+      _ => ConstructGenerator.release,
+    }(
       flavor: flavor,
       routesHandler: routesHandler,
       makers: constructs,

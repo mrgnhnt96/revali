@@ -17,6 +17,16 @@ class BuildCommand extends Command<int> with ConstructRunnerArgs {
         help: 'The flavor to use for the app (case-sensitive)',
       )
       ..addFlag(
+        'release',
+        help: '(Default) Whether to run in release mode. Disabled hot reload, '
+            'debugger, and logger',
+      )
+      ..addFlag(
+        'profile',
+        help: 'Whether to run in profile mode. Enables logger, '
+            'but disables hot reload and debugger',
+      )
+      ..addFlag(
         'recompile',
         help: 'Re-compiles the construct kernel. '
             'Needed to sync changes for a local construct.',

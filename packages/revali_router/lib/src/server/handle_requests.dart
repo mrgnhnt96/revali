@@ -14,6 +14,7 @@ Future<void> handleRequests(
 ) async {
   try {
     await for (final request in server) {
+      print('${request.uri}');
       ReadOnlyResponse response;
       RequestContext context;
       try {
