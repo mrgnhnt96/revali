@@ -1,5 +1,3 @@
-import 'package:revali_construct/models/files/any_file.dart';
-import 'package:revali_construct/models/revali_build_context.dart';
 import 'package:revali_construct/revali_construct.dart';
 
 class RevaliBuildConstruct extends BuildConstruct {
@@ -12,6 +10,11 @@ class RevaliBuildConstruct extends BuildConstruct {
       defines.add('$key=$value');
     }
 
+    var flavor = '';
+    if (context.flavor case final value?) {
+      flavor = '--flavor $value';
+    }
+
     return BuildDirectory(
       files: [
         AnyFile(
@@ -20,15 +23,12 @@ class RevaliBuildConstruct extends BuildConstruct {
 FROM dart:stable AS build
 
 WORKDIR /app
-COPY pubspec.* ./
-RUN dart pub get
-
 COPY . .
-
-# delete pubspec_overrides.yaml
 RUN rm pubspec_overrides.yaml
 
-RUN dart pub get --offline
+RUN dart pub get
+
+RUN dart run revali build $flavor --${context.mode.flag} --type constructs
 
 RUN dart compile exe .revali/server/server.dart -o /app/server -D${defines.join(',')}
 FROM scratch

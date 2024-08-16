@@ -1,8 +1,6 @@
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:revali/revali.dart';
-import 'package:revali_construct/models/files/server_directory.dart';
-import 'package:revali_construct/models/revali_build_context.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:yaml/yaml.dart';
 
@@ -16,7 +14,7 @@ class ConstructGenerator with DirectoriesMixin {
     required this.fs,
     required String rootPath,
     this.dartDefines,
-    this.generateBuild = false,
+    this.generateConstructType = GenerateConstructType.constructs,
   }) : _rootPath = rootPath;
   ConstructGenerator.release({
     required this.flavor,
@@ -26,7 +24,7 @@ class ConstructGenerator with DirectoriesMixin {
     required this.fs,
     required String rootPath,
     this.dartDefines,
-    this.generateBuild = false,
+    this.generateConstructType = GenerateConstructType.constructs,
   })  : mode = Mode.release,
         _rootPath = rootPath;
   ConstructGenerator.profile({
@@ -37,7 +35,7 @@ class ConstructGenerator with DirectoriesMixin {
     required this.fs,
     required String rootPath,
     this.dartDefines,
-    this.generateBuild = false,
+    this.generateConstructType = GenerateConstructType.constructs,
   })  : mode = Mode.profile,
         _rootPath = rootPath;
   ConstructGenerator.debug({
@@ -48,7 +46,7 @@ class ConstructGenerator with DirectoriesMixin {
     required this.fs,
     required String rootPath,
     this.dartDefines,
-    this.generateBuild = false,
+    this.generateConstructType = GenerateConstructType.constructs,
   })  : mode = Mode.debug,
         _rootPath = rootPath;
 
@@ -61,7 +59,7 @@ class ConstructGenerator with DirectoriesMixin {
   final FileSystem fs;
   final String _rootPath;
   final DartDefine? dartDefines;
-  final bool generateBuild;
+  final GenerateConstructType generateConstructType;
 
   Directory? __root;
   Future<Directory> get root async {
@@ -103,9 +101,9 @@ class ConstructGenerator with DirectoriesMixin {
     return __server = await routesHandler.parse();
   }
 
-  Future<bool> generate() async {
+  Future<bool> generate([void Function(String)? loggerUpdate]) async {
     try {
-      await _generate();
+      await _generate(loggerUpdate);
 
       return true;
     } catch (e) {
@@ -117,15 +115,19 @@ class ConstructGenerator with DirectoriesMixin {
     return false;
   }
 
-  Future<void> _generate() async {
+  Future<void> _generate(void Function(String)? loggerUpdate) async {
     final buildMakers = <ConstructMaker>[];
 
-    if (generateBuild) {
+    if (generateConstructType.isBuild) {
       for (final construct in makers) {
         if (!construct.isBuild) continue;
 
         buildMakers.add(construct);
       }
+    }
+
+    if (generateConstructType.isBuild) {
+      loggerUpdate?.call('Running pre-build hooks');
     }
 
     for (final maker in buildMakers) {
@@ -135,16 +137,30 @@ class ConstructGenerator with DirectoriesMixin {
       await construct.preBuild(buildContext, await server);
     }
 
-    for (final maker in makers) {
-      if (maker.isBuild && !generateBuild) {
-        logger.detail(
-          'Skipping build construct ${maker.name} '
-          'because build is disabled',
-        );
+    if (generateConstructType.isConstructs) {
+      loggerUpdate?.call('Generating constructs');
 
-        continue;
+      for (final maker in makers) {
+        if (maker.isBuild && generateConstructType.isNotBuild) {
+          logger.detail(
+            'Skipping build construct ${maker.name} '
+            'because build is disabled',
+          );
+
+          continue;
+        }
+        await _generateConstruct(maker);
       }
-      await _generateConstruct(maker);
+    } else {
+      loggerUpdate?.call('Generating build constructs');
+
+      for (final maker in buildMakers) {
+        await _generateConstruct(maker);
+      }
+    }
+
+    if (generateConstructType.isBuild) {
+      loggerUpdate?.call('Running post-build hooks');
     }
 
     for (final maker in buildMakers) {

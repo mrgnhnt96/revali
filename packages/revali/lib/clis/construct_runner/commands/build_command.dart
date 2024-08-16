@@ -5,7 +5,7 @@ import 'package:revali/clis/construct_runner/commands/mixins/dart_defines_mixin.
 import 'package:revali/clis/construct_runner/generator/construct_generator.dart';
 import 'package:revali/handlers/routes_handler.dart';
 import 'package:revali/utils/mixins/directories_mixin.dart';
-import 'package:revali_construct/models/construct_maker.dart';
+import 'package:revali_construct/revali_construct.dart';
 
 class BuildCommand extends Command<int>
     with DirectoriesMixin, DartDefinesMixin {
@@ -30,11 +30,24 @@ class BuildCommand extends Command<int>
         'release',
         help: '(Default) Whether to run in release mode. Disabled hot reload, '
             'debugger, and logger',
+        negatable: false,
       )
       ..addFlag(
         'profile',
         help: 'Whether to run in profile mode. Enables logger, '
             'but disables hot reload and debugger',
+        negatable: false,
+      )
+      ..addOption(
+        'type',
+        allowedHelp: {
+          for (final type in GenerateConstructType.values)
+            type.name: type.description,
+        },
+        hide: true,
+        allowed: GenerateConstructType.values.map((e) => e.name),
+        defaultsTo: GenerateConstructType.build.name,
+        help: 'Which constructs to generate',
       )
       ..addMultiOption(
         'dart-define',
@@ -65,6 +78,8 @@ class BuildCommand extends Command<int>
   late final flavor = argResults?['flavor'] as String?;
   late final release = argResults?['release'] as bool? ?? true;
   late final profile = argResults?['profile'] as bool? ?? false;
+  late final type =
+      GenerateConstructType.values.byName(argResults?['type'] as String);
 
   @override
   Future<int> run() async {
@@ -81,21 +96,21 @@ class BuildCommand extends Command<int>
       fs: fs,
       rootPath: root.path,
       dartDefines: defines,
-      generateBuild: true,
+      generateConstructType: type,
     );
 
     await generator.clean();
 
-    final progress = logger.progress('Generating server code');
+    final progress = logger.progress('Building');
 
-    final success = await generator.generate();
+    final success = await generator.generate(progress.update);
 
     if (!success) {
-      progress.fail('Failed to generate server code');
+      progress.fail('Build failed');
       return 1;
     }
 
-    progress.complete('Generated server code');
+    progress.complete('Build succeeded');
 
     return 0;
   }
