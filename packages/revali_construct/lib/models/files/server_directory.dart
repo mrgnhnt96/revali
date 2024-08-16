@@ -5,7 +5,6 @@ class ServerDirectory extends RevaliDirectory<ServerFile> {
   ServerDirectory({
     required ServerFile serverFile,
   }) : super(
-          name: '__SERVER__',
           files: [serverFile],
         );
 }

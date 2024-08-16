@@ -233,8 +233,8 @@ class ConstructGenerator with DirectoriesMixin {
     final constructResult = construct.generate(buildContext, await server);
 
     await _generateDirectory(
+      'build',
       RevaliDirectory(
-        name: 'build',
         files: constructResult.files,
       ),
     );
@@ -247,19 +247,20 @@ class ConstructGenerator with DirectoriesMixin {
     final constructResult = construct.generate(context, await server);
 
     await _generateDirectory(
+      maker.name,
       RevaliDirectory(
-        name: maker.name,
         files: constructResult.files,
       ),
     );
   }
 
   Future<void> _generateDirectory(
+    String name,
     RevaliDirectory revaliDirectory,
   ) async {
     final revali = await (await root).getRevali();
 
-    final fsDirectory = revali.sanitizedChildDirectory(revaliDirectory.name);
+    final fsDirectory = revali.sanitizedChildDirectory(name);
 
     if (!await fsDirectory.exists()) {
       await fsDirectory.create(recursive: true);
@@ -303,8 +304,8 @@ class ConstructGenerator with DirectoriesMixin {
         construct.generate(context, await server);
 
     await _generateDirectory(
+      'server',
       RevaliDirectory(
-        name: 'server',
         files: [result, ...result.parts],
       ),
     );
