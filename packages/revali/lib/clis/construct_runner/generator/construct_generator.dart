@@ -97,6 +97,14 @@ class ConstructGenerator with DirectoriesMixin {
     if (await build.exists()) {
       await build.delete(recursive: true);
     }
+
+    if (type.isConstructs) {
+      await for (final construct in root.getConstructs()) {
+        if (await construct.exists()) {
+          await construct.delete(recursive: true);
+        }
+      }
+    }
   }
 
   MetaServer? __server;

@@ -96,6 +96,19 @@ extension DirectoryX on Directory {
     return root.childDirectory('build');
   }
 
+  Stream<Directory> getConstructs() async* {
+    final root = await getRevali();
+
+    final dirs = root.listSync().whereType<Directory>();
+
+    for (final dir in dirs) {
+      if (dir.basename == 'server') continue;
+      if (dir.basename == 'build') continue;
+
+      yield dir;
+    }
+  }
+
   /// The directory within the root directory
   /// specifically used for revali
   ///
