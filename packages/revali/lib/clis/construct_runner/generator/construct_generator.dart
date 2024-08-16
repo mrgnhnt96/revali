@@ -83,12 +83,19 @@ class ConstructGenerator with DirectoriesMixin {
         defines: dartDefines?.defined ?? const {},
       );
 
-  Future<void> clean() async {
+  Future<void> clean({
+    GenerateConstructType type = GenerateConstructType.constructs,
+  }) async {
     final root = await this.root;
 
-    final revali = await root.getRevali();
-    if (await revali.exists()) {
-      await revali.delete(recursive: true);
+    final server = await root.getServer();
+    if (await server.exists() && type.isConstructs) {
+      await server.delete(recursive: true);
+    }
+
+    final build = await root.getBuild();
+    if (await build.exists()) {
+      await build.delete(recursive: true);
     }
   }
 

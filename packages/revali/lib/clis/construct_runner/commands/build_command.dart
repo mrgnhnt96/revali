@@ -99,7 +99,7 @@ class BuildCommand extends Command<int>
       generateConstructType: type,
     );
 
-    await generator.clean();
+    await generator.clean(type: type);
 
     final progress = logger.progress('Building');
 
