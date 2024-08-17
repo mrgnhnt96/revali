@@ -97,9 +97,13 @@ extension DirectoryX on Directory {
   }
 
   Stream<Directory> getConstructs() async* {
-    final root = await getRevali();
+    final revali = await getRevali();
 
-    final dirs = root.listSync().whereType<Directory>();
+    if (!await revali.exists()) {
+      return;
+    }
+
+    final dirs = revali.listSync().whereType<Directory>();
 
     for (final dir in dirs) {
       if (dir.basename == 'server') continue;
