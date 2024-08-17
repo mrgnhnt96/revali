@@ -35,7 +35,6 @@ FROM scratch
 COPY --from=build /runtime/ /
 COPY --from=build /app/server /app/bin/server
 
-EXPOSE 1234
 CMD ["/app/bin/server"]''',
         ),
       ],
