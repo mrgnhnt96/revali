@@ -75,7 +75,7 @@ class ServerRouteAnnotations with ExtractImport {
           },
         ),
         OnMatch(
-          classType: Uses,
+          classType: Middlewares,
           package: 'revali_router_annotations',
           convert: (object, annotation) {
             types.middlewares.add(

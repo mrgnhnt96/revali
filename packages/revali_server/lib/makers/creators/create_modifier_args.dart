@@ -49,8 +49,8 @@ Map<String, Expression> createModifierArgs({
         if (mimics.middlewares.isNotEmpty)
           for (final middleware in mimics.middlewares) createMimic(middleware),
         if (typeReferences.middlewares.isNotEmpty)
-          for (final uses in typeReferences.middlewares)
-            for (final middleware in uses.types) createClass(middleware),
+          for (final middlewares in typeReferences.middlewares)
+            for (final middleware in middlewares.types) createClass(middleware),
       ]),
     if (annotations.allowOrigins case final allow?
         when allow.origins.isNotEmpty)
