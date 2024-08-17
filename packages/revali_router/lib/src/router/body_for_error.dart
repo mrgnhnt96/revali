@@ -11,19 +11,24 @@ ReadOnlyBody? bodyForError(
   final newData = switch (data) {
     Map() => {
         ...data,
-        'error': error.toString(),
-        'stackTrace': stackString,
+        '__DEBUG__': {
+          'error': error.toString(),
+          'stackTrace': stackString,
+        },
       },
     List() => [
         ...data,
         {
-          'error': error.toString(),
-          'stackTrace': stackString,
+          '__DEBUG__': {
+            'error': error.toString(),
+            'stackTrace': stackString,
+          },
         },
       ],
     String() => '''
 $body
 
+__DEBUG__:
 Error: $error
 
 Stack Trace:

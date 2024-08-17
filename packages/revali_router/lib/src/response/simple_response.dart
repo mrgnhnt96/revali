@@ -22,6 +22,12 @@ class SimpleResponse implements ReadOnlyResponse {
       };
     }
 
+    response.headers.addAll(
+      response.body.headers(MutableHeadersImpl()).map(
+            (key, value) => MapEntry(key, value.join(',')),
+          ),
+    );
+
     return SimpleResponse._(
       statusCode: response.statusCode,
       headers: response.headers,

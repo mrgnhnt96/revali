@@ -12,14 +12,14 @@ extension OverrideResponse on MutableResponse {
       _ => BaseBodyData<dynamic>.from(body),
     };
 
+    if (headers != null) {
+      this.headers.addAll(headers);
+    }
+
     if (!newBody.isNull) {
       this.body = newBody;
     }
 
     this.statusCode = statusCode ?? backupCode;
-
-    if (headers != null) {
-      this.headers.addAll(headers);
-    }
   }
 }
