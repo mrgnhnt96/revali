@@ -88,6 +88,10 @@ class Router extends Equatable {
     required StackTrace stackTrace,
   }) {
     if (!debug) {
+      if (response.statusCode >= 500) {
+        return defaultResponses.internalServerError;
+      }
+
       return response;
     }
 
