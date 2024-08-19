@@ -6,8 +6,10 @@ class RevaliBuildConstruct extends BuildConstruct {
   @override
   BuildDirectory generate(RevaliBuildContext context, MetaServer server) {
     final defines = <String>[];
+    final args = <String>[];
     for (final MapEntry(:key, :value) in context.defines.entries) {
-      defines.add('$key=$value');
+      args.add('ARG $key=$value');
+      defines.add('$key=\$$key');
     }
 
     var flavor = '';
@@ -24,17 +26,29 @@ FROM dart:stable AS build
 
 WORKDIR /app
 COPY . .
-RUN rm pubspec_overrides.yaml
+RUN rm pubspec_overrides.yaml || true
 
+# Get dependencies
 RUN dart pub get
 
-RUN dart run revali build $flavor --${context.mode.flag} --type constructs
+# Define build arguments
+${args.join('\n')}
 
-RUN dart compile exe .revali/server/server.dart -o /app/server -D${defines.join(',')}
-FROM scratch
-COPY --from=build /runtime/ /
+# Build the server
+RUN dart run revali build $flavor --${context.mode.flag} --type constructs --recompile
+
+# Compile the server
+RUN dart compile exe .revali/server/server.dart -o /app/server -D${defines.join(' \\\n\t-D')}
+
+FROM alpine:latest
+
+# Install necessary dependencies for the Dart binary
+RUN apk add --no-cache libc6-compat ca-certificates
+
+# Copy the compiled server to the image
 COPY --from=build /app/server /app/bin/server
 
+# Run the server
 CMD ["/app/bin/server"]''',
         ),
       ],
