@@ -23,6 +23,7 @@ abstract class MutableHeaders implements ReadOnlyHeaders {
   set ifModifiedSince(DateTime? value);
   set encoding(Encoding value);
   set contentType(MediaType? value);
+  set contentTypeString(String? value);
   set filename(String? value);
   set acceptRanges(String? value);
   set lastModified(DateTime? value);

@@ -139,6 +139,16 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
   }
 
   @override
+  // ignore: avoid_setters_without_getters
+  set contentTypeString(String? value) {
+    if (value == null) {
+      remove(HttpHeaders.contentTypeHeader);
+    } else {
+      set(HttpHeaders.contentTypeHeader, value);
+    }
+  }
+
+  @override
   set encoding(Encoding value) {
     set(HttpHeaders.contentEncodingHeader, value.name);
   }
