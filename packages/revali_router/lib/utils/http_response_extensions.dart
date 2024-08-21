@@ -19,7 +19,6 @@ extension HttpResponseX on HttpResponse {
     }
 
     final http = this;
-    statusCode = response.statusCode;
 
     MutableHeaders responseHeaders;
     if (response is MutableResponse) {
@@ -33,8 +32,9 @@ extension HttpResponseX on HttpResponse {
     responseHeaders
       ..contentLength ??= 0
       ..mimeType ??= 'text/plain';
+    http.statusCode = response.statusCode;
 
-    switch (statusCode) {
+    switch (response.statusCode) {
       case HttpStatus.notModified:
       case HttpStatus.noContent:
         _removeContentRelated(responseHeaders);
