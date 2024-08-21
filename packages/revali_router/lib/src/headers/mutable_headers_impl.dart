@@ -190,6 +190,15 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
   }
 
   @override
+  set transferEncoding(String? value) {
+    if (value == null) {
+      remove(HttpHeaders.transferEncodingHeader);
+    } else {
+      set(HttpHeaders.transferEncodingHeader, value);
+    }
+  }
+
+  @override
   set range((int, int)? value) {
     if (value == null) {
       remove(HttpHeaders.rangeHeader);

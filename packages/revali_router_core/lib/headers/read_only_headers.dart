@@ -42,6 +42,8 @@ abstract class ReadOnlyHeaders {
 
   String? get filename;
 
+  String? get transferEncoding;
+
   (int, int)? get range;
 
   Map<K2, V2> map<K2, V2>(
