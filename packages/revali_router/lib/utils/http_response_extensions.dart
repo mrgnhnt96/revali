@@ -41,14 +41,13 @@ extension HttpResponseX on HttpResponse {
         break;
     }
 
-    var useChunking = false;
     var deChunkBeforeSending = false;
     if (responseHeaders.transferEncoding case final transfer?) {
       if (!equalsIgnoreAsciiCase(transfer, 'identity')) {
         // If the response is already in a chunked encoding, de-chunk it because
         // otherwise `dart:io` will try to add another layer of chunking.
         deChunkBeforeSending = true;
-        useChunking = true;
+        responseHeaders.transferEncoding = 'chunked';
       }
     } else if (response.statusCode >= 200 &&
         response.statusCode != 204 &&
@@ -58,7 +57,7 @@ extension HttpResponseX on HttpResponse {
       // If the response isn't chunked yet and
       // there's no other way to tell its
       // length, enable `dart:io`'s chunked encoding.
-      useChunking = true;
+      responseHeaders.transferEncoding = 'chunked';
     } else if (responseHeaders.contentLength == null) {
       responseHeaders.contentLength = 0;
     }
@@ -95,14 +94,8 @@ extension HttpResponseX on HttpResponse {
       }
     }
 
-    if (useChunking && body != null) {
-      responseHeaders.transferEncoding = 'chunked';
-
-      if (deChunkBeforeSending) {
-        body = chunkedCoding.decoder.bind(body);
-      }
-
-      body = chunkedCoding.encoder.bind(body);
+    if (deChunkBeforeSending && body != null) {
+      body = chunkedCoding.decoder.bind(body);
     }
 
     responseHeaders.forEach((key, values) {
