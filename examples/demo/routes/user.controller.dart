@@ -51,7 +51,7 @@ class StringValue {
   final String value;
 }
 
-class NamePipe extends Pipe<String, String> {
+class NamePipe implements Pipe<String, String> {
   const NamePipe();
 
   @override
@@ -66,7 +66,7 @@ class Role implements Meta {
   final AuthType type;
 }
 
-class StringToIntPipe extends Pipe<String?, int> {
+class StringToIntPipe implements Pipe<String?, int> {
   const StringToIntPipe();
 
   @override
@@ -175,7 +175,7 @@ final class OtherCombine implements CombineMeta {
   List<Middleware> get middlewares => [];
 }
 
-class MyParam extends CustomParam<String> {
+class MyParam implements CustomParam<String> {
   const MyParam();
 
   @override
