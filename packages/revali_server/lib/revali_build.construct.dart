@@ -17,6 +17,17 @@ class RevaliBuildConstruct extends BuildConstruct {
       flavor = '--flavor $value';
     }
 
+    var dartDefines = '';
+    var defineArguments = '';
+    if (defines.isNotEmpty) {
+      dartDefines = ' -D${defines.join(' \\\n\t-D')}';
+      defineArguments = '''
+
+# Define build arguments
+${args.join('\n')}
+''';
+    }
+
     return BuildDirectory(
       files: [
         AnyFile(
@@ -30,15 +41,12 @@ RUN rm pubspec_overrides.yaml || true
 
 # Get dependencies
 RUN dart pub get
-
-# Define build arguments
-${args.join('\n')}
-
+$defineArguments
 # Build the server
 RUN dart run revali build $flavor --${context.mode.flag} --type constructs --recompile
 
 # Compile the server
-RUN dart compile exe .revali/server/server.dart -o /app/server -D${defines.join(' \\\n\t-D')}
+RUN dart compile exe .revali/server/server.dart -o /app/server$dartDefines
 
 FROM alpine:latest
 
