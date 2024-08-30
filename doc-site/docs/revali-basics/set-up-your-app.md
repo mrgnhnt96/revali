@@ -14,7 +14,9 @@ It's recommended that you create at least two entry points (`@App`'s); one for d
 
 Create a file at `routes/dev.app.dart`:
 
-```dart title="routes/dev.app.dart"
+** Note: the file name MUST end in `.app.dart`**
+
+```ts title="routes/dev.app.dart"
 import 'package:revali_router/revali_router.dart';
 
 @AllowOrigins.all()

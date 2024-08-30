@@ -5,9 +5,11 @@ slug: /
 
 # Revali
 
-A Dart Code Generator for API Development
+A Dart Code Generating Framework for API Development
 
 Revali is a powerful code generator designed for the Dart language. It leverages annotations on your classes, methods, and method parameters to create an API. This allows you to focus on writing clean, maintainable code while Revali handles the boilerplate.
+
+Revali employs the use of file naming conventions to determine where to look for your annotations, so naming files with the appropriate endings will be important.
 
 **Note: this guide refers to how `revali_router` and `revali_server` work together, but the `revali` package allows you to build your own constructs as well**
 

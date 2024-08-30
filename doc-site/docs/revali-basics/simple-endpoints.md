@@ -14,9 +14,9 @@ With CRUD, you want to have a way to create, read, update and delete from an end
 
 Create the file `routes/user.controller.dart`.
 
-**The dot notation isn't required, feel free to follow your own naming conventions.**
+** Note: the file name MUST end in `.controller.dart`**
 
-```dart title="routes/user.controller.dart"
+```ts title="routes/user.controller.dart"
 @Controller('user')
 class UserController {
   const UserController();
@@ -58,7 +58,7 @@ We'll use Revali's dependency injector to provide the actual instance, so all we
 
 Update your controller as follows (triple dots refer to the code that already exists):
 
-```dart
+```ts
 class UserController {
   const UserController({
     required this.userRepository,
@@ -72,7 +72,7 @@ class UserController {
 
 Back inside of your class annotated with `@App`, we'll want to tell Revali how to resolve this requirement by registering a class to use.
 
-```dart
+```ts
   @override
   Future<void> configureDependencies(DI di) async {
     di
