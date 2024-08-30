@@ -12,7 +12,9 @@ Let's create the basic functionality for a CRUD app.
 
 With CRUD, you want to have a way to create, read, update and delete from an endpoint. How would you do this in Revali?
 
-Create the file `routes/user.controller.dart` <== The dot notation isn't required, feel free to follow your own naming conventions.
+Create the file `routes/user.controller.dart`.
+
+**The dot notation isn't required, feel free to follow your own naming conventions.**
 
 ```dart title="routes/user.controller.dart"
 @Controller('user')
