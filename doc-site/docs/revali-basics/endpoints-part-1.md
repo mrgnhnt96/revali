@@ -2,7 +2,7 @@
 sidebar_position: 2
 ---
 
-# Simple Endpoints
+# Endpoints: Part 1
 
 Now that you've created your app, you're ready to create endpoints. In Revali, endpoints are created in classes annotated with `@Controller`. These controller annotations require a path segment and will either be the endpoint itself, or a prefix — depending on your method annotations.
 
@@ -16,7 +16,7 @@ Create the file `routes/user.controller.dart`.
 
 ** Note: the file name MUST end in `.controller.dart`**
 
-```ts title="routes/user.controller.dart"
+```dart title="routes/user.controller.dart"
 @Controller('user')
 class UserController {
   const UserController();
@@ -48,7 +48,7 @@ You would use the same endpoint for each one of these requests and only change t
 
 ## Dependencies
 
-This endpoint wouldn't be very useful at this point since nothing is happening in any of the methods. Let's fix that by importing a class to do some work for us.
+This endpoint wouldn't be very useful at this point, since nothing is happening in any of the methods. Let's fix that by importing a class to do some work for us.
 
 ### Create Your Delegate
 
@@ -58,7 +58,7 @@ We'll use Revali's dependency injector to provide the actual instance, so all we
 
 Update your controller as follows (triple dots refer to the code that already exists):
 
-```ts
+```dart
 class UserController {
   const UserController({
     required this.userRepository,
@@ -72,7 +72,7 @@ class UserController {
 
 Back inside of your class annotated with `@App`, we'll want to tell Revali how to resolve this requirement by registering a class to use.
 
-```ts
+```dart
   @override
   Future<void> configureDependencies(DI di) async {
     di
@@ -83,3 +83,5 @@ Back inside of your class annotated with `@App`, we'll want to tell Revali how t
 You should now have access to your class instance inside of your controller! Use `register` when you only want the class to be created when it's first referenced (lazily), and use `registerInstance` when you want your class to be eagerly created.
 
 **Revali's DI also supports injections of implemented classes by providing the base class when registering. Ex. `register<UserRepository>(UserRepositoryImpl.new)`**
+
+Now that we have access to our classes, let's see what other values we have access to through Revali.

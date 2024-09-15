@@ -123,7 +123,6 @@ void _removeContentRelated(MutableHeaders headers) {
     ..remove(HttpHeaders.transferEncodingHeader)
     ..remove(HttpHeaders.contentRangeHeader)
     ..remove(HttpHeaders.acceptRangesHeader)
-    ..remove(HttpHeaders.contentDisposition)
     ..remove(HttpHeaders.contentLanguageHeader)
     ..remove(HttpHeaders.contentLocationHeader)
     ..remove(HttpHeaders.contentMD5Header);

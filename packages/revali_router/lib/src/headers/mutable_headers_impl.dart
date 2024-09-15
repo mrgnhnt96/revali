@@ -210,16 +210,7 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
   }
 
   @override
-  set filename(String? value) {
-    if (value == null) {
-      remove(HttpHeaders.contentDisposition);
-    } else {
-      set(
-        HttpHeaders.contentDisposition,
-        'attachment; filename="${Uri.encodeComponent(value)}"',
-      );
-    }
-  }
+  set filename(String? value) {}
 
   @override
   set acceptRanges(String? value) {
