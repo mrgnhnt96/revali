@@ -87,6 +87,12 @@ abstract class CommonHeadersMixin extends ReadOnlyHeaders {
 
   @override
   String? get filename {
+    if (get(HttpHeaders.contentDisposition) case final value?) {
+      if (RegExp('filename="([^"]+)"').firstMatch(value) case final match?) {
+        return match.group(1);
+      }
+    }
+
     if (contentType?.parameters['filename'] case final value?) {
       return value;
     }
