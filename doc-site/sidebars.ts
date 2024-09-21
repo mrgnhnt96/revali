@@ -33,8 +33,13 @@ const sidebars: SidebarsConfig = {
                 },
                 {
                     type: 'doc',
-                    id: 'getting-started/setup-your-app',
-                    label: 'Setup Your App',
+                    id: 'getting-started/create-your-first-endpoint',
+                    label: 'Create Your First Endpoint',
+                },
+                {
+                    type: 'doc',
+                    id: 'getting-started/run-the-server',
+                    label: 'Run the Server',
                 },
             ],
         },

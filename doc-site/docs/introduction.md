@@ -9,14 +9,6 @@ slug: /
 
 Revali is a powerful code generator specifically designed for the Dart programming language. It leverages annotations within your classes, methods, and method parameters to create an API, allowing developers to focus on writing clean, maintainable code while it handles the boilerplate.
 
-## Purpose of Revali
+## How does it work?
 
-The primary objective of Revali is to streamline the development process for Dart applications by automating the creation of APIs. This allows developers to concentrate on business logic without worrying about repetitive tasks such as routing, dependency injection, and WebSocket handling.
-
-### Key Components
-
--   **Revali Router (`revali_router`)**: Holds the Router class and the annotations used during compilation.
--   **Revali (`revali`)**: Provides abstract functionalities needed for code generation.
--   **Revali Server (`revali_server`)**: Produces the actual server code during the generation process.
-
-This comprehensive approach ensures that developers can build robust and scalable applications efficiently.
+Revali analyzes your Dart classes, methods, and annotations to generate code provided by "constructs". These constructs are stand alone dart packages that are imported into your project, picked up by Revali, and used to generate code. This allows you to easily extend Revali's capabilities by creating your own constructs or using constructs created by the community.
