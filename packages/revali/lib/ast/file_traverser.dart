@@ -13,7 +13,7 @@ class FileTraverser {
   final FileSystem fs;
 
   Stream<MetaAppConfig> parseApps(File file) async* {
-    if (!path.basename(file.path).endsWith('.app.dart')) {
+    if (!path.basename(file.path).contains(RegExp(r'[._]app\.dart$'))) {
       return;
     }
 
@@ -65,7 +65,7 @@ class FileTraverser {
   }
 
   Future<MetaRoute?> parseRoute(File file) async {
-    if (!path.basename(file.path).endsWith('.controller.dart')) {
+    if (!path.basename(file.path).contains(RegExp(r'[._]controller\.dart$'))) {
       return null;
     }
 
