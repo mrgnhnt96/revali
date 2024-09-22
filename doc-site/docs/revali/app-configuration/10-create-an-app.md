@@ -36,7 +36,7 @@ class MyApp extends AppConfig {}
 Typically, the `revali_annotations` package is imported with the server construct you're using
 :::
 
-The `AppConfig` class has a constructor that requires 2 parameters: `host` and `port`.
+The `AppConfig`'s constructor requires 2 parameters: `host` and `port`.
 
 ```dart
 // my_app.dart
