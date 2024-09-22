@@ -1,4 +1,4 @@
-import 'package:revali_router/revali_router.dart';
+import 'package:revali_annotations/revali_annotations.dart';
 
 @Controller('hello')
 class HelloController {

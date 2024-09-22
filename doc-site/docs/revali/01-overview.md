@@ -1,5 +1,4 @@
 ---
-sidebar_position: 1
 slug: /
 ---
 
@@ -12,3 +11,7 @@ Revali is a powerful code generator specifically designed for the Dart programmi
 ## How does it work?
 
 Revali analyzes your Dart classes, methods, and annotations to generate code provided by "constructs". These constructs are stand alone dart packages that are imported into your project, picked up by Revali, and used to generate code. This allows you to easily extend Revali's capabilities by creating your own constructs or using constructs created by the community.
+
+:::tip
+Read more about [constructs](/constructs).
+:::
