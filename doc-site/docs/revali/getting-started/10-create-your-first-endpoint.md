@@ -15,9 +15,9 @@ To create a new controller, create a Dart file in your project's `routes` direct
 ```
 
 ::::important
-The controller's file name must end in either `_controller.dart` or `.controller.dart`.
+The controller file name must end in either `_controller.dart` or `.controller.dart`.
 :::note
-The controller's file needs to be within the `routes` directory, but can be nested within subdirectories.
+The controller file needs to be within the `routes` directory, but can be nested within subdirectories.
 :::
 ::::
 
