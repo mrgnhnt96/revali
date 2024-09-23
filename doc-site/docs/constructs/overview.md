@@ -29,17 +29,17 @@ There are a few types of constructs with dedicated purposes: [Server Constructs]
 
 A "Server Construct" is a construct that generates the code for the `.revali/server` directory. The server is the core of your Revali application and is responsible for handling incoming HTTP requests and returning responses.
 
-:::tip
-Check out Revali's default Server Construct ([`revali_server`](/constructs/revali_server)).
-:::
-
 :::important
 You can only have **one** server construct in your project.
 :::
 
+:::tip
+Check out Revali's default Server Construct ([`revali_server`](/constructs/revali_server)).
+:::
+
 ### Build Constructs
 
-A "Build Construct" is a construct that generates the code for the `.revali/build` directory. These constructs are run during the `revali build` command and are responsible for generating code, assets, or any other files that are needed for deployment.
+A "Build Construct" is a construct that generates the code for the `.revali/build` directory. These constructs are run during the `build` command and are responsible for generating code, assets, or any other files that are needed for deployment.
 
 :::info
 You are not limited to the number of build constructs you can have in your project.
@@ -47,4 +47,8 @@ You are not limited to the number of build constructs you can have in your proje
 
 :::caution
 While you can have multiple build constructs, be careful that they do not conflict with each other's outputs.
+:::
+
+:::tip
+Check out the [Build Command](/revali/cli/build) for more information.
 :::
