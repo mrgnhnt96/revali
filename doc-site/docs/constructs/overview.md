@@ -1,5 +1,6 @@
 ---
 title: Overview
+slug: /constructs
 ---
 
 # Constructs
@@ -13,7 +14,7 @@ A construct is a Dart package that provides code generation capabilities to Reva
 A "Server Construct" is a construct that generates the code for the `.revali/server` directory. The server is the core of your Revali application and is responsible for handling incoming HTTP requests and returning responses.
 
 :::tip
-Check out Revali's default server ([`revali_server`](/constructs/revali_server)).
+Check out Revali's default Server Construct ([`revali_server`](/constructs/revali_server)).
 :::
 
 :::important
@@ -29,5 +30,5 @@ You are not limited to the number of build constructs you can have in your proje
 :::
 
 :::caution
-While you can have multiple build constructs, you'll need to ensure they do not conflict with each other.
+While you can have multiple build constructs, be careful that they do not conflict with each other's outputs.
 :::
