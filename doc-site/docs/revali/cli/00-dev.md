@@ -18,9 +18,25 @@ To configure the port and the API path, check out [App Configuration](/revali/ap
 revali dev --help
 ```
 
-### Run Modes
+## Run Modes
 
-You can develop your application in either `Release` or `Debug` mode. By default, the application will run in `Debug` mode. To run the application in `Release` mode, use the `--release` flag.
+You can develop your application in either `Release` or `Debug` mode. By default, the application will run in `Debug` mode.
+
+### Debug Mode
+
+In `Debug` mode, a Dart VM service will be started for your application. This allows you to connect to your application using the Dart DevTools or other debugging tools.
+
+To run the application in `Debug` mode, use the `--debug` flag.
+
+```bash
+revali dev --debug
+```
+
+### Release Mode
+
+In `Release` mode, the Dart VM service will not be started. In this mode constructs can generate code that is optimized for performance.
+
+To run the application in `Release` mode, use the `--release` flag.
 
 ```bash
 revali dev --release
@@ -28,10 +44,9 @@ revali dev --release
 
 Constructs can generate code that is optimized for performance in `Release` mode.
 
-:::tip
+::::tip
 Use debug mode during development.
-:::
-
 :::info
 This is the default mode for `revali build`.
 :::
+::::
