@@ -14,19 +14,18 @@ To create a new controller, create a Dart file in your project's `routes` direct
     └── hello_controller.dart
 ```
 
-:::important
+::::important
 The controller's file name must end in either `_controller.dart` or `.controller.dart`.
-:::
-
 :::note
 The controller's file needs to be within the `routes` directory, but can be nested within subdirectories.
 :::
+::::
 
 ### Define the Controller
 
 The controller file should contain a class annotated with the `Controller` annotation from the `revali_annotations` package.
 
-```dart title="hello_controller.dart"
+```dart title="routes/hello_controller.dart"
 import 'package:revali_annotations/revali_annotations.dart';
 
 @Controller('hello')
@@ -43,7 +42,7 @@ Typically, the `revali_annotations` package is imported with the server construc
 
 Endpoints are methods within a controller that define the logic for a specific route. To create a new endpoint, add a new method to your controller class.
 
-```dart title="hello_controller.dart"
+```dart title="routes/hello_controller.dart"
 import 'package:revali_annotations/revali_annotations.dart';
 
 @Controller('hello')
@@ -61,7 +60,7 @@ class HelloController {
 
 To expose this method as an endpoint, annotate it with a `Method` annotation. There are some out-of-the-box methods that you can use to define the HTTP method for the endpoint. For example, to define a `GET` endpoint, use the `Get` annotation:
 
-```dart title="hello_controller.dart"
+```dart title="routes/hello_controller.dart"
 import 'package:revali_annotations/revali_annotations.dart';
 
 @Controller('hello')

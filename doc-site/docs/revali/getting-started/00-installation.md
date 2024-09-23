@@ -4,7 +4,7 @@
 
 First, you will need to add `revali` to your project's dev dependencies. Open your `pubspec.yaml` and include the following line in the `dev_dependencies` section:
 
-```yaml
+```yaml title="pubspec.yaml"
 dev_dependencies:
     revali: <latest version>
 ```
@@ -23,7 +23,7 @@ There are a few constructs that are commonly used with Revali:
 
 To install the constructs, add them to your `dev_dependencies` in your `pubspec.yaml`:
 
-```yaml
+```yaml title="pubspec.yaml"
 dev_dependencies:
     revali_server: <latest version>
 ```

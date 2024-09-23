@@ -24,7 +24,7 @@ The app's file needs to be within the `routes` directory, but can be nested with
 
 The app file should contain a class that extends `AppConfig` and annotated with the `App` annotation from the `revali_annotations` package.
 
-```dart title="my_app.dart"
+```dart title="routes/my_app.dart"
 import 'package:revali_annotations/revali_annotations.dart';
 
 @App()
@@ -37,7 +37,7 @@ Typically, the `revali_annotations` package is imported with the server construc
 
 The `AppConfig`'s constructor requires 2 parameters: `host` and `port`.
 
-```dart title="my_app.dart"
+```dart title="routes/my_app.dart"
 import 'package:revali_annotations/revali_annotations.dart';
 
 @App()
