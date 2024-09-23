@@ -1,7 +1,7 @@
 barrel: barreler build
 
 docs:
-  local: cd doc-site && pnpm start
+    local: cd doc-site && pnpm start
 
 build_runner:
     (aliases): br
@@ -23,3 +23,5 @@ build_runner:
         revali_router:
             (aliases): router
             (command): cd packages/revali_router && {$build_runner:watch}
+
+spell_check: cspell "./doc-site/docs/**/*" --config ".github/cspell/cspell.json"
