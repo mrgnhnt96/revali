@@ -15,7 +15,3 @@ The default configuration uses the following values:
 -   `hostname`: `localhost`
 -   `port`: `8080`
 -   `prefix`: `/api`
-
-:::important
-The app file name must end in either `_app.dart` or `.app.dart`.
-:::
