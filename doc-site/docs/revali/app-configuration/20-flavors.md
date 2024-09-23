@@ -7,6 +7,7 @@ Some applications may have different configurations for different environments. 
 To create a flavor, you can pass the name of the flavor to the `App` annotation:
 
 ```dart
+// highlight-next-line
 @App(flavor: 'development')
 class DevApp extends AppConfig {
     ...

@@ -9,8 +9,7 @@ Your server will eventually need to interact with the outside world. This could 
 The easiest way to set environment variables is to create a `.env` file in the root of your project. This file should contain the environment variables you want to set, in the format `KEY=VALUE`. For example:
 
 ```env
-PORT=8080
-DATABASE_URL=postgres://localhost:5432/mydb
+LOZ_OOT=1998
 ```
 
 :::danger
@@ -34,7 +33,7 @@ revali build --dart-define-from-file=.env
 You can also set environment variables directly from the command line:
 
 ```shell
-revali dev --dart-define=PORT=8080 --dart-define=DATABASE_URL=postgres://localhost:5432/mydb
+revali dev --dart-define=LOZ_OOT=1998
 
-revali build --dart-define=PORT=8080 --dart-define=DATABASE_URL=postgres://localhost:5432/mydb
+revali build --dart-define=LOZ_OOT=1998
 ```

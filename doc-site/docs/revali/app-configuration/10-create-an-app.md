@@ -13,7 +13,7 @@ To create a new app, create a Dart file within your project's `routes` directory
 ```
 
 :::important
-The app's file name can end in either `_app.dart` or `.app.dart`.
+The app's file name must end in either `_app.dart` or `.app.dart`.
 :::
 
 :::note
@@ -24,8 +24,7 @@ The app's file needs to be within the `routes` directory, but can be nested with
 
 The app file should contain a class that extends `AppConfig` and annotated with the `App` annotation from the `revali_annotations` package.
 
-```dart
-// my_app.dart
+```dart title="routes/my_app.dart"
 import 'package:revali_annotations/revali_annotations.dart';
 
 @App()
@@ -36,14 +35,14 @@ class MyApp extends AppConfig {}
 Typically, the `revali_annotations` package is imported with the server construct you're using
 :::
 
-The `AppConfig` class has a constructor that requires 2 parameters: `host` and `port`.
+The `AppConfig`'s constructor requires 2 parameters: `host` and `port`.
 
-```dart
-// my_app.dart
+```dart title="routes/my_app.dart"
 import 'package:revali_annotations/revali_annotations.dart';
 
 @App()
 class MyApp extends AppConfig {
+    // highlight-next-line
    const MyApp() : super(host: 'localhost', port: 8080);
 }
 ```
