@@ -28,4 +28,6 @@ dev_dependencies:
     revali_server: <latest version>
 ```
 
-<sup>Note: Replace `<latest version>` with the actual latest version found on [pub.dev](https://pub.dev/packages/revali_server).</sup>
+:::tip
+Replace `<latest version>` with the actual latest version found on [pub.dev](https://pub.dev/packages/revali_server).
+:::
