@@ -9,7 +9,23 @@ slug: /constructs
 
 A construct is a Dart package that provides code generation capabilities to Revali. Constructs are standalone packages that are imported into your project, picked up by Revali, and used to generate code. This allows you to easily extend Revali's capabilities by creating your own constructs or using constructs created by the community.
 
-## Server Constructs
+Generally, constructs are used when the `dev` command is run. Generating new code, assets, or files based on the apps & routes you've defined. Each construct will generate their content within their own directory.
+
+```tree
+.revali
+└── <construct-name>
+    └── ...
+```
+
+:::tip
+Check out the `dev` command in the [CLI Commands](/revali/cli/dev).
+:::
+
+## Types of Constructs
+
+There are a few types of constructs with dedicated purposes: [Server Constructs](#server-constructs) and [Build Constructs](#build-constructs).
+
+### Server Constructs
 
 A "Server Construct" is a construct that generates the code for the `.revali/server` directory. The server is the core of your Revali application and is responsible for handling incoming HTTP requests and returning responses.
 
@@ -21,7 +37,7 @@ Check out Revali's default Server Construct ([`revali_server`](/constructs/reval
 You can only have **one** server construct in your project.
 :::
 
-## Build Constructs
+### Build Constructs
 
 A "Build Construct" is a construct that generates the code for the `.revali/build` directory. These constructs are run during the `revali build` command and are responsible for generating code, assets, or any other files that are needed for deployment.
 
