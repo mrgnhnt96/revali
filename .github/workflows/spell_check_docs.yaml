@@ -1,0 +1,20 @@
+name: Spell Check Docs
+
+on:
+    push:
+        paths:
+            - 'doc-site/**'
+    pull_request:
+        paths:
+            - 'doc-site/**'
+
+jobs:
+    spell_check:
+        uses: VeryGoodOpenSource/very_good_workflows/.github/workflows/spell_check.yml@v1
+        with:
+            config: '.github/cspell/cspell.json'
+            includes: |
+                docs/**
+            runs_on: macos-latest
+            modified_files_only: false
+            working_directory: doc-site
