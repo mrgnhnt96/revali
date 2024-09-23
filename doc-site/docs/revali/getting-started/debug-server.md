@@ -11,6 +11,7 @@ Meaning you can set breakpoints, inspect variables, and step through your code!
 1. Open the command palette (`Ctrl+Shift+P` or `Cmd+Shift+P`).
 2. Search for `Dart: Attach to Process`.
 3. Copy the URL provided in the terminal.
+
     - The terminal will contain a line
 
         ```console
@@ -18,8 +19,9 @@ Meaning you can set breakpoints, inspect variables, and step through your code!
         ```
 
     - The URL in this case is: `http://127.0.0.1:8080/ykhykCh6zyY=/`
+
 4. Paste the URL in the input box and press `Enter`.
 
 :::info
-If you're running a flutter application or your server is not located in the root of your project, VS Code may try to connect to the wrong process automatically. In this case, open a the root of your server directory in a new VS Code window and try again.
+If you're running a Flutter application or your server is not located in the root of your project, VS Code may try to connect to the wrong process automatically. In this case, open the root of your server directory in a new VS Code window and try again.
 :::
