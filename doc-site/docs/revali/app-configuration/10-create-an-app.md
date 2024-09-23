@@ -12,13 +12,12 @@ To create a new app, create a Dart file within your project's `routes` directory
     └── my_app.dart
 ```
 
-:::important
-The app's file name must end in either `_app.dart` or `.app.dart`.
-:::
-
+::::important
+The app file name must end in either `_app.dart` or `.app.dart`.
 :::note
-The app's file needs to be within the `routes` directory, but can be nested within subdirectories.
+The app file needs to be within the `routes` directory, but can be nested within subdirectories.
 :::
+::::
 
 ### Define the App
 
