@@ -13,7 +13,7 @@ class MyApp extends AppConfig {
 
   // highlight-start
   Future<void> configureDependencies(DI di) async {
-    register(MyService.new);
+    di.register(MyService.new);
   }
   // highlight-end
 }
@@ -27,7 +27,7 @@ If you need to register a dependency as an abstraction, you can provide a type p
   ...
 
   Future<void> configureDependencies(DI di) async {
-    register<MyService>(MyServiceImpl.new);
+    di.register<MyService>(MyServiceImpl.new);
   }
 ```
 
