@@ -2,7 +2,7 @@
 
 ## Create a New Controller
 
-Controllers are the entry point for your Revali application. They define the endpoints that your application will expose.
+Controllers are to define the endpoints that your application will expose.
 
 To create a new controller, create a Dart file in your project's `routes` directory. We'll create one called `hello_controller.dart`:
 
