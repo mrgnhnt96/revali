@@ -24,11 +24,15 @@ class MyApp extends AppConfig {
 If you need to register a dependency as an abstraction, you can provide a type parameter to the `register` method.
 
 ```dart title="routes/my_app.dart"
+@App()
+class MyApp extends AppConfig {
   ...
-
+  
   Future<void> configureDependencies(DI di) async {
+    // highlight-next-line
     di.register<MyService>(MyServiceImpl.new);
   }
+}
 ```
 
 ## The DI Object
