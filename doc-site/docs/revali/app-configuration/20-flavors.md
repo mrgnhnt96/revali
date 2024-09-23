@@ -6,7 +6,11 @@ Some applications may have different configurations for different environments. 
 
 To create a flavor, you can pass the name of the flavor to the `App` annotation:
 
-```dart
+:::caution
+Flavors are case-sensitive.
+:::
+
+```dart title="routes/dev_app.dart"
 // highlight-next-line
 @App(flavor: 'development')
 class DevApp extends AppConfig {
@@ -14,16 +18,22 @@ class DevApp extends AppConfig {
 }
 ```
 
-## Using Flavors
-
-To use a flavor, you can pass the name of the flavor to the `revali` command:
-
-```shell
-revali dev --flavor=development
+```dart title="routes/prod_app.dart"
+// highlight-next-line
+@App(flavor: 'production')
+class ProdApp extends AppConfig {
+    ...
+}
 ```
 
-This will use the configuration for the `development` flavor.
+## Using Flavors
 
-:::caution
-Flavors are case-sensitive.
-:::
+To use a flavor, you can pass the name of the flavor to the `revali dev` command:
+
+```bash
+revali dev --flavor=development # Uses the DevApp configuration
+```
+
+```bash
+revali dev --flavor=production # Uses the ProdApp configuration
+```
