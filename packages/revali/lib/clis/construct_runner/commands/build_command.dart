@@ -103,10 +103,10 @@ class BuildCommand extends Command<int>
 
     final progress = logger.progress('Building');
 
-    final success = await generator.generate(progress.update);
-
-    if (!success) {
+    if (await generator.generate(progress.update) case final server
+        when server == null) {
       progress.fail('Build failed');
+      logger.flush();
       return 1;
     }
 
