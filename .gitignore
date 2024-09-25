@@ -57,3 +57,4 @@ executables/build
 executables/debug
 packages/cli/libisar.dylib
 .test_optimizer.dart
+.revali
