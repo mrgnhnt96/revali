@@ -61,7 +61,7 @@ class ConstructEntrypointHandler with DirectoriesMixin {
       if (await kernel.exists()) {
         logger
           ..detail('Skipping entrypoint generation, using existing kernel')
-          ..success('Construct entrypoint is up to date');
+          ..success('Constructs entrypoint is up to date');
         return;
       }
     }
@@ -71,17 +71,17 @@ class ConstructEntrypointHandler with DirectoriesMixin {
     }
 
     final entrypointProgress =
-        logger.progress('Generating construct entrypoint');
+        logger.progress('Generating constructs entrypoint');
 
     await createEntrypoint(
       root,
       constructs: constructs,
     );
-    entrypointProgress.complete('Generated construct entrypoint');
+    entrypointProgress.complete('Generated constructs entrypoint');
 
-    final compileProgress = logger.progress('Compiling construct entrypoint');
+    final compileProgress = logger.progress('Compiling constructs entrypoint');
     await compile(root: root);
-    compileProgress.complete('Compiled construct entrypoint');
+    compileProgress.complete('Compiled constructs entrypoint');
   }
 
   Future<bool> checkAssets(
