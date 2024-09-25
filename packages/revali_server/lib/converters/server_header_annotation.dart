@@ -10,6 +10,7 @@ class ServerHeaderAnnotation with ExtractImport {
     required this.name,
     required this.pipe,
     required this.acceptsNull,
+    required this.all,
   });
 
   factory ServerHeaderAnnotation.fromElement(
@@ -30,6 +31,7 @@ class ServerHeaderAnnotation with ExtractImport {
     return ServerHeaderAnnotation(
       name: name,
       pipe: pipe != null ? ServerPipe.fromType(pipe) : null,
+      all: object.getField('all')?.toBoolValue() ?? false,
       acceptsNull: firstTypeArg == null
           ? null
           : firstTypeArg.nullabilitySuffix == NullabilitySuffix.question,
@@ -39,6 +41,7 @@ class ServerHeaderAnnotation with ExtractImport {
   final String? name;
   final ServerPipe? pipe;
   final bool? acceptsNull;
+  final bool all;
 
   @override
   List<ExtractImport?> get extractors => [pipe];
