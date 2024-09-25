@@ -3,7 +3,7 @@ import 'package:revali_annotations/revali_annotations.dart';
 import 'package:revali_construct/models/method_annotation.dart';
 import 'package:revali_construct/utils/get_field_value_from_dart_object.dart';
 
-class WebSocketAnnotation extends MethodAnnotation {
+final class WebSocketAnnotation extends MethodAnnotation {
   const WebSocketAnnotation(
     super.name, {
     required this.mode,

@@ -4,10 +4,10 @@ import 'package:revali_annotations/revali_annotations.dart';
 import 'package:revali_construct/models/web_socket_annotation.dart';
 import 'package:revali_construct/utils/get_field_value_from_dart_object.dart';
 
-class MethodAnnotation extends Equatable implements Method {
+base class MethodAnnotation extends Method with EquatableMixin {
   const MethodAnnotation(
-    this.name, {
-    required this.path,
+    super.name, {
+    required super.path,
   });
 
   factory MethodAnnotation.fromAnnotation(DartObject annotation) {
@@ -36,12 +36,6 @@ class MethodAnnotation extends Equatable implements Method {
       path: path,
     );
   }
-
-  @override
-  final String name;
-
-  @override
-  final String? path;
 
   bool get isWebSocket => this is WebSocketAnnotation;
   WebSocketAnnotation get asWebSocket => this as WebSocketAnnotation;
