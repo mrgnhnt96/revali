@@ -294,6 +294,12 @@ void main() {
           handler: (_) async {},
         );
 
+        final productId = Route(
+          ':productId',
+          method: 'GET',
+          handler: (context) async {},
+        );
+
         final router = Router(
           routes: [
             Route(
@@ -319,18 +325,34 @@ void main() {
                 ),
               ],
             ),
+            Route(
+              'shop/:shopId',
+              routes: [
+                productId,
+              ],
+            ),
           ],
         );
 
-        final result = Find(
+        final user = Find(
           segments: ['user', '123', 'boom', 'bob'],
           routes: router.routes,
           method: 'GET',
         ).run();
 
-        expect(result, isNotNull);
-        expect(result!.route, name);
-        expect(result.pathParameters, {'id': '123', 'name': 'bob'});
+        expect(user, isNotNull);
+        expect(user?.route, name);
+        expect(user?.pathParameters, {'id': '123', 'name': 'bob'});
+
+        final shop = Find(
+          segments: ['shop', '123', '456'],
+          routes: router.routes,
+          method: 'GET',
+        ).run();
+
+        expect(shop, isNotNull);
+        expect(shop?.route, productId);
+        expect(shop?.pathParameters, {'shopId': '123', 'productId': '456'});
       });
 
       test('should return nothing when root is not handled', () {

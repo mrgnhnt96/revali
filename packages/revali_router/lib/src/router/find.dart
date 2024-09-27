@@ -50,6 +50,7 @@ class Find {
         }
 
         final possibleSameSegments = pathSegments.take(route.segments.length);
+        final hasMoreSegments = pathSegments.length > route.segments.length;
 
         if (route.isDynamic) {
           final segments = [
@@ -60,8 +61,14 @@ class Find {
 
           final pattern = RegExp('^${segments.join(r'\/')}\$');
 
-          if (pattern.hasMatch(possibleSameSegments.join('/')) &&
-              route.method == method) {
+          final methodsMatch = route.method == method;
+          final almostMatches =
+              (route.method == null || route.method != method) &&
+                  hasMoreSegments;
+          final patternMatches =
+              pattern.hasMatch(possibleSameSegments.join('/'));
+
+          if (patternMatches && (methodsMatch || almostMatches)) {
             for (var i = 0; i < route.segments.length; i++) {
               final segment = route.segments[i];
               if (segment.startsWith(':')) {

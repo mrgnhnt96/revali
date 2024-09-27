@@ -1,0 +1,19 @@
+{
+    "version": "0.2",
+    "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
+    "dictionaries": ["allowed", "forbidden"],
+    "dictionaryDefinitions": [
+        {
+            "name": "allowed",
+            "path": "./allowed_words.txt",
+            "description": "Allowed Spellings"
+        },
+        {
+            "name": "forbidden",
+            "path": "./forbidden_words.txt",
+            "description": "Forbidden Spellings"
+        }
+    ],
+    "useGitignore": true,
+    "words": ["endtemplate"]
+}

@@ -4,6 +4,8 @@ import 'package:revali/revali.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:yaml/yaml.dart';
 
+typedef Log = void Function(String)?;
+
 class ConstructGenerator with DirectoriesMixin {
   ConstructGenerator({
     required this.mode,
@@ -107,30 +109,21 @@ class ConstructGenerator with DirectoriesMixin {
     }
   }
 
-  MetaServer? __server;
-  Future<MetaServer> get server async {
-    if (__server case final server?) {
-      return server;
-    }
-
-    return __server = await routesHandler.parse();
-  }
-
-  Future<bool> generate([void Function(String)? loggerUpdate]) async {
+  Future<MetaServer?> generate([Log progress]) async {
     try {
-      await _generate(loggerUpdate);
-
-      return true;
+      return _generate(progress);
     } catch (e) {
       logger
         ..delayed(red.wrap('Error occurred while generating constructs'))
-        ..delayed(red.wrap('$e'));
+        ..delayed(red.wrap('Error: $e'));
     }
 
-    return false;
+    return null;
   }
 
-  Future<void> _generate(void Function(String)? loggerUpdate) async {
+  Future<MetaServer?> _generate(Log progress) async {
+    final server = await routesHandler.parse();
+
     final buildMakers = <ConstructMaker>[];
 
     if (generateConstructType.isBuild) {
@@ -142,18 +135,18 @@ class ConstructGenerator with DirectoriesMixin {
     }
 
     if (generateConstructType.isBuild) {
-      loggerUpdate?.call('Running pre-build hooks');
+      progress?.call('Running pre-build hooks');
     }
 
     for (final maker in buildMakers) {
       final construct = await constructFromMaker<BuildConstruct>(maker);
       if (construct == null) continue;
 
-      await construct.preBuild(buildContext, await server);
+      await construct.preBuild(buildContext, server);
     }
 
     if (generateConstructType.isConstructs) {
-      loggerUpdate?.call('Generating constructs');
+      progress?.call('Generating constructs');
 
       for (final maker in makers) {
         if (maker.isBuild && generateConstructType.isNotBuild) {
@@ -164,26 +157,34 @@ class ConstructGenerator with DirectoriesMixin {
 
           continue;
         }
-        await _generateConstruct(maker);
+        if (await _generateConstruct(maker, server) case final success
+            when !success) {
+          return null;
+        }
       }
     } else {
-      loggerUpdate?.call('Generating build constructs');
+      progress?.call('Generating build constructs');
 
       for (final maker in buildMakers) {
-        await _generateConstruct(maker);
+        if (await _generateConstruct(maker, server) case final success
+            when !success) {
+          return null;
+        }
       }
     }
 
     if (generateConstructType.isBuild) {
-      loggerUpdate?.call('Running post-build hooks');
+      progress?.call('Running post-build hooks');
     }
 
     for (final maker in buildMakers) {
       final construct = await constructFromMaker<BuildConstruct>(maker);
       if (construct == null) continue;
 
-      await construct.postBuild(buildContext, await server);
+      await construct.postBuild(buildContext, server);
     }
+
+    return server;
   }
 
   Future<T?> constructFromMaker<T extends Construct>(
@@ -216,50 +217,88 @@ class ConstructGenerator with DirectoriesMixin {
     return result;
   }
 
-  Future<void> _generateConstruct(ConstructMaker maker) async {
+  Future<bool> _generateConstruct(
+    ConstructMaker maker,
+    MetaServer server,
+  ) async {
     if (maker.isServer) {
       final construct = await constructFromMaker<ServerConstruct>(maker);
       if (construct == null) {
         throw Exception('Server construct cannot be null');
       }
 
-      await _generateServerConstruct(construct);
+      if (await _generateServerConstruct(construct, server) case final success
+          when !success) {
+        return false;
+      }
     } else if (maker.isBuild) {
       final construct = await constructFromMaker<BuildConstruct>(maker);
-      if (construct == null) return;
+      if (construct == null) return false;
 
-      await _generateBuildConstruct(construct);
+      if (await _generateBuildConstruct(construct, server) case final success
+          when !success) {
+        return false;
+      }
     } else {
       final construct = await constructFromMaker<Construct>(maker);
-      if (construct == null) return;
+      if (construct == null) return false;
 
-      await _generateOtherConstruct(construct, maker);
+      if (await _generateOtherConstruct(construct, maker, server)
+          case final success when !success) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  Future<bool> _generateBuildConstruct(
+    BuildConstruct construct,
+    MetaServer server,
+  ) async {
+    try {
+      final constructResult = construct.generate(buildContext, server);
+
+      await _generateDirectory(
+        'build',
+        RevaliDirectory(
+          files: constructResult.files,
+        ),
+      );
+
+      return true;
+    } catch (e) {
+      logger
+        ..err('Failed to generate Build Construct')
+        ..err('Error: $e');
+
+      return false;
     }
   }
 
-  Future<void> _generateBuildConstruct(BuildConstruct construct) async {
-    final constructResult = construct.generate(buildContext, await server);
-
-    await _generateDirectory(
-      'build',
-      RevaliDirectory(
-        files: constructResult.files,
-      ),
-    );
-  }
-
-  Future<void> _generateOtherConstruct(
+  Future<bool> _generateOtherConstruct(
     Construct construct,
     ConstructMaker maker,
+    MetaServer server,
   ) async {
-    final constructResult = construct.generate(context, await server);
+    try {
+      final constructResult = construct.generate(context, server);
 
-    await _generateDirectory(
-      maker.name,
-      RevaliDirectory(
-        files: constructResult.files,
-      ),
-    );
+      await _generateDirectory(
+        maker.name,
+        RevaliDirectory(
+          files: constructResult.files,
+        ),
+      );
+
+      return true;
+    } catch (e) {
+      logger
+        ..err('Failed to generate ${maker.name}')
+        ..err('Error: $e');
+
+      return false;
+    }
   }
 
   Future<void> _generateDirectory(
@@ -307,16 +346,29 @@ class ConstructGenerator with DirectoriesMixin {
     }
   }
 
-  Future<void> _generateServerConstruct(ServerConstruct construct) async {
-    final ServerDirectory(files: [result]) =
-        construct.generate(context, await server);
+  Future<bool> _generateServerConstruct(
+    ServerConstruct construct,
+    MetaServer server,
+  ) async {
+    try {
+      final ServerDirectory(files: [result]) =
+          construct.generate(context, server);
 
-    await _generateDirectory(
-      'server',
-      RevaliDirectory(
-        files: [result, ...result.parts],
-      ),
-    );
+      await _generateDirectory(
+        'server',
+        RevaliDirectory(
+          files: [result, ...result.parts],
+        ),
+      );
+
+      return true;
+    } catch (e) {
+      logger
+        ..err('Failed to generate Server Construct')
+        ..err('Error: $e');
+
+      return false;
+    }
   }
 
   RevaliYaml? __revaliConfig;

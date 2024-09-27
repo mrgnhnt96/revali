@@ -70,7 +70,6 @@ class VMServiceHandler {
 
   String _vmServiceUri = '';
 
-  MetaServer? _server;
   Future<void> _reload([String? path]) async {
     if (_isReloading) {
       logger.detail('Still reloading, skipping');
@@ -82,32 +81,28 @@ class VMServiceHandler {
 
     _progress = logger.progress('Reloading');
 
-    final revali = await root.getRevali();
+    final server = await codeGenerator();
+    if (server == null) {
+      clearConsole();
+      _progress?.fail('Failed to reload');
+      logger.write('\n');
+    } else {
+      _progress?.complete('Reloaded');
+      clearConsole();
+      printVmServiceUri();
+      printParsedRoutes(server.routes);
+    }
 
-    if (path == null || p.isWithin(revali.path, path) || _server == null) {
-      final server = await codeGenerator();
-      if (server == null) {
-        clearConsole();
-        _progress?.fail('Failed to reload');
-        logger
-          ..write('\n')
-          ..flush();
-        await watchForFileChanges();
-        _isReloading = false;
+    logger.flush((message) {
+      if (message == null) return;
+
+      if (!message.contains(RegExp('error|fail', caseSensitive: false))) {
         return;
       }
-      _server = server;
-    }
 
-    final server = _server;
-    if (server == null) {
-      throw Exception('Expected server to be non-null');
-    }
+      logger.err(message);
+    });
 
-    _progress?.complete('Reloaded');
-    clearConsole();
-    printVmServiceUri();
-    printParsedRoutes(server.routes);
     await watchForFileChanges();
     _isReloading = false;
   }
@@ -473,25 +468,22 @@ class VMServiceHandler {
     }
 
     final revali = await root.getServer();
-
-    final server = p.equals(
-      revali.childFile(ServerFile.nameWithExtension).path,
-      event.path,
-    );
-    final pubspec = p.equals(root.childFile('pubspec.yaml').path, event.path);
-
-    if (server || pubspec) {
+    if (p.isWithin(revali.path, event.path)) {
       return (true, event.path);
     }
-    final routesDir = await root.getRoutes();
-    if (routesDir != null) {
-      if (p.isWithin(routesDir.path, event.path)) {
+
+    if (p.equals(root.childFile('pubspec.yaml').path, event.path)) {
+      return (true, event.path);
+    }
+
+    final routes = await root.getRoutes();
+    if (routes != null) {
+      if (p.isWithin(routes.path, event.path)) {
         return (true, event.path);
       }
     }
 
     final public = await root.getPublic();
-
     if (p.isWithin(public.path, event.path)) {
       return (true, event.path);
     }

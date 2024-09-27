@@ -7,19 +7,34 @@ import 'package:revali_server/makers/creators/create_pipe_context.dart';
 
 Expression createArgFromHeader(
   ServerHeaderAnnotation annotation,
-  ServerParam header,
+  ServerParam param,
 ) {
-  final headersRef = refer('context').property('request').property('headers');
+  var headersRef = refer('context').property('request').property('headers');
+
+  if (annotation.all) {
+    headersRef = headersRef.property('getAll');
+  } else {
+    headersRef = headersRef.property('get');
+  }
 
   var headerValue =
-      headersRef.index(literalString(annotation.name ?? header.name));
+      headersRef.call([literalString(annotation.name ?? param.name)]);
+
+  if (annotation.all) {
+    headerValue = switch (param.type) {
+      final type when type.startsWith('Iterable') => headerValue,
+      final type when type.startsWith('Set') =>
+        headerValue.nullSafeProperty('toSet').call([]),
+      _ => headerValue = headerValue.nullSafeProperty('toList').call([])
+    };
+  }
 
   final acceptsNull = annotation.acceptsNull;
   if ((acceptsNull != null && !acceptsNull) ||
-      (!header.isNullable && annotation.pipe == null)) {
+      (!param.isNullable && annotation.pipe == null)) {
     headerValue = headerValue.ifNullThen(
       createMissingArgumentException(
-        key: annotation.name ?? header.name,
+        key: annotation.name ?? param.name,
         location: '@${AnnotationType.header.name}',
       ).thrown.parenthesized,
     );
@@ -30,7 +45,7 @@ Expression createArgFromHeader(
     return createPipeContext(
       pipe,
       annotationArgument: name == null ? literalNull : literalString(name),
-      nameOfParameter: header.name,
+      nameOfParameter: param.name,
       type: AnnotationType.header,
       access: headerValue,
     );

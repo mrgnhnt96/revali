@@ -8,8 +8,8 @@ abstract class ReadOnlyHeaders {
   String? get(String key);
   String? operator [](String value);
   Iterable<String> get keys;
-  List<String>? getAll(String key);
-  void forEach(void Function(String key, List<String> value) f);
+  Iterable<String>? getAll(String key);
+  void forEach(void Function(String key, Iterable<String> value) f);
 
   /// If [ReadOnlyHeaders] doesn't have a Content-Type header or it specifies an
   /// encoding that `dart:convert` doesn't support, this will be `null`.
@@ -47,6 +47,6 @@ abstract class ReadOnlyHeaders {
   (int, int)? get range;
 
   Map<K2, V2> map<K2, V2>(
-    MapEntry<K2, V2> Function(String key, List<String> values) convert,
+    MapEntry<K2, V2> Function(String key, Iterable<String> values) convert,
   );
 }

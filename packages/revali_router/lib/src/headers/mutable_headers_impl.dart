@@ -7,7 +7,7 @@ import 'package:revali_router/src/headers/common_headers_mixin.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
 class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
-  MutableHeadersImpl([Map<String, List<String>>? headers])
+  MutableHeadersImpl([Map<String, Iterable<String>>? headers])
       : _headers = CaseInsensitiveMap.from(headers ?? {});
 
   factory MutableHeadersImpl.from(Object? object) {
@@ -38,7 +38,7 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
     return MutableHeadersImpl(converted);
   }
 
-  final CaseInsensitiveMap<List<String>> _headers;
+  final CaseInsensitiveMap<Iterable<String>> _headers;
 
   @override
   String? operator [](String value) {
@@ -64,13 +64,15 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
   }
 
   @override
-  List<String>? getAll(String key) {
-    return _headers[key];
+  Iterable<String>? getAll(String key) sync* {
+    for (final header in _headers[key] ?? <String>[]) {
+      yield* header.split(',');
+    }
   }
 
   @override
   void add(String key, String value) {
-    (_headers[key] ??= []).add(value);
+    _headers[key] = (_headers[key] ?? []).followedBy([value]);
   }
 
   @override
@@ -100,7 +102,7 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
   }
 
   @override
-  void forEach(void Function(String key, List<String> value) f) {
+  void forEach(void Function(String key, Iterable<String> value) f) {
     for (final MapEntry(:key, :value) in _headers.entries) {
       f(key, value);
     }
@@ -115,7 +117,7 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
 
   @override
   Map<K2, V2> map<K2, V2>(
-    MapEntry<K2, V2> Function(String key, List<String> values) convert,
+    MapEntry<K2, V2> Function(String key, Iterable<String> values) convert,
   ) {
     return _headers.map(convert);
   }

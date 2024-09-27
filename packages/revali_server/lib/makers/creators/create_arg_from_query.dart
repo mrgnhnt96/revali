@@ -19,6 +19,15 @@ Expression createArgFromQuery(
 
   var queryValue = queryVar.index(literalString(annotation.name ?? param.name));
 
+  if (annotation.all) {
+    queryValue = switch (param.type) {
+      final type when type.startsWith('Iterable') => queryValue,
+      final type when type.startsWith('Set') =>
+        queryValue.nullSafeProperty('toSet').call([]),
+      _ => queryValue = queryValue.nullSafeProperty('toList').call([])
+    };
+  }
+
   final acceptsNull = annotation.acceptsNull;
   if ((acceptsNull != null && !acceptsNull) ||
       (!param.isNullable && annotation.pipe == null)) {
