@@ -9,6 +9,7 @@ dependencies:
     analyzer: 6.4.1
     change_case: ^2.1.0
     code_builder: ^4.10.0
+    collection: ^1.19.0
     dart_style: ^2.3.6
     path: ^1.9.0
     revali_annotations:

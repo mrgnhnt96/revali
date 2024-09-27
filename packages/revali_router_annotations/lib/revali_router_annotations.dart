@@ -4,6 +4,7 @@
 //
 // ignore_for_file: directives_ordering
 
+export 'src/bind.dart';
 export 'src/body.dart';
 export 'src/catches.dart';
 export 'src/combines.dart';

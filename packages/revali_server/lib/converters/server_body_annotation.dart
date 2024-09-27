@@ -1,8 +1,11 @@
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:collection/collection.dart';
+import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_pipe.dart';
+import 'package:revali_server/makers/utils/type_extensions.dart';
 import 'package:revali_server/utils/extract_import.dart';
 
 class ServerBodyAnnotation with ExtractImport {
@@ -23,9 +26,11 @@ class ServerBodyAnnotation with ExtractImport {
 
     final pipe = object.getField('pipe')?.toTypeValue();
 
-    final pipeSuper =
-        (pipe?.element as ClassElement?)?.allSupertypes.firstWhere((element) {
-      return element.element.name == 'Pipe';
+    final pipeSuper = (pipe?.element as ClassElement?)
+        ?.allSupertypes
+        .firstWhereOrNull((element) {
+      // ignore: unnecessary_parenthesis
+      return element.element.name == (Pipe).name;
     });
 
     final firstTypeArg = pipeSuper?.typeArguments.first;

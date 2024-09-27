@@ -3,11 +3,13 @@
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_server/converters/server_param.dart';
+import 'package:revali_server/makers/creators/create_arg_from_bind.dart';
 import 'package:revali_server/makers/creators/create_arg_from_body.dart';
 import 'package:revali_server/makers/creators/create_arg_from_custom_param.dart';
 import 'package:revali_server/makers/creators/create_arg_from_header.dart';
 import 'package:revali_server/makers/creators/create_arg_from_param.dart';
 import 'package:revali_server/makers/creators/create_arg_from_query.dart';
+import 'package:revali_server/makers/creators/create_get_from_di.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
 
 final impliedArguments = <String, Expression>{
@@ -43,7 +45,7 @@ Expression createParamArg(
   }
 
   if (annotation.dep) {
-    return refer('di').property('get').call([]);
+    return createGetFromDi();
   }
 
   if (annotation.body case final bodyAnnotation?) {
@@ -64,6 +66,10 @@ Expression createParamArg(
 
   if (annotation.customParam case final customParam?) {
     return createArgFromCustomParam(customParam, param);
+  }
+
+  if (annotation.bind case final bind?) {
+    return createArgFromBind(bind, param);
   }
 
   throw ArgumentError('Unknown annotation for param ${param.name}');

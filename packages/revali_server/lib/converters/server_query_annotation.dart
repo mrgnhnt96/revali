@@ -1,8 +1,11 @@
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:collection/collection.dart';
+import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_pipe.dart';
+import 'package:revali_server/makers/utils/type_extensions.dart';
 import 'package:revali_server/utils/extract_import.dart';
 
 class ServerQueryAnnotation with ExtractImport {
@@ -22,20 +25,26 @@ class ServerQueryAnnotation with ExtractImport {
     final pipe = object.getField('pipe')?.toTypeValue();
     final all = object.getField('all')?.toBoolValue() ?? false;
 
-    final pipeSuper =
-        (pipe?.element as ClassElement?)?.allSupertypes.firstWhere((element) {
-      return element.element.name == 'Pipe';
+    final pipeSuper = (pipe?.element as ClassElement?)
+        ?.allSupertypes
+        .firstWhereOrNull((element) {
+      // ignore: unnecessary_parenthesis
+      return element.element.name == (Pipe).name;
     });
 
     final firstTypeArg = pipeSuper?.typeArguments.first;
 
     return ServerQueryAnnotation(
-      name: name,
-      pipe: pipe != null ? ServerPipe.fromType(pipe) : null,
       all: all,
-      acceptsNull: firstTypeArg == null
-          ? null
-          : firstTypeArg.nullabilitySuffix == NullabilitySuffix.question,
+      name: name,
+      pipe: switch (pipe) {
+        final pipe? => ServerPipe.fromType(pipe),
+        _ => null,
+      },
+      acceptsNull: switch (firstTypeArg?.nullabilitySuffix) {
+        final prefix? => prefix == NullabilitySuffix.question,
+        _ => null,
+      },
     );
   }
 

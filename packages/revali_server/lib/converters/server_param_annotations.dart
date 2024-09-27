@@ -1,6 +1,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
+import 'package:revali_server/converters/server_bind_annotation.dart';
 import 'package:revali_server/converters/server_body_annotation.dart';
 import 'package:revali_server/converters/server_header_annotation.dart';
 import 'package:revali_server/converters/server_imports.dart';
@@ -18,6 +19,7 @@ class ServerParamAnnotations with ExtractImport {
     required this.dep,
     required this.header,
     required this.customParam,
+    required this.bind,
   });
 
   factory ServerParamAnnotations.fromMeta(MetaParam metaParam) {
@@ -43,6 +45,7 @@ class ServerParamAnnotations with ExtractImport {
     ServerParamAnnotation? param;
     ServerHeaderAnnotation? header;
     ServerMimic? customParam;
+    ServerBindAnnotation? bind;
     bool? dep;
 
     getter(
@@ -90,6 +93,13 @@ class ServerParamAnnotations with ExtractImport {
             dep = true;
           },
         ),
+        OnMatch(
+          classType: Bind,
+          package: 'revali_router_annotations',
+          convert: (object, annotation) {
+            bind = ServerBindAnnotation.fromElement(object, annotation);
+          },
+        ),
       ],
     );
 
@@ -101,6 +111,7 @@ class ServerParamAnnotations with ExtractImport {
       param,
       customParam,
       dep,
+      bind,
     ]) {
       if (annotation == null) {
         continue;
@@ -109,7 +120,7 @@ class ServerParamAnnotations with ExtractImport {
       if (isOnlyOne) {
         throw ArgumentError(
           'Only one of the following annotations can be used: '
-          '@Body, @Query, @Param, @CustomParam, @Dep',
+          '@Body, @Query, @Param, @<CustomParam>, @Dep, @Bind',
         );
       }
 
@@ -123,6 +134,7 @@ class ServerParamAnnotations with ExtractImport {
       customParam: customParam,
       header: header,
       dep: dep ?? false,
+      bind: bind,
     );
   }
 
@@ -130,6 +142,7 @@ class ServerParamAnnotations with ExtractImport {
   final ServerQueryAnnotation? query;
   final ServerHeaderAnnotation? header;
   final ServerParamAnnotation? param;
+  final ServerBindAnnotation? bind;
   final ServerMimic? customParam;
   final bool dep;
 
@@ -139,6 +152,7 @@ class ServerParamAnnotations with ExtractImport {
       header != null ||
       param != null ||
       customParam != null ||
+      bind != null ||
       dep;
 
   Iterable<ServerReflect> get reflects sync* {
@@ -157,6 +171,10 @@ class ServerParamAnnotations with ExtractImport {
     if (header?.pipe?.reflect case final reflect?) {
       yield reflect;
     }
+
+    if (bind?.customParam.reflect case final reflect?) {
+      yield reflect;
+    }
   }
 
   @override
@@ -166,6 +184,7 @@ class ServerParamAnnotations with ExtractImport {
         header,
         param,
         customParam,
+        bind,
       ];
 
   @override

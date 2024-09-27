@@ -4,6 +4,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 import 'package:revali_server/converters/server_reflect.dart';
+import 'package:revali_server/makers/utils/type_extensions.dart';
 
 class ServerReturnType {
   const ServerReturnType({
@@ -57,7 +58,8 @@ class ServerReturnType {
 
       if (element is ClassElement) {
         hasToJsonMember = element.methods.any((e) => e.name == 'toJson');
-        isStringContent = element.name == '$StringContent' ||
+        // ignore: unnecessary_parenthesis
+        isStringContent = element.name == (StringContent).name ||
             element.allSupertypes.any(
               (e) =>
                   e.getDisplayString(withNullability: false) ==
