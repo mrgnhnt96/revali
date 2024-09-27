@@ -6,9 +6,9 @@ import 'package:revali_router/revali_router.dart';
 class HelloController {
   @Get()
   String hello(
-    @Header.all(HttpHeaders.acceptHeader) List<String> contentType,
+    @Header.all(HttpHeaders.acceptHeader) List<String> accept,
   ) {
-    return 'Hello, World! $contentType';
+    return 'Hello, World! $accept';
   }
 
   @Get('sup')
