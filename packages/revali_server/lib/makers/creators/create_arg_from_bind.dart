@@ -14,7 +14,7 @@ Expression createArgFromBind(
   var paramsRef = createClass(
     annotation.customParam.customParam,
     defaultArg: createGetFromDi(),
-  ).property('parse').call([createCustomParamContext(param)]).awaited;
+  ).property('bind').call([createCustomParamContext(param)]).awaited;
 
   final acceptsNull = annotation.acceptsNull;
   if ((acceptsNull != null && !acceptsNull) || !param.isNullable) {

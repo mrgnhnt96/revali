@@ -11,6 +11,6 @@ Expression createArgFromCustomParam(
   ServerParam param,
 ) {
   return createMimic(annotation)
-      .property('parse')
+      .property('bind')
       .call([createCustomParamContext(param)]).awaited;
 }

@@ -20,7 +20,7 @@ class GetUser implements CustomParam<User> {
   final UserService _userService;
 
   @override
-  FutureOr<User> parse(CustomParamContext context) {
+  FutureOr<User> bind(CustomParamContext context) {
     return _userService.getUser();
   }
 }

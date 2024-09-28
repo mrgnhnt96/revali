@@ -179,7 +179,7 @@ class MyParam implements CustomParam<String> {
   const MyParam();
 
   @override
-  String parse(CustomParamContext context) {
+  String bind(CustomParamContext context) {
     return context.request.queryParameters['name'] ?? '';
   }
 }
