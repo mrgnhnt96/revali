@@ -22,22 +22,15 @@ class ServerBindAnnotation with ExtractImport {
     ElementAnnotation annotation,
   ) {
     final customParam = object.getField('customParam')?.toTypeValue();
+    if (customParam == null) {
+      throw ArgumentError('Invalid type');
+    }
 
-    final customParamSuper = (customParam?.element as ClassElement?)
+    final customParamSuper = (customParam.element as ClassElement?)
         ?.allSupertypes
         .firstWhereOrNull((element) {
       return element.element.name == (CustomParam).name;
     });
-
-    if (customParam == null) {
-      final objectName =
-          object.type?.getDisplayString(withNullability: false) ?? 'unknown';
-
-      throw StateError(
-        'Missing ${(CustomParam).name} in @Bind '
-        'annotation for $objectName',
-      );
-    }
 
     final firstTypeArg = customParamSuper?.typeArguments.first;
 
