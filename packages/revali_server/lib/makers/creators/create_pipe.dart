@@ -6,7 +6,7 @@ import 'package:revali_server/converters/server_pipe.dart';
 import 'package:revali_server/makers/creators/create_class.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
 
-Expression createPipeContext(
+Expression createPipe(
   ServerPipe pipe, {
   required Expression annotationArgument,
   required String nameOfParameter,

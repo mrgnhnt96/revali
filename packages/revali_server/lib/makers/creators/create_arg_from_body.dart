@@ -3,7 +3,7 @@ import 'package:revali_router/revali_router.dart';
 import 'package:revali_server/converters/server_body_annotation.dart';
 import 'package:revali_server/converters/server_param.dart';
 import 'package:revali_server/makers/creators/create_missing_argument_exception.dart';
-import 'package:revali_server/makers/creators/create_pipe_context.dart';
+import 'package:revali_server/makers/creators/create_pipe.dart';
 
 Expression createArgFromBody(
   ServerBodyAnnotation annotation,
@@ -33,7 +33,7 @@ Expression createArgFromBody(
 
   if (annotation.pipe case final pipe?) {
     final access = annotation.access;
-    return createPipeContext(
+    return createPipe(
       pipe,
       annotationArgument: access == null
           ? literalNull
