@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:hello/custom_params/get_user.dart';
 import 'package:revali_router/revali_router.dart';
 
 @Controller('hello')
@@ -12,7 +13,9 @@ class HelloController {
   }
 
   @Get('sup')
-  String hello2() {
+  String hello2(
+    @Bind(GetUser) User user,
+  ) {
     return 'Hello, World!';
   }
 }
