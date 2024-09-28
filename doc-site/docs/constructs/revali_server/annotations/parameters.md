@@ -6,22 +6,22 @@ title: Parameters
 
 Parameter annotations are used to bind parameters to values from the request. They can be used to bind path parameters, query parameters, headers, request bodies, and more.
 
-| Annotation | Description |
-| --- | --- |
-| `@Param()` | Binds a path parameter ([docs](#param)) |
-| `@Query()` | Binds a query parameter ([docs](#query)) |
-| `@Header()` | Binds a header ([docs](#header)) |
-| `@Body()` | Binds the request body ([docs](#body)) |
-| `@Dep()` | Binds a dependency ([docs](#dep)) |
-| `CustomParam` | Allows you to create custom parameter annotations ([docs](#customparam)) |
+| Annotation | Description | Requests | Controllers |
+| --- | --- | :-: | :-: |
+| `@Param()` | Binds a path parameter | ✅ | ❌ |
+| `@Query()` | Binds a query parameter | ✅ | ❌ |
+| `@Header()` | Binds a header | ✅ | ❌ |
+| `@Body()` | Binds the body | ✅ | ❌ |
+| `@Dep()` | Binds a dependency | ✅ | ✅ |
+| `CustomParam` | Allows you to create custom parameter annotations | ✅ | ✅ |
 
 :::important
-You can only use one parameter annotation per method parameter.
+You can only use one parameter annotation per parameter.
 :::
 
 ## `@Param()`
 
-The `Param` annotation is used to bind a path parameter to a method parameter.
+The `Param` annotation is used to bind a path parameter from a request to a method parameter.
 
 In the example below, the `name` parameter is bound to the `:name` path parameter.
 
@@ -57,13 +57,9 @@ class ShopController {
 Path parameters are always returned as a `String`. If you need to convert the value to another type, you can use a [pipe](#param-1).
 :::
 
-:::tip
-Check out the [Pipe][pipes] documentation on how to create pipes.
-:::
-
 ## `@Query()`
 
-The `Query` annotation is used to bind a query parameter to a method parameter.
+The `Query` annotation is used to bind a query parameter from a request to a method parameter.
 
 In the example below, the `id` method parameter (line 3) is bound to the `id` query parameter (not shown).
 
@@ -93,10 +89,6 @@ String getUser(
 Query parameters are always returned as `String`s. If you need to convert the value to another type, you can use a [pipe](#query-1).
 :::
 
-:::tip
-Check out the [Pipe][pipes] documentation on how to create pipes.
-:::
-
 ### All Values
 
 Query parameters can have multiple values. If you're expecting multiple values, you can use the `@Query.all()` annotation.
@@ -121,7 +113,7 @@ If you don't use the `@Query.all()` annotation, only the last value will be boun
 
 ## `@Header()`
 
-The `Header` annotation is used to bind a header to a method parameter.
+The `Header` annotation is used to bind a header entry from a request to a method parameter.
 
 ```dart showLineNumbers
 @Get()
@@ -132,6 +124,10 @@ String getUser(
   return 'Content Type: $contentType';
 }
 ```
+
+:::caution
+Header values are always returned as `String`s. If you need to convert the value to another type, you can use a [pipe](#header-1).
+:::
 
 ### All Values
 
@@ -153,17 +149,144 @@ If you don't use the `@Header.all()` annotation and there are multiple values, t
 
 ## `@Body()`
 
-:::important 🚧 Under Construction 🚧
+The `Body` annotation is used to bind the request body, or part of it, to a method parameter.
+
+```dart showLineNumbers
+@Post()
+String createUser(
+  // highlight-next-line
+  @Body() Map<String, dynamic> body,
+) {
+  return 'User: $user';
+}
+```
+
+::::note
+The `@Body` type can be used with any _primitive_ type, not just `Map<String, dynamic>`, it should be whatever you expect the body to be.
+
+If you need to convert the value to another type, you can use a [pipe](#body-1).
+::::
+
+### Specific Values
+
+If you only need a specific value from the body, you can pass a list of keys to the `@Body` annotation.
+
+```dart
+@Post()
+String createUser(
+  // highlight-next-line
+  @Body(['data', 'email']) String email,
+) {
+  return 'Email: $email';
+}
+```
+
+If the request body is:
+
+```json
+{
+    "data": {
+        "email": "revali@email.com",
+        "password": "123456"
+    }
+}
+```
+
+The value that will be bound will be `revali@email.com` and the `password` value will be ignored.
+
+:::warning
+If the body doesn't contain the specified keys, the method will throw a runtime error. Unless the type is nullable, in which case it will be `null`.
 :::
 
 ## `@Dep()`
 
-:::important 🚧 Under Construction 🚧
+The `Dep` annotation is used to bind a dependency from the [DI object](/revali/app-configuration/configure-dependencies#the-di-object) to a parameter.
+
+:::tip
+Learn how to [configure dependencies](/revali/app-configuration/configure-dependencies#registering-dependencies).
 :::
 
+While you can bind a dependency to a parameter in a request, it is recommended to use the parameters of the controller's constructor instead.
+
+```dart showLineNumbers
+@Controller()
+class UserController {
+  const UserController(
+    // highlight-next-line
+    @Dep() this._userService,
+  );
+
+  final UserService _userService;
+
+  @Get()
+  String getUser() {
+    return 'User: ${_userService.getUser()}';
+  }
+}
+```
+
+:::warning
+If the dependency doesn't exist, the method will throw a runtime error. Controllers are resolved as soon as the application starts, so any missing dependencies will be caught early.
+:::
+
+<!-- @SupposedlySam should `CustomParam` be renamed to `Bind`? -->
 ## `CustomParam`
 
-:::important 🚧 Under Construction 🚧
+Occasionally, you may need a custom parameter annotation. Whether you need access to the entire request object or you need to bind a value in a specific way, you can create a custom parameter annotation.
+
+### Create
+
+To create a custom parameter annotation, you need to implement the class `CustomParam` and override the `bind` method.
+
+```dart title="lib/custom_params/bind_user.dart"
+import 'package:revali_router/revali_router.dart';
+
+class GetUser extends CustomParam<User> {
+  const GetUser();
+
+  @override
+  User bind(CustomParamContext context) {
+    ...
+  }
+}
+```
+
+:::important
+In order to use the `GetUser` class as an annotation, you need to ensure that the constructor is `const`.
+:::
+
+### Use
+
+#### Via Annotation
+
+To use the `GetUser` class, annotate the method parameter with it.
+
+```dart showLineNumbers
+@Get()
+String getUser(
+  // highlight-next-line
+  @GetUser() User user,
+) {
+  return 'User: $user';
+}
+```
+
+#### Via `Binds`
+
+If you have a dependency within your custom parameter that you can't provide at compile-time, you can use the `Binds` annotation and use the `GetUser` class as a type reference.
+
+```dart showLineNumbers
+@Get()
+String getUser(
+  // highlight-next-line
+  @Binds(GetUser) User user,
+) {
+  return 'User: $user';
+}
+```
+
+:::tip
+Read more about why the custom parameter being used as a Type Reference is important in the [docs](/constructs/revali_server/tidbits#using-types-in-annotations)
 :::
 
 ## Binding
@@ -226,6 +349,10 @@ In most cases, the value you bind from the request will need to be transformed o
 Check out the [Pipe][pipes] documentation on how to create pipes.
 :::
 
+:::tip
+Read more about why the pipe being used as a Type Reference is important in the [docs](/constructs/revali_server/tidbits#using-types-in-annotations)
+:::
+
 ### Param
 
 ```dart
@@ -247,6 +374,13 @@ Check out the [Pipe][pipes] documentation on how to create pipes.
 ```dart
 @Header(':user', GetUserPipe) User user,
 @Header.pipe(GetUserPipe) User user,
+```
+
+### Body
+
+```dart
+@Body(['data'], GetUserPipe) User user,
+@Body.pipe(GetUserPipe) User user,
 ```
 
 [pipes]: ./pipes.md
