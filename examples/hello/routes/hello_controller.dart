@@ -14,7 +14,7 @@ class HelloController {
 
   @Get('sup')
   String hello2(
-    @Bind(GetUser) User user,
+    @Binds(GetUser) User user,
   ) {
     return 'Hello, World!';
   }

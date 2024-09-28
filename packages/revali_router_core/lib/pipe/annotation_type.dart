@@ -5,5 +5,5 @@ enum AnnotationType {
   param,
   custom,
   header,
-  bind,
+  binds,
 }

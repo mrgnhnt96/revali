@@ -1,7 +1,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
-import 'package:revali_server/converters/server_bind_annotation.dart';
+import 'package:revali_server/converters/server_binds_annotation.dart';
 import 'package:revali_server/converters/server_body_annotation.dart';
 import 'package:revali_server/converters/server_header_annotation.dart';
 import 'package:revali_server/converters/server_imports.dart';
@@ -45,7 +45,7 @@ class ServerParamAnnotations with ExtractImport {
     ServerParamAnnotation? param;
     ServerHeaderAnnotation? header;
     ServerMimic? customParam;
-    ServerBindAnnotation? bind;
+    ServerBindsAnnotation? bind;
     bool? dep;
 
     getter(
@@ -94,10 +94,10 @@ class ServerParamAnnotations with ExtractImport {
           },
         ),
         OnMatch(
-          classType: Bind,
+          classType: Binds,
           package: 'revali_router_annotations',
           convert: (object, annotation) {
-            bind = ServerBindAnnotation.fromElement(object, annotation);
+            bind = ServerBindsAnnotation.fromElement(object, annotation);
           },
         ),
       ],
@@ -142,7 +142,7 @@ class ServerParamAnnotations with ExtractImport {
   final ServerQueryAnnotation? query;
   final ServerHeaderAnnotation? header;
   final ServerParamAnnotation? param;
-  final ServerBindAnnotation? bind;
+  final ServerBindsAnnotation? bind;
   final ServerMimic? customParam;
   final bool dep;
 

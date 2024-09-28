@@ -10,13 +10,13 @@ import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
 import 'package:revali_server/utils/extract_import.dart';
 
-class ServerBindAnnotation with ExtractImport {
-  ServerBindAnnotation({
+class ServerBindsAnnotation with ExtractImport {
+  ServerBindsAnnotation({
     required this.customParam,
     required this.acceptsNull,
   });
 
-  factory ServerBindAnnotation.fromElement(
+  factory ServerBindsAnnotation.fromElement(
     DartObject object,
     // ignore: avoid_unused_constructor_parameters
     ElementAnnotation annotation,
@@ -34,7 +34,7 @@ class ServerBindAnnotation with ExtractImport {
 
     final firstTypeArg = customParamSuper?.typeArguments.first;
 
-    return ServerBindAnnotation(
+    return ServerBindsAnnotation(
       customParam: ServerCustomParam.fromType(customParam),
       acceptsNull: switch (firstTypeArg?.nullabilitySuffix) {
         final prefix? => prefix == NullabilitySuffix.question,

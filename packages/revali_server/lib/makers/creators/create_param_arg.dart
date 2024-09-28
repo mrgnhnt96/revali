@@ -3,7 +3,7 @@
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_server/converters/server_param.dart';
-import 'package:revali_server/makers/creators/create_arg_from_bind.dart';
+import 'package:revali_server/makers/creators/create_arg_from_binds.dart';
 import 'package:revali_server/makers/creators/create_arg_from_body.dart';
 import 'package:revali_server/makers/creators/create_arg_from_custom_param.dart';
 import 'package:revali_server/makers/creators/create_arg_from_header.dart';
@@ -69,7 +69,7 @@ Expression createParamArg(
   }
 
   if (annotation.bind case final bind?) {
-    return createArgFromBind(bind, param);
+    return createArgFromBinds(bind, param);
   }
 
   throw ArgumentError('Unknown annotation for param ${param.name}');
