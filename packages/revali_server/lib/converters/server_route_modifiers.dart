@@ -1,3 +1,0 @@
-class ServerRouteModifiers {
-  const ServerRouteModifiers();
-}
