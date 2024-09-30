@@ -19,6 +19,10 @@ Binding annotations are used to make a connection between parameters to values f
 You can only use one parameter annotation per parameter.
 :::
 
+:::info
+There are [some classes](./assumed_binding) that can be implied by the parameter's type and do not require binding annotations
+:::
+
 ## `@Param()`
 
 The `Param` annotation is used to bind a path parameter from a request to a method parameter.
