@@ -64,12 +64,12 @@ Expression createParamArg(
     return createArgFromHeader(headerAnnotation, param);
   }
 
-  if (annotation.customParam case final customParam?) {
-    return createArgFromCustomParam(customParam, param);
+  if (annotation.bind case final bind?) {
+    return createArgFromBind(bind, param);
   }
 
-  if (annotation.bind case final bind?) {
-    return createArgFromBinds(bind, param);
+  if (annotation.binds case final binds?) {
+    return createArgFromBinds(binds, param);
   }
 
   throw ArgumentError('Unknown annotation for param ${param.name}');

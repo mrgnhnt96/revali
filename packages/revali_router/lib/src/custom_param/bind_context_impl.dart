@@ -1,7 +1,7 @@
 import 'package:revali_router_core/revali_router_core.dart';
 
-class CustomParamContextImpl implements CustomParamContext {
-  const CustomParamContextImpl({
+class BindContextImpl implements BindContext {
+  const BindContextImpl({
     required this.nameOfParameter,
     required this.parameterType,
     required this.data,
@@ -9,7 +9,7 @@ class CustomParamContextImpl implements CustomParamContext {
     required this.request,
     required this.response,
   });
-  CustomParamContextImpl.from(
+  BindContextImpl.from(
     EndpointContext context, {
     required this.nameOfParameter,
     required this.parameterType,

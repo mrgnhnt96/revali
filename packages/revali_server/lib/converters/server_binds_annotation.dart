@@ -5,14 +5,14 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:collection/collection.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
-import 'package:revali_server/converters/server_custom_param.dart';
+import 'package:revali_server/converters/server_bind.dart';
 import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
 import 'package:revali_server/utils/extract_import.dart';
 
 class ServerBindsAnnotation with ExtractImport {
   ServerBindsAnnotation({
-    required this.customParam,
+    required this.bind,
     required this.acceptsNull,
   });
 
@@ -21,21 +21,21 @@ class ServerBindsAnnotation with ExtractImport {
     // ignore: avoid_unused_constructor_parameters
     ElementAnnotation annotation,
   ) {
-    final customParam = object.getField('customParam')?.toTypeValue();
-    if (customParam == null) {
+    final bind = object.getField('bind')?.toTypeValue();
+    if (bind == null) {
       throw ArgumentError('Invalid type');
     }
 
-    final customParamSuper = (customParam.element as ClassElement?)
+    final bindSuper = (bind.element as ClassElement?)
         ?.allSupertypes
         .firstWhereOrNull((element) {
-      return element.element.name == (CustomParam).name;
+      return element.element.name == (Bind).name;
     });
 
-    final firstTypeArg = customParamSuper?.typeArguments.first;
+    final firstTypeArg = bindSuper?.typeArguments.first;
 
     return ServerBindsAnnotation(
-      customParam: ServerCustomParam.fromType(customParam),
+      bind: ServerBind.fromType(bind),
       acceptsNull: switch (firstTypeArg?.nullabilitySuffix) {
         final prefix? => prefix == NullabilitySuffix.question,
         _ => null,
@@ -43,11 +43,11 @@ class ServerBindsAnnotation with ExtractImport {
     );
   }
 
-  final ServerCustomParam customParam;
+  final ServerBind bind;
   final bool? acceptsNull;
 
   @override
-  List<ExtractImport?> get extractors => [customParam];
+  List<ExtractImport?> get extractors => [bind];
 
   @override
   List<ServerImports?> get imports => const [];

@@ -5,8 +5,8 @@ import 'package:revali_router/revali_router.dart';
 import 'package:revali_server/converters/server_param.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
 
-Expression createCustomParamContext(ServerParam param) {
-  return refer((CustomParamContextImpl).name).newInstanceNamed(
+Expression createBindContext(ServerParam param) {
+  return refer((BindContextImpl).name).newInstanceNamed(
     'from',
     [
       refer('context'),

@@ -18,7 +18,7 @@ class ServerParamAnnotations with ExtractImport {
     required this.param,
     required this.dep,
     required this.header,
-    required this.customParam,
+    required this.binds,
     required this.bind,
   });
 
@@ -44,8 +44,8 @@ class ServerParamAnnotations with ExtractImport {
     ServerQueryAnnotation? query;
     ServerParamAnnotation? param;
     ServerHeaderAnnotation? header;
-    ServerMimic? customParam;
-    ServerBindsAnnotation? bind;
+    ServerMimic? bind;
+    ServerBindsAnnotation? binds;
     bool? dep;
 
     getter(
@@ -79,11 +79,11 @@ class ServerParamAnnotations with ExtractImport {
           },
         ),
         OnMatch(
-          classType: CustomParam,
+          classType: Bind,
           ignoreGenerics: true,
           package: 'revali_router_annotations',
           convert: (object, annotation) {
-            customParam = ServerMimic.fromDartObject(object, annotation);
+            bind = ServerMimic.fromDartObject(object, annotation);
           },
         ),
         OnMatch(
@@ -97,7 +97,7 @@ class ServerParamAnnotations with ExtractImport {
           classType: Binds,
           package: 'revali_router_annotations',
           convert: (object, annotation) {
-            bind = ServerBindsAnnotation.fromElement(object, annotation);
+            binds = ServerBindsAnnotation.fromElement(object, annotation);
           },
         ),
       ],
@@ -109,9 +109,9 @@ class ServerParamAnnotations with ExtractImport {
       query,
       header,
       param,
-      customParam,
-      dep,
       bind,
+      dep,
+      binds,
     ]) {
       if (annotation == null) {
         continue;
@@ -120,7 +120,7 @@ class ServerParamAnnotations with ExtractImport {
       if (isOnlyOne) {
         throw ArgumentError(
           'Only one of the following annotations can be used: '
-          '@Body, @Query, @Param, @<CustomParam>, @Dep, @Bind',
+          '@Body, @Query, @Param, @Dep, @Binds, @Bind',
         );
       }
 
@@ -131,10 +131,10 @@ class ServerParamAnnotations with ExtractImport {
       body: body,
       query: query,
       param: param,
-      customParam: customParam,
+      bind: bind,
       header: header,
       dep: dep ?? false,
-      bind: bind,
+      binds: binds,
     );
   }
 
@@ -142,8 +142,8 @@ class ServerParamAnnotations with ExtractImport {
   final ServerQueryAnnotation? query;
   final ServerHeaderAnnotation? header;
   final ServerParamAnnotation? param;
-  final ServerBindsAnnotation? bind;
-  final ServerMimic? customParam;
+  final ServerBindsAnnotation? binds;
+  final ServerMimic? bind;
   final bool dep;
 
   bool get hasAnnotation =>
@@ -151,7 +151,7 @@ class ServerParamAnnotations with ExtractImport {
       query != null ||
       header != null ||
       param != null ||
-      customParam != null ||
+      bind != null ||
       bind != null ||
       dep;
 
@@ -172,7 +172,7 @@ class ServerParamAnnotations with ExtractImport {
       yield reflect;
     }
 
-    if (bind?.customParam.reflect case final reflect?) {
+    if (binds?.bind.reflect case final reflect?) {
       yield reflect;
     }
   }
@@ -183,7 +183,7 @@ class ServerParamAnnotations with ExtractImport {
         query,
         header,
         param,
-        customParam,
+        bind,
         bind,
       ];
 

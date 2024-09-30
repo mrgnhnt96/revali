@@ -14,13 +14,13 @@ class UserService {
   }
 }
 
-class GetUser implements CustomParam<User> {
+class GetUser implements Bind<User> {
   const GetUser(this._userService);
 
   final UserService _userService;
 
   @override
-  FutureOr<User> bind(CustomParamContext context) {
+  FutureOr<User> bind(BindContext context) {
     return _userService.getUser();
   }
 }

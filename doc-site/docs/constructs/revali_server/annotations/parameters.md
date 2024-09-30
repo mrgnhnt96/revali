@@ -4,7 +4,7 @@ title: Parameters
 
 # Parameter Annotations
 
-Parameter annotations are used to bind parameters to values from the request. They can be used to bind path parameters, query parameters, headers, request bodies, and more.
+Parameter annotations are used to bind parameters to values from the request. They can be used to bind path parameters, query parameters, headers, request bodies, dependencies and more.
 
 | Annotation | Description | Requests | Controllers |
 | --- | --- | :-: | :-: |
@@ -13,7 +13,7 @@ Parameter annotations are used to bind parameters to values from the request. Th
 | `@Header()` | Binds a header | ✅ | ❌ |
 | `@Body()` | Binds the body | ✅ | ❌ |
 | `@Dep()` | Binds a dependency | ✅ | ✅ |
-| `CustomParam` | Allows you to create custom parameter annotations | ✅ | ✅ |
+| `Bind` | Allows you to create custom parameter annotations | ✅ | ✅ |
 
 :::important
 You can only use one parameter annotation per parameter.
@@ -229,23 +229,22 @@ class UserController {
 If the dependency doesn't exist, the method will throw a runtime error. Controllers are resolved as soon as the application starts, so any missing dependencies will be caught early.
 :::
 
-<!-- @SupposedlySam should `CustomParam` be renamed to `Bind`? -->
-## `CustomParam`
+## `Bind`
 
 Occasionally, you may need a custom parameter annotation. Whether you need access to the entire request object or you need to bind a value in a specific way, you can create a custom parameter annotation.
 
 ### Create
 
-To create a custom parameter annotation, you need to implement the class `CustomParam` and override the `bind` method.
+To create a custom parameter annotation, you need to implement the class `Bind` and override the `bind` method.
 
 ```dart title="lib/custom_params/bind_user.dart"
 import 'package:revali_router/revali_router.dart';
 
-class GetUser extends CustomParam<User> {
+class GetUser extends Bind<User> {
   const GetUser();
 
   @override
-  User bind(CustomParamContext context) {
+  User bind(BindContext context) {
     ...
   }
 }

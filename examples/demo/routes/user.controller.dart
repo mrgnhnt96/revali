@@ -175,11 +175,11 @@ final class OtherCombine implements CombineMeta {
   List<Middleware> get middlewares => [];
 }
 
-class MyParam implements CustomParam<String> {
+class MyParam implements Bind<String> {
   const MyParam();
 
   @override
-  String bind(CustomParamContext context) {
+  String bind(BindContext context) {
     return context.request.queryParameters['name'] ?? '';
   }
 }

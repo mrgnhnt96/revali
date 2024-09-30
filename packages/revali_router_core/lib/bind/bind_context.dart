@@ -1,7 +1,7 @@
 import 'package:revali_router_core/revali_router_core.dart';
 
-abstract class CustomParamContext {
-  const CustomParamContext();
+abstract class BindContext {
+  const BindContext();
 
   /// The name of the parameter that corresponds to the annotation.
   ///

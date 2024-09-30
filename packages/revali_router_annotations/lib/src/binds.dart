@@ -1,5 +1,5 @@
 class Binds {
-  const Binds(this.customParam);
+  const Binds(this.bind);
 
-  final Type customParam;
+  final Type bind;
 }

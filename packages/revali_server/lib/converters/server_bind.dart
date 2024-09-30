@@ -8,40 +8,39 @@ import 'package:revali_server/converters/server_reflect.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
 import 'package:revali_server/utils/extract_import.dart';
 
-class ServerCustomParam with ExtractImport {
-  ServerCustomParam({
-    required this.customParam,
+class ServerBind with ExtractImport {
+  ServerBind({
+    required this.bind,
     required this.reflect,
   });
 
-  factory ServerCustomParam.fromType(DartType type) {
+  factory ServerBind.fromType(DartType type) {
     ServerReflect? reflect;
 
     if (type.element case final ClassElement element?) {
-      final superCustomParam =
-          element.allSupertypes.firstWhereOrNull((element) {
+      final superBind = element.allSupertypes.firstWhereOrNull((element) {
         // ignore: unnecessary_parenthesis
-        return element.element.name == (CustomParam).name;
+        return element.element.name == (Bind).name;
       });
 
-      final firstTypeArg = superCustomParam?.typeArguments.first;
+      final firstTypeArg = superBind?.typeArguments.first;
 
       if (firstTypeArg?.element case final ClassElement element) {
         reflect = ServerReflect.fromElement(element);
       }
     }
 
-    return ServerCustomParam(
-      customParam: ServerClass.fromType(type, superType: CustomParam),
+    return ServerBind(
+      bind: ServerClass.fromType(type, superType: Bind),
       reflect: reflect,
     );
   }
 
-  final ServerClass customParam;
+  final ServerClass bind;
   final ServerReflect? reflect;
 
   @override
-  List<ExtractImport> get extractors => [customParam];
+  List<ExtractImport> get extractors => [bind];
 
   @override
   List<ServerImports> get imports => const [];
