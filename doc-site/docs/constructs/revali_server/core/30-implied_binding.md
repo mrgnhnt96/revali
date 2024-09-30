@@ -3,7 +3,7 @@
 There are certain classes that do not need [binding annotations](./binding).
 
 :::warning
-It is highly discouraged to used these directly, prefer to use [binding](./binding) with a [pipe](./pipes). Using these classes makes testing harder
+It is highly discouraged to used these, prefer to use [binding](./binding) with a [pipe](./pipes) or [route modifiers](./). Using these can make testing harder and make your code harder to understand.
 :::
 
 | Types | |
