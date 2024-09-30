@@ -4,7 +4,7 @@ import 'package:revali_router/revali_router.dart';
 part 'base_route.g.dart';
 
 // ignore: must_be_immutable
-class BaseRoute extends Equatable implements RouteEntry, RouteModifiers {
+class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
   BaseRoute(
     String path, {
     Future<dynamic> Function(EndpointContext)? handler,

@@ -133,8 +133,8 @@ String serverFile(
                   'defaultResponses': refer('app').property('defaultResponses'),
                   if (server.app case final app?
                       when app.globalRouteAnnotations.hasAnnotations)
-                    'globalModifiers':
-                        refer((RouteModifiersImpl).name).newInstance([], {
+                    'globalComponents':
+                        refer((LifecycleComponentsImpl).name).newInstance([], {
                       ...createModifierArgs(
                         annotations: app.globalRouteAnnotations,
                       ),

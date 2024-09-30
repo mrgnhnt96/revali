@@ -11,7 +11,7 @@ extension _$RouterAutoequal on Router {
         observers,
         routes,
         _reflects,
-        _globalModifiers,
+        _globalComponents,
         debug,
         defaultResponses,
       ];

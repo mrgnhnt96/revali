@@ -61,7 +61,7 @@ export 'response/mutable_response.dart';
 export 'response/read_only_response.dart';
 export 'response/restricted_mutable_response.dart';
 export 'return_types/string_content.dart';
+export 'route/lifecycle_components.dart';
 export 'route/route_entry.dart';
-export 'route/route_modifiers.dart';
 export 'utils/types.dart';
 export 'web_socket/mutable_web_socket_request.dart';

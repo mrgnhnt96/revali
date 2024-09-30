@@ -6,7 +6,7 @@ class Helper with HelperMixin, ContextMixin {
     required this.request,
     required Router router,
   }) {
-    globalModifiers = router._globalModifiers ?? RouteModifiersImpl();
+    globalComponents = router._globalComponents ?? LifecycleComponentsImpl();
     reflectHandler = ReflectHandler(router._reflects);
     debugErrorResponse = router._debugResponse;
     debugResponses = router.debug;
@@ -15,7 +15,7 @@ class Helper with HelperMixin, ContextMixin {
     dataHandler = DataHandler();
     directMeta = route.getMeta();
     inheritedMeta = route.getMeta(inherit: true);
-    globalModifiers.getMeta(handler: inheritedMeta);
+    globalComponents.getMeta(handler: inheritedMeta);
     response = MutableResponseImpl(requestHeaders: request.headers);
   }
 
@@ -26,7 +26,7 @@ class Helper with HelperMixin, ContextMixin {
   late final MetaHandler directMeta;
 
   @override
-  late final RouteModifiers globalModifiers;
+  late final LifecycleComponents globalComponents;
 
   @override
   late final MetaHandler inheritedMeta;

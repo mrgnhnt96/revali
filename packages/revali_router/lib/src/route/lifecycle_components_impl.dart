@@ -2,8 +2,8 @@ import 'package:revali_annotations/revali_annotations.dart';
 import 'package:revali_router/src/meta/combine_meta_applier.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
-class RouteModifiersImpl implements RouteModifiers {
-  RouteModifiersImpl({
+class LifecycleComponentsImpl implements LifecycleComponents {
+  LifecycleComponentsImpl({
     List<Middleware>? middlewares,
     List<Interceptor>? interceptors,
     List<Guard>? guards,

@@ -30,8 +30,8 @@ import 'package:revali_router/src/response/mutable_response_impl.dart';
 import 'package:revali_router/src/response/simple_response.dart';
 import 'package:revali_router/src/response/web_socket_response.dart';
 import 'package:revali_router/src/route/base_route.dart';
+import 'package:revali_router/src/route/lifecycle_components_impl.dart';
 import 'package:revali_router/src/route/route_match.dart';
-import 'package:revali_router/src/route/route_modifiers_impl.dart';
 import 'package:revali_router/src/route/web_socket_route.dart';
 import 'package:revali_router/src/web_socket/web_socket_handler.dart';
 import 'package:revali_router_core/revali_router_core.dart';
@@ -59,18 +59,18 @@ part 'run_redirect.dart';
 class Router extends Equatable {
   const Router({
     required this.routes,
-    RouteModifiers? globalModifiers,
+    LifecycleComponents? globalComponents,
     Set<Reflect> reflects = const {},
     this.observers = const [],
     this.debug = false,
     this.defaultResponses = const DefaultResponses(),
   })  : _reflects = reflects,
-        _globalModifiers = globalModifiers;
+        _globalComponents = globalComponents;
 
   final List<Observer> observers;
   final List<BaseRoute> routes;
   final Set<Reflect> _reflects;
-  final RouteModifiers? _globalModifiers;
+  final LifecycleComponents? _globalComponents;
   final bool debug;
   final DefaultResponses defaultResponses;
 

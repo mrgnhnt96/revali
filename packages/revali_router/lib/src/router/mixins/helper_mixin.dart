@@ -8,7 +8,7 @@ typedef DebugErrorResponse = ReadOnlyResponse Function(
 
 mixin HelperMixin {
   BaseRoute get route;
-  RouteModifiers get globalModifiers;
+  LifecycleComponents get globalComponents;
   MutableRequest get request;
   MutableResponse get response;
   DataHandler get dataHandler;
@@ -24,21 +24,21 @@ mixin HelperMixin {
 
   List<Middleware> get middlewares {
     return [
-      ...globalModifiers.middlewares,
+      ...globalComponents.middlewares,
       ...route.allMiddlewares,
     ];
   }
 
   List<Interceptor> get interceptors {
     return [
-      ...globalModifiers.interceptors,
+      ...globalComponents.interceptors,
       ...route.allInterceptors,
     ];
   }
 
   List<Guard> get guards {
     return [
-      ...globalModifiers.guards,
+      ...globalComponents.guards,
       ...route.allGuards,
     ];
   }
@@ -46,19 +46,19 @@ mixin HelperMixin {
   List<ExceptionCatcher> get catchers {
     return [
       ...route.allCatchers,
-      ...globalModifiers.catchers,
+      ...globalComponents.catchers,
     ];
   }
 
   Set<String> get allowedOrigins => {
         if (route.allowedOrigins?.inherit case final inherit? when inherit)
-          ...?globalModifiers.allowedOrigins?.origins,
+          ...?globalComponents.allowedOrigins?.origins,
         ...route.allAllowedOrigins,
       };
 
   Set<String> get allowedHeaders => {
         if (route.allowedHeaders?.inherit case final inherit? when inherit)
-          ...?globalModifiers.allowedHeaders?.headers,
+          ...?globalComponents.allowedHeaders?.headers,
         ...route.allAllowedHeaders,
       };
 }

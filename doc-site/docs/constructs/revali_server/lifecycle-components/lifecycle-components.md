@@ -4,4 +4,4 @@ title: Lifecycle Components
 
 # Overview
 
-Route modifiers are used to modify the behavior of a route. They can be used to add, remove, or modify headers, query parameters, and request/response bodies.
+Lifecycle components are classes that are used to manage the lifecycle of a request

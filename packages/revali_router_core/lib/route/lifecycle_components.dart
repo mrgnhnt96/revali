@@ -5,8 +5,8 @@ import 'package:revali_router_core/interceptor/interceptor.dart';
 import 'package:revali_router_core/meta/meta_handler.dart';
 import 'package:revali_router_core/middleware/middleware.dart';
 
-abstract class RouteModifiers {
-  const RouteModifiers();
+abstract class LifecycleComponents {
+  const LifecycleComponents();
 
   List<Middleware> get middlewares;
   List<Interceptor> get interceptors;
