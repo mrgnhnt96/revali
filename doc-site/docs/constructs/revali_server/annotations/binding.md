@@ -1,10 +1,10 @@
 ---
-title: Parameters
+title: Binding
 ---
 
-# Parameter Annotations
+# Binding Annotations
 
-Parameter annotations are used to bind parameters to values from the request. They can be used to bind path parameters, query parameters, headers, request bodies, dependencies and more.
+Binding annotations are used to make a connection between parameters to values from the request, dependencies or some value. Some examples of values to bind are: path parameters, query parameters, headers, request bodies, dependencies and more.
 
 | Annotation | Description | Requests | Controllers |
 | --- | --- | :-: | :-: |
@@ -13,7 +13,7 @@ Parameter annotations are used to bind parameters to values from the request. Th
 | `@Header()` | Binds a header | ✅ | ❌ |
 | `@Body()` | Binds the body | ✅ | ❌ |
 | `@Dep()` | Binds a dependency | ✅ | ✅ |
-| `Bind` | Allows you to create custom parameter annotations | ✅ | ✅ |
+| `Bind` | Binds a custom value | ✅ | ✅ |
 
 :::important
 You can only use one parameter annotation per parameter.
@@ -119,9 +119,9 @@ The `Header` annotation is used to bind a header entry from a request to a metho
 @Get()
 String getUser(
   // highlight-next-line
-  @Header(HttpHeaders.acceptHeader) String contentType,
+  @Header(HttpHeaders.acceptHeader) String accept,
 ) {
-  return 'Content Type: $contentType';
+  return 'Content Type: $accept';
 }
 ```
 
@@ -137,9 +137,9 @@ Headers can have multiple values. If you're expecting multiple values, you can u
 @Get()
 String getUser(
   // highlight-next-line
-  @Header.all() List<String> ids,
+  @Header.all(HttpHeaders.acceptHeader) List<String> accept,
 ) {
-  return 'User IDs: $ids';
+  return "User IDs: ${accept.join(', ')}";
 }
 ```
 
@@ -272,7 +272,7 @@ String getUser(
 
 #### Via `Binds`
 
-If you have a dependency within your custom parameter that you can't provide at compile-time, you can use the `Binds` annotation and use the `GetUser` class as a type reference.
+If you have an argument within your custom parameter that you can't provide at compile-time, you can use the `Binds` annotation and use the `GetUser` class as a type reference.
 
 ```dart showLineNumbers
 @Get()
@@ -285,12 +285,12 @@ String getUser(
 ```
 
 :::tip
-Read more about why the custom parameter being used as a Type Reference is important in the [docs](/constructs/revali_server/tidbits#using-types-in-annotations)
+Read more about why `GetUser` is being used as a [Type Reference](/constructs/revali_server/tidbits#using-types-in-annotations)
 :::
 
-## Binding
+## Name References
 
-By default, `revali_router` will use the name of the method's parameter to bind a value from the request. This works well when the names match, however, there will be times where the names don't match and will need to be bound manually.
+By default, `revali_router` will use the name of the method's parameter as the key to retrieve the respective value from the request. This works well when the name of the parameter and the key of the data you're attempting to bind match, however, there will be times where the names don't match and will need to be bound manually.
 
 In the example below, the `firstName` method parameter (line 3) is bound to the `firstName` path parameter (line 1). This means that the path parameter will be properly bound to the method parameter.
 
@@ -308,7 +308,7 @@ String sayHello(
 If the request path is `/john`, the response will be `Hello, john!`.
 :::
 
-Below the path parameter is named `:firstName` (line 1) and the method parameter is named `name` (line 3). Without binding the parameter, the `@Param` annotation would try to bind a `:firstName` path parameter which doesn't exist. This would result in a compile-time error.
+Below the path parameter is named `:firstName` (line 1) and the method parameter is named `name` (line 3). What happens here is the `@Param` annotation would try to bind a `:name` path parameter which doesn't exist. This would result in a compile-time error.
 
 ```dart showLineNumbers
 @Get(':firstName')
@@ -337,7 +337,7 @@ Names are case sensitive. `user-id` is not the same as `userId`.
 :::
 
 :::note
-In the examples above, we used the `@Param` annotation, but the principles apply to all parameter annotations.
+In the examples above, we used the `@Param` annotation, but the principles apply to all binding annotations.
 :::
 
 ## Pipe Transform
@@ -349,7 +349,7 @@ Check out the [Pipe][pipes] documentation on how to create pipes.
 :::
 
 :::tip
-Read more about why the pipe being used as a Type Reference is important in the [docs](/constructs/revali_server/tidbits#using-types-in-annotations)
+Read more about why the pipe being used as a [Type Reference](/constructs/revali_server/tidbits#using-types-in-annotations) is important
 :::
 
 ### Param
