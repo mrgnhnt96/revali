@@ -13,12 +13,18 @@ import 'package:revali_server/makers/creators/create_get_from_di.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
 
 final impliedArguments = <String, Expression>{
+  // --- dependency injection ---
   (DI).name: refer('di'),
+  // --- response ---
   (MutableHeaders).name:
       refer('context').property('response').property('headers'),
+  (MutableBody).name: refer('context').property('response').property('body'),
+  (MutableResponse).name: refer('context').property('response'),
+  // --- request ---
   (ReadOnlyHeaders).name:
       refer('context').property('request').property('headers'),
   (ReadOnlyRequest).name: refer('context').property('request'),
+  (ReadOnlyBody).name: refer('context').property('request').property('body'),
 };
 
 Expression createParamArg(
