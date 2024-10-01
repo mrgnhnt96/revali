@@ -90,7 +90,7 @@ class AuthGuard extends Guard {
   }
 }
 
-class AddAuth extends Middleware {
+class AddAuth implements Middleware {
   @override
   Future<MiddlewareResult> use(
     MiddlewareContext context,

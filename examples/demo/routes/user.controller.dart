@@ -90,7 +90,7 @@ class User {
   }
 }
 
-class Auth extends Middleware {
+class Auth implements Middleware {
   const Auth(this.type);
 
   final AuthType type;
