@@ -22,7 +22,7 @@ class RunInterceptors {
       context: ContextMixin(interceptor: context),
     ) = helper;
 
-    for (final interceptor in interceptors) {
+    for (final interceptor in interceptors.reversed) {
       await interceptor.post(context);
     }
   }
