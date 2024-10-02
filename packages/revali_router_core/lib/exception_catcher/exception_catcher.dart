@@ -2,7 +2,7 @@ import 'package:revali_router_core/exception_catcher/exception_catcher_action.da
 import 'package:revali_router_core/exception_catcher/exception_catcher_context.dart';
 import 'package:revali_router_core/exception_catcher/exception_catcher_result.dart';
 
-abstract class ExceptionCatcher<T extends Exception> {
+abstract base class ExceptionCatcher<T extends Exception> {
   const ExceptionCatcher();
 
   bool canCatch(Object exception) {
@@ -21,4 +21,12 @@ abstract class ExceptionCatcher<T extends Exception> {
     ExceptionCatcherContext context,
     ExceptionCatcherAction action,
   );
+}
+
+abstract base class DefaultExceptionCatcher
+    implements ExceptionCatcher<Exception> {
+  const DefaultExceptionCatcher();
+
+  @override
+  bool canCatch(_) => true;
 }

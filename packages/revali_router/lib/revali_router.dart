@@ -31,7 +31,7 @@ export 'src/headers/common_headers_mixin.dart';
 export 'src/headers/mutable_headers_impl.dart';
 export 'src/interceptor/interceptor_context_impl.dart';
 export 'src/interceptor/interceptor_meta_impl.dart';
-export 'src/meta/combine_meta_applier.dart';
+export 'src/meta/combine_components_applier.dart';
 export 'src/meta/meta_arg_impl.dart';
 export 'src/middleware/middleware_context_impl.dart';
 export 'src/payload/payload_impl.dart';

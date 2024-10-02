@@ -22,32 +22,42 @@ mixin HelperMixin {
   ContextMixin get context;
   RunMixin get run;
 
-  List<Middleware> get middlewares {
+  Iterable<Middleware> get middlewares {
     return [
       ...globalComponents.middlewares,
       ...route.allMiddlewares,
     ];
   }
 
-  List<Interceptor> get interceptors {
+  Iterable<Interceptor> get interceptors {
     return [
       ...globalComponents.interceptors,
       ...route.allInterceptors,
     ];
   }
 
-  List<Guard> get guards {
+  Iterable<Guard> get guards {
     return [
       ...globalComponents.guards,
       ...route.allGuards,
     ];
   }
 
-  List<ExceptionCatcher> get catchers {
+  Iterable<ExceptionCatcher> get catchers {
     return [
       ...route.allCatchers,
       ...globalComponents.catchers,
-    ];
+    ]..sort((a, b) {
+        if (a is DefaultExceptionCatcher) {
+          return 1;
+        }
+
+        if (b is DefaultExceptionCatcher) {
+          return -1;
+        }
+
+        return 0;
+      });
   }
 
   Set<String> get allowedOrigins => {

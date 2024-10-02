@@ -1,10 +1,10 @@
 import 'package:revali_router_core/revali_router_core.dart';
 
-class CombineMetaApplier {
-  const CombineMetaApplier(this.route, this.combine);
+class CombineComponentsApplier {
+  const CombineComponentsApplier(this.route, this.combine);
 
   final LifecycleComponents route;
-  final List<CombineMeta> combine;
+  final Iterable<CombineComponents> combine;
 
   void apply() {
     for (final c in combine) {

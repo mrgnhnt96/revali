@@ -16,7 +16,7 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
     List<ExceptionCatcher>? catchers,
     void Function(MetaHandler)? meta,
     Redirect? redirect,
-    List<CombineMeta> combine = const [],
+    List<CombineComponents> combine = const [],
     AllowedOrigins? allowedOrigins,
     AllowedHeaders? allowedHeaders,
   }) : this._(
@@ -44,7 +44,7 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
     required this.guards,
     required this.catchers,
     required this.redirect,
-    required List<CombineMeta> combine,
+    required List<CombineComponents> combine,
     required this.allowedOrigins,
     required this.allowedHeaders,
     // dynamic is needed bc copyWith has a bug
@@ -89,7 +89,7 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
       }
     }
 
-    CombineMetaApplier(this, combine).apply();
+    CombineComponentsApplier(this, combine).apply();
 
     this.routes = routes?.map((e) => e.setParent(this));
 

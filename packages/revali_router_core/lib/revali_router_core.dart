@@ -12,7 +12,7 @@ export 'bind/bind_context.dart';
 export 'body/body_data.dart';
 export 'body/mutable_body.dart';
 export 'body/read_only_body.dart';
-export 'combine/combine_meta.dart';
+export 'combine/combine_components.dart';
 export 'data/data.dart';
 export 'data/data_handler.dart';
 export 'data/read_only_data_handler.dart';

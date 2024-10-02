@@ -109,7 +109,7 @@ class ServerRouteAnnotations with ExtractImport {
           },
         ),
         OnMatch(
-          classType: CombineMeta,
+          classType: CombineComponents,
           package: 'revali_router_core',
           convert: (object, annotation) {
             mimics.combines.add(ServerMimic.fromDartObject(object, annotation));
@@ -120,7 +120,10 @@ class ServerRouteAnnotations with ExtractImport {
           package: 'revali_router_annotations',
           convert: (object, annotation) {
             types.combines.add(
-              ServerTypeReference.fromElement(object, superType: CombineMeta),
+              ServerTypeReference.fromElement(
+                object,
+                superType: CombineComponents,
+              ),
             );
           },
         ),

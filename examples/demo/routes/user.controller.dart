@@ -125,7 +125,7 @@ class Lazy {
 
 class NotAuth implements Exception {}
 
-class NotAuthCatcher extends ExceptionCatcher {
+final class NotAuthCatcher extends ExceptionCatcher {
   const NotAuthCatcher(this.value);
 
   final String value;
@@ -140,7 +140,7 @@ class NotAuthCatcher extends ExceptionCatcher {
   }
 }
 
-final class AuthCombine implements CombineMeta {
+final class AuthCombine implements CombineComponents {
   const AuthCombine();
 
   @override
@@ -157,7 +157,7 @@ final class AuthCombine implements CombineMeta {
   List<Middleware> get middlewares => [const Auth(AuthType.admin)];
 }
 
-final class OtherCombine implements CombineMeta {
+final class OtherCombine implements CombineComponents {
   const OtherCombine(this.di);
 
   final DI di;

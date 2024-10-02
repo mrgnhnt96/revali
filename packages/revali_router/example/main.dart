@@ -109,7 +109,7 @@ class HasAuth {
 
 class AuthException implements Exception {}
 
-class AuthExceptionCatcher extends ExceptionCatcher<AuthException> {
+final class AuthExceptionCatcher extends ExceptionCatcher<AuthException> {
   @override
   ExceptionCatcherResult catchException(
     AuthException e,

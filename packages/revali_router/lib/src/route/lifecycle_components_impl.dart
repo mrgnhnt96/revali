@@ -1,5 +1,5 @@
 import 'package:revali_annotations/revali_annotations.dart';
-import 'package:revali_router/src/meta/combine_meta_applier.dart';
+import 'package:revali_router/src/meta/combine_components_applier.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
 class LifecycleComponentsImpl implements LifecycleComponents {
@@ -9,7 +9,7 @@ class LifecycleComponentsImpl implements LifecycleComponents {
     List<Guard>? guards,
     List<ExceptionCatcher>? catchers,
     void Function(MetaHandler)? meta,
-    List<CombineMeta> combine = const [],
+    List<CombineComponents> combine = const [],
     this.allowedOrigins,
     this.allowedHeaders,
   })  : _meta = meta,
@@ -17,7 +17,7 @@ class LifecycleComponentsImpl implements LifecycleComponents {
         interceptors = interceptors ?? [],
         guards = guards ?? [],
         catchers = catchers ?? [] {
-    CombineMetaApplier(this, combine).apply();
+    CombineComponentsApplier(this, combine).apply();
   }
 
   @override
