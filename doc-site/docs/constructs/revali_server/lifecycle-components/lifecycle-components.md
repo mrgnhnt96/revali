@@ -26,6 +26,14 @@ When a request is received by the server, it is passed to the middleware which w
 There are different types of lifecycle components that will be discussed in the following sections.
 :::
 
+### Exceptions
+
+If an exception is thrown during the request lifecycle, the flow will be aborted and the exception will be caught by the server. The server will then send an error response back to the client.
+
+:::tip
+You can catch exceptions by using the [`Catcher`](./catchers) lifecycle component.
+:::
+
 ## Inheritance
 
 Let's say that we want to print a timestamp to the console every time a request is received by the server. One way we can do this is by creating a `Middleware` class.
