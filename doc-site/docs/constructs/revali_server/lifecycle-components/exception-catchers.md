@@ -29,6 +29,36 @@ The type parameter must be a subtype of `Exception` and not `Exception` itself.
 :::
 ::::
 
+## Register an ExceptionCatcher
+
+To register an `ExceptionCatcher`, annotate your `ExceptionCatcher` class on the app, controller, or endpoint level.
+
+```dart title="routes/my_app.dart"
+import 'package:revali_router/revali_router.dart';
+
+@App()
+// highlight-next-line
+@MyExceptionCatcher()
+class MyApp ...
+```
+
+### Register as Type Reference
+
+If you have a parameter that can not be provided at compile time, you can register the `ExceptionCatcher` as a type reference.
+
+```dart title="routes/my_app.dart"
+import 'package:revali_router/revali_router.dart';
+
+@App()
+// highlight-next-line
+@Catches(MyException)
+class MyApp ...
+```
+
+:::tip
+Learn more about [type referencing](/constructs/revali_server/tidbits#using-types-in-annotations).
+:::
+
 ### Repetitive Catchers
 
 Its not common, but you can create multiple `ExceptionCatcher` classes that catch the same type of exception. This can be useful if you want to handle the same type of exception in different ways.
