@@ -152,7 +152,7 @@ class ServerParamAnnotations with ExtractImport {
       header != null ||
       param != null ||
       bind != null ||
-      bind != null ||
+      binds != null ||
       dep;
 
   Iterable<ServerReflect> get reflects sync* {
