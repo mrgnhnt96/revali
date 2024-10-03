@@ -10,7 +10,7 @@ title: Installation
 
 Revali Server is a part of the Revali framework. To use Revali Server, you will need to add Revali as a dev dependency to your project. This can be done by adding the following to the `dev_dependencies` section of your `pubspec.yaml` file.
 
-Run the following command to add Revali Server to your project.
+Run the following command to add `revali` to your project.
 
 ```bash
 dart pub add revali --dev
@@ -37,7 +37,7 @@ import 'package:revali_router/revali_router.dart';
 
 Revali Router will be used during runtime, so it will need to be added under the `dependencies` section of your `pubspec.yaml` file.
 
-Run the following command to add Revali Server to your project.
+Run the following command to add `revali_router` to your project.
 
 ```bash
 dart pub add revali_router
@@ -58,7 +58,7 @@ Make sure to replace `<latest-version>` with the latest version of [Revali Route
 
 Revali Server is used by Revali to generate your server code and is not needed at runtime. So add `revali_server` to the `dev_dependencies` section of your `pubspec.yaml` file.
 
-Run the following command to add Revali Server to your project.
+Run the following command to add `revali_server` to your project.
 
 ```bash
 dart pub add revali_server --dev
