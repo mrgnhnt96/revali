@@ -51,7 +51,7 @@ import 'package:revali_router/revali_router.dart';
 
 @App()
 // highlight-next-line
-@Catches(MyException)
+@Catches([MyException])
 class MyApp ...
 ```
 

@@ -31,7 +31,7 @@ There's no limit to the number of guards that can be applied to a controller or 
 
 The `GuardResult` has two possible results: `yes` and `no`. The `yes` result allows the request to continue to the controller or endpoint. The `no` result stops the request from continuing any further in the request flow.
 
-An alternative to using the `action.no` method is to throw an exception. Create an [exception catcher](./exception-catchers.md) to catch the exception and handle the error response.
+An alternative to using the `action.no` method is to throw an exception. Create an [exception catcher](./exception-catchers) to catch the exception and handle the error response.
 
 ::::tip
 Learn about returning error responses in the [docs](/constructs/revali_server/lifecycle-components#error-responses).
@@ -62,7 +62,7 @@ If you have a parameter that can not be provided at compile time, you can regist
 import 'package:revali_router/revali_router.dart';
 
 // highlight-next-line
-@Guards(MyGuard)
+@Guards([MyGuard])
 @Controller('')
 class MyController ...
 ```

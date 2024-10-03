@@ -69,7 +69,7 @@ If you have a parameter that can not be provided at compile time, you can regist
 import 'package:revali_router/revali_router.dart';
 
 // highlight-next-line
-@Intercepts(MyInterceptor)
+@Intercepts([MyInterceptor])
 @Controller('')
 class MyController ...
 ```
