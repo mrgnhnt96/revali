@@ -22,10 +22,6 @@ When a request is received by the server, it is passed to the middleware which w
 "Middleware" used in this context is a general term used to describe lifecycle components and is not the same as the `Middleware` component used in the `revali` framework.
 :::
 
-:::info
-There are different types of lifecycle components that will be discussed in the following sections.
-:::
-
 ### Exceptions
 
 If an exception is thrown during the request lifecycle, the flow will be aborted and the exception will be caught by the server. The server will then send an error response back to the client.
@@ -33,6 +29,18 @@ If an exception is thrown during the request lifecycle, the flow will be aborted
 :::tip
 You can catch exceptions by using the [`Catcher`](./catchers) lifecycle component.
 :::
+
+## Lifecycle Order
+
+1. Request
+1. Observer
+1. Middleware
+1. Guard
+1. Interceptor (Pre)
+1. Endpoint
+1. Interceptor (Post)
+1. Observer
+1. Response
 
 ## Scoping
 
