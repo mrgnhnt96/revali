@@ -1,6 +1,10 @@
 # Guards
 
-A `Guard` is a lifecycle component that is used to protect the execution of the controller and endpoint. Guards are executed after the middleware and before the interceptors.
+A `Guard` is a lifecycle component that is used to protect the execution of the controller and endpoint.
+
+## Execution
+
+Guards are executed after the middleware, before the interceptors.
 
 ## Create a Guard
 
@@ -41,7 +45,7 @@ If the `statusCode` is not set, the default status code will be 403.
 
 To register the `Guard`, annotate your `Guard` class on the app, controller, or endpoint level.
 
-```dart title="lib/controllers/my_controller.dart"
+```dart title="routes/controllers/my_controller.dart"
 import 'package:revali_router/revali_router.dart';
 
 // highlight-next-line
@@ -54,7 +58,7 @@ class MyController ...
 
 If you have a parameter that can not be provided at compile time, you can register the `Guard` as a type reference using the `@Guards()` annotation.
 
-```dart title="lib/controllers/my_controller.dart"
+```dart title="routes/controllers/my_controller.dart"
 import 'package:revali_router/revali_router.dart';
 
 // highlight-next-line
