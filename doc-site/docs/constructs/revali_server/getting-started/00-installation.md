@@ -29,7 +29,7 @@ Make sure to replace `<latest-version>` with the latest version of [Revali](http
 
 ### Revali Router
 
-Under the hood, Revali Server uses [Revali Router](https://pub.dev/packages/revali_router) to define routes. This package depends on all the runtime dependencies of Revali and exports them, making it easier to use `revali_server` in your project. This way, you don't need to have separate import statements for each package, you can just import `revali_router` and get all the necessary dependencies.
+Under the hood, Revali Server uses [Revali Router](https://pub.dev/packages/revali_router) to handle the request routing.
 
 ```dart
 import 'package:revali_router/revali_router.dart';
@@ -81,4 +81,36 @@ After adding the dependencies to your `pubspec.yaml` file, get the dependencies 
 
 ```bash
 dart pub get
+```
+
+## Revali Server Dependencies
+
+Revali Server is comprised of many packages, each serving a different purpose. Here are the runtime packages that make up Revali Server:
+
+### `revali_router`
+
+Handles the request routing for your application during runtime.
+
+### `revali_router_annotations`
+
+The annotations used by `revali_router`, such as `Middleware` and `ExceptionCatcher`
+
+### `revali_router_core`
+
+Contains the fundamental classes used by `revali_router`. Some classes can also be used as annotations.
+
+### `revali_core`
+
+Contains fundamental classes used by `revali`.
+
+### `revali_annotations`
+
+The annotations used by `revali` to define controllers and endpoints.
+
+## Generalized Imports
+
+The `revali_router` package depends on the packages needed for you to create any annotations or classes that you will need to define in your application. So instead of having to import many different packages, you can import the `revali_router` package, which will import all the necessary packages for you.
+
+```dart
+import 'package:revali_router/revali_router.dart';
 ```
