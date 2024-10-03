@@ -19,7 +19,7 @@ Revali Router provides the following annotations to define the http methods for 
 You can only use one method annotation per endpoint.
 :::
 
-### Usage
+### Registering Endpoints
 
 Each annotation accepts an optional argument to define the path of the endpoint. If no argument is provided, the path will be inferred from the controller's path.
 
