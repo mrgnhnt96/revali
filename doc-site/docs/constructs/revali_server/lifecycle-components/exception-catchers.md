@@ -44,7 +44,7 @@ class MyApp ...
 
 ### Register as Type Reference
 
-If you have a parameter that can not be provided at compile time, you can register the `ExceptionCatcher` as a type reference.
+If you have a parameter that can not be provided at compile time, you can register the `ExceptionCatcher` as a type reference using the `@Catchers()` annotation.
 
 ```dart title="routes/my_app.dart"
 import 'package:revali_router/revali_router.dart';
@@ -111,12 +111,6 @@ Scope the `DefaultExceptionCatcher` to the app level to catch all unhandled exce
 
 The `ExceptionCatcher` is responsible for preparing the error response to be sent back to the client.
 
-The `action.handled` method can accept the `statusCode`, `headers`, and `body`. The status code and body values passed to the `action.handled` method will override any values previous set by the request flow, while the headers will be merged with the headers set by the request flow.
-
-:::important
-If the `statusCode` is not set, the default status code will be 500.
-:::
-
 ```dart title="lib/catchers/my_catcher.dart"
 import 'package:revali_router/revali_router.dart';
 
@@ -126,7 +120,7 @@ class MyCatcher extends ExceptionCatcher<MyException> {
     @override
     ExceptionCatcherResult catchException(exception, context, action) {
         return action.handled(
-            statusCode: 400,
+            statusCode: 500,
             headers: {
                 HttpHeaders.contentTypeHeader: 'text/plain',
             }
@@ -136,107 +130,14 @@ class MyCatcher extends ExceptionCatcher<MyException> {
 }
 ```
 
-## Debug Mode
-
-When an exception is thrown during [debug mode](/revali/cli/dev#run-modes), a stack trace will be included in the error response.
-
-Depending on the response content type, the stack trace will be formatted differently.
-
-### String Debug Message
-
-```dart
-action.handled(
-    body: 'An error occurred',
-);
-```
-
-```plaintext
-An error occurred
-
-__DEBUG__:
-Error: Instance of 'MyException'
-
-Stack Trace:
-routes/hello_controller.dart 13:5                            HelloController.hello
-.revali/server/routes/__hello.dart 15:16                     hello.<fn>
-package:revali_router/src/router/execute.dart 56:22          Execute.run.<fn>
-dart:async                                                   runZonedGuarded
-package:revali_router/src/router/execute.dart 54:11          Execute.run
-package:revali_router/src/router/router.dart 159:22          Router.handle
-package:revali_router/src/server/handle_requests.dart 23:20  handleRequests
-```
-
-### Map Debug Message
-
-```dart
-action.handled(
-    body: {
-        'message': 'An error occurred',
-    },
-);
-```
-
-```json
-{
-  "message": "An error occurred",
-  "__DEBUG__": {
-    "error": "Instance of 'MyException'",
-    "stackTrace": [
-      "routes/hello_controller.dart 13:5                            HelloController.hello",
-      ".revali/server/routes/__hello.dart 15:16                     hello.<fn>",
-      "package:revali_router/src/router/execute.dart 56:22          Execute.run.<fn>",
-      "dart:async                                                   runZonedGuarded",
-      "package:revali_router/src/router/execute.dart 54:11          Execute.run",
-      "package:revali_router/src/router/router.dart 159:22          Router.handle",
-      "package:revali_router/src/server/handle_requests.dart 23:20  handleRequests"
-    ]
-  }
-}
-```
-
-### List Debug Message
-
-```dart
-action.handled(
-    body: [
-        'An error occurred',
-    ],
-);
-```
-
-```json
-[
-  "An error occurred",
-  {
-    "__DEBUG__": {
-      "error": "Instance of 'MyException'",
-      "stackTrace": [
-        "routes/hello_controller.dart 13:5                            HelloController.hello",
-        ".revali/server/routes/__hello.dart 15:16                     hello.<fn>",
-        "package:revali_router/src/router/execute.dart 56:22          Execute.run.<fn>",
-        "dart:async                                                   runZonedGuarded",
-        "package:revali_router/src/router/execute.dart 54:11          Execute.run",
-        "package:revali_router/src/router/router.dart 159:22          Router.handle",
-        "package:revali_router/src/server/handle_requests.dart 23:20  handleRequests"
-      ]
-    }
-  }
-]
-```
-
-## Release Mode
-
-Release mode is very similar to debug mode, with a few exceptions (pun intended).
-
-:::tip
-Learn more about [run modes](/revali/cli/dev#run-modes).
+::::tip
+Learn about returning error responses in the [docs](/constructs/revali_server/lifecycle-components#error-responses).
+:::important
+If the `statusCode` is not set, the default status code will be 500.
 :::
+::::
 
-### Debug Message
-
-The error response will not include any debug messages.
-
-### 500 Status Code
+## Unhandled Exceptions
 
 When an exception is not handled by any `ExceptionCatcher`, the default status code will be 500. The body will be set to the default error message.
 

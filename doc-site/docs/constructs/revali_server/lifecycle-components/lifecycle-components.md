@@ -1,5 +1,6 @@
 ---
 title: Lifecycle Components
+slug: /constructs/revali_server/lifecycle-components
 ---
 
 # Overview
@@ -151,3 +152,99 @@ In the example above, the order of middleware execution is as follows:
 7. `MiddlewareB`
 8. `MiddlewareA`
 9. `Middleware0`
+
+## Error Responses
+
+Some lifecycle components are responsible for returning error responses. Such components include `ExceptionCatcher`, `Guard`, and `Middleware`.
+
+Typically, a lifecycle component that can return an error response can accept a `statusCode`, `headers`, and `body`. The status code and body values passed to the method will override any values previous set by the request flow, while the headers will be merged with the headers set by the request flow.
+
+### Debug Mode
+
+When an error response is returned in [debug mode](/revali/cli/dev#run-modes), a stack trace will be included in the error response.
+
+Depending on the response content type, the stack trace will be formatted differently.
+
+:::tip
+Learn more about [run modes](/revali/cli/dev#run-modes).
+:::
+
+#### String Debug Message
+
+```dart
+body: 'An error occurred',
+```
+
+```plaintext
+An error occurred
+
+__DEBUG__:
+Error: Instance of 'MyException'
+
+Stack Trace:
+routes/hello_controller.dart 13:5                            HelloController.hello
+.revali/server/routes/__hello.dart 15:16                     hello.<fn>
+package:revali_router/src/router/execute.dart 56:22          Execute.run.<fn>
+dart:async                                                   runZonedGuarded
+package:revali_router/src/router/execute.dart 54:11          Execute.run
+package:revali_router/src/router/router.dart 159:22          Router.handle
+package:revali_router/src/server/handle_requests.dart 23:20  handleRequests
+```
+
+#### Map Debug Message
+
+```dart
+body: {
+  'message': 'An error occurred',
+},
+```
+
+```json
+{
+  "message": "An error occurred",
+  "__DEBUG__": {
+    "error": "Instance of 'MyException'",
+    "stackTrace": [
+      "routes/hello_controller.dart 13:5                            HelloController.hello",
+      ".revali/server/routes/__hello.dart 15:16                     hello.<fn>",
+      "package:revali_router/src/router/execute.dart 56:22          Execute.run.<fn>",
+      "dart:async                                                   runZonedGuarded",
+      "package:revali_router/src/router/execute.dart 54:11          Execute.run",
+      "package:revali_router/src/router/router.dart 159:22          Router.handle",
+      "package:revali_router/src/server/handle_requests.dart 23:20  handleRequests"
+    ]
+  }
+}
+```
+
+#### List Debug Message
+
+```dart
+body: [
+  'An error occurred',
+],
+```
+
+```json
+[
+  "An error occurred",
+  {
+    "__DEBUG__": {
+      "error": "Instance of 'MyException'",
+      "stackTrace": [
+        "routes/hello_controller.dart 13:5                            HelloController.hello",
+        ".revali/server/routes/__hello.dart 15:16                     hello.<fn>",
+        "package:revali_router/src/router/execute.dart 56:22          Execute.run.<fn>",
+        "dart:async                                                   runZonedGuarded",
+        "package:revali_router/src/router/execute.dart 54:11          Execute.run",
+        "package:revali_router/src/router/router.dart 159:22          Router.handle",
+        "package:revali_router/src/server/handle_requests.dart 23:20  handleRequests"
+      ]
+    }
+  }
+]
+```
+
+### Release Mode
+
+When an error response is returned in release mode, the error response will not include any debug messages.
