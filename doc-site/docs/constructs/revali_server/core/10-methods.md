@@ -70,8 +70,20 @@ class HelloController {
 Notice that the `name` parameter is annotated with `@Param()`. This annotation is used to bind the path parameter to the method's parameter.
 
 :::tip
-Check out [Parameter Annotations](./parameters.md) to learn more about annotating parameters.
+Check out [Parameter Annotations](./20-binding) to learn more about annotating parameters.
 :::
+
+### Controller Parameters
+
+Path parameters are not limited to endpoints, you can also define them in the controller's path.
+
+```dart
+import 'package:revali_router/revali_router.dart';
+
+// highlight-next-line
+@Controller('shop/:shopId')
+class ShopController ...
+```
 
 ## Basic Usage
 
