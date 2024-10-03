@@ -2,6 +2,8 @@
 
 An `Interceptor` is a lifecycle component that can be used to modify the request or response before or after the request is processed by the controller or endpoint.
 
+Interceptors are useful for binding data to the request context, transforming the request or response, and other tasks that need to be executed before or after the endpoint.
+
 ## Execution
 
 Interceptors are executed in two phases:
