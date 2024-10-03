@@ -1,5 +1,19 @@
 # TODO
 
+## 10.3.2024
+
+- [ ] Add `create` command to the revali cli to create new
+  - [ ] Constructs
+  - [ ] Routes
+  - [ ] Controllers
+  - [ ] Guards
+  - [ ] Exception Catchers
+  - [ ] Pipes
+  - [ ] Interceptors
+  - [ ] Middlewares
+  - [ ] Apps
+  - [ ] (etc)
+
 ## 7.17.2024
 
 ## Feedback
