@@ -2,6 +2,8 @@
 
 A `Guard` is a lifecycle component that is used to protect the execution of the controller and endpoint.
 
+A guard can be used for checking if the user is authenticated, if the user has the correct permissions, or any other condition that needs to be met before the controller or endpoint is executed.
+
 ## Execution
 
 Guards are executed after the middleware, before the interceptors.
