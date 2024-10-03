@@ -1,11 +1,7 @@
 import 'package:revali_construct/revali_construct.dart';
+import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_router_core/revali_router_core.dart';
-import 'package:revali_server/converters/server_app_annotation.dart';
-import 'package:revali_server/converters/server_imports.dart';
-import 'package:revali_server/converters/server_mimic.dart';
-import 'package:revali_server/converters/server_param.dart';
-import 'package:revali_server/converters/server_route_annotations.dart';
-import 'package:revali_server/utils/extract_import.dart';
+import 'package:revali_server/revali_server.dart';
 
 class ServerApp with ExtractImport {
   ServerApp({
@@ -20,7 +16,7 @@ class ServerApp with ExtractImport {
   });
 
   factory ServerApp.fromMeta(MetaAppConfig app) {
-    final observers = <ServerMimic>[];
+    final observers = ServerAppObservers();
 
     app.annotationsFor(
       onMatch: [
@@ -28,7 +24,17 @@ class ServerApp with ExtractImport {
           classType: Observer,
           package: 'revali_router_core',
           convert: (object, annotation) {
-            observers.add(ServerMimic.fromDartObject(object, annotation));
+            observers.mimics
+                .add(ServerMimic.fromDartObject(object, annotation));
+          },
+        ),
+        OnMatch(
+          classType: Observers,
+          package: 'revali_router_annotations',
+          convert: (object, annotation) {
+            observers.types.add(
+              ServerTypeReference.fromElement(object, superType: Observer),
+            );
           },
         ),
       ],
@@ -53,13 +59,13 @@ class ServerApp with ExtractImport {
   final ServerAppAnnotation appAnnotation;
   final ServerRouteAnnotations globalRouteAnnotations;
   final bool isSecure;
-  final Iterable<ServerMimic> observers;
+  final ServerAppObservers observers;
 
   @override
   List<ExtractImport?> get extractors => [
         ...params,
         globalRouteAnnotations,
-        ...observers,
+        observers,
       ];
 
   @override

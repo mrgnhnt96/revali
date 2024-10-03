@@ -16,6 +16,7 @@ export 'src/http_code.dart';
 export 'src/intercepts.dart';
 export 'src/meta.dart';
 export 'src/middlewares.dart';
+export 'src/observers.dart';
 export 'src/param.dart';
 export 'src/pipe.dart';
 export 'src/query.dart';

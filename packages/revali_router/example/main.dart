@@ -44,7 +44,7 @@ final routes = [
       Route(
         ':id',
         catchers: const [],
-        guards: [AuthGuard()],
+        guards: const [AuthGuard()],
         handler: (context) async {
           context.response.statusCode = 200;
           context.response.body = {'id': 'hi'};
@@ -70,7 +70,9 @@ final routes = [
   ),
 ];
 
-class AuthGuard extends Guard {
+final class AuthGuard implements Guard {
+  const AuthGuard();
+
   @override
   Future<GuardResult> canActivate(
     GuardContext context,
@@ -135,7 +137,7 @@ class Role {
   final String name;
 }
 
-class BodyInterceptor extends Interceptor {
+class BodyInterceptor implements Interceptor {
   const BodyInterceptor();
 
   @override

@@ -124,10 +124,15 @@ String serverFile(
                     refer('_routes').spread,
                     refer('public').spread,
                   ]),
-                  if (app.observers.isNotEmpty)
+                  if (app.observers.hasObservers)
                     'observers': literalConstList([
-                      for (final observer in app.observers)
-                        createMimic(observer),
+                      if (app.observers.types.expand((e) => e.types)
+                          case final observers when observers.isNotEmpty)
+                        for (final observer in observers)
+                          createClass(observer, defaultArg: createGetFromDi()),
+                      if (app.observers.mimics case final mimics
+                          when mimics.isNotEmpty)
+                        for (final type in mimics) createMimic(type),
                     ]),
                   'reflects': refer('reflects'),
                   'defaultResponses': refer('app').property('defaultResponses'),

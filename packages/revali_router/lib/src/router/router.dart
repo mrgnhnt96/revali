@@ -129,7 +129,7 @@ class Router extends Equatable {
       ).run();
 
       if (match == null) {
-        return _debugResponse(
+        final response = _debugResponse(
           defaultResponses.notFound,
           error: RouteNotFoundException(
             method: request.method,
@@ -137,6 +137,10 @@ class Router extends Equatable {
           ),
           stackTrace: StackTrace.current,
         );
+
+        responseCompleter.complete(response);
+
+        return response;
       }
 
       final RouteMatch(:route, :pathParameters) = match;

@@ -16,11 +16,11 @@ Map<String, Expression> createModifierArgs({
   return {
     if (mimics.catchers.isNotEmpty || typeReferences.catchers.isNotEmpty)
       'catchers': literalList([
-        if (mimics.catchers.isNotEmpty)
-          for (final catcher in mimics.catchers) createMimic(catcher),
-        if (typeReferences.catchers.isNotEmpty)
-          for (final catches in typeReferences.catchers)
-            for (final catcher in catches.types) createClass(catcher),
+        if (mimics.catchers case final catchers when catchers.isNotEmpty)
+          for (final catcher in catchers) createMimic(catcher),
+        if (typeReferences.catchers.expand((e) => e.types) case final catchers
+            when catchers.isNotEmpty)
+          for (final catcher in catchers) createClass(catcher),
       ]),
     if (annotations.data.isNotEmpty)
       'data':
