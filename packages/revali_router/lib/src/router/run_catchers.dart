@@ -10,9 +10,33 @@ class RunCatchers {
     StackTrace stackTrace, {
     ReadOnlyResponse? defaultResponse,
   }) =>
-      run(e, stackTrace);
+      run(
+        e,
+        stackTrace,
+        defaultResponse: defaultResponse,
+      );
 
   Future<ReadOnlyResponse> run(
+    Object e,
+    StackTrace stackTrace, {
+    ReadOnlyResponse? defaultResponse,
+  }) async {
+    try {
+      return await _run(e, stackTrace, defaultResponse: defaultResponse);
+    } catch (e) {
+      final HelperMixin(
+        :defaultResponses,
+      ) = helper;
+
+      return helper.debugErrorResponse(
+        defaultResponse ?? defaultResponses.internalServerError,
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  Future<ReadOnlyResponse> _run(
     Object e,
     StackTrace stackTrace, {
     ReadOnlyResponse? defaultResponse,
@@ -64,7 +88,7 @@ class RunCatchers {
       }
     }
 
-    return helper.debugErrorResponse(
+    return debugErrorResponse(
       defaultResponse,
       error: e,
       stackTrace: stackTrace,
