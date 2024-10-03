@@ -34,66 +34,75 @@ If an exception is thrown during the request lifecycle, the flow will be aborted
 You can catch exceptions by using the [`Catcher`](./catchers) lifecycle component.
 :::
 
-## Inheritance
+## Scoping
 
-Let's say that we want to print a timestamp to the console every time a request is received by the server. One way we can do this is by creating a `Middleware` class.
+Lifecycle components can be applied at different levels of the application. They can be applied at the app, controller, or endpoint level. By applying lifecycle components at different levels, you can control where the lifecycle component is or isn't applied.
 
-```dart title="lib/middlewares/timestamp.dart"
-class Timestamp implements Middleware {
-    const Timestamp();
+### App Level
 
-    Future<MiddlewareResult> use(context, action)  async {
-        print(DateTime.now());
-
-        return action.next();
-    }
-}
-```
-
-If we wanted to apply this to a specific endpoint, we could do so by adding `Timestamp` as an annotation to the endpoint.
-
-```dart title="routes/controllers/my_controller.dart"
-@Controller('')
-class MyController {
-
-    @Get()
-    // highlight-next-line
-    @Timestamp()
-    String hello() {
-        return 'world';
-    }
-}
-```
-
-:::note
-The order of the annotations between lifecycle component annotations and non-lifecycle component annotations does not matter.
-:::
-
-If wanted to apply the `Timestamp` middleware to all endpoints in the `MyController` controller, we can apply the `Timestamp` middleware to the `MyController` class.
-
-```dart title="routes/controllers/my_controller.dart"
-// highlight-next-line
-@Timestamp()
-@Controller('')
-class MyController {
-
-    @Get()
-    String hello() {
-        return 'world';
-    }
-}
-```
-
-Lastly, if we wanted to apply the `Timestamp` middleware to all endpoints in the `MyApp` App, we can apply the `Timestamp` middleware to the `MyApp` class.
+To apply a lifecycle component to the entire application, you can annotate the app with the lifecycle component.
 
 ```dart title="routes/apps/my_app.dart"
+import 'package:revali_router/revali_router.dart';
+
 // highlight-next-line
-@Timestamp()
+@MyLifecycleComponent()
 @App()
 class MyApp extends AppConfig {
     ...
 }
 ```
+
+:::info
+The `MyLifecycleComponent` will be applied to all requests received by the server.
+:::
+
+### Controller Level
+
+To apply a lifecycle component to a specific controller, you can annotate the controller with the lifecycle component.
+
+```dart title="routes/controllers/my_controller.dart"
+import 'package:revali_router/revali_router.dart';
+
+// highlight-next-line
+@MyLifecycleComponent()
+@Controller('')
+class MyController {
+    ...
+}
+```
+
+:::info
+The `MyLifecycleComponent` will only be applied to requests received by the `MyController` controller.
+:::
+
+### Endpoint Level
+
+To apply a lifecycle component to a specific endpoint, you can annotate the endpoint with the lifecycle component.
+
+```dart title="routes/controllers/my_controller.dart"
+import 'package:revali_router/revali_router.dart';
+
+@Controller('')
+class MyController {
+    ...
+
+    @Get()
+    // highlight-next-line
+    @MyLifecycleComponent()
+    String hello() {
+        return 'world';
+    }
+}
+```
+
+:::info
+The `MyLifecycleComponent` will only be applied to requests received by the `hello` endpoint.
+:::
+
+:::note
+The order of the annotations between lifecycle component annotations and non-lifecycle component annotations does not matter.
+:::
 
 ## Order of Execution
 
