@@ -4,15 +4,10 @@ import 'package:revali_router_core/interceptor/interceptor.dart';
 import 'package:revali_router_core/middleware/middleware.dart';
 
 abstract interface class CombineComponents {
-  const CombineComponents({
-    this.guards = const [],
-    this.middlewares = const [],
-    this.interceptors = const [],
-    this.catchers = const [],
-  });
+  const CombineComponents();
 
-  final Iterable<Guard> guards;
-  final Iterable<Middleware> middlewares;
-  final Iterable<Interceptor> interceptors;
-  final Iterable<ExceptionCatcher> catchers;
+  Iterable<Guard> get guards;
+  Iterable<Middleware> get middlewares;
+  Iterable<Interceptor> get interceptors;
+  Iterable<ExceptionCatcher> get catchers;
 }
