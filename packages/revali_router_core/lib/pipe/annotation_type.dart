@@ -3,7 +3,8 @@ enum AnnotationType {
   query,
   queryAll,
   param,
-  custom,
+  bind,
   header,
+  headerAll,
   binds,
 }

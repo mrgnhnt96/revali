@@ -46,7 +46,7 @@ Expression createArgFromHeader(
       pipe,
       annotationArgument: name == null ? literalNull : literalString(name),
       nameOfParameter: param.name,
-      type: AnnotationType.header,
+      type: annotation.all ? AnnotationType.headerAll : AnnotationType.header,
       access: headerValue,
     );
   }
