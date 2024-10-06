@@ -69,4 +69,4 @@ The `data` property is a mutable property for the [DataHandler](./core/data_hand
 
 ### `meta`
 
-The `meta` property is a mutable (restricted) property for the [Meta](./core/meta) object.
+The `meta` property is a mutable (restricted) property for the [Meta](./core/meta_handler)
