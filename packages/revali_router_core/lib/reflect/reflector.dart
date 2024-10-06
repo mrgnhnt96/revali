@@ -1,14 +1,19 @@
 import 'package:revali_router_core/meta/meta_handler.dart';
-import 'package:revali_router_core/meta/write_only_meta.dart';
+import 'package:revali_router_core/meta/read_only_meta.dart';
+import 'package:revali_router_core/reflect/read_only_reflector.dart';
 import 'package:revali_router_core/reflect/write_only_reflector.dart';
 
-class Reflector implements WriteOnlyReflector {
-  final Map<String, WriteOnlyMeta> _meta = {};
+class Reflector implements WriteOnlyReflector, ReadOnlyReflector {
+  final Map<String, MetaHandler> _meta = {};
 
+  @override
   Map<String, MetaHandler> get meta => Map.unmodifiable(_meta);
 
   @override
-  WriteOnlyMeta operator [](String key) {
+  MetaHandler operator [](String key) {
     return _meta[key] ??= MetaHandler();
   }
+
+  @override
+  ReadOnlyMeta get(String key) => this[key];
 }
