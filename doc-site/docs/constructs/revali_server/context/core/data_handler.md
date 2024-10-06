@@ -4,7 +4,7 @@ The `DataHandler` is a singleton object to share data between different parts of
 
 ## Adding Data
 
-To add data to the `DataHandler`, you can use the `add` method.
+To add data to the `DataHandler`, you can use the `add` method. Every time you add data, if there was already data of the same type, it will be replaced.
 
 ```dart
 context.data.add<T>(T value);
@@ -12,6 +12,18 @@ context.data.add<T>(T value);
 
 :::note
 There are some lifecycle components that can only read data from the `DataHandler` and not write to it.
+:::
+
+:::tip
+Its not recommended to store primitive types in the `DataHandler`. Instead, create a class that holds the primitive type or use [extension types](https://dart.dev/language/extension-types).
+
+```dart
+extension type UserId(String _) implements String {}
+
+context.data.add(UserId('1234'));
+context.data.get<UserId>();
+```
+
 :::
 
 ## Reading Data
