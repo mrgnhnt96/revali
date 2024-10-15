@@ -20,7 +20,7 @@ You can think of a basic request lifecycle as follows:
 When a request is received by the server, it is passed to the middleware which will performs it's task. The middleware then passes the request to the controller's endpoint which will process the request and resolve the response to send. The response is then passed back to the middleware in reverse order. Finally, the response is then sent back to the client.
 
 :::caution
-"Middleware" used in this context is a general term used to describe lifecycle components and is not the same as the `Middleware` component used in the `revali` framework.
+"Middleware" used in this context is a general term used to describe _any_ Lifecycle Component and is not the same as the `Middleware` component used in the `revali` framework.
 :::
 
 ### Exceptions
@@ -110,7 +110,7 @@ The `MyLifecycleComponent` will only be applied to requests received by the `hel
 :::
 
 :::note
-The order of the annotations between lifecycle component annotations and non-lifecycle component annotations does not matter.
+The order of the annotations between lifecycle components and non-lifecycle components does not matter.
 :::
 
 ## Order of Execution
@@ -120,7 +120,7 @@ The order of execution of lifecycle components is important. When a request is r
 If we have multiple lifecycle components applied to an endpoint, the order of execution is from top to bottom.
 
 ```dart title="routes/apps/my_app.dart"
-@Middleware0()
+@LifecycleComponent0()
 @App()
 class MyApp extends AppConfig {
     ...
@@ -128,30 +128,30 @@ class MyApp extends AppConfig {
 ```
 
 ```dart title="routes/controllers/my_controller.dart"
-@MiddlewareA()
+@LifecycleComponentA()
 @Controller('')
 class MyController {
 
     @Get()
-    @MiddlewareB()
-    @MiddlewareC()
+    @LifecycleComponentB()
+    @LifecycleComponentC()
     String hello() {
         return 'world';
     }
 }
 ```
 
-In the example above, the order of middleware execution is as follows:
+In the example above, the order of Lifecycle Component execution is as follows:
 
-1. `Middleware0`
-2. `MiddlewareA`
-3. `MiddlewareB`
-4. `MiddlewareC`
+1. `LifecycleComponent0`
+2. `LifecycleComponentA`
+3. `LifecycleComponentB`
+4. `LifecycleComponentC`
 5. -- endpoint --
-6. `MiddlewareC`
-7. `MiddlewareB`
-8. `MiddlewareA`
-9. `Middleware0`
+6. `LifecycleComponentC`
+7. `LifecycleComponentB`
+8. `LifecycleComponentA`
+9. `LifecycleComponent0`
 
 ## Error Responses
 
@@ -244,6 +244,11 @@ body: [
   }
 ]
 ```
+
+### Profile Mode
+
+:::important 🚧 Under Construction 🚧
+:::
 
 ### Release Mode
 

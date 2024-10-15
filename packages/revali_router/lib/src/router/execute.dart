@@ -68,12 +68,12 @@ class Execute {
 
 ================ !!!! WARNING !!!! ================
 
-An uncaught exception was thrown after the handler was resolved.
+An uncaught exception was thrown after the handler (your endpoint's code) was resolved.
 This will result in unexpected behavior and may cause the server to crash.
 
-This is likely because the handlers return type is not a `Future`.
+This is likely because the handler's return type is not a `Future`, or an asynchronous method was invoked and not awaited properly.
 
-Please ensure that all handlers that use the `await` keyword or invoke asynchronous methods are returning a `Future`.
+Please ensure that all handlers that use the `await` keyword or invoke asynchronous methods have a return of `Future`.
 
 Error:
 $e
