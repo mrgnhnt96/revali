@@ -49,6 +49,8 @@ export 'payload/payload.dart';
 export 'pipe/annotation_type.dart';
 export 'pipe/pipe_context.dart';
 export 'redirect/redirect.dart';
+export 'reflect/read_only_reflect_handler.dart';
+export 'reflect/read_only_reflector.dart';
 export 'reflect/reflect.dart';
 export 'reflect/reflect_handler.dart';
 export 'reflect/reflector.dart';

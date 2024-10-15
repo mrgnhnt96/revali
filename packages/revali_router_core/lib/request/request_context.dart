@@ -8,11 +8,11 @@ abstract class RequestContext {
   const RequestContext();
 
   PayloadResolver? get payloadResolver;
-  List<String> get segments;
+  Iterable<String> get segments;
   String get method;
   ReadOnlyHeaders get headers;
   Map<String, String> get queryParameters;
-  Map<String, List<String>> get queryParametersAll;
+  Map<String, Iterable<String>> get queryParametersAll;
   Uri get uri;
 
   UnderlyingRequest get request;

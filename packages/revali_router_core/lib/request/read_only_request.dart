@@ -14,17 +14,17 @@ abstract class ReadOnlyRequest {
 
   Map<String, String> get queryParameters;
 
-  Map<String, List<String>> get queryParametersAll;
+  Map<String, Iterable<String>> get queryParametersAll;
 
   Map<String, String> get pathParameters;
 
   // This will be implemented in the future
   // ignore: unused_element
-  Map<String, List<String>> get _wildcardParameters;
+  Map<String, Iterable<String>> get _wildcardParameters;
 
   String get method;
 
   Uri get uri;
 
-  List<String> get segments;
+  Iterable<String> get segments;
 }
