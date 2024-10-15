@@ -16,7 +16,7 @@ class HelloController {
 
   @Get('sup')
   String hello2(
-    @Binds(GetUser) User user,
+    @Data() User? user,
   ) {
     return 'Hello, World!';
   }

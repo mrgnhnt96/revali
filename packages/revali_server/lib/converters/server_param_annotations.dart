@@ -17,6 +17,7 @@ class ServerParamAnnotations with ExtractImport {
     required this.query,
     required this.param,
     required this.dep,
+    required this.data,
     required this.header,
     required this.binds,
     required this.bind,
@@ -47,6 +48,7 @@ class ServerParamAnnotations with ExtractImport {
     ServerMimic? bind;
     ServerBindsAnnotation? binds;
     bool? dep;
+    bool? data;
 
     getter(
       onMatch: [
@@ -94,6 +96,13 @@ class ServerParamAnnotations with ExtractImport {
           },
         ),
         OnMatch(
+          classType: Data,
+          package: 'revali_router_annotations',
+          convert: (object, annotation) {
+            data = true;
+          },
+        ),
+        OnMatch(
           classType: Binds,
           package: 'revali_router_annotations',
           convert: (object, annotation) {
@@ -112,6 +121,7 @@ class ServerParamAnnotations with ExtractImport {
       bind,
       dep,
       binds,
+      data,
     ]) {
       if (annotation == null) {
         continue;
@@ -135,6 +145,7 @@ class ServerParamAnnotations with ExtractImport {
       header: header,
       dep: dep ?? false,
       binds: binds,
+      data: data ?? false,
     );
   }
 
@@ -145,6 +156,7 @@ class ServerParamAnnotations with ExtractImport {
   final ServerBindsAnnotation? binds;
   final ServerMimic? bind;
   final bool dep;
+  final bool data;
 
   bool get hasAnnotation =>
       body != null ||
@@ -153,6 +165,7 @@ class ServerParamAnnotations with ExtractImport {
       param != null ||
       bind != null ||
       binds != null ||
+      data ||
       dep;
 
   Iterable<ServerReflect> get reflects sync* {

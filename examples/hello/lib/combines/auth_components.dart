@@ -1,3 +1,4 @@
+import 'package:hello/custom_params/get_user.dart';
 import 'package:revali_router/revali_router.dart';
 
 class AuthGuard implements Guard {
@@ -26,5 +27,17 @@ final class AuthComponents implements CombineComponents {
   List<Interceptor> get interceptors => [];
 
   @override
-  List<Middleware> get middlewares => [];
+  List<Middleware> get middlewares => [AuthMiddleware()];
+}
+
+class AuthMiddleware implements Middleware {
+  @override
+  Future<MiddlewareResult> use(
+    MiddlewareContext context,
+    MiddlewareAction action,
+  ) async {
+    context.data.add(const User());
+
+    return action.next();
+  }
 }

@@ -6,6 +6,7 @@ import 'package:revali_server/converters/server_param.dart';
 import 'package:revali_server/makers/creators/create_arg_from_binds.dart';
 import 'package:revali_server/makers/creators/create_arg_from_body.dart';
 import 'package:revali_server/makers/creators/create_arg_from_custom_param.dart';
+import 'package:revali_server/makers/creators/create_arg_from_data.dart';
 import 'package:revali_server/makers/creators/create_arg_from_header.dart';
 import 'package:revali_server/makers/creators/create_arg_from_param.dart';
 import 'package:revali_server/makers/creators/create_arg_from_query.dart';
@@ -52,6 +53,10 @@ Expression createParamArg(
 
   if (annotation.dep) {
     return createGetFromDi();
+  }
+
+  if (annotation.data) {
+    return createArgFromData(param);
   }
 
   if (annotation.body case final bodyAnnotation?) {

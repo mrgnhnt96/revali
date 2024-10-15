@@ -1,5 +1,6 @@
 enum AnnotationType {
   body,
+  data,
   query,
   queryAll,
   param,

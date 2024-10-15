@@ -6,7 +6,8 @@
 
 export 'package:revali_annotations/revali_annotations.dart';
 export 'package:revali_router_annotations/revali_router_annotations.dart';
-export 'package:revali_router_core/revali_router_core.dart' hide AppConfig;
+export 'package:revali_router_core/revali_router_core.dart'
+    hide AppConfig, Data;
 export 'src/body/response_body/base_body_data.dart';
 
 export 'src/access_control/allowed_headers_impl.dart';
