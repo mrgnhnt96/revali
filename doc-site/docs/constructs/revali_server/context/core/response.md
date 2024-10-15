@@ -1,4 +1,0 @@
-# Response
-
-:::important 🚧 Under Construction 🚧
-:::

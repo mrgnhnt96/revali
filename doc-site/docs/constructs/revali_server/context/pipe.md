@@ -29,6 +29,7 @@ In the above example, the `type` will return `AnnotationType.body`.
 The available annotation types are:
 
 - [body](../core/binding#body)
+- [data](../core/binding#data)
 - [query](../core/binding#query)
 - [queryAll](../core/binding#all-values)
 - [param](../core/binding#param)
