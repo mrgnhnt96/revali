@@ -31,9 +31,9 @@ class PayloadImpl implements Payload {
     };
 
     final stream = switch (body) {
-      String() => Stream.fromIterable([encoded!]),
-      null => Stream.fromIterable([encoded!]),
-      List() => Stream.value(encoded!),
+      String() => Stream.fromIterable([encoded ?? []]),
+      null => Stream.fromIterable([encoded ?? []]),
+      List() => Stream.value(encoded ?? []),
       Stream<List<int>>() => body,
       Stream() => body.cast<List<int>>(),
       _ => throw ArgumentError(
@@ -81,8 +81,13 @@ class PayloadImpl implements Payload {
     this.contentLength,
   }) : _stream = stream;
 
-  static Map<String, Future<BodyData> Function(Encoding, Stream<List<int>>)>
-      additionalParsers = {};
+  static Map<
+      String,
+      Future<BodyData> Function(
+        Encoding,
+        Stream<List<int>>,
+        ReadOnlyHeaders,
+      )> additionalParsers = {};
 
   final Stream<List<int>> _stream;
   @override
@@ -110,13 +115,13 @@ class PayloadImpl implements Payload {
     try {
       final bodyData = await switch (headers.mimeType) {
         'application/json' => _resolveJson(encoding),
-        'application/x-www-form-urlencoded' =>
-          _resolveFormUrl(encoding, headers.contentType),
+        'application/x-www-form-urlencoded' => _resolveFormUrl(encoding),
         'multipart/form-data' =>
           _resolveFormData(encoding, headers.contentType),
         'text/plain' => _resolveString(encoding),
         'application/octet-stream' => _resolveBinary(encoding),
-        _ => additionalParsers[headers.mimeType]?.call(encoding, read()) ??
+        _ => additionalParsers[headers.mimeType]
+                ?.call(encoding, read(), headers) ??
             _resolveUnknown(encoding, headers.mimeType),
       };
 
@@ -162,7 +167,6 @@ class PayloadImpl implements Payload {
 
   Future<FormDataBodyData> _resolveFormUrl(
     Encoding encoding,
-    MediaType? contentType,
   ) async {
     final content = await encoding.decodeStream(read());
     final data = Uri.splitQueryString(content);

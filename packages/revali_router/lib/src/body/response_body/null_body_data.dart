@@ -1,6 +1,6 @@
 part of './base_body_data.dart';
 
-class NullBodyData extends BaseBodyData<Null> {
+base class NullBodyData extends BaseBodyData<Null> {
   NullBodyData() : super(null);
 
   @override

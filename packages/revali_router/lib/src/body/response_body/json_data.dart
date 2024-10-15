@@ -1,6 +1,6 @@
 part of 'base_body_data.dart';
 
-abstract class JsonData<T> extends BaseBodyData<T> {
+abstract base class JsonData<T> extends BaseBodyData<T> {
   JsonData(super.data);
 
   String? _cached;

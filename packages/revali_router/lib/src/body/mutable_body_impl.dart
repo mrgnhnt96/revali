@@ -2,7 +2,7 @@ import 'package:revali_router/src/body/response_body/base_body_data.dart';
 import 'package:revali_router/src/headers/mutable_headers_impl.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
-class MutableBodyImpl extends MutableBody {
+base class MutableBodyImpl extends MutableBody {
   MutableBodyImpl([this.__data]);
 
   BodyData? __data;

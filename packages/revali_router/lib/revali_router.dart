@@ -29,6 +29,7 @@ export 'src/exceptions/route_not_found_exception.dart';
 export 'src/guard/guard_context_impl.dart';
 export 'src/guard/guard_meta_impl.dart';
 export 'src/headers/common_headers_mixin.dart';
+export 'src/headers/empty_headers.dart';
 export 'src/headers/mutable_headers_impl.dart';
 export 'src/interceptor/interceptor_context_impl.dart';
 export 'src/interceptor/interceptor_meta_impl.dart';

@@ -49,6 +49,8 @@ sealed class BaseBodyData<T> extends BodyData {
   @override
   final T data;
 
+  @override
+  bool get isNull => this is NullBodyData;
   bool get isBinary => this is BinaryBodyData;
   bool get isString => this is StringBodyData;
   bool get isJson => this is JsonBodyData;
@@ -56,14 +58,19 @@ sealed class BaseBodyData<T> extends BodyData {
   bool get isFormData => this is FormDataBodyData;
   bool get isUnknown => this is UnknownBodyData;
   bool get isStream => this is StreamBodyData;
+  bool get isFile => this is FileBodyData;
+  bool get isMemoryFile => this is MemoryFileBodyData;
+  bool get isByteStream => this is ByteStreamBodyData;
 
-  @override
-  bool get isNull => false;
-
+  NullBodyData get asNull => this as NullBodyData;
   BinaryBodyData get asBinary => this as BinaryBodyData;
   StringBodyData get asString => this as StringBodyData;
   JsonBodyData get asJson => this as JsonBodyData;
   ListBodyData get asList => this as ListBodyData;
   FormDataBodyData get asFormData => this as FormDataBodyData;
+  UnknownBodyData get asUnknown => this as UnknownBodyData;
   StreamBodyData get asStream => this as StreamBodyData;
+  FileBodyData get asFile => this as FileBodyData;
+  MemoryFileBodyData get asMemoryFile => this as MemoryFileBodyData;
+  ByteStreamBodyData get asByteStream => this as ByteStreamBodyData;
 }

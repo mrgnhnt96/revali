@@ -37,6 +37,7 @@ export 'makers/creators/create_app.dart';
 export 'makers/creators/create_arg_from_binds.dart';
 export 'makers/creators/create_arg_from_body.dart';
 export 'makers/creators/create_arg_from_custom_param.dart';
+export 'makers/creators/create_arg_from_data.dart';
 export 'makers/creators/create_arg_from_header.dart';
 export 'makers/creators/create_arg_from_param.dart';
 export 'makers/creators/create_arg_from_query.dart';
