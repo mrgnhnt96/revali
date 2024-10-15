@@ -13,6 +13,7 @@ Binding annotations are used to make a connection between parameters to values f
 | `@Header()` | Binds a header | ✅ | ❌ |
 | `@Body()` | Binds the body | ✅ | ❌ |
 | `@Dep()` | Binds a dependency | ✅ | ✅ |
+| `@Data()` | Binds a value from the Data Handler | ✅ | ✅ |
 | `Bind` | Binds a custom value | ✅ | ✅ |
 
 :::important
@@ -232,6 +233,33 @@ class UserController {
 :::warning
 If the dependency doesn't exist, the method will throw a runtime error. Controllers are resolved as soon as the application starts, so any missing dependencies will be caught early.
 :::
+
+## `@Data()`
+
+The `Data` annotation is used to bind a value from the [Data Handler](/constructs/revali_server/context/core/data_handler) to a parameter.
+
+```dart showLineNumbers
+@Get()
+String getUser(
+  // highlight-next-line
+  @Data() User user,
+) {
+  return 'User: $user';
+}
+```
+
+::::warning
+If the value doesn't exist within the Data Handler, the method will throw a runtime error.
+
+:::tip
+If the value is optional, you can make the parameter nullable. This will prevent the method from throwing an error if the value doesn't exist.
+
+```dart
+@Data() User? user,
+```
+
+:::
+::::
 
 ## `Bind`
 
