@@ -5,7 +5,7 @@ import 'package:revali_router_core/revali_router_core.dart';
 class MutableWebSocketRequestImpl extends MutableRequestImpl
     implements MutableWebSocketRequest {
   // ignore: use_super_parameters
-  MutableWebSocketRequestImpl.fromRequest(MutableRequest request)
+  MutableWebSocketRequestImpl.fromRequest(FullRequest request)
       : _originalBody = request.body,
         super.fromRequest(request);
 

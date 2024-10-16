@@ -9,7 +9,7 @@ typedef DebugErrorResponse = ReadOnlyResponse Function(
 mixin HelperMixin {
   BaseRoute get route;
   LifecycleComponents get globalComponents;
-  MutableRequest get request;
+  FullRequest get request;
   MutableResponse get response;
   DataHandler get dataHandler;
   MetaHandler get directMeta;

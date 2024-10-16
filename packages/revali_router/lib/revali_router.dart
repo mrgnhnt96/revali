@@ -26,6 +26,7 @@ export 'src/exceptions/missing_argument_exception.dart';
 export 'src/exceptions/missing_handler_exception.dart';
 export 'src/exceptions/payload_resolve_exception.dart';
 export 'src/exceptions/route_not_found_exception.dart';
+export 'src/exceptions/unresolved_payload_exception.dart';
 export 'src/guard/guard_context_impl.dart';
 export 'src/guard/guard_meta_impl.dart';
 export 'src/headers/common_headers_mixin.dart';

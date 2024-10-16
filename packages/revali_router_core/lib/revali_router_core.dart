@@ -55,6 +55,7 @@ export 'reflect/reflect.dart';
 export 'reflect/reflect_handler.dart';
 export 'reflect/reflector.dart';
 export 'reflect/write_only_reflector.dart';
+export 'request/full_request.dart';
 export 'request/mutable_request.dart';
 export 'request/read_only_request.dart';
 export 'request/request_context.dart';

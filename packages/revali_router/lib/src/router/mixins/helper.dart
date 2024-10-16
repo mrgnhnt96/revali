@@ -35,7 +35,7 @@ class Helper with HelperMixin, ContextMixin {
   late final ReflectHandler reflectHandler;
 
   @override
-  final MutableRequest request;
+  final FullRequest request;
 
   @override
   late final MutableResponse response;
