@@ -6,6 +6,5 @@ abstract class ReadOnlyResponse {
 
   int get statusCode;
   ReadOnlyBody? get body;
-
   ReadOnlyHeaders get headers;
 }
