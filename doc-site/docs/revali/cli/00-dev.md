@@ -15,7 +15,7 @@ To configure the port and the API path, check out [App Configuration](/revali/ap
 ## Usage
 
 ```bash
-revali dev --help
+dart run revali dev --help
 ```
 
 ## Run Modes
@@ -29,7 +29,7 @@ In `Debug` mode, a Dart VM service will be started for your application. This al
 To run the application in `Debug` mode, use the `--debug` flag.
 
 ```bash
-revali dev --debug
+dart run revali dev --debug
 ```
 
 ### Release Mode
@@ -39,7 +39,7 @@ In `Release` mode, the Dart VM service will not be started. In this mode constru
 To run the application in `Release` mode, use the `--release` flag.
 
 ```bash
-revali dev --release
+dart run revali dev --release
 ```
 
 Constructs can generate code that is optimized for performance in `Release` mode.
