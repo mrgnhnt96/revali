@@ -1,3 +1,7 @@
+---
+title: Bind
+---
+
 # Bind Context
 
 The `Bind` Lifecycle Component is used to bind a value from the request to a parameter. This context can be used to get insights into the binding call, data, meta data, and more.

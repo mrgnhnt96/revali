@@ -1,3 +1,7 @@
+---
+title: Pipe
+---
+
 # Pipe Context
 
 A `Pipe` is a used to transform a [binding](../core/binding) from the original type to another type to be delivered to the endpoint. This context can be used to get insights into the pipe call, data, meta data, and more.
