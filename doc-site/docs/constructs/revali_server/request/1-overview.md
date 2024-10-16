@@ -20,6 +20,10 @@ Only the headers can be modified in the request
 
 The `Request` object can be accessed through the `request` property in the context of the Lifecycle Components.
 
+```dart
+final request = context.request;
+```
+
 :::tip
 Read more about the Lifecycle Component's context [here](../context/overview).
 :::

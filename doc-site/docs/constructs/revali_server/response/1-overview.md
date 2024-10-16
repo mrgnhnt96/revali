@@ -24,6 +24,10 @@ In most lifecycle components, the response mutability is restricted. The only pr
 
 The `Response` object can be accessed through the `response` property in the context of the Lifecycle Components.
 
+```dart
+final response = context.response;
+```
+
 :::tip
 Read more about the Lifecycle Component's context [here](../context/overview).
 :::
