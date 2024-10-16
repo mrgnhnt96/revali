@@ -14,6 +14,14 @@ Learn more about the `Interceptor` Lifecycle Component [here](../lifecycle-compo
 
 The `InterceptorContext` does not have any specific properties.
 
+### Pre
+
+The `Response` object is "restricted" in `pre`, meaning that you won't be able to set the status code. This is by design, as the status code should be set in the `Interceptor.post` method.
+
+### Post
+
+The `Response` is fully mutable in the `post` method, meaning that you can set the status code, headers, and body.
+
 ## General Properties
 
 ### `data`
@@ -30,7 +38,7 @@ The `request` property is a read-only property for the [Request](../request/over
 
 ### `response`
 
-The `response` property is a mutable (restricted) property for the [Response](./core/response) object.
+The `response` property is a mutable (restricted) property for the [Response](../response/overview) object.
 
 ### `reflect`
 
