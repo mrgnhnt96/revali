@@ -31,7 +31,7 @@ mixin ContextMixin on HelperMixin {
         data: dataHandler,
       );
 
-  InterceptorContext get interceptor => InterceptorContextImpl(
+  InterceptorContext<MutableResponse> get interceptor => InterceptorContextImpl(
         meta: InterceptorMetaImpl(
           direct: directMeta,
           inherited: inheritedMeta,

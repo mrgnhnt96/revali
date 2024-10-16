@@ -1,6 +1,7 @@
+import 'package:revali_router/revali_router.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
-class InterceptorContextImpl implements InterceptorContext {
+class InterceptorContextImpl implements InterceptorContext<MutableResponse> {
   const InterceptorContextImpl({
     required this.meta,
     required this.data,
