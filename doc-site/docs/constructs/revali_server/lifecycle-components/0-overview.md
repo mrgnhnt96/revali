@@ -246,7 +246,10 @@ body: [
 
 ### Profile Mode
 
-:::important 🚧 Under Construction 🚧
+When an error response is return in profile mode, the error response will not include any debug messages;
+
+:::note
+Profile mode is only available for the [`build`](/revali/cli/build) command.
 :::
 
 ### Release Mode
