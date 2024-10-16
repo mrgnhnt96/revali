@@ -18,7 +18,7 @@ The `data` property is a mutable property for the [DataHandler](./core/data_hand
 
 ### `request`
 
-The `request` property is a mutable property for the [Request](./core/request) object.
+The `request` property is a mutable property for the [Request](../request/overview) object.
 
 ### `response`
 

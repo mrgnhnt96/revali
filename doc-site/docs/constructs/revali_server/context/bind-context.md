@@ -44,7 +44,7 @@ The `meta` property is a read-only property for the [MetaHandler](./core/meta_ha
 
 ### `request`
 
-The `request` property is a read-only property for the [Request](./core/request) object.
+The `request` property is a read-only property for the [Request](../request/overview) object.
 
 ### `response`
 
