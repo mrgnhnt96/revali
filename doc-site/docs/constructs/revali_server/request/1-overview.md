@@ -13,3 +13,39 @@ The request is read-only, meaning that you cannot modify the request body, URL, 
 :::important
 Only the headers can be modified in the request
 :::
+
+## Accessing the Request
+
+### Via Context
+
+The `Request` object can be accessed through the `request` property in the context of the Lifecycle Components.
+
+:::tip
+Check out the contexts for the Lifecycle Components:
+
+- [Bind](../context/bind-context)
+- [Guard](../context/guard-context)
+- [Interceptor](../context/interceptor-context)
+- [Middleware](../context/middleware-context)
+- [Pipe](../context/pipe-context).
+
+:::
+
+### Via Binding
+
+The `Request` object can be accessed via the controller's endpoint by adding the `ReadOnlyRequest` parameter to the endpoint method.
+
+```dart
+@Get()
+Future<void> helloWorld(
+    ReadOnlyRequest request,
+) async {
+    ...
+}
+```
+
+:::warning
+Using the `ReadOnlyRequest` parameter in the endpoint method is not recommended. Use the `context` from Lifecycle Components to access the request.
+
+By avoiding the `ReadOnlyRequest` parameter, you can keep your endpoint methods clean, focused, and testable.
+:::
