@@ -25,13 +25,13 @@ class ServerChildRoute with ExtractImport implements ServerRoute {
   });
 
   factory ServerChildRoute.fromMeta(MetaMethod method) {
-    ServerHttpCode? httpCode;
+    ServerStatusCode? httpCode;
     ServerMimic? redirect;
 
     method.annotationsMapper(
       onMatch: [
         OnMatch(
-          classType: HttpCode,
+          classType: StatusCode,
           package: 'revali_router_annotations',
           convert: (annotation, source) {
             if (httpCode != null) {
@@ -40,7 +40,7 @@ class ServerChildRoute with ExtractImport implements ServerRoute {
               );
             }
 
-            httpCode = ServerHttpCode.fromDartObject(annotation);
+            httpCode = ServerStatusCode.fromDartObject(annotation);
           },
         ),
         OnMatch(
@@ -75,7 +75,7 @@ class ServerChildRoute with ExtractImport implements ServerRoute {
   }
 
   final ServerReturnType returnType;
-  final ServerHttpCode? httpCode;
+  final ServerStatusCode? httpCode;
   final ServerMimic? redirect;
   final String method;
   final String path;

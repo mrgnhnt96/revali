@@ -36,7 +36,6 @@ Spec createChildRoute(ServerChildRoute route, ServerParentRoute parent) {
       returnType: route.returnType,
       classVarName: parent.classVarName,
       method: route.isWebSocket ? null : route.method,
-      statusCode: route.httpCode?.code,
       webSocket: route.webSocket,
       additionalHandlerCode: [
         if (response != null) response.statement,

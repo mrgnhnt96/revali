@@ -23,7 +23,7 @@ class ThisController {
 
   @Combines([OtherCombine])
   @AuthCombine()
-  @HttpCode(201)
+  @StatusCode(201)
   @SetHeader('method', 'hi')
   @NotAuthCatcher('bye')
   @Role(AuthType.admin)

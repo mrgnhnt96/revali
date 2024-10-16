@@ -10,7 +10,6 @@ Map<String, Expression> createRouteArgs({
   ServerReturnType? returnType,
   String? classVarName,
   String? method,
-  int? statusCode,
   MetaWebSocketMethod? webSocket,
   List<Code> additionalHandlerCode = const [],
 }) {
