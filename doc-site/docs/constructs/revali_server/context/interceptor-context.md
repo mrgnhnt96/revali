@@ -1,13 +1,9 @@
----
-title: Interceptor
----
-
 # Interceptor Context
 
-The `Interceptor` lifecycle component is used to intercept a request before it reaches the endpoint. This context can be used to manage data attached to the context, get meta data, and more.
+The `Interceptor` Lifecycle Component is used to intercept a request before it reaches the endpoint. This context can be used to manage data attached to the context, get meta data, and more.
 
 :::tip
-Learn more about the `Interceptor` lifecycle component [here](../lifecycle-components/interceptors).
+Learn more about the `Interceptor` Lifecycle Component [here](../lifecycle-components/interceptors).
 :::
 
 ## Specific Properties

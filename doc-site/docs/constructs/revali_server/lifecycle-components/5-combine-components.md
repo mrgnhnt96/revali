@@ -1,6 +1,6 @@
 # Combine Components
 
-There are types when you have multiple lifecycle components that should be grouped together. For example, you may want to group all the Auth components (`AuthMiddleware`, `AuthExceptionCatcher`, `AuthGuard`, `AuthInterceptor`, etc) together. You could annotate each one individually, or you can use a `CombineComponents` class to group them together.
+There are types when you have multiple Lifecycle Components that should be grouped together. For example, you may want to group all the Auth components (`AuthMiddleware`, `AuthExceptionCatcher`, `AuthGuard`, `AuthInterceptor`, etc) together. You could annotate each one individually, or you can use a `CombineComponents` class to group them together.
 
 ## Execution
 

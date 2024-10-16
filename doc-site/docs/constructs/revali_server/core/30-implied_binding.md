@@ -3,7 +3,7 @@
 There are certain classes that do not need [binding annotations](./binding).
 
 :::warning
-It is highly discouraged to used these, prefer to use [binding](./binding) with a [pipe](./pipes) or [lifecycle components](../lifecycle-components/lifecycle-components). Using these can make testing harder and make your code harder to understand.
+It is highly discouraged to used these, prefer to use [binding](./binding) with a [pipe](./pipes) or [Lifecycle Components](../lifecycle-components/lifecycle-components). Using these can make testing harder and make your code harder to understand.
 :::
 
 | Types | |

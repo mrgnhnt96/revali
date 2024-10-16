@@ -3,7 +3,7 @@
 The `MetaHandler` object is used to store meta data in the context. Meta data is used to store additional information about the endpoint. The meta data is stored and retrieved by type.
 
 :::tip
-Learn how to create meta data using the [`Meta`](../../metadata/meta) object
+Learn how to create meta data using the [`Meta`](./meta) object
 :::
 
 ## Properties
@@ -17,7 +17,7 @@ context.meta.add<T>(T value);
 ```
 
 :::note
-There are some lifecycle components that can only read data from the `MetaHandler` and not write to it.
+There are some Lifecycle Components that can only read data from the `MetaHandler` and not write to it.
 :::
 
 :::tip

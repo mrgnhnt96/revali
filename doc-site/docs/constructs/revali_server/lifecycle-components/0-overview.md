@@ -1,15 +1,14 @@
 ---
-title: Lifecycle Components
-slug: /constructs/revali_server/lifecycle-components
+title: Overview
 ---
 
-# Overview
+# Lifecycle Components
 
 Lifecycle components are classes that are used to manage the lifecycle of a request. Specifically, they are used to manage the request from the time it is received by the server to the time it is sent back to the client. Each can have dedicated tasks, such as logging, authentication, and authorization.
 
 ## App Lifecycle
 
-Since lifecycle components are used for requests, they are called upon when a request is received by the server.
+Since Lifecycle Components are used for requests, they are called upon when a request is received by the server.
 
 You can think of a basic request lifecycle as follows:
 
@@ -28,7 +27,7 @@ When a request is received by the server, it is passed to the middleware which w
 If an exception is thrown during the request lifecycle, the flow will be aborted and the exception will be caught by the server. The server will then send an error response back to the client.
 
 :::tip
-You can catch exceptions by using the [`Catcher`](./catchers) lifecycle component.
+You can catch exceptions by using the [`Catcher`](./catchers) Lifecycle Component.
 :::
 
 ## Lifecycle Order
@@ -45,11 +44,11 @@ You can catch exceptions by using the [`Catcher`](./catchers) lifecycle componen
 
 ## Scoping
 
-Lifecycle components can be applied at different levels of the application. They can be applied at the app, controller, or endpoint level. By applying lifecycle components at different levels, you can control where the lifecycle component is or isn't applied.
+Lifecycle components can be applied at different levels of the application. They can be applied at the app, controller, or endpoint level. By applying Lifecycle Components at different levels, you can control where the Lifecycle Component is or isn't applied.
 
 ### App Level
 
-To apply a lifecycle component to the entire application, you can annotate the app with the lifecycle component.
+To apply a Lifecycle Component to the entire application, you can annotate the app with the Lifecycle Component.
 
 ```dart title="routes/apps/my_app.dart"
 import 'package:revali_router/revali_router.dart';
@@ -68,7 +67,7 @@ The `MyLifecycleComponent` will be applied to all requests received by the serve
 
 ### Controller Level
 
-To apply a lifecycle component to a specific controller, you can annotate the controller with the lifecycle component.
+To apply a Lifecycle Component to a specific controller, you can annotate the controller with the Lifecycle Component.
 
 ```dart title="routes/controllers/my_controller.dart"
 import 'package:revali_router/revali_router.dart';
@@ -87,7 +86,7 @@ The `MyLifecycleComponent` will only be applied to requests received by the `MyC
 
 ### Endpoint Level
 
-To apply a lifecycle component to a specific endpoint, you can annotate the endpoint with the lifecycle component.
+To apply a Lifecycle Component to a specific endpoint, you can annotate the endpoint with the Lifecycle Component.
 
 ```dart title="routes/controllers/my_controller.dart"
 import 'package:revali_router/revali_router.dart';
@@ -110,14 +109,14 @@ The `MyLifecycleComponent` will only be applied to requests received by the `hel
 :::
 
 :::note
-The order of the annotations between lifecycle components and non-lifecycle components does not matter.
+The order of the annotations between Lifecycle Components and non-Lifecycle Components does not matter.
 :::
 
 ## Order of Execution
 
-The order of execution of lifecycle components is important. When a request is received by the server, the middleware is executed in the order that they are applied. The controller is then executed, followed by the endpoint. The response is then passed back to the middleware in reverse order. Understanding the order of execution of lifecycle components is important when designing your application.
+The order of execution of Lifecycle Components is important. When a request is received by the server, the middleware is executed in the order that they are applied. The controller is then executed, followed by the endpoint. The response is then passed back to the middleware in reverse order. Understanding the order of execution of Lifecycle Components is important when designing your application.
 
-If we have multiple lifecycle components applied to an endpoint, the order of execution is from top to bottom.
+If we have multiple Lifecycle Components applied to an endpoint, the order of execution is from top to bottom.
 
 ```dart title="routes/apps/my_app.dart"
 @LifecycleComponent0()
@@ -155,9 +154,9 @@ In the example above, the order of Lifecycle Component execution is as follows:
 
 ## Error Responses
 
-Some lifecycle components are responsible for returning error responses. Such components include `ExceptionCatcher`, `Guard`, and `Middleware`.
+Some Lifecycle Components are responsible for returning error responses. Such components include `ExceptionCatcher`, `Guard`, and `Middleware`.
 
-Typically, a lifecycle component that can return an error response can accept a `statusCode`, `headers`, and `body`. The status code and body values passed to the method will override any values previous set by the request flow, while the headers will be merged with the headers set by the request flow.
+Typically, a Lifecycle Component that can return an error response can accept a `statusCode`, `headers`, and `body`. The status code and body values passed to the method will override any values previous set by the request flow, while the headers will be merged with the headers set by the request flow.
 
 ### Debug Mode
 

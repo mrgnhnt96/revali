@@ -11,7 +11,7 @@ context.data.add<T>(T value);
 ```
 
 :::note
-There are some lifecycle components that can only read data from the `DataHandler` and not write to it.
+There are some Lifecycle Components that can only read data from the `DataHandler` and not write to it.
 :::
 
 :::tip
@@ -36,7 +36,7 @@ T? value = context.data.get<T>();
 
 ## Example
 
-An example of the `DataHandler` is when you need to retrieve a `User` based on a value received from the request. You will more than likely need to access the `User` object in different lifecycle components. So, you can store the `User` object in the `DataHandler` and retrieve it when needed.
+An example of the `DataHandler` is when you need to retrieve a `User` based on a value received from the request. You will more than likely need to access the `User` object in different Lifecycle Components. So, you can store the `User` object in the `DataHandler` and retrieve it when needed.
 
 ```dart title="lib/middleware/user_middleware.dart"
 import 'package:revali_router/revali_router.dart';
@@ -61,7 +61,7 @@ class UserMiddleware extends Middleware {
 }
 ```
 
-Now that we have the user stored in the `DataHandler` we can retrieve it in a different lifecycle component. Let's say that we have a `RoleGuard` that checks if the user has the correct role to access a resource.
+Now that we have the user stored in the `DataHandler` we can retrieve it in a different Lifecycle Component. Let's say that we have a `RoleGuard` that checks if the user has the correct role to access a resource.
 
 ```dart title="lib/middleware/role_middleware.dart"
 import 'package:revali_router/revali_router.dart';

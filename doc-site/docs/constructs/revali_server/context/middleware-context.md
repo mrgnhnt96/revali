@@ -1,13 +1,9 @@
----
-title: Middleware
----
-
 # Middleware Context
 
-The `Middleware` lifecycle component is used to modify the request or response before it reaches the endpoint. This context can be used to manage data attached to the context, get meta data, and more.
+The `Middleware` Lifecycle Component is used to modify the request or response before it reaches the endpoint. This context can be used to manage data attached to the context, get meta data, and more.
 
 :::tip
-Learn more about the `Middleware` lifecycle component [here](../lifecycle-components/middleware).
+Learn more about the `Middleware` Lifecycle Component [here](../lifecycle-components/middleware).
 :::
 
 ## Specific Properties

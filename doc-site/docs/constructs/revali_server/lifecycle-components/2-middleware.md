@@ -1,6 +1,6 @@
 # Middleware
 
-A `Middleware` is a lifecycle component that is used to modify the request or response before it reaches the endpoint.
+A `Middleware` is a Lifecycle Component that is used to modify the request or response before it reaches the endpoint.
 
 Middleware is useful for binding data to the request context, transforming the request or response, and other tasks that need to be executed before the guard or endpoint.
 

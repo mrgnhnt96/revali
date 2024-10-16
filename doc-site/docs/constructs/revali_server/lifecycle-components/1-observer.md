@@ -1,6 +1,6 @@
 # Observer
 
-The `Observer` component is a lifecycle component that can be used to observe the request and response before or after the request is processed. Regardless of the request flow's result, the observer is executed. Meaning that even if the request is rejected by a guard or an exception is thrown, the observer will still be executed.
+The `Observer` component is a Lifecycle Component that can be used to observe the request and response before or after the request is processed. Regardless of the request flow's result, the observer is executed. Meaning that even if the request is rejected by a guard or an exception is thrown, the observer will still be executed.
 
 Observers are unique in that they can only be registered at the app level. This means that all requests will be observed by the observer.
 

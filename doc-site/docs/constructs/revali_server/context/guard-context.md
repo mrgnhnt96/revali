@@ -1,13 +1,9 @@
----
-title: Guard
----
-
 # Guard Context
 
-The `Guard` lifecycle component is used to guard a route from being accessed. This context can be used to manage data attached to the context, get meta data, and more.
+The `Guard` Lifecycle Component is used to guard a route from being accessed. This context can be used to manage data attached to the context, get meta data, and more.
 
 :::tip
-Learn more about the `Guard` lifecycle component [here](../lifecycle-components/guards).
+Learn more about the `Guard` Lifecycle Component [here](../lifecycle-components/guards).
 :::
 
 ## Specific Properties
