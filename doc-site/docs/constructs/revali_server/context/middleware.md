@@ -26,4 +26,4 @@ The `request` property is a mutable property for the [Request](../request/overvi
 
 ### `response`
 
-The `response` property is a mutable (restricted) property for the [Response](./core/response) object.
+The `response` property is a mutable (restricted) property for the [Response](../response/overview) object.

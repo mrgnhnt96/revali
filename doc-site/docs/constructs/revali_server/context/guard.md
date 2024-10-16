@@ -30,4 +30,4 @@ The `request` property is a read-only property for the [Request](../request/over
 
 ### `response`
 
-The `response` property is a mutable (restricted) property for the [Response](./core/response) object.
+The `response` property is a mutable (restricted) property for the [Response](../response/overview) object.
