@@ -93,11 +93,10 @@ class PayloadImpl implements Payload {
       return;
     }
 
-    final bytes = await _stream.toList();
-
-    _bytes = bytes.expand<int>((e) => e).toList();
-
-    yield _bytes!;
+    await for (final chunk in _stream) {
+      yield chunk;
+      (_bytes ??= []).addAll(chunk);
+    }
   }
 
   @override
