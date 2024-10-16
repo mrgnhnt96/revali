@@ -167,7 +167,7 @@ String createUser(
 ```
 
 ::::note
-The `@Body` type can be used with any [built in](https://dart.dev/language/built-in-types) type, not just `Map<String, dynamic>`, it should be whatever you expect the body to be.
+The `@Body` type can be used with any [built-in](https://dart.dev/language/built-in-types) type, not just `Map<String, dynamic>`, it should be whatever you expect the body to be.
 
 If you need to convert the value to another type, you can use a [pipe](#body-1).
 ::::
