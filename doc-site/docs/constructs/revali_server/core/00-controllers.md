@@ -73,7 +73,7 @@ Revali will ignore any private constructors
 
 ## Dependencies
 
-Eventually, you will need to use a dependency you've configured. You can add parameters for these dependencies right within the constructor and revali_server will supply the arguments.
+Eventually, you will need to use a dependency you've configured. You can add [instance variables](https://dart.dev/language/constructors#instance-variable-initialization) for these dependencies within the constructor and revali_server will supply the appropriate values based on your dependency configuration.
 
 ```dart title="routes/users/users_controller.dart"
 class UsersController {
