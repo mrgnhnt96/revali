@@ -4,24 +4,24 @@ title: Binding
 
 # Binding Annotations
 
-Binding annotations are used to make a connection between parameters to values from the request, dependencies or some value. Some examples of values to bind are: path parameters, query parameters, headers, request bodies, dependencies and more.
+Binding annotations are a set of annotations tailored to extract the provided arguments from their corresponding locations.
 
-| Annotation | Description | Requests | Controllers |
-| --- | --- | :-: | :-: |
-| `@Param()` | Binds a path parameter | ✅ | ❌ |
-| `@Query()` | Binds a query parameter | ✅ | ❌ |
-| `@Header()` | Binds a header | ✅ | ❌ |
-| `@Body()` | Binds the body | ✅ | ❌ |
-| `@Dep()` | Binds a dependency | ✅ | ✅ |
-| `@Data()` | Binds a value from the Data Handler | ✅ | ✅ |
-| `Bind` | Binds a custom value | ✅ | ✅ |
+| Annotation  | Description                         | Requests | Controllers |
+| ----------- | ----------------------------------- | :------: | :---------: |
+| `@Param()`  | Binds a path parameter              |    ✅    |     ❌      |
+| `@Query()`  | Binds a query parameter             |    ✅    |     ❌      |
+| `@Header()` | Binds a header                      |    ✅    |     ❌      |
+| `@Body()`   | Binds the body                      |    ✅    |     ❌      |
+| `@Dep()`    | Binds a dependency                  |    ✅    |     ✅      |
+| `@Data()`   | Binds a value from the Data Handler |    ✅    |     ✅      |
+| `Bind`      | Binds a custom value                |    ✅    |     ✅      |
 
 :::important
 You can only use one parameter annotation per parameter.
 :::
 
 :::info
-There are [some classes](./assumed_binding) that can be implied by the parameter's type and do not require binding annotations
+There are [some classes](./implied_binding) that can be implied by the parameter's type and do not require binding annotations
 :::
 
 ## `@Param()`
