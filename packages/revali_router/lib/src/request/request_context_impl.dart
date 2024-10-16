@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:autoequal/autoequal.dart';
 import 'package:equatable/equatable.dart';
+import 'package:revali_router/src/exceptions/unresolved_payload_exception.dart';
 import 'package:revali_router/src/headers/mutable_headers_impl.dart';
 import 'package:revali_router/src/request/underlying_request_impl.dart';
 import 'package:revali_router_core/revali_router_core.dart';
@@ -102,7 +103,7 @@ class RequestContextImpl with EquatableMixin implements RequestContext {
   ReadOnlyBody get payload {
     final payload = _payload;
     if (payload == null) {
-      throw StateError('Payload not resolved');
+      throw const UnresolvedPayloadException();
     }
 
     return payload;

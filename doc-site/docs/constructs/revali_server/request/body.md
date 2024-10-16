@@ -42,6 +42,12 @@ Learn how to [handle exceptions](../lifecycle-components/exception-catchers)
 
 If you need to read the body within a Lifecycle Component, you can access the body using the `Request` object from the context.
 
+The body needs to be resolved before you can access it. You can resolve the body by calling the `resolvePayload` method on the `Request` object.
+
+:::warning
+If you try to access the body without resolving it first, an `UnresolvedPayloadException` will be thrown.
+:::
+
 ```dart showLineNumbers
 class MyComponent implements Middleware {
     const MyComponent();
@@ -57,7 +63,7 @@ class MyComponent implements Middleware {
 ```
 
 ::::note
-Calling `resolvePayload` multiple times will not re-read the body, the body will be resolved and cached in memory the first time it is accessed.
+Calling `resolvePayload` multiple times will not re-read the body, the body will be resolved and cached in memory the first time `reservePayload` is called.
 
 :::important FYI
 There are no limits to how many times you can access the body
