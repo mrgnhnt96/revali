@@ -8,9 +8,7 @@ import 'package:revali_router/src/body/mutable_body_impl.dart';
 import 'package:revali_router/src/body/response_body/base_body_data.dart';
 import 'package:revali_router/src/exceptions/payload_resolve_exception.dart';
 import 'package:revali_router/utils/coerce.dart';
-import 'package:revali_router_core/body/body_data.dart';
-import 'package:revali_router_core/headers/read_only_headers.dart';
-import 'package:revali_router_core/payload/payload.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 
 class PayloadImpl implements Payload {
   factory PayloadImpl(
@@ -81,13 +79,7 @@ class PayloadImpl implements Payload {
     this.contentLength,
   }) : _stream = stream;
 
-  static Map<
-      String,
-      Future<BodyData> Function(
-        Encoding,
-        Stream<List<int>>,
-        ReadOnlyHeaders,
-      )> additionalParsers = {};
+  static Map<String, BodyParser> additionalParsers = {};
 
   final Stream<List<int>> _stream;
   @override
@@ -121,7 +113,7 @@ class PayloadImpl implements Payload {
         'text/plain' => _resolveString(encoding),
         'application/octet-stream' => _resolveBinary(encoding),
         _ => additionalParsers[headers.mimeType]
-                ?.call(encoding, read(), headers) ??
+                ?.parse(encoding, read(), headers) ??
             _resolveUnknown(encoding, headers.mimeType),
       };
 
