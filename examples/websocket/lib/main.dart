@@ -34,16 +34,18 @@ Future<void> _websocket() async {
     // Subscribe to messages from the server.
     channel.stream.listen(
       (message) {
-        if (message is String) {
-          print('SERVER: $message');
-          return;
-        }
+        final decoded = switch (message) {
+          String() => message,
+          List<int>() => utf8.decode(List<int>.from(message)),
+          _ => throw UnsupportedError(
+              'Unsupported message type: ${message.runtimeType}',
+            ),
+        };
 
-        final decoded = utf8.decode(List<int>.from(message as List));
         print('SERVER: $decoded');
       },
       onError: (dynamic e) {
-        print(e);
+        print('Error $e');
       },
       onDone: () async {
         print('Connection closed');
