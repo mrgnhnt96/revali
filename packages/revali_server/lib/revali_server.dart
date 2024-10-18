@@ -16,7 +16,6 @@ export 'converters/server_body_annotation.dart';
 export 'converters/server_child_route.dart';
 export 'converters/server_class.dart';
 export 'converters/server_header_annotation.dart';
-export 'converters/server_http_code.dart';
 export 'converters/server_imports.dart';
 export 'converters/server_mimic.dart';
 export 'converters/server_param.dart';

@@ -1,7 +1,6 @@
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_router_core/revali_router_core.dart';
-import 'package:revali_server/converters/server_http_code.dart';
 import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_mimic.dart';
 import 'package:revali_server/converters/server_param.dart';
@@ -9,6 +8,7 @@ import 'package:revali_server/converters/server_reflect.dart';
 import 'package:revali_server/converters/server_return_type.dart';
 import 'package:revali_server/converters/server_route.dart';
 import 'package:revali_server/converters/server_route_annotations.dart';
+import 'package:revali_server/converters/server_status_code.dart';
 import 'package:revali_server/utils/extract_import.dart';
 
 class ServerChildRoute with ExtractImport implements ServerRoute {
