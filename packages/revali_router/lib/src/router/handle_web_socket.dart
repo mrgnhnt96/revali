@@ -48,12 +48,12 @@ class HandleWebSocket {
   }
 
   Future<WebSocketResponse> execute() async {
-    if (await upgradeRequest() case final response?) {
+    if (await upgradeRequest() case final WebSocketResponse response) {
       return response.toWebSocketResponse();
     }
 
     if (handler.onConnect case final onConnect?) {
-      if (await runHandler(onConnect) case final response?) {
+      if (await runHandler(onConnect) case final WebSocketResponse response) {
         return response.toWebSocketResponse();
       }
     }
@@ -67,7 +67,7 @@ class HandleWebSocket {
       );
     }
 
-    if (await listenToMessages() case final response?) {
+    if (await listenToMessages() case final WebSocketResponse response) {
       return response.toWebSocketResponse();
     }
 
@@ -101,11 +101,11 @@ class HandleWebSocket {
     await for (final event in webSocket) {
       response.body = null;
 
-      if (await resolvePayload(event) case final response?) {
+      if (await resolvePayload(event) case final WebSocketResponse response) {
         return response.toWebSocketResponse();
       }
 
-      if (await runHandler(onMessage) case final response) {
+      if (await runHandler(onMessage) case final WebSocketResponse response) {
         return response;
       }
     }
