@@ -20,7 +20,7 @@ void main() async {
 
 Future<void> _websocket() async {
   try {
-    final uri = Uri.parse('ws://localhost:1234/api/subscriptions/ws');
+    final uri = Uri.parse('ws://localhost:1083/api/websocket');
 
     // Connect to the remote WebSocket endpoint.
     final channel = IOWebSocketChannel.connect(
@@ -46,7 +46,6 @@ Future<void> _websocket() async {
         print(e);
       },
       onDone: () async {
-        await Future<void>.delayed(const Duration(seconds: 5));
         print('Connection closed');
         print('  code: ${channel.closeCode}');
         print('  reason: ${channel.closeReason}');
