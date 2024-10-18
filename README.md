@@ -4,14 +4,28 @@ Revali is a powerful code generator specifically designed for the Dart programmi
 
 ## Table of Contents
 
--   [Introduction](#introduction)
--   [Features](#features)
--   [Installation](#installation)
--   [Getting Started](#getting-started)
--   [Usage](#usage)
--   [Contributing](#contributing)
--   [Developer Information](#developer-information)
--   [License](#license)
+- [Revali](#revali)
+  - [Table of Contents](#table-of-contents)
+  - [Introduction](#introduction)
+  - [Features](#features)
+  - [Installation](#installation)
+  - [Getting Started](#getting-started)
+    - [Setting Up Your App](#setting-up-your-app)
+    - [Starting the Server](#starting-the-server)
+  - [Usage](#usage)
+    - [Creating a Controller](#creating-a-controller)
+    - [Handling WebSockets](#handling-websockets)
+  - [Contributing](#contributing)
+  - [Developer Information](#developer-information)
+    - [Available Scripts](#available-scripts)
+    - [Barrel](#barrel)
+      - [Build Barrel](#build-barrel)
+    - [Build Runner](#build-runner)
+      - [Build](#build)
+      - [Watch](#watch)
+    - [Summary of Commands](#summary-of-commands)
+    - [Scripts Resource](#scripts-resource)
+  - [License](#license)
 
 ## Introduction
 
@@ -19,12 +33,12 @@ Revali aims to simplify API development in Dart by automating the creation of AP
 
 ## Features
 
--   Annotation-based routing
--   Dependency injection support
--   WebSocket handling
--   Interceptors and Middleware
--   Guards for route protection
--   Exception filters for error handling
+- Annotation-based routing
+- Dependency injection support
+- WebSocket handling
+- Interceptors and Middleware
+- Guards for route protection
+- Exception filters for error handling
 
 ## Installation
 
@@ -99,14 +113,14 @@ Define a controller using annotations to handle various HTTP requests:
 ```dart
 import 'package:revali_router_annotations/revali_router_annotations.dart';
 
-@Controller("/example")
+@Controller("example")
 class ExampleController {
-  @Get('/items')
+  @Get('items')
   Future<List<String>> getItems() async {
     return ['item1', 'item2', 'item3'];
   }
 
-  @Post('/items')
+  @Post('items')
   Future<void> createItem(@Body() Map<String, String> item) async {
     print('New item added: ${item['name']}');
   }
@@ -122,7 +136,7 @@ import 'package:revali_annotations/revali_annotations.dart';
 import 'package:revali_router/revali_router.dart';
 
 class WebSocketHandlers {
-  @WebSocket('/ws', mode: WebSocketMode.twoWay)
+  @WebSocket('ws', mode: WebSocketMode.twoWay)
   Stream<String> onMessage(String message) async* {
     yield 'Echo: $message';
   }
@@ -149,21 +163,29 @@ We welcome contributions! Please follow these steps to contribute to Revali:
 
 1. **Fork the repository** on GitHub.
 2. **Clone your fork** locally:
+
     ```sh
     git clone https://github.com/your-username/revali.git
     ```
+
 3. **Create a branch** for your feature or bugfix:
+
     ```sh
     git checkout -b my-feature-branch
     ```
+
 4. **Make your changes** and commit them:
+
     ```sh
     git commit -m "Description of my changes"
     ```
+
 5. **Push to your branch**:
+
     ```sh
     git push origin my-feature-branch
     ```
+
 6. **Open a Pull Request** on the original repository.
 
 ## Developer Information
@@ -204,7 +226,7 @@ dart run build_runner build --delete-conflicting-outputs
 
 Nested build commands include:
 
--   **Build Revali Construct**:
+- **Build Revali Construct**:
 
     ```sh
     sip br b gen_core
@@ -216,11 +238,14 @@ Nested build commands include:
     cd packages/revali_construct && dart run build_runner build --delete-conflicting-outputs
     ```
 
--   **Build Revali Router**:
+- **Build Revali Router**:
+
     ```sh
     sip br b router
     ```
+
     This runs:
+
     ```sh
     cd packages/revali_router && dart run build_runner build --delete-conflicting-outputs
     ```
@@ -241,7 +266,7 @@ dart run build_runner watch --delete-conflicting-outputs
 
 Nested watch commands include:
 
--   **Watch Revali Construct**:
+- **Watch Revali Construct**:
 
     ```sh
     sip br w gen_core
@@ -253,11 +278,14 @@ Nested watch commands include:
     cd packages/revali_construct && dart run build_runner watch --delete-conflicting-outputs
     ```
 
--   **Watch Revali Router**:
+- **Watch Revali Router**:
+
     ```sh
     sip br w router
     ```
+
     This runs:
+
     ```sh
     cd packages/revali_router && dart run build_runner watch --delete-conflicting-outputs
     ```
