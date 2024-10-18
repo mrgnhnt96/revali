@@ -139,3 +139,14 @@ void main() {
     channel.sink.add(message);
 }
 ```
+
+:::important 🚧 Under Construction 🚧
+
+- Move this to the revali core section
+
+Topics to cover:
+
+- lifecycle of the web socket
+- ping constructor
+- on connect
+:::
