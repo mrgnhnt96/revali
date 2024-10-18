@@ -52,7 +52,7 @@ class HandleWebSocket {
       return response.toWebSocketResponse();
     }
 
-    if (handler.onConnect case final onConnect?) {
+    if (handler.onConnect case final Stream<dynamic> Function() onConnect) {
       if (await runHandler(onConnect) case final WebSocketResponse response) {
         return response.toWebSocketResponse();
       }
@@ -63,7 +63,7 @@ class HandleWebSocket {
 
       return WebSocketResponse(
         1000,
-        body: 'Normal closure, WebSocket is not open for receiving',
+        body: 'Normal closure, WebSocket is not open for receiving messages',
       );
     }
 
@@ -207,7 +207,7 @@ class HandleWebSocket {
 
     // up to 125 bytes
     final bytes = utf8.encode(reason);
-    final truncated = utf8.decode(bytes.sublist(0, min(123, bytes.length)));
+    final truncated = utf8.decode(bytes.sublist(0, min(125, bytes.length)));
 
     await webSocket.close(code, truncated);
   }
