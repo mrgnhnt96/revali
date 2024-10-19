@@ -7,7 +7,7 @@ environment:
 dependencies:
   dio: ^5.5.0+1
   revali_router:
-    path: ../../packages/revali_router
+    path: ../../revali_router/revali_router
   shelf: ^1.4.2
   shelf_web_socket: ^2.0.0
   web_socket_channel: ^3.0.0

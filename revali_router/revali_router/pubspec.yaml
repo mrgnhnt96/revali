@@ -14,9 +14,9 @@ dependencies:
     mime: ^1.0.5
     path: ^1.9.0
     revali_annotations:
-      path: ../revali_annotations
+      path: ../../packages/revali_annotations
     revali_core:
-      path: ../revali_core
+      path: ../../packages/revali_core
     revali_router_annotations:
       path: ../revali_router_annotations
     revali_router_core:

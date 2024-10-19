@@ -9,9 +9,9 @@ dependencies:
     http_parser: ^4.1.0
     mime: ^1.0.5
     revali_annotations:
-        path: ../revali_annotations
+        path: ../../packages/revali_annotations
     revali_core:
-        path: ../revali_core
+        path: ../../packages/revali_core
 dev_dependencies:
     autoequal_gen: ^0.9.1
     build_runner: ^2.4.11

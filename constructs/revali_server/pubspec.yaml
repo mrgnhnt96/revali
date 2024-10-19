@@ -13,14 +13,14 @@ dependencies:
     dart_style: ^2.3.6
     path: ^1.9.0
     revali_annotations:
-        path: ../revali_annotations
+        path: ../../packages/revali_annotations
     revali_construct:
-        path: ../revali_construct
+        path: ../../packages/revali_construct
     revali_core:
-        path: ../revali_core
+        path: ../../packages/revali_core
     revali_router:
-        path: ../revali_router
+        path: ../../revali_router/revali_router
     revali_router_annotations:
-        path: ../revali_router_annotations
+        path: ../../revali_router/revali_router_annotations
     revali_router_core:
-        path: ../revali_router_core
+        path: ../../revali_router/revali_router_core
