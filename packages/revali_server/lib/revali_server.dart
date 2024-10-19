@@ -31,6 +31,7 @@ export 'converters/server_route.dart';
 export 'converters/server_route_annotations.dart';
 export 'converters/server_server.dart';
 export 'converters/server_set_header.dart';
+export 'converters/server_status_code.dart';
 export 'converters/server_type_reference.dart';
 export 'makers/creators/create_app.dart';
 export 'makers/creators/create_arg_from_binds.dart';

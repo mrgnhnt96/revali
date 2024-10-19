@@ -1,5 +1,6 @@
 import 'package:revali_router_core/body/read_only_body.dart';
 import 'package:revali_router_core/headers/read_only_headers.dart';
+import 'package:revali_router_core/payload/read_only_payload.dart';
 
 abstract class ReadOnlyRequest {
   const ReadOnlyRequest();
@@ -21,8 +22,8 @@ abstract class ReadOnlyRequest {
   /// `UnresolvedPayloadException`.
   ReadOnlyBody get body;
 
-  /// An unmodified stream of the original payload.
-  Stream<List<int>> get originalPayload;
+  /// The original payload of the request.
+  ReadOnlyPayload get originalPayload;
 
   /// The query parameters of the request.
   ///

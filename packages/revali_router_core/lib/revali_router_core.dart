@@ -47,6 +47,7 @@ export 'middleware/middleware_context.dart';
 export 'middleware/middleware_result.dart';
 export 'observer/observer.dart';
 export 'payload/payload.dart';
+export 'payload/read_only_payload.dart';
 export 'pipe/annotation_type.dart';
 export 'pipe/pipe_context.dart';
 export 'redirect/redirect.dart';

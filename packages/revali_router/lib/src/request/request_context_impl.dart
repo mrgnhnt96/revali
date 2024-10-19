@@ -109,7 +109,7 @@ class RequestContextImpl with EquatableMixin implements RequestContext {
     return payload;
   }
 
-  Stream<List<int>> get originalPayload => request.body.read();
+  Payload get originalPayload => request.body;
 
   @override
   List<Object?> get props => _$props;
