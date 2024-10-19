@@ -140,13 +140,55 @@ void main() {
 }
 ```
 
-:::important 🚧 Under Construction 🚧
+## Ping
 
-- Move this to the revali core section
+The server can send a ping message to the client to check if the connection is still alive. The client will respond with a pong message. If the client does not respond with a pong message, the server will close the connection.
 
-Topics to cover:
+```dart
+@WebSocket.ping('websocket', ping: Duration(seconds: 5))
+```
 
-- lifecycle of the web socket
-- ping constructor
-- on connect
+## On Connect
+
+Optionally, you can tell the server to run your handler when the connection is established. This is useful for any setup that needs to be done when the connection is first established.
+
+```dart
+@WebSocket('websocket', triggerOnConnect: true)
+```
+
+:::caution
+When the connection is established, there is no message sent from the client. If you have a `Body` binding on a parameter in your handler, be sure to allow `null` types.
+
+```dart
+@WebSocket('websocket', triggerOnConnect: true)
+String onConnect(@Body() String? message) {
+    return 'Hello World';
+}
+```
+
+:::
+
+## Web Socket Lifecycle
+
+The Web Socket lifecycle is similar to the [HTTP lifecycle](../lifecycle-components/overview), however, there are some differences. The Web Socket lifecycle is as follows:
+
+1. Open Connection
+1. Observer
+1. Middleware
+1. Guard\
+-- On Connect --\
+-- Message Loop --
+1. Observer
+1. Close Connection
+
+### Message Loop
+
+The message loop is the part of the lifecycle where the server listens for messages from the client. The server will call the handler method when a message is received.
+
+1. Interceptor (Pre)
+1. Endpoint
+1. Interceptor (Post)
+
+:::note
+On Connect is the same as the message loop, but is only run once, when the connection is established.
 :::
