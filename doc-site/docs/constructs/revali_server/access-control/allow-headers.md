@@ -108,7 +108,7 @@ Revali automatically handles preflight requests.
 
 ### Failed CORs Requests
 
-If a client sends a request with headers that are not allowed, the server will respond with a `403 Forbidden` status code.
+If a client sends a request with headers that are not allowed, the server will respond with a `403 Forbidden` status code with limited information.
 
 :::tip
 Learn how to configure the default response for [failed CORs requests](../../../revali/app-configuration/default-responses#failed-cors)
