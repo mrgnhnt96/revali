@@ -50,21 +50,28 @@ class Execute {
 
     await interceptors.pre();
 
-    final errorResponse = Completer<ReadOnlyResponse?>();
-    await runZonedGuarded(() async {
-      try {
-        await handler(context);
-      } catch (e, stackTrace) {
-        final response = await catchers(e, stackTrace);
-        errorResponse.complete(response);
-      }
+    // if the user decides to create a HEAD request,
+    // we still need to run the handler,
+    // This is only for the case that the router is automatically
+    // handling the HEAD request.
+    final isHeadRequest = route.method == 'GET' && request.method == 'HEAD';
 
-      if (!errorResponse.isCompleted) {
-        errorResponse.complete(null);
-      }
-    }, (e, stack) {
-      // ignore: avoid_print
-      print('''
+    if (!isHeadRequest) {
+      final errorResponse = Completer<ReadOnlyResponse?>();
+      await runZonedGuarded(() async {
+        try {
+          await handler(context);
+        } catch (e, stackTrace) {
+          final response = await catchers(e, stackTrace);
+          errorResponse.complete(response);
+        }
+
+        if (!errorResponse.isCompleted) {
+          errorResponse.complete(null);
+        }
+      }, (e, stack) {
+        // ignore: avoid_print
+        print('''
 
 ================ !!!! WARNING !!!! ================
 
@@ -83,10 +90,11 @@ ${Trace.from(stack)}
 ================ !!!! WARNING !!!! ================
 
 ''');
-    });
+      });
 
-    if (await errorResponse.future case final response?) {
-      return response;
+      if (await errorResponse.future case final response?) {
+        return response;
+      }
     }
 
     await interceptors.post();
