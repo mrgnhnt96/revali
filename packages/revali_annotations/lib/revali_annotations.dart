@@ -11,6 +11,7 @@ export 'src/controller.dart';
 export 'src/enums/web_socket_mode.dart';
 export 'src/methods/delete.dart';
 export 'src/methods/get.dart';
+export 'src/methods/head.dart';
 export 'src/methods/method.dart';
 export 'src/methods/patch.dart';
 export 'src/methods/post.dart';
