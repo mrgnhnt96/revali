@@ -20,4 +20,10 @@ class HelloController {
   ) {
     return 'Hello, World!';
   }
+
+  @Get('new')
+  @Redirect('sup')
+  void newHello() {
+    print('Redirecting');
+  }
 }
