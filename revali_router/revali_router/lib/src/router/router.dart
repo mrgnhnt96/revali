@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:equatable/equatable.dart';
+import 'package:http_parser/http_parser.dart';
 import 'package:revali_annotations/revali_annotations.dart' hide WebSocket;
 import 'package:revali_router/src/body/response_body/base_body_data.dart';
 import 'package:revali_router/src/endpoint/endpoint_context_impl.dart';

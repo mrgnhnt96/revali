@@ -60,6 +60,26 @@ class RunOriginCheck {
       );
     }
 
+    // check for allowed headers
+    if (allowedHeaders.isNotEmpty) {
+      final caseSafeHeaders = CaseInsensitiveMap.from({
+        for (final header in allowedHeaders) header: header,
+        for (final header in const AllowHeaders.simple().headers)
+          header: header,
+      });
+
+      final headers = request.headers;
+      for (final header in headers.keys) {
+        if (!caseSafeHeaders.containsKey(header)) {
+          return debugErrorResponse(
+            defaultResponses.failedCors,
+            error: 'Header "$header" is not allowed.',
+            stackTrace: StackTrace.current,
+          );
+        }
+      }
+    }
+
     if (origin != null) {
       request.headers.set(HttpHeaders.accessControlAllowOriginHeader, origin);
     }
