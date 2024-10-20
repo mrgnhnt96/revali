@@ -56,6 +56,50 @@ Simple headers are headers that are safe to include in a request without a prefl
 
 These headers are automatically allowed by the server, so you don’t need to specify them in `@AllowHeaders`.
 
+### Inheritance
+
+By default, `@AllowHeaders` is inherited by child controllers and requests. This means that if you specify `@AllowHeaders` in an app, all controllers and requests within that app will inherit the allowed headers. Additionally, `@AllowHeaders` compound, meaning that if you specify `@AllowHeaders` for an app and a controller, the server will allow headers from both annotations.
+
+```dart title="routes/my_app.dart"
+// highlight-next-line
+@AllowHeaders({'My-Header'})
+@App()
+class MyApp ...
+```
+
+```dart title="routes/my_controller.dart"
+// highlight-next-line
+@AllowHeaders({'Another-Header'})
+@Controller('my-controller')
+class MyController {
+
+// highlight-next-line
+    @AllowHeaders({'Yet-Another-Header'})
+    @Get('my-request')
+    Future<Response> myRequest() {
+        return Response.ok('Hello, World!');
+    }
+}
+```
+
+#### Allowed Headers
+
+- App: `My-Header`
+- Controller: `My-Header`, `Another-Header`
+- Request: `My-Header`, `Another-Header`, `Yet-Another-Header`
+
+### Disabling Inheritance
+
+If you don’t want a child controller or request to inherit the allowed headers, you can disable inheritance by setting `inherit` to `false`.
+
+```dart
+@AllowHeaders({'My-Header'}, inherit: false)
+// or
+@AllowHeaders.noInherit({'My-Header'})
+```
+
+This configuration will only allow the specified headers in the controller or request, ignoring any headers specified in the parent app or controller.
+
 ## Preflight Requests
 
 A preflight request is a CORS mechanism that checks if a client is allowed to make a request to a server. This request is sent before the actual request and includes the `OPTIONS` method. The server responds with the allowed headers, methods, and origins.
