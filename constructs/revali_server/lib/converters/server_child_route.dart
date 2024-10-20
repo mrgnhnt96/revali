@@ -45,7 +45,7 @@ class ServerChildRoute with ExtractImport implements ServerRoute {
         ),
         OnMatch(
           classType: Redirect,
-          package: 'revali_router',
+          package: 'revali_router_core',
           convert: (annotation, source) {
             if (redirect != null) {
               throw ArgumentError(
