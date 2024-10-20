@@ -93,10 +93,6 @@ class MyController {
 The leading `/` is required when redirecting to a different controller.
 :::
 
-::::note
-The app's prefix is automatically added to the path.
-
-:::important 🚧 Under Construction 🚧
-I still need to implement this logic!
+:::important
+Don't forget to include your app's prefix when redirecting to a different controller.
 :::
-::::
