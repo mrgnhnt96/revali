@@ -30,6 +30,7 @@ import 'package:revali_router/revali_router.dart';
 class UsersController {
     @Get(':userId')
     Future<User> getUser(
+        // highlight-next-line
         @Param('userId', UserPipe) User user,
     ) async {
         // Get the user
@@ -38,3 +39,7 @@ class UsersController {
 ```
 
 ## Pipe Context
+
+:::tip
+Learn more about the Pipe Context [here](../context/pipe)
+:::

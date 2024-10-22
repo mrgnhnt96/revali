@@ -4,7 +4,7 @@ title: Overview
 
 # Lifecycle Components
 
-Lifecycle components are classes that are used to manage the lifecycle of a request. Specifically, they are used to manage the request from the time it is received by the server to the time it is sent back to the client. Each can have dedicated tasks, such as logging, authentication, and authorization.
+Lifecycle components are classes that are used to manage the lifecycle of a request. Specifically, they are used to manage the request from the time it is received by the server to the time it is sent back to the client. Each can have dedicated tasks, such as logging, authentication, or authorization.
 
 ## App Lifecycle
 
@@ -12,11 +12,11 @@ Since Lifecycle Components are used for requests, they are called upon when a re
 
 You can think of a basic request lifecycle as follows:
 
-| Request | Middleware | Controller | Endpoint | Middleware (reversed) | Response |
-| :-: | :-: | :-: | :-: | :-: | :-: |
-| Request | [ A, B, C ]  | `MyController` | `hello` | [ C, B, A ] | Response |
+| Request | Middleware  |   Controller   | Endpoint | Middleware (reversed) | Response |
+| :-----: | :---------: | :------------: | :------: | :-------------------: | :------: |
+| Request | [ A, B, C ] | `MyController` | `hello`  |      [ C, B, A ]      | Response |
 
-When a request is received by the server, it is passed to the middleware which will performs it's task. The middleware then passes the request to the controller's endpoint which will process the request and resolve the response to send. The response is then passed back to the middleware in reverse order. Finally, the response is then sent back to the client.
+When a request is received by the server, it is passed to the middleware which performs its task. The middleware then passes the request to the controller's endpoint which will process the request and resolve the response to send. The response is then passed back to the middleware in reverse order. Finally, the response is then sent back to the client.
 
 :::caution
 "Middleware" used in this context is a general term used to describe _any_ Lifecycle Component and is not the same as the `Middleware` component used in the `revali` framework.
@@ -44,7 +44,7 @@ You can catch exceptions by using the [`Catcher`](./catchers) Lifecycle Componen
 
 ## Scoping
 
-Lifecycle components can be applied at different levels of the application. They can be applied at the app, controller, or endpoint level. By applying Lifecycle Components at different levels, you can control where the Lifecycle Component is or isn't applied.
+Lifecycle components can be applied at different levels of the application: app, controller, and endpoint. By applying Lifecycle Components at different levels, you can control when the Lifecycle Component gets executed.
 
 ### App Level
 
@@ -156,7 +156,7 @@ In the example above, the order of Lifecycle Component execution is as follows:
 
 Some Lifecycle Components are responsible for returning error responses. Such components include `ExceptionCatcher`, `Guard`, and `Middleware`.
 
-Typically, a Lifecycle Component that can return an error response can accept a `statusCode`, `headers`, and `body`. The status code and body values passed to the method will override any values previous set by the request flow, while the headers will be merged with the headers set by the request flow.
+Typically, a Lifecycle Component that can return an error response can accept a `statusCode`, `headers`, and `body`. The status code and body values passed to the method will override any values previously set by the request flow, while the headers will be merged with the headers set by the request flow.
 
 ### Debug Mode
 
@@ -200,19 +200,19 @@ body: {
 
 ```json
 {
-  "message": "An error occurred",
-  "__DEBUG__": {
-    "error": "Instance of 'MyException'",
-    "stackTrace": [
-      "routes/hello_controller.dart 13:5                            HelloController.hello",
-      ".revali/server/routes/__hello.dart 15:16                     hello.<fn>",
-      "package:revali_router/src/router/execute.dart 56:22          Execute.run.<fn>",
-      "dart:async                                                   runZonedGuarded",
-      "package:revali_router/src/router/execute.dart 54:11          Execute.run",
-      "package:revali_router/src/router/router.dart 159:22          Router.handle",
-      "package:revali_router/src/server/handle_requests.dart 23:20  handleRequests"
-    ]
-  }
+    "message": "An error occurred",
+    "__DEBUG__": {
+        "error": "Instance of 'MyException'",
+        "stackTrace": [
+            "routes/hello_controller.dart 13:5                            HelloController.hello",
+            ".revali/server/routes/__hello.dart 15:16                     hello.<fn>",
+            "package:revali_router/src/router/execute.dart 56:22          Execute.run.<fn>",
+            "dart:async                                                   runZonedGuarded",
+            "package:revali_router/src/router/execute.dart 54:11          Execute.run",
+            "package:revali_router/src/router/router.dart 159:22          Router.handle",
+            "package:revali_router/src/server/handle_requests.dart 23:20  handleRequests"
+        ]
+    }
 }
 ```
 
@@ -226,21 +226,21 @@ body: [
 
 ```json
 [
-  "An error occurred",
-  {
-    "__DEBUG__": {
-      "error": "Instance of 'MyException'",
-      "stackTrace": [
-        "routes/hello_controller.dart 13:5                            HelloController.hello",
-        ".revali/server/routes/__hello.dart 15:16                     hello.<fn>",
-        "package:revali_router/src/router/execute.dart 56:22          Execute.run.<fn>",
-        "dart:async                                                   runZonedGuarded",
-        "package:revali_router/src/router/execute.dart 54:11          Execute.run",
-        "package:revali_router/src/router/router.dart 159:22          Router.handle",
-        "package:revali_router/src/server/handle_requests.dart 23:20  handleRequests"
-      ]
+    "An error occurred",
+    {
+        "__DEBUG__": {
+            "error": "Instance of 'MyException'",
+            "stackTrace": [
+                "routes/hello_controller.dart 13:5                            HelloController.hello",
+                ".revali/server/routes/__hello.dart 15:16                     hello.<fn>",
+                "package:revali_router/src/router/execute.dart 56:22          Execute.run.<fn>",
+                "dart:async                                                   runZonedGuarded",
+                "package:revali_router/src/router/execute.dart 54:11          Execute.run",
+                "package:revali_router/src/router/router.dart 159:22          Router.handle",
+                "package:revali_router/src/server/handle_requests.dart 23:20  handleRequests"
+            ]
+        }
     }
-  }
 ]
 ```
 

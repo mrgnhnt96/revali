@@ -4,7 +4,7 @@ title: Pipe
 
 # Pipe Context
 
-A `Pipe` is a used to transform a [binding](../core/binding) from the original type to another type to be delivered to the endpoint. This context can be used to get insights into the pipe call, data, meta data, and more.
+A `Pipe` is used to transform a [binding](../core/binding) from the original type to another type to be delivered to the endpoint. This context can be used to get insights into the: pipe call, data, metadata, and more.
 
 :::tip
 Learn more about the `Pipe` Lifecycle Component [here](../core/pipes).
@@ -28,15 +28,15 @@ In the above example, the `type` will return `AnnotationType.body`.
 
 The available annotation types are:
 
-- [body](../core/binding#body)
-- [data](../core/binding#data)
-- [query](../core/binding#query)
-- [queryAll](../core/binding#all-values)
-- [param](../core/binding#param)
-- [bind](../core/binding#bind)
-- [binds](../core/binding#via-binds)
-- [header](../core/binding#header)
-- [headerAll](../core/binding#all-values-1)
+-   [body](../core/binding#body)
+-   [data](../core/binding#data)
+-   [query](../core/binding#query)
+-   [queryAll](../core/binding#all-values)
+-   [param](../core/binding#param)
+-   [bind](../core/binding#bind)
+-   [binds](../core/binding#via-binds)
+-   [header](../core/binding#header)
+-   [headerAll](../core/binding#all-values-1)
 
 ### `annotationArgument`
 
