@@ -19,6 +19,7 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
     List<CombineComponents> combine = const [],
     AllowedOrigins? allowedOrigins,
     AllowedHeaders? allowedHeaders,
+    bool ignorePathPattern = false,
   }) : this._(
           path,
           routes: routes,
@@ -33,7 +34,9 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
           combine: combine,
           allowedOrigins: allowedOrigins,
           allowedHeaders: allowedHeaders,
+          ignorePathPattern: ignorePathPattern,
         );
+
   BaseRoute._(
     this.path, {
     required Iterable<BaseRoute>? routes,
@@ -47,6 +50,7 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
     required List<CombineComponents> combine,
     required this.allowedOrigins,
     required this.allowedHeaders,
+    required bool ignorePathPattern,
     // dynamic is needed bc copyWith has a bug
     required dynamic meta,
   }) : _meta = meta as void Function(MetaHandler)? {
@@ -79,13 +83,15 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
         );
       }
 
-      final segmentPattern =
-          RegExp(r'^:?[a-z0-9]+(?:[-_.][a-z0-9]+)*$', caseSensitive: false);
-      final segments = path.split('/');
-      if (!segments.every(segmentPattern.hasMatch)) {
-        throw ArgumentError(
-          'Invalid path format. Valid formats: /path/to/resource, path/:id (Segment pattern: ${segmentPattern.pattern})',
-        );
+      if (!ignorePathPattern) {
+        final segmentPattern =
+            RegExp(r'^:?[a-z0-9]+(?:[-_.][a-z0-9]+)*$', caseSensitive: false);
+        final segments = path.split('/');
+        if (!segments.every(segmentPattern.hasMatch)) {
+          throw ArgumentError(
+            'Invalid path format. Valid formats: /path/to/resource, path/:id (Segment pattern: ${segmentPattern.pattern})',
+          );
+        }
       }
     }
 

@@ -27,7 +27,8 @@ PartFile publicFileMaker(ServerServer server, String Function(Spec) formatter) {
               {
                 'method': literalString('GET'),
                 'allowedOrigins': refer((AllowedOriginsImpl).name)
-                    .newInstanceNamed('all', []),
+                    .constInstanceNamed('all', []),
+                'ignorePathPattern': literalTrue,
                 'handler': Method(
                   (p) => p
                     ..modifier = MethodModifier.async

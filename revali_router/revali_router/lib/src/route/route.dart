@@ -19,6 +19,7 @@ class Route extends BaseRoute {
     super.combine,
     super.allowedOrigins,
     super.allowedHeaders,
+    super.ignorePathPattern,
   }) : super(handler: handler);
 
   @override
