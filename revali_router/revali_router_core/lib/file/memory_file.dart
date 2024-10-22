@@ -6,6 +6,19 @@ class MemoryFile {
     this.extension,
   });
 
+  factory MemoryFile.from(
+    String content, {
+    required String mimeType,
+    String? basename,
+    String? extension,
+  }) =>
+      MemoryFile(
+        content.codeUnits,
+        mimeType: mimeType,
+        basename: basename,
+        extension: extension,
+      );
+
   final List<int> bytes;
   final String mimeType;
   final String? basename;
