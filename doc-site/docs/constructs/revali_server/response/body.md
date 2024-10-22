@@ -6,9 +6,7 @@ title: Body
 
 The `ResponseBody` is the object that represents the outgoing HTTP response body. Generally, the body is set by the endpoint handler, but it can also be modified by the Lifecycle Components. The body can be of any type, such as a `String`, `Map`, `List`, or a custom object.
 
-## Body Types
-
-### Structure
+## Structure
 
 The body can be of any type, such as a `String`, `Map`, `List`, or a custom object. The body is serialized into a JSON string before being sent to the client.
 
@@ -41,6 +39,8 @@ In the example above, the body of the response will be `42`.
     'data': 42
 }
 ```
+
+## Body Types
 
 ### Strings
 
@@ -80,6 +80,12 @@ class MyController {
     }
     // highlight-end
 }
+```
+
+In the example above, the body of the response will be `'Hello, World!'`.
+
+```plaintext
+Hello, World!
 ```
 
 ### Custom Objects
@@ -180,6 +186,53 @@ In the example above, the body of the response will be:
     }
 }
 ```
+
+### File
+
+You can return a `File` object from the endpoint handler. The file will be streamed to the client.
+
+```dart
+import 'dart:io';
+
+import 'package:revali_router/revali_router.dart';
+
+@Controller('files')
+class FilesController {
+    @Get()
+    File downloadFile() {
+        return File('path/to/file.txt');
+    }
+}
+```
+
+:::tip
+Returning files is easier than returning the file Stream directly. Revali Server will handle all the necessary headers and streaming for you.
+:::
+
+### Memory File
+
+Occasionally, you may have the content of a file, but not the file itself. In such cases, you can use the `MemoryFile` class to create a file from the content.
+
+```dart
+import 'package:revali_router/revali_router.dart';
+
+@Controller('files')
+class FilesController {
+    @Get()
+    MemoryFile downloadFile() {
+        return MemoryFile.from(
+            'Hello, World!',
+            mimeType: 'text/plain',
+            basename: 'file',
+            extension: 'txt',
+        );
+    }
+}
+```
+
+:::note
+If you don't provide a basename, the default value is `file`.
+:::
 
 ### Streams
 
