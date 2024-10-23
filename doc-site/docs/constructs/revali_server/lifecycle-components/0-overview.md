@@ -27,7 +27,7 @@ When a request is received by the server, it is passed to the middleware which p
 If an exception is thrown during the request lifecycle, the flow will be aborted and the exception will be caught by the server. The server will then send an error response back to the client.
 
 :::tip
-You can catch exceptions by using the [`Catcher`](./catchers) Lifecycle Component.
+You can catch exceptions by using the [`Catcher`][catchers] Lifecycle Component.
 :::
 
 ## Lifecycle Order
@@ -160,12 +160,12 @@ Typically, a Lifecycle Component that can return an error response can accept a 
 
 ### Debug Mode
 
-When an error response is returned in [debug mode](/revali/cli/dev#run-modes), a stack trace will be included in the error response.
+When an error response is returned in [debug mode][debug-mode], a stack trace will be included in the error response.
 
 Depending on the response content type, the stack trace will be formatted differently.
 
 :::tip
-Learn more about [run modes](/revali/cli/dev#run-modes).
+Learn more about [run modes][run-modes].
 :::
 
 #### String Debug Message
@@ -249,9 +249,14 @@ body: [
 When an error response is return in profile mode, the error response will not include any debug messages;
 
 :::note
-Profile mode is only available for the [`build`](/revali/cli/build) command.
+Profile mode is only available for the [`build`][build-command] command.
 :::
 
 ### Release Mode
 
 When an error response is returned in release mode, the error response will not include any debug messages.
+
+[catchers]: ./6-exception-catchers.md
+[debug-mode]: ../../../revali/cli/00-dev.md#debug-mode
+[run-modes]: ../../../revali/cli/00-dev.md#run-modes
+[build-command]: ../../../revali/cli/10-build.md

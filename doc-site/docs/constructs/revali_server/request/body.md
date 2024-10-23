@@ -34,7 +34,7 @@ Future<void> saveUser(
 If the body type and the parameter type do not match, a `MissingArgumentException` will be thrown.
 
 :::tip
-Learn how to [handle exceptions](../lifecycle-components/exception-catchers)
+Learn how to [handle exceptions][exception-catchers]
 :::
 ::::
 
@@ -144,7 +144,7 @@ base class MyBodyData extends BodyData {
 
 ### Register
 
-You can register your custom body type within the constructor of your [AppConfig](/revali/app-configuration/create-an-app)
+You can register your custom body type within the constructor of your [AppConfig][create-an-app]
 
 ```dart
 import 'package:revali_router/revali_router.dart';
@@ -157,3 +157,6 @@ final class MyApp extends AppConfig {
   }
 }
 ```
+
+[exception-catchers]: ../lifecycle-components/6-exception-catchers.md
+[create-an-app]: ../../../revali/app-configuration/10-create-an-app.md

@@ -7,7 +7,7 @@ title: Interceptor
 The `Interceptor` Lifecycle Component is used to intercept a request before it reaches the endpoint. This context can be used to manage data attached to the context, get meta data, and more.
 
 :::tip
-Learn more about the `Interceptor` Lifecycle Component [here](../lifecycle-components/interceptors).
+Learn more about the `Interceptor` Lifecycle Component [here][interceptors].
 :::
 
 ## Specific Properties
@@ -26,20 +26,27 @@ The `Response` is fully mutable in the `post` method, meaning that you can set t
 
 ### `data`
 
-The `data` property is a mutable property for the [DataHandler](./core/data_handler) object.
+The `data` property is a mutable property for the [DataHandler][data_handler] object.
 
 ### `meta`
 
-The `meta` property is a read-only property for the [MetaHandler](./core/meta_handler) object.
+The `meta` property is a read-only property for the [MetaHandler][meta_handler] object.
 
 ### `request`
 
-The `request` property is a read-only property for the [Request](../request/overview) object.
+The `request` property is a read-only property for the [Request][request] object.
 
 ### `response`
 
-The `response` property is a mutable (restricted) property for the [Response](../response/overview) object.
+The `response` property is a mutable (restricted) property for the [Response][response] object.
 
 ### `reflect`
 
-The `reflect` property is a read-only property for the [Reflect](./core/reflect) object.
+The `reflect` property is a read-only property for the [Reflect][reflect] object.
+
+[interceptors]: ../lifecycle-components/4-interceptors.md
+[data_handler]: ./core/data_handler.md
+[meta_handler]: ./core/meta_handler.md
+[request]: ../request/1-overview.md
+[response]: ../response/1-overview.md
+[reflect]: ./core/reflect_handler.md

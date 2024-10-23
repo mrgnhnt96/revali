@@ -1,9 +1,9 @@
 # Implied Binding
 
-There are certain classes that do not need [binding annotations](./binding).
+There are certain classes that do not need [binding annotations][binding].
 
 :::warning
-It is highly discouraged to used these, prefer to use [binding](./binding) with a [pipe](./pipes) or [Lifecycle Components](../lifecycle-components/lifecycle-components). Using these can make testing harder and make your code harder to understand.
+It is highly discouraged to used these, prefer to use [binding] with a [pipe][pipes] or [Lifecycle Components][lifecycle-components]. Using these can make testing harder and make your code harder to understand.
 :::
 
 | Types | |
@@ -15,3 +15,7 @@ It is highly discouraged to used these, prefer to use [binding](./binding) with 
 | ReadOnlyBody | The body received with the request |
 | ReadOnlyHeaders | The headers that were received with the request |
 | ReadOnlyRequest | The received request |
+
+[binding]: ./20-binding.md
+[pipes]: ./40-pipes.md
+[lifecycle-components]: ../lifecycle-components/0-overview.md

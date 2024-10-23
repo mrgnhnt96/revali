@@ -46,7 +46,7 @@ Revali Server will set the status code whenever the status code is not set. Here
 
 ## Setting the Status Code
 
-The status code can be set using the `Response.statusCode` property. This property is mutable, but it is restricted in most lifecycle components. The status code can only be modified _after_ the endpoint has been executed (via the [Interceptor.post](../lifecycle-components/interceptors#post) method).
+The status code can be set using the `Response.statusCode` property. This property is mutable, but it is restricted in most lifecycle components. The status code can only be modified _after_ the endpoint has been executed (via the [Interceptor.post][interceptor-post] method).
 
 ### Via Context
 
@@ -86,3 +86,5 @@ Using the `MutableResponse` parameter in the endpoint method is not recommended.
 
 By avoiding the `MutableResponse` parameter, you can keep your endpoint methods clean, focused, and testable.
 :::
+
+[interceptor-post]: ../lifecycle-components/4-interceptors.md#post

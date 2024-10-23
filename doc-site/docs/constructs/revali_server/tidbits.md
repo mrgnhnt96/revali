@@ -19,7 +19,7 @@ Iterable types like `List`, `Set`, and `Map` can be compile-time constants and a
 ```
 
 :::tip
-Check out the dart docs on [Constants](https://dart.dev/language/variables#final-and-const) to learn more.
+Check out the dart docs on [Constants][dart-constants] to learn more.
 :::
 
 ### Type Referencing
@@ -28,7 +28,7 @@ Behind the scenes, revali analyzes the code and retrieves AST (Abstract Syntax T
 
 When using types in annotations, even though we are not providing the actual value, we are providing a reference to the type. This is enough for revali to understand the class, it's constructor, and it's parameters.
 
-To understand this on a deeper level, let's take a look at how [pipes](./annotations/pipes) are used in [parameter annotations](./annotations/parameters).
+To understand this on a deeper level, let's take a look at how [pipes] are used in [bindings].
 
 Let's say we have a `UserPipe` class that will fetch a user from the database based on the `id` provided in the request. Our classes might look like this:
 
@@ -88,3 +88,7 @@ final userService = UserService(database: database);
 // some where else in the generated code
 final user = await UserPipe(userService: userService).transform(...);
 ```
+
+[dart-constants]: https://dart.dev/language/variables#final-and-const
+[pipes]: ./core/40-pipes.md
+[bindings]: ./core/20-binding.md

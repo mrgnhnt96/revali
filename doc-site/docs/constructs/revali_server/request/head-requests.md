@@ -36,4 +36,6 @@ Don't try returning a body in a HEAD request handler. Revali will automatically 
 
 ## Lifecycle
 
-When a HEAD request is received by Revali, it will follow the same order as [an HTTP request lifecycle](../lifecycle-components/overview#lifecycle-order), the only difference is that the endpoint's handler function will not be executed (unless you have defined a handler function for HEAD requests).
+When a HEAD request is received by Revali, it will follow the same order as [an HTTP request lifecycle][lifecycle-order], the only difference is that the endpoint's handler function will not be executed (unless you have defined a handler function for HEAD requests).
+
+[lifecycle-order]: ../lifecycle-components/0-overview.md#lifecycle-order

@@ -4,10 +4,10 @@ title: Pipe
 
 # Pipe Context
 
-A `Pipe` is used to transform a [binding](../core/binding) from the original type to another type to be delivered to the endpoint. This context can be used to get insights into the: pipe call, data, metadata, and more.
+A `Pipe` is used to transform a [binding] from the original type to another type to be delivered to the endpoint. This context can be used to get insights into the: pipe call, data, metadata, and more.
 
 :::tip
-Learn more about the `Pipe` Lifecycle Component [here](../core/pipes).
+Learn more about the `Pipe` Lifecycle Component [here][pipes].
 :::
 
 ## Specific Properties
@@ -28,15 +28,15 @@ In the above example, the `type` will return `AnnotationType.body`.
 
 The available annotation types are:
 
--   [body](../core/binding#body)
--   [data](../core/binding#data)
--   [query](../core/binding#query)
--   [queryAll](../core/binding#all-values)
--   [param](../core/binding#param)
--   [bind](../core/binding#bind)
--   [binds](../core/binding#via-binds)
--   [header](../core/binding#header)
--   [headerAll](../core/binding#all-values-1)
+- [body][binding-body]
+- [data][binding-data]
+- [query][binding-query]
+- [queryAll][binding-all-values]
+- [param][binding-param]
+- [bind][binding-bind]
+- [binds][binding-via-binds]
+- [header][binding-header]
+- [headerAll][binding-all-values-1]
 
 ### `annotationArgument`
 
@@ -66,8 +66,22 @@ In the above example, the `nameOfParameter` will return `user`.
 
 ### `data`
 
-The `data` property is a mutable property for the [DataHandler](./core/data_handler) object.
+The `data` property is a mutable property for the [DataHandler][data_handler] object.
 
 ### `meta`
 
-The `meta` property is a mutable (restricted) property for the [Meta](./core/meta_handler)
+The `meta` property is a mutable (restricted) property for the [Meta][meta_handler]
+
+[pipes]: ../core/40-pipes.md
+[data_handler]: ./core/data_handler.md
+[binding]: ../core/20-binding.md
+[meta_handler]: ./core/meta_handler.md
+[binding-body]: ../core/20-binding.md#body
+[binding-data]: ../core/20-binding.md#data
+[binding-query]: ../core/20-binding.md#query
+[binding-all-values]: ../core/20-binding.md#all-values
+[binding-param]: ../core/20-binding.md#param
+[binding-bind]: ../core/20-binding.md#bind
+[binding-via-binds]: ../core/20-binding.md#via-binds
+[binding-header]: ../core/20-binding.md#header
+[binding-all-values-1]: ../core/20-binding.md#all-values-1

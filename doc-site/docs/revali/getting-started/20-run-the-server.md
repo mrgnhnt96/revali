@@ -3,7 +3,7 @@
 On it's own, revali doesn't do anything except analyze your routes and prepare it for constructs to generate code. In order to see your server in action, you'll need to use a "Server Construct" to generate the server code.
 
 :::tip
-Check out the [Revali Server](/constructs/revali_server) construct for more information on how to generate a server.
+Check out the [Revali Server][revali-server] construct for more information on how to generate a server.
 :::
 
 ## Revali CLI
@@ -36,3 +36,5 @@ When revali starts up, it will generate files in your project:
 ```
 
 These files are your server's definitions and routes. These files should **NOT** be modified manually, Revali will manage them for you.
+
+[revali-server]: ../../constructs/revali_server/overview.md

@@ -3,7 +3,7 @@
 The `MetaHandler` object is used to store meta data in the context. Meta data is used to store additional information about the endpoint. The meta data is stored and retrieved by type.
 
 :::tip
-Learn how to create meta data using the [`Meta`](./meta) object
+Learn how to create meta data using the [`Meta`][meta] object
 :::
 
 ## Properties
@@ -21,7 +21,7 @@ There are some Lifecycle Components that can only read data from the `MetaHandle
 :::
 
 :::tip
-Its not recommended to store primitive types in the `MetaHandler`. Instead, create a class that holds the primitive type or use [extension types](https://dart.dev/language/extension-types).
+Its not recommended to store primitive types in the `MetaHandler`. Instead, create a class that holds the primitive type or use [extension types][extension-types].
 
 ```dart
 extension type Role(String _) implements String {}
@@ -106,3 +106,6 @@ class AuthGuard implements Guard {
     }
 }
 ```
+
+[meta]: ./meta.md
+[extension-types]: https://dart.dev/language/extension-types

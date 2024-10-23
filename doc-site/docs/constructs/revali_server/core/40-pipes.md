@@ -1,6 +1,6 @@
 # Pipes
 
-A `Pipe` is a used to transform a [binding](./binding) from the original type to another type to be delivered to the endpoint.
+A `Pipe` is a used to transform a [binding] from the original type to another type to be delivered to the endpoint.
 
 ## Create a Pipe
 
@@ -21,7 +21,7 @@ class UserPipe extends Pipe<String, User> {
 
 ## Usage
 
-Pipes are tightly coupled with [bindings](./binding#pipe-transform). To use a `Pipe`, you need to provide your `Pipe` class in the binding.
+Pipes are tightly coupled with [bindings][binding-pipe-transform]. To use a `Pipe`, you need to provide your `Pipe` class in the binding.
 
 ```dart title="routes/controllers/my_controllers.dart"
 import 'package:revali_router/revali_router.dart';
@@ -41,5 +41,9 @@ class UsersController {
 ## Pipe Context
 
 :::tip
-Learn more about the Pipe Context [here](../context/pipe)
+Learn more about the Pipe Context [here][pipe-context].
 :::
+
+[binding]: ./20-binding.md
+[pipe-context]: ../context/pipe.md
+[binding-pipe-transform]: ./20-binding.md#pipe-transform

@@ -4,7 +4,7 @@ The `public` directory is a special directory used to store static files that ar
 
 ## Usage
 
-The `public` directory is automatically mapped to the server's root, even if you have defined an [application prefix](/revali/app-configuration/overview)
+The `public` directory is automatically mapped to the server's root, even if you have defined an [application prefix][app-prefix]
 
 ### Example
 
@@ -30,3 +30,5 @@ The `public` directory does not use the server's prefix. All files are served fr
 :::danger
 Avoid placing sensitive or private information in the `public` directory, as it is fully accessible to anyone who knows the URL.
 :::
+
+[app-prefix]: ../../../revali/app-configuration/10-create-an-app.md#

@@ -4,7 +4,7 @@ title: revali build
 
 # The Build Command
 
-The `revali build` command is used to run the ["Build Constructs"](/constructs). Which are used to generate code, assets, or any other files that are needed for deployment.
+The `revali build` command is used to run the ["Build Constructs"][build-constructs]. Which are used to generate code, assets, or any other files that are needed for deployment.
 
 ## Usage
 
@@ -29,3 +29,5 @@ dart run revali build --release
 ### Profile Mode
 
 Profile mode generates the same optimized code as `Release` mode. The difference is that Profile mode will enable revali logs to be printed to the console.
+
+[build-constructs]: ../../constructs/overview.md#build-constructs

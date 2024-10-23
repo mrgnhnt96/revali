@@ -70,7 +70,7 @@ class HelloController {
 Notice that the `name` parameter is annotated with `@Param()`. This annotation is used to bind the path parameter to the method's parameter.
 
 :::tip
-Check out [Parameter Annotations](./20-binding) to learn more about annotating parameters.
+Check out [Binding][binding] to learn more about annotating parameters.
 :::
 
 ### Controller Parameters
@@ -130,3 +130,5 @@ In the example above, the `sayHello` method is annotated with the `Get` annotati
 :::tip
 Notice that the path argument does not start with `/`, this will be automatically added.
 :::
+
+[binding]: ./20-binding.md

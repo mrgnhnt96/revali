@@ -34,7 +34,7 @@ There's no limit to the number of middleware that can be applied to a controller
 The `MiddlewareResult` has two possible results: `next` and `stop`. The `next` result allows the request to continue to the next middleware or guard. The `stop` result stops the request from continuing any further in the request flow.
 
 ::::tip
-Learn about returning error responses in the [docs](/constructs/revali_server/lifecycle-components#error-responses).
+Learn about [returning error responses][error-responses].
 
 :::important
 If the `statusCode` is not set, the default status code will be 400.
@@ -66,5 +66,8 @@ class MyController ...
 ```
 
 :::tip
-Learn about guards in the [docs](/constructs/revali_server/lifecycle-components#guards).
+Learn about [guards].
 :::
+
+[error-responses]: ../lifecycle-components/0-overview.md#error-responses
+[guards]: ./3-guards.md

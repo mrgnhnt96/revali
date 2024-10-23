@@ -21,7 +21,7 @@ You can only use one parameter annotation per parameter.
 :::
 
 :::info
-There are [some classes](./implied_binding) that can be implied by the parameter's type and do not require binding annotations
+There are [some classes][implied-binding] that can be implied by the parameter's type and do not require binding annotations
 :::
 
 ## `@Param()`
@@ -59,7 +59,7 @@ class ShopController {
 ```
 
 :::caution
-Path parameters are always returned as a `String`. If you need to convert the value to another type, you can use a [pipe](#param-1).
+Path parameters are always returned as a `String`. If you need to convert the value to another type, you can use a [param-pipe].
 :::
 
 ## `@Query()`
@@ -91,7 +91,7 @@ String getUser(
 ```
 
 :::caution
-Query parameters are always returned as `String`s. If you need to convert the value to another type, you can use a [pipe](#query-1).
+Query parameters are always returned as `String`s. If you need to convert the value to another type, you can use a [param-pipe][query-pipe].
 :::
 
 ### All Values
@@ -131,7 +131,7 @@ String getUser(
 ```
 
 :::caution
-Header values are always returned as `String`s. If you need to convert the value to another type, you can use a [pipe](#header-1).
+Header values are always returned as `String`s. If you need to convert the value to another type, you can use a [pipe][header-pipe].
 :::
 
 ### All Values
@@ -167,9 +167,9 @@ String createUser(
 ```
 
 ::::note
-The `@Body` type can be used with any [built-in](https://dart.dev/language/built-in-types) type, not just `Map<String, dynamic>`, it should be whatever you expect the body to be.
+The `@Body` type can be used with any [built-in][built-in-types] type, not just `Map<String, dynamic>`, it should be whatever you expect the body to be.
 
-If you need to convert the value to another type, you can use a [pipe](#body-1).
+If you need to convert the value to another type, you can use a [pipe][body-pipe].
 ::::
 
 ### Specific Values
@@ -205,10 +205,10 @@ If the body doesn't contain the specified keys, the method will throw a runtime 
 
 ## `@Dep()`
 
-The `Dep` annotation is used to bind a dependency from the [DI object](/revali/app-configuration/configure-dependencies#the-di-object) to a parameter.
+The `Dep` annotation is used to bind a dependency from the [DI object][di-object] to a parameter.
 
 :::tip
-Learn how to [configure dependencies](/revali/app-configuration/configure-dependencies#registering-dependencies).
+Learn how to [configure dependencies][configure-dependencies].
 :::
 
 While you can bind a dependency to a parameter in a request, it is recommended to use the parameters of the controller's constructor instead.
@@ -236,7 +236,7 @@ If the dependency doesn't exist, the method will throw a runtime error. Controll
 
 ## `@Data()`
 
-The `Data` annotation is used to bind a value from the [Data Handler](/constructs/revali_server/context/core/data_handler) to a parameter.
+The `Data` annotation is used to bind a value from the [Data Handler][data-handler] to a parameter.
 
 ```dart showLineNumbers
 @Get()
@@ -317,7 +317,7 @@ String getUser(
 ```
 
 :::tip
-Read more about why `GetUser` is being used as a [Type Reference](/constructs/revali_server/tidbits#using-types-in-annotations)
+Read more about why `GetUser` is being used as a [Type Reference][using-types-in-references]
 :::
 
 ## Name References
@@ -381,7 +381,7 @@ Check out the [Pipe][pipes] documentation on how to create pipes.
 :::
 
 :::tip
-Read more about why the pipe being used as a [Type Reference](/constructs/revali_server/tidbits#using-types-in-annotations) is important
+Read more about why the pipe being used as a [Type Reference][using-types-in-references] is important
 :::
 
 ### Param
@@ -415,3 +415,14 @@ Read more about why the pipe being used as a [Type Reference](/constructs/revali
 ```
 
 [pipes]: ../core/40-pipes.md
+[built-in-types]: https://dart.dev/language/built-in-types
+[implied-binding]: ./30-implied_binding.md
+[di-object]: ../../../revali/app-configuration/configure-dependencies.md#the-di-object
+[configure-dependencies]: ../../../revali/app-configuration/configure-dependencies.md#registering-dependencies
+[data-handler]: ../../../constructs/revali_server/context/core/data_handler.md
+[using-types-in-references]: ../../../constructs/revali_server/tidbits.md#using-types-in-annotations
+
+[param-pipe]: #param-1
+[query-pipe]: #query-1
+[body-pipe]: #body-1
+[header-pipe]: #header-1

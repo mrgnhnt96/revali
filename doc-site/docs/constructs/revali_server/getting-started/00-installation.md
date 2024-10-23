@@ -24,12 +24,12 @@ dev_dependencies:
 ```
 
 :::note
-Make sure to replace `<latest-version>` with the latest version of [Revali](https://pub.dev/packages/revali).
+Make sure to replace `<latest-version>` with the latest version of [Revali][revali-pub].
 :::
 
 ### Revali Router
 
-Under the hood, Revali Server uses [Revali Router](https://pub.dev/packages/revali_router) to handle the request routing.
+Under the hood, Revali Server uses [Revali Router][revali-router-pub] to handle the request routing.
 
 ```dart
 import 'package:revali_router/revali_router.dart';
@@ -51,7 +51,7 @@ dependencies:
 ```
 
 :::note
-Make sure to replace `<latest-version>` with the latest version of [Revali Router](https://pub.dev/packages/revali_router).
+Make sure to replace `<latest-version>` with the latest version of [Revali Router][revali-router-pub].
 :::
 
 ### Revali Server
@@ -72,7 +72,7 @@ dev_dependencies:
 ```
 
 :::note
-Make sure to replace `<latest-version>` with the latest version of [Revali Server](https://pub.dev/packages/revali_server).
+Make sure to replace `<latest-version>` with the latest version of [Revali Server][revali-server-pub].
 :::
 
 ### Get Dependencies
@@ -114,3 +114,7 @@ The `revali_router` package depends on the packages needed for you to create any
 ```dart
 import 'package:revali_router/revali_router.dart';
 ```
+
+[revali-pub]: https://pub.dev/packages/revali
+[revali-server-pub]: https://pub.dev/packages/revali_server
+[revali-router-pub]: https://pub.dev/packages/revali_router

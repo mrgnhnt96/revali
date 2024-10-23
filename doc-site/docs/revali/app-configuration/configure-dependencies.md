@@ -37,7 +37,7 @@ class MyApp extends AppConfig {
 
 ## The DI Object
 
-The `DI` object is a dependency injection container that is passed to the `configureDependencies` method. You can use this object to register dependencies. The ["Server Construct"](/constructs#server-constructs) will use this object to resolve dependencies when creating Dart objects.
+The `DI` object is a dependency injection container that is passed to the `configureDependencies` method. You can use this object to register dependencies. The ["Server Construct"][server-construct] will use this object to resolve dependencies when creating Dart objects.
 
 Everything registered will eventually become a "singleton". Meaning that the dependency will be cached in memory and reused for the lifetime of the application.
 
@@ -58,3 +58,5 @@ This is used to register an instance of a dependency with the `DI` object. This 
 ```dart
 void registerInstance<T>(T instance);
 ```
+
+[server-construct]: ../../constructs/overview.md#server-constructs

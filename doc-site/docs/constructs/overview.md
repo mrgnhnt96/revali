@@ -18,7 +18,7 @@ Generally, constructs are used when the `dev` command is run. Generating new cod
 ```
 
 :::tip
-Check out the `dev` command in the [CLI Commands](/revali/cli/dev).
+Check out the `dev` command in the [CLI Commands][dev-command].
 :::
 
 ## Types of Constructs
@@ -34,7 +34,7 @@ You can only have **one** server construct in your project.
 :::
 
 :::tip
-Check out Revali's default Server Construct ([`revali_server`](/constructs/revali_server)).
+Check out Revali's default Server Construct ([`revali_server`][revali-server]).
 :::
 
 ### Build Constructs
@@ -50,5 +50,9 @@ While you can have multiple build constructs, be careful that they do not confli
 :::
 
 :::tip
-Check out the [Build Command](/revali/cli/build) for more information.
+Check out the [Build Command][build-command] for more information.
 :::
+
+[dev-command]: ../revali/cli/00-dev.md
+[build-command]: ../revali/cli/10-build.md
+[revali-server]: ../constructs/revali_server/overview.md

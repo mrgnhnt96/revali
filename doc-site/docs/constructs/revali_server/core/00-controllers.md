@@ -52,7 +52,7 @@ class UsersController {
 ```
 
 :::tip
-Learn more about [methods](./methods)
+Learn more about [methods]
 :::
 
 ## Constructors
@@ -73,7 +73,7 @@ Revali will ignore any private constructors
 
 ## Dependencies
 
-Eventually, you will need to use a dependency you've configured. You can add [instance variables](https://dart.dev/language/constructors#instance-variable-initialization) for these dependencies within the constructor and revali_server will supply the appropriate values based on your dependency configuration.
+Eventually, you will need to use a dependency you've configured. You can add [instance variables][instance-variables] for these dependencies within the constructor and revali_server will supply the appropriate values based on your dependency configuration.
 
 ```dart title="routes/users/users_controller.dart"
 class UsersController {
@@ -88,9 +88,14 @@ class UsersController {
 ```
 
 :::important
-Since controllers are long lived, they do not have access to the request, so you cannot add any [binding annotations](./binding) to any parameters.
+Since controllers are long lived, they do not have access to the request, so you cannot add any [binding annotations][binding] to any parameters.
 :::
 
 :::tip
-Learn how to [configure dependencies](/revali/app-configuration/configure-dependencies#registering-dependencies).
+Learn how to [configure dependencies][configure-dependencies].
 :::
+
+[methods]: ./10-methods.md
+[configure-dependencies]: ../../../revali/app-configuration/configure-dependencies.md#registering-dependencies
+[binding]: ./20-binding.md
+[instance-variables]: https://dart.dev/language/constructors#instance-variable-initialization

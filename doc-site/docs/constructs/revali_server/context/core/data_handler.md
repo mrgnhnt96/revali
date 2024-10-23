@@ -15,7 +15,7 @@ There are some Lifecycle Components that can only read data from the `DataHandle
 :::
 
 :::tip
-Its not recommended to store primitive types in the `DataHandler`. Instead, create a class that holds the primitive type or use [extension types](https://dart.dev/language/extension-types).
+Its not recommended to store primitive types in the `DataHandler`. Instead, create a class that holds the primitive type or use [extension types][extension-types].
 
 ```dart
 extension type UserId(String _) implements String {}
@@ -99,3 +99,5 @@ class RoleGuard extends Guard {
 :::note
 While in this example we are returning a `500` status code, you could retrieve the user from the database in the `RoleGuard` if you wanted to.
 :::
+
+[extension-types]: https://dart.dev/language/extension-types

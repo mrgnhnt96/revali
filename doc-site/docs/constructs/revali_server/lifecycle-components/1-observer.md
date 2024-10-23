@@ -7,7 +7,7 @@ Observers are unique in that they can only be registered at the app level. This 
 Observers are useful for logging, monitoring, and other tasks that need to be executed before or after the request.
 
 :::important
-Observers are not intended to modify the request or response. If you need to modify the request or response, use an [interceptor](./3-interceptors).
+Observers are not intended to modify the request or response. If you need to modify the request or response, use an [interceptor][interceptors].
 :::
 
 ## Execution
@@ -58,3 +58,5 @@ import 'package:revali_router/revali_router.dart';
 @App()
 class MyApp ...
 ```
+
+[interceptors]: ./4-interceptors.md

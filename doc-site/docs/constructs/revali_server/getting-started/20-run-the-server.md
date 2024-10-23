@@ -56,5 +56,7 @@ These files are your server's definitions and routes. These files should **NOT**
 Now that you've seen your server in action, you can start adding more endpoints to your server.
 
 :::tip
-Check out the [revali docs](/revali/getting-started/debug-server) to learn more about debugging your server.
+Check out the Revali docs to learn more about [debugging your server][debug-server].
 :::
+
+[debug-server]: ../../../revali/getting-started/debug-server.md

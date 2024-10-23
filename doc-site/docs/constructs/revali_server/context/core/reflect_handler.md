@@ -18,10 +18,10 @@ An alternative way to retrieve the you can use the `byType` method.
 
 ## Reflector
 
-The `Reflector` class provides a way to analyze [`Meta`](./meta_handler) data on properties of a specific type.
+The `Reflector` class provides a way to analyze [`Meta`][meta-handler] data on properties of a specific type.
 
 :::tip
-Learn how to create meta data using the [`Meta`](../../metadata/meta) object
+Learn how to create meta data using the [`Meta`][meta] object
 :::
 
 ### `get`
@@ -45,5 +45,8 @@ Map<String, ReadOnlyMeta> final meta = context.reflect.get<T>().meta;
 ```
 
 :::tip
-Learn more about [`Meta`](../../metadata/meta)
+Learn more about [`Meta`][meta]
 :::
+
+[meta-handler]: ./meta_handler.md
+[meta]: ../../context/core/meta.md

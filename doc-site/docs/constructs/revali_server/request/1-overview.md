@@ -4,7 +4,7 @@ title: Overview
 
 # Request
 
-The `Request` is the object that represents the incoming HTTP request. It contains all the information about the request, such as the headers, the body, the URL, and the method. While the [response](./../response/overview) can be heavily modified, the request is read-only, with the exception of the headers.
+The `Request` is the object that represents the incoming HTTP request. It contains all the information about the request, such as the headers, the body, the URL, and the method. While the [response] can be heavily modified, the request is read-only, with the exception of the headers.
 
 ## Read-Only
 
@@ -25,7 +25,7 @@ final request = context.request;
 ```
 
 :::tip
-Read more about the Lifecycle Component's context [here](../context/overview).
+Read more about the [Lifecycle Component's context][lifecycle-context].
 :::
 
 ### Via Binding
@@ -46,3 +46,6 @@ Using the `ReadOnlyRequest` parameter in the endpoint method is not recommended.
 
 By avoiding the `ReadOnlyRequest` parameter, you can keep your endpoint methods clean, focused, and testable.
 :::
+
+[response]: ./../response/1-overview.md
+[lifecycle-context]: ../context/0-overview.md

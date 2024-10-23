@@ -56,7 +56,7 @@ class MyApp ...
 ```
 
 :::tip
-Learn more about [type referencing](/constructs/revali_server/tidbits#using-types-in-annotations).
+Learn more about [type referencing][type-referencing].
 :::
 
 ### Repetitive Catchers
@@ -131,7 +131,7 @@ class MyCatcher extends ExceptionCatcher<MyException> {
 ```
 
 ::::tip
-Learn about returning error responses in the [docs](/constructs/revali_server/lifecycle-components#error-responses).
+Learn about [returning error responses][error-responses].
 :::important
 If the `statusCode` is not set, the default status code will be 500.
 :::
@@ -146,5 +146,12 @@ Internal Server Error
 ```
 
 :::tip
-Learn how you can customize the internal server error message in the [docs](/revali/app-configuration/default-responses)
+Learn how you can customize the internal server error message in the [docs][default-responses]
 :::
+
+Learn more about [type referencing][type-referencing].
+:::
+
+[type-referencing]: ../tidbits.md#using-types-in-annotations
+[error-responses]: ../lifecycle-components/0-overview.md#error-responses
+[default-responses]: ../../../revali/app-configuration/default-responses.md

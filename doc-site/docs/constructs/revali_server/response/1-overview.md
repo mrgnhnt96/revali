@@ -8,15 +8,15 @@ The `Response` is the object that represents the outgoing HTTP response. It cont
 
 ## Read-Only
 
-The response is only occasionally read-only, like in the [Bind Context](../context/bind-context) and [Observer](../lifecycle-components/observer) Lifecycle Component. This is by design, as the response should be modified by the dedicated Lifecycle Components.
+The response is only occasionally read-only, like in the [Bind Context][bind-context] and [Observer][observer] Lifecycle Component. This is by design, as the response should be modified by the dedicated Lifecycle Components.
 
 :::tip
-Read more about Lifecycle Components [here](../lifecycle-components/overview).
+Read more about [Lifecycle Components][lifecycle-components].
 :::
 
 ## Restricted Mutability
 
-In most lifecycle components, the response mutability is restricted. The only property that is restricted in the response, is the `statusCode`, which can only be modified _after_ the endpoint has been executed (via the [Interceptor.post](../lifecycle-components/interceptors#post) method).
+In most lifecycle components, the response mutability is restricted. The only property that is restricted in the response, is the `statusCode`, which can only be modified _after_ the endpoint has been executed (via the [Interceptor.post][interceptor-post] method).
 
 ## Accessing the Response
 
@@ -29,7 +29,7 @@ final response = context.response;
 ```
 
 :::tip
-Read more about the Lifecycle Component's context [here](../context/overview).
+Read more about the [Lifecycle Component's context][lifecycle-context].
 :::
 
 ### Via Binding
@@ -50,3 +50,9 @@ Using the `MutableResponse` parameter in the endpoint method is not recommended.
 
 By avoiding the `MutableResponse` parameter, you can keep your endpoint methods clean, focused, and testable.
 :::
+
+[bind-context]: ../context/bind.md
+[observer]: ../lifecycle-components/1-observer.md
+[lifecycle-components]: ../lifecycle-components/0-overview.md
+[interceptor-post]: ../lifecycle-components/4-interceptors.md#post
+[lifecycle-context]: ../context/0-overview.md

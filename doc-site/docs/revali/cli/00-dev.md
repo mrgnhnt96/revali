@@ -9,7 +9,7 @@ The `revali dev` command is used to start the server for your Revali application
 By default, the server will be started on port `8080` and will serve the API at `/api`.
 
 :::info
-To configure the port and the API path, check out [App Configuration](/revali/app-configuration/overview).
+To configure the port and the API path, check out [App Configuration][app-config].
 :::
 
 ## Usage
@@ -50,3 +50,5 @@ Use debug mode during development.
 This is the default mode for `revali build`.
 :::
 ::::
+
+[app-config]: ../app-configuration/00-overview.md

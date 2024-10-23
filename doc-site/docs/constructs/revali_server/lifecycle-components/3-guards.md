@@ -33,10 +33,10 @@ There's no limit to the number of guards that can be applied to a controller or 
 
 The `GuardResult` has two possible results: `yes` and `no`. The `yes` result allows the request to continue to the controller or endpoint. The `no` result stops the request from continuing any further in the request flow.
 
-An alternative to using the `action.no` method is to throw an exception. Create an [exception catcher](./exception-catchers) to catch the exception and handle the error response.
+An alternative to using the `action.no` method is to throw an exception. Create an [exception catcher][exception-catchers] to catch the exception and handle the error response.
 
 ::::tip
-Learn about returning error responses in the [docs](/constructs/revali_server/lifecycle-components#error-responses).
+Learn about [returning error responses][error-responses].
 
 :::important
 If the `statusCode` is not set, the default status code will be 403.
@@ -70,5 +70,9 @@ class MyController ...
 ```
 
 :::tip
-Learn more about [type referencing](/constructs/revali_server/tidbits#using-types-in-annotations).
+Learn more about [type referencing][type-referencing].
 :::
+
+[exception-catchers]: ./6-exception-catchers.md
+[type-referencing]: ../tidbits.md#using-types-in-annotations
+[error-responses]: ../lifecycle-components/0-overview.md#error-responses

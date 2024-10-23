@@ -75,5 +75,7 @@ class MyController ...
 ```
 
 :::tip
-Learn more about [type referencing](/constructs/revali_server/tidbits#using-types-in-annotations).
+Learn more about [type referencing][type-referencing].
 :::
+
+[type-referencing]: ../tidbits.md#using-types-in-annotations

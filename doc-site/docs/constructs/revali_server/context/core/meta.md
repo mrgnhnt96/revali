@@ -70,7 +70,7 @@ Now, when a request is made to the `publicUser` method, the `Auth` guard will ch
 
 ### Removing Sensitive Data from Return Type
 
-When you have a return type that you are returning to the client and contains sensitive data, you can add a `Meta` object to the field of the return type. Leveraging the [`ReflectHandler`](./meta_handler), you can analyze the meta data of the return type's properties and remove the sensitive data before sending it to the client.
+When you have a return type that you are returning to the client and contains sensitive data, you can add a `Meta` object to the field of the return type. Leveraging the [`ReflectHandler`][reflect-handler], you can analyze the meta data of the return type's properties and remove the sensitive data before sending it to the client.
 
 ```dart title="lib/meta/no_return.dart"
 import 'package:revali_router/revali_router.dart';
@@ -133,3 +133,5 @@ class UserInterceptor implements Interceptor {
 }
 
 ```
+
+[reflect-handler]: ./reflect_handler.md

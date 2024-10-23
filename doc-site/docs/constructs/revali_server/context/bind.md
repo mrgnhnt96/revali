@@ -7,7 +7,7 @@ title: Bind
 The `Bind` Lifecycle Component is used to bind a value from the request to a parameter. This context can be used to get insights into the binding call, data, meta data, and more.
 
 :::tip
-Learn more about the `Bind` Lifecycle Component [here](../core/binding).
+Learn more about the `Bind` Lifecycle Component [here][bind].
 :::
 
 ## Specific Properties
@@ -40,16 +40,22 @@ In the above example, the `parameterType` will return the `User` type.
 
 ### `data`
 
-The `data` property is a read-only property for the [DataHandler](./core/data_handler) object.
+The `data` property is a read-only property for the [DataHandler][data_handler] object.
 
 ### `meta`
 
-The `meta` property is a read-only property for the [MetaHandler](./core/meta_handler) object.
+The `meta` property is a read-only property for the [MetaHandler][meta_handler] object.
 
 ### `request`
 
-The `request` property is a read-only property for the [Request](../request/overview) object.
+The `request` property is a read-only property for the [Request][request] object.
 
 ### `response`
 
-The `response` property is a read-only property for the [Response](../response/overview) object.
+The `response` property is a read-only property for the [Response][response] object.
+
+[bind]: ../core/20-binding.md
+[data_handler]: ./core/data_handler.md
+[meta_handler]: ./core/meta_handler.md
+[request]: ../request/1-overview.md
+[response]: ../response/1-overview.md

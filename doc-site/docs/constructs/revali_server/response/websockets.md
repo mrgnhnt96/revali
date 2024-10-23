@@ -28,7 +28,7 @@ If you're running the server locally, you can connect to the WebSocket via `ws:/
 Every time a message is sent to the WebSocket, the handler (`echoMessage`) will be called. If you're expecting a message sent from the client, you can bind the message using the `@Body` annotation. The headers sent by the client to connect to the WebSocket will remain the same throughout the connection.
 
 :::tip
-Learn more about [binding](../core/binding) parameters.
+Learn more about [binding] parameters.
 :::
 
 ### Two-Way Communication
@@ -60,7 +60,7 @@ If you only want the server to send messages to the client, you can set the mode
 To close the connection, throw a `CloseWebSocketException` exception. The exception can be thrown with a status code and a reason. This exception will be automatically handled by the server, and the connection will be closed.
 
 :::note
-The `CloseWebSocketException` cannot be caught using [Exception Catchers](../lifecycle-components/exception-catchers)
+The `CloseWebSocketException` cannot be caught using [Exception Catchers][exception-catchers]
 :::
 
 ```dart
@@ -84,7 +84,7 @@ class MyController {
 ```
 
 :::tip
-Learn more about web socket error codes [here](https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent/code).
+Learn more about [web socket error codes][web-socket-error-codes].
 :::
 
 :::danger
@@ -170,7 +170,7 @@ String onConnect(@Body() String? message) {
 
 ## Web Socket Lifecycle
 
-The Web Socket lifecycle is similar to the [HTTP lifecycle](../lifecycle-components/overview), however, there are some differences. The Web Socket lifecycle is as follows:
+The Web Socket lifecycle is similar to the [HTTP lifecycle][lifecycle-order], however, there are some differences. The Web Socket lifecycle is as follows:
 
 1. Open Connection
 1. Observer
@@ -192,3 +192,8 @@ The message loop is the part of the lifecycle where the server listens for messa
 :::note
 On Connect is the same as the message loop, but is only run once, when the connection is established.
 :::
+
+[binding]: ../core/20-binding.md
+[exception-catchers]: ../lifecycle-components/6-exception-catchers.md
+[web-socket-error-codes]: https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent/code
+[lifecycle-order]:../lifecycle-components/0-overview.md#lifecycle-order

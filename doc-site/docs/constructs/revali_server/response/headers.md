@@ -33,7 +33,7 @@ context.response.headers['Cache-Control'] = 'no-cache';
 ```
 
 :::tip
-Read more about the Lifecycle Component's context [here](../context/overview).
+Read more about the [Lifecycle Component's context][lifecycle-context].
 :::
 
 ### Via Annotations
@@ -49,7 +49,7 @@ Future<String> helloWorld() async {
 ```
 
 :::tip
-Use [`HttpHeaders`](https://api.dart.dev/stable/3.5.3/dart-io/HttpHeaders-class.html) from the dart sdk to avoid using magic strings.
+Use [`HttpHeaders`][http-headers] from the dart sdk to avoid using magic strings.
 :::
 
 ### Via Binding
@@ -86,3 +86,6 @@ Future<void> saveData() async {
     ...
 }
 ```
+
+[lifecycle-context]: ../context/0-overview.md
+[http-headers]: https://api.dart.dev/stable/3.5.3/dart-io/HttpHeaders-class.html
