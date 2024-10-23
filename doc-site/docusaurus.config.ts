@@ -57,6 +57,39 @@ const config: Config = {
                 autoCollapseCategories: true
             }
         },
+        algolia: {
+            // The application ID provided by Algolia
+            appId: 'FHFKC19XPI',
+
+            // Public API key: it is safe to commit it
+            apiKey: '7994a1474e5a79c99f471a0feb837498',
+
+            indexName: 'revali',
+
+            // Optional: see doc section below
+            contextualSearch: true,
+
+            // Optional: Specify domains where the navigation should occur through window.location instead on history.push. Useful when our Algolia config crawls multiple documentation sites and we want to navigate with window.location.href to them.
+            externalUrlRegex: 'external\\.com|domain\\.com',
+
+            // Optional: Replace parts of the item URLs from Algolia. Useful when using the same search index for multiple deployments using a different baseUrl. You can use regexp or string in the `from` param. For example: localhost:3000 vs myCompany.com/docs
+            replaceSearchResultPathname: {
+                from: '/docs/', // or as RegExp: /\/docs\//
+                to: '/',
+            },
+
+            // Optional: Algolia search parameters
+            searchParameters: {},
+
+            // Optional: path for search page that enabled by default (`false` to disable it)
+            searchPagePath: 'search',
+
+            // Optional: whether the insights feature is enabled or not on Docsearch (`false` by default)
+            insights: false,
+
+            //... other Algolia params
+        },
+
         navbar: {
             title: 'Revali',
             logo: {
