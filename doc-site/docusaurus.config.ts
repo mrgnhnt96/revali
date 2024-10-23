@@ -69,7 +69,7 @@ const config: Config = {
                     type: 'docSidebar',
                     sidebarId: 'createConstruct',
                     position: 'left',
-                    label: 'Create Construct',
+                    label: 'Create Constructs',
                 },
                 {
                     href: 'https://github.com/facebook/docusaurus',
@@ -85,8 +85,16 @@ const config: Config = {
                     title: 'Docs',
                     items: [
                         {
-                            label: 'Tutorial',
-                            to: '/introduction',
+                            label: 'Revali',
+                            to: '/',
+                        },
+                        {
+                            label: 'Constructs',
+                            to: '/constructs',
+                        },
+                        {
+                            label: 'Create Constructs',
+                            to: '/create-constructs',
                         },
                     ],
                 },
