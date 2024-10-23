@@ -51,4 +51,4 @@ This is the default mode for `revali build`.
 :::
 ::::
 
-[app-config]: ../app-configuration/00-overview.md
+[app-config]: ../app-configuration/index.md

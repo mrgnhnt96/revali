@@ -1,6 +1,7 @@
 ---
 title: Overview
 slug: /constructs
+sidebar_position: 0
 ---
 
 # Constructs
@@ -55,4 +56,4 @@ Check out the [Build Command][build-command] for more information.
 
 [dev-command]: ../revali/cli/00-dev.md
 [build-command]: ../revali/cli/10-build.md
-[revali-server]: ../constructs/revali_server/overview.md
+[revali-server]: ../constructs/revali_server/index.md

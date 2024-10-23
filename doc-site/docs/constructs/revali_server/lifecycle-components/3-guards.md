@@ -75,4 +75,4 @@ Learn more about [type referencing][type-referencing].
 
 [exception-catchers]: ./6-exception-catchers.md
 [type-referencing]: ../tidbits.md#using-types-in-annotations
-[error-responses]: ../lifecycle-components/0-overview.md#error-responses
+[error-responses]: ../lifecycle-components/index.md#error-responses

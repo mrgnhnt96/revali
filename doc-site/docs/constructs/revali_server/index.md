@@ -1,7 +1,6 @@
 ---
 title: Overview
-slug: /constructs/revali_server
-sidebar_position: 0
+sidebar_position: 1
 ---
 
 # Revali Server

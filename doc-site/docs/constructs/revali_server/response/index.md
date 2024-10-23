@@ -1,7 +1,3 @@
----
-title: Overview
----
-
 # Response
 
 The `Response` is the object that represents the outgoing HTTP response. It contains all the information about the response, such as the headers, the body, and the status code. Other than the body, it is encouraged to use the Lifecycle Components to modify the response.
@@ -53,6 +49,6 @@ By avoiding the `MutableResponse` parameter, you can keep your endpoint methods 
 
 [bind-context]: ../context/bind.md
 [observer]: ../lifecycle-components/1-observer.md
-[lifecycle-components]: ../lifecycle-components/0-overview.md
+[lifecycle-components]: ../lifecycle-components/index.md
 [interceptor-post]: ../lifecycle-components/4-interceptors.md#post
-[lifecycle-context]: ../context/0-overview.md
+[lifecycle-context]: ../context/index.md

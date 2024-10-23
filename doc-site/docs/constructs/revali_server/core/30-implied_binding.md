@@ -18,4 +18,4 @@ It is highly discouraged to used these, prefer to use [binding] with a [pipe][pi
 
 [binding]: ./20-binding.md
 [pipes]: ./40-pipes.md
-[lifecycle-components]: ../lifecycle-components/0-overview.md
+[lifecycle-components]: ../lifecycle-components/index.md

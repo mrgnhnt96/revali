@@ -1,7 +1,3 @@
----
-title: Overview
----
-
 # Lifecycle Components
 
 Lifecycle components are classes that are used to manage the lifecycle of a request. Specifically, they are used to manage the request from the time it is received by the server to the time it is sent back to the client. Each can have dedicated tasks, such as logging, authentication, or authorization.

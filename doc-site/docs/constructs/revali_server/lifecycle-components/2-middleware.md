@@ -69,5 +69,5 @@ class MyController ...
 Learn about [guards].
 :::
 
-[error-responses]: ../lifecycle-components/0-overview.md#error-responses
+[error-responses]: ../lifecycle-components/index.md#error-responses
 [guards]: ./3-guards.md

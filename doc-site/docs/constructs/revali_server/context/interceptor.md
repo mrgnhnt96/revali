@@ -47,6 +47,6 @@ The `reflect` property is a read-only property for the [Reflect][reflect] object
 [interceptors]: ../lifecycle-components/4-interceptors.md
 [data_handler]: ./core/data_handler.md
 [meta_handler]: ./core/meta_handler.md
-[request]: ../request/1-overview.md
-[response]: ../response/1-overview.md
+[request]: ../request/index.md
+[response]: ../response/index.md
 [reflect]: ./core/reflect_handler.md

@@ -15,4 +15,4 @@ dart run revali build
 ```
 
 [build-construct]: ../../../constructs/overview.md#build-constructs
-[revali-server]: ../overview.md
+[revali-server]: ../index.md
