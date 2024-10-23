@@ -8,6 +8,8 @@ abstract class ReadOnlyHeaders {
   String? get(String key);
   String? operator [](String value);
   Iterable<String> get keys;
+  Map<String, Iterable<String>> get values;
+
   Iterable<String>? getAll(String key);
   void forEach(void Function(String key, Iterable<String> value) f);
 

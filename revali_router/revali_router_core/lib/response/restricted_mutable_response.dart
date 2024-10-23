@@ -8,6 +8,8 @@ abstract class RestrictedMutableResponse implements ReadOnlyResponse {
   @override
   MutableHeaders get headers;
 
+  set headers(MutableHeaders value);
+
   @override
   BodyData? get body;
 

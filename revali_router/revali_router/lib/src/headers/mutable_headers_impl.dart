@@ -113,6 +113,7 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
         when encoding == otherEncoding) {}
   }
 
+  @override
   Map<String, List<String>> get values => Map.unmodifiable(_headers);
 
   @override
@@ -230,5 +231,15 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
     } else {
       set(HttpHeaders.acceptRangesHeader, value);
     }
+  }
+
+  @override
+  void clear() {
+    _headers.clear();
+  }
+
+  @override
+  void addEverything(Map<String, Iterable<String>> headers) {
+    _headers.addAll(headers);
   }
 }

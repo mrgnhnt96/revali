@@ -70,6 +70,13 @@ class MutableResponseImpl implements MutableResponse {
   final MutableHeaders headers;
 
   @override
+  set headers(MutableHeaders newValue) {
+    headers
+      ..clear()
+      ..addEverything(newValue.values);
+  }
+
+  @override
   MutableHeaders get headersToSend {
     final headers = MutableHeadersImpl.from(this.headers);
 

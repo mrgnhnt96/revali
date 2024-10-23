@@ -16,6 +16,10 @@ abstract class MutableHeaders implements ReadOnlyHeaders {
 
   void addAll(Map<String, String> headers);
 
+  void addEverything(Map<String, Iterable<String>> headers);
+
+  void clear();
+
   set mimeType(String? value);
   set contentLength(int? value);
   set origin(String? value);
