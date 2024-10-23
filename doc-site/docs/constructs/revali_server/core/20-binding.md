@@ -414,4 +414,4 @@ Read more about why the pipe being used as a [Type Reference](/constructs/revali
 @Body.pipe(GetUserPipe) User user,
 ```
 
-[pipes]: ./pipes.md
+[pipes]: ../core/40-pipes.md
