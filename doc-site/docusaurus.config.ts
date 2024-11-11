@@ -39,7 +39,7 @@ const config: Config = {
                     // Please change this to your repo.
                     // Remove this to remove the "edit this page" links.
                     editUrl:
-                        'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+                        'https://github.com/mrgnhnt96/revali/tree/main/doc-site',
                 },
                 blog: false,
                 theme: {
@@ -50,8 +50,7 @@ const config: Config = {
     ],
 
     themeConfig: {
-        // Replace with your project's social card
-        image: 'img/docusaurus-social-card.jpg',
+        image: 'img/social-card.png',
         docs: {
             sidebar: {
                 autoCollapseCategories: true
@@ -110,7 +109,7 @@ const config: Config = {
                     label: 'Create Constructs',
                 },
                 {
-                    href: 'https://github.com/facebook/docusaurus',
+                    href: 'https://github.com/mrgnhnt96/revali',
                     label: 'GitHub',
                     position: 'right',
                 },
@@ -136,34 +135,34 @@ const config: Config = {
                         },
                     ],
                 },
-                {
-                    title: 'Community',
-                    items: [
-                        {
-                            label: 'Stack Overflow',
-                            href: 'https://stackoverflow.com/questions/tagged/docusaurus',
-                        },
-                        {
-                            label: 'Discord',
-                            href: 'https://discordapp.com/invite/docusaurus',
-                        },
-                        {
-                            label: 'Twitter',
-                            href: 'https://twitter.com/docusaurus',
-                        },
-                    ],
-                },
+                // {
+                //     title: 'Community',
+                //     items: [
+                //         {
+                //             label: 'Stack Overflow',
+                //             href: 'https://stackoverflow.com/questions/tagged/docusaurus',
+                //         },
+                //         {
+                //             label: 'Discord',
+                //             href: 'https://discordapp.com/invite/docusaurus',
+                //         },
+                //         {
+                //             label: 'Twitter',
+                //             href: 'https://twitter.com/docusaurus',
+                //         },
+                //     ],
+                // },
                 {
                     title: 'More',
                     items: [
                         {
                             label: 'GitHub',
-                            href: 'https://github.com/facebook/docusaurus',
+                            href: 'https://github.com/mrgnhnt96/revali',
                         },
                     ],
                 },
             ],
-            copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+            copyright: `Copyright © ${new Date().getFullYear()} Revali`,
         },
         prism: {
             theme: prismThemes.github,
