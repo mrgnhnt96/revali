@@ -14,6 +14,14 @@
                 "run",
                 "revali"
             ]
+        },
+        {
+            "name": "Root Construct",
+            "cwd": "examples/create_construct/app",
+            "request": "launch",
+            "type": "dart",
+            "program": ".dart_tool/revali/revali.dart",
+            "args": [ "dev" ]
         }
     ]
 }
