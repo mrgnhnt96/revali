@@ -13,6 +13,7 @@ const _constructs = <_i1.ConstructMaker>[
     package: 'revali_server',
     isServer: true,
     isBuild: false,
+    hasNameConflict: false,
     name: 'shelf',
     maker: _i2.serverConstruct,
   ),

@@ -43,6 +43,7 @@ class ConstructEntrypointHandler with DirectoriesMixin {
 
     final constructProgress = logger.progress('Retrieving constructs');
     final constructs = await constructHandler.constructDepsFrom(root);
+
     constructProgress.complete('Retrieved constructs');
 
     logger.detail('Constructs Dependencies: ${constructs.length}');
@@ -300,6 +301,14 @@ ${result.stderr}''');
     const revaliConstruct = 'package:revali_construct/revali_construct.dart';
     const revali = 'package:revali/revali.dart';
 
+    final conflicts = <String, List<String>>{};
+
+    for (final yaml in constructs) {
+      for (final construct in yaml.constructs) {
+        (conflicts[construct.name] ??= []).add(yaml.packageName);
+      }
+    }
+
     final constructItems = [
       for (final yaml in constructs)
         for (final construct in yaml.constructs)
@@ -310,6 +319,8 @@ ${result.stderr}''');
               'isServer': refer('${construct.isServer}'),
               'isBuild': refer('${construct.isBuild}'),
               'name': literalString(construct.name),
+              'hasNameConflict':
+                  literalBool((conflicts[construct.name] ?? []).length > 1),
               'maker': refer(
                 construct.method,
                 '${yaml.packageUri}${construct.path}',

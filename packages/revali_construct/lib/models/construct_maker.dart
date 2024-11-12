@@ -8,11 +8,13 @@ class ConstructMaker {
     required this.isBuild,
     required this.name,
     required this.maker,
+    required this.hasNameConflict,
   });
 
   final String package;
   final bool isServer;
   final bool isBuild;
   final String name;
+  final bool hasNameConflict;
   final Construct<dynamic> Function(ConstructOptions) maker;
 }

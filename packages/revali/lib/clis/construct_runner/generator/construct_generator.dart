@@ -264,6 +264,8 @@ class ConstructGenerator with DirectoriesMixin {
         RevaliDirectory(
           files: constructResult.files,
         ),
+        hasNameConflict: false,
+        package: null,
       );
 
       return true;
@@ -289,6 +291,8 @@ class ConstructGenerator with DirectoriesMixin {
         RevaliDirectory(
           files: constructResult.files,
         ),
+        hasNameConflict: maker.hasNameConflict,
+        package: maker.package,
       );
 
       return true;
@@ -303,11 +307,22 @@ class ConstructGenerator with DirectoriesMixin {
 
   Future<void> _generateDirectory(
     String name,
-    RevaliDirectory revaliDirectory,
-  ) async {
+    RevaliDirectory revaliDirectory, {
+    required bool hasNameConflict,
+    required String? package,
+  }) async {
     final revali = await (await root).getRevali();
 
-    final fsDirectory = revali.sanitizedChildDirectory(name);
+    final fsDirectory = switch (hasNameConflict) {
+      true => revali.childDirectory(
+          package ??
+              (throw Exception(
+                'Package must be provided when there is a name conflict',
+              )),
+        ),
+      _ => revali,
+    }
+        .sanitizedChildDirectory(name);
 
     if (!await fsDirectory.exists()) {
       await fsDirectory.create(recursive: true);
@@ -359,6 +374,8 @@ class ConstructGenerator with DirectoriesMixin {
         RevaliDirectory(
           files: [result, ...result.parts],
         ),
+        hasNameConflict: false,
+        package: null,
       );
 
       return true;
