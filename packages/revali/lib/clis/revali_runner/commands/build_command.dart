@@ -74,7 +74,13 @@ class BuildCommand extends Command<int> with ConstructRunnerArgs {
 
   @override
   Future<int> run() async {
-    await _generator.generate(recompile: recompile);
+    try {
+      await _generator.generate(recompile: recompile);
+    } catch (e) {
+      logger.err('Failed to generate the construct');
+      return 1;
+    }
+
     logger.write('\n');
 
     await _generator.run(constructRunnerArgs);

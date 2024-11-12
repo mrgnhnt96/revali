@@ -68,7 +68,12 @@ class DevCommand extends Command<int> with ConstructRunnerArgs {
     final argResults = this.argResults!;
     final recompile = argResults['recompile'] as bool;
 
-    await _generator.generate(recompile: recompile);
+    try {
+      await _generator.generate(recompile: recompile);
+    } catch (e) {
+      logger.err('Failed to generate the construct');
+      return 1;
+    }
     logger.write('\n');
 
     await _generator.run(constructRunnerArgs);
