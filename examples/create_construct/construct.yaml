@@ -1,4 +1,4 @@
 constructs:
-    - name: my_construct1
+    - name: my_construct
       path: my_construct.dart
       method: myConstruct
