@@ -1,0 +1,17 @@
+name: example_construct_dup
+publish_to: none
+
+environment:
+    sdk: '>=3.4.0 <4.0.0'
+
+dependencies:
+  revali_annotations:
+      path: ../../packages/revali_annotations
+  revali_construct:
+      path: ../../packages/revali_construct
+  revali_core:
+      path: ../../packages/revali_core
+
+dev_dependencies:
+  revali:
+      path: ../../packages/revali

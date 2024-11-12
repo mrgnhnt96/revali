@@ -1,0 +1,23 @@
+name: example_construct_app
+publish_to: none
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  revali_annotations:
+    path: ../../../packages/revali_annotations
+  revali_core:
+    path: ../../../packages/revali_core
+  revali_router:
+    path: ../../../revali_router/revali_router
+
+dev_dependencies:
+  example_construct:
+    path: ../
+  example_construct_dup:
+    path: ../../create_construct_dup
+  revali:
+    path: ../../../packages/revali
+  revali_server:
+    path: ../../../constructs/revali_server

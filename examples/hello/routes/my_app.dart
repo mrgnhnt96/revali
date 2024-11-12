@@ -8,7 +8,8 @@ import 'package:revali_router/revali_router.dart';
 final class MyApp extends AppConfig {
   MyApp() : super(host: 'localhost', port: 1083) {
     // PayloadImpl.additionalParsers['binary/octet-stream'] =
-    //     (encoding, data, headers) async => MyBodyData(data, encoding, headers);
+    //     (encoding, data, headers) async =>
+    // MyBodyData(data, encoding, headers);
   }
 
   @override
