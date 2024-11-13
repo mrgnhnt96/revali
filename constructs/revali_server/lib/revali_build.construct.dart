@@ -1,6 +1,6 @@
 import 'package:revali_construct/revali_construct.dart';
 
-class RevaliBuildConstruct extends BuildConstruct {
+base class RevaliBuildConstruct extends BuildConstruct {
   const RevaliBuildConstruct();
 
   @override
