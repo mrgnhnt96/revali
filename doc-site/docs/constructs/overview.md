@@ -54,6 +54,20 @@ While you can have multiple build constructs, be careful that they do not confli
 Check out the [Build Command][build-command] for more information.
 :::
 
+## Opt In Constructs
+
+Some Constructs are opt-in, meaning you have to explicitly enable them in your [`revali.yaml`][revali-config] file, importing them into your project is not enough. The package designer will provide instructions on how to enable the construct, if needed. It is safe to assume that if a construct is not opt-in, it is enabled by default.
+
+Here is an example of how to enable an opt-in construct in your `revali.yaml` file:
+
+```yaml title="revali.yaml"
+constructs:
+  - name: revali_server
+    enable: true
+    ...
+```
+
 [dev-command]: ../revali/cli/00-dev.md
 [build-command]: ../revali/cli/10-build.md
 [revali-server]: ../constructs/revali_server/index.md
+[revali-config]: ../revali/revali-configuration/index.md

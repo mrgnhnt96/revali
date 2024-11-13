@@ -8,8 +8,8 @@ Create a new file in the root of your project called `construct.yaml`. This file
 
 ```yaml title="./construct.yaml"
 constructs:
-    - name: my_construct_entrypoint
-      path: my_construct_entrypoint_entrypoint.dart
+    - name: my_construct
+      path: my_construct_entrypoint.dart
       method: myConstructEntrypoint
 ```
 
@@ -97,6 +97,18 @@ import 'package:revali_construct/revali_construct.dart';
 BuildConstruct myConstructEntrypoint([ConstructOptions? options]) {
     ...
 }
+```
+
+### `opt_in`
+
+A boolean value that indicates whether the Construct is disabled by default and requires the user to opt-in to use it. This is useful when you have a Construct that is not commonly used, is experimental, or conflicting with other Constructs.
+
+```yaml title="./construct.yaml"
+constructs:
+    - name: my_construct
+      ...
+      # highlight-next-line
+      opt_in: true
 ```
 
 [server-constructs]: ../../constructs/overview.md#server-constructs

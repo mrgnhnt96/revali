@@ -4,6 +4,8 @@ Constructs are the building blocks of your Revali project. They are the individu
 
 Creating a new package for your construct is the first step in creating a new construct. When this package is imported into your server project, Revali will automatically register the construct and start generating the code.
 
+Creating a new package for your construct serves several purposes. First, it allows Revali to locate the construct properly. Additionally, constructs generally come with their own dependencies and configurations, so isolating them in a separate package helps manage these resources more efficiently. Finally, constructs are added to your server project as a _dev_dependency_, meaning they won’t be included in the final build of the server project. This separation keeps the final build small by excluding development-only dependencies.
+
 ## Create Package
 
 To create a new construct package, you can use the `dart create` command. This command will create a new Dart package with the necessary files and configurations.
