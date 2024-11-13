@@ -42,10 +42,6 @@ class MyConstruct extends Construct {
 }
 ```
 
-:::tip
-Read more about `Construct` in the [API Reference][construct-api].
-:::
-
 ## Return `MyConstruct` Instance
 
 Finally, return an instance of the `MyConstruct` class in the entrypoint function.
@@ -58,5 +54,3 @@ Construct myConstructEntrypoint([ConstructOptions? options]) {
     return const MyConstruct();
 }
 ```
-
-[construct-api]: ../core/construct.md
