@@ -9,7 +9,7 @@ build_runner:
         (aliases): b
         (command): dart run build_runner build --delete-conflicting-outputs
         revali_construct:
-            (aliases): gen_core
+            (aliases): construct
             (command): cd packages/revali_construct && {$build_runner:build}
         revali_router:
             (aliases): router
@@ -22,6 +22,6 @@ build_runner:
             (command): cd packages/revali_construct && {$build_runner:watch}
         revali_router:
             (aliases): router
-            (command): cd packages/revali_router && {$build_runner:watch}
+            (command): cd revali_router/revali_router && {$build_runner:watch}
 
 spell_check: cspell "./doc-site/docs/**/*" --config ".github/cspell/cspell.json"
