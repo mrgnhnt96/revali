@@ -9,7 +9,7 @@ part of 'revali_construct_config.dart';
 RevaliConstructConfig _$RevaliConstructConfigFromJson(Map json) =>
     RevaliConstructConfig(
       name: json['name'] as String,
-      enabled: json['enabled'] as bool? ?? true,
+      enabled: json['enabled'] as bool?,
       package: json['package'] as String?,
       options: (json['options'] as Map?)?.map(
             (k, e) => MapEntry(k as String, e),

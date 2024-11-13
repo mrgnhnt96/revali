@@ -9,11 +9,13 @@ class ConstructMaker {
     required this.name,
     required this.maker,
     required this.hasNameConflict,
+    required this.optIn,
   });
 
   final String package;
   final bool isServer;
   final bool isBuild;
+  final bool optIn;
   final String name;
   final bool hasNameConflict;
   final Construct<dynamic> Function(ConstructOptions) maker;

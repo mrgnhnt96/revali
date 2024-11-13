@@ -13,6 +13,7 @@ class ConstructConfig extends Equatable {
     this.options = const ConstructOptions.empty(),
     this.isServer = false,
     this.isBuild = false,
+    this.optIn = false,
   }) : assert(
           !(isBuild & isServer),
           'Construct cannot be both a build and server construct',
@@ -27,6 +28,7 @@ class ConstructConfig extends Equatable {
   final ConstructOptions options;
   final bool isServer;
   final bool isBuild;
+  final bool optIn;
 
   Map<String, dynamic> toJson() => _$ConstructConfigToJson(this);
 

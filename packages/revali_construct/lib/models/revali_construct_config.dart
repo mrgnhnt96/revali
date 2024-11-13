@@ -8,7 +8,7 @@ part 'revali_construct_config.g.dart';
 class RevaliConstructConfig extends Equatable {
   const RevaliConstructConfig({
     required this.name,
-    this.enabled = true,
+    this.enabled,
     this.package,
     this.options = const {},
   });
@@ -18,10 +18,15 @@ class RevaliConstructConfig extends Equatable {
 
   final String name;
   final String? package;
-  final bool enabled;
+  final bool? enabled;
   final Map<String, dynamic> options;
 
-  bool get disabled => !enabled;
+  bool get disabled {
+    return switch (enabled) {
+      final bool enabled => !enabled,
+      _ => false,
+    };
+  }
 
   ConstructOptions get constructOptions => ConstructOptions(options);
 

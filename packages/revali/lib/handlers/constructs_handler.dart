@@ -97,53 +97,21 @@ class ConstructsHandler {
   ///
   /// - Contains only 1 config where [ConstructConfig.isServer] is true
   Future<void> checkConstructs(Iterable<ConstructYaml> constructs) async {
-    final serverConstructs = <ConstructConfig>[];
     for (final construct in constructs) {
       for (final config in construct.constructs) {
-        if (config.isServer) {
-          serverConstructs.add(config);
-        }
         final path = p.join(construct.packagePath, 'lib', config.path);
         final file = fs.file(path);
         if (!await file.exists()) {
-          logger.err('Construct not found for ${config.name}');
-          throw Exception('Construct not found for ${config.name}');
+          logger.err(
+            'Failed to find the entrypoint for construct ${config.name}',
+          );
+          throw Exception(
+            'Failed to find the entrypoint for construct ${config.name}',
+          );
         }
 
         logger.detail('Construct: ${config.name}');
       }
     }
-
-    if (serverConstructs.length == 1) {
-      return;
-    }
-
-    if (serverConstructs.isNotEmpty) {
-      logger.err('''
-Only one Server Construct is allowed per project.
-Found:
-${serverConstructs.map((e) => e.name).join('\n')}
-
-To fix this issue, disable all but one Server Construct within your `revali.yaml` file.
-
-```yaml
-constructs:
-  - name: server_construct
-    package: construct_package
-    enabled: false
-
-''');
-      throw Exception('Only one Server Construct is allowed per project');
-    }
-
-    // The router isn't found because the developer hasn't
-    // added a revali router to the project
-    logger.err('''
-Failed to find a Server Construct.
-
-Refer to the documentation to learn how to add a Server Construct to your project.
-http://revali.dev/constructs#server-constructs
-''');
-    throw Exception('Server Construct not found');
   }
 }

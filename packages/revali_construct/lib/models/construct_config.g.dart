@@ -15,6 +15,7 @@ ConstructConfig _$ConstructConfigFromJson(Map json) => ConstructConfig(
           : ConstructOptions.fromJson(json['options'] as Map),
       isServer: json['is_server'] as bool? ?? false,
       isBuild: json['is_build'] as bool? ?? false,
+      optIn: json['opt_in'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$ConstructConfigToJson(ConstructConfig instance) =>
@@ -25,4 +26,5 @@ Map<String, dynamic> _$ConstructConfigToJson(ConstructConfig instance) =>
       'options': instance.options.toJson(),
       'is_server': instance.isServer,
       'is_build': instance.isBuild,
+      'opt_in': instance.optIn,
     };
