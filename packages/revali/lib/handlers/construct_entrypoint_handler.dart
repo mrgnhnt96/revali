@@ -236,8 +236,8 @@ ${result.stderr}''');
         final trace = Trace.parse(e[1] as String? ?? '').terse;
 
         logger
-          ..err('Error in script: $error')
-          ..err(trace.toString());
+          ..err('Error in script:\n$error')
+          ..detail(trace.toString());
         if (scriptExitCode == 0) scriptExitCode = 1;
       });
       try {
@@ -318,6 +318,7 @@ ${result.stderr}''');
               'package': literalString(yaml.packageName),
               'isServer': refer('${construct.isServer}'),
               'isBuild': refer('${construct.isBuild}'),
+              'optIn': refer('${construct.optIn}'),
               'name': literalString(construct.name),
               'hasNameConflict':
                   literalBool((conflicts[construct.name] ?? []).length > 1),

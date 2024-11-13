@@ -115,7 +115,7 @@ class ConstructGenerator with DirectoriesMixin {
     } catch (e) {
       logger
         ..delayed(red.wrap('Error occurred while generating constructs'))
-        ..delayed(red.wrap('Error: $e'));
+        ..detail(red.wrap('Error: $e'));
     }
 
     return null;
@@ -125,50 +125,101 @@ class ConstructGenerator with DirectoriesMixin {
     final server = await routesHandler.parse();
 
     final buildMakers = <ConstructMaker>[];
+    final serverMakers = <ConstructMaker>[];
+    final otherMakers = <ConstructMaker>[];
 
-    if (generateConstructType.isBuild) {
-      for (final construct in makers) {
-        if (!construct.isBuild) continue;
+    for (final maker in makers) {
+      final revaliConfig = await this.revaliConfig;
+      final config = revaliConfig.configFor(maker);
 
-        buildMakers.add(construct);
+      if (config.disabled) {
+        logger.detail('Skipping ${config.name} | Disabled');
+        continue;
       }
+
+      if (maker.optIn && config.enabled == null) {
+        logger.detail(
+          'Skipping ${config.name} | Opt-in construct not enabled',
+        );
+        continue;
+      }
+
+      if (maker.isServer) {
+        serverMakers.add(maker);
+      } else if (maker.isBuild) {
+        buildMakers.add(maker);
+      } else {
+        otherMakers.add(maker);
+      }
+    }
+
+    if (serverMakers.length > 1) {
+      logger.err('''
+Only one Server Construct is allowed per project.
+Found:
+  - ${serverMakers.map((e) => e.name).join('\n  - ')}
+
+To fix this issue, disable all but one Server Construct within your `revali.yaml` file.
+
+```yaml
+constructs:
+  - name: server_construct
+    package: construct_package
+    enabled: false
+
+''');
+      throw Exception('Only one Server Construct is allowed per project');
     }
 
     if (generateConstructType.isBuild) {
       progress?.call('Running pre-build hooks');
-    }
 
-    for (final maker in buildMakers) {
-      final construct = await constructFromMaker<BuildConstruct>(maker);
-      if (construct == null) continue;
+      for (final maker in buildMakers) {
+        final construct = await constructFromMaker<BuildConstruct>(maker);
+        if (construct == null) continue;
 
-      await construct.preBuild(buildContext, server);
-    }
-
-    if (generateConstructType.isConstructs) {
-      progress?.call('Generating constructs');
-
-      for (final maker in makers) {
-        if (maker.isBuild && generateConstructType.isNotBuild) {
-          logger.detail(
-            'Skipping build construct ${maker.name} '
-            'because build is disabled',
-          );
-
-          continue;
-        }
-        if (await _generateConstruct(maker, server) case final success
-            when !success) {
-          return null;
-        }
+        await construct.preBuild(buildContext, server);
       }
-    } else {
+    }
+
+    if (generateConstructType.isBuild) {
       progress?.call('Generating build constructs');
 
       for (final maker in buildMakers) {
-        if (await _generateConstruct(maker, server) case final success
-            when !success) {
-          return null;
+        try {
+          if (await _generateConstruct(maker, server) case final success
+              when !success) {
+            return null;
+          }
+        } catch (e) {
+          logger
+            ..detail('Error: $e')
+            ..err(
+              'Something went wrong when generating '
+              'Build Construct ${maker.name}',
+            );
+          await Future<void>.delayed(const Duration(seconds: 1));
+        }
+      }
+    } else {
+      progress?.call('Generating constructs');
+
+      for (final maker in [...serverMakers, ...otherMakers]) {
+        try {
+          if (await _generateConstruct(maker, server) case final success
+              when !success) {
+            logger.err(
+              'Something went wrong when generating Construct ${maker.name}',
+            );
+          }
+        } catch (e) {
+          logger
+            ..detail('Error: $e')
+            ..err(
+              'Something went wrong when generating '
+              'Construct ${maker.name}',
+            );
+          await Future<void>.delayed(const Duration(seconds: 1));
         }
       }
     }
@@ -184,6 +235,16 @@ class ConstructGenerator with DirectoriesMixin {
       await construct.postBuild(buildContext, server);
     }
 
+    if (serverMakers.isEmpty) {
+      logger.err('''
+There are no Server Constructs in the project.
+
+Check out the documentation for more information on how to add a Server Construct:
+http://revali.dev/constructs#server-constructs
+      ''');
+      return null;
+    }
+
     return server;
   }
 
@@ -192,18 +253,6 @@ class ConstructGenerator with DirectoriesMixin {
   ) async {
     final revaliConfig = await this.revaliConfig;
     final config = revaliConfig.configFor(maker);
-
-    if (config.disabled) {
-      if (maker.isServer) {
-        logger.warn(
-          '${config.name} cannot be disabled,'
-          ' because it is the $ServerConstruct',
-        );
-      } else {
-        logger.detail('skipping ${config.name}');
-        return null;
-      }
-    }
 
     final result = maker.maker(config.constructOptions);
 

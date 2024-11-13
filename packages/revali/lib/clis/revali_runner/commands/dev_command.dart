@@ -71,7 +71,9 @@ class DevCommand extends Command<int> with ConstructRunnerArgs {
     try {
       await _generator.generate(recompile: recompile);
     } catch (e) {
-      logger.err('Failed to generate the construct');
+      logger
+        ..detail('Error: $e')
+        ..err('Failed to generate the construct');
       return 1;
     }
     logger.write('\n');
