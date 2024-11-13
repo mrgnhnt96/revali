@@ -1,0 +1,5 @@
+constructs:
+    - name: server_construct_1
+      enabled: true
+    - name: server_construct_2
+      enabled: false

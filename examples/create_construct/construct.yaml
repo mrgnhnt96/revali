@@ -2,3 +2,12 @@ constructs:
     - name: my_construct
       path: my_construct.dart
       method: myConstruct
+    - name: server_construct_1
+      path: server_construct_1.dart
+      method: serverConstruct1
+      is_server: true
+      opt_in: true
+    - name: server_construct_2
+      path: server_construct_2.dart
+      method: serverConstruct2
+      is_server: true

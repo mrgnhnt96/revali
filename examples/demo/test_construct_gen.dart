@@ -14,6 +14,7 @@ const _constructs = <_i1.ConstructMaker>[
     isServer: true,
     isBuild: false,
     hasNameConflict: false,
+    optIn: false,
     name: 'shelf',
     maker: _i2.serverConstruct,
   ),
