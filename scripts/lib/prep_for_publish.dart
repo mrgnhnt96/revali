@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+// ignore_for_file: avoid_print, avoid_dynamic_calls
 
 import 'dart:io';
 
@@ -7,8 +7,8 @@ import 'package:glob/list_local_fs.dart';
 import 'package:intl/intl.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart' as p;
-import 'package:pub_semver/pub_semver.dart';
-import 'package:pubspec_parse/pubspec_parse.dart';
+import 'package:yaml/yaml.dart';
+import 'package:yaml_edit/yaml_edit.dart';
 
 final currentFile = File(Platform.script.toFilePath());
 final root = currentFile.parent.parent.parent.path; // scripts/lib/file.dart
@@ -41,7 +41,10 @@ void main() async {
     // make changes atomically
     final changesToPerform = <void Function()>[
       updatePubspec(
-        changedPackages,
+        {
+          for (final package in packages)
+            (package, latestChangelog[package.name]!),
+        },
         package,
         changelog,
       ),
@@ -74,109 +77,48 @@ void Function() updatePubspec(
         'version: ${changelog.version}',
       );
 
-  final pubspec = Pubspec.parse(content);
+  final yaml = YamlEditor(content);
 
-  final dependencies = pubspec.dependencies;
+  yaml['version'] = changelog.version;
 
-  final updatedDependencies = <String, Dependency>{};
+  for (final key in [
+    'dependencies',
+    'dev_dependencies',
+    'dependency_overrides',
+  ]) {
+    if (yaml[key] case final YamlMap deps) {
+      for (final MapEntry(key: name) in deps.entries) {
+        final newVersion = newVersions[name];
 
-  for (final MapEntry(key: name) in dependencies.entries) {
-    final newVersion = newVersions[name];
+        if (newVersion == null) continue;
 
-    if (newVersion == null) continue;
-
-    updatedDependencies[name] = HostedDependency(
-      version: VersionConstraint.parse('^$newVersion'),
-    );
+        yaml.update([key, name], '^$newVersion');
+      }
+    }
   }
 
-  pubspec.dependencies.addAll(updatedDependencies);
-
-  return () => pubspecFile.writeAsStringSync(pubspec.toYaml());
+  return () => pubspecFile.writeAsStringSync(yaml.toString());
 }
 
-extension _PubspecX on Pubspec {
-  String toYaml() {
-    final funding =
-        this.funding ?? [Uri.parse('https://github.com/sponsors/mrgnhnt96')];
-    final topics = this.topics ?? ['revali', 'api', 'backend', 'server'];
-
-    final issueTracker = this.issueTracker ??
-        Uri.parse('https://github.com/mrgnhnt96/revali/issues');
-    final documentation = this.documentation ?? Uri.parse('https://revali.dev');
-
-    if (description == null) {
-      throw ArgumentError('Description is required in pubspec: $name');
-    }
-
-    if (repository == null) {
-      throw ArgumentError('Repository is required in pubspec: $name');
-    }
-
-    final environment = this.environment ??
-        {
-          'sdk': VersionConstraint.parse('>=3.2.6 <4.0.0'),
-        };
-
-    final buffer = StringBuffer()
-      ..writeln('name: $name')
-      ..writeln('version: $version')
-      ..writeln('description: $description')
-      ..writeln('repository: $repository')
-      ..writeln('issue_tracker: $issueTracker')
-      ..writeln('documentation: $documentation')
-      ..writeln('funding:')
-      ..writeln('    - ${funding.join('\n    - ')}')
-      ..writeln('topics:')
-      ..write('    - ${topics.join('\n    - ')}')
-      ..writeln('\n')
-      ..writeln('environment:');
-    for (final entry in environment.entries) {
-      buffer.writeln("    ${entry.key}: '${entry.value}'");
-    }
-
-    if (dependencies.isNotEmpty) {
-      buffer
-        ..writeln()
-        ..writeln('dependencies:');
-      writeDependencies(buffer, dependencies);
-    }
-
-    if (devDependencies.isNotEmpty) {
-      buffer
-        ..writeln()
-        ..writeln('dev_dependencies:');
-      writeDependencies(buffer, dependencies);
-    }
-
-    if (dependencyOverrides.isNotEmpty) {
-      buffer
-        ..writeln()
-        ..writeln('dependency_overrides:');
-      writeDependencies(buffer, dependencies);
-    }
-
-    return buffer.toString();
-  }
-}
-
-void writeDependencies(
-  StringBuffer buffer,
-  Map<String, Dependency> dependencies,
-) {
-  final packages = dependencies.keys.toList()..sort();
-  for (final package in packages) {
-    final dep = dependencies[package]!;
-
-    final version = switch (dep) {
-      HostedDependency() => dep.version.toString(),
-      SdkDependency() => '\n      sdk: ${dep.sdk}',
-      GitDependency() => '\n      git: ${dep.url}',
-      PathDependency() => '\n      path: ${dep.path}',
-      _ => throw StateError('There is a bug in pubspec_parse.'),
+extension _YamlEditorX on YamlEditor {
+  void operator []=(dynamic key, dynamic newValue) {
+    return switch (key) {
+      String() => update([key], newValue),
+      List<String>() => update(key, newValue),
+      _ => throw StateError('Expected a string or list of strings.'),
     };
+  }
 
-    buffer.writeln('    $package: $version');
+  YamlNode? operator [](dynamic key) {
+    try {
+      return switch (key) {
+        String() => parseAt([key]),
+        List<String>() => parseAt(key),
+        _ => throw StateError('Expected a string or list of strings.'),
+      };
+    } catch (_) {
+      return null;
+    }
   }
 }
 
@@ -323,15 +265,15 @@ Iterable<Package> findPackages() sync* {
       continue;
     }
 
-    final content = Pubspec.parse(File(entity.path).readAsStringSync());
+    final content = loadYaml(File(entity.path).readAsStringSync()) as YamlMap;
 
-    if (ignorePackages.contains(content.name)) continue;
+    if (ignorePackages.contains(content['name'])) continue;
 
     if (p.split(entity.parent.path).any(ignoreDirectories.contains)) continue;
 
     yield Package(
-      name: content.name,
-      version: content.version?.canonicalizedVersion ?? '-1',
+      name: content['name'] as String,
+      version: content['version'] as String? ?? '-1',
       root: entity.parent.path,
     );
   }
