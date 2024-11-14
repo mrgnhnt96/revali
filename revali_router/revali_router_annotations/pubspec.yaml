@@ -1,6 +1,6 @@
 name: revali_router_annotations
 description: Annotations for Revali Router
-version: 0.0.1+1
+version: 1.0.0
 repository: https://github.com/mrgnhnt96/revali/tree/main/revali_router/revali_router_annotations
 issue_tracker: https://github.com/mrgnhnt96/revali/issues
 documentation: https://revali.dev
@@ -15,5 +15,4 @@ environment:
     sdk: '>=3.2.6 <4.0.0'
 
 dependencies:
-  revali_router_core:
-    path: ../revali_router_core
+  revali_router_core: ^1.0.0

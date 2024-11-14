@@ -1,5 +1,5 @@
 name: revali_server
-version: 0.0.1+1
+version: 1.0.0
 description: A Revali Server Construct to generate server code using `revali_router`
 repository: https://github.com/mrgnhnt96/revali/tree/main/constructs/revali_server
 issue_tracker: https://github.com/mrgnhnt96/revali/issues
@@ -22,15 +22,9 @@ dependencies:
     collection: ^1.19.0
     dart_style: ^2.3.6
     path: ^1.9.0
-    revali_annotations:
-        path: ../../packages/revali_annotations
-    revali_construct:
-        path: ../../packages/revali_construct
-    revali_core:
-        path: ../../packages/revali_core
-    revali_router:
-        path: ../../revali_router/revali_router
-    revali_router_annotations:
-        path: ../../revali_router/revali_router_annotations
-    revali_router_core:
-        path: ../../revali_router/revali_router_core
+    revali_annotations: ^1.0.0
+    revali_construct: ^1.0.0
+    revali_core: ^1.0.0
+    revali_router: ^1.0.0
+    revali_router_annotations: ^1.0.0
+    revali_router_core: ^1.0.0
