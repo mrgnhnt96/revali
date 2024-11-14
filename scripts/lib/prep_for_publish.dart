@@ -53,7 +53,6 @@ void main() async {
     }
 
     logger.info('---');
-    break;
   }
 }
 
