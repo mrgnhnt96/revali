@@ -1,6 +1,15 @@
 name: revali
+description: A build system for creating APIs using Dart
 version: 0.0.1+1
-publish_to: 'none'
+repository: https://github.com/mrgnhnt96/revali/tree/main/packages/revali
+issue_tracker: https://github.com/mrgnhnt96/revali/issues
+documentation: https://revali.dev
+topics:
+    - revali
+    - api
+    - backend
+    - server
+    - code-generation
 
 environment:
     sdk: '>=3.2.6 <4.0.0'

@@ -1,5 +1,15 @@
 name: revali_core
+version: 0.0.1+1
 description: Classes to share between Revali and Revali Annotations
+repository: https://github.com/mrgnhnt96/revali/tree/main/packages/revali_core
+issue_tracker: https://github.com/mrgnhnt96/revali/issues
+documentation: https://revali.dev
+topics:
+  - revali
+  - api
+  - backend
+  - server
+  - code-generation
 
 environment:
-    sdk: '>=3.2.6 <4.0.0'
+  sdk: '>=3.2.6 <4.0.0'

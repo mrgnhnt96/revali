@@ -1,6 +1,16 @@
 name: revali_server
 version: 0.0.1+1
-publish_to: 'none'
+description: A Revali Server Construct to generate server code using `revali_router`
+repository: https://github.com/mrgnhnt96/revali/tree/main/constructs/revali_server
+issue_tracker: https://github.com/mrgnhnt96/revali/issues
+documentation: https://revali.dev
+funding:
+    - https://github.com/sponsors/mrgnhnt96
+topics:
+    - revali
+    - construct
+    - backend
+    - api
 
 environment:
     sdk: '>=3.2.6 <4.0.0'

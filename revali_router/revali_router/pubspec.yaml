@@ -1,6 +1,15 @@
 name: revali_router
+description: Feature rich http router for Revali
 version: 0.0.1+1
-publish_to: 'none'
+repository: https://github.com/mrgnhnt96/revali/tree/main/revali_router/revali_router
+issue_tracker: https://github.com/mrgnhnt96/revali/issues
+documentation: https://revali.dev
+topics:
+    - revali
+    - api
+    - backend
+    - server
+    - router
 
 environment:
     sdk: '>=3.2.6 <4.0.0'
