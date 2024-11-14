@@ -1,6 +1,6 @@
 # Revali
 
-Revali is a powerful code generator specifically designed for the Dart programming language. By leveraging annotations within your classes, methods, and method parameters, Revali manages the boilerplate code for you, allowing you to focus on writing clean and maintainable code.
+Revali is a powerful code generator specifically designed for APIs. By leveraging annotations within your classes, methods, and method parameters, Revali manages the boilerplate code for you, allowing you to focus on writing clean and maintainable code.
 
 ## Creating a Controller
 
