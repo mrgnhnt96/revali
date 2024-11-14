@@ -1,0 +1,13 @@
+name: scripts
+publish_to: 'none'
+
+environment:
+    sdk: '>=3.2.6 <4.0.0'
+
+dependencies:
+    glob: ^2.1.2
+    intl: ^0.20.0
+    mason_logger: ^0.2.16
+    path: ^1.9.1
+    pub_semver: ^2.1.4
+    pubspec_parse: ^1.3.0
