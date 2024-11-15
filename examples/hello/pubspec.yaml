@@ -13,3 +13,21 @@ dev_dependencies:
         path: ../../packages/revali
     revali_server:
         path: ../../constructs/revali_server
+
+dependency_overrides:
+    revali_router:
+        path: ../../revali_router/revali_router
+    revali_router_core:
+        path: ../../revali_router/revali_router_core
+    revali:
+        path: ../../packages/revali
+    revali_server:
+        path: ../../constructs/revali_server
+    revali_router_annotations:
+        path: ../../revali_router/revali_router_annotations
+    revali_core:
+        path: ../../packages/revali_core
+    revali_construct:
+        path: ../../packages/revali_construct
+    revali_annotations:
+        path: ../../packages/revali_annotations

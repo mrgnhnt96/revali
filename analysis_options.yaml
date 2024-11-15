@@ -16,6 +16,7 @@ analyzer:
 
   exclude:
     - '**/*.g.dart'
+    - '**/example/example.dart'
     - test/.test_coverage.dart
     - lib/generated_plugin_registrant.dart
 

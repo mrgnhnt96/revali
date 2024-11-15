@@ -1,0 +1,7 @@
+constructs:
+    - name: my_construct
+      path: my_construct.dart
+      method: myConstruct
+      opt_in: false
+      is_server: false
+      is_build: false
