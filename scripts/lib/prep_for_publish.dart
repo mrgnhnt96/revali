@@ -22,6 +22,11 @@ void main() async {
   final packages = findPackages();
   packagesProgress.complete('Found ${packages.length} packages');
 
+  for (final package in packages) {
+    writeLicense(package);
+  }
+  logger.info('Updated LICENSE files');
+
   final changelogProgress = logger.progress('Getting CHANGELOG');
   final latestChangelog = getChangelog();
   changelogProgress.complete('Got CHANGELOG');
@@ -57,11 +62,6 @@ void main() async {
 
     logger.info('---');
   }
-
-  for (final package in packages) {
-    writeLicense(package);
-  }
-  logger.info('Updated LICENSE files');
 }
 
 void writeLicense(Package package) {
