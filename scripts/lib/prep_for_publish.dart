@@ -62,10 +62,76 @@ void main() async {
 
     logger.info('---');
   }
+
+  final failedProgress = logger.progress('Checking for failed publishes');
+  final failedPackages = findFailedPublishes(packages);
+  failedProgress.complete('Found ${failedPackages.length} failed publishes');
+
+  final packagesToPublish = failedPackages.followedBy([
+    for (final (package, _) in changedPackages) package,
+  ]);
+
+  if (packagesToPublish.isEmpty) {
+    logger.info('No packages to publish');
+    return;
+  }
+
+  logger.info('Publishing ${packagesToPublish.length} packages');
+
+  for (final package in packagesToPublish) {
+    logger.info('  - ${package.name}');
+    await publish(package);
+  }
+}
+
+Future<void> publish(Package package) async {
+  final failedPublishFile = package.failedPublish;
+
+  if (failedPublishFile.existsSync()) {
+    failedPublishFile.deleteSync();
+  }
+
+  final process = await Process.run(
+    'dart',
+    ['pub', 'publish'],
+    workingDirectory: package.root,
+    runInShell: true,
+  );
+
+  if (process.exitCode == 0) {
+    logger.info('Published ${package.name}');
+  }
+
+  // make failed publish file to retry
+  package.failedPublish
+    ..createSync()
+    ..writeAsStringSync('''
+# Failed to publish ${package.name}
+
+## Error
+${process.stderr}
+
+## Output
+${process.stdout}
+''');
+
+  logger.err('Failed to publish ${package.name}');
+
+  return;
+}
+
+Iterable<Package> findFailedPublishes(Iterable<Package> packages) sync* {
+  for (final package in packages) {
+    final failedPublishFile = package.failedPublish;
+
+    if (failedPublishFile.existsSync()) {
+      yield package;
+    }
+  }
 }
 
 void writeLicense(Package package) {
-  final licenseFile = File(p.join(package.root, 'LICENSE'));
+  final licenseFile = package.license;
 
   if (!licenseFile.existsSync()) {
     licenseFile.writeAsStringSync('''
@@ -105,7 +171,7 @@ void Function() updatePubspec(
       package.name: changelog.version,
   };
 
-  final pubspecFile = File(p.join(package.root, 'pubspec.yaml'));
+  final pubspecFile = package.pubspec;
 
   final content = pubspecFile.readAsStringSync().replaceFirst(
         RegExp('version: .+'),
@@ -162,7 +228,7 @@ void Function() updateChangeLog(Package package, ChangeLogEntry changelog) {
 
   const intro = '# CHANGELOG';
 
-  final changelogFile = File(p.join(package.root, 'CHANGELOG.md'));
+  final changelogFile = package.changelog;
 
   if (!changelogFile.existsSync()) {
     changelogFile
@@ -324,4 +390,12 @@ class Package {
   final String name;
   final String version;
   final String root;
+
+  File get pubspec => File(p.join(root, 'pubspec.yaml'));
+
+  File get failedPublish => File(p.join(root, 'FAILED_PUBLISH.md'));
+
+  File get license => File(p.join(root, 'LICENSE'));
+
+  File get changelog => File(p.join(root, 'CHANGELOG.md'));
 }

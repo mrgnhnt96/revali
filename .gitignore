@@ -58,3 +58,4 @@ executables/debug
 packages/cli/libisar.dylib
 .test_optimizer.dart
 .revali
+FAILED_PUBLISH.md
