@@ -16,7 +16,7 @@ environment:
     sdk: '>=3.2.6 <4.0.0'
 
 dependencies:
-    analyzer: 6.4.1
+    analyzer: ^6.4.1
     change_case: ^2.1.0
     code_builder: ^4.10.0
     collection: ^1.19.0
