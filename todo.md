@@ -13,6 +13,8 @@
   - [ ] Middlewares
   - [ ] Apps
   - [ ] (etc)
+- [ ] Investigate SSE
+  - Create long lasting get request in pure dart
 
 ## 7.17.2024
 
