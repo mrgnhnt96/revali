@@ -4,6 +4,8 @@ version: 1.0.0
 repository: https://github.com/mrgnhnt96/revali/tree/main/revali_router/revali_router_core
 issue_tracker: https://github.com/mrgnhnt96/revali/issues
 documentation: https://revali.dev
+funding:
+    - https://github.com/sponsors/mrgnhnt96
 topics:
     - revali
     - api

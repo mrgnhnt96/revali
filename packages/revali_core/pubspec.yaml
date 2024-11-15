@@ -4,6 +4,8 @@ description: Classes to share between Revali and Revali Annotations
 repository: https://github.com/mrgnhnt96/revali/tree/main/packages/revali_core
 issue_tracker: https://github.com/mrgnhnt96/revali/issues
 documentation: https://revali.dev
+funding:
+    - https://github.com/sponsors/mrgnhnt96
 topics:
   - revali
   - api
