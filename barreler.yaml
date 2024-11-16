@@ -24,9 +24,9 @@ dirs:
     include:
       - export: "hot_reload/hot_reload.dart"
         show: hotReload
-  - path: packages/revali_server/lib
+  - path: constructs/revali_server/lib
     name: revali_server
-  - path: packages/revali_router/lib
+  - path: revali_router/revali_router/lib
     name: revali_router
     exclude:
       - '**/response_body/*_data.dart'
@@ -37,11 +37,11 @@ dirs:
       - src/body/response_body/base_body_data.dart
       - export: 'package:revali_annotations/revali_annotations.dart'
       - export: 'package:revali_router_core/revali_router_core.dart'
-        hide: 
+        hide:
           - AppConfig
           - Data
       - export: 'package:revali_router_annotations/revali_router_annotations.dart'
-  - path: packages/revali_router_core/lib
+  - path: revali_router/revali_router_core/lib
     name: revali_router_core
     exports:
       - export: 'package:revali_core/revali_core.dart'
@@ -49,5 +49,5 @@ dirs:
           - AppConfig
           - DI
           - DIImpl
-  - path: packages/revali_router_annotations/lib
+  - path: revali_router/revali_router_annotations/lib
     name: revali_router_annotations
