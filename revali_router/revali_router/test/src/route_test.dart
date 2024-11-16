@@ -1,8 +1,10 @@
+import 'package:mocktail/mocktail.dart';
 import 'package:revali_router/src/route/route.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('$Route', () {
+  group(Route, () {
     group('constructor', () {
       test('should uppercase method', () {
         final route = Route(
@@ -424,9 +426,80 @@ void main() {
         });
       });
     });
+
+    group('#responseHandler', () {
+      test('should return direct response handler if provided', () async {
+        final handler = _MockResponseHandler();
+
+        final route = Route(
+          'user',
+          method: 'GET',
+          handler: (_) async {},
+          responseHandler: handler,
+        );
+
+        expect(route.responseHandler, equals(handler));
+      });
+
+      test('should return parent response handler if provided', () async {
+        final parentHandler = _MockResponseHandler();
+
+        final child = Route(
+          'profile',
+          method: 'GET',
+          handler: (_) async {},
+        );
+
+        Route(
+          'user',
+          method: 'GET',
+          responseHandler: parentHandler,
+          handler: (_) async {},
+          routes: [
+            child,
+          ],
+        );
+
+        expect(child.responseHandler, equals(parentHandler));
+      });
+
+      test(
+        'should return nested parent response handler if provided',
+        () async {
+          final handler = _MockResponseHandler();
+
+          final child = Route(
+            'settings',
+            method: 'GET',
+            handler: (_) async {},
+          );
+
+          Route(
+            'user',
+            method: 'GET',
+            responseHandler: handler,
+            handler: (_) async {},
+            routes: [
+              Route(
+                'profile',
+                method: 'GET',
+                handler: (_) async {},
+                routes: [
+                  child,
+                ],
+              ),
+            ],
+          );
+
+          expect(child.responseHandler, equals(handler));
+        },
+      );
+    });
   });
 }
 
 class _Auth {}
 
 class _Public {}
+
+class _MockResponseHandler extends Mock implements ResponseHandler {}

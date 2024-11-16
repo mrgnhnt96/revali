@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:revali_router/revali_router.dart';
-import 'package:revali_router_core/response_handler/response_handler.dart';
 
 part 'base_route.g.dart';
 
@@ -54,10 +53,11 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
     required this.allowedOrigins,
     required this.allowedHeaders,
     required bool ignorePathPattern,
-    required this.responseHandler,
+    required ResponseHandler? responseHandler,
     // dynamic is needed bc copyWith has a bug
     required dynamic meta,
-  }) : _meta = meta as void Function(MetaHandler)? {
+  })  : _meta = meta as void Function(MetaHandler)?,
+        _responseHandler = responseHandler {
     final method = this.method;
 
     if ((method == null) != (handler == null)) {
@@ -153,8 +153,26 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
   final AllowedOrigins? allowedOrigins;
   @override
   final AllowedHeaders? allowedHeaders;
+  final ResponseHandler? _responseHandler;
+
   @override
-  final ResponseHandler? responseHandler;
+  ResponseHandler? get responseHandler {
+    if (_responseHandler case final handler?) {
+      return handler;
+    }
+
+    var parent = this.parent;
+
+    while (parent != null) {
+      if (parent._responseHandler case final handler?) {
+        return handler;
+      }
+
+      parent = parent.parent;
+    }
+
+    return null;
+  }
 
   bool get canInvoke => handler != null && method != null;
   List<String> get segments => path.split('/');
