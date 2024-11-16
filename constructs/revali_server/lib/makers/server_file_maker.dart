@@ -154,6 +154,7 @@ String serverFile(
               [
                 refer('server'),
                 refer('router').property('handle'),
+                refer('router').property('responseHandler'),
               ],
             )
             .property('ignore')

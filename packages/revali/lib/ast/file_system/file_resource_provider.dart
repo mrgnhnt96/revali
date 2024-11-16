@@ -47,4 +47,9 @@ class FileResourceProvider extends ResourceProvider {
 
   @override
   p.Context get pathContext => p.context;
+
+  @override
+  Link getLink(String path) {
+    throw UnimplementedError();
+  }
 }

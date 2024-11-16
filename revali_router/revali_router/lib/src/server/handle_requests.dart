@@ -7,10 +7,12 @@ import 'package:revali_router/src/response/simple_response.dart';
 import 'package:revali_router/utils/http_response_extensions.dart';
 import 'package:revali_router_core/request/request_context.dart';
 import 'package:revali_router_core/response/read_only_response.dart';
+import 'package:revali_router_core/response_handler/response_handler.dart';
 
 Future<void> handleRequests(
   HttpServer server,
   Future<ReadOnlyResponse> Function(RequestContext context) handler,
+  Future<ResponseHandler> Function(RequestContext context) responseHandler,
 ) async {
   try {
     await for (final request in server) {
@@ -34,7 +36,9 @@ Future<void> handleRequests(
       }
 
       try {
-        await request.response.send(response, requestMethod: context.method);
+        final handler = await responseHandler(context);
+
+        await handler.handle(response, context, request.response);
       } catch (e) {
         print('Failed to send response: $e');
       }

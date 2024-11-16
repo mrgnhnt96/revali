@@ -30,11 +30,13 @@ import 'package:revali_router/src/response/default_responses.dart';
 import 'package:revali_router/src/response/mutable_response_impl.dart';
 import 'package:revali_router/src/response/simple_response.dart';
 import 'package:revali_router/src/response/web_socket_response.dart';
+import 'package:revali_router/src/response_handler/default_response_handler.dart';
 import 'package:revali_router/src/route/base_route.dart';
 import 'package:revali_router/src/route/lifecycle_components_impl.dart';
 import 'package:revali_router/src/route/route_match.dart';
 import 'package:revali_router/src/route/web_socket_route.dart';
 import 'package:revali_router/src/web_socket/web_socket_handler.dart';
+import 'package:revali_router_core/response_handler/response_handler.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 import 'package:stack_trace/stack_trace.dart';
 
@@ -65,6 +67,7 @@ class Router extends Equatable {
     this.observers = const [],
     this.debug = false,
     this.defaultResponses = const DefaultResponses(),
+    this.defaultResponseHandler = const DefaultResponseHandler(),
   })  : _reflects = reflects,
         _globalComponents = globalComponents;
 
@@ -74,6 +77,7 @@ class Router extends Equatable {
   final LifecycleComponents? _globalComponents;
   final bool debug;
   final DefaultResponses defaultResponses;
+  final ResponseHandler defaultResponseHandler;
 
   /// Handles an HTTP request.
   ///
@@ -107,6 +111,16 @@ class Router extends Equatable {
         stackTrace: stackTrace,
       ),
     );
+  }
+
+  Future<ResponseHandler> responseHandler(RequestContext context) async {
+    final match = Find(
+      segments: context.segments,
+      routes: routes,
+      method: context.method,
+    ).run();
+
+    return match?.route.responseHandler ?? defaultResponseHandler;
   }
 
   Future<ReadOnlyResponse> handle(RequestContext context) async {
