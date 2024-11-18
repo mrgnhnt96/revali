@@ -220,6 +220,7 @@ class ServerRouteAnnotations with ExtractImport {
     if (setHeaders.isNotEmpty) return true;
     if (allowOrigins != null) return true;
     if (allowHeaders != null) return true;
+    if (responseHandler != null) return true;
     return false;
   }
 
@@ -229,6 +230,7 @@ class ServerRouteAnnotations with ExtractImport {
         ...coreTypeReferences.all,
         ...data,
         ...meta,
+        responseHandler,
       ];
 
   @override
