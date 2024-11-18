@@ -4,7 +4,6 @@ import 'package:collection/collection.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:revali_router/src/body/response_body/base_body_data.dart';
 import 'package:revali_router/src/response/mutable_response_impl.dart';
-import 'package:revali_router/src/response/web_socket_response.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
 class DefaultResponseHandler implements ResponseHandler {
@@ -16,11 +15,6 @@ class DefaultResponseHandler implements ResponseHandler {
     RequestContext context,
     HttpResponse httpResponse,
   ) async {
-    // WebSockets are already responded to, and cannot be responded to again.
-    if (response is WebSocketResponse) {
-      return;
-    }
-
     final http = httpResponse;
 
     Future<void> complete() async {
@@ -28,16 +22,12 @@ class DefaultResponseHandler implements ResponseHandler {
       await http.close();
     }
 
-    MutableHeaders responseHeaders;
-    if (response is MutableResponse) {
-      responseHeaders = response.headersToSend;
-    } else {
-      final mutableResponse = MutableResponseImpl.from(response);
-
-      responseHeaders = mutableResponse.headersToSend;
+    final responseHeaders = switch (response) {
+      MutableResponse() => response.headersToSend,
+      _ => MutableResponseImpl.from(response).headersToSend,
     }
+      ..mimeType ??= 'text/plain';
 
-    responseHeaders.mimeType ??= 'text/plain';
     http.statusCode = response.statusCode;
 
     switch (response.statusCode) {
@@ -75,11 +65,13 @@ class DefaultResponseHandler implements ResponseHandler {
       http.headers.date = DateTime.now().toUtc();
     }
 
+    /// Disallow body for certain status codes
     const disallowedStatuses = {
       HttpStatus.noContent,
       HttpStatus.notModified,
     };
 
+    /// Disallow body for certain methods
     const disallowedMethods = {
       'HEAD',
       'OPTIONS',
