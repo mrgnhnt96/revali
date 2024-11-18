@@ -6,13 +6,13 @@ An `ExceptionCatcher` is a Lifecycle Component that allows you to catch exceptio
 
 To create an `ExceptionCatcher`, you need to extend the `ExceptionCatcher` class and implement the `catchException` method. The `catchException` will only be called if the exception thrown is an instance of the type specified in the type argument of the `ExceptionCatcher` class.
 
-In this example, only exceptions of type `MyException` will be caught by the `MyCatcher` class.
+In this example, only exceptions of type `MyException` will be caught by the `MyExceptionCatcher` class.
 
 ```dart title="lib/catchers/my_catcher.dart"
 import 'package:revali_router/revali_router.dart';
 
-class MyCatcher extends ExceptionCatcher<MyException> {
-    const MyCatcher();
+class MyExceptionCatcher extends ExceptionCatcher<MyException> {
+    const MyExceptionCatcher();
 
     @override
     ExceptionCatcherResult catchException(exception, context, action) {
@@ -31,7 +31,7 @@ The type parameter must be a subtype of `Exception` and not `Exception` itself.
 
 ## Register an ExceptionCatcher
 
-To register an `ExceptionCatcher`, annotate your `ExceptionCatcher` class on the app, controller, or endpoint level.
+To register an `ExceptionCatcher`, annotate your `MyExceptionCatcher` class on the app, controller, or endpoint level.
 
 ```dart title="routes/my_app.dart"
 import 'package:revali_router/revali_router.dart';
@@ -44,14 +44,14 @@ class MyApp ...
 
 ### Register as Type Reference
 
-If you have a parameter that can not be provided at compile time, you can register the `ExceptionCatcher` as a type reference using the `@Catchers()` annotation.
+If you have a parameter that can not be provided at compile time, you can register the `MyExceptionCatcher` as a type reference using the `@Catchers()` annotation.
 
 ```dart title="routes/my_app.dart"
 import 'package:revali_router/revali_router.dart';
 
 @App()
 // highlight-next-line
-@Catches([MyException])
+@Catches([MyExceptionCatcher])
 class MyApp ...
 ```
 
@@ -114,8 +114,8 @@ The `ExceptionCatcher` is responsible for preparing the error response to be sen
 ```dart title="lib/catchers/my_catcher.dart"
 import 'package:revali_router/revali_router.dart';
 
-class MyCatcher extends ExceptionCatcher<MyException> {
-    const MyCatcher();
+class MyExceptionCatcher extends ExceptionCatcher<MyException> {
+    const MyExceptionCatcher();
 
     @override
     ExceptionCatcherResult catchException(exception, context, action) {
