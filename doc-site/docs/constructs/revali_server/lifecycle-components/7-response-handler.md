@@ -53,6 +53,10 @@ import 'package:revali_router/revali_router.dart';
 class MyApp ...
 ```
 
+:::warning
+WebSockets do not support custom response handlers. They will be ignored if registered.
+:::
+
 ### Scoping
 
 The response handler can be registered at different levels of the application, however, the handler scope closest to the endpoint will take precedence.
