@@ -43,7 +43,7 @@ Expression? createHandler({
   if (!returnType.isVoid) {
     Expression result = refer('result');
 
-    if (returnType.hasToJsonMember) {
+    if (!returnType.isStream && returnType.hasToJsonMember) {
       if (returnType.isIterable) {
         final iterates = Method(
           (p) => p
