@@ -32,7 +32,7 @@ void main() async {
   changelogProgress.complete('Got CHANGELOG');
 
   final changesProgress = logger.progress('Checking for changes');
-  final changedPackages = checkForChanges(packages, latestChangelog);
+  final changedPackages = checkForChanges(packages, latestChangelog).toList();
   changesProgress
       .complete('Found ${changedPackages.length} Packages to update');
 
@@ -93,13 +93,14 @@ Future<void> publish(Package package) async {
 
   final process = await Process.run(
     'dart',
-    ['pub', 'publish'],
+    ['pub', 'publish', '--force'],
     workingDirectory: package.root,
     runInShell: true,
   );
 
   if (process.exitCode == 0) {
     logger.info('Published ${package.name}');
+    return;
   }
 
   // make failed publish file to retry
