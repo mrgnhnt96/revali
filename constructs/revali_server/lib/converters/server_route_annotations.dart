@@ -13,8 +13,8 @@ class ServerRouteAnnotations with ExtractImport {
     required this.setHeaders,
     required this.allowOrigins,
     required this.allowHeaders,
-    required this.responseHandler,
-  });
+    required ServerMimic? responseHandler,
+  }) : _responseHandler = responseHandler;
 
   factory ServerRouteAnnotations.fromApp(MetaAppConfig app) {
     return ServerRouteAnnotations._fromGetter(app.annotationsFor);
@@ -210,7 +210,12 @@ class ServerRouteAnnotations with ExtractImport {
   final Iterable<ServerSetHeader> setHeaders;
   final ServerAllowOrigins? allowOrigins;
   final ServerAllowHeaders? allowHeaders;
-  final ServerMimic? responseHandler;
+  ServerMimic? _responseHandler;
+  ServerMimic? get responseHandler => _responseHandler;
+
+  void removeResponseHandler() {
+    _responseHandler = null;
+  }
 
   bool get hasAnnotations {
     if (coreMimics.all.isNotEmpty) return true;

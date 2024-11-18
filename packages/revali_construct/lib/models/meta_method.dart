@@ -14,6 +14,7 @@ class MetaMethod {
     required this.returnType,
     required this.annotationsMapper,
     required this.webSocketMethod,
+    required this.isSse,
   });
 
   final String name;
@@ -23,6 +24,7 @@ class MetaMethod {
   final MetaReturnType returnType;
   final AnnotationMapper annotationsMapper;
   final MetaWebSocketMethod? webSocketMethod;
+  final bool isSse;
 
   bool get isWebSocket => webSocketMethod != null;
 }
