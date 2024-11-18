@@ -9,7 +9,7 @@ base class MutableBodyImpl extends MutableBody {
   BodyData? get _data => __data;
   set _data(BodyData? value) {
     __data = value;
-    _bytes = null;
+    _byteStream = null;
   }
 
   @override
@@ -55,22 +55,22 @@ base class MutableBodyImpl extends MutableBody {
     _data = newData.asList..add(data);
   }
 
-  List<List<int>>? _bytes;
+  Stream<List<int>>? _byteStream;
   @override
   Stream<List<int>>? read() async* {
-    final bytes = _bytes;
+    final bytes = _byteStream;
     if (bytes != null) {
-      yield* Stream.fromIterable(bytes);
+      yield* bytes;
       return;
     }
 
-    _bytes = await _data?.read()?.toList();
+    final stream = _byteStream = _data?.read()?.asBroadcastStream();
 
-    if (_bytes == null) {
+    if (stream == null) {
       return;
     }
 
-    yield* Stream.fromIterable(_bytes!);
+    yield* stream;
   }
 
   @override
