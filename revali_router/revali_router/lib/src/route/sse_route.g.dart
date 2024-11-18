@@ -1,12 +1,12 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'base_route.dart';
+part of 'sse_route.dart';
 
 // **************************************************************************
 // AutoequalGenerator
 // **************************************************************************
 
-extension _$BaseRouteAutoequal on BaseRoute {
+extension _$SseRouteAutoequal on SseRoute {
   List<Object?> get _$props => [
         path,
         routes,
@@ -17,10 +17,8 @@ extension _$BaseRouteAutoequal on BaseRoute {
         parent,
         handler,
         method,
-        _meta,
         redirect,
         allowedOrigins,
         allowedHeaders,
-        _responseHandler,
       ];
 }
