@@ -7,6 +7,7 @@ part 'base_route.g.dart';
 class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
   BaseRoute(
     String path, {
+    ResponseHandler? responseHandler,
     Future<dynamic> Function(EndpointContext)? handler,
     String? method,
     Iterable<BaseRoute>? routes,
@@ -35,6 +36,7 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
           allowedOrigins: allowedOrigins,
           allowedHeaders: allowedHeaders,
           ignorePathPattern: ignorePathPattern,
+          responseHandler: responseHandler,
         );
 
   BaseRoute._(
@@ -51,9 +53,11 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
     required this.allowedOrigins,
     required this.allowedHeaders,
     required bool ignorePathPattern,
+    required ResponseHandler? responseHandler,
     // dynamic is needed bc copyWith has a bug
     required dynamic meta,
-  }) : _meta = meta as void Function(MetaHandler)? {
+  })  : _meta = meta as void Function(MetaHandler)?,
+        _responseHandler = responseHandler {
     final method = this.method;
 
     if ((method == null) != (handler == null)) {
@@ -149,6 +153,26 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
   final AllowedOrigins? allowedOrigins;
   @override
   final AllowedHeaders? allowedHeaders;
+  final ResponseHandler? _responseHandler;
+
+  @override
+  ResponseHandler? get responseHandler {
+    if (_responseHandler case final handler?) {
+      return handler;
+    }
+
+    var parent = this.parent;
+
+    while (parent != null) {
+      if (parent._responseHandler case final handler?) {
+        return handler;
+      }
+
+      parent = parent.parent;
+    }
+
+    return null;
+  }
 
   bool get canInvoke => handler != null && method != null;
   List<String> get segments => path.split('/');

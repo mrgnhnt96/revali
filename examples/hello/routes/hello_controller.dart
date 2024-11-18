@@ -15,6 +15,7 @@ class HelloController {
   }
 
   @Get('sup')
+  @MyResponseHandler()
   String hello2(
     @Data() User? user,
   ) {
@@ -26,4 +27,15 @@ class HelloController {
   void newHello() {
     print('Redirecting');
   }
+}
+
+class MyResponseHandler implements ResponseHandler {
+  const MyResponseHandler();
+
+  @override
+  Future<void> handle(
+    ReadOnlyResponse response,
+    RequestContext context,
+    HttpResponse httpResponse,
+  ) async {}
 }

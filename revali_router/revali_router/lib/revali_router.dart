@@ -48,6 +48,8 @@ export 'src/response/default_responses.dart';
 export 'src/response/mutable_response_impl.dart';
 export 'src/response/simple_response.dart';
 export 'src/response/web_socket_response.dart';
+export 'src/response_handler/default_response_handler.dart';
+export 'src/response_handler/websocket_response_handler.dart';
 export 'src/route/base_route.dart';
 export 'src/route/lifecycle_components_impl.dart';
 export 'src/route/route.dart';

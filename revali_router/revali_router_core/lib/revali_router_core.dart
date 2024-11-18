@@ -65,6 +65,7 @@ export 'request/underlying_request.dart';
 export 'response/mutable_response.dart';
 export 'response/read_only_response.dart';
 export 'response/restricted_mutable_response.dart';
+export 'response_handler/response_handler.dart';
 export 'return_types/string_content.dart';
 export 'route/lifecycle_components.dart';
 export 'route/route_entry.dart';

@@ -1,0 +1,3 @@
+dependency_overrides:
+  revali_annotations:
+    path: ../revali_annotations

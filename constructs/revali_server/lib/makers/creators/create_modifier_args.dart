@@ -2,6 +2,7 @@
 
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_router/revali_router.dart' hide Method;
+import 'package:revali_server/converters/server_mimic.dart';
 import 'package:revali_server/converters/server_route_annotations.dart';
 import 'package:revali_server/makers/creators/create_class.dart';
 import 'package:revali_server/makers/creators/create_mimic.dart';
@@ -78,6 +79,8 @@ Map<String, Expression> createModifierArgs({
           for (final uses in typeReferences.combines)
             for (final combine in uses.types) createClass(combine),
       ]),
+    if (annotations.responseHandler case final ServerMimic handler)
+      'responseHandler': createMimic(handler),
     if (annotations.meta.isNotEmpty)
       ...() {
         final m = refer('m');

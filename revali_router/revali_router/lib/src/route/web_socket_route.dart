@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:revali_annotations/revali_annotations.dart';
+import 'package:revali_router/src/response_handler/websocket_response_handler.dart';
 import 'package:revali_router/src/route/base_route.dart';
 import 'package:revali_router/src/web_socket/web_socket_handler.dart';
 import 'package:revali_router_core/revali_router_core.dart';
@@ -26,6 +27,7 @@ class WebSocketRoute extends BaseRoute {
   }) : super(
           method: 'GET',
           handler: handler,
+          responseHandler: const WebsocketResponseHandler(),
         );
 
   final WebSocketMode mode;

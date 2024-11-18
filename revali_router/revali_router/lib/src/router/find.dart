@@ -7,8 +7,8 @@ class Find {
     required this.method,
   });
 
-  final List<String> segments;
-  final List<BaseRoute>? routes;
+  final Iterable<String> segments;
+  final Iterable<BaseRoute>? routes;
   final String method;
 
   RouteMatch? run() {
