@@ -54,6 +54,9 @@ Spec createChildRoute(ServerChildRoute route, ServerParentRoute parent) {
 
   if (route.isWebSocket) {
     return refer((WebSocketRoute).name).newInstance(positioned, named);
+  }
+  if (route.isSse) {
+    return refer((SseRoute).name).newInstance(positioned, named);
   } else {
     return refer((Route).name).newInstance(positioned, named);
   }

@@ -16,4 +16,5 @@ export 'src/methods/method.dart';
 export 'src/methods/patch.dart';
 export 'src/methods/post.dart';
 export 'src/methods/put.dart';
+export 'src/methods/sse.dart';
 export 'src/methods/web_socket.dart';

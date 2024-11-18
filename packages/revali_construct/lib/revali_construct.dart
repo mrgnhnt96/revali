@@ -38,6 +38,7 @@ export 'models/revali_construct_config.dart';
 export 'models/revali_context.dart';
 export 'models/revali_yaml.dart';
 export 'models/server_construct.dart';
+export 'models/sse_method_annotation.dart';
 export 'models/web_socket_annotation.dart';
 export 'types/annotation_getter.dart';
 export 'utils/annotation_getter_impl.dart';

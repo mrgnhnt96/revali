@@ -22,6 +22,7 @@ class ServerChildRoute with ExtractImport implements ServerRoute {
     required this.handlerName,
     required this.params,
     required this.webSocket,
+    required this.isSse,
   });
 
   factory ServerChildRoute.fromMeta(MetaMethod method) {
@@ -61,6 +62,10 @@ class ServerChildRoute with ExtractImport implements ServerRoute {
 
     final serverRoute = ServerRoute.fromMeta(method);
 
+    if (method.isWebSocket) {
+      serverRoute.annotations.removeResponseHandler();
+    }
+
     return ServerChildRoute(
       method: method.method,
       path: method.path ?? '',
@@ -71,6 +76,7 @@ class ServerChildRoute with ExtractImport implements ServerRoute {
       handlerName: serverRoute.handlerName,
       params: serverRoute.params,
       webSocket: method.webSocketMethod,
+      isSse: method.isSse,
     );
   }
 
@@ -80,6 +86,7 @@ class ServerChildRoute with ExtractImport implements ServerRoute {
   final String method;
   final String path;
   final MetaWebSocketMethod? webSocket;
+  final bool isSse;
 
   @override
   final ServerRouteAnnotations annotations;

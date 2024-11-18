@@ -83,6 +83,7 @@ class MethodVisitor extends RecursiveElementVisitor<void> {
         method: method.name,
         path: method.path,
         params: params,
+        isSse: method.isSse,
         returnType: MetaReturnType(
           isVoid: element.returnType is VoidType || type.contains('<void>'),
           isNullable: isNullable,
