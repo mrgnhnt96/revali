@@ -12,6 +12,7 @@ class LifecycleComponentsImpl implements LifecycleComponents {
     List<CombineComponents> combine = const [],
     this.allowedOrigins,
     this.allowedHeaders,
+    this.responseHandler,
   })  : _meta = meta,
         middlewares = middlewares ?? [],
         interceptors = interceptors ?? [],
@@ -33,6 +34,8 @@ class LifecycleComponentsImpl implements LifecycleComponents {
   final AllowOrigins? allowedOrigins;
   @override
   final AllowHeaders? allowedHeaders;
+  @override
+  final ResponseHandler? responseHandler;
 
   @override
   MetaHandler getMeta({MetaHandler? handler}) {
