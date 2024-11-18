@@ -13,6 +13,7 @@ class ServerRouteAnnotations with ExtractImport {
     required this.setHeaders,
     required this.allowOrigins,
     required this.allowHeaders,
+    required this.responseHandler,
   });
 
   factory ServerRouteAnnotations.fromApp(MetaAppConfig app) {
@@ -35,6 +36,7 @@ class ServerRouteAnnotations with ExtractImport {
     final meta = <ServerMimic>[];
     ServerAllowOrigins? allowOrigins;
     ServerAllowHeaders? allowHeaders;
+    ServerMimic? responseHandler;
 
     getter(
       onMatch: [
@@ -173,6 +175,19 @@ class ServerRouteAnnotations with ExtractImport {
             allowHeaders = ServerAllowHeaders.fromDartObject(object);
           },
         ),
+        OnMatch(
+          classType: ResponseHandler,
+          package: 'revali_router_core',
+          convert: (object, annotation) {
+            if (responseHandler != null) {
+              throw ArgumentError(
+                'Only one $ResponseHandler annotation is allowed',
+              );
+            }
+
+            responseHandler = ServerMimic.fromDartObject(object, annotation);
+          },
+        ),
       ],
     );
 
@@ -184,6 +199,7 @@ class ServerRouteAnnotations with ExtractImport {
       setHeaders: setHeaders,
       allowOrigins: allowOrigins,
       allowHeaders: allowHeaders,
+      responseHandler: responseHandler,
     );
   }
 
@@ -194,6 +210,7 @@ class ServerRouteAnnotations with ExtractImport {
   final Iterable<ServerSetHeader> setHeaders;
   final ServerAllowOrigins? allowOrigins;
   final ServerAllowHeaders? allowHeaders;
+  final ServerMimic? responseHandler;
 
   bool get hasAnnotations {
     if (coreMimics.all.isNotEmpty) return true;

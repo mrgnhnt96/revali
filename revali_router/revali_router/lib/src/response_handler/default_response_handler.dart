@@ -5,7 +5,6 @@ import 'package:http_parser/http_parser.dart';
 import 'package:revali_router/src/body/response_body/base_body_data.dart';
 import 'package:revali_router/src/response/mutable_response_impl.dart';
 import 'package:revali_router/src/response/web_socket_response.dart';
-import 'package:revali_router_core/response_handler/response_handler.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
 class DefaultResponseHandler implements ResponseHandler {
