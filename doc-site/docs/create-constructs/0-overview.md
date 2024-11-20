@@ -11,10 +11,6 @@ Revali is built methodically to provide developers with an intuitive and flexibl
 Read about [Server Constructs][server-constructs] and [Build Constructs][build-constructs]
 :::
 
-:::important 🚧 Under Construction 🚧
-This documentation is still under construction. Please check back later for updates.
-:::
-
 ## Construct Types
 
 There are a few types of constructs with dedicated purposes: [Server Constructs][server-constructs] and [Build Constructs][build-constructs]. You can create your own server/build constructs or create a generic construct.

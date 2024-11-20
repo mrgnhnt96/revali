@@ -7,3 +7,5 @@ A Generic Construct is a construct that generates code that is not intended to b
 :::tip
 Follow the [Getting Started][getting-started] guide to create a new Construct.
 :::
+
+[getting-started]: ../getting-started/0-create-package.md
