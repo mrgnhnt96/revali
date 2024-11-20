@@ -6,7 +6,9 @@ import 'package:revali_router/src/body/response_body/base_body_data.dart';
 import 'package:revali_router/src/response/mutable_response_impl.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
-class DefaultResponseHandler implements ResponseHandler {
+class DefaultResponseHandler
+    with RemoveHeadersMixin
+    implements ResponseHandler {
   const DefaultResponseHandler();
 
   @override
@@ -33,9 +35,9 @@ class DefaultResponseHandler implements ResponseHandler {
     switch (response.statusCode) {
       case HttpStatus.notModified:
       case HttpStatus.noContent:
-        _removeContentRelated(responseHeaders);
+        removeContentRelated(responseHeaders);
       case HttpStatus.notFound:
-        _removeAccessControl(responseHeaders);
+        removeAccessControl(responseHeaders);
       default:
         break;
     }
@@ -109,31 +111,4 @@ class DefaultResponseHandler implements ResponseHandler {
 
     await complete();
   }
-}
-
-void _removeContentRelated(MutableHeaders headers) {
-  headers
-    ..remove(HttpHeaders.contentTypeHeader)
-    ..remove(HttpHeaders.contentLengthHeader)
-    ..remove(HttpHeaders.contentEncodingHeader)
-    ..remove(HttpHeaders.transferEncodingHeader)
-    ..remove(HttpHeaders.contentRangeHeader)
-    ..remove(HttpHeaders.acceptRangesHeader)
-    ..remove(HttpHeaders.contentDisposition)
-    ..remove(HttpHeaders.contentLanguageHeader)
-    ..remove(HttpHeaders.contentLocationHeader)
-    ..remove(HttpHeaders.contentMD5Header);
-}
-
-void _removeAccessControl(MutableHeaders headers) {
-  headers
-    ..remove(HttpHeaders.allowHeader)
-    ..remove(HttpHeaders.accessControlAllowOriginHeader)
-    ..remove(HttpHeaders.accessControlAllowCredentialsHeader)
-    ..remove(HttpHeaders.accessControlExposeHeadersHeader)
-    ..remove(HttpHeaders.accessControlMaxAgeHeader)
-    ..remove(HttpHeaders.accessControlAllowMethodsHeader)
-    ..remove(HttpHeaders.accessControlAllowHeadersHeader)
-    ..remove(HttpHeaders.accessControlRequestHeadersHeader)
-    ..remove(HttpHeaders.accessControlRequestMethodHeader);
 }
