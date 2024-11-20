@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:revali_router/revali_router.dart';
 
-class SseResponseHandler implements ResponseHandler {
+class SseResponseHandler with RemoveHeadersMixin implements ResponseHandler {
   const SseResponseHandler();
 
   @override
@@ -14,7 +14,26 @@ class SseResponseHandler implements ResponseHandler {
   ) async {
     final http = httpResponse;
 
-    // TODO(mrgnhnt): Prepare headers
+    final responseHeaders = switch (response) {
+      MutableResponse() => response.headersToSend,
+      _ => MutableResponseImpl.from(response).headersToSend,
+    };
+
+    http.statusCode = response.statusCode;
+
+    switch (response.statusCode) {
+      case HttpStatus.notModified:
+      case HttpStatus.noContent:
+        removeContentRelated(responseHeaders);
+      case HttpStatus.notFound:
+        removeAccessControl(responseHeaders);
+      default:
+        break;
+    }
+
+    responseHeaders.forEach((key, values) {
+      http.headers.set(key, values.join(','));
+    });
 
     final body = switch (response.body) {
       final body? when !body.isNull => body.read(),
@@ -22,8 +41,9 @@ class SseResponseHandler implements ResponseHandler {
     };
 
     if (body == null) {
-      // TODO(mrgnhnt): return error
-      throw '';
+      await http.flush();
+      await http.close();
+      return;
     }
 
     final socket = await http.detachSocket();
