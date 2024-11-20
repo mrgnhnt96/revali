@@ -12,7 +12,7 @@ base class MethodAnnotation extends Method with EquatableMixin {
   });
 
   factory MethodAnnotation.fromAnnotation(DartObject annotation) {
-    final className = annotation.type?.getDisplayString(withNullability: false);
+    final className = annotation.type?.getDisplayString();
 
     if (className == '$SSE') {
       return SseMethodAnnotation.fromAnnotation(annotation);

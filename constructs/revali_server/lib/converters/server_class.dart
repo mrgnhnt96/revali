@@ -15,7 +15,7 @@ class ServerClass with ExtractImport {
     DartType type, {
     required Type superType,
   }) {
-    final className = type.getDisplayString(withNullability: false);
+    final className = type.getDisplayString();
     final element = type.element;
     if (element is! ClassElement) {
       throw ArgumentError.value(
@@ -28,9 +28,7 @@ class ServerClass with ExtractImport {
     final superTypeWithoutGenerics = '$superType'.split('<').first;
 
     if (!element.allSupertypes.any(
-      (e) => e
-          .getDisplayString(withNullability: false)
-          .startsWith(superTypeWithoutGenerics),
+      (e) => e.getDisplayString().startsWith(superTypeWithoutGenerics),
     )) {
       throw ArgumentError.value(
         type,

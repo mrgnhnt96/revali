@@ -38,7 +38,7 @@ class MethodVisitor extends RecursiveElementVisitor<void> {
 
     final params = getParams(element);
 
-    final type = element.returnType.getDisplayString(withNullability: false);
+    final type = element.returnType.getDisplayString();
 
     final isFuture = element.returnType.isDartAsyncFuture ||
         element.returnType.isDartAsyncFutureOr;
@@ -52,7 +52,7 @@ class MethodVisitor extends RecursiveElementVisitor<void> {
       final returnType = element.returnType as InterfaceType;
       typeArguments.addAll([
         for (final type in returnType.typeArguments)
-          (type.getDisplayString(withNullability: false), type),
+          (type.getDisplayString(), type),
       ]);
 
       final typeArg = returnType.typeArguments.first;
@@ -124,7 +124,7 @@ Element? typeFromIterable(DartType type) {
   }
 
   final iterableType = element.allSupertypes.firstWhereOrNull(
-    (e) => e.getDisplayString(withNullability: false).startsWith('Iterable'),
+    (e) => e.getDisplayString().startsWith('Iterable'),
   );
 
   if (iterableType == null) {

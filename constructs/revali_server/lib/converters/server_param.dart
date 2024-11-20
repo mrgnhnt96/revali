@@ -61,7 +61,7 @@ class ServerParam with ExtractImport {
 
     return ServerParam(
       name: element.name,
-      type: element.type.getDisplayString(withNullability: false),
+      type: element.type.getDisplayString(),
       typeImport: typeImport,
       isNullable: element.type.nullabilitySuffix == NullabilitySuffix.question,
       isRequired: element.isRequiredNamed,

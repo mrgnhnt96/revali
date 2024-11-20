@@ -6,7 +6,7 @@ Iterable<MetaParam> getParams(FunctionTypedElement element) {
   final params = <MetaParam>[];
 
   for (final param in element.parameters) {
-    final type = param.type.getDisplayString(withNullability: false);
+    final type = param.type.getDisplayString();
 
     final element = param.type.element;
     if (element == null) {

@@ -38,8 +38,9 @@ class ServerReturnType {
           while (typeArg is InterfaceType && typeArg.typeArguments.isNotEmpty) {
             final isIterable = typeArg.allSupertypes.any(
               (e) => e
-                  .getDisplayString(withNullability: false)
-                  .startsWith('Iterable'),
+                  .getDisplayString()
+                  // ignore: unnecessary_parenthesis
+                  .startsWith((Iterable).name),
             );
 
             if (!isIterable) {
@@ -62,8 +63,9 @@ class ServerReturnType {
         isStringContent = element.name == (StringContent).name ||
             element.allSupertypes.any(
               (e) =>
-                  e.getDisplayString(withNullability: false) ==
-                  '$StringContent',
+                  e.getDisplayString() ==
+                  // ignore: unnecessary_parenthesis
+                  (StringContent).name,
             );
       }
     }
