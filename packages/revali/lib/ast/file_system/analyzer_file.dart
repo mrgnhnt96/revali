@@ -2,9 +2,8 @@ import 'dart:io' as io;
 import 'dart:typed_data';
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/source/source_resource.dart';
 import 'package:file/file.dart' as f;
 import 'package:file/file.dart' show FileSystem;
 import 'package:path/path.dart' as p;
