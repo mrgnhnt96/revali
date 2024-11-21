@@ -366,14 +366,14 @@ class VMServiceHandler {
       });
     }
 
-    process.stderr.listen((_) async {
+    process.stderr.listen((err) async {
       _progress?.fail('Failed to start server');
 
       if (_isReloading) {
         return;
       }
 
-      final message = utf8.decode(_).trim();
+      final message = utf8.decode(err).trim();
       if (message.isEmpty) return;
 
       if (message.contains(HotReload.nonRevaliReload)) {
@@ -409,8 +409,8 @@ class VMServiceHandler {
       }
     });
 
-    process.stdout.listen((_) {
-      final message = utf8.decode(_).trim();
+    process.stdout.listen((out) {
+      final message = utf8.decode(out).trim();
       if (message.isEmpty) {
         return;
       }
