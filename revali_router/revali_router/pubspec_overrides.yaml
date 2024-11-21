@@ -5,3 +5,5 @@ dependency_overrides:
     path: ../revali_router_annotations
   revali_router_core:
     path: ../revali_router_core
+  revali_annotations:
+    path: ../../packages/revali_annotations
