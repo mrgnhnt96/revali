@@ -6,11 +6,12 @@
 
 # revali
 
-## 1.1.0
+## 1.1.1
 
-### Features
+### Chore
 
-- Support `SSE` methods
+- Upgrade dependencies
+- Clean up lint warnings
 
 ### Chores
 
