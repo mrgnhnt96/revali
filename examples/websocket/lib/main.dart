@@ -7,7 +7,8 @@ import 'package:dio/dio.dart';
 import 'package:web_socket_channel/io.dart';
 
 void main() async {
-  await _websocket();
+  await _cors();
+  // await _websocket();
   // _json();
   // _list();
   // _multiPartForm();
@@ -16,6 +17,26 @@ void main() async {
   // _stream();
   // _file();
   // _getFavicon();
+}
+
+Future<void> _cors() async {
+  try {
+    final uri = Uri.parse('http://localhost:1083/api/cors');
+
+    final request = await HttpClient().openUrl('HEAD', uri)
+      ..headers.set('X-Some-Header', 'some-value');
+
+    final response = await request.close();
+
+    print('Response headers:');
+    response.headers.forEach((key, values) {
+      print('$key: ${values.join(', ')}');
+    });
+
+    await response.drain();
+  } catch (e) {
+    print(e);
+  }
 }
 
 Future<void> _websocket() async {
