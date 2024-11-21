@@ -16,6 +16,13 @@ class ServerAllowOrigins {
     );
   }
 
+  ServerAllowOrigins merge(ServerAllowOrigins other) {
+    return ServerAllowOrigins(
+      origins: {...origins, ...other.origins},
+      inherit: other.inherit & inherit,
+    );
+  }
+
   final Set<String> origins;
   final bool inherit;
 }

@@ -13,5 +13,11 @@ class ServerExpectHeaders {
     );
   }
 
+  ServerExpectHeaders merge(ServerExpectHeaders other) {
+    return ServerExpectHeaders(
+      headers: {...headers, ...other.headers},
+    );
+  }
+
   final Set<String> headers;
 }

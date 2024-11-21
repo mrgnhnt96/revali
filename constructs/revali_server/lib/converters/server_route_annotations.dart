@@ -157,36 +157,36 @@ class ServerRouteAnnotations with ExtractImport {
           classType: AllowOrigins,
           package: 'revali_annotations',
           convert: (object, annotation) {
-            if (allowOrigins != null) {
-              throw ArgumentError(
-                'Only one $AllowOrigins annotation is allowed',
-              );
+            if (allowOrigins case final origins?) {
+              allowOrigins =
+                  origins.merge(ServerAllowOrigins.fromDartObject(object));
+            } else {
+              allowOrigins = ServerAllowOrigins.fromDartObject(object);
             }
-            allowOrigins = ServerAllowOrigins.fromDartObject(object);
           },
         ),
         OnMatch(
           classType: AllowHeaders,
           package: 'revali_annotations',
           convert: (object, annotation) {
-            if (allowHeaders != null) {
-              throw ArgumentError(
-                'Only one $AllowHeaders annotation is allowed',
-              );
+            if (allowHeaders case final headers?) {
+              allowHeaders =
+                  headers.merge(ServerAllowHeaders.fromDartObject(object));
+            } else {
+              allowHeaders = ServerAllowHeaders.fromDartObject(object);
             }
-            allowHeaders = ServerAllowHeaders.fromDartObject(object);
           },
         ),
         OnMatch(
           classType: ExpectHeaders,
           package: 'revali_annotations',
           convert: (object, annotation) {
-            if (expectHeaders != null) {
-              throw ArgumentError(
-                'Only one $ExpectHeaders annotation is allowed',
-              );
+            if (expectHeaders case final headers?) {
+              expectHeaders =
+                  headers.merge(ServerExpectHeaders.fromDartObject(object));
+            } else {
+              expectHeaders = ServerExpectHeaders.fromDartObject(object);
             }
-            expectHeaders = ServerExpectHeaders.fromDartObject(object);
           },
         ),
         OnMatch(

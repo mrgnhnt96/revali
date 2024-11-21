@@ -16,6 +16,13 @@ class ServerAllowHeaders {
     );
   }
 
+  ServerAllowHeaders merge(ServerAllowHeaders other) {
+    return ServerAllowHeaders(
+      headers: {...other.headers, ...headers},
+      inherit: other.inherit & inherit,
+    );
+  }
+
   final Set<String> headers;
   final bool inherit;
 }
