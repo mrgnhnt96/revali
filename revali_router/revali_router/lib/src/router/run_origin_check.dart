@@ -71,6 +71,8 @@ class RunOriginCheck {
       final caseSafeHeaders = CaseInsensitiveMap.from(
         {
           for (final header in allowedHeaders) header: header,
+          for (final header in const AllowHeaders.simple().headers)
+            header: header,
         },
       );
 
