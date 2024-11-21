@@ -73,9 +73,9 @@ SimpleResponse(
 )
 ```
 
-## Failed CORs
+## Failed CORs Origin
 
-The failed CORs response is returned when the request is blocked by the CORs policy.
+When a request is made from an origin that is not allowed by the CORS policy, the failed CORS origin response is returned.
 
 ```dart title"routes/apps/my_app.dart"
 import 'package:revali_router/revali_router.dart';
@@ -85,20 +85,50 @@ class MyApp extends AppConfig {
     @override
     DefaultResponses get defaultResponses => DefaultResponses(
         // highlight-start
-        failedCors: SimpleResponse(
+        failedCorsOrigin: SimpleResponse(
             statusCode: 403,
-            body: 'Failed CORs',
+            body: 'Failed CORs due to origin',
         ),
         // highlight-end
     );
 }
 ```
 
-The default failed CORs response is
+The default failed response is
 
 ```dart
 SimpleResponse(
     403,
     body: 'CORS policy does not allow access from this origin.',
+)
+```
+
+## Failed CORs Headers
+
+When a request is made with headers that are not allowed by the CORS policy, the failed CORS headers response is returned.
+
+```dart title"routes/apps/my_app.dart"
+import 'package:revali_router/revali_router.dart';
+
+@App()
+class MyApp extends AppConfig {
+    @override
+    DefaultResponses get defaultResponses => DefaultResponses(
+        // highlight-start
+        failedCorsHeaders: SimpleResponse(
+            statusCode: 403,
+            body: 'Failed CORs due to headers',
+        ),
+        // highlight-end
+    );
+}
+```
+
+The default failed response is
+
+```dart
+SimpleResponse(
+    403,
+    body: 'CORS policy does not allow access with these headers.',
 )
 ```

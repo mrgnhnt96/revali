@@ -4,10 +4,12 @@ class DefaultResponses {
   const DefaultResponses({
     SimpleResponse? internalServerError,
     SimpleResponse? notFound,
-    SimpleResponse? failedCors,
+    SimpleResponse? failedCorsOrigin,
+    SimpleResponse? failedCorsHeaders,
   })  : _internalServerError = internalServerError,
         _notFound = notFound,
-        _failedCors = failedCors;
+        _failedCorsOrigin = failedCorsOrigin,
+        _failedCorsHeaders = failedCorsHeaders;
 
   final SimpleResponse? _internalServerError;
   SimpleResponse get internalServerError {
@@ -33,15 +35,27 @@ class DefaultResponses {
     );
   }
 
-  final SimpleResponse? _failedCors;
-  SimpleResponse get failedCors {
-    if (_failedCors case final response?) {
+  final SimpleResponse? _failedCorsOrigin;
+  SimpleResponse get failedCorsOrigin {
+    if (_failedCorsOrigin case final response?) {
       return response;
     }
 
     return SimpleResponse(
       403,
       body: 'CORS policy does not allow access from this origin.',
+    );
+  }
+
+  final SimpleResponse? _failedCorsHeaders;
+  SimpleResponse get failedCorsHeaders {
+    if (_failedCorsHeaders case final response?) {
+      return response;
+    }
+
+    return SimpleResponse(
+      403,
+      body: 'CORS policy does not allow access with these headers.',
     );
   }
 }
