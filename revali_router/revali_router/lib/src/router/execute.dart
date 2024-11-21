@@ -80,7 +80,7 @@ This will result in unexpected behavior and may cause the server to crash.
 
 This is likely because the handler's return type is not a `Future`, or an asynchronous method was invoked and not awaited properly.
 
-Please ensure that all handlers that use the `await` keyword or invoke asynchronous methods have a return of `Future`.
+Please ensure that all handlers that use the `async`/`await` keyword or invoke asynchronous methods have a return type of `Future`.
 
 Error:
 $e
