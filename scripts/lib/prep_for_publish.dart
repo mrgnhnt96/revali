@@ -78,13 +78,77 @@ void main() async {
 
   logger.info('Publishing ${packagesToPublish.length} packages');
 
+  final successPublishes = <Package>[];
   for (final package in packagesToPublish) {
     logger.info('  - ${package.name}');
-    await publish(package);
+    final success = await publish(package);
+
+    if (success) {
+      successPublishes.add(package);
+    }
   }
+
+  logger
+    ..info('Published ${successPublishes.length} packages')
+    ..info('Pushing all changes');
+
+  // add all changes to git
+  await Process.run(
+    'git',
+    ['add', '.'],
+    workingDirectory: root,
+    runInShell: true,
+  );
+
+  // commit all changes
+  await Process.run(
+    'git',
+    [
+      'commit',
+      '-m',
+      '"Publish Packages | $date"',
+    ],
+    workingDirectory: root,
+    runInShell: true,
+  );
+
+  // push all changes
+  await Process.run(
+    'git',
+    ['push', 'origin', 'HEAD'],
+    workingDirectory: root,
+    runInShell: true,
+  );
+
+  for (final package in successPublishes) {
+    await createTag(package);
+  }
+
+  // push all tags
+  await Process.run(
+    'git',
+    ['push', 'origin', 'HEAD'],
+    workingDirectory: root,
+    runInShell: true,
+  );
 }
 
-Future<void> publish(Package package) async {
+Future<void> createTag(Package package) async {
+//  create empty commit
+  await Process.run(
+    'git',
+    [
+      'commit',
+      '--allow-empty',
+      '-m',
+      '"Publish ${package.name} | v${package.version}"',
+    ],
+    workingDirectory: package.root,
+    runInShell: true,
+  );
+}
+
+Future<bool> publish(Package package) async {
   final failedPublishFile = package.failedPublish;
 
   if (failedPublishFile.existsSync()) {
@@ -100,7 +164,7 @@ Future<void> publish(Package package) async {
 
   if (process.exitCode == 0) {
     logger.info('Published ${package.name}');
-    return;
+    return true;
   }
 
   // make failed publish file to retry
@@ -118,7 +182,7 @@ ${process.stdout}
 
   logger.err('Failed to publish ${package.name}');
 
-  return;
+  return false;
 }
 
 Iterable<Package> findFailedPublishes(Iterable<Package> packages) sync* {
