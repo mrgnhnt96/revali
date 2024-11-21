@@ -9,6 +9,13 @@ class AllowHeaders {
           'Content-Language',
           'Content-Type',
           'Range',
+          'User-Agent',
+          'Accept-Encoding',
+          'Content-Encoding',
+          'Content-Length',
+          'Content-Range',
+          'Host',
+          'Origin',
         };
 
   /// Whether to inherit the origins from the parent route.

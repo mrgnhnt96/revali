@@ -53,6 +53,13 @@ Simple headers are headers that are safe to include in a request without a prefl
 - `Content-Language`
 - `Content-Type`
 - `Range`
+- `User-Agent`
+- `Accept-Encoding`
+- `Content-Encoding`
+- `Content-Length`
+- `Content-Range`
+- `Host`
+- `Origin`
 
 These headers are automatically allowed by the server, so you don’t need to specify them in `@AllowHeaders`.
 
