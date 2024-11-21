@@ -19,11 +19,12 @@
 
 # revali_annotations
 
-## 1.1.0
+## 1.2.0
 
 ### Features
 
-- Create `SSE` annotation for Server-Sent Events
+- Create `ExpectHeaders` annotation
+- Add new `common` constructor for `AllowHeaders`
 
 # revali_construct
 
@@ -47,23 +48,27 @@
 
 # revali_router
 
-## 1.1.0
+## 1.2.0
 
 ### Features
 
-- Support low-level `ResponseHandler` per route
-  - If a response needs to be handled differently for a specific route, a `ResponseHandler` can be provided to the route to send the response to the client
-- Create default response handler for `Router`
-- Create `SseRoute` for Server-Sent Events
-- Create `SseResponseHandler` for Server-Sent Events
+- Create `ExpectedHeaders` as non-optional headers to be passed into the request
+- Add `ExpectedHeaders` to access control headers
 
 ### Enhancements
 
-- Improve how streams are prepared for sending to the client
+- Re-order the pre-request checks to
+  - CORs Origins Validation
+  - CORs Headers Validation
+  - (CORs) Expected Headers Validation
+  - Options Request Handling
+  - Redirect Handling
+- Return actual response in the `OPTIONS` request instead of a canned response
+- Handle internal root errors with the response handler instead of deprecated `send` method
 
-### Chores
+### Fix
 
-- Upgrade dependencies
+- Add `routes` param to `SseRoute` constructor
 
 # revali_router_annotations
 
@@ -75,28 +80,20 @@
 
 # revali_router_core
 
-## 1.1.0
+## 1.2.0
 
 ### Features
 
-- Create `ResponseHandler` interface
-  - A `ResponseHandler` is a low-level handler that can be provided to a route to send the response to the client differently
-
-### Chores
-
-- Upgrade dependencies
+- Create `ExpectedHeaders` as non-optional headers to be passed into the request
+- Add `ExpectedHeaders` to lifecycle components
 
 <!-- CONSTRUCTS -->
 
 # revali_server
 
-## 1.1.0
+## 1.2.0
 
 ### Features
 
-- Support `ResponseHandler` annotations
-- Support `SSE` annotation
-
-### Chores
-
-- Upgrade dependencies
+- Support `expectedHeaders` argument
+- Allow multiple `AllowedHeaders`, `AllowedOrigins` and `ExpectedHeaders` to be provided on a single route/controller

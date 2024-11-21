@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 1.2.0 | 11.21.24
+
+### Features
+
+- Support `expectedHeaders` argument
+- Allow multiple `AllowedHeaders`, `AllowedOrigins` and `ExpectedHeaders` to be provided on a single route/controller
+
 ## 1.1.0 | 11.18.24
 
 ### Features
