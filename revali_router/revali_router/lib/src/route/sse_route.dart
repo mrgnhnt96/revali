@@ -18,6 +18,8 @@ class SseRoute extends BaseRoute {
     super.middlewares,
     super.redirect,
     super.responseHandler = const SseResponseHandler(),
+    super.expectedHeaders,
+    super.routes,
   }) : super(method: 'GET');
 
   @override

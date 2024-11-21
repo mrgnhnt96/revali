@@ -24,6 +24,7 @@ class WebSocketRoute extends BaseRoute {
     super.middlewares,
     super.redirect,
     this.ping,
+    super.expectedHeaders,
   }) : super(
           method: 'GET',
           handler: handler,

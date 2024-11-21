@@ -21,6 +21,7 @@ class Route extends BaseRoute {
     super.allowedHeaders,
     super.ignorePathPattern,
     super.responseHandler,
+    super.expectedHeaders,
   }) : super(handler: handler);
 
   @override
