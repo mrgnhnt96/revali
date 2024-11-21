@@ -192,15 +192,15 @@ class Router extends Equatable {
       ),
     ) = helper;
 
+    if (originCheck() case final response?) {
+      return response;
+    }
+
     if (options() case final response?) {
       return response;
     }
 
     if (redirect() case final response?) {
-      return response;
-    }
-
-    if (originCheck() case final response?) {
       return response;
     }
 

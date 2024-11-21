@@ -10,15 +10,13 @@ class RunOptions {
   ReadOnlyResponse? run() {
     final HelperMixin(
       :request,
-      :route,
+      :response,
     ) = helper;
 
     if (request.method != 'OPTIONS') {
       return null;
     }
 
-    return CannedResponse.options(
-      allowedMethods: route.allowedMethods,
-    );
+    return response;
   }
 }
