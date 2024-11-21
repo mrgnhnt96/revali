@@ -53,15 +53,36 @@ Simple headers are headers that are safe to include in a request without a prefl
 - `Content-Language`
 - `Content-Type`
 - `Range`
-- `User-Agent`
+
+These headers are automatically allowed by the server, so you don’t need to specify them in `@AllowHeaders`.
+
+### Common Headers
+
+Dart by default includes some headers included in the request that are not covered by the Simple Headers, Here are some common headers that you might want to allow in your server:
+
 - `Accept-Encoding`
+- `Authorization`
+- `Cache-Control`
+- `Connection`
 - `Content-Encoding`
 - `Content-Length`
 - `Content-Range`
+- `Cookie`
+- `Date`
 - `Host`
 - `Origin`
+- `User-Agent`
 
-These headers are automatically allowed by the server, so you don’t need to specify them in `@AllowHeaders`.
+These headers are not automatically allowed by the server, so you need to specify them in `@AllowHeaders`.
+
+:::tip
+Use the `common` constructor to quickly allow common headers in your server.
+
+```dart
+@AllowHeaders.common()
+```
+
+:::
 
 ### Inheritance
 
@@ -106,6 +127,17 @@ If you don’t want a child controller or request to inherit the allowed headers
 ```
 
 This configuration will only allow the specified headers in the controller or request, ignoring any headers specified in the parent app or controller.
+
+:::note
+You only need to disable inheritance once on a controller or request.
+
+```dart
+@AllowHeaders({'My-Header'}, inherit: false) // Disable inheritance for entire controller
+@AllowHeaders({'Another-Header'})
+@Controller('my-controller')
+```
+
+:::
 
 ## Preflight Requests
 

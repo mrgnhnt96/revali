@@ -8,14 +8,22 @@ class AllowHeaders {
           'Accept-Language',
           'Content-Language',
           'Content-Type',
-          'Range',
-          'User-Agent',
+        };
+  const AllowHeaders.common()
+      : inherit = false,
+        headers = const {
           'Accept-Encoding',
+          'Authorization',
+          'Cache-Control',
+          'Connection',
           'Content-Encoding',
           'Content-Length',
           'Content-Range',
+          'Cookie',
+          'Date',
           'Host',
           'Origin',
+          'User-Agent',
         };
 
   /// Whether to inherit the origins from the parent route.

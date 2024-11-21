@@ -369,7 +369,6 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
       }
 
       yield* traverse(route.parent);
-      yield* route.allowedHeaders?.headers ?? [];
     }
 
     yield* traverse(this);
@@ -387,7 +386,6 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
       }
 
       yield* traverse(route.parent);
-      yield* route.expectedHeaders?.headers ?? [];
     }
 
     yield* traverse(this);
