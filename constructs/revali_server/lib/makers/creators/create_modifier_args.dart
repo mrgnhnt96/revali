@@ -71,6 +71,14 @@ Map<String, Expression> createModifierArgs({
       ], {
         'inherit': literalBool(allow.inherit),
       }),
+    if (annotations.expectHeaders case final expect?
+        when expect.headers.isNotEmpty)
+      'expectedHeaders': refer((ExpectedHeadersImpl).name).constInstance([
+        literalSet([
+          for (final expectHeader in expect.headers)
+            literalString(expectHeader),
+        ]),
+      ]),
     if (mimics.combines.isNotEmpty || typeReferences.combines.isNotEmpty)
       'combine': literalList([
         if (mimics.combines.isNotEmpty)

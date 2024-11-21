@@ -6,6 +6,7 @@
 
 export 'src/access_control/allow_headers.dart';
 export 'src/access_control/allow_origins.dart';
+export 'src/access_control/expect_headers.dart';
 export 'src/app.dart';
 export 'src/controller.dart';
 export 'src/enums/web_socket_mode.dart';

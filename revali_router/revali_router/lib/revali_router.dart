@@ -12,6 +12,7 @@ export 'src/body/response_body/base_body_data.dart';
 
 export 'src/access_control/allowed_headers_impl.dart';
 export 'src/access_control/allowed_origins_impl.dart';
+export 'src/access_control/expected_headers_impl.dart';
 export 'src/app_config/app_config.dart';
 export 'src/body/mutable_body_impl.dart';
 export 'src/custom_param/bind_context_impl.dart';
@@ -61,4 +62,3 @@ export 'src/router/router.dart';
 export 'src/server/handle_requests.dart';
 export 'src/web_socket/web_socket_handler.dart';
 export 'utils/coerce.dart';
-export 'utils/http_response_extensions.dart';

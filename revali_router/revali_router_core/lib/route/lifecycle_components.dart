@@ -16,6 +16,7 @@ abstract class LifecycleComponents {
   void Function(MetaHandler)? get _meta;
   AllowOrigins? get allowedOrigins;
   AllowHeaders? get allowedHeaders;
+  ExpectHeaders? get expectedHeaders;
   ResponseHandler? get responseHandler;
 
   MetaHandler getMeta({MetaHandler? handler}) {

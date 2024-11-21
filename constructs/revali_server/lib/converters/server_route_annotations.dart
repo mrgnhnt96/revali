@@ -13,6 +13,7 @@ class ServerRouteAnnotations with ExtractImport {
     required this.setHeaders,
     required this.allowOrigins,
     required this.allowHeaders,
+    required this.expectHeaders,
     required ServerMimic? responseHandler,
   }) : _responseHandler = responseHandler;
 
@@ -36,6 +37,7 @@ class ServerRouteAnnotations with ExtractImport {
     final meta = <ServerMimic>[];
     ServerAllowOrigins? allowOrigins;
     ServerAllowHeaders? allowHeaders;
+    ServerExpectHeaders? expectHeaders;
     ServerMimic? responseHandler;
 
     getter(
@@ -176,6 +178,18 @@ class ServerRouteAnnotations with ExtractImport {
           },
         ),
         OnMatch(
+          classType: ExpectHeaders,
+          package: 'revali_annotations',
+          convert: (object, annotation) {
+            if (expectHeaders != null) {
+              throw ArgumentError(
+                'Only one $ExpectHeaders annotation is allowed',
+              );
+            }
+            expectHeaders = ServerExpectHeaders.fromDartObject(object);
+          },
+        ),
+        OnMatch(
           classType: ResponseHandler,
           package: 'revali_router_core',
           convert: (object, annotation) {
@@ -199,6 +213,7 @@ class ServerRouteAnnotations with ExtractImport {
       setHeaders: setHeaders,
       allowOrigins: allowOrigins,
       allowHeaders: allowHeaders,
+      expectHeaders: expectHeaders,
       responseHandler: responseHandler,
     );
   }
@@ -210,6 +225,7 @@ class ServerRouteAnnotations with ExtractImport {
   final Iterable<ServerSetHeader> setHeaders;
   final ServerAllowOrigins? allowOrigins;
   final ServerAllowHeaders? allowHeaders;
+  final ServerExpectHeaders? expectHeaders;
   ServerMimic? _responseHandler;
   ServerMimic? get responseHandler => _responseHandler;
 
@@ -225,6 +241,7 @@ class ServerRouteAnnotations with ExtractImport {
     if (setHeaders.isNotEmpty) return true;
     if (allowOrigins != null) return true;
     if (allowHeaders != null) return true;
+    if (expectHeaders != null) return true;
     if (responseHandler != null) return true;
     return false;
   }

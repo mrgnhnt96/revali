@@ -20,6 +20,7 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
     List<CombineComponents> combine = const [],
     AllowedOrigins? allowedOrigins,
     AllowedHeaders? allowedHeaders,
+    ExpectedHeaders? expectedHeaders,
     bool ignorePathPattern = false,
   }) : this._(
           path,
@@ -37,6 +38,7 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
           allowedHeaders: allowedHeaders,
           ignorePathPattern: ignorePathPattern,
           responseHandler: responseHandler,
+          expectedHeaders: expectedHeaders,
         );
 
   BaseRoute._(
@@ -54,6 +56,7 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
     required this.allowedHeaders,
     required bool ignorePathPattern,
     required ResponseHandler? responseHandler,
+    required this.expectedHeaders,
     // dynamic is needed bc copyWith has a bug
     required dynamic meta,
   })  : _meta = meta as void Function(MetaHandler)?,
@@ -153,6 +156,8 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
   final AllowedOrigins? allowedOrigins;
   @override
   final AllowedHeaders? allowedHeaders;
+  @override
+  final ExpectedHeaders? expectedHeaders;
   final ResponseHandler? _responseHandler;
 
   @override
@@ -365,6 +370,24 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
 
       yield* traverse(route.parent);
       yield* route.allowedHeaders?.headers ?? [];
+    }
+
+    yield* traverse(this);
+  }
+
+  Iterable<String> get allExpectedHeaders sync* {
+    Iterable<String> traverse(BaseRoute? route) sync* {
+      if (route == null) {
+        return;
+      }
+
+      if (route.expectedHeaders case final value?) {
+        yield* value.headers;
+        return;
+      }
+
+      yield* traverse(route.parent);
+      yield* route.expectedHeaders?.headers ?? [];
     }
 
     yield* traverse(this);

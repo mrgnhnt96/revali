@@ -71,4 +71,9 @@ mixin HelperMixin {
           ...?globalComponents.allowedHeaders?.headers,
         ...route.allAllowedHeaders,
       };
+
+  Set<String> get expectedHeaders => {
+        ...?globalComponents.expectedHeaders?.headers,
+        ...route.allExpectedHeaders,
+      };
 }

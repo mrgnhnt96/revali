@@ -14,6 +14,7 @@ class RunOriginCheck {
       :debugErrorResponse,
       :defaultResponses,
       :allowedHeaders,
+      :expectedHeaders,
       :allowedOrigins,
     ) = helper;
 
@@ -77,6 +78,26 @@ class RunOriginCheck {
             stackTrace: StackTrace.current,
           );
         }
+      }
+    }
+
+    if (expectedHeaders.isNotEmpty) {
+      final caseSafeHeaders = CaseInsensitiveMap.from({
+        for (final header in expectedHeaders) header: header,
+      });
+
+      final headers = request.headers;
+      for (final header in headers.keys) {
+        caseSafeHeaders.remove(header);
+      }
+
+      if (caseSafeHeaders.isNotEmpty) {
+        return debugErrorResponse(
+          defaultResponses.failedCors,
+          error:
+              'Header(s) "${caseSafeHeaders.keys.join(', ')}" is/are missing.',
+          stackTrace: StackTrace.current,
+        );
       }
     }
 
