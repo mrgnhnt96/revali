@@ -1,5 +1,6 @@
 ---
 title: Middleware
+description: Properties and methods available in the Middleware context
 ---
 
 # Middleware Context

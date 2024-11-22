@@ -1,5 +1,6 @@
 ---
 sidebar_position: 0
+description: Create a new package for your construct
 ---
 # Create Construct Package
 

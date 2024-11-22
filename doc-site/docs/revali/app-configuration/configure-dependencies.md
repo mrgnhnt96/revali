@@ -1,3 +1,7 @@
+---
+description: Register and resolve dependencies for your controllers
+---
+
 # Configure Dependencies
 
 Your controllers will likely need to interact with other parts of your application. This could be a service, a repository, or even another controller. In most cases, you'll want to inject these dependencies into your controller. Revali makes this easy by providing a way to register and resolve dependencies.

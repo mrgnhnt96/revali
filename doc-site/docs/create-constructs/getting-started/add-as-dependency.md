@@ -1,5 +1,6 @@
 ---
 sidebar_position: 4
+description: Add the construct to your server project
 ---
 
 # Add as Dependency

@@ -1,6 +1,10 @@
-# Web Sockets
+---
+description: Two-way communication between a client and a server
+---
 
-WebSockets allow two-way communication between a client and a server, enabling both to send messages at any time. Unlike HTTP, which is request-response based, WebSockets support real-time data exchange.
+# WebSockets
+
+WebSockets allow two-way communication between a client and a server, enabling both to send messages at any time. Unlike HTTP, which is request-response based,  support real-time data exchange.
 
 ## Creating a WebSocket Handler
 
@@ -33,7 +37,7 @@ Learn more about [binding] parameters.
 
 ### Two-Way Communication
 
-By default, the Web Socket connection is two-way. This means that the client can send messages to the server and the server can send messages to the client.
+By default, the WebSocket connection is two-way. This means that the client can send messages to the server and the server can send messages to the client.
 
 ```dart
 @WebSocket('websocket', mode: WebSocketMode.twoWay)
@@ -84,7 +88,7 @@ class MyController {
 ```
 
 :::tip
-Learn more about [web socket error codes][web-socket-error-codes].
+Learn more about [websocket error codes][web-socket-error-codes].
 :::
 
 :::danger
@@ -168,9 +172,9 @@ String onConnect(@Body() String? message) {
 
 :::
 
-## Web Socket Lifecycle
+## WebSocket Lifecycle
 
-The Web Socket lifecycle is similar to the [HTTP lifecycle][lifecycle-order], however, there are some differences. The Web Socket lifecycle is as follows:
+The WebSocket lifecycle is similar to the [HTTP lifecycle][lifecycle-order], however, there are some differences. The WebSocket lifecycle is as follows:
 
 1. Open Connection
 1. Observer

@@ -1,4 +1,5 @@
 ---
+description: React to incoming requests by modifying the request context
 sidebar_position: 2
 ---
 

@@ -1,3 +1,6 @@
+---
+description: Read & write metadata associated with the endpoint & request
+---
 # Meta Handler
 
 The `MetaHandler` object is used to store meta data in the context. Meta data is used to store additional information about the endpoint. The meta data is stored and retrieved by type.

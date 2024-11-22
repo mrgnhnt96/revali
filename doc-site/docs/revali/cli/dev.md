@@ -1,6 +1,7 @@
 ---
 title: revali dev
-sidebar_position: 1
+sidebar_position: 0
+description: Start the server and develop your Revali application
 ---
 
 # The Dev Command

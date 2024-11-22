@@ -1,3 +1,9 @@
+---
+title: Overview
+sidebar_position: 0
+description: A representation of the outgoing HTTP response
+---
+
 # Response
 
 The `Response` is the object that represents the outgoing HTTP response. It contains all the information about the response, such as the headers, the body, and the status code. Other than the body, it is encouraged to use the Lifecycle Components to modify the response.

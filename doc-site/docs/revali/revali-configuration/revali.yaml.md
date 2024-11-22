@@ -1,3 +1,7 @@
+---
+description: The configuration file for Revali
+---
+
 # revali.yaml
 
 ## Enable Constructs

@@ -1,3 +1,7 @@
+---
+description: A preflight request that return the possible methods
+---
+
 # Option Requests
 
 ## Explanation

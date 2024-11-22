@@ -1,5 +1,6 @@
 ---
 title: Interceptor
+description: Properties and methods available in the Interceptor context
 ---
 
 # Interceptor Context

@@ -1,5 +1,6 @@
 ---
 title: Binding
+description: Associate request data with method parameters
 sidebar_position: 2
 ---
 

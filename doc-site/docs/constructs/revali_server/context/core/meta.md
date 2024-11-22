@@ -1,3 +1,7 @@
+---
+description: Register metadata about anything to anything
+---
+
 # Meta
 
 The `Meta` object is a class that is used to store metadata about an object. There are no limitations on where the `Meta` object can be used. It can be used on your App, Controller, Methods, and even on your custom return types.

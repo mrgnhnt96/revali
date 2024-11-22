@@ -1,5 +1,6 @@
 ---
 title: Status Code
+description: Status code to indicate the status of the HTTP response
 ---
 
 # Response Status Code

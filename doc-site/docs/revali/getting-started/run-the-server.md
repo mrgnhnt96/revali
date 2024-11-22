@@ -1,5 +1,6 @@
 ---
 sidebar_position: 2
+description: Run your server to see your API in action
 ---
 
 # Run the Server

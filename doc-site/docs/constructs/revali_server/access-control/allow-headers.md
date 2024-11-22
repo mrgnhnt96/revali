@@ -1,3 +1,7 @@
+---
+description: Limit which headers a client can use in requests
+---
+
 # Allow Headers
 
 ## Explanation

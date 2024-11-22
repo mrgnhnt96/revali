@@ -1,6 +1,7 @@
 ---
 title: revali build
 sidebar_position: 1
+description: Prepare your application for deployment
 ---
 
 # The Build Command

@@ -1,4 +1,5 @@
 ---
+description: Protect the execution of the endpoint
 sidebar_position: 3
 ---
 

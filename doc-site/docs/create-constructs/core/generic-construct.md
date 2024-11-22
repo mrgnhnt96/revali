@@ -1,3 +1,7 @@
+---
+description: Non-bundled generated code, assets, or configurations
+---
+
 # Generic Construct
 
 A Generic Construct is a construct that generates code that is not intended to be bundled and shipped with the server. These are constructs that generate code, assets, or configurations.

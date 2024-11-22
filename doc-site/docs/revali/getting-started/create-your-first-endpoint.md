@@ -1,5 +1,6 @@
 ---
 sidebar_position: 1
+description: Create a new controller and endpoint
 ---
 
 # Create Your First Endpoint

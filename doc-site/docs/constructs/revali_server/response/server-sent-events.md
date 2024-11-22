@@ -1,4 +1,8 @@
-# Server Side Events
+---
+description: Send real-time updates to the client
+---
+
+# Server-Sent Events
 
 Server-Sent Events (SSE) is a standard describing how servers can initiate data transmission towards browser clients once an initial client connection has been established. They are commonly used to send real-time updates.
 

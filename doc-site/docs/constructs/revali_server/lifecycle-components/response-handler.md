@@ -1,4 +1,5 @@
 ---
+description: Customize how the response is sent to the client
 sidebar_position: 7
 ---
 

@@ -1,4 +1,5 @@
 ---
+description: Methods define the behavior of an endpoint
 sidebar_position: 1
 ---
 

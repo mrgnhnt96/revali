@@ -1,5 +1,6 @@
 ---
 sidebar_position: 1
+description: Create an app and configure host & port
 ---
 
 # Create an App

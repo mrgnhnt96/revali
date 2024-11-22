@@ -1,6 +1,7 @@
 ---
 title: Overview
 sidebar_position: 0
+description: Create Server-Side Code with Revali Server
 ---
 
 # Revali Server

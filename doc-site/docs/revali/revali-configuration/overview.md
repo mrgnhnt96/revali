@@ -1,6 +1,7 @@
 ---
 title: Overview
 sidebar_position: 0
+description: Configure constructs and other settings for Revali
 ---
 
 # Revali Configuration

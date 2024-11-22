@@ -1,5 +1,6 @@
 ---
 sidebar_position: 2
+description: The entrypoint to retrieve the code to be generated
 ---
 
 # Create Entrypoint

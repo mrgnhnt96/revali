@@ -1,3 +1,7 @@
+---
+description: Extra details to help you understand stuff
+---
+
 # Tid Bits
 
 ## Using Types in Annotations

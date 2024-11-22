@@ -1,5 +1,6 @@
 ---
 title: Body
+description: The payload of the outgoing HTTP response
 ---
 
 # Response Body

@@ -1,3 +1,8 @@
+---
+description: Specify which origins are allowed to request resources
+sidebar_position: 0
+---
+
 # Allow Origins
 
 ## Explanation

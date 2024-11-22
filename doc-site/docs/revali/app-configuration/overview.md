@@ -1,6 +1,7 @@
 ---
 title: Overview
 sidebar_position: 0
+description: What's an AppConfig and how do I use it?
 ---
 
 # App Configuration

@@ -1,5 +1,6 @@
 ---
 sidebar_position: 0
+description: Learn how to install Revali and its constructs
 ---
 
 # Installation

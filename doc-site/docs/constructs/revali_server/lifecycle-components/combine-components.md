@@ -1,4 +1,5 @@
 ---
+description: Combine multiple Lifecycle Components into a single group
 sidebar_position: 5
 ---
 

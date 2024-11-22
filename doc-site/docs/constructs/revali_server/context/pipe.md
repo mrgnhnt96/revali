@@ -1,5 +1,6 @@
 ---
 title: Pipe
+description: Properties and methods available in the Pipe context
 ---
 
 # Pipe Context

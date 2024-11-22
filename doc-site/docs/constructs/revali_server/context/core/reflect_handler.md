@@ -1,3 +1,7 @@
+---
+description: Read metadata associated with Types
+---
+
 # Reflect Handler
 
 The `ReflectHandler` is a helper class that provides a way to analyze meta data of a specific type.

@@ -1,3 +1,7 @@
+---
+description: Require specific headers in a request
+---
+
 # Expect Headers
 
 Similar to [Allow Headers][allow-headers], you can specify which headers the server expects in a request. The server will reject any request that does not contain the expected headers. The server will **not** reject a request if the request contains additional headers that are not specified in `@ExpectHeaders`.

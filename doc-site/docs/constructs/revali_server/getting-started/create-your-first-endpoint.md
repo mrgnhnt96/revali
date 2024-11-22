@@ -1,5 +1,6 @@
 ---
 title: Create Your First Endpoint
+description: Classes and methods are the bread and butter
 sidebar_position: 2
 ---
 

@@ -1,3 +1,9 @@
+---
+title: Overview
+sidebar_position: 0
+description: Deploy a Revali Docker container
+---
+
 # Deploy
 
 There are many ways to deploy a Docker container. Here are some common platforms that make it easy to deploy Docker containers with minimal configuration:

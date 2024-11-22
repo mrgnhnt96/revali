@@ -1,5 +1,6 @@
 ---
 title: Bind
+description: Properties and methods available in the Bind context
 ---
 
 # Bind Context

@@ -1,5 +1,6 @@
 ---
 title: Run the Server
+description: Start your server and see it in action
 sidebar_position: 2
 ---
 

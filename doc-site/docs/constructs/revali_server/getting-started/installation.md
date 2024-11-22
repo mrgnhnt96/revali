@@ -1,5 +1,6 @@
 ---
 title: Installation
+description: Learn how to install Revali Server and its dependencies
 sidebar_position: 0
 ---
 

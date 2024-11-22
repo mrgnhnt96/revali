@@ -1,5 +1,6 @@
 ---
 sidebar_position: 0
+description: How a construct fits into the Revali code generation process
 ---
 
 # Construct Lifecycle

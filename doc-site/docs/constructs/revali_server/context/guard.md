@@ -1,5 +1,6 @@
 ---
 title: Guard
+description: Properties and methods available in the Guard context
 ---
 
 # Guard Context

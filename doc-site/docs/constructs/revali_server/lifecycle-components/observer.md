@@ -1,4 +1,5 @@
 ---
+description: Observe incoming requests and outgoing responses
 sidebar_position: 1
 ---
 

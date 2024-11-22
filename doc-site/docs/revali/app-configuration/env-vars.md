@@ -1,3 +1,7 @@
+---
+description: Configure your server using --dart-define
+---
+
 # Env Vars
 
 Your server will eventually need to interact with the outside world. This could be through a database, an external API, or even just to configure the server itself. Revali provides a way to configure your server using environment variables.
@@ -37,3 +41,9 @@ revali dev --dart-define=LOZ_OOT=1998
 
 revali build --dart-define=LOZ_OOT=1998
 ```
+
+:::tip
+Check out[`pnv`][pnv]! It's a Dart package that can be used to convert env files to `--dart-define` flags.
+:::
+
+[pnv]: https://pub.dev/packages/pnv

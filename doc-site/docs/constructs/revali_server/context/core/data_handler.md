@@ -1,3 +1,7 @@
+---
+description: Read and write data to share across components
+---
+
 # Data Handler
 
 The `DataHandler` is a singleton object to share data between different parts of your application. It is a mutable property of the context object. The data within the `DataHandler` is stored and retrieved by type.

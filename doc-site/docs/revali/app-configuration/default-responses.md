@@ -1,3 +1,7 @@
+---
+description: Customize the default responses returned by the server
+---
+
 # Default Responses
 
 The default responses are the responses that are returned during certain events in the request flow. To customize the responses, you can override the `defaultResponses` method in your `AppConfig` class.

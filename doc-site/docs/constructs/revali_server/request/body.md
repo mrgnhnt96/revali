@@ -1,3 +1,7 @@
+---
+description: The payload of the request from the client
+---
+
 # Request Body
 
 The body of the request is the data that is sent by the client to the server. The body can be in many different formats, such as JSON or plain text. The body is read-only, meaning that you cannot modify the body of the request.

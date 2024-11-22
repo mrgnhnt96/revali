@@ -1,3 +1,7 @@
+---
+description: Debug your server-side code using your IDE
+---
+
 # Debug the Server
 
 Revali automatically starts up a VM service for you to connect to. This allows you to debug your server-side code using your favorite IDE.

@@ -1,3 +1,7 @@
+---
+description: Redirecting the client to a different URL
+---
+
 # Redirect
 
 The `redirect` function is used to redirect the client to a different URL.

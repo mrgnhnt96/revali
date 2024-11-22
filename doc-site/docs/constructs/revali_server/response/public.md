@@ -1,3 +1,7 @@
+---
+description: The directory used to store static files
+---
+
 # Public Files
 
 The `public` directory is a special directory used to store static files that are directly served by the server. Any file placed in this directory is accessible by anyone, making it ideal for assets like images, icons, and other public resources.

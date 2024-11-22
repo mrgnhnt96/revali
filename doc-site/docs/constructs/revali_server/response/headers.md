@@ -1,5 +1,6 @@
 ---
 title: Headers
+description: Headers to send additional information to the client
 ---
 
 # Response Headers

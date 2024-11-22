@@ -1,5 +1,6 @@
 ---
 sidebar_position: 3
+description: The configuration file for your construct
 ---
 
 # Construct Config

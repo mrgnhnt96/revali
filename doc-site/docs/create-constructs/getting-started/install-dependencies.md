@@ -1,5 +1,6 @@
 ---
 sidebar_position: 1
+description: The dependencies required to create a new construct
 ---
 
 # Install Dependencies

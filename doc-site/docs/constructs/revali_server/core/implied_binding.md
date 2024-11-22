@@ -1,4 +1,5 @@
 ---
+description: Certain classes do not need binding annotations
 sidebar_position: 3
 ---
 
@@ -7,7 +8,7 @@ sidebar_position: 3
 There are certain classes that do not need [binding annotations][binding].
 
 :::warning
-It is highly discouraged to used these, prefer to use [binding] with a [pipe][pipes] or [Lifecycle Components][lifecycle-components]. Using these can make testing harder and make your code harder to understand.
+It is discouraged to used these, prefer to use [binding] with a [pipe][pipes] or [Lifecycle Components][lifecycle-components]. Using these can make testing harder and make your code harder to understand.
 :::
 
 | Types | |

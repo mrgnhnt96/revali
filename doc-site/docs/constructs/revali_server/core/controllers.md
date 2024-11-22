@@ -1,4 +1,5 @@
 ---
+description: Groups of endpoints
 sidebar_position: 0
 ---
 
