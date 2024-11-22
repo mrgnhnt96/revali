@@ -77,6 +77,6 @@ Learn more about [env vars][env-vars]
 :::
 
 [build-construct]: ../../constructs/overview.md#build-constructs
-[revali-server]: ../revali_server/index.md
+[revali-server]: ../revali_server/overview.md
 [run-modes]: ../../revali/cli/build.md#run-modes
 [env-vars]: ../../revali/app-configuration/env-vars.md

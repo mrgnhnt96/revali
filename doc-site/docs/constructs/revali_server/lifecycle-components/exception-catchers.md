@@ -157,5 +157,5 @@ Learn more about [type referencing][type-referencing].
 :::
 
 [type-referencing]: ../tidbits.md#using-types-in-annotations
-[error-responses]: ../lifecycle-components/index.md#error-responses
+[error-responses]: ../lifecycle-components/overview.md#error-responses
 [default-responses]: ../../../revali/app-configuration/default-responses.md

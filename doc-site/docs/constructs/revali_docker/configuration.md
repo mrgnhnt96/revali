@@ -2,7 +2,7 @@
 
 The Revali Docker construct can be enabled/disabled and configured using the [revali.yaml][revali-yaml] file.
 
-[revali-yaml]: ../../revali/revali-configuration/index.md
+[revali-yaml]: ../../revali/revali-configuration/overview.md
 
 ## Revali YAML
 

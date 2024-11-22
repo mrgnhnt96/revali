@@ -69,5 +69,5 @@ constructs:
 
 [dev-command]: ../revali/cli/dev.md
 [build-command]: ../revali/cli/build.md
-[revali-server]: ../constructs/revali_server/index.md
-[revali-config]: ../revali/revali-configuration/index.md
+[revali-server]: ../constructs/revali_server/overview.md
+[revali-config]: ../revali/revali-configuration/overview.md

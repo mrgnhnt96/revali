@@ -39,5 +39,5 @@ Learn how to configure the default response for [failed CORS requests][failed-co
 If a preflight request is successful, the server will respond with the allowed headers, methods, and origins.
 
 [allow-headers]: ./allow-headers.md
-[scoping]: ../lifecycle-components/index.md#scoping
-[failed-cors-requests]: ../../../revali/app-configuration/default-responses.md#failed-cors
+[scoping]: ../lifecycle-components/overview.md#scoping
+[failed-cors-requests]: ../../../revali/app-configuration/default-responses.md#failed-cors-origin

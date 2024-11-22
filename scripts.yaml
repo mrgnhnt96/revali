@@ -2,6 +2,7 @@ barrel: barreler build
 
 docs:
     local: cd doc-site && pnpm start
+    build: cd doc-site && pnpm i && pnpm build
 
 build_runner:
     (aliases): br

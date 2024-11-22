@@ -22,4 +22,4 @@ It is highly discouraged to used these, prefer to use [binding] with a [pipe][pi
 
 [binding]: ./binding.md
 [pipes]: ./pipes.md
-[lifecycle-components]: ../lifecycle-components/index.md
+[lifecycle-components]: ../lifecycle-components/overview.md

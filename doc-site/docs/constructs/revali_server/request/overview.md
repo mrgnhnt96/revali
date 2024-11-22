@@ -43,5 +43,5 @@ Using the `ReadOnlyRequest` parameter in the endpoint method is not recommended.
 By avoiding the `ReadOnlyRequest` parameter, you can keep your endpoint methods clean, focused, and testable.
 :::
 
-[response]: ./../response/index.md
-[lifecycle-context]: ../context/index.md
+[response]: ./../response/overview.md
+[lifecycle-context]: ../context/overview.md

@@ -157,5 +157,5 @@ Learn how to configure the default response for [failed CORs requests][failed-co
 
 If a client sends a request with allowed headers, the server will respond with a `200 OK` status code, along with the allowed headers, methods, and origins.
 
-[scoping]: ../lifecycle-components/index.md#scoping
-[failed-cors-requests]: ../../../revali/app-configuration/default-responses.md#failed-cors
+[scoping]: ../lifecycle-components/overview.md#scoping
+[failed-cors-requests]: ../../../revali/app-configuration/default-responses.md#failed-cors-origin

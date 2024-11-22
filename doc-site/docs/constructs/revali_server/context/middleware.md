@@ -30,5 +30,5 @@ The `response` property is a mutable (restricted) property for the [Response][re
 
 [middleware]: ../lifecycle-components/middleware.md
 [data_handler]: ./core/data_handler.md
-[request]: ../request/index.md
-[response]: ../response/index.md
+[request]: ../request/overview.md
+[response]: ../response/overview.md

@@ -41,4 +41,4 @@ When revali starts up, it will generate files in your project:
 
 These files are your server's definitions and routes. These files should **NOT** be modified manually, Revali will manage them for you.
 
-[revali-server]: ../../constructs/revali_server/index.md
+[revali-server]: ../../constructs/revali_server/overview.md
