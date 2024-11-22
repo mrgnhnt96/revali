@@ -3,21 +3,20 @@ import 'dart:io';
 
 import 'package:mocktail/mocktail.dart';
 import 'package:revali_router/revali_router.dart';
-import 'package:test/test.dart';
+
+typedef ResponseCompleter
+    = Completer<(ReadOnlyResponse response, RequestContext context)>;
 
 Future<void> testRequest(
   Router router, {
   required String method,
   required String path,
-  required FutureOr<void> Function(HttpResponse response, HttpHeaders headers)
+  required FutureOr<void> Function(ReadOnlyResponse, RequestContext)
       verifyResponse,
-  FutureOr<void> Function(Stream<List<int>>? body)? verifyBody,
 }) async {
-  final request = _MockHttpRequest();
-  final response = request.stub(
-    method: method,
-    path: path,
-  );
+  final responseCompleter = ResponseCompleter();
+
+  final request = _MockHttpRequest()..stub(method: method, path: path);
   final server = _MockServer();
 
   final controller = await server.stub();
@@ -31,39 +30,34 @@ Future<void> testRequest(
   handleRequests(
     server,
     router.handle,
-    router.responseHandler,
+    (_) async => TestResponseHandler(responseCompleter),
   ).then((_) => completer.complete()).ignore();
   await controller.close();
   await completer.future;
 
-  if (verifyBody != null) {
-    Stream<List<int>>? responseStream;
+  final (response, context) = await responseCompleter.future;
 
-    verify(
-      () => response.addStream(
-        any(
-          that: isA<Stream<List<int>>>().having(
-            (stream) {
-              responseStream = stream;
+  await verifyResponse(response, context);
+}
 
-              return stream;
-            },
-            'stream',
-            isA<Stream<List<int>>>(),
-          ),
-        ),
-      ),
-    ).called(1);
+class TestResponseHandler implements ResponseHandler {
+  const TestResponseHandler(this.completer);
 
-    await verifyBody(responseStream);
+  final ResponseCompleter completer;
+
+  @override
+  Future<void> handle(
+    ReadOnlyResponse response,
+    RequestContext context,
+    HttpResponse httpResponse,
+  ) async {
+    completer.complete((response, context));
   }
-
-  await verifyResponse(response, response.headers);
 }
 
 class _MockHttpRequest extends Mock implements HttpRequest {}
 
-class _MockHttpResponse extends Mock implements HttpResponse {}
+class _FakeHttpResponse extends Fake implements HttpResponse {}
 
 class _MockServer extends Mock implements HttpServer {}
 
@@ -74,7 +68,7 @@ extension _HttpRequestX on HttpRequest {
     String method = 'GET',
     String path = '',
   }) {
-    final mockResponse = _MockHttpResponse()..stub();
+    final mockResponse = _FakeHttpResponse();
     final mockHeaders = _MockHttpHeaders();
 
     final instance = this;
@@ -86,21 +80,6 @@ extension _HttpRequestX on HttpRequest {
     when(() => instance.protocolVersion).thenReturn('1.1');
 
     return mockResponse;
-  }
-}
-
-extension _HttpResponseX on HttpResponse {
-  void stub() {
-    final mockHeaders = _MockHttpHeaders();
-
-    final instance = this;
-    when(instance.close).thenAnswer((_) async {});
-    when(instance.flush).thenAnswer((_) async {});
-    when(() => instance.write(any())).thenAnswer((_) async {});
-
-    when(() => instance.headers).thenReturn(mockHeaders);
-
-    when(() => instance.addStream(any())).thenAnswer((_) async {});
   }
 }
 
