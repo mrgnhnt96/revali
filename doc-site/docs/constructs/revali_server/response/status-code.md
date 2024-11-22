@@ -87,4 +87,4 @@ Using the `MutableResponse` parameter in the endpoint method is not recommended.
 By avoiding the `MutableResponse` parameter, you can keep your endpoint methods clean, focused, and testable.
 :::
 
-[interceptor-post]: ../lifecycle-components/4-interceptors.md#post
+[interceptor-post]: ../lifecycle-components/interceptors.md#post

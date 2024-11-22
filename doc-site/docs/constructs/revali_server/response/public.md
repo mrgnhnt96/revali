@@ -31,4 +31,4 @@ The `public` directory does not use the server's prefix. All files are served fr
 Avoid placing sensitive or private information in the `public` directory, as it is fully accessible to anyone who knows the URL.
 :::
 
-[app-prefix]: ../../../revali/app-configuration/10-create-an-app.md#
+[app-prefix]: ../../../revali/app-configuration/create-an-app.md#

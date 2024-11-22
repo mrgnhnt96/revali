@@ -97,4 +97,4 @@ fly apps open
 [fly-io-docs]: https://fly.io/docs/
 [dockerfile-docs]: https://fly.io/docs/languages-and-frameworks/dockerfile/
 [install-cli]: https://fly.io/docs/flyctl/install/
-[build-command]: ../../../revali/cli/10-build.md
+[build-command]: ../../../revali/cli/build.md

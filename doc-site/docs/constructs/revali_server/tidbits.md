@@ -90,5 +90,5 @@ final user = await UserPipe(userService: userService).transform(...);
 ```
 
 [dart-constants]: https://dart.dev/language/variables#final-and-const
-[pipes]: ./core/40-pipes.md
-[bindings]: ./core/20-binding.md
+[pipes]: ./core/pipes.md
+[bindings]: ./core/binding.md

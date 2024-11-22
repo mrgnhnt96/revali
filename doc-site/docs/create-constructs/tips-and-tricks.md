@@ -41,5 +41,5 @@ In VSCode, add a new configuration to your `launch.json` file that points to the
 You must pass the `dev` (or `build`) argument so that the Root Construct Entrypoint file knows which mode to run in. The arguments are the same as the ones you would pass to the [`revali dev`][revali-dev] or [`revali build`][revali-build] command.
 :::
 
-[revali-dev]: ../revali/cli/00-dev.md
-[revali-build]: ../revali/cli/10-build.md
+[revali-dev]: ../revali/cli/dev.md
+[revali-build]: ../revali/cli/build.md

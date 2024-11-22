@@ -25,6 +25,6 @@ Read more about [Construct Configuration][construct-config] and the [`is_server`
 
 The only rule for a Server Construct is that **it must have a `main` function**. This function is the entry point for Revali's CLI to run, debug, and test the server.
 
-[getting-started]: ../getting-started/0-create-package.md
-[construct-config]: ../getting-started/3-construct-config.md
-[construct-config-is-server]: ../getting-started/3-construct-config.md#is_server
+[getting-started]: ../getting-started/create-package.md
+[construct-config]: ../getting-started/construct-config.md
+[construct-config-is-server]: ../getting-started/construct-config.md#is_server

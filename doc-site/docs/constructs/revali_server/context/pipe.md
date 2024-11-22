@@ -72,16 +72,16 @@ The `data` property is a mutable property for the [DataHandler][data_handler] ob
 
 The `meta` property is a mutable (restricted) property for the [Meta][meta_handler]
 
-[pipes]: ../core/40-pipes.md
+[pipes]: ../core/pipes.md
 [data_handler]: ./core/data_handler.md
-[binding]: ../core/20-binding.md
+[binding]: ../core/binding.md
 [meta_handler]: ./core/meta_handler.md
-[binding-body]: ../core/20-binding.md#body
-[binding-data]: ../core/20-binding.md#data
-[binding-query]: ../core/20-binding.md#query
-[binding-all-values]: ../core/20-binding.md#all-values
-[binding-param]: ../core/20-binding.md#param
-[binding-bind]: ../core/20-binding.md#bind
-[binding-via-binds]: ../core/20-binding.md#via-binds
-[binding-header]: ../core/20-binding.md#header
-[binding-all-values-1]: ../core/20-binding.md#all-values-1
+[binding-body]: ../core/binding.md#body
+[binding-data]: ../core/binding.md#data
+[binding-query]: ../core/binding.md#query
+[binding-all-values]: ../core/binding.md#all-values
+[binding-param]: ../core/binding.md#param
+[binding-bind]: ../core/binding.md#bind
+[binding-via-binds]: ../core/binding.md#via-binds
+[binding-header]: ../core/binding.md#header
+[binding-all-values-1]: ../core/binding.md#all-values-1

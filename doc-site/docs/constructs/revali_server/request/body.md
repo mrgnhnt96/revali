@@ -158,5 +158,5 @@ final class MyApp extends AppConfig {
 }
 ```
 
-[exception-catchers]: ../lifecycle-components/6-exception-catchers.md
-[create-an-app]: ../../../revali/app-configuration/10-create-an-app.md
+[exception-catchers]: ../lifecycle-components/exception-catchers.md
+[create-an-app]: ../../../revali/app-configuration/create-an-app.md

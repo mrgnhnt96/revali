@@ -50,6 +50,6 @@ class MyConstruct extends BuildConstruct {
 }
 ```
 
-[getting-started]: ../getting-started/0-create-package.md
-[construct-config]: ../getting-started/3-construct-config.md
-[construct-config-is-build]: ../getting-started/3-construct-config.md#is_build
+[getting-started]: ../getting-started/create-package.md
+[construct-config]: ../getting-started/construct-config.md
+[construct-config-is-build]: ../getting-started/construct-config.md#is_build

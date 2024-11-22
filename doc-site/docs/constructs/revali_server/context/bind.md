@@ -54,7 +54,7 @@ The `request` property is a read-only property for the [Request][request] object
 
 The `response` property is a read-only property for the [Response][response] object.
 
-[bind]: ../core/20-binding.md
+[bind]: ../core/binding.md
 [data_handler]: ./core/data_handler.md
 [meta_handler]: ./core/meta_handler.md
 [request]: ../request/index.md

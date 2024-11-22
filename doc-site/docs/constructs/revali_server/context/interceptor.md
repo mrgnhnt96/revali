@@ -44,7 +44,7 @@ The `response` property is a mutable (restricted) property for the [Response][re
 
 The `reflect` property is a read-only property for the [Reflect][reflect] object.
 
-[interceptors]: ../lifecycle-components/4-interceptors.md
+[interceptors]: ../lifecycle-components/interceptors.md
 [data_handler]: ./core/data_handler.md
 [meta_handler]: ./core/meta_handler.md
 [request]: ../request/index.md

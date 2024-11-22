@@ -48,7 +48,7 @@ By avoiding the `MutableResponse` parameter, you can keep your endpoint methods 
 :::
 
 [bind-context]: ../context/bind.md
-[observer]: ../lifecycle-components/1-observer.md
+[observer]: ../lifecycle-components/observer.md
 [lifecycle-components]: ../lifecycle-components/index.md
-[interceptor-post]: ../lifecycle-components/4-interceptors.md#post
+[interceptor-post]: ../lifecycle-components/interceptors.md#post
 [lifecycle-context]: ../context/index.md
