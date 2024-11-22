@@ -2,6 +2,7 @@
 
 import 'dart:io';
 
+import 'package:change_case/change_case.dart';
 import 'package:glob/glob.dart';
 import 'package:glob/list_local_fs.dart';
 import 'package:intl/intl.dart';
@@ -121,7 +122,9 @@ void main() async {
   );
 
   for (final package in successPublishes) {
-    await createTag(package);
+    final changeLogEntry = latestChangelog[package.name]!;
+
+    await createRelease(package, changeLogEntry);
   }
 
   // push all tags
@@ -133,19 +136,28 @@ void main() async {
   );
 }
 
-Future<void> createTag(Package package) async {
-//  create empty commit
-  await Process.run(
-    'git',
+Future<void> createRelease(Package package, ChangeLogEntry changelog) async {
+//  create release
+  final process = await Process.run(
+    'gh',
     [
-      'commit',
-      '--allow-empty',
-      '-m',
-      '"Publish ${package.name} | v${package.version}"',
+      'release',
+      'create',
+      'revali-"${changelog.version}"',
+      '-t',
+      '"${package.name.toNoCase().toTitleCase()} v${changelog.version}"',
+      '-n',
+      '"${changelog.changes}"',
     ],
     workingDirectory: package.root,
     runInShell: true,
   );
+
+  if (process.exitCode == 0) {
+    logger.info('Created release for ${package.name}');
+  } else {
+    logger.err('Failed to create release for ${package.name}');
+  }
 }
 
 Future<bool> publish(Package package) async {

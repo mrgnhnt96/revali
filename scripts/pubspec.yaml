@@ -5,6 +5,7 @@ environment:
     sdk: '>=3.2.6 <4.0.0'
 
 dependencies:
+    change_case: ^2.1.0
     glob: ^2.1.2
     intl: ^0.20.0
     mason_logger: ^0.2.16
