@@ -1,3 +1,7 @@
+---
+title: Overview
+---
+
 # Revali Docker
 
 Revali Docker is a [Build Construct][build-construct] that creates a `Dockerfile` for a Revali server.

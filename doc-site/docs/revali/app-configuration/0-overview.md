@@ -1,3 +1,7 @@
+---
+title: Overview
+---
+
 # App Configuration
 
 Revali's configuration is setup via classes named `App`s. This is the entry point for your Revali application, this is where you'll setup your app's hostname & port, configure your dependencies, and change the global prefix.
