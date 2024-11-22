@@ -8,7 +8,7 @@ const config: Config = {
     favicon: 'img/favicon.ico',
 
     // Set the production url of your site here
-    url: 'https://revali.com',
+    url: 'https://revali.dev',
     // Set the /<baseUrl>/ pathname under which your site is served
     // For GitHub pages deployment, it is often '/<projectName>/'
     baseUrl: '/',
@@ -20,6 +20,7 @@ const config: Config = {
 
     onBrokenLinks: 'throw',
     onBrokenMarkdownLinks: 'warn',
+    trailingSlash: false,
 
     // Even if you don't use internationalization, you can use this field to set
     // useful metadata like html lang. For example, if your site is Chinese, you
@@ -98,6 +99,12 @@ const config: Config = {
             items: [
                 {
                     type: 'docSidebar',
+                    sidebarId: 'revali',
+                    position: 'left',
+                    label: 'Docs',
+                },
+                {
+                    type: 'docSidebar',
                     sidebarId: 'constructs',
                     position: 'left',
                     label: 'Constructs',
@@ -123,7 +130,7 @@ const config: Config = {
                     items: [
                         {
                             label: 'Revali',
-                            to: '/',
+                            to: '/revali',
                         },
                         {
                             label: 'Constructs',
@@ -167,7 +174,7 @@ const config: Config = {
         prism: {
             theme: prismThemes.github,
             darkTheme: prismThemes.dracula,
-            additionalLanguages: ['dart'],
+            additionalLanguages: ['bash', 'dart', 'docker', 'yaml'],
         },
     } satisfies Preset.ThemeConfig,
 };
