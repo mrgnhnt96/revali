@@ -27,7 +27,30 @@ void main() {
           expect(response.statusCode, HttpStatus.ok);
           expect(response.body, isA<MutableBody>());
           expect(response.body?.isNull, isTrue);
-          expect(response.headers.values, isEmpty);
+          final headers = response.headers.values;
+
+          expect(headers, hasLength(5));
+
+          expect(
+            headers[HttpHeaders.accessControlAllowMethodsHeader]?.single,
+            'OPTIONS, GET, HEAD',
+          );
+          expect(
+            headers[HttpHeaders.allowHeader]?.single,
+            'OPTIONS, GET, HEAD',
+          );
+          expect(
+            headers[HttpHeaders.accessControlAllowCredentialsHeader]?.single,
+            'true',
+          );
+          expect(
+            headers[HttpHeaders.accessControlAllowOriginHeader]?.single,
+            '*',
+          );
+          expect(
+            headers[HttpHeaders.accessControlAllowHeadersHeader]?.single,
+            '',
+          );
         },
       );
     });

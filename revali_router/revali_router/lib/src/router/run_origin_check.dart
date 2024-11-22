@@ -112,6 +112,8 @@ class RunOriginCheck {
 
     if (origin != null) {
       response.headers.set(HttpHeaders.accessControlAllowOriginHeader, origin);
+    } else {
+      response.headers.set(HttpHeaders.accessControlAllowOriginHeader, '*');
     }
 
     response.headers
