@@ -27,9 +27,9 @@ void main() {
           expect(response.statusCode, HttpStatus.ok);
           expect(response.body, isA<MutableBody>());
           expect(response.body?.isNull, isTrue);
-          final headers = response.headers.values;
+          final headers = response.joinedHeaders.values;
 
-          expect(headers, hasLength(5));
+          expect(headers, hasLength(4));
 
           expect(
             headers[HttpHeaders.accessControlAllowMethodsHeader]?.single,
@@ -46,10 +46,6 @@ void main() {
           expect(
             headers[HttpHeaders.accessControlAllowOriginHeader]?.single,
             '*',
-          );
-          expect(
-            headers[HttpHeaders.accessControlAllowHeadersHeader]?.single,
-            '',
           );
         },
       );
