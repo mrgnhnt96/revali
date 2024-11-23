@@ -88,5 +88,47 @@ Future<void> saveData() async {
 }
 ```
 
+## Headers Types
+
+In Revali Server, the headers are divided into two types:
+
+- Body Headers
+- Response Headers
+
+To get both the body headers and the response headers, you can access the `joinedHeaders` property of the response object.
+
+```dart
+final headers = response.joinedHeaders;
+```
+
+### Headers from Body
+
+There are certain headers that are derived from the response body. Each body type has its own set of headers that will be joined with the response headers before sending the response to the client. Some examples of body headers are:
+
+- `Content-Type`
+- `Content-Length`
+- `Transfer-Encoding`
+- `Content-Encoding`
+
+To get the body headers, you can access the `headers` property of the response's body object.
+
+```dart
+final headers = response.body.headers;
+```
+
+### Headers from Response
+
+The response headers are generally set throughout the lifecycle of the request. These headers are set by the server and can be modified by the user. Some examples of response headers are:
+
+- `Date`
+- `Cache-Control`
+- `Cookie`
+
+To get the response headers, you can access the `headers` property of the response object.
+
+```dart
+final headers = response.headers;
+```
+
 [lifecycle-context]: ../context/overview.md
 [http-headers]: https://api.dart.dev/stable/3.5.3/dart-io/HttpHeaders-class.html
