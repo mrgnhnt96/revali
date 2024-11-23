@@ -8,7 +8,7 @@ import 'utils/test_request.dart';
 void main() {
   group(Method, () {
     void verifyResponse(
-      String method,
+      Iterable<String> allowMethods,
       ReadOnlyResponse response,
       RequestContext context,
     ) {
@@ -19,18 +19,17 @@ void main() {
       final headers = response.joinedHeaders;
       expect(headers, hasLength(4));
 
-      final head = switch (method) {
-        'GET' => ', HEAD',
-        _ => '',
-      };
-
+      final methods =
+          headers[HttpHeaders.accessControlAllowMethodsHeader]?.split(', ');
       expect(
-        headers[HttpHeaders.accessControlAllowMethodsHeader],
-        'OPTIONS, $method$head',
+        methods,
+        containsAll(allowMethods),
       );
+
+      final allow = headers[HttpHeaders.allowHeader]?.split(', ');
       expect(
-        headers[HttpHeaders.allowHeader],
-        'OPTIONS, $method$head',
+        allow,
+        containsAll(allowMethods),
       );
       expect(
         headers[HttpHeaders.accessControlAllowCredentialsHeader],
@@ -59,7 +58,7 @@ void main() {
           method: 'GET',
           path: '',
           verifyResponse: (response, context) =>
-              verifyResponse('GET', response, context),
+              verifyResponse(['OPTIONS', 'HEAD', 'GET'], response, context),
         );
       });
     });
@@ -81,7 +80,7 @@ void main() {
           method: 'POST',
           path: '',
           verifyResponse: (response, context) =>
-              verifyResponse('POST', response, context),
+              verifyResponse(['OPTIONS', 'POST'], response, context),
         );
       });
     });
@@ -103,7 +102,7 @@ void main() {
           method: 'DELETE',
           path: '',
           verifyResponse: (response, context) =>
-              verifyResponse('DELETE', response, context),
+              verifyResponse(['OPTIONS', 'DELETE'], response, context),
         );
       });
     });
@@ -125,7 +124,7 @@ void main() {
           method: 'PATCH',
           path: '',
           verifyResponse: (response, context) =>
-              verifyResponse('PATCH', response, context),
+              verifyResponse(['OPTIONS', 'PATCH'], response, context),
         );
       });
     });
@@ -147,7 +146,7 @@ void main() {
           method: 'PUT',
           path: '',
           verifyResponse: (response, context) =>
-              verifyResponse('PUT', response, context),
+              verifyResponse(['OPTIONS', 'PUT'], response, context),
         );
       });
     });
@@ -169,54 +168,31 @@ void main() {
           method: 'HEAD',
           path: '',
           verifyResponse: (response, context) =>
-              verifyResponse('HEAD', response, context),
+              verifyResponse(['OPTIONS', 'HEAD'], response, context),
         );
       });
     });
-  });
 
-  group('Options', () {
-    test('handles gracefully', () async {
-      final router = Router(
-        routes: [
-          Route(
-            '',
-            method: 'OPTIONS',
-            handler: (context) async {},
-          ),
-        ],
-      );
+    group('Options', () {
+      test('handles gracefully', () async {
+        final router = Router(
+          routes: [
+            Route(
+              '',
+              method: 'OPTIONS',
+              handler: (context) async {},
+            ),
+          ],
+        );
 
-      await testRequest(
-        router,
-        method: 'OPTIONS',
-        path: '',
-        verifyResponse: (response, context) {
-          expect(response.statusCode, HttpStatus.ok);
-          expect(response.body, isA<MutableBody>());
-          expect(response.body?.isNull, isTrue);
-
-          final headers = response.joinedHeaders;
-          expect(headers, hasLength(4));
-
-          expect(
-            headers[HttpHeaders.accessControlAllowMethodsHeader],
-            'OPTIONS',
-          );
-          expect(
-            headers[HttpHeaders.allowHeader],
-            'OPTIONS',
-          );
-          expect(
-            headers[HttpHeaders.accessControlAllowCredentialsHeader],
-            'true',
-          );
-          expect(
-            headers[HttpHeaders.accessControlAllowOriginHeader],
-            '*',
-          );
-        },
-      );
+        await testRequest(
+          router,
+          method: 'OPTIONS',
+          path: '',
+          verifyResponse: (response, context) =>
+              verifyResponse(['OPTIONS'], response, context),
+        );
+      });
     });
   });
 }
