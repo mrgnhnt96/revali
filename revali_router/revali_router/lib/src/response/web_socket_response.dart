@@ -35,6 +35,9 @@ class WebSocketResponse implements ReadOnlyResponse {
   @override
   final ReadOnlyHeaders headers;
 
+  @override
+  ReadOnlyHeaders get joinedHeaders => headers;
+
   final Map<String, String> rawHeaders;
 
   @override

@@ -110,26 +110,38 @@ class RunOriginCheck {
       }
     }
 
+    response.headers.set(
+      HttpHeaders.accessControlAllowCredentialsHeader,
+      'true',
+    );
+
     if (origin != null) {
       response.headers.set(HttpHeaders.accessControlAllowOriginHeader, origin);
     } else {
       response.headers.set(HttpHeaders.accessControlAllowOriginHeader, '*');
     }
 
-    response.headers
-      ..set(
+    if (route.allowedMethods case final methods when methods.isNotEmpty) {
+      response.headers.set(
         HttpHeaders.accessControlAllowMethodsHeader,
         route.allowedMethods.join(', '),
-      )
-      ..set(
-        HttpHeaders.allowHeader,
-        route.allowedMethods.join(', '),
-      )
-      ..set(HttpHeaders.accessControlAllowCredentialsHeader, 'true')
-      ..set(
-        HttpHeaders.accessControlAllowHeadersHeader,
-        allowedHeaders.followedBy(expectedHeaders).join(', '),
       );
+    }
+
+    if (route.allowedMethods case final methods when methods.isNotEmpty) {
+      response.headers.set(
+        HttpHeaders.allowHeader,
+        methods.join(', '),
+      );
+    }
+
+    if (allowedHeaders.followedBy(expectedHeaders) case final headers
+        when headers.isNotEmpty) {
+      response.headers.set(
+        HttpHeaders.accessControlAllowHeadersHeader,
+        headers.join(', '),
+      );
+    }
 
     return null;
   }

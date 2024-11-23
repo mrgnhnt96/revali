@@ -25,8 +25,8 @@ class DefaultResponseHandler
     }
 
     final responseHeaders = switch (response) {
-      MutableResponse() => response.headersToSend,
-      _ => MutableResponseImpl.from(response).headersToSend,
+      MutableResponse() => response.joinedHeaders,
+      _ => MutableResponseImpl.from(response).joinedHeaders,
     }
       ..mimeType ??= 'text/plain';
 

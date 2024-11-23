@@ -15,14 +15,12 @@ Future<void> handleRequests(
 ) async {
   try {
     await for (final request in server) {
-      print('${request.uri}');
       ReadOnlyResponse response;
       final context = RequestContextImpl.fromRequest(request);
 
       try {
         response = await handler(context);
       } catch (e) {
-        print('Failed to handle request: $e');
         final handler = await responseHandler(context);
 
         await handler.handle(
@@ -42,10 +40,10 @@ Future<void> handleRequests(
 
         await handler.handle(response, context, request.response);
       } catch (e) {
-        print('Failed to send response: $e');
+        //
       }
     }
   } catch (e) {
-    print('Failed to start server: $e');
+    //
   }
 }

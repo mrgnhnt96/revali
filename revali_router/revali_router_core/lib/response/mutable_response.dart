@@ -12,5 +12,6 @@ abstract class MutableResponse implements RestrictedMutableResponse {
   @override
   MutableBody get body;
 
-  MutableHeaders get headersToSend;
+  @override
+  MutableHeaders get joinedHeaders;
 }

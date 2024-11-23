@@ -7,4 +7,8 @@ abstract class ReadOnlyResponse {
   int get statusCode;
   ReadOnlyBody? get body;
   ReadOnlyHeaders get headers;
+
+  /// The headers from the body, if any, joined with the headers
+  /// from the response
+  ReadOnlyHeaders get joinedHeaders;
 }

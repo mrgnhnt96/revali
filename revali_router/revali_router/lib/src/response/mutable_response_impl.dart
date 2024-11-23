@@ -77,7 +77,7 @@ class MutableResponseImpl implements MutableResponse {
   }
 
   @override
-  MutableHeaders get headersToSend {
+  MutableHeaders get joinedHeaders {
     final headers = MutableHeadersImpl.from(this.headers);
 
     _body.headers(_requestHeaders).forEach((key, values) {

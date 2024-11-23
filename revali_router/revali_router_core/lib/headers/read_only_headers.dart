@@ -5,6 +5,9 @@ import 'package:http_parser/http_parser.dart';
 abstract class ReadOnlyHeaders {
   const ReadOnlyHeaders();
 
+  int get length;
+  bool get isEmpty;
+
   String? get(String key);
   String? operator [](String value);
   Iterable<String> get keys;

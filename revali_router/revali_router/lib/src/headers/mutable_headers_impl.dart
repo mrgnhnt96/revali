@@ -242,4 +242,10 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
   void addEverything(Map<String, Iterable<String>> headers) {
     _headers.addAll(headers);
   }
+
+  @override
+  bool get isEmpty => _headers.isEmpty;
+
+  @override
+  int get length => _headers.length;
 }
