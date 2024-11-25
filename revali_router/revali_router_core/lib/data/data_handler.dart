@@ -25,4 +25,19 @@ class DataHandler implements ReadOnlyDataHandler {
   bool has<T>() {
     return _registered.containsKey(T);
   }
+
+  @override
+  bool contains<T>(T value) {
+    return _registered.containsValue(value);
+  }
+
+  bool remove<T>() {
+    if (has<T>()) {
+      _registered.remove(T);
+
+      return true;
+    }
+
+    return false;
+  }
 }
