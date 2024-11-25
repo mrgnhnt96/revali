@@ -26,3 +26,4 @@ dependencies:
 dev_dependencies:
     autoequal_gen: ^0.9.1
     build_runner: ^2.4.11
+    test: ^1.25.8
