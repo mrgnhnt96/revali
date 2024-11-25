@@ -1,22 +1,44 @@
+// ignore_for_file: overridden_fields, unnecessary_await_in_return
+
 import 'dart:async';
 import 'dart:io';
 
+import 'package:meta/meta.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:revali_router/revali_router.dart';
+import 'package:test/test.dart' as test;
 
 typedef ResponseCompleter
     = Completer<(ReadOnlyResponse response, RequestContext context)>;
 
+@isTest
+void requestTest(
+  String description,
+  TestRoute route, {
+  required FutureOr<void> Function(ReadOnlyResponse, RequestContext)
+      verifyResponse,
+  dynamic tags,
+}) =>
+    test.test(
+      description,
+      () async {
+        await testRequest(route, verifyResponse: verifyResponse);
+      },
+      tags: tags,
+    );
+
 Future<void> testRequest(
-  Router router, {
-  required String method,
-  required String path,
+  TestRoute route, {
   required FutureOr<void> Function(ReadOnlyResponse, RequestContext)
       verifyResponse,
 }) async {
   final responseCompleter = ResponseCompleter();
 
-  final request = _MockHttpRequest()..stub(method: method, path: path);
+  final request = _MockHttpRequest()
+    ..stub(
+      method: route.method,
+      path: route.path,
+    );
   final server = _MockServer();
 
   final controller = await server.stub();
@@ -26,6 +48,8 @@ Future<void> testRequest(
   when(server.close).thenAnswer((_) async {
     completer.complete();
   });
+
+  final router = route.toRouter();
 
   handleRequests(
     server,
@@ -112,3 +136,42 @@ extension _HttpServerX on HttpServer {
     return controller;
   }
 }
+
+// ignore: must_be_immutable
+class TestRoute extends Route {
+  TestRoute({
+    super.handler = _handler,
+    this.path = '',
+    this.method = 'GET',
+    super.routes,
+    super.middlewares,
+    super.interceptors,
+    super.guards,
+    super.catchers,
+    super.meta,
+    super.redirect,
+    super.combine,
+    super.allowedOrigins,
+    super.allowedHeaders,
+    super.ignorePathPattern,
+    super.responseHandler,
+    super.expectedHeaders,
+  }) : super(
+          path,
+          method: method,
+        );
+
+  Router toRouter() {
+    return Router(
+      routes: [this],
+    );
+  }
+
+  @override
+  final String method;
+
+  @override
+  final String path;
+}
+
+Future<void> _handler(EndpointContext context) async {}
