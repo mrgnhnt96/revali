@@ -22,12 +22,50 @@ There are some Lifecycle Components that can only read data from the `DataHandle
 Its not recommended to store primitive types in the `DataHandler`. Instead, create a class that holds the primitive type or use [extension types][extension-types].
 
 ```dart
-extension type UserId(String _) implements String {}
+extension type UserId(String value) implements String {}
 
 context.data.add(UserId('1234'));
 context.data.get<UserId>();
 ```
 
+:::
+
+## Removing Data
+
+To remove data from the `DataHandler`, you can use the `remove` method.
+
+```dart
+final success = context.data.remove<T>();
+
+print(success); // true if data was removed, false if not
+```
+
+:::note
+If there is no data of the type you are trying to remove, nothing will happen.
+:::
+
+:::note
+There are some Lifecycle Components that can only read data from the `DataHandler` and not write to it.
+:::
+
+## Checking for Data
+
+To check if data of a certain type exists in the `DataHandler`, you can use the `has` method. Or you can use the `contains` method for checking if the value exists.
+
+```dart
+final hasData = context.data.has<T>();
+
+print(hasData); // true if data exists, false if not
+```
+
+```dart
+final hasValue = context.data.contains<T>(T value);
+
+print(hasValue); // true if value exists, false if not
+```
+
+:::note
+Since the `DataHandler` can only store one value per type, the `contains` method will only return `true` if the value is the same as the one stored.
 :::
 
 ## Reading Data
