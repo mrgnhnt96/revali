@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_redundant_argument_values
+
 import 'dart:io';
 
 import 'package:revali_router/revali_router.dart';
@@ -42,157 +44,80 @@ void main() {
     }
 
     group(Get, () {
-      test('handles gracefully', () async {
-        final router = Router(
-          routes: [
-            Route(
-              '',
-              method: 'GET',
-              handler: (context) async {},
-            ),
-          ],
-        );
-
-        await testRequest(
-          router,
+      requestTest(
+        'handles gracefully',
+        TestRoute(
           method: 'GET',
-          path: '',
-          verifyResponse: (response, context) =>
-              verifyResponse(['OPTIONS', 'HEAD', 'GET'], response, context),
-        );
-      });
+        ),
+        verifyResponse: (response, context) =>
+            verifyResponse(['OPTIONS', 'HEAD', 'GET'], response, context),
+      );
     });
 
     group(Post, () {
-      test('handles gracefully', () async {
-        final router = Router(
-          routes: [
-            Route(
-              '',
-              method: 'POST',
-              handler: (context) async {},
-            ),
-          ],
-        );
-
-        await testRequest(
-          router,
+      requestTest(
+        'handles gracefully',
+        TestRoute(
           method: 'POST',
-          path: '',
-          verifyResponse: (response, context) =>
-              verifyResponse(['OPTIONS', 'POST'], response, context),
-        );
-      });
+        ),
+        verifyResponse: (response, context) =>
+            verifyResponse(['OPTIONS', 'POST'], response, context),
+      );
     });
 
     group(Delete, () {
-      test('handles gracefully', () async {
-        final router = Router(
-          routes: [
-            Route(
-              '',
-              method: 'DELETE',
-              handler: (context) async {},
-            ),
-          ],
-        );
-
-        await testRequest(
-          router,
+      requestTest(
+        'handles gracefully',
+        TestRoute(
           method: 'DELETE',
-          path: '',
-          verifyResponse: (response, context) =>
-              verifyResponse(['OPTIONS', 'DELETE'], response, context),
-        );
-      });
+        ),
+        verifyResponse: (response, context) =>
+            verifyResponse(['OPTIONS', 'DELETE'], response, context),
+      );
     });
 
     group(Patch, () {
-      test('handles gracefully', () async {
-        final router = Router(
-          routes: [
-            Route(
-              '',
-              method: 'PATCH',
-              handler: (context) async {},
-            ),
-          ],
-        );
-
-        await testRequest(
-          router,
+      requestTest(
+        'handles gracefully',
+        TestRoute(
           method: 'PATCH',
-          path: '',
-          verifyResponse: (response, context) =>
-              verifyResponse(['OPTIONS', 'PATCH'], response, context),
-        );
-      });
+        ),
+        verifyResponse: (response, context) =>
+            verifyResponse(['OPTIONS', 'PATCH'], response, context),
+      );
     });
 
     group(Put, () {
-      test('handles gracefully', () async {
-        final router = Router(
-          routes: [
-            Route(
-              '',
-              method: 'PUT',
-              handler: (context) async {},
-            ),
-          ],
-        );
-
-        await testRequest(
-          router,
+      requestTest(
+        'handles gracefully',
+        TestRoute(
           method: 'PUT',
-          path: '',
-          verifyResponse: (response, context) =>
-              verifyResponse(['OPTIONS', 'PUT'], response, context),
-        );
-      });
+        ),
+        verifyResponse: (response, context) =>
+            verifyResponse(['OPTIONS', 'PUT'], response, context),
+      );
     });
 
     group(Head, () {
-      test('handles gracefully', () async {
-        final router = Router(
-          routes: [
-            Route(
-              '',
-              method: 'HEAD',
-              handler: (context) async {},
-            ),
-          ],
-        );
-
-        await testRequest(
-          router,
+      requestTest(
+        'handles gracefully',
+        TestRoute(
           method: 'HEAD',
-          path: '',
-          verifyResponse: (response, context) =>
-              verifyResponse(['OPTIONS', 'HEAD'], response, context),
-        );
-      });
+        ),
+        verifyResponse: (response, context) =>
+            verifyResponse(['OPTIONS', 'HEAD'], response, context),
+      );
     });
 
     group('Options', () {
-      test('handles gracefully', () async {
-        final router = Router(
-          routes: [
-            Route(
-              '',
-              method: 'OPTIONS',
-              handler: (context) async {},
-            ),
-          ],
-        );
-
-        await testRequest(
-          router,
+      requestTest(
+        'handles gracefully',
+        TestRoute(
           method: 'OPTIONS',
-          path: '',
-          verifyResponse: (response, context) =>
-              verifyResponse(['OPTIONS'], response, context),
-        );
-      });
+        ),
+        verifyResponse: (response, context) =>
+            verifyResponse(['OPTIONS'], response, context),
+      );
     });
   });
 }
