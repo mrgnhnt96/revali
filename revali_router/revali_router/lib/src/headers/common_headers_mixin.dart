@@ -55,17 +55,35 @@ abstract class CommonHeadersMixin extends ReadOnlyHeaders {
   }
 
   @override
-  (int, int)? get range {
+  (int, int?)? get range {
     if (get(HttpHeaders.rangeHeader) case final value?) {
       final match = RegExp(r'bytes=(\d+)-(\d+)?').firstMatch(value);
       if (match == null) {
         return null;
       }
 
-      final start = int.tryParse(match.group(1)!) ?? 0;
-      final end = int.tryParse(match.group(2)!) ?? -1;
+      final start = int.tryParse(match.group(1) ?? '') ?? 0;
+      final end = int.tryParse(match.group(2) ?? '');
 
       return (start, end);
+    }
+
+    return null;
+  }
+
+  @override
+  (int, int, int)? get contentRange {
+    if (get(HttpHeaders.contentRangeHeader) case final value?) {
+      final match = RegExp(r'bytes (\d+)-(\d+)/(\d+)').firstMatch(value);
+      if (match == null) {
+        return null;
+      }
+
+      final start = int.tryParse(match.group(1) ?? '') ?? 0;
+      final end = int.tryParse(match.group(2) ?? '') ?? 0;
+      final total = int.tryParse(match.group(3) ?? '') ?? 0;
+
+      return (start, end, total);
     }
 
     return null;

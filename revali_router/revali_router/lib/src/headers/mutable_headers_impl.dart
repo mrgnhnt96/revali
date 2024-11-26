@@ -202,13 +202,12 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
   }
 
   @override
-  set range((int, int)? value) {
+  set contentRange((int, int, int)? value) {
     if (value == null) {
-      remove(HttpHeaders.rangeHeader);
+      remove(HttpHeaders.contentRangeHeader);
     } else {
-      final (start, end) = value;
-      final total = contentLength == null ? '' : '/$contentLength';
-      set(HttpHeaders.rangeHeader, 'bytes=$start-$end$total');
+      final (start, end, total) = value;
+      set(HttpHeaders.contentRangeHeader, 'bytes $start-$end/$total');
     }
   }
 

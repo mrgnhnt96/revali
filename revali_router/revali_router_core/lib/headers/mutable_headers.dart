@@ -23,7 +23,11 @@ abstract class MutableHeaders implements ReadOnlyHeaders {
   set mimeType(String? value);
   set contentLength(int? value);
   set origin(String? value);
-  set range((int, int)? value);
+
+  /// The range of bytes requested by the client.
+  ///
+  /// start, end, total
+  set contentRange((int, int, int)? value);
   set ifModifiedSince(DateTime? value);
   set encoding(Encoding value);
   set contentType(MediaType? value);

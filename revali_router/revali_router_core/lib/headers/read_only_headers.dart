@@ -49,7 +49,22 @@ abstract class ReadOnlyHeaders {
 
   String? get transferEncoding;
 
-  (int, int)? get range;
+  /// The range of bytes requested by the client.
+  ///
+  /// If the client requested a range of bytes, this will be a tuple with two
+  /// elements:
+  /// - The start of the range.
+  /// - The end of the range.
+  (int, int?)? get range;
+
+  /// The range of bytes to be returned by the server.
+  ///
+  /// If the server is returning a partial content response, this will be a
+  /// tuple with three elements:
+  /// - The start of the range.
+  /// - The end of the range.
+  /// - The total number of bytes in the full content.
+  (int, int, int)? get contentRange;
 
   Map<K2, V2> map<K2, V2>(
     MapEntry<K2, V2> Function(String key, Iterable<String> values) convert,

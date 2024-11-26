@@ -1,6 +1,6 @@
 part of 'base_body_data.dart';
 
-final class FileBodyData extends BaseBodyData<File> {
+final class FileBodyData extends BaseBodyData<io.File> {
   FileBodyData(super.data);
 
   @visibleForTesting
@@ -21,9 +21,10 @@ final class FileBodyData extends BaseBodyData<File> {
   Stream<List<int>> read() async* {
     if (_bytes case final bytes?) {
       yield* Stream.fromIterable([bytes]);
+      return;
     }
-    final bytes = _bytes = data.readAsBytesSync();
 
+    final bytes = _bytes = data.readAsBytesSync();
     yield* Stream.value(bytes);
   }
 
@@ -38,8 +39,9 @@ final class FileBodyData extends BaseBodyData<File> {
     return _file = fs.file(path);
   }
 
-  Stream<List<int>> range(int start, int end) async* {
-    final (start0, _, length) = cleanRange(start, end);
+  Stream<List<int>> range(int start, int? end) async* {
+    final (start0, end0, _) = cleanRange(start, end);
+    final length = end0 - start0 + 1;
 
     final content = file.openSync();
     try {
@@ -50,16 +52,18 @@ final class FileBodyData extends BaseBodyData<File> {
     }
   }
 
-  (int, int, int) cleanRange(int start, int end) {
-    final length = contentLength;
+  (int, int, int) cleanRange(int start, int? end) {
+    final length = data.lengthSync();
     if (start >= length) {
-      return (0, contentLength - 1, contentLength);
+      return (0, length - 1, length);
     }
 
-    final realEnd = min(end, length - 1);
-    final realLength = realEnd - start + 1;
+    final realEnd = switch (end) {
+      int() => min(end, length - 1),
+      _ => length - 1,
+    };
 
-    return (start, realEnd, realLength);
+    return (start, realEnd, length);
   }
 
   @override
@@ -76,8 +80,9 @@ final class FileBodyData extends BaseBodyData<File> {
       final (realStart, realEnd, realLength) = cleanRange(start, end);
 
       headers
-        ..range = (realStart, realEnd)
-        ..contentLength = realLength;
+        ..contentRange = (realStart, realEnd, realLength)
+        ..contentLength = realEnd - realStart + 1
+        ..mimeType = 'application/octet-stream';
     } else {
       headers.contentLength = contentLength;
     }
