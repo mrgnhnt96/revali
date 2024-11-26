@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io' as io;
 import 'dart:math';
 
 import 'package:file/file.dart';
@@ -33,7 +34,7 @@ sealed class BaseBodyData<T> extends BodyData {
       Map() => JsonBodyData({
           for (final key in data.keys) '$key': data[key],
         }),
-      File() => FileBodyData(data),
+      io.File() => FileBodyData(data),
       MemoryFile() => MemoryFileBodyData(data),
       Binary() => BinaryBodyData(data),
       List() => ListBodyData(data),
