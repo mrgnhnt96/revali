@@ -31,13 +31,21 @@ void main() {
 
     test('should transform Stream<Map> to Stream<List<int>>', () async {
       final data = StreamBodyData(
-        Stream.fromIterable([
-          {'key': 'value'},
-        ]),
+        Stream.value({'key': 'value'}),
       );
       final result = await data.read().toList();
       expect(result, [
         utf8.encode(jsonEncode({'key': 'value'})),
+      ]);
+    });
+
+    test('should convert value to string when encode fails', () async {
+      final data = StreamBodyData(
+        Stream.value({'key', 'value'}),
+      );
+      final result = await data.read().toList();
+      expect(result, [
+        utf8.encode('{key, value}'),
       ]);
     });
 

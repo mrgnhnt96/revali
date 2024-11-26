@@ -8,7 +8,7 @@ import 'package:revali_router_core/revali_router_core.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group(BaseBodyData, () {
+  group('BaseBodyData', () {
     test('should create StringBodyData from String', () {
       final data = BaseBodyData.from('test');
       expect(data, isA<StringBodyData>());
@@ -21,10 +21,16 @@ void main() {
       expect(data.data, {'key': 'value'});
     });
 
-    test('should create JsonBodyData from Map', () {
+    test('should create JsonBodyData from Map<String, dynamic>', () {
       final data = BaseBodyData.from({'key': 'value'});
       expect(data, isA<JsonBodyData>());
       expect(data.data, {'key': 'value'});
+    });
+
+    test('should create JsonBodyData from Map<dynamic, dynamic', () {
+      final data = BaseBodyData.from({1: 'value'});
+      expect(data, isA<JsonBodyData>());
+      expect(data.data, {'1': 'value'});
     });
 
     test('should create NullBodyData from null', () {
@@ -77,6 +83,138 @@ void main() {
 
     test('should throw UnsupportedError for unsupported type', () {
       expect(() => BaseBodyData.from(123), throwsUnsupportedError);
+    });
+
+    group('bool checks', () {
+      test('isNull should be true for NullBodyData', () {
+        final data = BaseBodyData.from(null);
+        expect(data.isNull, isTrue);
+      });
+
+      test('isBinary should be true for BinaryBodyData', () {
+        final binary = [
+          Uint8List.fromList([1, 2, 3]),
+        ];
+        final data = BaseBodyData.from(binary);
+        expect(data.isBinary, isTrue);
+      });
+
+      test('isString should be true for StringBodyData', () {
+        final data = BaseBodyData.from('test');
+        expect(data.isString, isTrue);
+      });
+
+      test('isJson should be true for JsonBodyData', () {
+        final data = BaseBodyData.from({'key': 'value'});
+        expect(data.isJson, isTrue);
+      });
+
+      test('isList should be true for ListBodyData', () {
+        final data = BaseBodyData.from([1, 2, 3]);
+        expect(data.isList, isTrue);
+      });
+
+      test('isFormData should be true for FormDataBodyData', () {
+        final formData = FormDataBodyData({});
+        final data = BaseBodyData.from(formData);
+        expect(data.isFormData, isTrue);
+      });
+
+      test('isUnknown should be true for UnknownBodyData', () {
+        final unknownData = UnknownBodyData([], mimeType: 'text/plain');
+        final data = BaseBodyData.from(unknownData);
+        expect(data.isUnknown, isTrue);
+      });
+
+      test('isStream should be true for StreamBodyData', () {
+        const stream = Stream<dynamic>.empty();
+        final data = BaseBodyData.from(stream);
+        expect(data.isStream, isTrue);
+      });
+
+      test('isFile should be true for FileBodyData', () {
+        final file = File('test.txt');
+        final data = BaseBodyData.from(file);
+        expect(data.isFile, isTrue);
+      });
+
+      test('isMemoryFile should be true for MemoryFileBodyData', () {
+        final memoryFile = MemoryFile.from('test.txt', mimeType: 'text/plain');
+        final data = BaseBodyData.from(memoryFile);
+        expect(data.isMemoryFile, isTrue);
+      });
+
+      test('isByteStream should be true for ByteStreamBodyData', () {
+        const stream = Stream<List<int>>.empty();
+        final data = BaseBodyData.from(stream);
+        expect(data.isByteStream, isTrue);
+      });
+    });
+
+    group('type casting', () {
+      test('asNull should cast to NullBodyData', () {
+        final data = BaseBodyData.from(null);
+        expect(data.asNull, isA<NullBodyData>());
+      });
+
+      test('asBinary should cast to BinaryBodyData', () {
+        final binary = [
+          Uint8List.fromList([1, 2, 3]),
+        ];
+        final data = BaseBodyData.from(binary);
+        expect(data.asBinary, isA<BinaryBodyData>());
+      });
+
+      test('asString should cast to StringBodyData', () {
+        final data = BaseBodyData.from('test');
+        expect(data.asString, isA<StringBodyData>());
+      });
+
+      test('asJson should cast to JsonBodyData', () {
+        final data = BaseBodyData.from({'key': 'value'});
+        expect(data.asJson, isA<JsonBodyData>());
+      });
+
+      test('asList should cast to ListBodyData', () {
+        final data = BaseBodyData.from([1, 2, 3]);
+        expect(data.asList, isA<ListBodyData>());
+      });
+
+      test('asFormData should cast to FormDataBodyData', () {
+        final formData = FormDataBodyData({});
+        final data = BaseBodyData.from(formData);
+        expect(data.asFormData, isA<FormDataBodyData>());
+      });
+
+      test('asUnknown should cast to UnknownBodyData', () {
+        final unknownData = UnknownBodyData([], mimeType: 'text/plain');
+        final data = BaseBodyData.from(unknownData);
+        expect(data.asUnknown, isA<UnknownBodyData>());
+      });
+
+      test('asStream should cast to StreamBodyData', () {
+        const stream = Stream<dynamic>.empty();
+        final data = BaseBodyData.from(stream);
+        expect(data.asStream, isA<StreamBodyData>());
+      });
+
+      test('asFile should cast to FileBodyData', () {
+        final file = File('test.txt');
+        final data = BaseBodyData.from(file);
+        expect(data.asFile, isA<FileBodyData>());
+      });
+
+      test('asMemoryFile should cast to MemoryFileBodyData', () {
+        final memoryFile = MemoryFile.from('test.txt', mimeType: 'text/plain');
+        final data = BaseBodyData.from(memoryFile);
+        expect(data.asMemoryFile, isA<MemoryFileBodyData>());
+      });
+
+      test('asByteStream should cast to ByteStreamBodyData', () {
+        const stream = Stream<List<int>>.empty();
+        final data = BaseBodyData.from(stream);
+        expect(data.asByteStream, isA<ByteStreamBodyData>());
+      });
     });
   });
 }
