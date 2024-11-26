@@ -12,7 +12,7 @@ final class FormDataBodyData extends JsonBodyData {
   @override
   int get contentLength {
     return data.keys.fold<int>(0, (previousValue, element) {
-      return previousValue + element.length + data[element].toString().length;
+      return previousValue + '$element=${data[element]}'.length;
     });
   }
 
@@ -21,7 +21,7 @@ final class FormDataBodyData extends JsonBodyData {
     final encoded = data.keys.map((key) {
       return '${Uri.encodeQueryComponent(key)}'
           '='
-          '${Uri.encodeQueryComponent(data[key].toString())}';
+          '${Uri.encodeQueryComponent('${data[key]}')}';
     }).join('&');
 
     return Stream.value(encoding.encode(encoded));

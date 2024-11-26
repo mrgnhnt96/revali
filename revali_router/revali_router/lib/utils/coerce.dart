@@ -15,7 +15,6 @@ dynamic coerce(String value) {
           'false' => false,
           _ => throw const FormatException(),
         },
-    () => value,
   ];
 
   for (final attempt in attempts) {
@@ -26,5 +25,5 @@ dynamic coerce(String value) {
     } catch (_) {}
   }
 
-  throw FormatException('Failed to coerce value: $value');
+  return value;
 }

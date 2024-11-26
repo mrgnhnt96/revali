@@ -215,7 +215,7 @@ packages:
     source: hosted
     version: "2.0.5"
   file:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: file
       sha256: a3b4f84adafef897088c160faf7dfffb7696046cb13ae90b508c2cbc95d3b8d4
@@ -319,7 +319,7 @@ packages:
     source: hosted
     version: "0.12.16+1"
   meta:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: meta
       sha256: e3641ec5d63ebf0d9b41bd43201a66e3fc79a65db5f61fc181f04cd27aab950c

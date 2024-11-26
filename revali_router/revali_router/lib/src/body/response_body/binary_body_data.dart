@@ -11,7 +11,7 @@ final class BinaryBodyData extends BaseBodyData<Binary> {
 
   @override
   int? get contentLength {
-    return data.length;
+    return data.fold<int>(0, (length, element) => length + element.length);
   }
 
   @override

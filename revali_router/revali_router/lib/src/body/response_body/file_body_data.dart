@@ -3,6 +3,9 @@ part of 'base_body_data.dart';
 final class FileBodyData extends BaseBodyData<File> {
   FileBodyData(super.data);
 
+  @visibleForTesting
+  static FileSystem fs = const LocalFileSystem();
+
   @override
   String? get mimeType {
     return lookupMimeType(file.path);
@@ -30,9 +33,9 @@ final class FileBodyData extends BaseBodyData<File> {
       return file;
     }
 
-    final path = File(data.path).resolveSymbolicLinksSync();
+    final path = fs.file(data.path).resolveSymbolicLinksSync();
 
-    return _file = File(path);
+    return _file = fs.file(path);
   }
 
   Stream<List<int>> range(int start, int end) async* {

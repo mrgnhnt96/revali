@@ -17,6 +17,7 @@ final class StreamBodyData extends BaseBodyData<Stream<dynamic>> {
 
   @override
   Stream<List<int>> read() {
+    final data = this.data;
     return switch (data) {
       Stream<String>() => data.transform(utf8.encoder),
       final Stream<List<int>> data => data,
