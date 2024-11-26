@@ -4,7 +4,7 @@ import 'package:revali_router_core/response/read_only_response.dart';
 abstract interface class Observer {
   const Observer();
 
-  void see(
+  Future<void> see(
     ReadOnlyRequest request,
     Future<ReadOnlyResponse> response,
   );

@@ -141,6 +141,7 @@ extension _HttpServerX on HttpServer {
 class TestRoute extends Route {
   TestRoute({
     super.handler = _handler,
+    this.observers = const [],
     this.path = '',
     this.method = 'GET',
     super.routes,
@@ -161,9 +162,12 @@ class TestRoute extends Route {
           method: method,
         );
 
+  final List<Observer> observers;
+
   Router toRouter() {
     return Router(
       routes: [this],
+      observers: observers,
     );
   }
 

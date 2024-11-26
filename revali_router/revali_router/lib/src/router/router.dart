@@ -131,7 +131,7 @@ class Router extends Equatable {
       final request = MutableRequestImpl.fromRequest(context);
 
       for (final observer in observers) {
-        observer.see(request, responseCompleter.future);
+        observer.see(request, responseCompleter.future).ignore();
       }
 
       final segments = request.segments;
