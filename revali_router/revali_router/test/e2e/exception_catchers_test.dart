@@ -157,10 +157,7 @@ class _ThrowGuard implements Guard {
   bool wasCalled = false;
 
   @override
-  Future<GuardResult> canActivate(
-    GuardContext context,
-    GuardAction canActivate,
-  ) {
+  Future<GuardResult> protect(GuardContext context) {
     wasCalled = true;
     throw _TestException();
   }

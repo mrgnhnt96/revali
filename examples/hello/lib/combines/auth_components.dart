@@ -5,12 +5,9 @@ class AuthGuard implements Guard {
   const AuthGuard();
 
   @override
-  Future<GuardResult> canActivate(
-    GuardContext context,
-    GuardAction action,
-  ) async {
+  Future<GuardResult> protect(GuardContext context) async {
     print('Auth guard');
-    return action.yes();
+    return const GuardResult.pass();
   }
 }
 

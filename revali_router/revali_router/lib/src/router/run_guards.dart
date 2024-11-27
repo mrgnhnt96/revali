@@ -16,10 +16,11 @@ class RunGuards {
     ) = helper;
 
     for (final guard in guards) {
-      final result = await guard.canActivate(context, const GuardAction());
+      final result = await guard.protect(context);
 
-      if (result.isNo) {
-        final (statusCode, headers, body) = result.asNo.getResponseOverrides();
+      if (result.isBlock) {
+        final (statusCode, headers, body) =
+            result.asBlock.getResponseOverrides();
 
         return debugErrorResponse(
           response

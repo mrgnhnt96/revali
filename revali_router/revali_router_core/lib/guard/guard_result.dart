@@ -4,27 +4,27 @@ import 'package:revali_router_core/error/override_error_response_mixin.dart';
 sealed class GuardResult {
   const GuardResult();
 
-  const factory GuardResult.yes() = _Yes;
-  const factory GuardResult.no({
+  const factory GuardResult.pass() = _Pass;
+  const factory GuardResult.block({
     int? statusCode,
     Map<String, String>? headers,
     Object? body,
-  }) = _No;
+  }) = _Block;
 
-  bool get isYes => this is _Yes;
-  bool get isNo => this is _No;
+  bool get isPass => this is _Pass;
+  bool get isBlock => this is _Block;
   // ignore: library_private_types_in_public_api
-  _No get asNo => this as _No;
+  _Block get asBlock => this as _Block;
 }
 
-final class _Yes extends GuardResult {
-  const _Yes();
+final class _Pass extends GuardResult {
+  const _Pass();
 }
 
-final class _No extends GuardResult
+final class _Block extends GuardResult
     with OverrideErrorResponseMixin
     implements OverrideErrorResponse {
-  const _No({
+  const _Block({
     this.statusCode,
     this.headers,
     this.body,

@@ -15,7 +15,7 @@ Guards are executed after the middleware, before the interceptors.
 
 ## Create a Guard
 
-To create a `Guard`, you need to implement the `Guard` class and implement the `canActivate` method.
+To create a `Guard`, you need to implement the `Guard` class and implement the `protect` method.
 
 ```dart title="lib/guards/my_guard.dart"
 import 'package:revali_router/revali_router.dart';
@@ -24,8 +24,8 @@ class MyGuard implements Guard {
     const MyGuard();
 
     @override
-    Future<GuardResult> canActivate(GuardContext context) async {
-        return const GuardResult.yes();
+    Future<GuardResult> protect(GuardContext context) async {
+        return const GuardResult.pass();
     }
 }
 ```
@@ -36,21 +36,21 @@ There's no limit to the number of guards that can be applied to a controller or 
 
 ### Possible Results
 
-The `GuardResult` has two possible results: `yes` and `no`. The `yes` result allows the request to continue to the controller or endpoint. The `no` result stops the request from continuing any further in the request flow.
+The `GuardResult` has two possible results: `pass` and `block`. The `pass` result allows the request to continue to the controller or endpoint. The `block` result stops the request from continuing any further in the request flow.
 
 ```dart
-const GuardResult.yes();
+const GuardResult.pass();
 ```
 
 ```dart
-const GuardResult.no(
+const GuardResult.block(
     statusCode: 403,
     headers: {},
     body: 'User does not have the correct role to access this resource.',
 );
 ```
 
-An alternative to using the `GuardResult.no` method is to throw an exception. Create an [exception catcher][exception-catchers] to catch the exception and handle the error response.
+An alternative to using the `GuardResult.block` method is to throw an exception. Create an [exception catcher][exception-catchers] to catch the exception and handle the error response.
 
 ::::tip
 Learn about [returning error responses][error-responses].
@@ -107,7 +107,7 @@ class RoleGuard implements Guard {
   final String role;
 
   @override
-  Future<GuardResult> canActivate(GuardContext context) async {
+  Future<GuardResult> protect(GuardContext context) async {
     var user = context.data.get<User?>();
 
     if (user == null) {
@@ -117,7 +117,7 @@ class RoleGuard implements Guard {
       user = await authService.getUser(id);
 
       if (user == null) {
-        return const GuardResult.no(
+        return const GuardResult.block(
           statusCode: 404,
           body: 'User not found.',
         );
@@ -127,13 +127,13 @@ class RoleGuard implements Guard {
     }
 
     if (user.role != role) {
-      return const GuardResult.no(
+      return const GuardResult.block(
         statusCode: 403,
         body: 'User does not have the correct role to access this resource.',
       );
     }
 
-    return const GuardResult.yes();
+    return const GuardResult.pass();
   }
 }
 ```

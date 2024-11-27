@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:revali_router_core/guard/guard.dart';
-import 'package:revali_router_core/guard/guard_action.dart';
 import 'package:revali_router_core/guard/guard_context.dart';
 import 'package:revali_router_core/guard/guard_result.dart';
 import 'package:test/test.dart';
@@ -122,12 +121,9 @@ class _SuccessGuard implements Guard {
   bool wasCalled = false;
 
   @override
-  Future<GuardResult> canActivate(
-    GuardContext context,
-    GuardAction canActivate,
-  ) async {
+  Future<GuardResult> protect(GuardContext context) async {
     wasCalled = true;
-    return canActivate.yes();
+    return const GuardResult.pass();
   }
 }
 
@@ -138,12 +134,9 @@ class _OrderedGuard implements Guard {
   final StreamController<int> controller;
 
   @override
-  Future<GuardResult> canActivate(
-    GuardContext context,
-    GuardAction canActivate,
-  ) async {
+  Future<GuardResult> protect(GuardContext context) async {
     controller.add(index);
-    return canActivate.yes();
+    return const GuardResult.pass();
   }
 }
 
@@ -151,15 +144,12 @@ class _ModifyingGuard implements Guard {
   _ModifyingGuard();
 
   @override
-  Future<GuardResult> canActivate(
-    GuardContext context,
-    GuardAction canActivate,
-  ) async {
+  Future<GuardResult> protect(GuardContext context) async {
     context.data.add('Hello, Guard!');
     context.response.body = 'Hello, Guard!';
     context.response.headers['guard'] = 'active';
 
-    return canActivate.yes();
+    return const GuardResult.pass();
   }
 }
 
@@ -170,12 +160,9 @@ class _HaltingGuard implements Guard {
   final bool overrideResponse;
 
   @override
-  Future<GuardResult> canActivate(
-    GuardContext context,
-    GuardAction canActivate,
-  ) async {
+  Future<GuardResult> protect(GuardContext context) async {
     if (overrideResponse) {
-      return canActivate.no(
+      return const GuardResult.block(
         body: 'Guard Overridden',
         headers: {'overridden': 'true'},
         statusCode: -1,
@@ -184,6 +171,6 @@ class _HaltingGuard implements Guard {
 
     context.response.body = 'Guard Not overridden';
     context.response.headers['overridden'] = 'false';
-    return canActivate.no();
+    return const GuardResult.block();
   }
 }

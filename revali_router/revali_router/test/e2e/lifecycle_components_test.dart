@@ -60,13 +60,10 @@ class _Guard implements Guard {
   final StreamController<String> controller;
 
   @override
-  Future<GuardResult> canActivate(
-    GuardContext context,
-    GuardAction canActivate,
-  ) async {
+  Future<GuardResult> protect(GuardContext context) async {
     controller.add('Guard');
 
-    return canActivate.yes();
+    return const GuardResult.pass();
   }
 }
 

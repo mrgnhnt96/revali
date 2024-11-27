@@ -91,21 +91,21 @@ class AuthGuard implements Guard {
     const AuthGuard();
 
     @override
-    Future<GuardResult> canActivate(GuardContext context) async {
+    Future<GuardResult> protect(GuardContext context) async {
         // highlight-start
         if (context.meta.has<Public>()) {
-            return const GuardResult.yes();
+            return const GuardResult.pass();
         }
         // highlight-end
 
         if (!context.request.headers.containsKey('Authorization')) {
-            return const GuardResult.no(
+            return const GuardResult.block(
                 status: 401,
                 message: 'Unauthorized',
             );
         }
 
-        return const GuardResult.yes();
+        return const GuardResult.pass();
     }
 }
 ```

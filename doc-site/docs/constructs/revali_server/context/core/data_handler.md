@@ -116,24 +116,24 @@ class RoleGuard implements Guard {
     final String role;
 
     @override
-    Future<GuardResult> canActivate(GuardContext context) async {
+    Future<GuardResult> protect(GuardContext context) async {
         final user = context.data.get<User>();
 
         // Return 500 if the user is not found
         if (user == null) {
-            return const GuardResult.no(
+            return const GuardResult.block(
                 statusCode: 500,
             );
         }
 
         if (user.role != role) {
-            return const GuardResult.no(
+            return const GuardResult.block(
                 statusCode: 403,
                 message: 'User does not have the correct role to access this resource.',
             );
         }
 
-        return const GuardResult.yes();
+        return const GuardResult.pass();
     }
 }
 ```
