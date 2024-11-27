@@ -18,7 +18,7 @@ To create a `CombineComponent`, create a class that extends `CombineComponents`.
 ```dart title="lib/components/auth_components.dart"
 import 'package:revali_router/revali_router.dart';
 
-class AuthComponents extends CombineComponents {
+class AuthComponents implements CombineComponents {
     const AuthComponents();
 
     @override
@@ -48,8 +48,10 @@ import 'package:revali_router/revali_router.dart';
 
 // highlight-next-line
 @AuthComponents()
-@Controller('')
-class MyController ...
+@Get('')
+Future<void> myEndpoint() {
+    ...
+}
 ```
 
 ### As Type Reference
@@ -59,7 +61,7 @@ If any of your components require parameters that cannot be provided at compile 
 ```dart title="lib/components/auth_components.dart"
 import 'package:revali_router/revali_router.dart';
 
-class AuthComponents extends CombineComponents {
+class AuthComponents implements CombineComponents {
     const AuthComponents({
         required this.service,
     });
@@ -75,8 +77,10 @@ import 'package:revali_router/revali_router.dart';
 
 // highlight-next-line
 @Combines(AuthComponents)
-@Controller('')
-class MyController ...
+@Get('')
+Future<void> myEndpoint() {
+    ...
+}
 ```
 
 :::tip

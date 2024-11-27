@@ -38,7 +38,7 @@ To create an `Interceptor`, you need to implement the `Interceptor` class and im
 ```dart title="lib/interceptors/my_interceptor.dart"
 import 'package:revali_router/revali_router.dart';
 
-class MyInterceptor extends Interceptor {
+class MyInterceptor implements Interceptor {
     const MyInterceptor();
 
     @override
@@ -62,8 +62,10 @@ import 'package:revali_router/revali_router.dart';
 
 // highlight-next-line
 @MyInterceptor()
-@Controller('')
-class MyController ...
+@Get('')
+Future<void> myEndpoint() {
+    ...
+}
 ```
 
 ### Register as Type Reference
@@ -75,12 +77,21 @@ import 'package:revali_router/revali_router.dart';
 
 // highlight-next-line
 @Intercepts([MyInterceptor])
-@Controller('')
-class MyController ...
+@Get('')
+Future<void> myEndpoint() {
+    ...
+}
 ```
 
 :::tip
 Learn more about [type referencing][type-referencing].
 :::
 
+## Interceptor Context
+
+:::tip
+Learn more about the Interceptor Context [here][interceptor-context].
+:::
+
 [type-referencing]: ../tidbits.md#using-types-in-annotations
+[interceptor-context]: ./interceptor-context.md

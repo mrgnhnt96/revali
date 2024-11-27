@@ -9,13 +9,21 @@ description: Learn how to install Revali and its constructs
 
 First, you will need to add `revali` to your project's dev dependencies. Open your `pubspec.yaml` and include the following line in the `dev_dependencies` section:
 
-```yaml title="pubspec.yaml"
-dev_dependencies:
-    revali: <latest version>
+Run the following command to add `revali` to your project.
+
+```bash
+dart pub add revali --dev
 ```
 
-:::tip
-Replace `<latest version>` with the actual latest version found on [pub.dev][revali-pub].
+Or manually add the following to your `pubspec.yaml` file.
+
+```yaml title="pubspec.yaml"
+dev_dependencies:
+  revali: <latest-version>
+```
+
+:::note
+Make sure to replace `<latest-version>` with the latest version of [Revali][revali-pub].
 :::
 
 ## Depend on Constructs
@@ -28,13 +36,19 @@ There are a few constructs that are commonly used with Revali:
 
 To install the constructs, add them to your `dev_dependencies` in your `pubspec.yaml`:
 
-```yaml title="pubspec.yaml"
-dev_dependencies:
-    revali_server: <latest version>
+```bash
+dart pub add revali_server --dev
 ```
 
-:::tip
-Replace `<latest version>` with the actual latest version found on [pub.dev][revali-server-pub].
+Or manually add the following to your `pubspec.yaml` file.
+
+```yaml title="pubspec.yaml"
+dev_dependencies:
+  revali_server: <latest-version>
+```
+
+:::note
+Make sure to replace `<latest-version>` with the latest version of [Revali Server][revali-server-pub].
 :::
 
 [revali-pub]: https://pub.dev/packages/revali

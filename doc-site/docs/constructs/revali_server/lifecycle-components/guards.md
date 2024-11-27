@@ -20,11 +20,11 @@ To create a `Guard`, you need to implement the `Guard` class and implement the `
 ```dart title="lib/guards/my_guard.dart"
 import 'package:revali_router/revali_router.dart';
 
-class MyGuard extends Guard {
+class MyGuard implements Guard {
     const MyGuard();
 
     @override
-    GuardResult canActivate(context, action) {
+    Future<GuardResult> canActivate(context, action) async {
         return action.yes();
     }
 }
@@ -37,6 +37,18 @@ There's no limit to the number of guards that can be applied to a controller or 
 ### Possible Results
 
 The `GuardResult` has two possible results: `yes` and `no`. The `yes` result allows the request to continue to the controller or endpoint. The `no` result stops the request from continuing any further in the request flow.
+
+```dart
+action.yes();
+```
+
+```dart
+action.no(
+    statusCode: 403,
+    headers: {},
+    body: 'User does not have the correct role to access this resource.',
+);
+```
 
 An alternative to using the `action.no` method is to throw an exception. Create an [exception catcher][exception-catchers] to catch the exception and handle the error response.
 
@@ -57,8 +69,10 @@ import 'package:revali_router/revali_router.dart';
 
 // highlight-next-line
 @MyGuard()
-@Controller('')
-class MyController ...
+@Get('')
+Future<void> myEndpoint() {
+    ...
+}
 ```
 
 ### Register as Type Reference
@@ -70,14 +84,70 @@ import 'package:revali_router/revali_router.dart';
 
 // highlight-next-line
 @Guards([MyGuard])
-@Controller('')
-class MyController ...
+@Get('')
+Future<void> myEndpoint() {
+    ...
+}
 ```
 
 :::tip
 Learn more about [type referencing][type-referencing].
 :::
 
+## Example
+
+In this example, we have a `RoleGuard` that checks if the user has the correct role to access a resource.
+
+```dart title="lib/guards/role_guard.dart"
+import 'package:revali_router/revali_router.dart';
+
+class RoleGuard implements Guard {
+  const RoleGuard(this.role);
+
+  final String role;
+
+  @override
+  Future<GuardResult> canActivate(
+    GuardContext context,
+    GuardAction action,
+  ) async {
+    var user = context.data.get<User?>();
+
+    if (user == null) {
+      await context.request.resolvePayload();
+      final id = context.request.pathParameters['id']!;
+
+      user = await authService.getUser(id);
+
+      if (user == null) {
+        return action.no(
+          statusCode: 404,
+          body: 'User not found.',
+        );
+      }
+
+      context.data.add(user);
+    }
+
+    if (user.role != role) {
+      return action.no(
+        statusCode: 403,
+        body: 'User does not have the correct role to access this resource.',
+      );
+    }
+
+    return action.yes();
+  }
+}
+```
+
+## Guard Context
+
+:::tip
+Learn more about the Guard Context [here][guard-context].
+:::
+
 [exception-catchers]: ./exception-catchers.md
 [type-referencing]: ../tidbits.md#using-types-in-annotations
 [error-responses]: ../lifecycle-components/overview.md#error-responses
+[guard-context]: ../context/guard.md

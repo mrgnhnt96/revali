@@ -37,7 +37,7 @@ To understand this on a deeper level, let's take a look at how [pipes] are used 
 Let's say we have a `UserPipe` class that will fetch a user from the database based on the `id` provided in the request. Our classes might look like this:
 
 ```dart title="lib/pipes/user_pipe.dart"
-class UserPipe extends Pipe<String, User> {
+class UserPipe implements Pipe<String, User> {
     const UserPipe({
         required this.userService,
     });

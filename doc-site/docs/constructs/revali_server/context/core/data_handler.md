@@ -83,7 +83,7 @@ An example of the `DataHandler` is when you need to retrieve a `User` based on a
 ```dart title="lib/middleware/user_middleware.dart"
 import 'package:revali_router/revali_router.dart';
 
-class UserMiddleware extends Middleware {
+class UserMiddleware implements Middleware {
     const UserMiddleware({
         required this.service,
     });
@@ -108,7 +108,7 @@ Now that we have the user stored in the `DataHandler` we can retrieve it in a di
 ```dart title="lib/middleware/role_middleware.dart"
 import 'package:revali_router/revali_router.dart';
 
-class RoleGuard extends Guard {
+class RoleGuard implements Guard {
     const RoleGuard({
         required this.role,
     });
@@ -116,7 +116,7 @@ class RoleGuard extends Guard {
     final String role;
 
     @override
-    GuardResult canActivate(context, action) {
+    Future<GuardResult> canActivate(context, action) async {
         final user = context.data.get<User>();
 
         // Return 500 if the user is not found

@@ -15,7 +15,7 @@ In this example, only exceptions of type `MyException` will be caught by the `My
 ```dart title="lib/catchers/my_catcher.dart"
 import 'package:revali_router/revali_router.dart';
 
-class MyExceptionCatcher extends ExceptionCatcher<MyException> {
+final class MyExceptionCatcher extends ExceptionCatcher<MyException> {
     const MyExceptionCatcher();
 
     @override
@@ -70,7 +70,7 @@ Its not common, but you can create multiple `ExceptionCatcher` classes that catc
 ```dart title="lib/catchers/my_other_catcher.dart"
 import 'package:revali_router/revali_router.dart';
 
-class MyOtherCatcher extends ExceptionCatcher<MyException> {
+final class MyOtherCatcher extends ExceptionCatcher<MyException> {
     const MyOtherCatcher();
 
     @override
@@ -86,9 +86,53 @@ class MyOtherCatcher extends ExceptionCatcher<MyException> {
 
 When `action.unhandled()` is returned, the next `ExceptionCatcher` that catches the same type of exception will be called.
 
-### Catching Unhandled Exceptions
+## Handling the Response
 
-If you would like to catch all exceptions that weren't caught by any other `ExceptionCatcher`, you can extend the `DefaultExceptionCatcher` class and implement the `catchException` method.
+The `ExceptionCatcher` is responsible for preparing the error response to be sent back to the client.
+
+```dart title="lib/catchers/my_catcher.dart"
+import 'package:revali_router/revali_router.dart';
+
+final class MyExceptionCatcher extends ExceptionCatcher<MyException> {
+    const MyExceptionCatcher();
+
+    @override
+    ExceptionCatcherResult catchException(exception, context, action) {
+        return action.handled(
+            statusCode: 500,
+            headers: {
+                HttpHeaders.contentTypeHeader: 'text/plain',
+            }
+            body: 'An error occurred',
+        );
+    }
+}
+```
+
+Here's an example of how you can handle the response:
+
+```dart
+action.handled();
+```
+
+```dart
+action.notHandled(
+    statusCode: 500,
+    headers: {},
+    body: 'Internal Server Error',
+);
+```
+
+::::tip
+Learn about [returning error responses][error-responses].
+:::important
+If the `statusCode` is not set, the default status code will be 500.
+:::
+::::
+
+## Default Exception Catcher
+
+If you would like to catch all exceptions that weren't caught by any other `ExceptionCatcher`, you can extend the `DefaultExceptionCatcher` class and implement the `catchException` method. While you may be tempted to handle all exceptions in the default exception catcher, it is highly recommended to only handle exceptions that are not caught by any other `ExceptionCatcher`.
 
 ```dart title="lib/catchers/unhandled_catcher.dart"
 import 'package:revali_router/revali_router.dart';
@@ -111,36 +155,6 @@ There isn't a limit to the number of `DefaultExceptionCatchers` that can be crea
 Scope the `DefaultExceptionCatcher` to the app level to catch all unhandled exceptions.
 :::
 
-## Handling the Response
-
-The `ExceptionCatcher` is responsible for preparing the error response to be sent back to the client.
-
-```dart title="lib/catchers/my_catcher.dart"
-import 'package:revali_router/revali_router.dart';
-
-class MyExceptionCatcher extends ExceptionCatcher<MyException> {
-    const MyExceptionCatcher();
-
-    @override
-    ExceptionCatcherResult catchException(exception, context, action) {
-        return action.handled(
-            statusCode: 500,
-            headers: {
-                HttpHeaders.contentTypeHeader: 'text/plain',
-            }
-            body: 'An error occurred',
-        );
-    }
-}
-```
-
-::::tip
-Learn about [returning error responses][error-responses].
-:::important
-If the `statusCode` is not set, the default status code will be 500.
-:::
-::::
-
 ## Unhandled Exceptions
 
 When an exception is not handled by any `ExceptionCatcher`, the default status code will be 500. The body will be set to the default error message.
@@ -156,6 +170,13 @@ Learn how you can customize the internal server error message in the [docs][defa
 Learn more about [type referencing][type-referencing].
 :::
 
+## Exception Catcher Context
+
+:::tip
+Learn more about the Exception Catcher Context [here][exception-catcher-context].
+:::
+
 [type-referencing]: ../tidbits.md#using-types-in-annotations
 [error-responses]: ../lifecycle-components/overview.md#error-responses
 [default-responses]: ../../../revali/app-configuration/default-responses.md
+[exception-catcher-context]: ../context/exception-catcher.md

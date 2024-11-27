@@ -54,11 +54,11 @@ The final piece to this puzzle is to handle the `Public` meta class in the `Auth
 ```dart title="lib/guards/auth_guard.dart"
 import 'package:revali_router/revali_router.dart';
 
-class Auth extends Guard {
+class Auth implements Guard {
     const Auth();
 
     @override
-    GuardResult canActivate(context, action) {
+    Future<GuardResult> canActivate(context, action) async {
         // highlight-start
         if (context.meta.has<Public>()) {
             return action.yes();

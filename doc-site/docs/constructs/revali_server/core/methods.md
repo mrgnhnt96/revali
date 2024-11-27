@@ -18,6 +18,7 @@ Revali Router provides the following annotations to define the http methods for 
 | `Put`      | Defines a `PUT` endpoint.  |
 | `Patch`    | Defines a `PATCH` endpoint.|
 | `Delete`   | Defines a `DELETE` endpoint.|
+| `SSE`      | Defines a [`Server-Sent Event`][server-sent-events] endpoint.|
 | `WebSocket`| Defines an endpoint for a websocket.|
 
 :::important
@@ -136,4 +137,137 @@ In the example above, the `sayHello` method is annotated with the `Get` annotati
 Notice that the path argument does not start with `/`, this will be automatically added.
 :::
 
+## Examples
+
+### Get
+
+```dart
+import 'package:revali_router/revali_router.dart';
+
+@Controller('hello')
+class HelloController {
+
+  @Get()
+  String sayHello() {
+    return 'Hello, World!';
+  }
+}
+```
+
+### Post
+
+```dart
+import 'package:revali_router/revali_router.dart';
+
+@Controller('hello')
+class HelloController {
+
+  @Post(':id')
+  User createHello(
+    @Param() String id,
+  ) {
+    return User(id);
+  }
+}
+```
+
+:::tip
+Check out [Binding][binding] to learn more about annotating parameters.
+:::
+
+### Put
+
+```dart
+import 'package:revali_router/revali_router.dart';
+
+@Controller('hello')
+class HelloController {
+
+  @Put(':id')
+  User updateHello(
+    @Param('id', UserPipe) User user,
+    @Body.pipe(PutUserInputPipe) PutUserInput user,
+  ) {
+    // update user...
+    return user;
+  }
+}
+```
+
+:::tip
+Learn more:
+
+- [Binding][binding] to learn more about annotating parameters.
+- [Pipes][pipes] to learn more about transforming parameters from the request.
+
+:::
+
+### Patch
+
+```dart
+import 'package:revali_router/revali_router.dart';
+
+@Controller('hello')
+class HelloController {
+
+  @Patch(':id')
+  User patchHello(
+    @Param() String id,
+    @Body.pipe(PatchUserInputPipe) PatchUserInput user,
+  ) {
+    return user;
+  }
+}
+```
+
+:::tip
+Learn more:
+
+- [Binding][binding] to learn more about annotating parameters.
+- [Pipes][pipes] to learn more about transforming parameters from the request.
+
+:::
+
+### Delete
+
+```dart
+import 'package:revali_router/revali_router.dart';
+
+@Controller('hello')
+class HelloController {
+
+  @Delete(':id')
+  void deleteHello(
+    @Param() String id,
+  ) {
+    // delete user...
+  }
+}
+```
+
+:::tip
+Check out [Binding][binding] to learn more about annotating parameters.
+:::
+
+### SSE
+
+```dart
+import 'package:revali_router/revali_router.dart';
+
+@Controller('hello')
+class HelloController {
+
+  @SSE('events')
+  Stream<String> events() async* {
+    yield 'Hello, World!';
+  }
+}
+```
+
+:::tip
+Learn more about [Server-Sent Events][server-sent-events].
+:::
+
 [binding]: ./binding.md
+[pipes]: ./pipes.md
+[server-sent-events]: ../response/server-sent-events.md

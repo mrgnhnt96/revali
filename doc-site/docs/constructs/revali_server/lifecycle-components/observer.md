@@ -26,7 +26,7 @@ To create an `Observer`, you need to implement the `Observer` class and implemen
 ```dart title="lib/observers/my_observer.dart"
 import 'package:revali_router/revali_router.dart';
 
-class MyObserver extends Observer {
+class MyObserver implements Observer {
     const MyObserver();
 
     @override

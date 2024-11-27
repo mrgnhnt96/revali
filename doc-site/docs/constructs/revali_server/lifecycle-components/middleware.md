@@ -20,7 +20,7 @@ To create a `Middleware`, you need to implement the `Middleware` class and imple
 ```dart title="lib/middleware/my_middleware.dart"
 import 'package:revali_router/revali_router.dart';
 
-class MyMiddleware extends Middleware {
+class MyMiddleware implements Middleware {
     const MyMiddleware();
 
     @override
@@ -37,6 +37,18 @@ There's no limit to the number of middleware that can be applied to a controller
 ### Possible Results
 
 The `MiddlewareResult` has two possible results: `next` and `stop`. The `next` result allows the request to continue to the next middleware or guard. The `stop` result stops the request from continuing any further in the request flow.
+
+```dart
+action.next();
+```
+
+```dart
+action.stop(
+    statusCode: 400,
+    headers: {},
+    body: 'Bad Request',
+);
+```
 
 ::::tip
 Learn about [returning error responses][error-responses].
@@ -55,8 +67,10 @@ import 'package:revali_router/revali_router.dart';
 
 // highlight-next-line
 @MyMiddleware()
-@Controller('')
-class MyController ...
+@Get('')
+Future<void> myEndpoint() {
+    ...
+}
 ```
 
 ### Register as Type Reference
@@ -66,13 +80,22 @@ import 'package:revali_router/revali_router.dart';
 
 // highlight-next-line
 @Middlewares([MyMiddleware])
-@Controller('')
-class MyController ...
+@Get('')
+Future<void> myEndpoint() {
+    ...
+}
 ```
 
 :::tip
 Learn about [guards].
 :::
 
+## Middleware Context
+
+:::tip
+Learn more about the Middleware Context [here][middleware-context].
+:::
+
 [error-responses]: ../lifecycle-components/overview.md#error-responses
 [guards]: ./guards.md
+[middleware-context]: ./middleware-context.md

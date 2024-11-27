@@ -14,7 +14,7 @@ To create a `Pipe`, you need to implement the `Pipe` class and implement the `tr
 ```dart title="lib/pipes/my_pipe.dart"
 import 'package:revali_router/revali_router.dart';
 
-class UserPipe extends Pipe<String, User> {
+class UserPipe implements Pipe<String, User> {
     const UserPipe();
 
     @override
@@ -23,6 +23,16 @@ class UserPipe extends Pipe<String, User> {
     }
 }
 ```
+
+The first type argument of the `Pipe` class is the type received from the binding. The second type argument is the type to be delivered.
+
+:::warning
+You will get a runtime error if the received type is not the same as the type provided by the binding. You will also get a runtime error if the delivered type is not the same as the type expected by the parameter.
+
+```dart
+@Param('userId', UserPipe) String userId, // throws because `String` is not `User`
+```
+:::
 
 ## Usage
 
@@ -42,6 +52,15 @@ class UsersController {
     }
 }
 ```
+
+:::tip
+If you want to use without the first argument, you can use the `.pipe` constructor.
+
+```dart
+@Param.pipe(UserPipe) User user,
+```
+
+:::
 
 ## Pipe Context
 

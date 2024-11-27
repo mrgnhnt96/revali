@@ -5,6 +5,10 @@ description: Create a new controller and endpoint
 
 # Create Your First Endpoint
 
+:::tip
+This guide represents the core concepts of Revali. For a more detailed guide on how to create a Revali Server application, check out the [Revali Server][revali-server-getting-started] construct guide.
+:::
+
 ## Create a New Controller
 
 Controllers are to define the endpoints that your application will expose.
@@ -78,3 +82,5 @@ class HelloController {
   }
 }
 ```
+
+[revali-server-getting-started]: ../../constructs/revali_server/getting-started/create-your-first-endpoint.md

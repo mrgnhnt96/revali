@@ -39,6 +39,7 @@ You can catch exceptions by using the [`Catcher`][catchers] Lifecycle Component.
 1. Middleware
 1. Guard
 1. Interceptor (Pre)
+1. Pipes
 1. Endpoint
 1. Interceptor (Post)
 1. Observer
