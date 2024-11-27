@@ -58,10 +58,10 @@ class Auth implements Guard {
     const Auth();
 
     @override
-    Future<GuardResult> canActivate(context, action) async {
+    Future<GuardResult> canActivate(GuardContext context) async {
         // highlight-start
         if (context.meta.has<Public>()) {
-            return action.yes();
+            return const GuardResult.yes();
         }
         // highlight-end
 

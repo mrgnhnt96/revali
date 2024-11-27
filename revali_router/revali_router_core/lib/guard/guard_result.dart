@@ -1,13 +1,11 @@
 import 'package:revali_router_core/error/override_error_response.dart';
 import 'package:revali_router_core/error/override_error_response_mixin.dart';
-import 'package:revali_router_core/guard/guard_action.dart';
 
 sealed class GuardResult {
   const GuardResult();
 
-  const factory GuardResult.yes(GuardAction action) = _Yes;
-  const factory GuardResult.no(
-    GuardAction action, {
+  const factory GuardResult.yes() = _Yes;
+  const factory GuardResult.no({
     int? statusCode,
     Map<String, String>? headers,
     Object? body,
@@ -20,22 +18,18 @@ sealed class GuardResult {
 }
 
 final class _Yes extends GuardResult {
-  const _Yes(this.action);
-
-  final GuardAction action;
+  const _Yes();
 }
 
 final class _No extends GuardResult
     with OverrideErrorResponseMixin
     implements OverrideErrorResponse {
-  const _No(
-    this.action, {
+  const _No({
     this.statusCode,
     this.headers,
     this.body,
   });
 
-  final GuardAction action;
   @override
   final int? statusCode;
   @override

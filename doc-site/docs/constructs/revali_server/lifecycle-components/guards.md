@@ -24,8 +24,8 @@ class MyGuard implements Guard {
     const MyGuard();
 
     @override
-    Future<GuardResult> canActivate(context, action) async {
-        return action.yes();
+    Future<GuardResult> canActivate(GuardContext context) async {
+        return const GuardResult.yes();
     }
 }
 ```
@@ -39,18 +39,18 @@ There's no limit to the number of guards that can be applied to a controller or 
 The `GuardResult` has two possible results: `yes` and `no`. The `yes` result allows the request to continue to the controller or endpoint. The `no` result stops the request from continuing any further in the request flow.
 
 ```dart
-action.yes();
+const GuardResult.yes();
 ```
 
 ```dart
-action.no(
+const GuardResult.no(
     statusCode: 403,
     headers: {},
     body: 'User does not have the correct role to access this resource.',
 );
 ```
 
-An alternative to using the `action.no` method is to throw an exception. Create an [exception catcher][exception-catchers] to catch the exception and handle the error response.
+An alternative to using the `GuardResult.no` method is to throw an exception. Create an [exception catcher][exception-catchers] to catch the exception and handle the error response.
 
 ::::tip
 Learn about [returning error responses][error-responses].
@@ -107,10 +107,7 @@ class RoleGuard implements Guard {
   final String role;
 
   @override
-  Future<GuardResult> canActivate(
-    GuardContext context,
-    GuardAction action,
-  ) async {
+  Future<GuardResult> canActivate(GuardContext context) async {
     var user = context.data.get<User?>();
 
     if (user == null) {
@@ -120,7 +117,7 @@ class RoleGuard implements Guard {
       user = await authService.getUser(id);
 
       if (user == null) {
-        return action.no(
+        return const GuardResult.no(
           statusCode: 404,
           body: 'User not found.',
         );
@@ -130,13 +127,13 @@ class RoleGuard implements Guard {
     }
 
     if (user.role != role) {
-      return action.no(
+      return const GuardResult.no(
         statusCode: 403,
         body: 'User does not have the correct role to access this resource.',
       );
     }
 
-    return action.yes();
+    return const GuardResult.yes();
   }
 }
 ```

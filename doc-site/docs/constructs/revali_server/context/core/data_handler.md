@@ -91,7 +91,7 @@ class UserMiddleware implements Middleware {
     final UserService service;
 
     @override
-    Future<MiddlewareResult> use(context, action) async {
+    Future<MiddlewareResult> use(GuardContext context) async {
         final userId = context.request.pathParameters['userId'];
 
         final user = await service.getUser(userId);
@@ -116,24 +116,24 @@ class RoleGuard implements Guard {
     final String role;
 
     @override
-    Future<GuardResult> canActivate(context, action) async {
+    Future<GuardResult> canActivate(GuardContext context) async {
         final user = context.data.get<User>();
 
         // Return 500 if the user is not found
         if (user == null) {
-            return action.no(
+            return const GuardResult.no(
                 statusCode: 500,
             );
         }
 
         if (user.role != role) {
-            return action.no(
+            return const GuardResult.no(
                 statusCode: 403,
                 message: 'User does not have the correct role to access this resource.',
             );
         }
 
-        return action.yes();
+        return const GuardResult.yes();
     }
 }
 ```
