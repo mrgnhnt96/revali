@@ -41,7 +41,6 @@ export 'meta/read_only_meta.dart';
 export 'meta/read_only_meta_arg.dart';
 export 'meta/write_only_meta.dart';
 export 'middleware/middleware.dart';
-export 'middleware/middleware_action.dart';
 export 'middleware/middleware_context.dart';
 export 'middleware/middleware_result.dart';
 export 'observer/observer.dart';

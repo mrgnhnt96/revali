@@ -144,10 +144,7 @@ class _ThrowMiddleware implements Middleware {
   bool wasCalled = false;
 
   @override
-  Future<MiddlewareResult> use(
-    MiddlewareContext context,
-    MiddlewareAction action,
-  ) {
+  Future<MiddlewareResult> use(MiddlewareContext context) {
     wasCalled = true;
     throw _TestException();
   }

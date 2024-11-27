@@ -57,7 +57,7 @@ class MyComponent implements Middleware {
     const MyComponent();
 
     @override
-    Future<void> use(context, action) async {
+    Future<void> use(MiddlewareContext context) async {
         // highlight-next-line
         await context.request.resolvePayload();
 

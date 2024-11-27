@@ -1,13 +1,11 @@
 import 'package:revali_router_core/error/override_error_response.dart';
 import 'package:revali_router_core/error/override_error_response_mixin.dart';
-import 'package:revali_router_core/middleware/middleware_action.dart';
 
 sealed class MiddlewareResult {
   const MiddlewareResult();
 
-  const factory MiddlewareResult.next(MiddlewareAction action) = _Next;
-  const factory MiddlewareResult.stop(
-    MiddlewareAction action, {
+  const factory MiddlewareResult.next() = _Next;
+  const factory MiddlewareResult.stop({
     int? statusCode,
     Map<String, String>? headers,
     Object? body,
@@ -20,22 +18,17 @@ sealed class MiddlewareResult {
 }
 
 final class _Next extends MiddlewareResult {
-  const _Next(this.action);
-
-  final MiddlewareAction action;
+  const _Next();
 }
 
 final class _Stop extends MiddlewareResult
     with OverrideErrorResponseMixin
     implements OverrideErrorResponse {
-  const _Stop(
-    this.action, {
+  const _Stop({
     this.body,
     this.headers,
     this.statusCode,
   });
-
-  final MiddlewareAction action;
 
   @override
   final Object? body;

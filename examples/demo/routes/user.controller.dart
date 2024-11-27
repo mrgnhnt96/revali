@@ -98,11 +98,8 @@ class Auth implements Middleware {
   String get hi => 'hi';
 
   @override
-  Future<MiddlewareResult> use(
-    MiddlewareContext context,
-    MiddlewareAction action,
-  ) async {
-    return action.next();
+  Future<MiddlewareResult> use(MiddlewareContext context) async {
+    return const MiddlewareResult.next();
   }
 }
 

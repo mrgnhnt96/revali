@@ -84,7 +84,7 @@ final class MyOtherCatcher extends ExceptionCatcher<MyException> {
 }
 ```
 
-When `action.unhandled()` is returned, the next `ExceptionCatcher` that catches the same type of exception will be called.
+When `ExceptionCatcherResult.unhandled()` is returned, the next `ExceptionCatcher` that catches the same type of exception will be called.
 
 ## Handling the Response
 

@@ -129,12 +129,9 @@ class _SuccessMiddleware implements Middleware {
   bool wasCalled = false;
 
   @override
-  Future<MiddlewareResult> use(
-    MiddlewareContext context,
-    MiddlewareAction action,
-  ) async {
+  Future<MiddlewareResult> use(MiddlewareContext context) async {
     wasCalled = true;
-    return action.next();
+    return const MiddlewareResult.next();
   }
 }
 
@@ -145,12 +142,9 @@ class _OrderedMiddleware implements Middleware {
   final StreamController<int> controller;
 
   @override
-  Future<MiddlewareResult> use(
-    MiddlewareContext context,
-    MiddlewareAction action,
-  ) async {
+  Future<MiddlewareResult> use(MiddlewareContext context) async {
     controller.add(index);
-    return action.next();
+    return const MiddlewareResult.next();
   }
 }
 
@@ -158,16 +152,13 @@ class _ModifyingMiddleware implements Middleware {
   _ModifyingMiddleware();
 
   @override
-  Future<MiddlewareResult> use(
-    MiddlewareContext context,
-    MiddlewareAction action,
-  ) async {
+  Future<MiddlewareResult> use(MiddlewareContext context) async {
     context.data.add('Hello, World!');
     context.response.body = 'Hello, World!';
     context.response.headers['hello'] = 'world';
     context.request.headers['hello'] = 'world';
 
-    return action.next();
+    return const MiddlewareResult.next();
   }
 }
 
@@ -178,12 +169,9 @@ class _HaltingMiddleware implements Middleware {
   final bool overrideResponse;
 
   @override
-  Future<MiddlewareResult> use(
-    MiddlewareContext context,
-    MiddlewareAction action,
-  ) async {
+  Future<MiddlewareResult> use(MiddlewareContext context) async {
     if (overrideResponse) {
-      return action.stop(
+      return const MiddlewareResult.stop(
         body: 'Overridden',
         headers: {'overridden': 'true'},
         statusCode: -1,
@@ -192,6 +180,6 @@ class _HaltingMiddleware implements Middleware {
 
     context.response.body = 'Not overridden';
     context.response.headers['overridden'] = 'false';
-    return action.stop();
+    return const MiddlewareResult.stop();
   }
 }

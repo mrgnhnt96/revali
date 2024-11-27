@@ -24,8 +24,8 @@ class MyMiddleware implements Middleware {
     const MyMiddleware();
 
     @override
-    Future<MiddlewareResult> use(context, action) async {
-        return action.next()
+    Future<MiddlewareResult> use(MiddlwareContext context) async {
+        return const MiddlewareResult.next()
     }
 }
 ```
@@ -39,11 +39,11 @@ There's no limit to the number of middleware that can be applied to a controller
 The `MiddlewareResult` has two possible results: `next` and `stop`. The `next` result allows the request to continue to the next middleware or guard. The `stop` result stops the request from continuing any further in the request flow.
 
 ```dart
-action.next();
+const MiddlewareResult.next();
 ```
 
 ```dart
-action.stop(
+const MiddlewareResult.stop(
     statusCode: 400,
     headers: {},
     body: 'Bad Request',

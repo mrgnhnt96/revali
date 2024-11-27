@@ -29,12 +29,9 @@ final class AuthComponents implements CombineComponents {
 
 class AuthMiddleware implements Middleware {
   @override
-  Future<MiddlewareResult> use(
-    MiddlewareContext context,
-    MiddlewareAction action,
-  ) async {
+  Future<MiddlewareResult> use(MiddlewareContext context) async {
     context.data.add(const User());
 
-    return action.next();
+    return const MiddlewareResult.next();
   }
 }

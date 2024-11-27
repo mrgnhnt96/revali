@@ -91,14 +91,14 @@ class UserMiddleware implements Middleware {
     final UserService service;
 
     @override
-    Future<MiddlewareResult> use(GuardContext context) async {
+    Future<MiddlewareResult> use(MiddlewareContext context) async {
         final userId = context.request.pathParameters['userId'];
 
         final user = await service.getUser(userId);
 
         context.data.add(user);
 
-        return action.next()
+        return const MiddlewareResult.next()
     }
 }
 ```

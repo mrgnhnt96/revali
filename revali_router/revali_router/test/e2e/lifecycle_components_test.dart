@@ -45,12 +45,9 @@ class _Middleware implements Middleware {
   final StreamController<String> controller;
 
   @override
-  Future<MiddlewareResult> use(
-    MiddlewareContext context,
-    MiddlewareAction action,
-  ) async {
+  Future<MiddlewareResult> use(MiddlewareContext context) async {
     controller.add('Middleware');
-    return action.next();
+    return const MiddlewareResult.next();
   }
 }
 

@@ -16,7 +16,7 @@ class RunMiddlewares {
     ) = helper;
 
     for (final middleware in middlewares) {
-      final result = await middleware.use(context, const MiddlewareAction());
+      final result = await middleware.use(context);
 
       if (result.isStop) {
         final (statusCode, headers, body) =
