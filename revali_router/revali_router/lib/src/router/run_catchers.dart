@@ -64,11 +64,7 @@ class RunCatchers {
         continue;
       }
 
-      final result = catcher.catchException(
-        e,
-        context,
-        const ExceptionCatcherAction(),
-      );
+      final result = catcher.catchException(e, context);
 
       if (result.isHandled) {
         final (statusCode, headers, body) =

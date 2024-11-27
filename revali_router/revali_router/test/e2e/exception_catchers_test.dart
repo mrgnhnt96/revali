@@ -134,10 +134,9 @@ base class _Catcher extends ExceptionCatcher<_TestException> {
   ExceptionCatcherResult catchException(
     _TestException exception,
     ExceptionCatcherContext context,
-    ExceptionCatcherAction action,
   ) {
     wasCalled = true;
-    return action.handled();
+    return const ExceptionCatcherResult.handled();
   }
 }
 

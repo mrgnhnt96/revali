@@ -134,9 +134,8 @@ final class NotAuthCatcher extends ExceptionCatcher {
   ExceptionCatcherResult catchException(
     Exception exception,
     ExceptionCatcherContext context,
-    ExceptionCatcherAction action,
   ) {
-    return action.handled();
+    return const ExceptionCatcherResult.handled();
   }
 }
 

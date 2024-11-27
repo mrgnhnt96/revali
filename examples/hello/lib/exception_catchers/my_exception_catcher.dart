@@ -11,9 +11,8 @@ final class MyExceptionCatcher extends DefaultExceptionCatcher {
   ExceptionCatcherResult catchException(
     Exception exception,
     ExceptionCatcherContext context,
-    ExceptionCatcherAction action,
   ) {
-    return action.handled(
+    return const ExceptionCatcherResult.handled(
       statusCode: 500,
       headers: {
         HttpHeaders.contentTypeHeader: 'text/plain',

@@ -22,7 +22,6 @@ export 'endpoint/endpoint_context.dart';
 export 'error/override_error_response.dart';
 export 'error/override_error_response_mixin.dart';
 export 'exception_catcher/exception_catcher.dart';
-export 'exception_catcher/exception_catcher_action.dart';
 export 'exception_catcher/exception_catcher_context.dart';
 export 'exception_catcher/exception_catcher_meta.dart';
 export 'exception_catcher/exception_catcher_result.dart';

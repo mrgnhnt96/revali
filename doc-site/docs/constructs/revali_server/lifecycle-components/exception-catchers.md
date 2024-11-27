@@ -19,8 +19,8 @@ final class MyExceptionCatcher extends ExceptionCatcher<MyException> {
     const MyExceptionCatcher();
 
     @override
-    ExceptionCatcherResult catchException(exception, context, action) {
-        return action.handled();
+    ExceptionCatcherResult catchException(MyException exception, ExceptionCatcherContext context) {
+        return const ExceptionCatcherResult.handled();
     }
 }
 ```
@@ -74,11 +74,11 @@ final class MyOtherCatcher extends ExceptionCatcher<MyException> {
     const MyOtherCatcher();
 
     @override
-    ExceptionCatcherResult catchException(exception, context, action) {
+    ExceptionCatcherResult catchException(MyException exception, ExceptionCatcherContext context) {
         if (condition) {
-            return action.handled();
+            return const ExceptionCatcherResult.handled();
         } else {
-            return action.unhandled();
+            return const ExceptionCatcherResult.unhandled();
         }
     }
 }
@@ -97,8 +97,8 @@ final class MyExceptionCatcher extends ExceptionCatcher<MyException> {
     const MyExceptionCatcher();
 
     @override
-    ExceptionCatcherResult catchException(exception, context, action) {
-        return action.handled(
+    ExceptionCatcherResult catchException(MyException exception, ExceptionCatcherContext context) {
+        return const ExceptionCatcherResult.handled(
             statusCode: 500,
             headers: {
                 HttpHeaders.contentTypeHeader: 'text/plain',
@@ -112,11 +112,11 @@ final class MyExceptionCatcher extends ExceptionCatcher<MyException> {
 Here's an example of how you can handle the response:
 
 ```dart
-action.handled();
+const ExceptionCatcherResult.handled();
 ```
 
 ```dart
-action.notHandled(
+const ExceptionCatcherResult.unhandled(
     statusCode: 500,
     headers: {},
     body: 'Internal Server Error',
@@ -141,8 +141,8 @@ class UnhandledCatcher extends DefaultExceptionCatcher {
     const UnhandledCatcher();
 
     @override
-    ExceptionCatcherResult catchException(exception, context, action) {
-        return action.handled();
+    ExceptionCatcherResult catchException(exception, context) {
+        return const ExceptionCatcherResult.handled();
     }
 }
 ```

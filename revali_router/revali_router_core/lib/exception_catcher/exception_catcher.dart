@@ -1,5 +1,4 @@
 import 'package:meta/meta.dart';
-import 'package:revali_router_core/exception_catcher/exception_catcher_action.dart';
 import 'package:revali_router_core/exception_catcher/exception_catcher_context.dart';
 import 'package:revali_router_core/exception_catcher/exception_catcher_result.dart';
 
@@ -21,7 +20,6 @@ abstract base class ExceptionCatcher<T extends Exception> {
   ExceptionCatcherResult catchException(
     T exception,
     ExceptionCatcherContext context,
-    ExceptionCatcherAction action,
   );
 }
 
