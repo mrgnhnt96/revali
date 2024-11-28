@@ -15,6 +15,7 @@ class ServerRouteAnnotations with ExtractImport {
     required this.allowHeaders,
     required this.expectHeaders,
     required ServerMimic? responseHandler,
+    required this.lifecycleComponents,
   }) : _responseHandler = responseHandler;
 
   factory ServerRouteAnnotations.fromApp(MetaAppConfig app) {
@@ -39,6 +40,7 @@ class ServerRouteAnnotations with ExtractImport {
     ServerAllowHeaders? allowHeaders;
     ServerExpectHeaders? expectHeaders;
     ServerMimic? responseHandler;
+    final lifecycleComponents = <ServerLifecycleComponent>[];
 
     getter(
       onMatch: [
@@ -102,6 +104,15 @@ class ServerRouteAnnotations with ExtractImport {
           convert: (object, annotation) {
             types.guards.add(
               ServerTypeReference.fromElement(object, superType: Guard),
+            );
+          },
+        ),
+        OnMatch(
+          classType: LifecycleComponent,
+          package: 'revali_router_annotations',
+          convert: (object, annotation) {
+            lifecycleComponents.add(
+              ServerLifecycleComponent.fromDartObject(object, annotation),
             );
           },
         ),
@@ -215,6 +226,7 @@ class ServerRouteAnnotations with ExtractImport {
       allowHeaders: allowHeaders,
       expectHeaders: expectHeaders,
       responseHandler: responseHandler,
+      lifecycleComponents: lifecycleComponents,
     );
   }
 
@@ -226,6 +238,7 @@ class ServerRouteAnnotations with ExtractImport {
   final ServerAllowOrigins? allowOrigins;
   final ServerAllowHeaders? allowHeaders;
   final ServerExpectHeaders? expectHeaders;
+  final List<ServerLifecycleComponent> lifecycleComponents;
   ServerMimic? _responseHandler;
   ServerMimic? get responseHandler => _responseHandler;
 
@@ -243,6 +256,7 @@ class ServerRouteAnnotations with ExtractImport {
     if (allowHeaders != null) return true;
     if (expectHeaders != null) return true;
     if (responseHandler != null) return true;
+    if (lifecycleComponents.isNotEmpty) return true;
     return false;
   }
 
@@ -253,6 +267,7 @@ class ServerRouteAnnotations with ExtractImport {
         ...data,
         ...meta,
         responseHandler,
+        ...lifecycleComponents,
       ];
 
   @override

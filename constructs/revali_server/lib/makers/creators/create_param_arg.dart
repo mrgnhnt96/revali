@@ -21,18 +21,31 @@ final impliedArguments = <String, Expression>{
       refer('context').property('response').property('headers'),
   (MutableBody).name: refer('context').property('response').property('body'),
   (MutableResponse).name: refer('context').property('response'),
+  (RestrictedMutableResponse).name: refer('context').property('response'),
   // --- request ---
   (ReadOnlyHeaders).name:
       refer('context').property('request').property('headers'),
   (ReadOnlyRequest).name: refer('context').property('request'),
+  (MutableRequest).name: refer('context').property('request'),
   (ReadOnlyBody).name: refer('context').property('request').property('body'),
+  // --- meta ---
+  (MetaArg).name: refer('context').property('meta'),
+  (ReadOnlyMetaArg).name: refer('context').property('meta'),
+  // --- data ---
+  (DataHandler).name: refer('context').property('data'),
+  (ReadOnlyDataHandler).name: refer('context').property('data'),
 };
 
 Expression createParamArg(
   ServerParam param, {
   Expression? defaultExpression,
+  Map<String, Expression> customParams = const {},
 }) {
   if (impliedArguments[param.type] case final expression?) {
+    return expression;
+  }
+
+  if (customParams[param.type] case final expression?) {
     return expression;
   }
 

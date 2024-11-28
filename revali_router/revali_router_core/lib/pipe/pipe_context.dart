@@ -2,7 +2,7 @@ import 'package:revali_router_core/data/read_only_data_handler.dart';
 import 'package:revali_router_core/meta/read_only_meta.dart';
 import 'package:revali_router_core/pipe/annotation_type.dart';
 
-abstract class PipeContext<T> {
+abstract class PipeContext {
   const PipeContext();
 
   /// Indicates whether argument is a body, query, param, or custom parameter
@@ -23,7 +23,7 @@ abstract class PipeContext<T> {
   /// ```
   ///
   /// would yield "userId"
-  T get annotationArgument;
+  dynamic get annotationArgument;
 
   /// The name of the parameter that corresponds to the pipe annotation.
   ///

@@ -35,6 +35,8 @@ export 'headers/read_only_headers.dart';
 export 'interceptor/interceptor.dart';
 export 'interceptor/interceptor_context.dart';
 export 'interceptor/interceptor_meta.dart';
+export 'interceptor/interceptor_post_result.dart';
+export 'interceptor/interceptor_pre_result.dart';
 export 'meta/meta_arg.dart';
 export 'meta/meta_handler.dart';
 export 'meta/read_only_meta.dart';

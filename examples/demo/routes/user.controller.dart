@@ -55,7 +55,7 @@ class NamePipe implements Pipe<String, String> {
   const NamePipe();
 
   @override
-  String transform(String value, PipeContext<dynamic> context) {
+  String transform(String value, PipeContext context) {
     return 'value: ($value)';
   }
 }
@@ -70,7 +70,7 @@ class StringToIntPipe implements Pipe<String?, int> {
   const StringToIntPipe();
 
   @override
-  int transform(String? value, PipeContext<dynamic> context) {
+  int transform(String? value, PipeContext context) {
     return int.parse(value ?? '0');
   }
 }

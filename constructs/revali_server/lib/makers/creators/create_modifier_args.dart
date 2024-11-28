@@ -2,6 +2,7 @@
 
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_router/revali_router.dart' hide Method;
+import 'package:revali_server/converters/server_lifecycle_component.dart';
 import 'package:revali_server/converters/server_mimic.dart';
 import 'package:revali_server/converters/server_route_annotations.dart';
 import 'package:revali_server/makers/creators/create_class.dart';
@@ -13,45 +14,53 @@ Map<String, Expression> createModifierArgs({
 }) {
   final typeReferences = annotations.coreTypeReferences;
   final mimics = annotations.coreMimics;
+  final lifecycleComponents = annotations.lifecycleComponents;
 
   return {
-    if (mimics.catchers.isNotEmpty || typeReferences.catchers.isNotEmpty)
+    if (mimics.catchers.isNotEmpty ||
+        typeReferences.catchers.isNotEmpty ||
+        lifecycleComponents.hasExceptions)
       'catchers': literalList([
-        if (mimics.catchers case final catchers when catchers.isNotEmpty)
+        if (mimics.catchers case final catchers)
           for (final catcher in catchers) createMimic(catcher),
-        if (typeReferences.catchers.expand((e) => e.types) case final catchers
-            when catchers.isNotEmpty)
+        if (typeReferences.catchers.expand((e) => e.types) case final catchers)
           for (final catcher in catchers) createClass(catcher),
+        for (final component in lifecycleComponents)
+          for (final (catcher, _) in component.exceptionClasses)
+            createClass(catcher),
       ]),
     if (annotations.data.isNotEmpty)
       'data':
           literalList([for (final data in annotations.data) createMimic(data)]),
-    if (mimics.guards.isNotEmpty || typeReferences.guards.isNotEmpty)
+    if (mimics.guards.isNotEmpty ||
+        typeReferences.guards.isNotEmpty ||
+        lifecycleComponents.hasGuards)
       'guards': literalList([
-        if (mimics.guards.isNotEmpty)
-          for (final guard in mimics.guards) createMimic(guard),
-        if (typeReferences.guards.isNotEmpty)
-          for (final guards in typeReferences.guards)
-            for (final guard in guards.types) createClass(guard),
+        for (final guard in mimics.guards) createMimic(guard),
+        for (final guards in typeReferences.guards)
+          for (final guard in guards.types) createClass(guard),
+        for (final component in lifecycleComponents)
+          createClass(component.guardClass),
       ]),
     if (mimics.interceptors.isNotEmpty ||
-        typeReferences.interceptors.isNotEmpty)
+        typeReferences.interceptors.isNotEmpty ||
+        lifecycleComponents.hasInterceptors)
       'interceptors': literalList([
-        if (mimics.interceptors.isNotEmpty)
-          for (final interceptor in mimics.interceptors)
-            createMimic(interceptor),
-        if (typeReferences.interceptors.isNotEmpty)
-          for (final intercepts in typeReferences.interceptors)
-            for (final interceptor in intercepts.types)
-              createClass(interceptor),
+        for (final interceptor in mimics.interceptors) createMimic(interceptor),
+        for (final intercepts in typeReferences.interceptors)
+          for (final interceptor in intercepts.types) createClass(interceptor),
+        for (final component in lifecycleComponents)
+          createClass(component.interceptorClass),
       ]),
-    if (mimics.middlewares.isNotEmpty || typeReferences.middlewares.isNotEmpty)
+    if (mimics.middlewares.isNotEmpty ||
+        typeReferences.middlewares.isNotEmpty ||
+        lifecycleComponents.hasMiddlewares)
       'middlewares': literalList([
-        if (mimics.middlewares.isNotEmpty)
-          for (final middleware in mimics.middlewares) createMimic(middleware),
-        if (typeReferences.middlewares.isNotEmpty)
-          for (final middlewares in typeReferences.middlewares)
-            for (final middleware in middlewares.types) createClass(middleware),
+        for (final middleware in mimics.middlewares) createMimic(middleware),
+        for (final middlewares in typeReferences.middlewares)
+          for (final middleware in middlewares.types) createClass(middleware),
+        for (final component in lifecycleComponents)
+          createClass(component.middlewareClass),
       ]),
     if (annotations.allowOrigins case final allow?
         when allow.origins.isNotEmpty)
@@ -107,4 +116,12 @@ Map<String, Expression> createModifierArgs({
         };
       }(),
   };
+}
+
+extension _IterableServerLifecycleComponentX
+    on Iterable<ServerLifecycleComponent> {
+  bool get hasExceptions => any((e) => e.hasExceptionCatchers);
+  bool get hasGuards => any((e) => e.hasGuards);
+  bool get hasInterceptors => any((e) => e.hasInterceptors);
+  bool get hasMiddlewares => any((e) => e.hasMiddlewares);
 }

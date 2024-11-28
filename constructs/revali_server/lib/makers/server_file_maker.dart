@@ -15,6 +15,7 @@ String serverFile(
     if (options.ignoreLints case final lints when lints.isNotEmpty)
       "// ignore_for_file: ${options.ignoreLints.join(', ')}\n",
     "import 'dart:io';",
+    "import 'dart:async';",
     '',
     "import 'package:path/path.dart' as p;",
     for (final imprt in {

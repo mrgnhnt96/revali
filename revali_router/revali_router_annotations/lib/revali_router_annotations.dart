@@ -14,6 +14,7 @@ export 'src/dep.dart';
 export 'src/guards.dart';
 export 'src/header.dart';
 export 'src/intercepts.dart';
+export 'src/lifecycle_component.dart';
 export 'src/meta.dart';
 export 'src/middlewares.dart';
 export 'src/observers.dart';

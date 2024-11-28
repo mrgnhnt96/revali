@@ -22,6 +22,15 @@ class ServerParamAnnotations with ExtractImport {
     required this.binds,
     required this.bind,
   });
+  ServerParamAnnotations.none()
+      : body = null,
+        query = null,
+        param = null,
+        dep = false,
+        data = false,
+        header = null,
+        binds = null,
+        bind = null;
 
   factory ServerParamAnnotations.fromMeta(MetaParam metaParam) {
     return ServerParamAnnotations._getter(metaParam.annotationsFor);

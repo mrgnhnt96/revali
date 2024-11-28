@@ -1,6 +1,6 @@
 import 'package:revali_router_core/revali_router_core.dart';
 
-class PipeContextImpl<T> implements PipeContext<T> {
+class PipeContextImpl implements PipeContext {
   const PipeContextImpl({
     required this.annotationArgument,
     required this.nameOfParameter,
@@ -27,7 +27,7 @@ class PipeContextImpl<T> implements PipeContext<T> {
   final AnnotationType type;
 
   @override
-  final T annotationArgument;
+  final dynamic annotationArgument;
 
   @override
   final String nameOfParameter;

@@ -18,6 +18,7 @@ export 'converters/server_class.dart';
 export 'converters/server_expect_headers.dart';
 export 'converters/server_header_annotation.dart';
 export 'converters/server_imports.dart';
+export 'converters/server_lifecycle_component.dart';
 export 'converters/server_mimic.dart';
 export 'converters/server_param.dart';
 export 'converters/server_param_annotation.dart';
