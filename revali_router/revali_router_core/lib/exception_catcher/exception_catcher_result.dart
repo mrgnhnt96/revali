@@ -1,7 +1,7 @@
 import 'package:revali_router_core/error/override_error_response.dart';
 import 'package:revali_router_core/error/override_error_response_mixin.dart';
 
-sealed class ExceptionCatcherResult {
+sealed class ExceptionCatcherResult<T> {
   const ExceptionCatcherResult();
 
   const factory ExceptionCatcherResult.handled({
@@ -10,13 +10,13 @@ sealed class ExceptionCatcherResult {
     Object? body,
   }) = _Handled;
 
-  const factory ExceptionCatcherResult.unhandled() = _NotHandled;
+  const factory ExceptionCatcherResult.unhandled() = _Unhandled;
 
   bool get isHandled => this is _Handled;
-  bool get isNotHandled => this is _NotHandled;
+  bool get isNotHandled => this is _Unhandled;
 
   // ignore: library_private_types_in_public_api
-  _Handled get asHandled => this as _Handled;
+  _Handled<T> get asHandled => this as _Handled<T>;
 }
 
 /// {@template exception_catcher_handled}
@@ -24,7 +24,7 @@ sealed class ExceptionCatcherResult {
 ///
 /// {@macro override_error_response}
 /// {@endtemplate}
-final class _Handled extends ExceptionCatcherResult
+final class _Handled<T> extends ExceptionCatcherResult<T>
     with OverrideErrorResponseMixin
     implements OverrideErrorResponse {
   const _Handled({
@@ -41,6 +41,6 @@ final class _Handled extends ExceptionCatcherResult
   final Object? body;
 }
 
-final class _NotHandled extends ExceptionCatcherResult {
-  const _NotHandled();
+final class _Unhandled<T> extends ExceptionCatcherResult<T> {
+  const _Unhandled();
 }

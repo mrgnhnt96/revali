@@ -11,6 +11,7 @@ abstract class LifecycleComponents {
 
   List<Middleware> get middlewares;
   List<Interceptor> get interceptors;
+  // ignore: strict_raw_type
   List<ExceptionCatcher> get catchers;
   List<Guard> get guards;
   void Function(MetaHandler)? get _meta;

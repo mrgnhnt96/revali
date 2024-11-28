@@ -9,5 +9,6 @@ abstract interface class CombineComponents {
   Iterable<Guard> get guards;
   Iterable<Middleware> get middlewares;
   Iterable<Interceptor> get interceptors;
+  // ignore: strict_raw_type
   Iterable<ExceptionCatcher> get catchers;
 }
