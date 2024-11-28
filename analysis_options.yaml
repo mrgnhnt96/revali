@@ -13,6 +13,7 @@ analyzer:
     unrelated_type_equality_checks: warning
     public_member_api_docs: ignore
     prefer_void_to_null: ignore
+    one_member_abstracts: ignore
 
   exclude:
     - '**/*.g.dart'
