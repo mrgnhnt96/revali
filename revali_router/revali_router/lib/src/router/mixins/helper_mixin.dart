@@ -43,6 +43,7 @@ mixin HelperMixin {
     ];
   }
 
+  // ignore: strict_raw_type
   Iterable<ExceptionCatcher> get catchers {
     return [
       ...route.allCatchers,

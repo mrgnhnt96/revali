@@ -122,13 +122,13 @@ class Lazy {
 
 class NotAuth implements Exception {}
 
-final class NotAuthCatcher extends ExceptionCatcher {
+final class NotAuthCatcher extends ExceptionCatcher<NotAuth> {
   const NotAuthCatcher(this.value);
 
   final String value;
 
   @override
-  ExceptionCatcherResult catchException(
+  ExceptionCatcherResult<NotAuth> catchException(
     Exception exception,
     ExceptionCatcherContext context,
   ) {

@@ -131,7 +131,7 @@ base class _Catcher extends ExceptionCatcher<_TestException> {
   bool wasCalled = false;
 
   @override
-  ExceptionCatcherResult catchException(
+  ExceptionCatcherResult<_TestException> catchException(
     _TestException exception,
     ExceptionCatcherContext context,
   ) {

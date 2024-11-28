@@ -8,7 +8,7 @@ final class MyExceptionCatcher extends DefaultExceptionCatcher {
   const MyExceptionCatcher();
 
   @override
-  ExceptionCatcherResult catchException(
+  ExceptionCatcherResult<Exception> catchException(
     Exception exception,
     ExceptionCatcherContext context,
   ) {

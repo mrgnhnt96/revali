@@ -7,6 +7,7 @@ class LifecycleComponentsImpl implements LifecycleComponents {
     List<Middleware>? middlewares,
     List<Interceptor>? interceptors,
     List<Guard>? guards,
+    // ignore: strict_raw_type
     List<ExceptionCatcher>? catchers,
     void Function(MetaHandler)? meta,
     List<CombineComponents> combine = const [],
@@ -27,6 +28,7 @@ class LifecycleComponentsImpl implements LifecycleComponents {
   @override
   final List<Interceptor> interceptors;
   @override
+  // ignore: strict_raw_type
   final List<ExceptionCatcher> catchers;
   @override
   final List<Guard> guards;
