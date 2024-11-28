@@ -1,7 +1,7 @@
-import 'package:revali_router/src/meta/meta_arg_impl.dart';
+import 'package:revali_router/src/meta/meta_detailed_impl.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
-class ExceptionCatcherMetaImpl extends MetaArgImpl
+class ExceptionCatcherMetaImpl extends MetaDetailedImpl
     implements ExceptionCatcherMeta {
   const ExceptionCatcherMetaImpl({
     required super.direct,

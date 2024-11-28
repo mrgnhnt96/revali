@@ -17,5 +17,5 @@ environment:
     sdk: '>=3.2.6 <4.0.0'
 
 dependencies:
-  revali_router_core: ^1.1.0
-  meta: ^1.16.0
+    meta: ^1.16.0
+    revali_router_core: ^1.1.0

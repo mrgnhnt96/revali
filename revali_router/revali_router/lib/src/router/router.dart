@@ -20,6 +20,7 @@ import 'package:revali_router/src/guard/guard_context_impl.dart';
 import 'package:revali_router/src/guard/guard_meta_impl.dart';
 import 'package:revali_router/src/interceptor/interceptor_context_impl.dart';
 import 'package:revali_router/src/interceptor/interceptor_meta_impl.dart';
+import 'package:revali_router/src/meta/meta_detailed_impl.dart';
 import 'package:revali_router/src/middleware/middleware_context_impl.dart';
 import 'package:revali_router/src/payload/payload_impl.dart';
 import 'package:revali_router/src/request/mutable_request_impl.dart';

@@ -43,6 +43,10 @@ mixin ContextMixin on HelperMixin {
       );
 
   MiddlewareContext get middleware => MiddlewareContextImpl(
+        meta: MetaDetailedImpl(
+          direct: directMeta,
+          inherited: inheritedMeta,
+        ),
         request: request,
         response: response,
         data: dataHandler,

@@ -29,8 +29,11 @@ final impliedArguments = <String, Expression>{
   (MutableRequest).name: refer('context').property('request'),
   (ReadOnlyBody).name: refer('context').property('request').property('body'),
   // --- meta ---
-  (MetaArg).name: refer('context').property('meta'),
-  (ReadOnlyMetaArg).name: refer('context').property('meta'),
+  (ReadOnlyMeta).name: refer('context').property('meta'),
+  (WriteOnlyMeta).name: refer('context').property('meta'),
+  (MetaHandler).name: refer('context').property('meta'),
+  (ReadOnlyMetaDetailed).name: refer('context').property('meta'),
+  (MetaDetailed).name: refer('context').property('meta'),
   // --- data ---
   (DataHandler).name: refer('context').property('data'),
   (ReadOnlyDataHandler).name: refer('context').property('data'),

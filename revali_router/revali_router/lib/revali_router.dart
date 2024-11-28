@@ -8,13 +8,13 @@ export 'package:revali_annotations/revali_annotations.dart';
 export 'package:revali_router_annotations/revali_router_annotations.dart';
 export 'package:revali_router_core/revali_router_core.dart'
     hide AppConfig, Data;
-export 'src/body/response_body/base_body_data.dart';
 
 export 'src/access_control/allowed_headers_impl.dart';
 export 'src/access_control/allowed_origins_impl.dart';
 export 'src/access_control/expected_headers_impl.dart';
 export 'src/app_config/app_config.dart';
 export 'src/body/mutable_body_impl.dart';
+export 'src/body/response_body/base_body_data.dart';
 export 'src/custom_param/bind_context_impl.dart';
 export 'src/endpoint/endpoint_context_impl.dart';
 export 'src/exception_catcher/exception_catcher_context_impl.dart';
@@ -36,7 +36,7 @@ export 'src/headers/mutable_headers_impl.dart';
 export 'src/interceptor/interceptor_context_impl.dart';
 export 'src/interceptor/interceptor_meta_impl.dart';
 export 'src/meta/combine_components_applier.dart';
-export 'src/meta/meta_arg_impl.dart';
+export 'src/meta/meta_detailed_impl.dart';
 export 'src/middleware/middleware_context_impl.dart';
 export 'src/payload/payload_impl.dart';
 export 'src/pipe/pipe_context_impl.dart';

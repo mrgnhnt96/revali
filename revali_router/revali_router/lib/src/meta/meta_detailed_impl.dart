@@ -1,8 +1,8 @@
-import 'package:revali_router_core/meta/meta_arg.dart';
+import 'package:revali_router_core/meta/meta_detailed.dart';
 import 'package:revali_router_core/meta/meta_handler.dart';
 
-class MetaArgImpl implements MetaArg {
-  const MetaArgImpl({
+class MetaDetailedImpl implements MetaDetailed, MetaHandler {
+  const MetaDetailedImpl({
     required MetaHandler direct,
     required MetaHandler inherited,
   })  : _direct = direct,
@@ -48,6 +48,7 @@ class MetaArgImpl implements MetaArg {
   bool hasInherited<T>() => _inherited.has<T>();
 
   /// Add metadata to the directly associated route.
+  @override
   void add<T>(T metadata) {
     _direct.add(metadata);
   }

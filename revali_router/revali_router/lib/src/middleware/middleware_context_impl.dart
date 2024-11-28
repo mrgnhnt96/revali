@@ -2,6 +2,7 @@ import 'package:revali_router_core/revali_router_core.dart';
 
 class MiddlewareContextImpl implements MiddlewareContext {
   const MiddlewareContextImpl({
+    required this.meta,
     required this.data,
     required this.request,
     required this.response,
@@ -15,4 +16,7 @@ class MiddlewareContextImpl implements MiddlewareContext {
 
   @override
   final MutableResponse response;
+
+  @override
+  final ReadOnlyMeta meta;
 }

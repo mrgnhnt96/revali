@@ -1,5 +1,7 @@
-abstract class ReadOnlyMetaArg {
-  const ReadOnlyMetaArg();
+import 'package:revali_router_core/meta/read_only_meta.dart';
+
+abstract class ReadOnlyMetaDetailed implements ReadOnlyMeta {
+  const ReadOnlyMetaDetailed();
 
   /// {@template ReadOnlyMetaArg_get}
   /// Get the metadata of type [T] if it exists.
@@ -10,6 +12,7 @@ abstract class ReadOnlyMetaArg {
   ///
   /// If [T] is not found, returns `null`.
   /// {@endtemplate}
+  @override
   List<T>? get<T>();
 
   /// {@template ReadOnlyMetaArg_has}
@@ -21,6 +24,7 @@ abstract class ReadOnlyMetaArg {
   ///
   /// Returns `true` if the metadata of type [T] exists, otherwise `false`.
   /// {@endtemplate}
+  @override
   bool has<T>();
 
   /// {@template ReadOnlyMetaArg_getDirect}
