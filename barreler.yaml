@@ -11,7 +11,6 @@ defaults:
 
     ignore_for_file: directives_ordering
 
-
 dirs:
   - path: packages/revali_annotations/lib
     name: revali_annotations
@@ -26,25 +25,29 @@ dirs:
         show: hotReload
   - path: constructs/revali_server/lib
     name: revali_server
+    exclude:
+      - "**/makers/**"
+      - "**/converters/**"
   - path: revali_router/revali_router/lib
     name: revali_router
     exclude:
-      - '**/response_body/*_data.dart'
-      - '**/router/*_*.dart'
-      - '**/router/mixins/**'
-      - '**/router/{find,execute}.dart'
+      - "**/response_body/*_data.dart"
+      - "**/router/*_*.dart"
+      - "**/router/mixins/**"
+      - "**/router/{find,execute}.dart"
     exports:
       - src/body/response_body/base_body_data.dart
-      - export: 'package:revali_annotations/revali_annotations.dart'
-      - export: 'package:revali_router_core/revali_router_core.dart'
+      - export: "package:revali_annotations/revali_annotations.dart"
+      - export: "package:revali_router_core/revali_router_core.dart"
         hide:
           - AppConfig
           - Data
-      - export: 'package:revali_router_annotations/revali_router_annotations.dart'
+          - LifecycleComponents
+      - export: "package:revali_router_annotations/revali_router_annotations.dart"
   - path: revali_router/revali_router_core/lib
     name: revali_router_core
     exports:
-      - export: 'package:revali_core/revali_core.dart'
+      - export: "package:revali_core/revali_core.dart"
         show:
           - AppConfig
           - DI
