@@ -1,5 +1,6 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:collection/collection.dart';
 import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_param.dart';
 import 'package:revali_server/utils/extract_import.dart';
@@ -37,15 +38,16 @@ class ServerClass with ExtractImport {
       );
     }
 
-    if (element.constructors.isEmpty) {
+    final constructor =
+        element.constructors.firstWhereOrNull((e) => e.isPublic);
+
+    if (constructor == null) {
       throw ArgumentError.value(
         type,
         'type',
-        'Expected a class element with a constructor',
+        'Expected a class element with a public constructor',
       );
     }
-
-    final constructor = element.constructors.first;
 
     final params = constructor.parameters.map((param) {
       return ServerParam.fromElement(param);
