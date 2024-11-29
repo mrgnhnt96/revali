@@ -20,7 +20,9 @@ class AuthLifecycleComponent implements LifecycleComponent {
     return const GuardResult.pass();
   }
 
-  Future<GuardResult> hasRole() async {
+  Future<GuardResult> hasRole(
+    ReadOnlyDataHandler data,
+  ) async {
     return const GuardResult.pass();
   }
 
@@ -40,14 +42,20 @@ class AuthLifecycleComponent implements LifecycleComponent {
 
   InterceptorPreResult getMetaDataForRole() {}
 
-  InterceptorPostResult updateMetaDataOnRole() {}
+  InterceptorPostResult updateMetaDataOnRole() async {}
 
   InterceptorPostResult someOtherOp(
     @Body(['id'], UserPipe) User pipe,
   ) {}
 
-  ExceptionCatcherResult<MyException> handleTokenException(
+  ExceptionCatcherResult<MyException> handleFakeTokenException(
     MyException exception,
+  ) {
+    return const ExceptionCatcherResult.handled();
+  }
+
+  ExceptionCatcherResult<OtherException> handleOtherException(
+    ReadOnlyDataHandler context,
   ) {
     return const ExceptionCatcherResult.handled();
   }
@@ -83,4 +91,8 @@ class UserPipe implements Pipe<String, User> {
 
 class MyException implements Exception {
   const MyException();
+}
+
+class OtherException implements Exception {
+  const OtherException();
 }

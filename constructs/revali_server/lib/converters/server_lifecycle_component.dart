@@ -83,8 +83,9 @@ class ServerLifecycleComponent with ExtractImport {
   ServerClass _create(Type type, {String? subType}) {
     final sub = subType ?? '';
     final className = '$name$sub${(type).name}'.toNoCase().toPascalCase();
+
     return ServerClass(
-      className: '_$className',
+      className: className,
       params: [
         ServerParam(
           name: 'di',
@@ -103,15 +104,8 @@ class ServerLifecycleComponent with ExtractImport {
     );
   }
 
-  List<(ServerClass, ComponentMethod)> get exceptionClasses {
-    return [
-      for (final method in exceptionCatchers)
-        (exceptionClassFor(method), method),
-    ];
-  }
-
-  ServerClass exceptionClassFor(ComponentMethod method) {
-    return _create(ExceptionCatcher, subType: method.exceptionType);
+  ServerClass get exceptionClass {
+    return _create(ExceptionCatcher);
   }
 
   ServerClass get guardClass {
@@ -157,6 +151,7 @@ class ComponentMethod with ExtractImport {
     var isFuture = false;
     String? exceptionType;
 
+    // TODO(mrgnhnt): Handle Future<ALIAS> return types
     if (returnTypeAlias != null && aliasReturnTypes.contains(returnTypeAlias)) {
       returnType = returnTypeAlias;
     } else if (object.returnType case final InterfaceType type

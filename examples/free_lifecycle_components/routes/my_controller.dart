@@ -1,5 +1,6 @@
-import 'package:hello/auth_lifecycle_components.dart';
 import 'package:revali_router/revali_router.dart';
+
+import 'auth_lifecycle_components.dart';
 
 @Controller('my')
 class MyController {

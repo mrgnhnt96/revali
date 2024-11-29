@@ -1,41 +1,46 @@
 // ignore_for_file: unnecessary_parenthesis
 
 import 'package:code_builder/code_builder.dart';
+import 'package:collection/collection.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 import 'package:revali_server/converters/server_lifecycle_component.dart';
 import 'package:revali_server/makers/creators/create_get_from_di.dart';
+import 'package:revali_server/makers/utils/for_in_loop.dart';
 import 'package:revali_server/makers/utils/get_params.dart';
+import 'package:revali_server/makers/utils/if_statement.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
 
 String exceptionContent(
   ServerLifecycleComponent component,
-  ComponentMethod method,
   String Function(Spec) formatter,
 ) {
+  final methods = component.exceptionCatchers;
+
   final (:named, :positioned) = getParams(
     component.params,
     defaultExpression: createGetFromDi(),
   );
 
-  final exceptionType = method.exceptionType ?? (Exception).name;
+  // final exceptionType = method.exceptionType ?? (Exception).name;
 
-  final methodParams = getParams(
-    method.parameters,
-    inferredParams: {
-      exceptionType: refer('exception'),
-      (ExceptionCatcherContext).name: refer('context'),
-      (ExceptionCatcherMeta).name: refer('context.meta'),
-      (RouteEntry).name: refer('context.meta.route'),
-    },
-  );
-
-  final serverClass = component.exceptionClassFor(method);
+  // final methodParams = getParams(
+  //   method.parameters,
+  //   inferredParams: {
+  //     exceptionType: refer('exception'),
+  //     (ExceptionCatcherContext).name: refer('context'),
+  //     (ExceptionCatcherMeta).name: refer('context.meta'),
+  //     (RouteEntry).name: refer('context.meta.route'),
+  //   },
+  // );
+  final groupedMethods = groupBy(methods, (e) {
+    return e.exceptionType ?? 'void';
+  });
 
   final clazz = Class(
     (p) => p
-      ..name = serverClass.className
+      ..name = component.exceptionClass.className
       ..modifier = ClassModifier.final$
-      ..extend = refer('${(ExceptionCatcher).name}<$exceptionType>')
+      ..extend = refer('${(ExceptionCatcher).name}<dynamic>')
       ..constructors.add(
         Constructor(
           (p) => p
@@ -58,18 +63,42 @@ String exceptionContent(
             ..modifier = FieldModifier.final$,
         ),
       )
-      ..methods.add(
+      ..methods.addAll([
+        Method(
+          (p) => p
+            ..name = 'canCatch'
+            ..returns = refer('bool')
+            ..annotations.add(refer('override'))
+            ..requiredParameters.add(
+              Parameter(
+                (p) => p
+                  ..name = 'exception'
+                  ..type = refer('Object'),
+              ),
+            )
+            ..body = Block.of(
+              [
+                for (final exception in methods)
+                  ifStatement(
+                    refer('exception')
+                        .isA(refer(exception.exceptionType ?? 'void')),
+                    body: literalTrue.returned.statement,
+                  ).code,
+                const Code('\n'),
+                literalFalse.returned.statement,
+              ],
+            ),
+        ),
         Method(
           (p) => p
             ..name = 'catchException'
-            ..returns =
-                refer('${(ExceptionCatcherResult).name}<$exceptionType>')
+            ..returns = refer('${(ExceptionCatcherResult).name}<dynamic>')
             ..annotations.add(refer('override'))
             ..requiredParameters.addAll([
               Parameter(
                 (p) => p
                   ..name = 'exception'
-                  ..type = refer(exceptionType),
+                  ..type = refer('dynamic'),
               ),
               Parameter(
                 (p) => p
@@ -85,16 +114,91 @@ String exceptionContent(
                     )
                     .statement,
                 const Code('\n'),
-                refer('component')
-                    .property(method.name)
-                    .call(methodParams.positioned, methodParams.named)
+                ...[
+                  for (final MapEntry(:key, value: values)
+                      in groupedMethods.entries) ...[
+                    ifStatement(
+                      refer('exception').isA(refer(key)),
+                      body: _createComponentMethods(
+                        key,
+                        values,
+                        inferredParams: {
+                          key: refer('exception'),
+                          (ExceptionCatcherContext).name: refer('context'),
+                          (ExceptionCatcherMeta).name: refer('context.meta'),
+                          (RouteEntry).name: refer('context.meta.route'),
+                        },
+                      ),
+                    ).code,
+                    const Code('\n'),
+                  ],
+                ],
+                const Code('\n'),
+                refer('ExceptionCatcherResult')
+                    .constInstanceNamed('unhandled', [])
                     .returned
                     .statement,
               ],
             ),
         ),
-      ),
+      ]),
   );
 
   return formatter(clazz);
+}
+
+Code _createComponentMethods(
+  String key,
+  Iterable<ComponentMethod> methods, {
+  Map<String, Expression> inferredParams = const {},
+}) {
+  Iterable<Code> getHandlers() sync* {
+    for (final method in methods) {
+      final params = getParams(
+        method.parameters,
+        inferredParams: inferredParams,
+      );
+
+      final code = Method(
+        (p) => p
+          ..lambda = true
+          ..body = Block.of([
+            refer('component')
+                .property(method.name)
+                .call(params.positioned, params.named)
+                .code,
+          ]),
+      );
+
+      yield code.closure.code;
+    }
+  }
+
+  final handlers = getHandlers();
+
+  return Block.of([
+    declareFinal('handlers')
+        .assign(
+          literalList(
+            handlers,
+            refer('${(ExceptionCatcherResult).name}<$key> Function()'),
+          ),
+        )
+        .statement,
+    const Code('\n'),
+    forInLoop(
+      declaration: declareFinal('handler'),
+      iterable: refer('handlers'),
+      body: Block.of([
+        ifStatement(
+          refer('handler').call([]),
+          pattern: (
+            cse: declareFinal('result'),
+            when: refer('result').property('isHandled')
+          ),
+          body: refer('result').returned.statement,
+        ).code,
+      ]),
+    ).code,
+  ]);
 }

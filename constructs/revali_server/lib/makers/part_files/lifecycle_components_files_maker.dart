@@ -18,12 +18,10 @@ Iterable<PartFile> lifecycleComponentFilesMaker(
       ];
 
   if (component.hasExceptionCatchers) {
-    for (final (clazz, method) in component.exceptionClasses) {
-      yield PartFile(
-        path: path(clazz.className),
-        content: exceptionContent(component, method, formatter),
-      );
-    }
+    yield PartFile(
+      path: path(component.exceptionClass.className),
+      content: exceptionContent(component, formatter),
+    );
   }
 
   if (component.hasGuards) {

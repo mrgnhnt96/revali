@@ -26,8 +26,7 @@ Map<String, Expression> createModifierArgs({
         if (typeReferences.catchers.expand((e) => e.types) case final catchers)
           for (final catcher in catchers) createClass(catcher),
         for (final component in lifecycleComponents)
-          for (final (catcher, _) in component.exceptionClasses)
-            createClass(catcher),
+          createClass(component.exceptionClass),
       ]),
     if (annotations.data.isNotEmpty)
       'data':
