@@ -4,6 +4,7 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:change_case/change_case.dart';
+import 'package:collection/collection.dart';
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_server/converters/server_class.dart';
 import 'package:revali_server/converters/server_imports.dart';
@@ -23,8 +24,6 @@ class ServerLifecycleComponent with ExtractImport {
   });
 
   factory ServerLifecycleComponent.fromDartObject(
-    // ignore: avoid_unused_constructor_parameters
-    DartObject object,
     ElementAnnotation annotation,
   ) {
     final element = annotation.element?.enclosingElement;
@@ -32,6 +31,11 @@ class ServerLifecycleComponent with ExtractImport {
     if (element is! ClassElement) {
       throw Exception('Invalid element type');
     }
+
+    return ServerLifecycleComponent.fromClassElement(element);
+  }
+
+  factory ServerLifecycleComponent.fromClassElement(ClassElement element) {
     final methods = element.methods
         .map(ComponentMethod.fromElement)
         .whereType<ComponentMethod>()
@@ -53,9 +57,18 @@ class ServerLifecycleComponent with ExtractImport {
       };
     }
 
-    final params = element.constructors.first.parameters
-        .map(ServerParam.fromElement)
-        .toList();
+    final constructor =
+        element.constructors.firstWhereOrNull((e) => e.isPublic);
+
+    if (constructor == null) {
+      throw ArgumentError.value(
+        LifecycleComponent,
+        'type',
+        'Expected a class element with a public constructor',
+      );
+    }
+
+    final params = constructor.parameters.map(ServerParam.fromElement).toList();
 
     return ServerLifecycleComponent(
       name: element.name,
@@ -65,6 +78,56 @@ class ServerLifecycleComponent with ExtractImport {
       exceptionCatchers: exceptionCatchers,
       params: params,
     );
+  }
+
+  factory ServerLifecycleComponent.fromType(DartType type) {
+    final element = type.element;
+    if (element is! ClassElement) {
+      throw ArgumentError.value(
+        type,
+        'type',
+        'Expected a class element',
+      );
+    }
+
+    final superTypeWithoutGenerics = (LifecycleComponent).name;
+
+    if (!element.allSupertypes.any(
+      (e) => e.getDisplayString().startsWith(superTypeWithoutGenerics),
+    )) {
+      throw ArgumentError.value(
+        type,
+        'type',
+        'Expected a class element that extends $superTypeWithoutGenerics',
+      );
+    }
+
+    return ServerLifecycleComponent.fromClassElement(element);
+  }
+
+  static List<ServerLifecycleComponent> fromTypeReference(
+    // ignore: avoid_unused_constructor_parameters
+    DartObject object,
+    ElementAnnotation annotation,
+  ) {
+    final typesValue = object.getField('types')?.toListValue();
+
+    if (typesValue == null || typesValue.isEmpty) {
+      return [];
+    }
+
+    final types = <ServerLifecycleComponent>[];
+
+    for (final typeValue in typesValue) {
+      final type = typeValue.toTypeValue();
+      if (type == null) {
+        throw ArgumentError('Invalid type');
+      }
+
+      types.add(ServerLifecycleComponent.fromType(type));
+    }
+
+    return types;
   }
 
   final List<ComponentMethod> guards;

@@ -1,5 +1,19 @@
 import 'package:equatable/equatable.dart';
-import 'package:revali_router/revali_router.dart';
+import 'package:revali_router/src/meta/combine_components_applier.dart';
+import 'package:revali_router_core/access_control/allowed_headers.dart';
+import 'package:revali_router_core/access_control/allowed_origins.dart';
+import 'package:revali_router_core/access_control/expected_headers.dart';
+import 'package:revali_router_core/combine/combine_components.dart';
+import 'package:revali_router_core/endpoint/endpoint_context.dart';
+import 'package:revali_router_core/exception_catcher/exception_catcher.dart';
+import 'package:revali_router_core/guard/guard.dart';
+import 'package:revali_router_core/interceptor/interceptor.dart';
+import 'package:revali_router_core/meta/meta_handler.dart';
+import 'package:revali_router_core/middleware/middleware.dart';
+import 'package:revali_router_core/redirect/redirect.dart';
+import 'package:revali_router_core/response_handler/response_handler.dart';
+import 'package:revali_router_core/route/lifecycle_components.dart';
+import 'package:revali_router_core/route/route_entry.dart';
 
 part 'base_route.g.dart';
 
