@@ -96,3 +96,44 @@ class MyException implements Exception {
 class OtherException implements Exception {
   const OtherException();
 }
+
+class Auth implements LifecycleComponent {
+  const Auth();
+
+  Future<MiddlewareResult> getUser({
+    @Header() required String authorization,
+    required DataHandler dataHandler,
+  }) async {
+    final userService = UsersService();
+
+    final parts = authorization.split(' ');
+
+    if (parts.length != 2 || parts[0] != 'Bearer') {
+      return const MiddlewareResult.stop(
+        statusCode: 401,
+        body: {'message': 'Invalid authorization header'},
+      );
+    }
+
+    final token = parts[1];
+
+    dataHandler.add(AuthToken(token));
+
+    final user = await userService.getByToken(token);
+
+    dataHandler.add(user);
+
+    return const MiddlewareResult.next();
+  }
+}
+
+class UsersService {
+  Future<User> getByToken(String token) async {
+    return const User(
+      id: 'id',
+      name: 'name',
+    );
+  }
+}
+
+extension type AuthToken(String token) {}

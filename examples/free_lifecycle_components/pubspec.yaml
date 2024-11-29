@@ -2,7 +2,7 @@ name: hello
 publish_to: 'none'
 
 environment:
-    sdk: '>=3.2.6 <4.0.0'
+    sdk: '>=3.3.0 <4.0.0'
 
 dependencies:
     revali_router:
