@@ -51,6 +51,7 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
       )
       ..addMultiOption(
         'dart-define',
+        abbr: 'D',
         help: 'Additional key-value pairs that will be available as constants.',
         valueHelp: 'BASE_URL=https://api.example.com',
       )
