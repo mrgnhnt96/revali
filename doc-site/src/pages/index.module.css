@@ -1,0 +1,101 @@
+.main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.h1 {
+    left: -9999px;
+    position: absolute;
+}
+
+.logo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 64px 15px 32px;
+}
+
+.logoImage {
+    height: auto;
+    width: 95%;
+}
+
+.layout {
+    display: flex;
+    flex-direction: column;
+}
+
+.gettingStarted {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.heroImage {
+    width: 90%;
+    height: auto;
+    padding-bottom: 16px;
+}
+
+.cta {
+    display: flex;
+    flex-direction: row;
+    align-items: start;
+    margin: 0 0 32px 0;
+}
+
+.sellingPoints {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.sellingPoint {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 80%;
+    text-align: center;
+}
+
+.sellingPoint > svg {
+    height: 100px;
+    width: 100px;
+}
+
+/* tablet */
+@media screen and (max-width: 995px) and (min-width: 768px) {
+    .sellingPoints {
+        flex-direction: row;
+        justify-content: space-between;
+        margin: 0 32px;
+    }
+
+    .sellingPoint {
+        max-width: 33%;
+    }
+}
+
+/* desktop */
+@media screen and (min-width: 996px) {
+    .layout {
+        flex-direction: row;
+        justify-content: center;
+    }
+
+    .gettingStarted {
+        width: 50%;
+    }
+
+    .sellingPoints {
+        width: 25%;
+    }
+
+    .logo {
+        margin-bottom: 64px;
+    }
+}
