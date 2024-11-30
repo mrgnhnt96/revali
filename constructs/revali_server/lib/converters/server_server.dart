@@ -1,6 +1,7 @@
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_server/converters/server_app.dart';
 import 'package:revali_server/converters/server_imports.dart';
+import 'package:revali_server/converters/server_lifecycle_component.dart';
 import 'package:revali_server/converters/server_parent_route.dart';
 import 'package:revali_server/converters/server_public.dart';
 import 'package:revali_server/converters/server_reflect.dart';
@@ -27,6 +28,31 @@ class ServerServer with ExtractImport {
   final List<ServerApp> apps;
   final List<ServerPublic> public;
   final RevaliContext context;
+
+  List<ServerLifecycleComponent> get lifecycleComponents {
+    final app = this.app;
+    if (app == null) {
+      return [];
+    }
+
+    final all = [
+      ...app.globalRouteAnnotations.lifecycleComponents,
+    ];
+
+    for (final route in routes) {
+      all.addAll(route.annotations.lifecycleComponents);
+
+      for (final sub in route.routes) {
+        all.addAll(sub.annotations.lifecycleComponents);
+      }
+    }
+
+    final uniques = {
+      for (final component in all) component.name: component,
+    };
+
+    return uniques.values.toList();
+  }
 
   ServerApp? get app {
     if (apps.isEmpty) {

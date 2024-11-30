@@ -17,7 +17,7 @@ import 'package:watcher/watcher.dart';
 final _warningRegex = RegExp(r'^.*:\d+:\d+: Warning: .*', multiLine: true);
 
 final _dartVmServiceAlreadyInUseErrorRegex = RegExp(
-  r'\(Address already in use\)',
+  r'DartDevelopmentServiceException: Failed to create server socket \(Address already in use\)',
   multiLine: true,
 );
 
@@ -403,7 +403,7 @@ class VMServiceHandler {
 
       if (isDartVMServiceAlreadyInUseError) {
         logger.err(
-          '$message '
+          '$message\n'
           'Try specifying a different port using the '
           '`--dart-vm-service-port` argument',
         );

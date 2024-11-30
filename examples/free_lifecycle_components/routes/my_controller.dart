@@ -7,7 +7,10 @@ class MyController {
   const MyController();
 
   @LifecycleComponents([AuthLifecycleComponent])
-  // @Auth()
   @Get()
   Future<void> get() async {}
+
+  @LifecycleComponents([AuthLifecycleComponent])
+  @Put()
+  Future<void> put() async {}
 }

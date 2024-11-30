@@ -26,14 +26,6 @@ class RevaliServerConstruct implements ServerConstruct {
       return formatter.format(spec.accept(emitter).toString());
     }
 
-    final components = serverServer.routes
-        .expand((e) => e.routes)
-        .expand((e) => e.annotations.lifecycleComponents);
-
-    final lifecycleComponentFiles = components
-        .expand((e) => lifecycleComponentFilesMaker(e, format))
-        .toList();
-
     return ServerDirectory(
       serverFile: ServerFile(
         content: serverFile(serverServer, format, options: options),
@@ -43,7 +35,8 @@ class RevaliServerConstruct implements ServerConstruct {
           reflectsFileMaker(serverServer, format),
           publicFileMaker(serverServer, format),
           routesFileMaker(serverServer, format),
-          ...lifecycleComponentFiles,
+          for (final component in serverServer.lifecycleComponents)
+            ...lifecycleComponentFilesMaker(component, format),
         ],
       ),
     );
