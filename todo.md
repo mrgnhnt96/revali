@@ -2,8 +2,6 @@
 
 ## 10.3.2024
 
--   [ ] Figure out why reload isn't happening on lib changes
-
 ### CLI
 
 -   [ ] Add `create` command to the revali cli to create new
