@@ -94,9 +94,9 @@ class HotReload {
 
           return false;
         },
-        onAfterReload: (ctx) {
+        onAfterReload: (ctx) async {
           stdout.writeln(reloaded);
-          obtainNewServer(serverFactory);
+          await obtainNewServer(serverFactory);
         },
         debounceInterval: Duration.zero,
       );
