@@ -103,8 +103,10 @@ class RunOriginCheck {
       if (caseSafeHeaders.isNotEmpty) {
         return debugErrorResponse(
           defaultResponses.failedCorsHeaders,
-          error:
-              'Header(s) "${caseSafeHeaders.keys.join(', ')}" is/are missing.',
+          error: '''
+Missing Headers:
+  - ${caseSafeHeaders.keys.join('\n  - ')}
+''',
           stackTrace: StackTrace.current,
         );
       }
