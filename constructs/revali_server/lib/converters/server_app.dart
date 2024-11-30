@@ -1,7 +1,14 @@
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_router_core/revali_router_core.dart';
-import 'package:revali_server/revali_server.dart';
+import 'package:revali_server/converters/server_app_annotation.dart';
+import 'package:revali_server/converters/server_app_observers.dart';
+import 'package:revali_server/converters/server_imports.dart';
+import 'package:revali_server/converters/server_mimic.dart';
+import 'package:revali_server/converters/server_param.dart';
+import 'package:revali_server/converters/server_route_annotations.dart';
+import 'package:revali_server/converters/server_type_reference.dart';
+import 'package:revali_server/utils/extract_import.dart';
 
 class ServerApp with ExtractImport {
   ServerApp({

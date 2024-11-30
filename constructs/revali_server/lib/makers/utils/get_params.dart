@@ -1,5 +1,6 @@
 import 'package:code_builder/code_builder.dart';
-import 'package:revali_server/revali_server.dart';
+import 'package:revali_server/converters/server_param.dart';
+import 'package:revali_server/makers/creators/create_param_arg.dart';
 
 ({Iterable<Expression> positioned, Map<String, Expression> named}) getParams(
   Iterable<ServerParam> params, {

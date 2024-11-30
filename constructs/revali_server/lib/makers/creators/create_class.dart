@@ -1,5 +1,6 @@
 import 'package:code_builder/code_builder.dart';
-import 'package:revali_server/revali_server.dart';
+import 'package:revali_server/converters/server_class.dart';
+import 'package:revali_server/makers/utils/get_params.dart';
 
 Expression createClass(
   ServerClass c, {

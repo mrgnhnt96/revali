@@ -2,7 +2,15 @@
 
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router/revali_router.dart';
-import 'package:revali_server/revali_server.dart';
+import 'package:revali_server/converters/server_allow_headers.dart';
+import 'package:revali_server/converters/server_allow_origins.dart';
+import 'package:revali_server/converters/server_expect_headers.dart';
+import 'package:revali_server/converters/server_imports.dart';
+import 'package:revali_server/converters/server_lifecycle_component.dart';
+import 'package:revali_server/converters/server_mimic.dart';
+import 'package:revali_server/converters/server_set_header.dart';
+import 'package:revali_server/converters/server_type_reference.dart';
+import 'package:revali_server/utils/extract_import.dart';
 
 class ServerRouteAnnotations with ExtractImport {
   ServerRouteAnnotations({
