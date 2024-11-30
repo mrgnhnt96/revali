@@ -74,6 +74,21 @@ extension DirectoryX on Directory {
     return revali.childFile(basename);
   }
 
+  /// A directory within the `lib` directory that
+  /// contains the revali components
+  ///
+  /// This directory will trigger a re-generation of the
+  /// code when a file is added, removed, or modified
+  Future<Directory> getComponents() async {
+    final root = await getRoot();
+
+    if (root == null) {
+      throw Exception('Failed to find project root');
+    }
+
+    return root.childDirectory('lib').childDirectory('components');
+  }
+
   Future<Directory> getPublic() async {
     final root = await getRoot();
 

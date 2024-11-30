@@ -111,7 +111,7 @@ class ConstructGenerator with DirectoriesMixin {
 
   Future<MetaServer?> generate([Log progress]) async {
     try {
-      return _generate(progress);
+      return await _generate(progress);
     } catch (e) {
       logger
         ..delayed(red.wrap('Error occurred while generating constructs'))
@@ -211,6 +211,11 @@ constructs:
             logger.err(
               'Something went wrong when generating Construct ${maker.name}',
             );
+
+            if (maker.isServer) {
+              logger.delayed('Please check that your code is valid...');
+              return null;
+            }
           }
         } catch (e) {
           logger
@@ -226,13 +231,13 @@ constructs:
 
     if (generateConstructType.isBuild) {
       progress?.call('Running post-build hooks');
-    }
 
-    for (final maker in buildMakers) {
-      final construct = await constructFromMaker<BuildConstruct>(maker);
-      if (construct == null) continue;
+      for (final maker in buildMakers) {
+        final construct = await constructFromMaker<BuildConstruct>(maker);
+        if (construct == null) continue;
 
-      await construct.postBuild(buildContext, server);
+        await construct.postBuild(buildContext, server);
+      }
     }
 
     if (serverMakers.isEmpty) {
@@ -431,7 +436,8 @@ http://revali.dev/constructs#server-constructs
     } catch (e) {
       logger
         ..err('Failed to generate Server Construct')
-        ..err('Error: $e');
+        ..err('Error: $e')
+        ..delayed('Error: $e');
 
       return false;
     }

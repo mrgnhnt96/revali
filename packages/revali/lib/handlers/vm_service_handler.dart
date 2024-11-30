@@ -17,7 +17,7 @@ import 'package:watcher/watcher.dart';
 final _warningRegex = RegExp(r'^.*:\d+:\d+: Warning: .*', multiLine: true);
 
 final _dartVmServiceAlreadyInUseErrorRegex = RegExp(
-  '^Could not start the VM service: localhost:.* is already in use.',
+  r'\(Address already in use\)',
   multiLine: true,
 );
 
@@ -39,11 +39,12 @@ class VMServiceHandler {
   final String dartVmServicePort;
   final Directory root;
   final String serverFile;
-  final Future<MetaServer?> Function() codeGenerator;
+  final Future<MetaServer?> Function([void Function(String)?]) codeGenerator;
   final bool canHotReload;
   final DartDefine dartDefine;
 
   bool _isReloading = false;
+  bool _errorInGeneration = false;
 
   Progress? __progress;
   Progress? get _progress => __progress;
@@ -81,12 +82,16 @@ class VMServiceHandler {
 
     _progress = logger.progress('Reloading');
 
-    final server = await codeGenerator();
+    final server = await codeGenerator(_progress?.update);
     if (server == null) {
+      _errorInGeneration = true;
       clearConsole();
       _progress?.fail('Failed to reload');
-      logger.write('\n');
+      logger
+        ..write('\n')
+        ..flush();
     } else {
+      _errorInGeneration = false;
       _progress?.complete('Reloaded');
       clearConsole();
       printVmServiceUri();
@@ -95,6 +100,9 @@ class VMServiceHandler {
 
     logger.flush((message) {
       if (message == null) return;
+      final lines = message.split('\n');
+      final updatedMessage = [for (final line in lines) '[FLUSHED]: $line'];
+      logger.detail('[FLUSHED]: $updatedMessage');
 
       if (!message.contains(RegExp('error|fail', caseSensitive: false))) {
         return;
@@ -254,7 +262,7 @@ class VMServiceHandler {
 
     final progress = logger.progress('Generating server code');
 
-    final server = await codeGenerator();
+    final server = await codeGenerator(progress.update);
     if (server == null) {
       progress.fail('Failed to generate server code');
       logger
@@ -289,6 +297,7 @@ class VMServiceHandler {
 
       final _ = switch (key) {
         'r' => _reload().ignore(),
+        'R' => _reload().ignore(),
         'q' => stop().ignore(),
         'Q' => stop().ignore(),
         _ => null,
@@ -306,7 +315,7 @@ class VMServiceHandler {
         .debounce(Duration.zero)
         .listen((event) => _reload(event.$2));
 
-    _watcherSubscription!.asFuture<void>().then((_) async {
+    _watcherSubscription?.asFuture<void>().then((_) async {
       await _cancelWatcherSubscription();
       await stop();
     }).catchError((_) async {
@@ -367,8 +376,6 @@ class VMServiceHandler {
     }
 
     process.stderr.listen((err) async {
-      _progress?.fail('Failed to start server');
-
       if (_isReloading) {
         return;
       }
@@ -377,11 +384,18 @@ class VMServiceHandler {
       if (message.isEmpty) return;
 
       if (message.contains(HotReload.nonRevaliReload)) {
+        if (_errorInGeneration) {
+          logger.err('Failed to reload');
+          return;
+        }
+
         clearConsole();
         printVmServiceUri();
         printParsedRoutes(null);
         return;
       }
+
+      _progress?.fail('Failed to start server');
 
       final isDartVMServiceAlreadyInUseError =
           _dartVmServiceAlreadyInUseErrorRegex.hasMatch(message);
@@ -410,6 +424,10 @@ class VMServiceHandler {
     });
 
     process.stdout.listen((out) {
+      if (_errorInGeneration) {
+        return;
+      }
+
       final message = utf8.decode(out).trim();
       if (message.isEmpty) {
         return;
@@ -467,6 +485,11 @@ class VMServiceHandler {
       return (false, event.path);
     }
 
+    if (_errorInGeneration) {
+      logger.detail('Forcing reload due to error in generation');
+      return (true, event.path);
+    }
+
     final revali = await root.getServer();
     if (p.isWithin(revali.path, event.path)) {
       return (true, event.path);
@@ -485,6 +508,11 @@ class VMServiceHandler {
 
     final public = await root.getPublic();
     if (p.isWithin(public.path, event.path)) {
+      return (true, event.path);
+    }
+
+    final lib = await root.getComponents();
+    if (p.isWithin(lib.path, event.path)) {
       return (true, event.path);
     }
 
