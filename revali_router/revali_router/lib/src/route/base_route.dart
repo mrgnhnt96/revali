@@ -1,3 +1,4 @@
+import 'package:autoequal/autoequal.dart';
 import 'package:equatable/equatable.dart';
 import 'package:revali_router/src/meta/combine_components_applier.dart';
 import 'package:revali_router_core/access_control/allowed_headers.dart';
@@ -76,6 +77,8 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
     required dynamic meta,
   })  : _meta = meta as void Function(MetaHandler)?,
         _responseHandler = responseHandler {
+    final providedRoutes = routes?.toList();
+
     final method = this.method;
 
     if ((method == null) != (handler == null)) {
@@ -88,7 +91,7 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
       }
     }
 
-    if (path.isEmpty && routes != null && routes.isNotEmpty) {
+    if (path.isEmpty && providedRoutes != null && providedRoutes.isNotEmpty) {
       throw ArgumentError('path cannot be empty if routes are provided');
     }
 
@@ -119,7 +122,7 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
 
     CombineComponentsApplier(this, combine).apply();
 
-    this.routes = routes?.map((e) => e.setParent(this));
+    this.routes = providedRoutes?.map((e) => e.setParent(this)).toList();
 
     // assert no conflicting paths
     // user/:id conflicts with user/:name
@@ -151,7 +154,7 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
 
   @override
   final String path;
-  late final Iterable<BaseRoute>? routes;
+  late final List<BaseRoute>? routes;
   @override
   final List<Middleware> middlewares;
   @override
@@ -161,8 +164,14 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
   final List<ExceptionCatcher> catchers;
   @override
   final List<Guard> guards;
+
+  @ignore
   @override
   BaseRoute? parent;
+
+  @include
+  bool get hasParent => parent != null;
+
   final Future<dynamic> Function(EndpointContext)? handler;
   @override
   final String? method;
