@@ -17,11 +17,12 @@ extension _$WebSocketRouteAutoequal on WebSocketRoute {
         interceptors,
         catchers,
         guards,
-        parent,
         handler,
         method,
         redirect,
         allowedOrigins,
         allowedHeaders,
+        expectedHeaders,
+        hasParent,
       ];
 }

@@ -14,13 +14,14 @@ extension _$BaseRouteAutoequal on BaseRoute {
         interceptors,
         catchers,
         guards,
-        parent,
         handler,
         method,
         _meta,
         redirect,
         allowedOrigins,
         allowedHeaders,
+        expectedHeaders,
         _responseHandler,
+        hasParent,
       ];
 }

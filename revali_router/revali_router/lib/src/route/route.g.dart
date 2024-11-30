@@ -15,11 +15,12 @@ extension _$RouteAutoequal on Route {
         interceptors,
         catchers,
         guards,
-        parent,
         handler,
         method,
         redirect,
         allowedOrigins,
         allowedHeaders,
+        expectedHeaders,
+        hasParent,
       ];
 }

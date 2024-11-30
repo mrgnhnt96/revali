@@ -14,11 +14,12 @@ extension _$SseRouteAutoequal on SseRoute {
         interceptors,
         catchers,
         guards,
-        parent,
         handler,
         method,
         redirect,
         allowedOrigins,
         allowedHeaders,
+        expectedHeaders,
+        hasParent,
       ];
 }
