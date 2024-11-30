@@ -4,7 +4,7 @@ import 'package:revali_router_core/headers/read_only_headers.dart';
 import 'package:revali_router_core/request/underlying_request.dart';
 import 'package:revali_router_core/utils/types.dart';
 
-abstract class RequestContext {
+abstract interface class RequestContext {
   const RequestContext();
 
   PayloadResolver? get payloadResolver;
