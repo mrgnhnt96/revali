@@ -2,7 +2,7 @@
 
 import 'dart:io';
 
-import 'package:revali_core/di/di.dart';
+import 'package:revali_core/revali_core.dart';
 
 abstract base class AppConfig {
   const AppConfig({
@@ -33,6 +33,8 @@ abstract base class AppConfig {
   final String? prefix;
   final bool requestClientCertificate;
   final SecurityContext? securityContext;
+
+  DI initializeDI() => DIImpl();
 
   void onServerStarted(HttpServer server) {
     var prefix = '';

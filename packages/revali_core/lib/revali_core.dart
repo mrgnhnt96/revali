@@ -6,4 +6,5 @@
 
 export 'app_config/app_config.dart';
 export 'di/di.dart';
+export 'di/di_handler.dart';
 export 'di/di_impl.dart';

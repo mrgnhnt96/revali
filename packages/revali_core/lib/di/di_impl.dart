@@ -7,20 +7,18 @@ class DIImpl implements DI {
 
   final Map<Type, dynamic> _singletons;
   final Map<Type, dynamic> _lazySingletons;
-  bool _canRegister = true;
 
   @override
-  void registerInstance<T>(T instance) => _register<T>(_singletons, instance);
+  void registerInstance<T>(T instance) {
+    _register<T>(_singletons, instance);
+  }
 
   @override
-  void register<T>(Factory<T> factory) =>
-      _register<T>(_lazySingletons, factory);
+  void register<T>(Factory<T> factory) {
+    _register<T>(_lazySingletons, factory);
+  }
 
   void _register<T>(Map<Type, dynamic> map, dynamic value) {
-    if (!_canRegister) {
-      throw Exception('Registration is closed, cannot register new types');
-    }
-
     _ensureUnique<T>();
     map[T] = value;
   }
@@ -29,10 +27,6 @@ class DIImpl implements DI {
     if (_singletons.containsKey(T) || _lazySingletons.containsKey(T)) {
       throw Exception('Type $T already registered');
     }
-  }
-
-  void finishRegistration() {
-    _canRegister = false;
   }
 
   @override

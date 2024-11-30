@@ -4,7 +4,7 @@
 //
 // ignore_for_file: directives_ordering
 
-export 'package:revali_core/revali_core.dart' show AppConfig, DI, DIImpl;
+export 'package:revali_core/revali_core.dart' show AppConfig, DI, DIHandler;
 
 export 'access_control/allowed_headers.dart';
 export 'access_control/allowed_origins.dart';

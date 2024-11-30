@@ -97,7 +97,11 @@ String serverFile(
         ),
         const Code('\n'),
         declareFinal('di')
-            .assign(refer((DIImpl).name).newInstance([]))
+            .assign(
+              refer((DIHandler).name).newInstance(
+                [refer('app').property('initializeDI').call([])],
+              ),
+            )
             .statement,
         ...createDependencyInjection(server),
         const Code('\n'),
