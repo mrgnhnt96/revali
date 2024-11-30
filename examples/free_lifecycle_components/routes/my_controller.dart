@@ -6,7 +6,7 @@ import 'auth_lifecycle_components.dart';
 class MyController {
   const MyController();
 
-  @LifecycleComponents([Auth])
+  @LifecycleComponents([AuthLifecycleComponent])
   // @Auth()
   @Get()
   Future<void> get() async {}

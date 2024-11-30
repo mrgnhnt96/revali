@@ -40,7 +40,7 @@ class AuthLifecycleComponent implements LifecycleComponent {
 
   InterceptorPreResult getDataOnToken() {}
 
-  InterceptorPreResult getMetaDataForRole() {}
+  Future<InterceptorPreResult> getMetaDataForRole() async {}
 
   InterceptorPostResult updateMetaDataOnRole() async {}
 

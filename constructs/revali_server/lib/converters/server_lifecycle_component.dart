@@ -221,7 +221,13 @@ class ComponentMethod with ExtractImport {
         when type.isAnyFuture) {
       isFuture = true;
       final typeArg = type.typeArguments.first;
-      returnType = typeArg.getDisplayString();
+
+      final resolveReturnType = typeArg.getDisplayString();
+
+      returnType = switch (typeArg) {
+        InterfaceType() => typeArg.alias?.element.name ?? resolveReturnType,
+        _ => resolveReturnType,
+      };
 
       if (returnType.startsWith((ExceptionCatcherResult).name)) {
         throw ArgumentError('Exception types cannot be a Future type');
