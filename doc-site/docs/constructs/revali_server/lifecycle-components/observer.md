@@ -23,7 +23,7 @@ Observers are executed immediately after the request is received and before the 
 
 To create an `Observer`, you need to implement the `Observer` class and implement the `see` method.
 
-```dart title="lib/observers/my_observer.dart"
+```dart title="lib/components/observers/my_observer.dart"
 import 'package:revali_router/revali_router.dart';
 
 class MyObserver implements Observer {

@@ -17,7 +17,7 @@ Middleware is executed before the guards, in the order they are registered.
 
 To create a `Middleware`, you need to implement the `Middleware` class and implement the `use` method.
 
-```dart title="lib/middleware/my_middleware.dart"
+```dart title="lib/components/middleware/my_middleware.dart"
 import 'package:revali_router/revali_router.dart';
 
 class MyMiddleware implements Middleware {

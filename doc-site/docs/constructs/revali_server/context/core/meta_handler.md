@@ -1,6 +1,7 @@
 ---
 description: Read & write metadata associated with the endpoint & request
 ---
+
 # Meta Handler
 
 The `MetaHandler` object is used to store meta data in the context. Meta data is used to store additional information about the endpoint. The meta data is stored and retrieved by type.
@@ -55,7 +56,7 @@ bool has = context.meta.has<T>();
 
 An example of the `MetaHandler` is when you have a controller that requires an `Authorization` header to be present in the request, but you want to allow unauthenticated requests to a specific route. You can create a `Public` meta class that you can register to the endpoint.
 
-```dart title="lib/meta/public.dart"
+```dart title="lib/components/meta/public.dart"
 import 'package:revali_router/revali_router.dart';
 
 class Public extends Meta {
@@ -84,7 +85,7 @@ class UserController extends Controller {
 
 Within the `AuthGuard` guard, we can check if the `Public` meta is present in the context and allow the request to continue.
 
-```dart title="lib/guards/auth_guard.dart"
+```dart title="lib/components/guards/auth_guard.dart"
 import 'package:revali_router/revali_router.dart';
 
 class AuthGuard implements Guard {

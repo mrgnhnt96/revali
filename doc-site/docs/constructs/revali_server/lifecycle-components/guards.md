@@ -17,7 +17,7 @@ Guards are executed after the middleware, before the interceptors.
 
 To create a `Guard`, you need to implement the `Guard` class and implement the `protect` method.
 
-```dart title="lib/guards/my_guard.dart"
+```dart title="lib/components/guards/my_guard.dart"
 import 'package:revali_router/revali_router.dart';
 
 class MyGuard implements Guard {
@@ -98,7 +98,7 @@ Learn more about [type referencing][type-referencing].
 
 In this example, we have a `RoleGuard` that checks if the user has the correct role to access a resource.
 
-```dart title="lib/guards/role_guard.dart"
+```dart title="lib/components/guards/role_guard.dart"
 import 'package:revali_router/revali_router.dart';
 
 class RoleGuard implements Guard {

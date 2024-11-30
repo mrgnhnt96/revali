@@ -271,7 +271,7 @@ Occasionally, you may need a custom parameter annotation. Whether you need acces
 
 To create a custom parameter annotation, you need to implement the class `Bind` and override the `bind` method.
 
-```dart title="lib/custom_params/bind_user.dart"
+```dart title="lib/components/custom_params/bind_user.dart"
 import 'package:revali_router/revali_router.dart';
 
 class GetUser extends Bind<User> {
@@ -423,7 +423,6 @@ Read more about why the pipe being used as a [Type Reference][using-types-in-ref
 [configure-dependencies]: ../../../revali/app-configuration/configure-dependencies.md#registering-dependencies
 [data-handler]: ../../../constructs/revali_server/context/core/data_handler.md
 [using-types-in-references]: ../../../constructs/revali_server/tidbits.md#using-types-in-annotations
-
 [param-pipe]: #param-1
 [query-pipe]: #query-1
 [body-pipe]: #body-1

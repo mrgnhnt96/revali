@@ -80,7 +80,7 @@ T? value = context.data.get<T>();
 
 An example of the `DataHandler` is when you need to retrieve a `User` based on a value received from the request. You will more than likely need to access the `User` object in different Lifecycle Components. So, you can store the `User` object in the `DataHandler` and retrieve it when needed.
 
-```dart title="lib/middleware/user_middleware.dart"
+```dart title="lib/components/middleware/user_middleware.dart"
 import 'package:revali_router/revali_router.dart';
 
 class UserMiddleware implements Middleware {
@@ -105,7 +105,7 @@ class UserMiddleware implements Middleware {
 
 Now that we have the user stored in the `DataHandler` we can retrieve it in a different Lifecycle Component. Let's say that we have a `RoleGuard` that checks if the user has the correct role to access a resource.
 
-```dart title="lib/middleware/role_middleware.dart"
+```dart title="lib/components/middleware/role_middleware.dart"
 import 'package:revali_router/revali_router.dart';
 
 class RoleGuard implements Guard {

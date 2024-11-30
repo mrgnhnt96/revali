@@ -12,7 +12,7 @@ To create an `ExceptionCatcher`, you need to extend the `ExceptionCatcher` class
 
 In this example, only exceptions of type `MyException` will be caught by the `MyExceptionCatcher` class.
 
-```dart title="lib/catchers/my_catcher.dart"
+```dart title="lib/components/catchers/my_catcher.dart"
 import 'package:revali_router/revali_router.dart';
 
 final class MyExceptionCatcher extends ExceptionCatcher<MyException> {
@@ -67,7 +67,7 @@ Learn more about [type referencing][type-referencing].
 
 Its not common, but you can create multiple `ExceptionCatcher` classes that catch the same type of exception. This can be useful if you want to handle the same type of exception in different ways.
 
-```dart title="lib/catchers/my_other_catcher.dart"
+```dart title="lib/components/catchers/my_other_catcher.dart"
 import 'package:revali_router/revali_router.dart';
 
 final class MyOtherCatcher extends ExceptionCatcher<MyException> {
@@ -90,7 +90,7 @@ When `ExceptionCatcherResult.unhandled()` is returned, the next `ExceptionCatche
 
 The `ExceptionCatcher` is responsible for preparing the error response to be sent back to the client.
 
-```dart title="lib/catchers/my_catcher.dart"
+```dart title="lib/components/catchers/my_catcher.dart"
 import 'package:revali_router/revali_router.dart';
 
 final class MyExceptionCatcher extends ExceptionCatcher<MyException> {
@@ -134,7 +134,7 @@ If the `statusCode` is not set, the default status code will be 500.
 
 If you would like to catch all exceptions that weren't caught by any other `ExceptionCatcher`, you can extend the `DefaultExceptionCatcher` class and implement the `catchException` method. While you may be tempted to handle all exceptions in the default exception catcher, it is highly recommended to only handle exceptions that are not caught by any other `ExceptionCatcher`.
 
-```dart title="lib/catchers/unhandled_catcher.dart"
+```dart title="lib/components/catchers/unhandled_catcher.dart"
 import 'package:revali_router/revali_router.dart';
 
 class UnhandledCatcher extends DefaultExceptionCatcher {

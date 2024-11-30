@@ -35,7 +35,7 @@ Interceptors are executed in the order they are registered. Before the endpoint 
 
 To create an `Interceptor`, you need to implement the `Interceptor` class and implement the `pre` and `post` methods.
 
-```dart title="lib/interceptors/my_interceptor.dart"
+```dart title="lib/components/interceptors/my_interceptor.dart"
 import 'package:revali_router/revali_router.dart';
 
 class MyInterceptor implements Interceptor {

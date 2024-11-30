@@ -28,7 +28,7 @@ class UserController {
 
 At the moment, the `publicUser` method requires an `Authorization` header to be present in the request. To allow unauthenticated requests to the `publicUser` method, you can create a `Public` meta class that you can register to the endpoint.
 
-```dart title="lib/meta/public.dart"
+```dart title="lib/components/meta/public.dart"
 import 'package:revali_router/revali_router.dart';
 
 class Public implements Meta {
@@ -51,7 +51,7 @@ Now that we have the `Public` meta class, we can register it to the endpoint.
 
 The final piece to this puzzle is to handle the `Public` meta class in the `Auth` guard.
 
-```dart title="lib/guards/auth_guard.dart"
+```dart title="lib/components/guards/auth_guard.dart"
 import 'package:revali_router/revali_router.dart';
 
 class Auth implements Guard {
@@ -76,7 +76,7 @@ Now, when a request is made to the `publicUser` method, the `Auth` guard will ch
 
 When you have a return type that you are returning to the client and contains sensitive data, you can add a `Meta` object to the field of the return type. Leveraging the [`ReflectHandler`][reflect-handler], you can analyze the meta data of the return type's properties and remove the sensitive data before sending it to the client.
 
-```dart title="lib/meta/no_return.dart"
+```dart title="lib/components/meta/no_return.dart"
 import 'package:revali_router/revali_router.dart';
 
 class AdminEyesOnly extends Meta {
@@ -103,7 +103,7 @@ class User {
 
 With the `AdminEyesOnly` meta class registered to the `isSuperUser` field, we can now create an interceptor that will remove the `isSuperUser` field from the response body before sending it to the client.
 
-```dart title="lib/interceptor/user_interceptor.dart"
+```dart title="lib/components/interceptor/user_interceptor.dart"
 import 'package:revali_router/revali_router.dart';
 
 
