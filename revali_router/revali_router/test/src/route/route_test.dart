@@ -13,7 +13,7 @@ void main() {
           handler: (_) async {},
         );
 
-        expect(route.method, equals('GET'));
+        expect(route.method, 'GET');
       });
 
       test('nested routes should have parent', () {
@@ -30,7 +30,7 @@ void main() {
           ],
         );
 
-        expect(parent.routes!.first.parent, equals(parent));
+        expect(parent.routes!.first.parent, parent);
       });
 
       test('allows empty path', () {
@@ -40,7 +40,7 @@ void main() {
           handler: (_) async {},
         );
 
-        expect(route.path, equals(''));
+        expect(route.path, '');
       });
 
       group('dynamic paths', () {
@@ -438,7 +438,7 @@ void main() {
           responseHandler: handler,
         );
 
-        expect(route.responseHandler, equals(handler));
+        expect(route.responseHandler, handler);
       });
 
       test('should return parent response handler if provided', () async {
@@ -460,7 +460,7 @@ void main() {
           ],
         );
 
-        expect(child.responseHandler, equals(parentHandler));
+        expect(child.responseHandler, parentHandler);
       });
 
       test(
@@ -491,7 +491,7 @@ void main() {
             ],
           );
 
-          expect(child.responseHandler, equals(handler));
+          expect(child.responseHandler, handler);
         },
       );
     });
