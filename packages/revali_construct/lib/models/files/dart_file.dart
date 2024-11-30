@@ -8,25 +8,33 @@ class DartFile extends AnyFile {
     List<PartFile> parts = const [],
   })  : parts = parts.map((e) {
           if (e.path.isEmpty) {
-            throw Exception('Part file path cannot be empty.');
+            throw AssertionError('Part file path cannot be empty.');
           }
 
           for (final partPath in e.path) {
             if (partPath.isEmpty) {
-              throw Exception('Part file path cannot contain empty parts.');
+              throw AssertionError(
+                'Part file path cannot contain empty parts.',
+              );
             }
 
             if (partPath.contains(RegExp(r'\\|\/|\.\\|\.{2,}|^\.'))) {
-              throw Exception('Part file path cannot contain relative paths.');
+              throw AssertionError(
+                'Part file path cannot contain relative paths.',
+              );
             }
           }
 
           if (e.path.last.endsWith('.dart')) {
-            throw Exception('Part file path must not end with .dart.');
+            throw AssertionError('Part file path must not end with .dart.');
           }
 
           return e;
         }).toList(),
+        assert(
+          parts.toSet().length == parts.length,
+          'Part files must be unique within a Dart file.',
+        ),
         super(extension: 'dart') {
     for (final part in parts) {
       part.parent = this;
