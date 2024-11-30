@@ -373,7 +373,7 @@ ${result.stderr}''');
         ..body = Block.of([
           declareFinal('result')
               .assign(
-                refer('run', revali).call([
+                refer('runConstruct', revali).call([
                   refer('args'),
                 ], {
                   'constructs': refer('_constructs'),
