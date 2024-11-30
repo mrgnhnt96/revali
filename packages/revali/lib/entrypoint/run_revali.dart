@@ -1,13 +1,14 @@
+import 'dart:io';
+
 import 'package:file/local.dart';
 import 'package:mason_logger/mason_logger.dart';
-import 'package:revali/revali.dart';
-import 'package:revali_construct/revali_construct.dart';
+import 'package:revali/clis/revali_runner/revali_runner.dart';
 
-Future<int> run(
-  List<String> args, {
-  required List<ConstructMaker> constructs,
-  required String path,
-}) async {
+void runRevali(List<String> args) {
+  _run(args);
+}
+
+Future<void> _run(List<String> args) async {
   const fs = LocalFileSystem();
 
   var isLoud = false;
@@ -26,14 +27,13 @@ Future<int> run(
             : Level.info,
   );
 
-  final runner = ConstructRunner(
+  final runner = RevaliRunner(
+    initialDirectory: fs.currentDirectory.path,
     fs: fs,
-    constructs: constructs,
-    rootPath: path,
     logger: logger,
   );
 
   final result = await runner.run(args);
 
-  return result;
+  exit(result);
 }
