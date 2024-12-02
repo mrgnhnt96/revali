@@ -61,3 +61,4 @@ packages/cli/libisar.dylib
 FAILED_PUBLISH.md
 
 coverage/
+constructs/revali_server/bin/tester.dart
