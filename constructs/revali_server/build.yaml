@@ -1,0 +1,10 @@
+targets:
+  $default:
+    builders:
+      json_serializable:
+        enabled: true
+        options:
+          explicit_to_json: true
+          include_if_null: true
+          any_map: true
+          field_rename: snake

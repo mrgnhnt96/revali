@@ -5,6 +5,7 @@ import 'package:change_case/change_case.dart';
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart' as p;
+import 'package:revali_server/cli/commands/create/mixins/create_command_mixin.dart';
 
 class CreateControllerCommand extends Command<int> with CreateCommandMixin {
   CreateControllerCommand({
@@ -26,6 +27,7 @@ class CreateControllerCommand extends Command<int> with CreateCommandMixin {
       );
   }
 
+  @override
   final Logger logger;
 
   @override
@@ -54,7 +56,8 @@ class ${name.toPascalCase()}Controller {
 ''';
 
   @override
-  FutureOr<int>? run() {
+  Future<int>? run() async {
+    logger.detail('Running ${this.name} command');
     final rootDir = root;
 
     if (rootDir == null) {
@@ -62,8 +65,13 @@ class ${name.toPascalCase()}Controller {
       return 1;
     }
 
+    final config = this.config;
+
     final routesPath = p.join(rootDir, 'routes');
-    final controllersPath = p.join(routesPath, 'controllers');
+    final controllersPath = p.join(
+      routesPath,
+      config.createPaths.controller,
+    );
 
     var name = controllerName;
 
@@ -103,26 +111,5 @@ class ${name.toPascalCase()}Controller {
     }
 
     return 0;
-  }
-}
-
-mixin CreateCommandMixin {
-  FileSystem get fs;
-
-  String? get root {
-    var directory = fs.currentDirectory.absolute;
-
-    while (directory.path != p.separator) {
-      print('directory: ${directory.path}');
-      final file = directory.childFile('pubspec.yaml');
-
-      if (file.existsSync()) {
-        return directory.path;
-      }
-
-      directory = directory.parent;
-    }
-
-    return null;
   }
 }
