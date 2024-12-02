@@ -112,6 +112,7 @@ class ServerServer with ExtractImport {
   @override
   List<ExtractImport?> get extractors => [
         ...routes,
+        ...lifecycleComponents,
         app,
       ];
 

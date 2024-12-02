@@ -21,6 +21,7 @@ class ServerLifecycleComponent with ExtractImport {
     required this.interceptors,
     required this.exceptionCatchers,
     required this.params,
+    required this.import,
   });
 
   factory ServerLifecycleComponent.fromDartObject(
@@ -69,6 +70,9 @@ class ServerLifecycleComponent with ExtractImport {
     }
 
     final params = constructor.parameters.map(ServerParam.fromElement).toList();
+    final importPaths = {
+      constructor.returnType.element.librarySource.uri.toString(),
+    };
 
     return ServerLifecycleComponent(
       name: element.name,
@@ -77,6 +81,7 @@ class ServerLifecycleComponent with ExtractImport {
       interceptors: interceptors,
       exceptionCatchers: exceptionCatchers,
       params: params,
+      import: ServerImports(importPaths),
     );
   }
 
@@ -136,6 +141,7 @@ class ServerLifecycleComponent with ExtractImport {
   final List<ComponentMethod> exceptionCatchers;
   final List<ServerParam> params;
   final String name;
+  final ServerImports import;
 
   bool get hasGuards => guards.isNotEmpty;
   bool get hasMiddlewares => middlewares.isNotEmpty;
@@ -194,7 +200,9 @@ class ServerLifecycleComponent with ExtractImport {
       ];
 
   @override
-  List<ServerImports?> get imports => [];
+  List<ServerImports?> get imports => [
+        import,
+      ];
 }
 
 class ComponentMethod with ExtractImport {
