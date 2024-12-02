@@ -43,20 +43,20 @@ function GettingStarted() {
 function SellingPoints() {
     const points = [
         {
-            title: 'Awesome',
-            Svg: require('@site/static/img/selling-point-1.svg').default,
+            title: 'Fast Dev Cycle',
+            Svg: require('@site/static/img/fast.svg').default,
+            description: 'Develop endpoints quickly with minimum setup',
+        },
+        {
+            title: 'Extendable',
+            Svg: require('@site/static/img/building-blocks.svg').default,
             description:
-                'This is super awesomeThis is super awesomeThis is super awesomeThis is super awesomeThis is super awesomeThis is super awesomeThis is super awesome',
+                'Extend the capabilities by using community packages or create your own',
         },
         {
-            title: 'Cool',
-            Svg: require('@site/static/img/selling-point-2.svg').default,
-            description: 'This is super cool',
-        },
-        {
-            title: 'Neat',
-            Svg: require('@site/static/img/selling-point-3.svg').default,
-            description: 'This is super neat',
+            title: 'Build on Dart',
+            Svg: require('@site/static/img/dart.svg').default,
+            description: 'Type safe, Object Oriented, and fast',
         },
     ];
 
