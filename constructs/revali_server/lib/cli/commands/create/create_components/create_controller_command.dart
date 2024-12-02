@@ -40,7 +40,7 @@ class CreateControllerCommand extends Command<int> with CreateCommandMixin {
   final FileSystem fs;
 
   String? get controllerName => argResults?['name'] as String?;
-  bool get force => argResults?['force'] as bool;
+  bool get force => argResults?['force'] as bool? ?? false;
 
   String content(String name) => '''
 import 'package:revali_router/revali_router.dart';
