@@ -15,6 +15,7 @@ class ServerLifecycleComponentMethod with ExtractImport {
     required this.returnType,
     required this.parameters,
     required this.exceptionType,
+    required this.import,
   });
 
   static ServerLifecycleComponentMethod? fromElement(MethodElement object) {
@@ -24,6 +25,8 @@ class ServerLifecycleComponentMethod with ExtractImport {
     String returnType;
     var isFuture = false;
     String? exceptionType;
+
+    final importPaths = <String>{};
 
     // TODO(mrgnhnt): Handle Future<ALIAS> return types
     if (returnTypeAlias != null && aliasReturnTypes.contains(returnTypeAlias)) {
@@ -49,7 +52,11 @@ class ServerLifecycleComponentMethod with ExtractImport {
       if (object.returnType case final InterfaceType type
           when returnType.startsWith((ExceptionCatcherResult).name)) {
         returnType = (ExceptionCatcherResult).name;
-        exceptionType = type.typeArguments.first.getDisplayString();
+        final exceptionElement = type.typeArguments.single;
+        exceptionType = exceptionElement.getDisplayString();
+        if (exceptionElement.element?.librarySource?.uri case final Uri uri) {
+          importPaths.add(uri.toString());
+        }
       }
     }
 
@@ -65,6 +72,7 @@ class ServerLifecycleComponentMethod with ExtractImport {
       returnType: returnType,
       parameters: params,
       exceptionType: exceptionType,
+      import: ServerImports(importPaths),
     );
   }
 
@@ -72,6 +80,7 @@ class ServerLifecycleComponentMethod with ExtractImport {
   final String returnType;
   final bool isFuture;
   final List<ServerParam> parameters;
+  final ServerImports import;
 
   /// The type of the exception that this method catches,
   /// If this method is not an exception catcher, this will be null
@@ -108,7 +117,9 @@ class ServerLifecycleComponentMethod with ExtractImport {
       ];
 
   @override
-  List<ServerImports?> get imports => [];
+  List<ServerImports?> get imports => [
+        import,
+      ];
 }
 
 extension _DartTypeX on DartType {
