@@ -4,6 +4,7 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
+import 'package:revali_server/cli/commands/create/create_components/create_app_command.dart';
 import 'package:revali_server/cli/commands/create/create_components/create_controller_command.dart';
 
 class CreateCommand extends Command<int> {
@@ -13,6 +14,12 @@ class CreateCommand extends Command<int> {
   }) {
     addSubcommand(
       CreateControllerCommand(
+        fs: fs,
+        logger: logger,
+      ),
+    );
+    addSubcommand(
+      CreateAppCommand(
         fs: fs,
         logger: logger,
       ),
