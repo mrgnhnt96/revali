@@ -1,9 +1,9 @@
 import 'package:code_builder/code_builder.dart';
-import 'package:revali_server/converters/server_lifecycle_component.dart';
+import 'package:revali_server/converters/server_lifecycle_component_method.dart';
 import 'package:revali_server/makers/utils/get_params.dart';
 
 Iterable<Code> createComponentMethods(
-  Iterable<ComponentMethod> methods, {
+  Iterable<ServerLifecycleComponentMethod> methods, {
   Map<String, Expression> inferredParams = const {},
 }) sync* {
   for (final method in methods) {

@@ -8,6 +8,7 @@ import 'package:collection/collection.dart';
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_server/converters/server_class.dart';
 import 'package:revali_server/converters/server_imports.dart';
+import 'package:revali_server/converters/server_lifecycle_component_method.dart';
 import 'package:revali_server/converters/server_param.dart';
 import 'package:revali_server/converters/server_param_annotations.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
@@ -38,14 +39,17 @@ class ServerLifecycleComponent with ExtractImport {
 
   factory ServerLifecycleComponent.fromClassElement(ClassElement element) {
     final methods = element.methods
-        .map(ComponentMethod.fromElement)
-        .whereType<ComponentMethod>()
+        .map(ServerLifecycleComponentMethod.fromElement)
+        .whereType<ServerLifecycleComponentMethod>()
         .toList();
 
-    final guards = <ComponentMethod>[];
-    final middlewares = <ComponentMethod>[];
-    final interceptors = (pre: <ComponentMethod>[], post: <ComponentMethod>[]);
-    final exceptionCatchers = <ComponentMethod>[];
+    final guards = <ServerLifecycleComponentMethod>[];
+    final middlewares = <ServerLifecycleComponentMethod>[];
+    final interceptors = (
+      pre: <ServerLifecycleComponentMethod>[],
+      post: <ServerLifecycleComponentMethod>[]
+    );
+    final exceptionCatchers = <ServerLifecycleComponentMethod>[];
 
     for (final method in methods) {
       final _ = switch (true) {
@@ -135,10 +139,13 @@ class ServerLifecycleComponent with ExtractImport {
     return types;
   }
 
-  final List<ComponentMethod> guards;
-  final List<ComponentMethod> middlewares;
-  final ({List<ComponentMethod> pre, List<ComponentMethod> post}) interceptors;
-  final List<ComponentMethod> exceptionCatchers;
+  final List<ServerLifecycleComponentMethod> guards;
+  final List<ServerLifecycleComponentMethod> middlewares;
+  final ({
+    List<ServerLifecycleComponentMethod> pre,
+    List<ServerLifecycleComponentMethod> post
+  }) interceptors;
+  final List<ServerLifecycleComponentMethod> exceptionCatchers;
   final List<ServerParam> params;
   final String name;
   final ServerImports import;
@@ -203,111 +210,4 @@ class ServerLifecycleComponent with ExtractImport {
   List<ServerImports?> get imports => [
         import,
       ];
-}
-
-class ComponentMethod with ExtractImport {
-  ComponentMethod({
-    required this.name,
-    required this.isFuture,
-    required this.returnType,
-    required this.parameters,
-    required this.exceptionType,
-  });
-
-  static ComponentMethod? fromElement(MethodElement object) {
-    final name = object.name;
-
-    final returnTypeAlias = object.returnType.alias?.element.name;
-    String returnType;
-    var isFuture = false;
-    String? exceptionType;
-
-    // TODO(mrgnhnt): Handle Future<ALIAS> return types
-    if (returnTypeAlias != null && aliasReturnTypes.contains(returnTypeAlias)) {
-      returnType = returnTypeAlias;
-    } else if (object.returnType case final InterfaceType type
-        when type.isAnyFuture) {
-      isFuture = true;
-      final typeArg = type.typeArguments.first;
-
-      final resolveReturnType = typeArg.getDisplayString();
-
-      returnType = switch (typeArg) {
-        InterfaceType() => typeArg.alias?.element.name ?? resolveReturnType,
-        _ => resolveReturnType,
-      };
-
-      if (returnType.startsWith((ExceptionCatcherResult).name)) {
-        throw ArgumentError('Exception types cannot be a Future type');
-      }
-    } else {
-      returnType = object.returnType.getDisplayString();
-
-      if (object.returnType case final InterfaceType type
-          when returnType.startsWith((ExceptionCatcherResult).name)) {
-        returnType = (ExceptionCatcherResult).name;
-        exceptionType = type.typeArguments.first.getDisplayString();
-      }
-    }
-
-    if (!returnTypes.contains(returnType)) {
-      return null;
-    }
-
-    final params = object.parameters.map(ServerParam.fromElement).toList();
-
-    return ComponentMethod(
-      name: name,
-      isFuture: isFuture,
-      returnType: returnType,
-      parameters: params,
-      exceptionType: exceptionType,
-    );
-  }
-
-  final String name;
-  final String returnType;
-  final bool isFuture;
-  final List<ServerParam> parameters;
-
-  /// The type of the exception that this method catches,
-  /// If this method is not an exception catcher, this will be null
-  final String? exceptionType;
-
-  static const interceptorPre = 'InterceptorPreResult';
-  static const interceptorPost = 'InterceptorPostResult';
-
-  static final aliasReturnTypes = {
-    interceptorPre,
-    interceptorPost,
-  };
-
-  static final returnTypes = {
-    ...coreReturnTypes,
-    ...aliasReturnTypes,
-  };
-
-  static final coreReturnTypes = {
-    (GuardResult).name,
-    (MiddlewareResult).name,
-    (ExceptionCatcherResult).name,
-  };
-
-  bool get isGuard => returnType == (GuardResult).name;
-  bool get isMiddleware => returnType == (MiddlewareResult).name;
-  bool get isInterceptorPre => returnType == interceptorPre;
-  bool get isInterceptorPost => returnType == interceptorPost;
-  bool get isExceptionCatcher => returnType == (ExceptionCatcherResult).name;
-
-  @override
-  List<ExtractImport?> get extractors => [
-        ...parameters,
-      ];
-
-  @override
-  List<ServerImports?> get imports => [];
-}
-
-extension _DartTypeX on DartType {
-  bool get isAnyFuture => isDartAsyncFuture || isDartAsyncFutureOr;
 }
