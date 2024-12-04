@@ -3,7 +3,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;
+import 'dart:io';
 
+import 'package:async/async.dart';
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart' as p;
@@ -57,6 +59,7 @@ class VMServiceHandler {
   io.Process? _serverProcess;
   StreamSubscription<(bool, String)>? _watcherSubscription;
   StreamSubscription<List<int>>? _inputSubscription;
+  StreamSubscription<io.ProcessSignal>? _killSubscription;
 
   bool get isServerRunning => _serverProcess != null;
 
@@ -111,7 +114,8 @@ class VMServiceHandler {
       logger.err(message);
     });
 
-    await watchForFileChanges();
+    watchForFileChanges();
+    watchForInput();
     _isReloading = false;
   }
 
@@ -228,7 +232,7 @@ class VMServiceHandler {
     }
 
     logger.detail('Cancelling file watcher');
-    await _watcherSubscription!.cancel();
+    await _watcherSubscription?.cancel();
     _watcherSubscription = null;
   }
 
@@ -238,7 +242,7 @@ class VMServiceHandler {
     }
 
     logger.detail('Cancelling input watcher');
-    await _inputSubscription!.cancel();
+    await _inputSubscription?.cancel();
     _inputSubscription = null;
   }
 
@@ -281,14 +285,13 @@ class VMServiceHandler {
     );
 
     if (enableHotReload) {
-      await watchForFileChanges();
-      await watchForInput();
+      watchForInput();
+      watchForFileChanges();
     }
   }
 
-  Future<void> watchForInput() async {
-    await _inputSubscription?.cancel();
-    _inputSubscription = io.stdin.listen((event) {
+  void watchForInput() {
+    _inputSubscription ??= io.stdin.listen((event) {
       var key = utf8.decode(event).toLowerCase();
       if (key.isEmpty && event.length == 1) {
         key = '${event[0]}';
@@ -303,13 +306,36 @@ class VMServiceHandler {
         _ => null,
       };
     });
+
+    logger.detail('Watching for kill signal');
+
+    var attemptsToKill = 0;
+    final stream = Platform.isWindows
+        ? ProcessSignal.sigint.watch()
+        : StreamGroup.merge(
+            [
+              ProcessSignal.sigterm.watch(),
+              ProcessSignal.sigint.watch(),
+            ],
+          );
+
+    _killSubscription ??= stream.listen((event) {
+      logger.detail('Received SIGINT');
+      if (attemptsToKill > 0) {
+        exit(1);
+      } else if (attemptsToKill == 0) {
+        stop().ignore();
+      }
+
+      attemptsToKill++;
+    });
   }
 
-  Future<void> watchForFileChanges() async {
+  void watchForFileChanges() {
     logger.detail('Watching ${root.path} for changes');
-    final watcher = DirectoryWatcher(root.path);
-    await _watcherSubscription?.cancel();
-    _watcherSubscription = watcher.events
+
+    _watcherSubscription ??= DirectoryWatcher(root.path)
+        .events
         .asyncMap(shouldReload)
         .where((event) => event.$1)
         .debounce(Duration.zero)
@@ -337,6 +363,7 @@ class VMServiceHandler {
     await _cancelWatcherSubscription();
     await _killServerProcess();
     await _cancelInputSubscription();
+    await _killSubscription?.cancel();
   }
 
   Future<void> serve({
@@ -470,7 +497,7 @@ class VMServiceHandler {
       }
     });
 
-    process.exitCode.then((code) async {
+    process.exitCode.then((_) async {
       if (isCompleted) return;
       await _killServerProcess();
       await stop(1);

@@ -19,6 +19,7 @@ environment:
 dependencies:
     analyzer: ^6.8.0
     args: ^2.6.0
+    async: ^2.12.0
     code_builder: ^4.10.1
     collection: ^1.19.1
     dart_style: ^2.3.7
