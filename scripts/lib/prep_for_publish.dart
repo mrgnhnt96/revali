@@ -74,54 +74,66 @@ void main() async {
 
   if (packagesToPublish.isEmpty) {
     logger.info('No packages to publish');
+  } else {
+    logger.info('Publishing ${packagesToPublish.length} packages');
+
+    final successPublishes = <Package>[];
+    for (final package in packagesToPublish) {
+      logger.info('  - ${package.name}');
+      final success = await publish(package);
+
+      if (success) {
+        successPublishes.add(package);
+      }
+    }
+
+    logger
+      ..info('Published ${successPublishes.length} packages')
+      ..info('Pushing all changes');
+
+    // add all changes to git
+    await Process.run(
+      'git',
+      ['add', '.'],
+      workingDirectory: root,
+      runInShell: true,
+    );
+
+    // commit all changes
+    await Process.run(
+      'git',
+      [
+        'commit',
+        '-m',
+        '"Publish Packages | $date"',
+      ],
+      workingDirectory: root,
+      runInShell: true,
+    );
+
+    // push all changes
+    await Process.run(
+      'git',
+      ['push', 'origin', 'HEAD'],
+      workingDirectory: root,
+      runInShell: true,
+    );
+  }
+
+  final failedRelease = logger.progress('Checking for failed releases');
+  final failedReleases = findFailedReleases(packages);
+  failedRelease.complete('Found ${failedReleases.length} failed releases');
+
+  final packagesToRelease = failedReleases.followedBy([
+    for (final (package, _) in changedPackages) package,
+  ]);
+
+  if (packagesToRelease.isEmpty) {
+    logger.info('No packages to release');
     return;
   }
 
-  logger.info('Publishing ${packagesToPublish.length} packages');
-
-  final successPublishes = <Package>[];
-  for (final package in packagesToPublish) {
-    logger.info('  - ${package.name}');
-    final success = await publish(package);
-
-    if (success) {
-      successPublishes.add(package);
-    }
-  }
-
-  logger
-    ..info('Published ${successPublishes.length} packages')
-    ..info('Pushing all changes');
-
-  // add all changes to git
-  await Process.run(
-    'git',
-    ['add', '.'],
-    workingDirectory: root,
-    runInShell: true,
-  );
-
-  // commit all changes
-  await Process.run(
-    'git',
-    [
-      'commit',
-      '-m',
-      '"Publish Packages | $date"',
-    ],
-    workingDirectory: root,
-    runInShell: true,
-  );
-
-  // push all changes
-  await Process.run(
-    'git',
-    ['push', 'origin', 'HEAD'],
-    workingDirectory: root,
-    runInShell: true,
-  );
-
-  for (final package in successPublishes) {
+  for (final package in packagesToRelease) {
     final changeLogEntry = latestChangelog[package.name]!;
 
     await createRelease(package, changeLogEntry);
@@ -137,17 +149,22 @@ void main() async {
 }
 
 Future<void> createRelease(Package package, ChangeLogEntry changelog) async {
+  final failedReleaseFile = package.failedRelease;
+
+  if (failedReleaseFile.existsSync()) {
+    failedReleaseFile.deleteSync();
+  }
 //  create release
   final process = await Process.run(
     'gh',
     [
       'release',
       'create',
-      'revali-"${changelog.version}"',
+      '${package.name.toNoCase().toParamCase()}-${changelog.version}',
       '-t',
-      '"${package.name.toNoCase().toTitleCase()} v${changelog.version}"',
+      '${package.name.toNoCase().toTitleCase()} v${changelog.version}',
       '-n',
-      '"${changelog.changes}"',
+      changelog.changes,
     ],
     workingDirectory: package.root,
     runInShell: true,
@@ -156,6 +173,17 @@ Future<void> createRelease(Package package, ChangeLogEntry changelog) async {
   if (process.exitCode == 0) {
     logger.info('Created release for ${package.name}');
   } else {
+    failedReleaseFile
+      ..createSync()
+      ..writeAsStringSync('''
+# Failed to create release for ${package.name}
+
+## Error
+${process.stderr}
+
+## Output
+${process.stdout}
+''');
     logger.err('Failed to create release for ${package.name}');
   }
 }
@@ -175,7 +203,7 @@ Future<bool> publish(Package package) async {
   );
 
   if (process.exitCode == 0) {
-    logger.info('Published ${package.name}');
+    logger.info('    Published');
     return true;
   }
 
@@ -200,6 +228,16 @@ ${process.stdout}
 Iterable<Package> findFailedPublishes(Iterable<Package> packages) sync* {
   for (final package in packages) {
     final failedPublishFile = package.failedPublish;
+
+    if (failedPublishFile.existsSync()) {
+      yield package;
+    }
+  }
+}
+
+Iterable<Package> findFailedReleases(Iterable<Package> packages) sync* {
+  for (final package in packages) {
+    final failedPublishFile = package.failedRelease;
 
     if (failedPublishFile.existsSync()) {
       yield package;
@@ -471,6 +509,7 @@ class Package {
   File get pubspec => File(p.join(root, 'pubspec.yaml'));
 
   File get failedPublish => File(p.join(root, 'FAILED_PUBLISH.md'));
+  File get failedRelease => File(p.join(root, 'FAILED_RELEASE.md'));
 
   File get license => File(p.join(root, 'LICENSE'));
 

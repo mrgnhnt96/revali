@@ -59,5 +59,6 @@ packages/cli/libisar.dylib
 .test_optimizer.dart
 .revali
 FAILED_PUBLISH.md
+FAILED_RELEASE.md
 
 coverage/
