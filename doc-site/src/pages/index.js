@@ -8,7 +8,6 @@ export default function Home() {
         <Layout description={``}>
             <main className={styles.main}>
                 <h1 className={styles.h1}>Revali</h1>
-                <Logo />
                 <div className={styles.layout}>
                     <GettingStarted />
                     <SellingPoints />
@@ -18,13 +17,6 @@ export default function Home() {
     );
 }
 
-function Logo() {
-    return (
-        <div className={styles.logo}>
-            <p title="logo" className={styles.logoImage}>Revali</p>
-        </div>
-    );
-}
 
 function GettingStarted() {
     return (
@@ -37,21 +29,21 @@ function GettingStarted() {
 
 function SellingPoints() {
     const points = [
-        {
-            title: 'Rapid Development',
-            Svg: require('@site/static/img/rapid-development.svg').default,
-            description:
-                'Quickly develop endpoints with minimal setup and configuration.',
-        },
-        {
+    {
             title: 'Highly Extendable',
-            Svg: require('@site/static/img/extendable.svg').default,
+            src: require('@site/static/img/extendable.png').default,
             description:
                 'Easily extend capabilities using community packages or by creating your own.',
         },
         {
+            title: 'Rapid Development',
+            src: require('@site/static/img/rapid-development.png').default,
+            description:
+                'Quickly develop endpoints with minimal setup and configuration.',
+        },
+        {
             title: 'Powered by Dart',
-            Svg: require('@site/static/img/dart.svg').default,
+            src: require('@site/static/img/dart.png').default,
             description:
                 'Leverage Dart for type safety, object-oriented programming, and high performance.',
         },
@@ -66,10 +58,11 @@ function SellingPoints() {
     );
 }
 
-function SellingPoint({ Svg, title, description }) {
+function SellingPoint({ src, title, description }) {
+
     return (
         <div className={styles.sellingPoint}>
-            <Svg role="img" />
+            <img alt={title} src={src} />
             <Heading as="h2">{title}</Heading>
             <p>{description}</p>
         </div>
