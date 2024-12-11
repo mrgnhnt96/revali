@@ -4,6 +4,8 @@ description: Read & write metadata associated with the endpoint & request
 
 # Meta Handler
 
+> Implements: `ReadOnlyMeta` and `WriteOnlyMeta`
+
 The `MetaHandler` object is used to store meta data in the context. Meta data is used to store additional information about the endpoint. The meta data is stored and retrieved by type.
 
 :::tip
@@ -50,6 +52,42 @@ checks if the context has meta data of a specific type.
 
 ```dart
 bool has = context.meta.has<T>();
+```
+
+## Detailed Meta
+
+The `ReadOnlyMetaDetailed` object contains the same methods as the `MetaHandler` object along with additional methods to retrieve the meta data in a more granular way.
+
+### `getDirect`
+
+Returns a list of meta data that is directly associated with the endpoint.
+
+```dart
+List<T> values = context.meta.getDirect<T>();
+```
+
+### `getInherited`
+
+Returns a list of meta data that is inherited from the parent endpoint, excluding the meta data that is directly associated with the endpoint.
+
+```dart
+List<T> values = context.meta.getInherited<T>();
+```
+
+### `hasDirect`
+
+Checks if the context has meta data of a specific type that is directly associated with the endpoint.
+
+```dart
+bool has = context.meta.hasDirect<T>();
+```
+
+### `hasInherited`
+
+Checks if the context has meta data of a specific type that is inherited from the parent endpoint.
+
+```dart
+bool has = context.meta.hasInherited<T>();
 ```
 
 ## Example

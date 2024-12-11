@@ -4,6 +4,8 @@ description: Read metadata associated with Types
 
 # Reflect Handler
 
+> Implements: `ReadOnlyReflectHandler`
+
 The `ReflectHandler` is a helper class that provides a way to analyze meta data of a specific type.
 
 ## Properties

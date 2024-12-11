@@ -23,7 +23,18 @@ The `data` property is a mutable property for the [DataHandler][data_handler] ob
 
 ### `meta`
 
-The `meta` property is a read-only property for the [MetaHandler][meta_handler] object.
+The `meta` property is a detailed read-only (`ReadOnlyMetaDetailed`) property for the [MetaHandler][meta_handler] object.
+
+### `meta.route`
+
+Details for the `RouteEntry` that the request is currently executing.
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `path` | `String` | The path of the route |
+| `method` | `String` | The HTTP method of the route |
+| `fullPath` | `String` | The full path of the route |
+| `parent` | `RouteEntry` | The parent route of the route |
 
 ### `request`
 
