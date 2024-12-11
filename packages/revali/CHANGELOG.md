@@ -2,14 +2,10 @@
 
 ## 1.1.1 | 11.20.24
 
-### Chore
-
-- Upgrade dependencies
-- Clean up lint warnings
-
 ### Chores
 
 - Upgrade dependencies
+- Clean up lint warnings
 
 ## 1.1.0 | 11.18.24
 
