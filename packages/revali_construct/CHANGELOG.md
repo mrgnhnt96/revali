@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.1.1 | 12.11.24
+
+### Enhancements
+
+- Add assertion checks for `DartFile` to ensure that part directives are unique
+
 ## 1.1.0 | 11.18.24
 
 ### Features

@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## 1.3.0 | 12.11.24
+
+### Features
+
+- Combine meta types for better polymorphism support
+- Add `ReadOnlyMeta` to `MiddlewareContext`
+
+### Enhancements
+
+- Rename `ReadOnlyDataHandler` to `ReadOnlyData`
+- Rename `WriteOnlyDataHandler` to `WriteOnlyData`
+
+### Fixes
+
+- Issue where routes would not appear in list of routes after server restart
+
 ## 1.2.0 | 11.21.24
 
 ### Features

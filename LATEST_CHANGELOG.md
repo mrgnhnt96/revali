@@ -6,16 +6,18 @@
 
 # revali
 
-## 1.1.1
+## 1.2.0
 
-### Chore
+### Features
 
-- Upgrade dependencies
-- Clean up lint warnings
+- Add abbreviation for dart define (`-D`) to match dart's CLI for `build` and `dev` commands
+- Safely close the server when `CTRL+C` is pressed
+- Watch `components` directory within the `lib` directory for changes to reload the server
 
-### Chores
+### Enhancements
 
-- Upgrade dependencies
+- Lower min bound for Dart SDK to `3.4.0`
+- Improve error handling and logs for server startup
 
 # revali_annotations
 
@@ -28,72 +30,78 @@
 
 # revali_construct
 
+## 1.1.1
+
+### Enhancements
+
+- Add assertion checks for `DartFile` to ensure that part directives are unique
+
+# revali_core
+
 ## 1.1.0
 
 ### Features
 
-- Support `SSE` methods
-
-### Chores
-
-- Upgrade dependencies
-
-# revali_core
-
-## 1.0.0
-
-- Initial Release
+- Abstract `DI` class to support creating own instances of `DI`
+- Create `DIHandler` to override dependency registry during server startup
+- Add `initializeDI` method to support creating own instances of `DI`
 
 <!-- REVALI ROUTER -->
 
 # revali_router
 
-## 1.2.0
+## 1.3.0
 
 ### Features
 
-- Create `ExpectedHeaders` as non-optional headers to be passed into the request
-- Add `ExpectedHeaders` to access control headers
+- Combine meta types for better polymorphism support
+- Add `ReadOnlyMeta` to `MiddlewareContext`
 
 ### Enhancements
 
-- Re-order the pre-request checks to
-  - CORs Origins Validation
-  - CORs Headers Validation
-  - (CORs) Expected Headers Validation
-  - Options Request Handling
-  - Redirect Handling
-- Return actual response in the `OPTIONS` request instead of a canned response
-- Handle internal root errors with the response handler instead of deprecated `send` method
+- Rename `ReadOnlyDataHandler` to `ReadOnlyData`
+- Rename `WriteOnlyDataHandler` to `WriteOnlyData`
 
-### Fix
+### Fixes
 
-- Add `routes` param to `SseRoute` constructor
+- Issue where routes would not appear in list of routes after server restart
 
 # revali_router_annotations
 
-## 1.0.1
-
-### Chores
-
-- Upgrade dependencies
-
-# revali_router_core
-
-## 1.2.0
+## 1.1.0
 
 ### Features
 
-- Create `ExpectedHeaders` as non-optional headers to be passed into the request
-- Add `ExpectedHeaders` to lifecycle components
+- Add `LifecycleComponent` annotation to support creating lifecycle components using classes
+- Add `LifecycleComponents` annotation to support registering multiple lifecycle components via type referencing
+
+# revali_router_core
+
+## 1.3.0
+
+### Features
+
+- Create `BaseContext` to merge contexts between all components
+- Create Result type for:
+  - Interceptor (pre and post)
+- Use new `Meta` types
+
+### Enhancements
+
+- Simplify Results for:
+  - Exception Catcher
+  - Guard
+- Require type argument on `ExceptionCatcher` and `ExceptionCatcherResult`
+- Rename Guard Result constructors to `pass` and `block`
+- Rename Exception Catcher Result constructors to `handled` and `unhandled`
 
 <!-- CONSTRUCTS -->
 
 # revali_server
 
-## 1.2.0
+## 1.3.0
 
 ### Features
 
-- Support `expectedHeaders` argument
-- Allow multiple `AllowedHeaders`, `AllowedOrigins` and `ExpectedHeaders` to be provided on a single route/controller
+- Create Lifecycle Components using classes to support use of binding logic
+- Support `initializeDI` method to create own instances of `DI`

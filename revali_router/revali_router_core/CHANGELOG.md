@@ -1,5 +1,23 @@
 # CHANGELOG
 
+## 1.3.0 | 12.11.24
+
+### Features
+
+- Create `BaseContext` to merge contexts between all components
+- Create Result type for:
+  - Interceptor (pre and post)
+- Use new `Meta` types
+
+### Enhancements
+
+- Simplify Results for:
+  - Exception Catcher
+  - Guard
+- Require type argument on `ExceptionCatcher` and `ExceptionCatcherResult`
+- Rename Guard Result constructors to `pass` and `block`
+- Rename Exception Catcher Result constructors to `handled` and `unhandled`
+
 ## 1.2.0 | 11.21.24
 
 ### Features

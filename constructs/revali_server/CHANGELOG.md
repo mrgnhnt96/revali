@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 1.3.0 | 12.11.24
+
+### Features
+
+- Create Lifecycle Components using classes to support use of binding logic
+- Support `initializeDI` method to create own instances of `DI`
+
 ## 1.2.0 | 11.21.24
 
 ### Features
