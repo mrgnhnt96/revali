@@ -259,7 +259,7 @@ Profile mode is only available for the [`build`][build-command] command.
 
 When an error response is returned in release mode, the error response will not include any debug messages.
 
-[catchers]: ./exception-catchers.md
+[catchers]: ./low-level/exception-catchers.md
 [debug-mode]: ../../../revali/cli/dev.md#debug-mode
 [run-modes]: ../../../revali/cli/dev.md#run-modes
 [build-command]: ../../../revali/cli/build.md

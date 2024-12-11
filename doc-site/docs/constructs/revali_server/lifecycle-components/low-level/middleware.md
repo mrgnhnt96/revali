@@ -96,6 +96,6 @@ Learn about [guards].
 Learn more about the Middleware Context [here][middleware-context].
 :::
 
-[error-responses]: ../lifecycle-components/overview.md#error-responses
+[error-responses]: ../../lifecycle-components/overview.md#error-responses
 [guards]: ./guards.md
-[middleware-context]: ../context/middleware.md
+[middleware-context]: ../../context/middleware.md

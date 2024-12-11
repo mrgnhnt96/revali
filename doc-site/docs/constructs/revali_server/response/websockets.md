@@ -198,6 +198,6 @@ On Connect is the same as the message loop, but is only run once, when the conne
 :::
 
 [binding]: ../core/binding.md
-[exception-catchers]: ../lifecycle-components/exception-catchers.md
+[exception-catchers]: ../lifecycle-components/low-level/exception-catchers.md
 [web-socket-error-codes]: https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent/code
 [lifecycle-order]:../lifecycle-components/overview.md#lifecycle-order

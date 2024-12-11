@@ -87,4 +87,4 @@ Future<void> myEndpoint() {
 Learn more about [type referencing][type-referencing].
 :::
 
-[type-referencing]: ../tidbits.md#using-types-in-annotations
+[type-referencing]: ../../tidbits.md#using-types-in-annotations

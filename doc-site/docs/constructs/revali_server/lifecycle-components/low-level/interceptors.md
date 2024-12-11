@@ -93,5 +93,5 @@ Learn more about [type referencing][type-referencing].
 Learn more about the Interceptor Context [here][interceptor-context].
 :::
 
-[type-referencing]: ../tidbits.md#using-types-in-annotations
-[interceptor-context]: ../context/interceptor.md
+[type-referencing]: ../../tidbits.md#using-types-in-annotations
+[interceptor-context]: ../../context/interceptor.md

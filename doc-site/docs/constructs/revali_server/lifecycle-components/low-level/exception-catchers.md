@@ -176,7 +176,7 @@ Learn more about [type referencing][type-referencing].
 Learn more about the Exception Catcher Context [here][exception-catcher-context].
 :::
 
-[type-referencing]: ../tidbits.md#using-types-in-annotations
-[error-responses]: ../lifecycle-components/overview.md#error-responses
-[default-responses]: ../../../revali/app-configuration/default-responses.md
-[exception-catcher-context]: ../context/exception-catcher.md
+[type-referencing]: ../../tidbits.md#using-types-in-annotations
+[error-responses]: ../../lifecycle-components/overview.md#error-responses
+[default-responses]: ../../../../revali/app-configuration/default-responses.md
+[exception-catcher-context]: ../../context/exception-catcher.md
