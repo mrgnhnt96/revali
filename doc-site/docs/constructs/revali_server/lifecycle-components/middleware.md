@@ -98,4 +98,4 @@ Learn more about the Middleware Context [here][middleware-context].
 
 [error-responses]: ../lifecycle-components/overview.md#error-responses
 [guards]: ./guards.md
-[middleware-context]: ./middleware-context.md
+[middleware-context]: ../context/middleware.md

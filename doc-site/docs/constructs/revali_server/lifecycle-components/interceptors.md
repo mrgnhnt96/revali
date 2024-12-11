@@ -94,4 +94,4 @@ Learn more about the Interceptor Context [here][interceptor-context].
 :::
 
 [type-referencing]: ../tidbits.md#using-types-in-annotations
-[interceptor-context]: ./interceptor-context.md
+[interceptor-context]: ../context/interceptor.md
