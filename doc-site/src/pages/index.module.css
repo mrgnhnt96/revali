@@ -4,6 +4,7 @@
     align-items: center;
     justify-content: center;
     width: 100%;
+    padding-bottom: 124px;
 }
 
 .h1 {
@@ -21,6 +22,16 @@
 .logoImage {
     height: auto;
     width: 95%;
+}
+
+.previewImage {
+    border-radius: 8px;
+}
+
+
+
+.cta {
+    padding-top: 32px
 }
 
 .layout {
@@ -77,6 +88,10 @@
 
     .sellingPoint {
         max-width: 33%;
+    }
+
+    .cta {
+        padding-bottom: 64px;
     }
 }
 

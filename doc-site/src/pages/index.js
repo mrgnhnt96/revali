@@ -1,6 +1,4 @@
 import Link from '@docusaurus/Link';
-import FullLogoSvg from '@site/static/img/full_logo.svg';
-import HeroImageSvg from '@site/static/img/hero_image.svg';
 import Heading from '@theme/Heading';
 import Layout from '@theme/Layout';
 import styles from './index.module.css';
@@ -23,7 +21,7 @@ export default function Home() {
 function Logo() {
     return (
         <div className={styles.logo}>
-            <FullLogoSvg title="logo" role="img" className={styles.logoImage} />
+            <p title="logo" className={styles.logoImage}>Revali</p>
         </div>
     );
 }
@@ -31,11 +29,8 @@ function Logo() {
 function GettingStarted() {
     return (
         <section id="getting-started" className={styles.gettingStarted}>
-            <HeroImageSvg
-                title="Revali Usage Example"
-                className={styles.heroImage}
-            />
-            <CTA />
+            <img alt="Revali Preview" className={styles.previewImage} src={require('@site/static/img/preview.gif').default} />
+            <CTA className={styles.cta} />
         </section>
     );
 }
@@ -43,27 +38,29 @@ function GettingStarted() {
 function SellingPoints() {
     const points = [
         {
-            title: 'Fast Dev Cycle',
-            Svg: require('@site/static/img/fast.svg').default,
-            description: 'Develop endpoints quickly with minimum setup',
-        },
-        {
-            title: 'Extendable',
-            Svg: require('@site/static/img/building-blocks.svg').default,
+            title: 'Rapid Development',
+            Svg: require('@site/static/img/rapid-development.svg').default,
             description:
-                'Extend the capabilities by using community packages or create your own',
+                'Quickly develop endpoints with minimal setup and configuration.',
         },
         {
-            title: 'Build on Dart',
+            title: 'Highly Extendable',
+            Svg: require('@site/static/img/extendable.svg').default,
+            description:
+                'Easily extend capabilities using community packages or by creating your own.',
+        },
+        {
+            title: 'Powered by Dart',
             Svg: require('@site/static/img/dart.svg').default,
-            description: 'Type safe, Object Oriented, and fast',
+            description:
+                'Leverage Dart for type safety, object-oriented programming, and high performance.',
         },
     ];
 
     return (
         <section id="selling-points" className={styles.sellingPoints}>
-            {points.map((props, idx) => (
-                <SellingPoint key={idx} {...props} />
+            {points.map((props, index) => (
+                <SellingPoint key={index} {...props} />
             ))}
         </section>
     );
