@@ -33,7 +33,6 @@ final impliedArguments = <String, Expression>{
   (WriteOnlyMeta).name: refer('context').property('meta'),
   (MetaHandler).name: refer('context').property('meta'),
   (ReadOnlyMetaDetailed).name: refer('context').property('meta'),
-  (MetaDetailed).name: refer('context').property('meta'),
   // --- data ---
   (DataHandler).name: refer('context').property('data'),
   (ReadOnlyData).name: refer('context').property('data'),

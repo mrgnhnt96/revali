@@ -1,7 +1,7 @@
-import 'package:revali_router_core/meta/meta_detailed.dart';
 import 'package:revali_router_core/meta/meta_handler.dart';
+import 'package:revali_router_core/meta/read_only_meta_detailed.dart';
 
-class MetaDetailedImpl implements MetaDetailed, MetaHandler {
+class MetaDetailedImpl implements ReadOnlyMetaDetailed, MetaHandler {
   const MetaDetailedImpl({
     required MetaHandler direct,
     required MetaHandler inherited,
