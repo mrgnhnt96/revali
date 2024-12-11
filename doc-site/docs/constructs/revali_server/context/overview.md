@@ -9,5 +9,5 @@ Each Lifecycle Component has a context object that is passed to it. The context 
 
 Each context vary depending on the Lifecycle Component. For example, the [`Middleware`][middleware] Lifecycle Component can modify the `Request` object, while the [`Guard`][guards] component can only read from the `Request` object.
 
-[middleware]: ../lifecycle-components/low-level/middleware.md
-[guards]: ../lifecycle-components/low-level/guards.md
+[middleware]: ../lifecycle-components/advanced/middleware.md
+[guards]: ../lifecycle-components/advanced/guards.md

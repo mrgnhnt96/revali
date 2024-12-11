@@ -64,4 +64,4 @@ import 'package:revali_router/revali_router.dart';
 class MyApp ...
 ```
 
-[interceptors]: ./low-level/interceptors.md
+[interceptors]: ./advanced/interceptors.md

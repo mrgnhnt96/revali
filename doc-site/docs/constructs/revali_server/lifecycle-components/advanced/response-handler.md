@@ -7,7 +7,7 @@ sidebar_position: 7
 
 ## Overview
 
-The Response Handler in Revali is a low-level feature that allows developers to customize how the response is sent to the client. For most use cases, the default response handler implementation should cover all scenarios. However, in certain specific circumstances, you may need to implement your own response handler to meet unique requirements.
+The Response Handler in Revali is a advanced feature that allows developers to customize how the response is sent to the client. For most use cases, the default response handler implementation should cover all scenarios. However, in certain specific circumstances, you may need to implement your own response handler to meet unique requirements.
 
 :::caution
 This feature is intended for advanced use cases. For standard application development, we strongly recommend sticking with the default handler to ensure correct behavior and optimal performance.

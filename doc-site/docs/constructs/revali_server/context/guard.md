@@ -33,7 +33,7 @@ The `request` property is a read-only property for the [Request][request] object
 
 The `response` property is a mutable (restricted) property for the [Response][response] object.
 
-[guards]: ../lifecycle-components/low-level/guards.md
+[guards]: ../lifecycle-components/advanced/guards.md
 [data_handler]: ./core/data_handler.md
 [meta_handler]: ./core/meta_handler.md
 [request]: ../request/overview.md

@@ -12,7 +12,7 @@
 ### Features
 
 - Create `ResponseHandler` interface
-  - A `ResponseHandler` is a low-level handler that can be provided to a route to send the response to the client differently
+  - A `ResponseHandler` is a advanced handler that can be provided to a route to send the response to the client differently
 
 ### Chores
 

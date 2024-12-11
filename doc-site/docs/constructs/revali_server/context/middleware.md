@@ -29,7 +29,7 @@ The `request` property is a mutable property for the [Request][request] object.
 
 The `response` property is a mutable (restricted) property for the [Response][response] object.
 
-[middleware]: ../lifecycle-components/low-level/middleware.md
+[middleware]: ../lifecycle-components/advanced/middleware.md
 [data_handler]: ./core/data_handler.md
 [request]: ../request/overview.md
 [response]: ../response/overview.md

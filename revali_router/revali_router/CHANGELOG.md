@@ -26,7 +26,7 @@
 
 ### Features
 
-- Support low-level `ResponseHandler` per route
+- Support advanced `ResponseHandler` per route
   - If a response needs to be handled differently for a specific route, a `ResponseHandler` can be provided to the route to send the response to the client
 - Create default response handler for `Router`
 - Create `SseRoute` for Server-Sent Events
