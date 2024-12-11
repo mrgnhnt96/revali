@@ -25,7 +25,7 @@ abstract class BindContext {
   /// would yield `String`
   Type get parameterType;
 
-  ReadOnlyDataHandler get data;
+  ReadOnlyData get data;
 
   ReadOnlyMeta get meta;
 

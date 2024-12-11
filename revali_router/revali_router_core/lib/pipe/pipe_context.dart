@@ -1,4 +1,4 @@
-import 'package:revali_router_core/data/read_only_data_handler.dart';
+import 'package:revali_router_core/data/read_only_data.dart';
 import 'package:revali_router_core/meta/read_only_meta.dart';
 import 'package:revali_router_core/pipe/annotation_type.dart';
 
@@ -36,7 +36,7 @@ abstract class PipeContext {
   ///  would yield "id"
   String get nameOfParameter;
 
-  ReadOnlyDataHandler get data;
+  ReadOnlyData get data;
 
   ReadOnlyMeta get meta;
 }

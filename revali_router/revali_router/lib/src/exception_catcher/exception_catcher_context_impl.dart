@@ -11,7 +11,7 @@ class ExceptionCatcherContextImpl implements ExceptionCatcherContext {
   @override
   final ExceptionCatcherMeta meta;
   @override
-  final ReadOnlyDataHandler data;
+  final ReadOnlyData data;
   @override
   final ReadOnlyRequest request;
   @override

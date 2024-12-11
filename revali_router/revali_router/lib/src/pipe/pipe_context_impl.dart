@@ -18,7 +18,7 @@ class PipeContextImpl implements PipeContext {
         meta = context.meta;
 
   @override
-  final ReadOnlyDataHandler data;
+  final ReadOnlyData data;
 
   @override
   final ReadOnlyMeta meta;

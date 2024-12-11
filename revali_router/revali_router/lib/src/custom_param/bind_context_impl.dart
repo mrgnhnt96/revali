@@ -19,7 +19,7 @@ class BindContextImpl implements BindContext {
         response = context.response;
 
   @override
-  final ReadOnlyDataHandler data;
+  final ReadOnlyData data;
 
   @override
   final ReadOnlyMeta meta;

@@ -36,7 +36,8 @@ final impliedArguments = <String, Expression>{
   (MetaDetailed).name: refer('context').property('meta'),
   // --- data ---
   (DataHandler).name: refer('context').property('data'),
-  (ReadOnlyDataHandler).name: refer('context').property('data'),
+  (ReadOnlyData).name: refer('context').property('data'),
+  (WriteOnlyData).name: refer('context').property('data'),
 };
 
 Expression createParamArg(
