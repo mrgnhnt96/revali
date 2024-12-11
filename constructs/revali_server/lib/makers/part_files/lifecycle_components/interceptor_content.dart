@@ -145,6 +145,7 @@ Method _post(
                         (FullInterceptorContext).name: refer('context'),
                         (InterceptorMeta).name: refer('context.meta'),
                         (ReadOnlyReflectHandler).name: refer('context.reflect'),
+                        (ReflectHandler).name: refer('context.reflect'),
                       },
                     ),
                   ],
