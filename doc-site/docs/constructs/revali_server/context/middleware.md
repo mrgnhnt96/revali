@@ -21,6 +21,10 @@ The `MiddlewareContext` does not have any specific properties.
 
 The `data` property is a mutable property for the [DataHandler][data_handler] object.
 
+### `meta`
+
+The `meta` property is a read-only property for the [MetaHandler][meta_handler] object.
+
 ### `request`
 
 The `request` property is a mutable property for the [Request][request] object.
@@ -31,5 +35,6 @@ The `response` property is a mutable (restricted) property for the [Response][re
 
 [middleware]: ../lifecycle-components/advanced/middleware.md
 [data_handler]: ./core/data_handler.md
+[meta_handler]: ./core/meta_handler.md
 [request]: ../request/overview.md
 [response]: ../response/overview.md
