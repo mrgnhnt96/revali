@@ -68,7 +68,9 @@ String serverFile(
       )
       ..modifier = MethodModifier.async
       ..body = Block.of([
-        declareFinal('app').assign(createApp(app)).statement,
+        declareFinal('app', type: refer((AppConfig).name))
+            .assign(createApp(app))
+            .statement,
         declareFinal('server', late: true, type: refer('HttpServer')).statement,
         tryCatch(
           refer('server')
@@ -96,13 +98,7 @@ String serverFile(
           ]),
         ),
         const Code('\n'),
-        declareFinal('di')
-            .assign(
-              refer((DIHandler).name).newInstance(
-                [refer('app').property('initializeDI').call([])],
-              ),
-            )
-            .statement,
+        declareFinal('di', type: refer((DIHandler).name)).statement,
         ...createDependencyInjection(server),
         const Code('\n'),
         ...createRoutesVariable(server),
