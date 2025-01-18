@@ -8,10 +8,10 @@ class DIHandler implements DI {
   bool _canRegister = true;
 
   @override
-  T get<T>() => _di.get<T>();
+  T get<T extends Object>() => _di.get<T>();
 
   @override
-  void register<T>(Factory<T> factory) {
+  void register<T extends Object>(Factory<T> factory) {
     if (!_canRegister) {
       throw Exception('Registration is closed, cannot register new types');
     }
@@ -24,5 +24,6 @@ class DIHandler implements DI {
   }
 
   @override
-  void registerInstance<T>(T instance) => _di.registerInstance<T>(instance);
+  void registerInstance<T extends Object>(T instance) =>
+      _di.registerInstance<T>(instance);
 }

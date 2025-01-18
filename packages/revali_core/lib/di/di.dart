@@ -3,9 +3,9 @@ typedef Factory<T> = T Function();
 abstract class DI {
   const DI();
 
-  void registerInstance<T>(T instance);
+  void registerInstance<T extends Object>(T instance);
 
-  void register<T>(Factory<T> factory);
+  void register<T extends Object>(T Function() factory);
 
-  T get<T>();
+  T get<T extends Object>();
 }

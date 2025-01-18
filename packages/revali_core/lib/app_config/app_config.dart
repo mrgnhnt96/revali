@@ -47,5 +47,5 @@ abstract base class AppConfig {
     );
   }
 
-  Future<void> configureDependencies(DI di) async {}
+  Future<void> configureDependencies(covariant DI di) async {}
 }

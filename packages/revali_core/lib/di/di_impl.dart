@@ -9,12 +9,12 @@ class DIImpl implements DI {
   final Map<Type, dynamic> _lazySingletons;
 
   @override
-  void registerInstance<T>(T instance) {
+  void registerInstance<T extends Object>(T instance) {
     _register<T>(_singletons, instance);
   }
 
   @override
-  void register<T>(Factory<T> factory) {
+  void register<T extends Object>(Factory<T> factory) {
     _register<T>(_lazySingletons, factory);
   }
 
@@ -30,7 +30,7 @@ class DIImpl implements DI {
   }
 
   @override
-  T get<T>() {
+  T get<T extends Object>() {
     if (_singletons[T] case final T value?) {
       return value;
     }
