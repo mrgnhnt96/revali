@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.2.0 | 01.18.25
+
+### Enhancements
+
+- Require `Object` type for `DI` registrations
+
 ## 1.1.0 | 12.11.24
 
 ### Features

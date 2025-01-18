@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 1.4.0 | 01.18.25
+
+### Enhancements
+
+- Support new requirement for `DI` registrations to be of type `Object`
+- Wrap `DI` with handler _after_ configuration is complete
+
 ## 1.3.0 | 12.11.24
 
 ### Features

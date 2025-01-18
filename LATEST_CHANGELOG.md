@@ -38,13 +38,11 @@
 
 # revali_core
 
-## 1.1.0
+## 1.2.0
 
-### Features
+### Enhancements
 
-- Abstract `DI` class to support creating own instances of `DI`
-- Create `DIHandler` to override dependency registry during server startup
-- Add `initializeDI` method to support creating own instances of `DI`
+- Require `Object` type for `DI` registrations
 
 <!-- REVALI ROUTER -->
 
@@ -99,9 +97,9 @@
 
 # revali_server
 
-## 1.3.0
+## 1.4.0
 
-### Features
+### Enhancements
 
-- Create Lifecycle Components using classes to support use of binding logic
-- Support `initializeDI` method to create own instances of `DI`
+- Support new requirement for `DI` registrations to be of type `Object`
+- Wrap `DI` with handler _after_ configuration is complete
