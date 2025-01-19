@@ -97,9 +97,8 @@
 
 # revali_server
 
-## 1.4.0
+## 1.4.1
 
-### Enhancements
+### Fixes
 
-- Support new requirement for `DI` registrations to be of type `Object`
-- Wrap `DI` with handler _after_ configuration is complete
+- Issue retrieving nested values from the body of a request

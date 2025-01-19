@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.4.1 | 01.18.25
+
+### Fixes
+
+- Issue retrieving nested values from the body of a request
+
 ## 1.4.0 | 01.18.25
 
 ### Enhancements
