@@ -15,17 +15,17 @@ Expression createArgFromBody(
     bodyVar = bodyVar.property('data?');
     for (final part in access) {
       bodyVar = bodyVar.index(literalString(part));
+    }
 
-      final acceptsNull = annotation.acceptsNull;
-      if ((acceptsNull != null && !acceptsNull) ||
-          (!param.isNullable && annotation.pipe == null)) {
-        bodyVar = bodyVar.ifNullThen(
-          createMissingArgumentException(
-            key: param.name,
-            location: '@${AnnotationType.body.name}#${access.join('.')}',
-          ).thrown.parenthesized,
-        );
-      }
+    final acceptsNull = annotation.acceptsNull;
+    if ((acceptsNull != null && !acceptsNull) ||
+        (!param.isNullable && annotation.pipe == null)) {
+      bodyVar = bodyVar.ifNullThen(
+        createMissingArgumentException(
+          key: param.name,
+          location: '@${AnnotationType.body.name}#${access.join('.')}',
+        ).thrown.parenthesized,
+      );
     }
   } else {
     bodyVar = bodyVar.property('data');
