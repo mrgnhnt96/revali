@@ -48,7 +48,7 @@ Future<void> helloWorld(
 ```
 
 :::warning
-Using the `MutableResponse` parameter in the endpoint method is not recommended. Use the `context` from Lifecycle Components to access the response.
+Using the `MutableResponse` parameter in the endpoint method is not recommended. Use a specific type (such as [`MutableHeaders`][headers]) instead, or use the `context` from Lifecycle Components to access the response.
 
 By avoiding the `MutableResponse` parameter, you can keep your endpoint methods clean, focused, and testable.
 :::
@@ -58,3 +58,4 @@ By avoiding the `MutableResponse` parameter, you can keep your endpoint methods 
 [lifecycle-components]: ../lifecycle-components/overview.md
 [interceptor-post]: ../lifecycle-components/advanced/interceptors.md#post
 [lifecycle-context]: ../context/overview.md
+[headers]: ./headers.md

@@ -60,17 +60,11 @@ The `Response` object can be accessed via the controller's endpoint by adding th
 ```dart
 @Get()
 Future<void> helloWorld(
-    MutableResponse response,
+    MutableHeaders headers,
 ) async {
-    response.headers['Cache-Control'] = 'no-cache';
+    headers['Cache-Control'] = 'no-cache';
 }
 ```
-
-:::warning
-Using the `MutableResponse` parameter in the endpoint method is not recommended. Use the `context` from Lifecycle Components to access the response.
-
-By avoiding the `MutableResponse` parameter, you can keep your endpoint methods clean, focused, and testable.
-:::
 
 ## Header Annotations
 
@@ -124,11 +118,5 @@ The response headers are generally set throughout the lifecycle of the request. 
 - `Cache-Control`
 - `Cookie`
 
-To get the response headers, you can access the `headers` property of the response object.
-
-```dart
-final headers = response.headers;
-```
-
 [lifecycle-context]: ../context/overview.md
-[http-headers]: https://api.dart.dev/stable/3.5.3/dart-io/HttpHeaders-class.html
+[http-headers]: https://api.dart.dev/dart-io/HttpHeaders-class.html

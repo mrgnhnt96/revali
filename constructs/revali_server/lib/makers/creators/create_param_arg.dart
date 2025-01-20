@@ -27,6 +27,10 @@ final impliedArguments = <String, Expression>{
       .property('response')
       .property('headers')
       .property('setCookies'),
+  (ReadOnlySetCookies).name: refer('context')
+      .property('response')
+      .property('headers')
+      .property('setCookies'),
   (MutableBody).name: refer('context').property('response').property('body'),
   (MutableResponse).name: refer('context').property('response'),
   (RestrictedMutableResponse).name: refer('context').property('response'),
