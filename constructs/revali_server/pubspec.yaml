@@ -25,6 +25,6 @@ dependencies:
     revali_annotations: ^1.2.0
     revali_construct: ^1.1.1
     revali_core: ^1.2.0
-    revali_router: ^1.3.0
+    revali_router: ^1.4.0
     revali_router_annotations: ^1.1.0
     revali_router_core: ^1.4.0
