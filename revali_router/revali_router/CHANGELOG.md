@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 1.4.0 | 01.20.25
+
+### Features
+
+- Manage cookies with `Headers.cookies` and `Headers.setCookies`
+
+## Features | 01.20.25
+
+- Manage cookies with `Headers.cookies` and `Headers.setCookies`
+
 ## 1.3.0 | 12.11.24
 
 ### Features
