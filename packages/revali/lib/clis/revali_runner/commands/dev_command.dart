@@ -37,7 +37,7 @@ class DevCommand extends Command<int> with ConstructRunnerArgs {
       ..addOption(
         'dart-vm-service-port',
         help: 'The port to use for the Dart VM service',
-        defaultsTo: '8080',
+        defaultsTo: '8079',
       )
       ..addMultiOption(
         'dart-define',
