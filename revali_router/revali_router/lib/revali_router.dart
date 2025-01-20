@@ -15,6 +15,8 @@ export 'src/access_control/allowed_origins_impl.dart';
 export 'src/access_control/expected_headers_impl.dart';
 export 'src/app_config/app_config.dart';
 export 'src/body/mutable_body_impl.dart';
+export 'src/cookies/mutable_cookies_impl.dart';
+export 'src/cookies/mutable_set_cookies_impl.dart';
 export 'src/custom_param/bind_context_impl.dart';
 export 'src/endpoint/endpoint_context_impl.dart';
 export 'src/exception_catcher/exception_catcher_context_impl.dart';

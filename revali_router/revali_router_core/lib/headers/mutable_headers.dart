@@ -3,6 +3,8 @@
 import 'dart:convert';
 
 import 'package:http_parser/http_parser.dart';
+import 'package:revali_router_core/cookies/mutable_cookies.dart';
+import 'package:revali_router_core/cookies/mutable_set_cookies.dart';
 import 'package:revali_router_core/headers/read_only_headers.dart';
 
 abstract class MutableHeaders implements ReadOnlyHeaders {
@@ -36,4 +38,10 @@ abstract class MutableHeaders implements ReadOnlyHeaders {
   set filename(String? value);
   set acceptRanges(String? value);
   set lastModified(DateTime? value);
+
+  @override
+  MutableCookies get cookies;
+
+  @override
+  MutableSetCookies get setCookies;
 }

@@ -3,12 +3,22 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:http_parser/http_parser.dart';
+import 'package:revali_router/src/cookies/mutable_cookies_impl.dart';
+import 'package:revali_router/src/cookies/mutable_set_cookies_impl.dart';
 import 'package:revali_router/src/headers/common_headers_mixin.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
 class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
   MutableHeadersImpl([Map<String, Iterable<String>>? headers])
-      : _headers = CaseInsensitiveMap.from(headers ?? {});
+      : _headers = CaseInsensitiveMap.from(
+          headers ?? {},
+        ),
+        cookies = MutableCookiesImpl.fromHeader(
+          headers?[HttpHeaders.cookieHeader]?.join(';'),
+        ),
+        setCookies = MutableSetCookiesImpl.fromHeader(
+          headers?[HttpHeaders.setCookieHeader]?.join(';'),
+        );
 
   factory MutableHeadersImpl.from(Object? object) {
     if (object is MutableHeadersImpl) {
@@ -86,7 +96,7 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
 
   @override
   Iterable<String> get keys {
-    return _headers.keys;
+    return values.keys;
   }
 
   @override
@@ -103,7 +113,7 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
 
   @override
   void forEach(void Function(String key, Iterable<String> value) f) {
-    for (final MapEntry(:key, :value) in _headers.entries) {
+    for (final MapEntry(:key, :value) in values.entries) {
       f(key, value);
     }
   }
@@ -114,13 +124,18 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
   }
 
   @override
-  Map<String, List<String>> get values => Map.unmodifiable(_headers);
+  Map<String, List<String>> get values => Map.unmodifiable({
+        ..._headers,
+        if (cookies.isNotEmpty) cookies.headerKey: [cookies.headerValue()],
+        if (setCookies.isNotEmpty)
+          setCookies.headerKey: [setCookies.headerValue()],
+      });
 
   @override
   Map<K2, V2> map<K2, V2>(
     MapEntry<K2, V2> Function(String key, Iterable<String> values) convert,
   ) {
-    return _headers.map(convert);
+    return values.map(convert);
   }
 
   @override
@@ -235,6 +250,8 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
   @override
   void clear() {
     _headers.clear();
+    cookies.clear();
+    setCookies.clear();
   }
 
   @override
@@ -243,8 +260,17 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
   }
 
   @override
-  bool get isEmpty => _headers.isEmpty;
+  bool get isEmpty => values.isEmpty;
 
   @override
-  int get length => _headers.length;
+  bool get isNotEmpty => values.isNotEmpty;
+
+  @override
+  int get length => values.length;
+
+  @override
+  final MutableCookies cookies;
+
+  @override
+  final MutableSetCookies setCookies;
 }

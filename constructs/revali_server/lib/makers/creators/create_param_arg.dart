@@ -19,6 +19,14 @@ final impliedArguments = <String, Expression>{
   // --- response ---
   (MutableHeaders).name:
       refer('context').property('response').property('headers'),
+  (MutableCookies).name: refer('context')
+      .property('response')
+      .property('headers')
+      .property('cookies'),
+  (MutableSetCookies).name: refer('context')
+      .property('response')
+      .property('headers')
+      .property('setCookies'),
   (MutableBody).name: refer('context').property('response').property('body'),
   (MutableResponse).name: refer('context').property('response'),
   (RestrictedMutableResponse).name: refer('context').property('response'),
@@ -28,6 +36,10 @@ final impliedArguments = <String, Expression>{
   (ReadOnlyRequest).name: refer('context').property('request'),
   (MutableRequest).name: refer('context').property('request'),
   (ReadOnlyBody).name: refer('context').property('request').property('body'),
+  (ReadOnlyCookies).name: refer('context')
+      .property('request')
+      .property('headers')
+      .property('cookies'),
   // --- meta ---
   (ReadOnlyMeta).name: refer('context').property('meta'),
   (WriteOnlyMeta).name: refer('context').property('meta'),

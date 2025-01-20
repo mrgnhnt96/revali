@@ -1,17 +1,23 @@
 import 'dart:convert';
 
 import 'package:http_parser/http_parser.dart';
+import 'package:revali_router_core/cookies/read_only_cookies.dart';
+import 'package:revali_router_core/cookies/read_only_set_cookies.dart';
 
 abstract class ReadOnlyHeaders {
   const ReadOnlyHeaders();
 
   int get length;
   bool get isEmpty;
+  bool get isNotEmpty;
 
   String? get(String key);
   String? operator [](String value);
   Iterable<String> get keys;
   Map<String, Iterable<String>> get values;
+
+  ReadOnlyCookies get cookies;
+  ReadOnlySetCookies get setCookies;
 
   Iterable<String>? getAll(String key);
   void forEach(void Function(String key, Iterable<String> value) f);
