@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 1.4.0 | 01.20.25
+
+### Features
+
+- Create cookie interfaces for managing cookies
+  - `MutableCookies`
+  - `ReadOnlyCookies`
+  - `MutableSetCookies`
+  - `ReadOnlySetCookies`
+
 ## 1.3.0 | 12.11.24
 
 ### Features

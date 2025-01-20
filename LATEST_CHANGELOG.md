@@ -48,21 +48,11 @@
 
 # revali_router
 
-## 1.3.0
+## 1.4.0
 
-### Features
+## Features
 
-- Combine meta types for better polymorphism support
-- Add `ReadOnlyMeta` to `MiddlewareContext`
-
-### Enhancements
-
-- Rename `ReadOnlyDataHandler` to `ReadOnlyData`
-- Rename `WriteOnlyDataHandler` to `WriteOnlyData`
-
-### Fixes
-
-- Issue where routes would not appear in list of routes after server restart
+- Manage cookies with `Headers.cookies` and `Headers.setCookies`
 
 # revali_router_annotations
 
@@ -75,30 +65,26 @@
 
 # revali_router_core
 
-## 1.3.0
+## 1.4.0
 
 ### Features
 
-- Create `BaseContext` to merge contexts between all components
-- Create Result type for:
-  - Interceptor (pre and post)
-- Use new `Meta` types
-
-### Enhancements
-
-- Simplify Results for:
-  - Exception Catcher
-  - Guard
-- Require type argument on `ExceptionCatcher` and `ExceptionCatcherResult`
-- Rename Guard Result constructors to `pass` and `block`
-- Rename Exception Catcher Result constructors to `handled` and `unhandled`
+- Create cookie interfaces for managing cookies
+  - `MutableCookies`
+  - `ReadOnlyCookies`
+  - `MutableSetCookies`
+  - `ReadOnlySetCookies`
 
 <!-- CONSTRUCTS -->
 
 # revali_server
 
-## 1.4.1
+## 1.5.0
 
-### Fixes
+### Features
 
-- Issue retrieving nested values from the body of a request
+- Add support for Cookies access
+  - `MutableCookies`
+  - `ReadOnlyCookies`
+  - `MutableSetCookies`
+  - `ReadOnlySetCookies`

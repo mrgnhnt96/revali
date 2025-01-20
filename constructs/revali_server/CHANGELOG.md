@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 1.5.0 | 01.20.25
+
+### Features
+
+- Add support for Cookies access
+  - `MutableCookies`
+  - `ReadOnlyCookies`
+  - `MutableSetCookies`
+  - `ReadOnlySetCookies`
+
 ## 1.4.1 | 01.18.25
 
 ### Fixes
