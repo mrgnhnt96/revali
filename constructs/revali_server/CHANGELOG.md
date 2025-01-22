@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## 1.5.1 | 01.22.25
+
+### Fixes
+
+- Change observer list from constant
+
+### Features
+
+- Add support for Cookies access
+  - `MutableCookies`
+  - `ReadOnlyCookies`
+  - `MutableSetCookies`
+  - `ReadOnlySetCookies`
+
 ## 1.5.0 | 01.20.25
 
 ### Features

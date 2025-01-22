@@ -79,7 +79,11 @@
 
 # revali_server
 
-## 1.5.0
+## 1.5.1
+
+### Fixes
+
+- Change observer list from constant
 
 ### Features
 
