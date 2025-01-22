@@ -136,7 +136,7 @@ String serverFile(
                     refer('public').spread,
                   ]),
                   if (app.observers.hasObservers)
-                    'observers': literalConstList([
+                    'observers': literalList([
                       if (app.observers.types.expand((e) => e.types)
                           case final observers when observers.isNotEmpty)
                         for (final observer in observers)
