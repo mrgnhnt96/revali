@@ -17,33 +17,49 @@ Future<void> handleRequests(
     await for (final request in server) {
       ReadOnlyResponse response;
       final context = RequestContextImpl.fromRequest(request);
+      ResponseHandler responseSender;
+
+      try {
+        responseSender = await responseHandler(context);
+      } catch (e) {
+        print('Failed to get handler: $e');
+        continue;
+      }
 
       try {
         response = await handler(context);
       } catch (e) {
-        final handler = await responseHandler(context);
-
-        await handler.handle(
-          SimpleResponse(
-            500,
-            body: 'Internal Server Error (ROOT)',
-          ),
-          context,
-          request.response,
-        );
+        responseSender
+            .handle(
+              SimpleResponse(
+                500,
+                body: 'Internal Server Error (ROOT)',
+              ),
+              context,
+              request.response,
+            )
+            .ignore();
 
         continue;
       }
 
       try {
-        final handler = await responseHandler(context);
-
-        await handler.handle(response, context, request.response);
+        responseSender.handle(response, context, request.response).ignore();
       } catch (e) {
-        //
+        print(e);
+        responseSender
+            .handle(
+              SimpleResponse(
+                500,
+                body: 'Internal Server Error (ROOT)',
+              ),
+              context,
+              request.response,
+            )
+            .ignore();
       }
     }
   } catch (e) {
-    //
+    print(e);
   }
 }
