@@ -5,6 +5,7 @@ import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 import 'package:revali_server/converters/server_reflect.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
+import 'package:revali_server/utils/class_element_extensions.dart';
 
 class ServerReturnType {
   const ServerReturnType({
@@ -16,6 +17,7 @@ class ServerReturnType {
     required this.isPrimitive,
     required this.reflect,
     required this.hasToJsonMember,
+    required this.hasFromJsonMember,
     required this.isStringContent,
     required this.isMap,
     required this.isIterable,
@@ -25,6 +27,7 @@ class ServerReturnType {
   factory ServerReturnType.fromMeta(MetaReturnType type) {
     ServerReflect? reflect;
     var hasToJsonMember = false;
+    var hasFromJsonMember = false;
     var isStringContent = false;
     var isIterableNullable = false;
 
@@ -59,6 +62,7 @@ class ServerReturnType {
 
       if (element is ClassElement) {
         hasToJsonMember = element.methods.any((e) => e.name == 'toJson');
+        hasFromJsonMember = element.hasFromJsonMember;
         // ignore: unnecessary_parenthesis
         isStringContent = element.name == (StringContent).name ||
             element.allSupertypes.any(
@@ -79,6 +83,7 @@ class ServerReturnType {
       isPrimitive: type.isPrimitive,
       reflect: reflect,
       hasToJsonMember: hasToJsonMember,
+      hasFromJsonMember: hasFromJsonMember,
       isStringContent: isStringContent,
       isMap: type.isMap,
       isIterable: type.isIterable,
@@ -97,5 +102,6 @@ class ServerReturnType {
   final bool isStringContent;
   final ServerReflect? reflect;
   final bool hasToJsonMember;
+  final bool hasFromJsonMember;
   final bool isMap;
 }

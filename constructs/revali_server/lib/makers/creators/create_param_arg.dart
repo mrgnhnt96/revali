@@ -60,11 +60,11 @@ Expression createParamArg(
   Expression? defaultExpression,
   Map<String, Expression> customParams = const {},
 }) {
-  if (impliedArguments[param.type] case final expression?) {
+  if (impliedArguments[param.type.name] case final expression?) {
     return expression;
   }
 
-  if (customParams[param.type] case final expression?) {
+  if (customParams[param.type.name] case final expression?) {
     return expression;
   }
 

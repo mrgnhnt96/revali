@@ -13,7 +13,7 @@ Expression createBindContext(ServerParam param) {
     ],
     {
       'nameOfParameter': literalString(param.name),
-      'parameterType': refer(param.type),
+      'parameterType': refer(param.type.name),
     },
   );
 }

@@ -3,6 +3,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_param_annotations.dart';
+import 'package:revali_server/converters/server_type.dart';
 import 'package:revali_server/utils/extract_import.dart';
 
 class ServerParam with ExtractImport {
@@ -20,18 +21,13 @@ class ServerParam with ExtractImport {
   });
 
   factory ServerParam.fromMeta(MetaParam param) {
-    final importString = param.typeElement.librarySource?.uri.toString();
-
-    ServerImports? importPath;
-    if (importString != null) {
-      importPath = ServerImports([importString]);
-    }
-
+    final importPath = ServerImports.fromElement(param.typeElement);
     final paramAnnotations = ServerParamAnnotations.fromMeta(param);
+    final type = ServerType.fromMeta(param.type);
 
     return ServerParam(
       name: param.name,
-      type: param.type,
+      type: type,
       isNullable: param.nullable,
       isRequired: param.isRequired,
       isNamed: param.isNamed,
@@ -39,29 +35,21 @@ class ServerParam with ExtractImport {
       hasDefaultValue: param.hasDefaultValue,
       importPath: importPath,
       annotations: paramAnnotations,
-      typeImport: param.typeImport,
+      typeImport: ServerImports([
+        if (param.typeImport case final String path) path,
+      ]),
     );
   }
 
   factory ServerParam.fromElement(ParameterElement element) {
-    final importString = element.librarySource?.uri.toString();
-
-    ServerImports? importPath;
-    if (importString != null) {
-      importPath = ServerImports([importString]);
-    }
+    final importPath = ServerImports.fromElement(element);
 
     final paramAnnotations = ServerParamAnnotations.fromElement(element);
-
-    String? typeImport;
-
-    if (element.library?.isInSdk == false) {
-      typeImport = element.type.element?.librarySource?.uri.toString();
-    }
+    final typeImport = ServerImports.fromElement(element.type.element);
 
     return ServerParam(
       name: element.name,
-      type: element.type.getDisplayString(),
+      type: ServerType.fromElement(element),
       typeImport: typeImport,
       isNullable: element.type.nullabilitySuffix == NullabilitySuffix.question,
       isRequired: element.isRequiredNamed,
@@ -74,11 +62,11 @@ class ServerParam with ExtractImport {
   }
 
   final String name;
-  final String type;
+  final ServerType type;
   final bool isNullable;
   final bool isRequired;
   final bool isNamed;
-  final String? typeImport;
+  final ServerImports? typeImport;
   final String? defaultValue;
   final bool hasDefaultValue;
   final ServerImports? importPath;
@@ -88,5 +76,5 @@ class ServerParam with ExtractImport {
   List<ExtractImport?> get extractors => [annotations];
 
   @override
-  List<ServerImports?> get imports => [importPath];
+  List<ServerImports?> get imports => [importPath, typeImport];
 }

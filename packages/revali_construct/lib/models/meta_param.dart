@@ -1,4 +1,5 @@
 import 'package:analyzer/dart/element/element.dart';
+import 'package:revali_construct/models/meta_type.dart';
 import 'package:revali_construct/types/annotation_getter.dart';
 
 class MetaParam {
@@ -15,7 +16,7 @@ class MetaParam {
   });
 
   final String name;
-  final String type;
+  final MetaType type;
   final String? typeImport;
   final Element typeElement;
   final bool nullable;

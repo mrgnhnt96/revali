@@ -2,6 +2,7 @@ import 'package:code_builder/code_builder.dart';
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_server/converters/server_param.dart';
 import 'package:revali_server/converters/server_query_annotation.dart';
+import 'package:revali_server/makers/creators/create_from_json_arg.dart';
 import 'package:revali_server/makers/creators/create_missing_argument_exception.dart';
 import 'package:revali_server/makers/creators/create_pipe.dart';
 
@@ -21,8 +22,8 @@ Expression createArgFromQuery(
 
   if (annotation.all) {
     queryValue = switch (param.type) {
-      final type when type.startsWith('Iterable') => queryValue,
-      final type when type.startsWith('Set') =>
+      final type when type.name.startsWith('Iterable') => queryValue,
+      final type when type.name.startsWith('Set') =>
         queryValue.nullSafeProperty('toSet').call([]),
       _ => queryValue = queryValue.nullSafeProperty('toList').call([])
     };
@@ -46,6 +47,11 @@ Expression createArgFromQuery(
       annotationArgument: name == null ? literalNull : literalString(name),
       nameOfParameter: param.name,
       type: annotation.all ? AnnotationType.queryAll : AnnotationType.query,
+      access: queryValue,
+    );
+  } else if (param.type.hasFromJsonMethod) {
+    return createFromJsonArg(
+      param.type,
       access: queryValue,
     );
   }

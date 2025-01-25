@@ -1,5 +1,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:revali/utils/extensions/class_element_extensions.dart';
+import 'package:revali/utils/extensions/element_extensions.dart';
 import 'package:revali_construct/revali_construct.dart';
 
 Iterable<MetaParam> getParams(FunctionTypedElement element) {
@@ -15,13 +17,22 @@ Iterable<MetaParam> getParams(FunctionTypedElement element) {
 
     String? typeImport;
     if (element.library?.isInSdk == false) {
-      typeImport = element.librarySource?.uri.toString();
+      typeImport = element.importPath;
     }
+
+    final hasFromJsonMethod = switch (element) {
+      final ClassElement element => element.hasFromJsonMember,
+      _ => false,
+    };
 
     params.add(
       MetaParam(
         name: param.name,
-        type: type,
+        type: MetaType(
+          name: type,
+          hasFromJsonMethod: hasFromJsonMethod,
+          importPath: typeImport,
+        ),
         typeImport: typeImport,
         typeElement: element,
         nullable: param.type.nullabilitySuffix != NullabilitySuffix.none,

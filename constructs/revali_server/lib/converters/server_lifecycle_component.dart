@@ -11,6 +11,7 @@ import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_lifecycle_component_method.dart';
 import 'package:revali_server/converters/server_param.dart';
 import 'package:revali_server/converters/server_param_annotations.dart';
+import 'package:revali_server/converters/server_type.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
 import 'package:revali_server/utils/extract_import.dart';
 
@@ -28,7 +29,7 @@ class ServerLifecycleComponent with ExtractImport {
   factory ServerLifecycleComponent.fromDartObject(
     ElementAnnotation annotation,
   ) {
-    final element = annotation.element?.enclosingElement;
+    final element = annotation.element?.enclosingElement3;
 
     if (element is! ClassElement) {
       throw Exception('Invalid element type');
@@ -165,7 +166,11 @@ class ServerLifecycleComponent with ExtractImport {
       params: [
         ServerParam(
           name: 'di',
-          type: 'DI',
+          type: ServerType(
+            name: 'DI',
+            hasFromJsonMethod: false,
+            importPath: null,
+          ),
           isNullable: false,
           isNamed: false,
           defaultValue: null,
