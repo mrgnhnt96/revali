@@ -18,31 +18,24 @@ class ServerMimic with ExtractImport {
   ) {
     final objectType = object.type;
 
-    final typeImport = objectType?.element?.librarySource?.uri.toString();
-    final importPaths = <String>{
-      if (typeImport != null) typeImport,
-    };
+    final importableElements = <Element?>[
+      objectType?.element,
+    ];
 
     if (object.type case final InterfaceType type?) {
-      final constructorImports = type.constructors
-          .map((e) => e.returnType.element.librarySource.uri.toString());
-
-      importPaths.addAll(constructorImports);
+      importableElements
+          .addAll(type.constructors.map((e) => e.returnType.element));
 
       if (type.element case final ClassElement element) {
         for (final field in element.fields) {
-          final fieldImport = field.type.element?.librarySource?.uri.toString();
-
-          if (fieldImport != null) {
-            importPaths.add(fieldImport);
-          }
+          importableElements.add(field.type.element);
         }
       }
     }
 
     return ServerMimic(
       instance: annotation.toSource().replaceFirst('@', ''),
-      importPaths: ServerImports(importPaths),
+      importPaths: ServerImports.fromElements(importableElements),
     );
   }
 

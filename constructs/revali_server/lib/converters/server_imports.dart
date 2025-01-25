@@ -1,4 +1,6 @@
+import 'package:analyzer/dart/element/element.dart';
 import 'package:path/path.dart' as p;
+import 'package:revali_server/utils/element_extensions.dart';
 
 class ServerImports {
   ServerImports(Iterable<String> imports) {
@@ -28,6 +30,28 @@ class ServerImports {
 
     this.paths = paths;
     this.packages = packages;
+  }
+
+  factory ServerImports.fromElements(Iterable<Element?> elements) {
+    Iterable<String> paths() sync* {
+      for (final element in elements) {
+        if (element?.importPath case final String path) {
+          yield path;
+        }
+      }
+    }
+
+    return ServerImports(paths().toList());
+  }
+
+  factory ServerImports.fromElement(Element? element) {
+    final path = element?.importPath;
+
+    if (path == null) {
+      return ServerImports([]);
+    }
+
+    return ServerImports([path]);
   }
 
   late final Iterable<String> packages;
