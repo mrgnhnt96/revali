@@ -125,7 +125,8 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
 
   @override
   Map<String, List<String>> get values => Map.unmodifiable({
-        ..._headers,
+        for (final MapEntry(:key, :value) in _headers.entries)
+          key: value.toList(),
         if (cookies.isNotEmpty) cookies.headerKey: [cookies.headerValue()],
         if (setCookies.isNotEmpty)
           setCookies.headerKey: [setCookies.headerValue()],
