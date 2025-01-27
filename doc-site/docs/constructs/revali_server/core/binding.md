@@ -378,6 +378,10 @@ In the examples above, we used the `@Param` annotation, but the principles apply
 
 In most cases, the value you bind from the request will need to be transformed or converted to a custom type before using it. If your custom type has a `fromJson` constructor (or factory), it will be automatically detected and used to convert the value.
 
+:::important
+the `fromJson` constructor must accept only a single parameter. If it doesn't, you will need to use a [pipe][param-pipe].
+:::
+
 ```dart
 class User {
   final String name;
