@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 1.3.0 | 01.27.25
+
+### Features
+
+- Create new class for `Type`s on method parameters
+  - Add property `hasFromJsonConstructor`
+
+### Enhancements
+
+- Clean up import path retrieval
+
 ## 1.2.0 | 12.11.24
 
 ### Features

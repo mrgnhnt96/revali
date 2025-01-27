@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.2.0 | 01.27.25
+
+### Features
+
+- Create class `MetaType` for method parameter types
+
 ## 1.1.1 | 12.11.24
 
 ### Enhancements

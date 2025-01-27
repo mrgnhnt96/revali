@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 1.4.1 | 01.27.25
+
+### Enhancements
+
+- Handling responses and root errors
+
+### Fixes
+
+- Poor type handling for header values that could cause a response to fail
+
 ## 1.4.0 | 01.20.25
 
 ### Features

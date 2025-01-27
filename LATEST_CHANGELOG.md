@@ -6,18 +6,16 @@
 
 # revali
 
-## 1.2.0
+## 1.3.0
 
 ### Features
 
-- Add abbreviation for dart define (`-D`) to match dart's CLI for `build` and `dev` commands
-- Safely close the server when `CTRL+C` is pressed
-- Watch `components` directory within the `lib` directory for changes to reload the server
+- Create new class for `Type`s on method parameters
+  - Add property `hasFromJsonConstructor`
 
 ### Enhancements
 
-- Lower min bound for Dart SDK to `3.4.0`
-- Improve error handling and logs for server startup
+- Clean up import path retrieval
 
 # revali_annotations
 
@@ -30,11 +28,11 @@
 
 # revali_construct
 
-## 1.1.1
+## 1.2.0
 
-### Enhancements
+### Features
 
-- Add assertion checks for `DartFile` to ensure that part directives are unique
+- Create class `MetaType` for method parameter types
 
 # revali_core
 
@@ -48,11 +46,15 @@
 
 # revali_router
 
-## 1.4.0
+## 1.4.1
 
-### Features
+### Enhancements
 
-- Manage cookies with `Headers.cookies` and `Headers.setCookies`
+- Handling responses and root errors
+
+### Fixes
+
+- Poor type handling for header values that could cause a response to fail
 
 # revali_router_annotations
 
@@ -79,16 +81,19 @@
 
 # revali_server
 
-## 1.5.1
+## 1.6.0
 
-### Fixes
+### Enhancements
 
-- Change observer list from constant
+- Remove use of deprecated apis
+- Create extensions to get fromJson constructor and import paths
+
+### (Future) Breaking Changes
+
+- Deprecate `ServerParam.typeImport` in favor of `ServerParam.type.importPath`
 
 ### Features
 
-- Add support for Cookies access
-  - `MutableCookies`
-  - `ReadOnlyCookies`
-  - `MutableSetCookies`
-  - `ReadOnlySetCookies`
+- Create new factory constructors for `ServerImports` to better handle extracting import paths
+- Create `ServerType` class to reflect `MetaType` for method parameter types
+- Leverage `hasFromJsonConstructor` to convert body/header/param/query request values

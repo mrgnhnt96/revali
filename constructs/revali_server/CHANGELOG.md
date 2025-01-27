@@ -1,5 +1,22 @@
 # CHANGELOG
 
+## 1.6.0 | 01.27.25
+
+### Enhancements
+
+- Remove use of deprecated apis
+- Create extensions to get fromJson constructor and import paths
+
+### (Future) Breaking Changes
+
+- Deprecate `ServerParam.typeImport` in favor of `ServerParam.type.importPath`
+
+### Features
+
+- Create new factory constructors for `ServerImports` to better handle extracting import paths
+- Create `ServerType` class to reflect `MetaType` for method parameter types
+- Leverage `hasFromJsonConstructor` to convert body/header/param/query request values
+
 ## 1.5.1 | 01.22.25
 
 ### Fixes
