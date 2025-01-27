@@ -1,8 +1,10 @@
 // ignore_for_file: inference_failure_on_function_invocation
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io show stdin;
 import 'dart:io' hide stdin;
+import 'dart:typed_data';
 
 const port = 1213;
 const url = 'http://localhost:$port';
@@ -33,8 +35,24 @@ Future<void> onHttpRequest(HttpRequest request) async {
 
   final socket = await request.response.detachSocket();
 
+  StreamSubscription<Uint8List>? listener;
+  listener = socket.listen(
+    (event) {
+      final msg = utf8.decode(event).trim();
+
+      print('MSG (#$identifier): $msg');
+    },
+    onDone: () {
+      print('done (#$identifier)');
+      listener?.cancel().ignore();
+      socket.close().ignore();
+    },
+  );
+
   try {
     await for (final event in constantSource()) {
+      print('Sending (#$identifier)');
+
       socket
         ..add(utf8.encode(event.length.toRadixString(16)))
         ..add([13, 10]) // CRLF
@@ -51,14 +69,16 @@ Future<void> onHttpRequest(HttpRequest request) async {
     await socket.close();
   }
 
+  listener.cancel().ignore();
   print('done (#$identifier)');
 }
 
-final stdin = io.stdin.asBroadcastStream();
+Stream<List<int>>? stdin;
 
 Stream<List<int>> constantSource() async* {
+  final std = stdin ??= io.stdin.asBroadcastStream();
   // listen to stdin
-  await for (final event in stdin) {
+  await for (final event in std) {
     final string = utf8.decode(event).trim();
 
     if (string == 'exit') {
@@ -83,13 +103,34 @@ Future<void> listen() async {
 
   print('made request');
 
-  final stream = response.asBroadcastStream().transform(utf8.decoder);
+  final stream = response.transform(utf8.decoder);
 
-  await for (final event in stream) {
-    final data = jsonDecode(event);
+  StreamSubscription<String>? listener;
+  StreamSubscription<List<int>>? stdinListener;
+  listener = stream.listen(
+    (event) {
+      final data = jsonDecode(event);
 
-    print('Received: $data');
-  }
+      print('Received: $data');
+    },
+    onDone: () {
+      print('done');
+      listener?.cancel().ignore();
+      stdinListener?.cancel().ignore();
+    },
+  );
+
+  stdinListener = io.stdin.listen((event) {
+    final msg = utf8.decode(event).trim();
+    print('MSG: $msg');
+    if (msg == 'exit') {
+      listener?.cancel().ignore();
+      stdinListener?.cancel().ignore();
+    }
+  });
+
+  await listener.asFuture();
 
   print('done');
+  stdinListener.cancel().ignore();
 }
