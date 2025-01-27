@@ -6,7 +6,6 @@ class MetaParam {
   const MetaParam({
     required this.name,
     required this.type,
-    required this.typeImport,
     required this.typeElement,
     required this.nullable,
     required this.isRequired,
@@ -17,13 +16,15 @@ class MetaParam {
 
   final String name;
   final MetaType type;
-  final String? typeImport;
   final Element typeElement;
   final bool nullable;
   final bool isRequired;
   final bool isNamed;
   final String? defaultValue;
   final AnnotationMapper annotationsFor;
+
+  @Deprecated('Use type.importPath')
+  String? get typeImport => type.importPath;
 
   bool get hasDefaultValue => defaultValue != null;
 }

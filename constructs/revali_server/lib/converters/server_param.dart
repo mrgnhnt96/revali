@@ -17,7 +17,6 @@ class ServerParam with ExtractImport {
     required this.hasDefaultValue,
     required this.importPath,
     required this.annotations,
-    required this.typeImport,
   });
 
   factory ServerParam.fromMeta(MetaParam param) {
@@ -35,9 +34,6 @@ class ServerParam with ExtractImport {
       hasDefaultValue: param.hasDefaultValue,
       importPath: importPath,
       annotations: paramAnnotations,
-      typeImport: ServerImports([
-        if (param.typeImport case final String path) path,
-      ]),
     );
   }
 
@@ -45,12 +41,10 @@ class ServerParam with ExtractImport {
     final importPath = ServerImports.fromElement(element);
 
     final paramAnnotations = ServerParamAnnotations.fromElement(element);
-    final typeImport = ServerImports.fromElement(element.type.element);
 
     return ServerParam(
       name: element.name,
       type: ServerType.fromElement(element),
-      typeImport: typeImport,
       isNullable: element.type.nullabilitySuffix == NullabilitySuffix.question,
       isRequired: element.isRequiredNamed,
       isNamed: element.isNamed,
@@ -66,15 +60,17 @@ class ServerParam with ExtractImport {
   final bool isNullable;
   final bool isRequired;
   final bool isNamed;
-  final ServerImports? typeImport;
   final String? defaultValue;
   final bool hasDefaultValue;
   final ServerImports? importPath;
   final ServerParamAnnotations annotations;
 
   @override
-  List<ExtractImport?> get extractors => [annotations];
+  List<ExtractImport?> get extractors => [annotations, type];
 
   @override
-  List<ServerImports?> get imports => [importPath, typeImport];
+  List<ServerImports?> get imports => [importPath];
+
+  @Deprecated('use type.importPath')
+  ServerImports? get typeImport => type.importPath;
 }

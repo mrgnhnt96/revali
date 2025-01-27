@@ -23,14 +23,15 @@ class ServerType with ExtractImport {
 
   factory ServerType.fromElement(ParameterElement element) {
     final name = element.type.getDisplayString();
-    final hasFromJsonConstructor = switch (element.type.element) {
+    final typeElement = element.type.element;
+    final hasFromJsonConstructor = switch (typeElement) {
       final ClassElement element => element.hasFromJsonMember,
       _ => false,
     };
 
     final importPath = switch (hasFromJsonConstructor) {
       false => null,
-      true => ServerImports.fromElement(element),
+      true => ServerImports.fromElement(typeElement),
     };
 
     return ServerType(

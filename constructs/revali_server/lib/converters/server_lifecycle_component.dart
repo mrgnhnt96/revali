@@ -177,7 +177,6 @@ class ServerLifecycleComponent with ExtractImport {
           hasDefaultValue: false,
           importPath: ServerImports([]),
           annotations: ServerParamAnnotations.none(),
-          typeImport: null,
           isRequired: true,
         ),
       ],

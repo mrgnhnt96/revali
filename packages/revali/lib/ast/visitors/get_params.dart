@@ -15,11 +15,6 @@ Iterable<MetaParam> getParams(FunctionTypedElement element) {
       throw Exception('Element not found for type $type');
     }
 
-    String? typeImport;
-    if (element.library?.isInSdk == false) {
-      typeImport = element.importPath;
-    }
-
     final hasFromJsonConstructor = switch (element) {
       final ClassElement element => element.hasFromJsonMember,
       _ => false,
@@ -31,9 +26,8 @@ Iterable<MetaParam> getParams(FunctionTypedElement element) {
         type: MetaType(
           name: type,
           hasFromJsonConstructor: hasFromJsonConstructor,
-          importPath: typeImport,
+          importPath: element.importPath,
         ),
-        typeImport: typeImport,
         typeElement: element,
         nullable: param.type.nullabilitySuffix != NullabilitySuffix.none,
         isRequired: param.isRequired,
