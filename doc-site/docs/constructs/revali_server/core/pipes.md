@@ -24,7 +24,11 @@ class UserPipe implements Pipe<String, User> {
 }
 ```
 
-The first type argument of the `Pipe` class is the type received from the binding. The second type argument is the type to be delivered.
+The first type argument of the `Pipe` class is the type received from the binding. The second type argument is the type to be returned.
+
+:::tip
+`fromJson` is automatically detected, so a `Pipe` may not be needed! [Read more][json-binding].
+:::
 
 :::warning
 You will get a runtime error if the received type is not the same as the type provided by the binding. You will also get a runtime error if the delivered type is not the same as the type expected by the parameter.
@@ -32,6 +36,7 @@ You will get a runtime error if the received type is not the same as the type pr
 ```dart
 @Param('userId', UserPipe) String userId, // throws because `String` is not `User`
 ```
+
 :::
 
 ## Usage
@@ -69,5 +74,6 @@ Learn more about the Pipe Context [here][pipe-context].
 :::
 
 [binding]: ./binding.md
+[json-binding]: ./binding.md#auto-fromjson
 [pipe-context]: ../context/pipe.md
 [binding-pipe-transform]: ./binding.md#pipe-transform

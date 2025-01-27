@@ -374,9 +374,35 @@ Names are case sensitive. `user-id` is not the same as `userId`.
 In the examples above, we used the `@Param` annotation, but the principles apply to all binding annotations.
 :::
 
+## Auto `fromJson`
+
+In most cases, the value you bind from the request will need to be transformed or converted to a custom type before using it. If your custom type has a `fromJson` constructor (or factory), it will be automatically detected and used to convert the value.
+
+```dart
+class User {
+  final String name;
+  final int age;
+
+  User(this.name, this.age);
+
+  User.fromJson(Map<String, dynamic> json)
+      : name = json['name'],
+        age = json['age'];
+}
+
+@Post()
+Future<void> saveUser(
+  @Body(['data']) User user,
+) {
+  return 'User: $user';
+}
+```
+
+Behind the scenes, `User.fromJson` will be called with the value of the `data` key from the request body.
+
 ## Pipe Transform
 
-In most cases, the value you bind from the request will need to be transformed or converted before using it. This can be done by passing a `Pipe` to the annotation.
+Another way you can convert a value from the request is by using a `Pipe`. This is useful when you need to convert a value in a specific way, when you need to perform some validation, or some asynchronous operation.
 
 :::tip
 Check out the [Pipe][pipes] documentation on how to create pipes.
