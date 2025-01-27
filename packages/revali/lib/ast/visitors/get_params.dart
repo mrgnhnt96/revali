@@ -20,7 +20,7 @@ Iterable<MetaParam> getParams(FunctionTypedElement element) {
       typeImport = element.importPath;
     }
 
-    final hasFromJsonMethod = switch (element) {
+    final hasFromJsonConstructor = switch (element) {
       final ClassElement element => element.hasFromJsonMember,
       _ => false,
     };
@@ -30,7 +30,7 @@ Iterable<MetaParam> getParams(FunctionTypedElement element) {
         name: param.name,
         type: MetaType(
           name: type,
-          hasFromJsonMethod: hasFromJsonMethod,
+          hasFromJsonConstructor: hasFromJsonConstructor,
           importPath: typeImport,
         ),
         typeImport: typeImport,

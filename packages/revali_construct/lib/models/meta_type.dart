@@ -1,11 +1,11 @@
 class MetaType {
   const MetaType({
     required this.name,
-    required this.hasFromJsonMethod,
+    required this.hasFromJsonConstructor,
     required this.importPath,
   });
 
   final String name;
-  final bool hasFromJsonMethod;
+  final bool hasFromJsonConstructor;
   final String? importPath;
 }

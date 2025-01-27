@@ -7,14 +7,14 @@ import 'package:revali_server/utils/extract_import.dart';
 class ServerType with ExtractImport {
   ServerType({
     required this.name,
-    required this.hasFromJsonMethod,
+    required this.hasFromJsonConstructor,
     required this.importPath,
   });
 
   factory ServerType.fromMeta(MetaType type) {
     return ServerType(
       name: type.name,
-      hasFromJsonMethod: type.hasFromJsonMethod,
+      hasFromJsonConstructor: type.hasFromJsonConstructor,
       importPath: ServerImports([
         if (type.importPath case final String path) path,
       ]),
@@ -23,25 +23,25 @@ class ServerType with ExtractImport {
 
   factory ServerType.fromElement(ParameterElement element) {
     final name = element.type.getDisplayString();
-    final hasFromJsonMethod = switch (element.type.element) {
+    final hasFromJsonConstructor = switch (element.type.element) {
       final ClassElement element => element.hasFromJsonMember,
       _ => false,
     };
 
-    final importPath = switch (hasFromJsonMethod) {
+    final importPath = switch (hasFromJsonConstructor) {
       false => null,
       true => ServerImports.fromElement(element),
     };
 
     return ServerType(
       name: name,
-      hasFromJsonMethod: hasFromJsonMethod,
+      hasFromJsonConstructor: hasFromJsonConstructor,
       importPath: importPath,
     );
   }
 
   final String name;
-  final bool hasFromJsonMethod;
+  final bool hasFromJsonConstructor;
   final ServerImports? importPath;
 
   @override

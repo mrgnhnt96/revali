@@ -45,7 +45,7 @@ Expression createArgFromBody(
       type: AnnotationType.body,
       access: bodyVar,
     );
-  } else if (param.type.hasFromJsonMethod) {
+  } else if (param.type.hasFromJsonConstructor) {
     return createFromJsonArg(
       param.type,
       access: bodyVar,

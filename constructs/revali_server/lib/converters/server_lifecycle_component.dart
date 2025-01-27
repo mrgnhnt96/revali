@@ -168,7 +168,7 @@ class ServerLifecycleComponent with ExtractImport {
           name: 'di',
           type: ServerType(
             name: 'DI',
-            hasFromJsonMethod: false,
+            hasFromJsonConstructor: false,
             importPath: null,
           ),
           isNullable: false,
