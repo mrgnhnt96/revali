@@ -1,12 +1,13 @@
 # TODO
 
-## 1.18.25
+## 1.22.25
 
 ### Revali
 
-- Add Cookies and Set Cookies to headers
-  - Add common cookies
-    - `Max-Age`
+#### Fix
+
+- It seems like SSE blocks the further requests from coming in..
+
 - Get super methods from classes to allow for inheritance and better community support
 
 ## 10.3.2024
