@@ -9,9 +9,14 @@ class CreatePaths {
     String? controller,
     String? app,
     String? pipe,
+    String? lifecycleComponent,
   })  : controller = _assert(controller, p.join('routes', 'controllers')),
         app = _assert(app, p.join('routes', 'apps')),
-        pipe = _assert(pipe, p.join('lib', 'components', 'pipes'));
+        pipe = _assert(pipe, p.join('lib', 'components', 'pipes')),
+        lifecycleComponent = _assert(
+          lifecycleComponent,
+          p.join('lib', 'components', 'lifecycle_components'),
+        );
 
   factory CreatePaths.fromJson(Map<String, dynamic> json) =>
       _$CreatePathsFromJson(json);
@@ -23,10 +28,14 @@ class CreatePaths {
     };
   }
 
+  @JsonKey(fromJson: _multiString)
   final String controller;
+  @JsonKey(fromJson: _multiString)
   final String app;
   @JsonKey(fromJson: _multiString)
   final String pipe;
+  @JsonKey(fromJson: _multiString)
+  final String lifecycleComponent;
 
   Map<String, dynamic> toJson() => _$CreatePathsToJson(this);
 

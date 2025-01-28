@@ -7,9 +7,10 @@ part of 'create_paths.dart';
 // **************************************************************************
 
 CreatePaths _$CreatePathsFromJson(Map json) => CreatePaths(
-      controller: json['controller'] as String?,
-      app: json['app'] as String?,
+      controller: CreatePaths._multiString(json['controller']),
+      app: CreatePaths._multiString(json['app']),
       pipe: CreatePaths._multiString(json['pipe']),
+      lifecycleComponent: CreatePaths._multiString(json['lifecycle_component']),
     );
 
 Map<String, dynamic> _$CreatePathsToJson(CreatePaths instance) =>
@@ -17,4 +18,5 @@ Map<String, dynamic> _$CreatePathsToJson(CreatePaths instance) =>
       'controller': instance.controller,
       'app': instance.app,
       'pipe': instance.pipe,
+      'lifecycle_component': instance.lifecycleComponent,
     };
