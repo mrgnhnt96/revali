@@ -39,6 +39,30 @@ To close the connection, you can close the stream. The server will automatically
 
 If the connection is closed by the client, the server will automatically close the stream.
 
+### Cleaning Up
+
+If you need to clean up resources when the connection is closed, you can use the `CleanUp` class to register a callback that will be called when the connection is closed. Either by the client or the server.
+
+```dart
+@SSE('events')
+Stream<String> sendEvents(
+    // highlight-next-line
+    CleanUp cleanUp,
+) async* {
+    cleanUp.add(service.dispose);
+
+    yield* service.stream;
+}
+```
+
+:::important
+To avoid memory leaks, make sure that the connection is closed properly when you are done listening to events. To close the connection (for both client & server), you can:
+
+- Use a `break` within the `await for` loop.
+- Cancel the `StreamSubscription` returned by the `stream.listen` method.
+
+:::
+
 ## Example
 
 ```dart
@@ -63,17 +87,29 @@ Here is an example of how to listen to Server-Sent Events in Dart:
 ```dart
 import 'dart:io';
 
-final http = HttpClient();
+void main() async {
+    final http = HttpClient();
 
-final request = await http.getUrl(Uri.parse(url));
+    final request = await http.getUrl(Uri.parse(url));
 
-final response = await request.close();
+    final response = await request.close();
 
-final stream = response.asBroadcastStream().transform(utf8.decoder);
+    final stream = response.transform(utf8.decoder);
 
-await for (final event in stream) {
-final data = jsonDecode(event);
+    await for (final event in stream) {
+        final data = jsonDecode(event);
 
-print('Received: $data');
+        print('Received: $data');
+    }
 }
 ```
+
+:::caution
+Avoid using `asBroadcastStream` on the stream returned by the request. Doing so can cause the server to keep the connection open indefinitely.
+:::
+
+:::danger
+Some 3rd party http clients (like [`dio`][dio]) process the `Stream` in a way that can cause the connection to remain open indefinitely. Make sure to test the client library you are using to ensure that it closes the connection properly.
+:::
+
+[dio]: https://pub.dev/packages/dio
