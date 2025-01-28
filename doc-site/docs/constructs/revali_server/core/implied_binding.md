@@ -18,6 +18,7 @@ There are certain classes that do not need [binding annotations][binding].
 | DataHandler | Read and write data shared between components during a request |
 | ReadOnlyData | Read data shared between components during a request |
 | WriteOnlyData | Write data shared between components during a request |
+| CleanUp | Clean up resources after request handling |
 
 :::caution
 Not all endpoints and lifecycle components have access to each of these types. Check the documentation of the endpoint or lifecycle component to see which types are available.
@@ -30,7 +31,11 @@ Not all endpoints and lifecycle components have access to each of these types. C
 | Types | Description |
 | --- | --- |
 | ⚠️ DI | Dependency Injection, where all your dependencies are configured |
-| ⚠️ MutableHeaders | The headers that will sent with the response |
+| MutableHeaders | The headers that will sent with the response |
+| MutableCookies | The cookies that will be sent with the response |
+| ReadOnlyCookies | The cookies that were received with the request |
+| MutableSetCookies | The cookies that will be sent in the `Set-Cookie` header |
+| ReadOnlySetCookies | The cookies that will be sent in the `Set-Cookie` header |
 | ⚠️ MutableBody | The body that will be sent with the response |
 | ⚠️ MutableResponse | The response to be sent |
 | ⚠️ RestrictedMutableResponse | Modify only body and headers |
