@@ -97,6 +97,7 @@ import 'dart:async';
 
 import 'package:revali_router/revali_router.dart';
 
+// Learn more about Pipes at https://www.revali.dev/constructs/revali_server/core/pipes
 class ${_returnType.toPascalCase()}Pipe implements Pipe<$_inputType, ${_returnType.toPascalCase()}> {
   const ${_returnType.toPascalCase()}Pipe();
 
