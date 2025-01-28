@@ -72,7 +72,7 @@ sealed class BaseBodyData<T> extends BodyData {
   ListBodyData get asList => this as ListBodyData;
   FormDataBodyData get asFormData => this as FormDataBodyData;
   UnknownBodyData get asUnknown => this as UnknownBodyData;
-  StreamBodyData get asStream => this as StreamBodyData;
+  StreamBodyData<dynamic> get asStream => this as StreamBodyData;
   FileBodyData get asFile => this as FileBodyData;
   MemoryFileBodyData get asMemoryFile => this as MemoryFileBodyData;
   ByteStreamBodyData get asByteStream => this as ByteStreamBodyData;

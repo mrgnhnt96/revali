@@ -1,6 +1,6 @@
 part of 'base_body_data.dart';
 
-final class StreamBodyData extends BaseBodyData<Stream<dynamic>> {
+final class StreamBodyData<T> extends BaseBodyData<Stream<T>> {
   StreamBodyData(
     super.data, {
     this.contentLength,
@@ -17,11 +17,10 @@ final class StreamBodyData extends BaseBodyData<Stream<dynamic>> {
 
   @override
   Stream<List<int>> read() {
-    final data = this.data;
     return switch (data) {
-      Stream<String>() => data.transform(utf8.encoder),
-      final Stream<List<int>> data => data,
-      _ => data.map((e) {
+      final Stream<String> e => e.transform(utf8.encoder),
+      final Stream<List<int>> e => e,
+      final e => e.map((e) {
           String data;
 
           try {
