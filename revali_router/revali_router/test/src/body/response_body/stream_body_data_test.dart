@@ -7,26 +7,27 @@ import 'package:test/test.dart';
 void main() {
   group(StreamBodyData, () {
     test('should return correct mimeType', () {
-      final data = StreamBodyData(const Stream.empty());
+      final data = StreamBodyData(const Stream<void>.empty());
       expect(data.mimeType, 'application/octet-stream');
     });
 
     test('should return correct filename', () {
-      final data = StreamBodyData(const Stream.empty(), filename: 'test.txt');
+      final data =
+          StreamBodyData(const Stream<void>.empty(), filename: 'test.txt');
       expect(data.filename, 'test.txt');
     });
 
     test('should return correct contentLength', () {
-      final data = StreamBodyData(const Stream.empty(), contentLength: 100);
+      final data =
+          StreamBodyData(const Stream<void>.empty(), contentLength: 100);
       expect(data.contentLength, 100);
     });
 
-    test('should transform Stream<String> to Stream<List<int>>', () async {
+    test('should transform Stream of String to Stream of List of int',
+        () async {
       final data = StreamBodyData(Stream.fromIterable(['test']));
       final result = await data.read().toList();
-      expect(result, [
-        [34, ...utf8.encode('test'), 34],
-      ]);
+      expect(result, [utf8.encode('test')]);
     });
 
     test('should transform Stream<Map> to Stream<List<int>>', () async {
@@ -57,7 +58,7 @@ void main() {
 
     test('should return correct headers', () {
       final data = StreamBodyData(
-        const Stream.empty(),
+        const Stream<void>.empty(),
         contentLength: 100,
         filename: 'test.txt',
       );
