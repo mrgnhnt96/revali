@@ -11,6 +11,7 @@ import 'package:revali_server/makers/creators/create_arg_from_header.dart';
 import 'package:revali_server/makers/creators/create_arg_from_param.dart';
 import 'package:revali_server/makers/creators/create_arg_from_query.dart';
 import 'package:revali_server/makers/creators/create_get_from_di.dart';
+import 'package:revali_server/makers/creators/create_missing_argument_exception.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
 
 final impliedArguments = <String, Expression>{
@@ -53,6 +54,12 @@ final impliedArguments = <String, Expression>{
   (DataHandler).name: refer('context').property('data'),
   (ReadOnlyData).name: refer('context').property('data'),
   (WriteOnlyData).name: refer('context').property('data'),
+  (CleanUp).name:
+      refer('context').property('data').property('get').call([]).ifNullThen(
+    createMissingArgumentException(key: 'cleanUp', location: '@data')
+        .thrown
+        .parenthesized,
+  ),
 };
 
 Expression createParamArg(

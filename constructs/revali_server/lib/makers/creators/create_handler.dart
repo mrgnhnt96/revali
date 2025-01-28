@@ -33,21 +33,7 @@ Expression? createHandler({
 
   var handler = literalNull;
 
-  final (:positioned, :named) = getParams(
-    route.params,
-    inferredParams: {
-      if (route is ServerChildRoute &&
-          (route.isSse || route.returnType.isStream))
-        (CleanUp).name: refer('context')
-            .property('data')
-            .property('get')
-            .call([]).ifNullThen(
-          createMissingArgumentException(key: 'cleanUp', location: '@data')
-              .thrown
-              .parenthesized,
-        ),
-    },
-  );
+  final (:positioned, :named) = getParams(route.params);
   handler =
       refer(classVarName).property(route.handlerName).call(positioned, named);
 
