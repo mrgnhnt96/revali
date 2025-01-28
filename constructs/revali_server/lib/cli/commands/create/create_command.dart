@@ -8,6 +8,7 @@ import 'package:mason_logger/mason_logger.dart';
 import 'package:revali_server/cli/commands/create/create_components/create_app_command.dart';
 import 'package:revali_server/cli/commands/create/create_components/create_controller_command.dart';
 import 'package:revali_server/cli/commands/create/create_components/create_lifecycle_component_command.dart';
+import 'package:revali_server/cli/commands/create/create_components/create_observer_command.dart';
 import 'package:revali_server/cli/commands/create/create_components/create_pipe_command.dart';
 
 class CreateCommand extends Command<int> {
@@ -16,10 +17,11 @@ class CreateCommand extends Command<int> {
     required this.logger,
   }) {
     final subCommands = [
-      CreateControllerCommand.new,
       CreateAppCommand.new,
-      CreatePipeCommand.new,
+      CreateControllerCommand.new,
       CreateLifecycleComponentCommand.new,
+      CreateObserverCommand.new,
+      CreatePipeCommand.new,
     ];
 
     for (final sub in subCommands) {
