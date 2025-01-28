@@ -107,7 +107,7 @@ Dart Type: `BinaryBodyData`
 
 If you need to support a custom body type, you can create a class that extends the `BodyData` class. Once you have created your custom body type, you'll need to register it with the `PayloadImpl`.
 
-### Create
+### Create Body Type
 
 ```dart
 import 'dart:convert';
@@ -146,6 +146,29 @@ base class MyBodyData extends BodyData {
 }
 ```
 
+### Create Body Parser
+
+You will also need to create a class that extends the `BodyParser` class. The `BodyParser` class is responsible for parsing the body data and returning the body as a `BodyData` object.
+
+```dart
+import 'dart:convert';
+
+import 'package:revali_router/revali_router.dart';
+
+base class MyBodyParser extends BodyParser {
+  const MyBodyParser(super.mimeType);
+
+  @override
+  Future<BodyData> parse(
+    Encoding encoding,
+    Stream<List<int>> data,
+    ReadOnlyHeaders headers,
+  ) async {
+    return MyBodyData(data, encoding, headers);
+  }
+}
+```
+
 ### Register
 
 You can register your custom body type within the constructor of your [AppConfig][create-an-app]
@@ -157,7 +180,7 @@ import 'package:revali_router/revali_router.dart';
 final class MyApp extends AppConfig {
   MyApp() : super(host: 'localhost', port: 8083) {
     PayloadImpl.additionalParsers['binary/octet-stream'] =
-        (encoding, data, headers) async => MyBodyData(data, encoding, headers);
+        MyBodyParser('binary/octet-stream');
   }
 }
 ```
