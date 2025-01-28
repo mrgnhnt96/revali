@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.7.0 | 01.27.25
+
+### Features
+
+- Create inferred param for `CleanUp` class for
+
 ## 1.6.0 | 01.27.25
 
 ### Enhancements

@@ -46,15 +46,18 @@
 
 # revali_router
 
-## 1.4.1
+## 1.5.0
 
 ### Enhancements
 
-- Handling responses and root errors
+- `ByteStreamBodyData` now extends `StreamBodyData`
+- Improve server sent event response handling
+  - close stream when client disconnects
+  - Use new `CleanUp` class to handle cleanup
 
-### Fixes
+### Features
 
-- Poor type handling for header values that could cause a response to fail
+- Add `CleanUp` class to `DataHandler` on initialization
 
 # revali_router_annotations
 
@@ -67,33 +70,19 @@
 
 # revali_router_core
 
-## 1.4.0
+## 1.5.0
 
 ### Features
 
-- Create cookie interfaces for managing cookies
-  - `MutableCookies`
-  - `ReadOnlyCookies`
-  - `MutableSetCookies`
-  - `ReadOnlySetCookies`
+- Create `CleanUp` class to handle cleanup of resources after request handling
+- Add `cleanUp` method to `BodyData` to handle cleanup
 
 <!-- CONSTRUCTS -->
 
 # revali_server
 
-## 1.6.0
-
-### Enhancements
-
-- Remove use of deprecated apis
-- Create extensions to get fromJson constructor and import paths
-
-### (Future) Breaking Changes
-
-- Deprecate `ServerParam.typeImport` in favor of `ServerParam.type.importPath`
+## 1.7.0
 
 ### Features
 
-- Create new factory constructors for `ServerImports` to better handle extracting import paths
-- Create `ServerType` class to reflect `MetaType` for method parameter types
-- Leverage `hasFromJsonConstructor` to convert body/header/param/query request values
+- Create inferred param for `CleanUp` class for

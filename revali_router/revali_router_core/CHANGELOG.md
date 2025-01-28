@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 1.5.0 | 01.27.25
+
+### Features
+
+- Create `CleanUp` class to handle cleanup of resources after request handling
+- Add `cleanUp` method to `BodyData` to handle cleanup
+
 ## 1.4.0 | 01.20.25
 
 ### Features

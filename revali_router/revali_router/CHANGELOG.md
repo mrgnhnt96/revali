@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## 1.5.0 | 01.27.25
+
+### Enhancements
+
+- `ByteStreamBodyData` now extends `StreamBodyData`
+- Improve server sent event response handling
+  - close stream when client disconnects
+  - Use new `CleanUp` class to handle cleanup
+
+### Features
+
+- Add `CleanUp` class to `DataHandler` on initialization
+
 ## 1.4.1 | 01.27.25
 
 ### Enhancements
