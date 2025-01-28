@@ -8,6 +8,16 @@ mixin CreateCommandMixin {
   FileSystem get fs;
   Logger get logger;
 
+  bool get force;
+
+  /// The directory where the component will be created.
+  String get directory;
+  String get fileName;
+  String get componentName;
+  String content();
+
+  void prompt();
+
   String? get root {
     var directory = fs.currentDirectory.absolute;
 

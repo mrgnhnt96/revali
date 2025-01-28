@@ -1,34 +1,19 @@
-import 'dart:async';
-
-import 'package:args/command_runner.dart';
 import 'package:change_case/change_case.dart';
-import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
-import 'package:path/path.dart' as p;
-import 'package:revali_server/cli/commands/create/mixins/create_command_mixin.dart';
+import 'package:revali_server/cli/commands/create/create_components/create_component_command.dart';
 
-class CreateControllerCommand extends Command<int> with CreateCommandMixin {
+class CreateControllerCommand extends CreateComponentCommand {
   CreateControllerCommand({
-    required this.fs,
-    required this.logger,
+    required super.fs,
+    required super.logger,
   }) {
-    argParser
-      ..addOption(
-        'name',
-        abbr: 'n',
-        help: 'The name of the controller',
-        valueHelp: 'name',
-      )
-      ..addFlag(
-        'force',
-        abbr: 'f',
-        help: 'Overwrite the controller if it already exists',
-        negatable: false,
-      );
+    argParser.addOption(
+      'name',
+      abbr: 'n',
+      help: 'The name of the controller',
+      valueHelp: 'name',
+    );
   }
-
-  @override
-  final Logger logger;
 
   @override
   String get description => 'creates a new controller';
@@ -37,79 +22,40 @@ class CreateControllerCommand extends Command<int> with CreateCommandMixin {
   String get name => 'controller';
 
   @override
-  final FileSystem fs;
-
-  String? get controllerName => argResults?['name'] as String?;
-  bool get force => argResults?['force'] as bool? ?? false;
-
-  String content(String name) => '''
-import 'package:revali_router/revali_router.dart';
-
-@Controller('${name.toPathCase()}')
-class ${name.toPascalCase()}Controller {
-  const ${name.toPascalCase()}Controller();
-
-  String handle() {
-    return 'Hello world!';
-  }
-}
-''';
+  String get fileName => '${_name.toSnakeCase()}_controller.dart';
 
   @override
-  Future<int>? run() async {
-    logger.detail('Running ${this.name} command');
-    final rootDir = root;
+  String get directory => config.createPaths.controller;
 
-    if (rootDir == null) {
-      logger.warn('Failed to find pubspec.yaml');
-      return 1;
-    }
-
-    final config = this.config;
-
-    final routesPath = p.join(rootDir, 'routes');
-    final controllersPath = p.join(
-      routesPath,
-      config.createPaths.controller,
-    );
-
-    var name = controllerName;
+  String _name = '';
+  void namePrompt() {
+    var name = argResults?['name'] as String?;
 
     while (name == null || name.isEmpty) {
       name =
           logger.prompt("What's the name of the ${green.wrap('controller')}?");
     }
 
-    final controllerPath =
-        p.join(controllersPath, '${name.toSnakeCase()}_controller.dart');
-
-    if (fs.file(controllerPath).existsSync()) {
-      if (!force) {
-        final overwrite = logger.confirm(
-          red.wrap('Controller already exists, do you want to overwrite?'),
-        );
-
-        if (!overwrite) {
-          return 0;
-        }
-      }
-    }
-
-    final progress = logger.progress('Creating controller');
-
-    try {
-      fs.directory(controllersPath).createSync(recursive: true);
-      fs.file(controllerPath).writeAsStringSync(content(name));
-
-      final relative = p.relative(controllerPath);
-
-      progress.complete("${green.wrap('Created!')} ${darkGray.wrap(relative)}");
-    } catch (e) {
-      progress.fail();
-      logger.detail('Failed to create controller, $e');
-      return 1;
-    }
-
-    return 0;
+    _name = name.trim();
   }
+
+  @override
+  void prompt() {
+    namePrompt();
+  }
+
+  @override
+  String content() => '''
+import 'package:revali_router/revali_router.dart';
+
+@Controller('${name.toPathCase()}')
+class ${name.toPascalCase()}Controller {
+  const ${name.toPascalCase()}Controller();
+
+  @Get()
+  String handle() {
+    return 'Hello world!';
+  }
+}
+''';
 }

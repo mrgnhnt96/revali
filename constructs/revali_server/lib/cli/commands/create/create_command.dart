@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
+import 'package:change_case/change_case.dart';
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:revali_server/cli/commands/create/create_components/create_app_command.dart';
@@ -48,14 +49,25 @@ class CreateCommand extends Command<int> {
       return 0;
     }
 
-    final commands = subcommands.keys.toList();
+    final commands = {
+      for (final key in subcommands.keys) key.toTitleCase(): key,
+    };
 
     final choice = logger.chooseOne(
       'What would you like to create?',
-      choices: commands,
+      choices: commands.keys.toList(),
     );
 
-    final result = await subcommands[choice]?.run();
+    final key = commands[choice];
+
+    final command = subcommands[key];
+
+    if (command == null) {
+      logger.err('Failed to find command');
+      return -1;
+    }
+
+    final result = await command.run();
 
     return result ?? 0;
   }
