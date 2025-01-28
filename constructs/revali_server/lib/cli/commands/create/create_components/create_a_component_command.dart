@@ -7,9 +7,9 @@ import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart' as p;
 import 'package:revali_server/cli/commands/create/mixins/create_command_mixin.dart';
 
-abstract class CreateComponentCommand extends Command<int>
+abstract class CreateAComponentCommand extends Command<int>
     with CreateCommandMixin {
-  CreateComponentCommand({
+  CreateAComponentCommand({
     required this.fs,
     required this.logger,
   }) {

@@ -1,8 +1,8 @@
 import 'package:change_case/change_case.dart';
 import 'package:mason_logger/mason_logger.dart';
-import 'package:revali_server/cli/commands/create/create_components/create_component_command.dart';
+import 'package:revali_server/cli/commands/create/create_components/create_a_component_command.dart';
 
-class CreateControllerCommand extends CreateComponentCommand {
+class CreateControllerCommand extends CreateAComponentCommand {
   CreateControllerCommand({
     required super.fs,
     required super.logger,
