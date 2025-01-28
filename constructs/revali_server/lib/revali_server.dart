@@ -9,4 +9,6 @@ export 'models/options.dart';
 export 'revali_build.construct.dart';
 export 'revali_server.construct.dart';
 export 'server.dart';
+export 'utils/class_element_extensions.dart';
+export 'utils/element_extensions.dart';
 export 'utils/extract_import.dart';

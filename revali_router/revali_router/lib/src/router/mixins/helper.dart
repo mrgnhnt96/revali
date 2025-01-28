@@ -12,7 +12,7 @@ class Helper with HelperMixin, ContextMixin {
     debugResponses = router.debug;
     defaultResponses = router.defaultResponses;
 
-    dataHandler = DataHandler();
+    dataHandler = DataHandler()..add<CleanUp>(CleanUpImpl());
     directMeta = route.getMeta();
     inheritedMeta = route.getMeta(inherit: true);
     globalComponents.getMeta(handler: inheritedMeta);

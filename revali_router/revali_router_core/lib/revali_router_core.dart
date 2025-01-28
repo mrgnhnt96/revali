@@ -14,6 +14,8 @@ export 'body/body_data.dart';
 export 'body/body_parser.dart';
 export 'body/mutable_body.dart';
 export 'body/read_only_body.dart';
+export 'clean_up/clean_up.dart';
+export 'clean_up/clean_up_impl.dart';
 export 'combine/combine_components.dart';
 export 'context/base_context.dart';
 export 'cookies/mutable_cookies.dart';
