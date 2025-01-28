@@ -40,14 +40,14 @@ mixin CreateCommandMixin {
     logger.detail('Looking for revali.yaml');
 
     if (root == null) {
-      return const CliConfig();
+      return CliConfig();
     }
 
     final file = fs.file(p.join(root, 'revali.yaml'));
 
     if (!file.existsSync()) {
       logger.detail('Failed to find revali.yaml');
-      return const CliConfig();
+      return CliConfig();
     }
 
     final content = file.readAsStringSync();
@@ -61,6 +61,6 @@ mixin CreateCommandMixin {
 
     logger.detail('No revali_server config found in revali.yaml');
 
-    return const CliConfig();
+    return CliConfig();
   }
 }

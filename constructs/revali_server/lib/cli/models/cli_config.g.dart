@@ -8,7 +8,7 @@ part of 'cli_config.dart';
 
 CliConfig _$CliConfigFromJson(Map json) => CliConfig(
       createPaths: json['create_paths'] == null
-          ? const CreatePaths()
+          ? null
           : CreatePaths.fromJson(
               Map<String, dynamic>.from(json['create_paths'] as Map)),
     );

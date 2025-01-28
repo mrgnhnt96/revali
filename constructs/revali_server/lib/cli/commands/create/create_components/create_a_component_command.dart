@@ -46,7 +46,7 @@ abstract class CreateAComponentCommand extends Command<int>
       return 1;
     }
 
-    final directoryPath = p.joinAll([rootDir, 'routes', directory]);
+    final directoryPath = p.joinAll([rootDir, directory]);
 
     prompt();
 

@@ -5,9 +5,9 @@ part 'cli_config.g.dart';
 
 @JsonSerializable()
 class CliConfig {
-  const CliConfig({
-    this.createPaths = const CreatePaths(),
-  });
+  CliConfig({
+    CreatePaths? createPaths,
+  }) : createPaths = createPaths ?? CreatePaths();
 
   factory CliConfig.fromJson(Map<dynamic, dynamic> json) =>
       _$CliConfigFromJson(json);
