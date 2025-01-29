@@ -21,6 +21,15 @@ class MyComponent implements LifecycleComponent {
 }
 ```
 
+:::tip
+Try using the [`create` cli][create-cli] to generate the components for you!
+
+```bash
+dart run revali_server create lifecycle-component
+```
+
+:::
+
 You may add fields to this class as you need, such as classes from your [dependencies][di] or values that are specific to the component. You can use [binding annotations][binding] to inject these dependencies into the component.
 
 ```dart title="lib/components/my_component.dart"
@@ -189,3 +198,4 @@ Future<void> myEndpoint() {
 [interceptor-post-context]: ../context/interceptor.md#post
 [exception-catcher-context]: ../context/exception-catcher.md
 [implied-binding]: ../core/implied_binding.md
+[create-cli]: ../getting-started/cli.md#create

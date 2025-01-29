@@ -24,6 +24,15 @@ class UserPipe implements Pipe<String, User> {
 }
 ```
 
+:::tip
+Try using the [`create` cli][create-cli] to generate the pipe for you!
+
+```bash
+dart run revali_server create pipe
+```
+
+:::
+
 The first type argument of the `Pipe` class is the type received from the binding. The second type argument is the type to be returned.
 
 :::tip
@@ -77,3 +86,4 @@ Learn more about the Pipe Context [here][pipe-context].
 [json-binding]: ./binding.md#auto-fromjson
 [pipe-context]: ../context/pipe.md
 [binding-pipe-transform]: ./binding.md#pipe-transform
+[create-cli]: ../getting-started/cli.md#create

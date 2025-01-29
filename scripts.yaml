@@ -15,6 +15,7 @@ build_runner:
         revali_router:
             (aliases): router
             (command): cd revali_router/revali_router && {$build_runner:build}
+        revali_server: cd constructs/revali_server && {$build_runner:build}
     watch:
         (aliases): w
         (command): dart run build_runner watch --delete-conflicting-outputs
@@ -24,7 +25,7 @@ build_runner:
         revali_router:
             (aliases): router
             (command): cd revali_router/revali_router && {$build_runner:watch}
-
+        revali_server: cd constructs/revali_server && {$build_runner:watch}
 
 test:
     (command):
@@ -151,4 +152,4 @@ test:
 spell_check: cspell "./doc-site/docs/**/*" --config ".github/cspell/cspell.json"
 
 publish:
-  - cd scripts && dart run lib/prep_for_publish.dart
+    - cd scripts && dart run lib/prep_for_publish.dart

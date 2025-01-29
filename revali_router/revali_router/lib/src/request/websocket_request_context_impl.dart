@@ -2,6 +2,7 @@ import 'package:revali_router/src/body/mutable_body_impl.dart';
 import 'package:revali_router/src/request/mutable_request_impl.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
+// ignore: must_be_immutable
 class MutableWebSocketRequestImpl extends MutableRequestImpl
     implements MutableWebSocketRequest {
   // ignore: use_super_parameters

@@ -15,6 +15,15 @@ To create a controller, we need to create a class within the `routes` directory
 class UsersController {}
 ```
 
+:::tip
+Try using the [`create` cli][create-cli] to generate the controller for you!
+
+```bash
+dart run revali_server create controller
+```
+
+:::
+
 In order for Revali to know of this new controller, we need to add the `@Controller` annotation. The `Controller` annotation accepts 1 argument, which is the server path.
 
 ```dart title="routes/users/users_controller.dart"
@@ -104,3 +113,4 @@ Learn how to [configure dependencies][configure-dependencies].
 [configure-dependencies]: ../../../revali/app-configuration/configure-dependencies.md#registering-dependencies
 [binding]: ./binding.md
 [instance-variables]: https://dart.dev/language/constructors#instance-variable-initialization
+[create-cli]: ../getting-started/cli.md#create

@@ -9,6 +9,7 @@ import 'package:revali_router_core/revali_router_core.dart';
 
 part 'request_context_impl.g.dart';
 
+// ignore: must_be_immutable
 class RequestContextImpl with EquatableMixin implements RequestContext {
   RequestContextImpl(
     this.request, {

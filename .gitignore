@@ -62,3 +62,4 @@ FAILED_PUBLISH.md
 FAILED_RELEASE.md
 
 coverage/
+constructs/revali_server/bin/tester.dart

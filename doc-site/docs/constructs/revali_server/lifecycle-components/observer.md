@@ -34,6 +34,15 @@ class MyObserver implements Observer {
 }
 ```
 
+:::tip
+Try using the [`create` cli][create-cli] to generate the observer for you!
+
+```bash
+dart run revali_server create observer
+```
+
+:::
+
 :::note
 There's no limit to the number of observers that can be applied to an app. Observers are executed in the order they are registered.
 :::
@@ -65,3 +74,4 @@ class MyApp ...
 ```
 
 [interceptors]: ./advanced/interceptors.md
+[create-cli]: ../getting-started/cli.md#create
