@@ -16,7 +16,7 @@ abstract class CreateAComponentCommand extends Command<int>
     argParser.addFlag(
       'force',
       abbr: 'f',
-      help: 'Overwrite the app if it already exists',
+      help: 'Overwrite the file if it already exists',
       negatable: false,
     );
   }
