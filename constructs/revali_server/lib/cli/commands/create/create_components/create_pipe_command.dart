@@ -87,8 +87,8 @@ class CreatePipeCommand extends CreateAComponentCommand {
 
   @override
   void prompt() {
-    returnTypePrompt();
     inputTypePrompt();
+    returnTypePrompt();
   }
 
   @override
