@@ -28,7 +28,10 @@ Future<int> main(List<String> providedArgs) async {
     final exitCode = await runner.run(args);
 
     return exitCode ?? 0;
-  } catch (_) {
+  } catch (e) {
+    logger
+      ..err('An error occurred')
+      ..err(e.toString());
     return 1;
   }
 }
