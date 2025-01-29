@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:change_case/change_case.dart';
 import 'package:file/file.dart';
@@ -43,21 +42,10 @@ class CreateCommand extends Command<int> {
   final Logger logger;
 
   @override
-  ArgResults? argResults;
-
-  bool get help => argResults?['help'] as bool;
-
-  @override
   // ignore: unnecessary_overrides
-  FutureOr<int>? run([List<String> args = const []]) async {
-    argResults ??= argParser.parse(args);
-    if (help) {
-      printUsage();
-      return 0;
-    }
-
+  FutureOr<int>? run() async {
     final commands = {
-      for (final key in subcommands.keys) key.toTitleCase(): key,
+      for (final key in subcommands.keys) key.toNoCase().toTitleCase(): key,
     };
 
     final choice = logger.chooseOne(

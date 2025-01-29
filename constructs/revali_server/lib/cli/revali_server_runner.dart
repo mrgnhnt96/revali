@@ -25,7 +25,7 @@ class RevaliServerRunner extends CommandRunner<int> {
     final command = topLevelResults.command;
 
     try {
-      if (command case final cmd?) {
+      if (command case final cmd? when cmd.arguments.isEmpty) {
         final command = switch (commands[cmd.name]) {
           final CreateCommand command => command,
           _ => null,
@@ -33,7 +33,7 @@ class RevaliServerRunner extends CommandRunner<int> {
 
         if (command != null) {
           logger.detail('Running command: ${command.name}');
-          return await command.run(topLevelResults.arguments);
+          return await command.run();
         }
       }
 
