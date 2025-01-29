@@ -19,7 +19,10 @@ class CreateLifecycleComponentCommand extends CreateAComponentCommand {
   String get description => 'creates a new lifecycle component';
 
   @override
-  String get name => 'lifecycle Component';
+  String get name => 'lifecycle-component';
+
+  @override
+  String get componentName => 'Lifecycle Component';
 
   @override
   String get fileName => '${_name.toSnakeCase()}.dart';
