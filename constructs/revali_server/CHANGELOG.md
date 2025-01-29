@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.8.0 | 01.29.25
+
+### Features
+
+- Create CLI to generate components
+
 ## 1.7.0 | 01.27.25
 
 ### Features

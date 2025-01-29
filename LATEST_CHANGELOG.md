@@ -81,8 +81,8 @@
 
 # revali_server
 
-## 1.7.0
+## 1.8.0
 
 ### Features
 
-- Create inferred param for `CleanUp` class for
+- Create CLI to generate components
