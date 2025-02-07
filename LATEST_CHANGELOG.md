@@ -75,7 +75,7 @@
 
 # revali_server
 
-## 1.9.0
+## 1.9.1
 
 ### Fixes
 
