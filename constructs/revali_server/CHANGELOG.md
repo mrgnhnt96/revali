@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.9.0 | 02.07.25
+
+### Fixes
+
+- [CLI] Issue where controller name was not being set correctly during file creation
+
 ## 1.8.0 | 01.29.25
 
 ### Features

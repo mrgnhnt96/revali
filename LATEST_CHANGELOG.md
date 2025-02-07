@@ -46,18 +46,12 @@
 
 # revali_router
 
-## 1.5.0
-
-### Enhancements
-
-- `ByteStreamBodyData` now extends `StreamBodyData`
-- Improve server sent event response handling
-  - close stream when client disconnects
-  - Use new `CleanUp` class to handle cleanup
+## 1.6.0
 
 ### Features
 
-- Add `CleanUp` class to `DataHandler` on initialization
+- Use `.then` syntax instead of await to handle request operation
+  - This allows for faster request handling
 
 # revali_router_annotations
 
@@ -81,8 +75,8 @@
 
 # revali_server
 
-## 1.8.0
+## 1.9.0
 
-### Features
+### Fixes
 
-- Create CLI to generate components
+- [CLI] Issue where controller name was not being set correctly during file creation

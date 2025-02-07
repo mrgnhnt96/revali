@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 1.6.0 | 02.07.25
+
+### Features
+
+- Use `.then` syntax instead of await to handle request operation
+  - This allows for faster request handling
+
 ## 1.5.0 | 01.27.25
 
 ### Enhancements

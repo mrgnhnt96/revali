@@ -409,7 +409,7 @@ packages:
       path: "../../revali_router/revali_router"
       relative: true
     source: path
-    version: "1.5.0"
+    version: "1.6.0"
   revali_router_annotations:
     dependency: "direct main"
     description:
