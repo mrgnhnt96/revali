@@ -5,11 +5,15 @@ class ShopController {
   const ShopController();
 
   @Get(':productId')
-  String getProduct(
+  User getProduct(
     @Param() String shopId,
     @Param() String productId,
     @Query('ids') String? ids,
   ) {
-    return 'Shop ID: $shopId, Product ID: $productId, IDs: $ids';
+    return const User();
   }
+}
+
+class User {
+  const User();
 }
