@@ -49,9 +49,9 @@ class CreateControllerCommand extends CreateAComponentCommand {
 import 'package:revali_router/revali_router.dart';
 
 // Learn more about Controllers at https://www.revali.dev/constructs/revali_server/core/controllers
-@Controller('${name.toPathCase()}')
-class ${name.toPascalCase()}Controller {
-  const ${name.toPascalCase()}Controller();
+@Controller('${_name.toPathCase()}')
+class ${_name.toPascalCase()}Controller {
+  const ${_name.toPascalCase()}Controller();
 
   @Get()
   String handle() {
