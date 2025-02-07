@@ -1,4 +1,4 @@
-// ignore_for_file: inference_failure_on_instance_creation
+// ignore_for_file: inference_failure_on_instance_creation, strict_raw_type
 
 import 'dart:io';
 import 'dart:typed_data';
