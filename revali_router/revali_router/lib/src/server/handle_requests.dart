@@ -15,7 +15,6 @@ Future<void> handleRequests(
 ) async {
   try {
     await for (final request in server) {
-      ReadOnlyResponse response;
       final context = RequestContextImpl.fromRequest(request);
       ResponseHandler responseSender;
 
@@ -26,38 +25,24 @@ Future<void> handleRequests(
         continue;
       }
 
-      try {
-        response = await handler(context);
-      } catch (e) {
+      handler(context).then((response) {
+        responseSender.handle(
+          response,
+          context,
+          request.response,
+        );
+      }).catchError((e) {
         responseSender
             .handle(
-              SimpleResponse(
-                500,
-                body: 'Internal Server Error (ROOT)',
-              ),
-              context,
-              request.response,
-            )
-            .ignore();
-
-        continue;
-      }
-
-      try {
-        responseSender.handle(response, context, request.response).ignore();
-      } catch (e) {
-        print(e);
-        responseSender
-            .handle(
-              SimpleResponse(
-                500,
-                body: 'Internal Server Error (ROOT)',
-              ),
-              context,
-              request.response,
-            )
-            .ignore();
-      }
+          SimpleResponse(500, body: 'Internal Server Error (ROOT)'),
+          context,
+          request.response,
+        )
+            .catchError((Object e) {
+          print('Failed to send response');
+          print(e);
+        });
+      }).ignore();
     }
   } catch (e) {
     print(e);
