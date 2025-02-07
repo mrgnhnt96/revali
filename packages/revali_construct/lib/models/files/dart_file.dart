@@ -5,6 +5,7 @@ class DartFile extends AnyFile {
   DartFile({
     required super.basename,
     required super.content,
+    super.segments,
     List<PartFile> parts = const [],
   })  : parts = parts.map((e) {
           if (e.path.isEmpty) {

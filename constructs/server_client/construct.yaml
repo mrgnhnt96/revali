@@ -1,0 +1,4 @@
+constructs:
+  - name: server_client
+    path: client.dart
+    method: clientConstruct
