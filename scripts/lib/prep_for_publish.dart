@@ -68,9 +68,10 @@ void main() async {
   final failedPackages = findFailedPublishes(packages);
   failedProgress.complete('Found ${failedPackages.length} failed publishes');
 
-  final packagesToPublish = failedPackages.followedBy([
-    for (final (package, _) in changedPackages) package,
-  ]);
+  final packagesToPublish = {
+    for (final pkg in failedPackages) pkg.name: pkg,
+    for (final (pkg, _) in changedPackages) pkg.name: pkg,
+  }.values.toList();
 
   if (packagesToPublish.isEmpty) {
     logger.info('No packages to publish');
