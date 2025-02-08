@@ -78,9 +78,19 @@ Learn more about the [Build Command][build-command].
 :::
 ::::
 
+## Launch Your Application
+
+If you're deploying your application for the first time, you need to launch it. Run the following command:
+
+```bash
+fly launch
+```
+
+Follow the prompts to configure your application.
+
 ## Deploy Your Application
 
-To deploy your application, run the following command:
+After your application has been setup, you can deploy it by running the following command:
 
 ```bash
 fly deploy
