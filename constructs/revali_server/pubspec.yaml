@@ -1,5 +1,5 @@
 name: revali_server
-version: 1.9.2
+version: 1.9.3
 description: A Revali Server Construct to generate server code using `revali_router`
 repository: https://github.com/mrgnhnt96/revali/tree/main/constructs/revali_server
 issue_tracker: https://github.com/mrgnhnt96/revali/issues
@@ -21,7 +21,7 @@ dependencies:
     change_case: ^2.1.0
     code_builder: ^4.10.0
     collection: ^1.19.0
-    dart_style: ^2.3.6
+    dart_style: ^3.0.1
     file: ^7.0.1
     glob: ^2.1.2
     json_annotation: ^4.9.0

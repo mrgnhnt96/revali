@@ -6,7 +6,7 @@
 
 # revali
 
-## 1.3.1
+## 1.3.2
 
 ### Chores
 
@@ -68,12 +68,8 @@
 
 # revali_server
 
-## 1.9.2
+## 1.9.3
 
 ### Chore
 
 - Upgrade dependencies
-
-### Fixes
-
-- [CLI] Issue where controller name was not being set correctly during file creation
