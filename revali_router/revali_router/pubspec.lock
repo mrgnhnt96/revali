@@ -34,10 +34,10 @@ packages:
     dependency: transitive
     description:
       name: async
-      sha256: d2872f9c19731c2e5f10444b14686eb7cc85c76274bd6c16e1816bff9a3bab63
+      sha256: "758e6d74e971c3e5aceb4110bfd6698efc7f501675bcfe0c775459a8140750eb"
       url: "https://pub.dev"
     source: hosted
-    version: "2.12.0"
+    version: "2.13.0"
   autoequal:
     dependency: "direct main"
     description:
@@ -50,10 +50,10 @@ packages:
     dependency: "direct dev"
     description:
       name: autoequal_gen
-      sha256: dc58737eaec53da235281d95e2d1975dd898bb39d8466562ca4a67f77a9fbfe8
+      sha256: "5d0fc99be0e75af772ddccf056a42aa9e332571e534944af6eb4690b67fd9b4c"
       url: "https://pub.dev"
     source: hosted
-    version: "0.9.1"
+    version: "0.9.2"
   boolean_selector:
     dependency: transitive
     description:
@@ -526,10 +526,10 @@ packages:
     dependency: "direct dev"
     description:
       name: test
-      sha256: "8391fbe68d520daf2314121764d38e37f934c02fd7301ad18307bd93bd6b725d"
+      sha256: "301b213cd241ca982e9ba50266bd3f5bd1ea33f1455554c5abb85d1be0e2d87e"
       url: "https://pub.dev"
     source: hosted
-    version: "1.25.14"
+    version: "1.25.15"
   test_api:
     dependency: transitive
     description:
