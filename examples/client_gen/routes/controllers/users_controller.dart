@@ -7,6 +7,7 @@ class UsersController {
 
   @Get()
   String handle() {
+    throw Exception('Not implemented');
     return 'Hello world!';
   }
 }
