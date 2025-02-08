@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.2.1 | 02.08.25
+
+### Chores
+
+- Upgrade dependencies
+
 ## 1.2.0 | 01.27.25
 
 ### Features

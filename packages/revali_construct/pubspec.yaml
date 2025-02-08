@@ -1,6 +1,6 @@
 name: revali_construct
 description: Foundation for creating constructs for Revali
-version: 1.2.0
+version: 1.2.1
 repository: https://github.com/mrgnhnt96/revali/tree/main/packages/revali_construct
 issue_tracker: https://github.com/mrgnhnt96/revali/issues
 documentation: https://revali.dev

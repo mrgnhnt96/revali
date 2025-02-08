@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.6.1 | 02.08.25
+
+### Chores
+
+- Upgrade dependencies
+
 ## 1.6.0 | 02.07.25
 
 ### Features

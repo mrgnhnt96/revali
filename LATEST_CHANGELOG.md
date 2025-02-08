@@ -6,16 +6,11 @@
 
 # revali
 
-## 1.3.0
+## 1.3.1
 
-### Features
+### Chores
 
-- Create new class for `Type`s on method parameters
-  - Add property `hasFromJsonConstructor`
-
-### Enhancements
-
-- Clean up import path retrieval
+- Upgrade dependencies
 
 # revali_annotations
 
@@ -28,11 +23,11 @@
 
 # revali_construct
 
-## 1.2.0
+## 1.2.1
 
-### Features
+### Chores
 
-- Create class `MetaType` for method parameter types
+- Upgrade dependencies
 
 # revali_core
 
@@ -46,12 +41,11 @@
 
 # revali_router
 
-## 1.6.0
+## 1.6.1
 
-### Features
+### Chores
 
-- Use `.then` syntax instead of await to handle request operation
-  - This allows for faster request handling
+- Upgrade dependencies
 
 # revali_router_annotations
 
@@ -64,12 +58,11 @@
 
 # revali_router_core
 
-## 1.5.0
+## 1.5.1
 
-### Features
+### Chores
 
-- Create `CleanUp` class to handle cleanup of resources after request handling
-- Add `cleanUp` method to `BodyData` to handle cleanup
+- Upgrade dependencies
 
 <!-- CONSTRUCTS -->
 
