@@ -104,6 +104,28 @@ To open your application in the browser, run the following command:
 fly apps open
 ```
 
+### Tips
+
+## Access Private Repositories
+
+If you need to access private repositories in your Dockerfile, you can use the `--build-arg` flag to pass in your credentials.
+
+```bash
+fly deploy --build-arg GITHUB_TOKEN=your_token
+```
+
+And in your `Dockerfile`, you can use the `ARG` instruction to access the environment variable.
+
+```Dockerfile
+ARG GITHUB_TOKEN
+```
+
+Then, you can use the `GITHUB_TOKEN` environment variable in your Dockerfile to authenticate with GitHub.
+
+```Dockerfile
+RUN echo "machine github.com login $GITHUB_TOKEN" > ~/.netrc
+```
+
 [fly-io]: https://fly.io/
 [fly-io-docs]: https://fly.io/docs/
 [dockerfile-docs]: https://fly.io/docs/languages-and-frameworks/dockerfile/
