@@ -68,7 +68,11 @@
 
 # revali_server
 
-## 1.9.1
+## 1.9.0
+
+### Chore
+
+- Upgrade dependencies
 
 ### Fixes
 
