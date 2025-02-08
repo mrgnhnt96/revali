@@ -6,11 +6,12 @@
 
 # revali
 
-## 1.3.2
+## 1.3.3
 
 ### Chores
 
 - Upgrade dependencies
+- Fix breaking changes
 
 # revali_annotations
 
@@ -68,8 +69,9 @@
 
 # revali_server
 
-## 1.9.3
+## 1.9.4
 
 ### Chore
 
 - Upgrade dependencies
+- Fix breaking changes

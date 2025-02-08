@@ -1,6 +1,6 @@
 name: revali
 description: Revali is a build system for creating scalable and efficient APIs with Dart
-version: 1.3.2
+version: 1.3.3
 repository: https://github.com/mrgnhnt96/revali/tree/main/packages/revali
 issue_tracker: https://github.com/mrgnhnt96/revali/issues
 documentation: https://revali.dev

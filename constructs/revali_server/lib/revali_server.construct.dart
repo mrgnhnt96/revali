@@ -19,7 +19,9 @@ class RevaliServerConstruct implements ServerConstruct {
   ServerDirectory generate(RevaliContext context, MetaServer server) {
     final serverServer = ServerServer.fromMeta(context, server)..validate();
 
-    final formatter = DartFormatter();
+    final formatter = DartFormatter(
+      languageVersion: DartFormatter.latestLanguageVersion,
+    );
     final emitter = DartEmitter.scoped(useNullSafetySyntax: true);
 
     String format(Spec spec) {

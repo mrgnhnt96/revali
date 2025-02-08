@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 1.9.4 | 02.08.25
+
+### Chore
+
+- Upgrade dependencies
+- Fix breaking changes
+
 ## 1.9.3 | 02.08.25
 
 ### Chore

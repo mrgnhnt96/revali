@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 1.3.3 | 02.08.25
+
+### Chores
+
+- Upgrade dependencies
+- Fix breaking changes
+
 ## 1.3.2 | 02.08.25
 
 ### Chores

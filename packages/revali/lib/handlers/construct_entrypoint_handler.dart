@@ -409,7 +409,9 @@ ${result.stderr}''');
         ..writeln('// ignore_for_file: directives_ordering')
         ..writeln(library.accept(emitter));
 
-      final clean = DartFormatter().format(content.toString());
+      final clean = DartFormatter(
+        languageVersion: DartFormatter.latestLanguageVersion,
+      ).format(content.toString());
 
       return clean;
     } on FormatterException {

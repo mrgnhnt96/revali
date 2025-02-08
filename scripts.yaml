@@ -152,6 +152,5 @@ test:
 spell_check: cspell "./doc-site/docs/**/*" --config ".github/cspell/cspell.json"
 
 publish:
-    - sip clean --recursive --locks
-    - sip pub get --recursive
+    - dart analyze --fatal-infos --fatal-warnings
     - cd scripts && dart run lib/prep_for_publish.dart
