@@ -325,7 +325,7 @@ packages:
       path: "../../constructs/revali_server"
       relative: true
     source: path
-    version: "1.9.1"
+    version: "1.9.0"
   source_span:
     dependency: transitive
     description:

@@ -68,7 +68,7 @@
 
 # revali_server
 
-## 1.9.0
+## 1.9.2
 
 ### Chore
 

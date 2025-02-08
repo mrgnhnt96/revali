@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 1.9.2 | 02.08.25
+
+### Chore
+
+- Upgrade dependencies
+
+### Fixes
+
+- [CLI] Issue where controller name was not being set correctly during file creation
+
 ## 1.9.0 | 02.08.25
 
 ### Chore
