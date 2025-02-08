@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.9.5 | 02.08.25
+
+### Fix
+
+- Issue where dependency injection was not setup correctly during build mode
+
 ## 1.9.4 | 02.08.25
 
 ### Chore

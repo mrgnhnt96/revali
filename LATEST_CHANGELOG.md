@@ -69,9 +69,8 @@
 
 # revali_server
 
-## 1.9.4
+## 1.9.5
 
-### Chore
+### Fix
 
-- Upgrade dependencies
-- Fix breaking changes
+- Issue where dependency injection was not setup correctly during build mode
