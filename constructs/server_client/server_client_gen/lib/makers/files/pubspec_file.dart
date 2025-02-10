@@ -1,9 +1,8 @@
 import 'package:revali_construct/revali_construct.dart';
-
-import '../../models/client_server.dart';
+import 'package:server_client_gen/models/client_server.dart';
 
 AnyFile pubspecFile(ClientServer server) {
-  // TODO: Leverage options to set properties
+  // TODO(mrgnhnt): Leverage options to set properties
   return const AnyFile(
     basename: 'pubspec',
     extension: 'yaml',

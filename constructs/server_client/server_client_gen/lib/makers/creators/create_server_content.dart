@@ -1,7 +1,6 @@
 import 'package:change_case/change_case.dart';
 import 'package:code_builder/code_builder.dart';
-
-import '../../models/client_server.dart';
+import 'package:server_client_gen/models/client_server.dart';
 
 Spec createServerContent(ClientServer client) {
   return Class(

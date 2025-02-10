@@ -1,6 +1,6 @@
 import 'package:revali_construct/revali_construct.dart';
 
-// TODO: imports
+// TODO(mrgnhnt): imports
 class ClientType {
   const ClientType({
     required this.name,

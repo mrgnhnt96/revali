@@ -1,18 +1,16 @@
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_construct/revali_construct.dart';
+import 'package:server_client_gen/makers/creators/create_server_content.dart';
+import 'package:server_client_gen/models/client_server.dart';
 
-import '../../models/client_server.dart';
-import '../creators/create_server_content.dart';
-
-DartFile serverInterfaceFile(
+PartFile serverInterfaceFile(
   ClientServer client,
   String Function(Spec) formatter,
 ) {
   final content = createServerContent(client);
 
-  return DartFile(
-    basename: 'server',
+  return PartFile(
     content: formatter(content),
-    segments: ['lib', 'src'],
+    path: ['lib', 'src', 'server'],
   );
 }

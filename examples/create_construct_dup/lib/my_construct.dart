@@ -8,7 +8,7 @@ class MyConstruct extends Construct {
   const MyConstruct();
 
   @override
-  RevaliDirectory<AnyFile> generate(
+  RevaliDirectory generate(
     covariant RevaliContext context,
     MetaServer server,
   ) {

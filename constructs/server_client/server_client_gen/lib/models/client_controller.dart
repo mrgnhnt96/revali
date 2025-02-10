@@ -1,6 +1,5 @@
 import 'package:revali_construct/revali_construct.dart';
-
-import 'client_method.dart';
+import 'package:server_client_gen/models/client_method.dart';
 
 class ClientController {
   const ClientController({

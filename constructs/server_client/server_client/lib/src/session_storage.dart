@@ -1,4 +1,4 @@
-import 'storage.dart';
+import 'package:server_client/src/storage.dart';
 
 class SessionStorage implements Storage {
   SessionStorage() : _storage = {};
