@@ -6,8 +6,7 @@ class UsersController {
   const UsersController();
 
   @Get()
-  String handle() {
-    throw Exception('Not implemented');
+  String simple() {
     return 'Hello world!';
   }
 }
