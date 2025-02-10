@@ -420,14 +420,11 @@ http://revali.dev/constructs#server-constructs
     MetaServer server,
   ) async {
     try {
-      final ServerDirectory(files: [result]) =
-          construct.generate(context, server);
+      final directory = construct.generate(context, server);
 
       await _generateDirectory(
         'server',
-        RevaliDirectory(
-          files: [result, ...result.parts],
-        ),
+        directory,
         hasNameConflict: false,
         package: null,
       );
