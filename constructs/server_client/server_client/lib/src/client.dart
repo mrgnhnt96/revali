@@ -1,0 +1,62 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:server_client/src/server_exception.dart';
+
+class Client {
+  Client({
+    HttpClient? client,
+    this.baseUrl,
+  }) : _client = client ?? HttpClient();
+
+  final HttpClient _client;
+  final String? baseUrl;
+
+  Future<HttpClientResponse> request({
+    required String method,
+    required String path,
+    Map<String, String>? headers,
+    Map<String, dynamic>? body,
+  }) async {
+    assert(path.isNotEmpty, 'Path cannot be empty');
+
+    final fullPath = switch ((path[0], baseUrl)) {
+      ('/', final String base) => '$base$path',
+      ('/', null) => throw Exception('Base URL not set'),
+      _ => path,
+    };
+
+    final uri = Uri.parse(fullPath);
+
+    final request = await _client.openUrl(method, uri);
+
+    if (headers != null) {
+      for (final entry in headers.entries) {
+        request.headers.add(entry.key, entry.value);
+      }
+    }
+
+    if (body != null) {
+      request.write(jsonEncode(body));
+    }
+
+    final response = await request.close();
+
+    final hasException = switch (response.statusCode) {
+      >= 200 && < 300 => false,
+      _ => true,
+    };
+
+    if (hasException) {
+      final body = await response.transform(utf8.decoder).join();
+
+      throw ServerException(
+        message: response.reasonPhrase,
+        statusCode: response.statusCode,
+        body: body,
+      );
+    }
+
+    return response;
+  }
+}
