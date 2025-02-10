@@ -34,10 +34,10 @@ packages:
     dependency: transitive
     description:
       name: async
-      sha256: d2872f9c19731c2e5f10444b14686eb7cc85c76274bd6c16e1816bff9a3bab63
+      sha256: "758e6d74e971c3e5aceb4110bfd6698efc7f501675bcfe0c775459a8140750eb"
       url: "https://pub.dev"
     source: hosted
-    version: "2.12.0"
+    version: "2.13.0"
   autoequal:
     dependency: transitive
     description:
@@ -276,7 +276,7 @@ packages:
       path: "../../packages/revali"
       relative: true
     source: path
-    version: "1.3.0"
+    version: "1.3.3"
   revali_annotations:
     dependency: "direct overridden"
     description:
@@ -290,7 +290,7 @@ packages:
       path: "../../packages/revali_construct"
       relative: true
     source: path
-    version: "1.2.0"
+    version: "1.2.1"
   revali_core:
     dependency: "direct overridden"
     description:
@@ -304,7 +304,7 @@ packages:
       path: "../../revali_router/revali_router"
       relative: true
     source: path
-    version: "1.5.0"
+    version: "1.6.1"
   revali_router_annotations:
     dependency: "direct overridden"
     description:
@@ -318,18 +318,25 @@ packages:
       path: "../../revali_router/revali_router_core"
       relative: true
     source: path
-    version: "1.5.0"
+    version: "1.5.1"
   revali_server:
     dependency: "direct dev"
     description:
       path: "../../constructs/revali_server"
       relative: true
     source: path
-    version: "1.8.0"
+    version: "1.9.4"
   server_client:
+    dependency: "direct main"
+    description:
+      path: "../../constructs/server_client/server_client"
+      relative: true
+    source: path
+    version: "1.0.0"
+  server_client_gen:
     dependency: "direct dev"
     description:
-      path: "../../constructs/server_client"
+      path: "../../constructs/server_client/server_client_gen"
       relative: true
     source: path
     version: "1.0.0"

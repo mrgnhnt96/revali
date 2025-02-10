@@ -1,9 +1,4 @@
-import 'dart:convert';
-import 'dart:io';
-
-import 'package:hello/manual_gen/interfaces/users.dart';
-import 'package:hello/manual_gen/utils/server_exception.dart';
-import 'package:hello/manual_gen/utils/storage.dart';
+part of '../implementations.dart';
 
 final class UsersImpl implements Users {
   const UsersImpl({
@@ -15,7 +10,7 @@ final class UsersImpl implements Users {
   final Storage storage;
 
   @override
-  Future<String> handle() async {
+  Future<String> simple() async {
     final baseUrl = switch (await storage['__BASE_URL__']) {
       final String url => url,
       _ => throw Exception('Base URL not set'),

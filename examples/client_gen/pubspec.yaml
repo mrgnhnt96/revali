@@ -7,11 +7,13 @@ environment:
 dependencies:
     revali_router:
         path: ../../revali_router/revali_router
+    server_client:
+        path: ../../constructs/server_client/server_client
 
 dev_dependencies:
     revali:
         path: ../../packages/revali
     revali_server:
         path: ../../constructs/revali_server
-    server_client:
-        path: ../../constructs/server_client
+    server_client_gen:
+        path: ../../constructs/server_client/server_client_gen

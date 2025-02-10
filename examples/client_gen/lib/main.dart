@@ -1,10 +1,10 @@
-import 'package:hello/manual_gen/server.dart';
+import 'package:hello/manual_gen/implementations.dart';
 
 void main() async {
   final server = Server();
 
   try {
-    final response = await server.users.handle();
+    final response = await server.users.simple();
 
     print(response);
   } catch (e) {
