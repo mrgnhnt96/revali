@@ -1,7 +1,7 @@
 import 'package:revali_construct/models/files/revali_directory.dart';
 
 class BuildDirectory extends RevaliDirectory {
-  const BuildDirectory({
+  BuildDirectory({
     required super.files,
   });
 }
