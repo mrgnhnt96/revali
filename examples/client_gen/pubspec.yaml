@@ -5,6 +5,8 @@ environment:
     sdk: '>=3.2.6 <4.0.0'
 
 dependencies:
+    client_gen_models:
+        path: models
     revali_router:
         path: ../../revali_router/revali_router
     server_client:

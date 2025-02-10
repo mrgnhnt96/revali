@@ -1,4 +1,4 @@
-import 'package:hello/manual_gen/utils/storage.dart';
+import 'storage.dart';
 
 class SessionStorage implements Storage {
   SessionStorage() : _storage = {};

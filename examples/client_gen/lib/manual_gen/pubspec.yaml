@@ -1,0 +1,9 @@
+name: manual_gen
+publish_to: 'none'
+
+environment:
+    sdk: '>=3.2.6 <4.0.0'
+
+dependencies:
+    client_gen_models:
+    server_client:
