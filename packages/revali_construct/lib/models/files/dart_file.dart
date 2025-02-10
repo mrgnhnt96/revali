@@ -1,3 +1,4 @@
+import 'package:path/path.dart' as p;
 import 'package:revali_construct/models/files/any_file.dart';
 import 'package:revali_construct/models/files/part_file.dart';
 
@@ -43,6 +44,26 @@ class DartFile extends AnyFile {
   }
 
   final List<PartFile> parts;
+
+  @override
+  List<AnyFile> get subFiles => parts;
+
+  @override
+  String get fileName {
+    final name = super.fileName;
+
+    final parts = p.split(name);
+
+    if (parts.isEmpty) {
+      return name;
+    }
+
+    if (parts.first == 'lib') {
+      parts.removeAt(0);
+    }
+
+    return p.joinAll(parts);
+  }
 
   @override
   String get content {
