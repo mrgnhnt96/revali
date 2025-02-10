@@ -1,7 +1,6 @@
 import 'package:code_builder/code_builder.dart';
-
-import '../../models/client_method.dart';
-import '../utils/get_params.dart';
+import 'package:server_client_gen/makers/utils/get_params.dart';
+import 'package:server_client_gen/models/client_method.dart';
 
 Method createImplMethod(ClientMethod method) {
   return Method(

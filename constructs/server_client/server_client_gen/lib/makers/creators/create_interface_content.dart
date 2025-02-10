@@ -1,7 +1,6 @@
 import 'package:code_builder/code_builder.dart';
-
-import '../../models/client_controller.dart';
-import 'create_interface_methods.dart';
+import 'package:server_client_gen/makers/creators/create_interface_methods.dart';
+import 'package:server_client_gen/models/client_controller.dart';
 
 Spec createInterfaceContent(ClientController controller) {
   return Class(

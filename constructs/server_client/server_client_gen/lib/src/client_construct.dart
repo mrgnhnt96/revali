@@ -1,17 +1,16 @@
 import 'package:code_builder/code_builder.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:revali_construct/revali_construct.dart';
-
-import '../makers/files/implementation_files.dart';
-import '../makers/files/interface_files.dart';
-import '../makers/files/pubspec_file.dart';
-import '../models/client_server.dart';
+import 'package:server_client_gen/makers/files/implementation_file.dart';
+import 'package:server_client_gen/makers/files/interface_file.dart';
+import 'package:server_client_gen/makers/files/pubspec_file.dart';
+import 'package:server_client_gen/models/client_server.dart';
 
 class ServerClient extends Construct {
   const ServerClient();
 
   @override
-  RevaliDirectory<AnyFile> generate(
+  RevaliDirectory generate(
     covariant RevaliContext context,
     MetaServer server,
   ) {
@@ -26,12 +25,12 @@ class ServerClient extends Construct {
       return formatter.format(spec.accept(emitter).toString());
     }
 
-    return RevaliDirectory(
-      files: [
-        ...interfaceFiles(client, format),
-        ...implementationFiles(client, format),
-        pubspecFile(client),
-      ],
-    );
+    final files = [
+      interfaceFile(client, format),
+      implementationFile(client, format),
+      pubspecFile(client),
+    ];
+
+    return RevaliDirectory(files: files);
   }
 }

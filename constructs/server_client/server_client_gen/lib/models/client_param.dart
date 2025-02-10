@@ -1,9 +1,8 @@
 import 'package:revali_construct/revali_construct.dart';
+import 'package:server_client_gen/enums/parameter_position.dart';
+import 'package:server_client_gen/models/client_type.dart';
 
-import '../enums/parameter_position.dart';
-import 'client_type.dart';
-
-// TODO: imports
+// TODO(mrgnhnt): imports
 class ClientParam {
   const ClientParam({
     required this.name,

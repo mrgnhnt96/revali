@@ -1,9 +1,8 @@
 import 'package:revali_construct/revali_construct.dart';
+import 'package:server_client_gen/models/client_param.dart';
+import 'package:server_client_gen/models/client_return_type.dart';
 
-import 'client_param.dart';
-import 'client_return_type.dart';
-
-// TODO: imports
+// TODO(mrgnhnt): imports
 class ClientMethod {
   const ClientMethod({
     required this.name,
