@@ -20,7 +20,7 @@ class ServerParam with ExtractImport {
   });
 
   factory ServerParam.fromMeta(MetaParam param) {
-    final importPath = ServerImports.fromElement(param.typeElement);
+    final importPath = ServerImports.fromElement(param.type.element);
     final paramAnnotations = ServerParamAnnotations.fromMeta(param);
     final type = ServerType.fromMeta(param.type);
 
