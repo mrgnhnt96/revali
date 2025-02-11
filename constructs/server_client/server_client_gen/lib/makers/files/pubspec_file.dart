@@ -12,6 +12,13 @@ description: A client server for the server.
 
 environment:
   sdk: '>=3.5.0 <4.0.0'
+
+dependencies:
+  # TODO(mrgnhnt): Add dynamic dependencies
+  client_gen_models:
+    path: ../../models
+  server_client:
+    path: ../../../../constructs/server_client/server_client
 ''',
   );
 }

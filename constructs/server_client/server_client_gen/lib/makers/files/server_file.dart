@@ -3,7 +3,7 @@ import 'package:revali_construct/revali_construct.dart';
 import 'package:server_client_gen/makers/creators/create_server_content.dart';
 import 'package:server_client_gen/models/client_server.dart';
 
-PartFile serverInterfaceFile(
+PartFile serverFile(
   ClientServer client,
   String Function(Spec) formatter,
 ) {

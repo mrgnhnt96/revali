@@ -1,9 +1,9 @@
 import 'package:code_builder/code_builder.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:revali_construct/revali_construct.dart';
-import 'package:server_client_gen/makers/files/implementation_file.dart';
 import 'package:server_client_gen/makers/files/interface_file.dart';
 import 'package:server_client_gen/makers/files/pubspec_file.dart';
+import 'package:server_client_gen/makers/files/server_client_file.dart';
 import 'package:server_client_gen/models/client_server.dart';
 
 class ServerClient extends Construct {
@@ -27,7 +27,7 @@ class ServerClient extends Construct {
 
     final files = [
       interfaceFile(client, format),
-      implementationFile(client, format),
+      serverClientFile(client, format),
       pubspecFile(client),
     ];
 

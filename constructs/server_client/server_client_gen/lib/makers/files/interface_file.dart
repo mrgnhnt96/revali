@@ -7,9 +7,14 @@ DartFile interfaceFile(
   ClientServer server,
   String Function(Spec) formatter,
 ) {
+  final imports = server.allImports(
+    additionalPackages: ['package:server_client/server_client.dart'],
+  );
   return DartFile(
     basename: 'interfaces',
-    content: '',
+    content: '''
+$imports
+''',
     parts: [
       for (final controller in server.controllers)
         controllerInterfaceFile(controller, formatter),
