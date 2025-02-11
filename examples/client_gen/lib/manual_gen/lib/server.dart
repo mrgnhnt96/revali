@@ -6,11 +6,7 @@ final class Server {
     Storage? storage,
     Uri? baseUrl,
   }) : storage = storage ?? SessionStorage() {
-    final url = switch (baseUrl) {
-      final uri? => uri.toString(),
-      // Will be replaced with app config
-      _ => 'http://localhost:8080/api',
-    };
+    final url = baseUrl?.toString() ?? 'http://localhost:8080/api';
 
     this.client = Client(
       client: client ?? HttpClient(),
