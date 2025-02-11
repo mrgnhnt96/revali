@@ -10,6 +10,8 @@ Method createImplMethod(ClientMethod method) {
         final e when e.isStream => refer(e.name),
         final e => refer('Future<${e.name}>')
       }
-      ..optionalParameters.addAll(getParams(method.parameters)),
+      ..optionalParameters.addAll(getParams(method.parameters))
+      ..annotations.add(refer('override'))
+      ..body = Block.of([]),
   );
 }

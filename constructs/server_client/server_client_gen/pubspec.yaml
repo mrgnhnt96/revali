@@ -15,9 +15,11 @@ environment:
     sdk: '>=3.2.6 <4.0.0'
 
 dependencies:
+    analyzer: ^6.11.0
     change_case: ^2.2.0
     code_builder: ^4.10.0
     dart_style: ^3.0.1
+    path: ^1.9.1
     revali_annotations: ^1.2.0
     revali_construct: ^1.2.0
     revali_core: ^1.2.0

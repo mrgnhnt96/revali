@@ -1,8 +1,10 @@
 import 'package:revali_construct/revali_construct.dart';
+import 'package:server_client_gen/makers/utils/extract_import.dart';
+import 'package:server_client_gen/models/client_imports.dart';
 import 'package:server_client_gen/models/client_method.dart';
 
-class ClientController {
-  const ClientController({
+class ClientController with ExtractImport {
+  ClientController({
     required this.name,
     required this.methods,
   });
@@ -22,4 +24,10 @@ class ClientController {
   String get implementationName => '${interfaceName}Impl';
 
   final List<ClientMethod> methods;
+
+  @override
+  List<ExtractImport?> get extractors => [...methods];
+
+  @override
+  List<ClientImports?> get imports => [];
 }

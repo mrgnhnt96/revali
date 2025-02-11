@@ -1,5 +1,10 @@
+// ignore_for_file: unnecessary_parenthesis
+
+import 'dart:io';
+
 import 'package:change_case/change_case.dart';
 import 'package:code_builder/code_builder.dart';
+import 'package:server_client_gen/makers/utils/type_extensions.dart';
 import 'package:server_client_gen/models/client_server.dart';
 
 Spec createServerContent(ClientServer client) {
@@ -9,7 +14,17 @@ Spec createServerContent(ClientServer client) {
       ..name = 'Server'
       ..constructors.add(
         Constructor(
-          (b) => b,
+          (b) => b
+            ..optionalParameters.addAll(
+              [
+                Parameter(
+                  (b) => b
+                    ..name = 'client'
+                    ..type = refer('${(HttpClient).name}?')
+                    ..named = true,
+                ),
+              ],
+            ),
         ),
       )
       ..fields.addAll([

@@ -25,7 +25,7 @@ Spec createImplContent(ClientController controller) {
           (b) => b
             ..modifier = FieldModifier.final$
             ..name = '_client'
-            ..type = refer('HttpClient'),
+            ..type = refer('Client'),
         ),
       )
       ..methods.addAll(controller.methods.map(createImplMethod)),
