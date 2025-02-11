@@ -19,9 +19,9 @@ class UsersController {
   }
 
   @Get('profiles-raw')
-  List<User> usersRaw() {
+  List<NonGlobalUser> usersRaw() {
     return [
-      const User(name: 'Alice'),
+      const NonGlobalUser(name: 'Alice'),
     ];
   }
 }
