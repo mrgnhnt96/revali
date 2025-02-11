@@ -49,28 +49,15 @@ class DartFile extends AnyFile {
   List<AnyFile> get subFiles => parts;
 
   @override
-  String get fileName {
-    final name = super.fileName;
-
-    final parts = p.split(name);
-
-    if (parts.isEmpty) {
-      return name;
-    }
-
-    if (parts.first == 'lib') {
-      parts.removeAt(0);
-    }
-
-    return p.joinAll(parts);
-  }
-
-  @override
   String get content {
     final content = super.content;
 
-    final partDirectives =
-        parts.map((part) => "part '${part.fileName}';").toList()..sort();
+    final partDirectives = parts.map((part) {
+      final pathParts = p.split(part.fileName)..remove('lib');
+
+      return "part '${p.joinAll(pathParts)}';";
+    }).toList()
+      ..sort();
 
     final partString = partDirectives.join('\n');
 
