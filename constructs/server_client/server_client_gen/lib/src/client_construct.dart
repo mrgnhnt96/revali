@@ -14,7 +14,7 @@ class ServerClient extends Construct {
     covariant RevaliContext context,
     MetaServer server,
   ) {
-    final client = ClientServer.fromMeta(server);
+    final client = ClientServer.fromMeta(context, server);
 
     final formatter = DartFormatter(
       languageVersion: DartFormatter.latestLanguageVersion,
