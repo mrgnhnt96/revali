@@ -94,7 +94,14 @@ class ClientParam with ExtractImport {
 
       if (object.getField('access')?.toListValue()
           case final List<dynamic> data) {
-        access.addAll(data.cast());
+        access.addAll(
+          data.map((e) {
+            return switch (e) {
+              DartObject() => e.toStringValue() ?? '',
+              _ => '',
+            };
+          }),
+        );
       }
     }
 

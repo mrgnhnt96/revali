@@ -20,14 +20,21 @@ class Client {
     required String method,
     required String path,
     Map<String, String>? headers,
-    Map<String, dynamic>? body,
+    Object? body,
+    Map<String, dynamic> query = const {},
   }) async {
     assert(path.isNotEmpty, 'Path cannot be empty');
 
+    final queryString = switch (query) {
+      _ when query.isEmpty => '',
+      // ignore: prefer_interpolation_to_compose_strings
+      _ => '?' + query.entries.map((e) => '${e.key}=${e.value}').join('&')
+    };
+
     final fullPath = switch ((path[0], baseUrl)) {
-      ('/', final String base) => '$base$path',
+      ('/', final String base) => '$base$path$queryString',
       ('/', null) => throw Exception('Base URL not set'),
-      _ => path,
+      _ => '$path$queryString',
     };
 
     final uri = Uri.parse(fullPath);
