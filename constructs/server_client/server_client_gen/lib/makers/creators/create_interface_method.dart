@@ -7,8 +7,8 @@ Method createInterfaceMethod(ClientMethod method) {
     (b) => b
       ..name = method.name
       ..returns = switch (method.returnType) {
-        final e when e.isStream => refer(e.name),
-        final e => refer('Future<${e.name}>')
+        final e when e.isStream => refer(e.fullName),
+        final e => refer('Future<${e.fullName}>')
       }
       ..optionalParameters.addAll(getParams(method.parameters)),
   );

@@ -1,4 +1,4 @@
-// ignore_for_file: unnecessary_parenthesis
+// ignore_for_file: unnecessary_parenthesis, unnecessary_string_interpolations
 
 import 'dart:io';
 
@@ -56,12 +56,50 @@ Spec createServerContent(ClientServer client) {
             )
             ..body = Block.of([
               declareFinal('url')
-                  .assign(refer('baseUrl').nullSafeProperty('toString'))
+                  .assign(
+                    refer('baseUrl').nullSafeProperty('toString').call([]),
+                  )
                   .ifNullThen(refer('"$baseUrl"'))
                   .statement,
+              const Code(''),
+              refer('this')
+                  .property('client')
+                  .assign(
+                    refer((Client).name).newInstance(
+                      [],
+                      {
+                        'client': refer('client').ifNullThen(
+                          refer((HttpClient).name).newInstance([]),
+                        ),
+                        'baseUrl': refer('url'),
+                      },
+                    ),
+                  )
+                  .statement,
+              const Code(''),
+              refer('this').property('storage').property('save').call(
+                [literal('__BASE_URL__'), refer('url')],
+              ).statement,
             ]),
         ),
       )
+      ..fields.addAll([
+        Field(
+          (b) => b
+            ..late = true
+            ..modifier = FieldModifier.final$
+            ..type = refer('${(Client).name}')
+            ..name = 'client'
+            ..late = true,
+        ),
+        Field(
+          (b) => b
+            ..late = true
+            ..modifier = FieldModifier.final$
+            ..type = refer('${(Storage).name}')
+            ..name = 'storage',
+        ),
+      ])
       ..fields.addAll([
         for (final controller in client.controllers)
           Field(
@@ -71,7 +109,10 @@ Spec createServerContent(ClientServer client) {
               ..type = refer(controller.interfaceName)
               ..name = controller.interfaceName.toCamelCase()
               ..assignment =
-                  refer(controller.implementationName).newInstance([]).code,
+                  refer(controller.implementationName).newInstance([], {
+                'client': refer('client'),
+                'storage': refer('storage'),
+              }).code,
           ),
       ]),
   );
