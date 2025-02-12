@@ -1,7 +1,8 @@
 enum ParameterPosition {
   query,
-  path,
-  // header,
-  // cookie,
+
+  header,
+
+  cookie,
   body;
 }
