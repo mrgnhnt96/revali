@@ -5,6 +5,7 @@ import 'package:revali_router/revali_router.dart';
 import 'package:revali_server/converters/server_param.dart';
 import 'package:revali_server/makers/creators/create_arg_from_binds.dart';
 import 'package:revali_server/makers/creators/create_arg_from_body.dart';
+import 'package:revali_server/makers/creators/create_arg_from_cookie.dart';
 import 'package:revali_server/makers/creators/create_arg_from_custom_param.dart';
 import 'package:revali_server/makers/creators/create_arg_from_data.dart';
 import 'package:revali_server/makers/creators/create_arg_from_header.dart';
@@ -112,6 +113,9 @@ Expression createParamArg(
 
   if (annotation.header case final headerAnnotation?) {
     return createArgFromHeader(headerAnnotation, param);
+  }
+  if (annotation.cookie case final cookieAnnotation?) {
+    return createArgFromCookie(cookieAnnotation, param);
   }
 
   if (annotation.bind case final bind?) {
