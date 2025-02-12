@@ -12,7 +12,7 @@ List<Code> createFutureCall(ClientMethod method) {
         .assign(
           refer('_client').property('request').call([], {
             'method': refer("'${method.method}'"),
-            'path': refer("'${method.fullPath}'"),
+            'path': refer("'${method.resolvedPath}'"),
           }).awaited,
         )
         .statement,
