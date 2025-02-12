@@ -34,7 +34,7 @@ class ServerRouteAnnotations with ExtractImport {
   }
 
   factory ServerRouteAnnotations.fromRoute(MetaMethod method) {
-    return ServerRouteAnnotations._fromGetter(method.annotationsMapper);
+    return ServerRouteAnnotations._fromGetter(method.annotationsFor);
   }
 
   factory ServerRouteAnnotations._fromGetter(AnnotationMapper getter) {
