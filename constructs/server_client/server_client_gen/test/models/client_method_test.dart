@@ -60,13 +60,26 @@ void main() {
 
         expect(m.params, ['id1', 'id2']);
       });
+
+      test('should format to comply with dart syntax', () {
+        final m = method(path: ':product-id', parentPath: 'parentPath');
+
+        expect(m.params, ['productId']);
+      });
     });
 
     group('#fullPath', () {
       test('should return the path with a starting slash', () {
         final m = method(parentPath: 'parentPath', path: 'path');
 
-        expect(m.resolvedPath, '/parentPath/path');
+        expect(m.fullPath, '/parentPath/path');
+      });
+
+      test('should return the path without modifications', () {
+        final m =
+            method(parentPath: 'shop/:shop-id', path: 'product/:product-id');
+
+        expect(m.fullPath, '/shop/:shop-id/product/:product-id');
       });
     });
 
@@ -93,6 +106,20 @@ void main() {
         final m = method(parentPath: 'shop/:id', path: 'product/:id');
 
         expect(m.resolvedPath, r'/shop/${id1}/product/${id2}');
+      });
+
+      test('should format the param to comply with dart syntax', () {
+        final m =
+            method(parentPath: 'shop/:shop-id', path: 'product/:product-id');
+
+        expect(m.resolvedPath, r'/shop/${shopId}/product/${productId}');
+      });
+
+      test('should format the param to comply with dart syntax with repeat ids',
+          () {
+        final m = method(parentPath: 'shop/:some-id', path: 'product/:some-id');
+
+        expect(m.resolvedPath, r'/shop/${someId1}/product/${someId2}');
       });
     });
   });

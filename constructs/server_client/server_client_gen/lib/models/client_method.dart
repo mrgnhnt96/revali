@@ -1,3 +1,4 @@
+import 'package:change_case/change_case.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:server_client_gen/makers/utils/extract_import.dart';
@@ -105,7 +106,8 @@ class ClientMethod with ExtractImport {
           final replacement = switch (count) {
             [final int index, ...] => '$key$index',
             _ => key,
-          };
+          }
+              .toCamelCase();
 
           if (count case final List<int> count when count.isNotEmpty) {
             expandedParts[key] = count.sublist(1);
@@ -148,18 +150,19 @@ class ClientMethod with ExtractImport {
   }
 
   List<String> get params {
-    final params = <String>[];
-    for (final MapEntry(:key, value: count) in paramsFor(fullPath).entries) {
-      if (count == 1) {
-        params.add(key);
-      } else {
-        for (var i = 1; i <= count; i++) {
-          params.add('$key$i');
+    Iterable<String> resolve() sync* {
+      for (final MapEntry(:key, value: count) in paramsFor(fullPath).entries) {
+        if (count == 1) {
+          yield key.toCamelCase();
+        } else {
+          for (var i = 1; i <= count; i++) {
+            yield '$key$i'.toCamelCase();
+          }
         }
       }
     }
 
-    return params;
+    return resolve().toList();
   }
 
   @override
