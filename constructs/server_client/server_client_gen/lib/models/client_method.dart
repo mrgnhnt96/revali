@@ -39,7 +39,7 @@ class ClientMethod with ExtractImport {
   final bool isSse;
 
   String get fullPath =>
-      [parentPath, if (path case final String p) p].join('/');
+      ['', parentPath, if (path case final String p) p].join('/');
 
   @override
   List<ExtractImport?> get extractors => [returnType, ...parameters];
