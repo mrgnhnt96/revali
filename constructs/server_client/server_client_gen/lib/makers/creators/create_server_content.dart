@@ -13,10 +13,10 @@ Spec createServerContent(ClientServer client) {
   final ClientApp(:host, :port, :prefix) = client.app;
 
   // TODO(mrgnhnt): get schema from settings
-  final baseUrl = switch ((host, port, prefix)) {
-    (String(), int(), null) => 'http://$host:$port',
-    (String(), int(), final String p) when p.isEmpty => 'http://$host:$port',
-    (String(), int(), String()) => 'http://$host:$port/$prefix',
+  final baseUrl = switch (('$host:$port', prefix)) {
+    (final String url, null) => 'http://$url',
+    (final String url, final String p) when p.isEmpty => 'http://$url',
+    (final String url, String()) => 'http://$url/$prefix',
   };
 
   return Class(
@@ -51,13 +51,13 @@ Spec createServerContent(ClientServer client) {
             ..initializers.add(
               refer('storage')
                   .assign(refer('storage'))
-                  .ifNullThen(refer((SessionStorage).name))
+                  .ifNullThen(refer((SessionStorage).name).newInstance([]))
                   .code,
             )
             ..body = Block.of([
               declareFinal('url')
                   .assign(refer('baseUrl').nullSafeProperty('toString'))
-                  .ifNullThen(literalString(baseUrl))
+                  .ifNullThen(refer('"$baseUrl"'))
                   .statement,
             ]),
         ),
