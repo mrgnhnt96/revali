@@ -25,3 +25,5 @@ dependencies:
     revali_construct: ^1.2.0
     revali_core: ^1.2.0
     server_client:
+dev_dependencies:
+    test: ^1.25.15
