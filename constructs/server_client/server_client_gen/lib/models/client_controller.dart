@@ -12,7 +12,9 @@ class ClientController with ExtractImport {
   factory ClientController.fromMeta(MetaRoute route) {
     return ClientController(
       name: route.className,
-      methods: route.methods.map(ClientMethod.fromMeta).toList(),
+      methods: route.methods
+          .map((e) => ClientMethod.fromMeta(e, route.path))
+          .toList(),
     );
   }
 

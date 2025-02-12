@@ -18,6 +18,11 @@ class UsersController {
     ];
   }
 
+  @Get('me')
+  User user() {
+    return const User(name: 'Alice');
+  }
+
   @Get('profiles-raw')
   List<NonGlobalUser> usersRaw() {
     return [

@@ -22,7 +22,13 @@ class ServerClient extends Construct {
     final emitter = DartEmitter.scoped(useNullSafetySyntax: true);
 
     String format(Spec spec) {
-      return formatter.format(spec.accept(emitter).toString());
+      try {
+        return formatter.format(spec.accept(emitter).toString());
+      } catch (e) {
+        // ignore: avoid_print
+        print(e);
+        rethrow;
+      }
     }
 
     final files = [
