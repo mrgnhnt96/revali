@@ -29,7 +29,7 @@ class ServerChildRoute with ExtractImport implements ServerRoute {
     ServerStatusCode? httpCode;
     ServerMimic? redirect;
 
-    method.annotationsMapper(
+    method.annotationsFor(
       onMatch: [
         OnMatch(
           classType: StatusCode,

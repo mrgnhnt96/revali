@@ -12,7 +12,7 @@ class MetaMethod {
     required this.path,
     required this.params,
     required this.returnType,
-    required this.annotationsMapper,
+    required this.annotationsFor,
     required this.webSocketMethod,
     required this.isSse,
   });
@@ -22,7 +22,7 @@ class MetaMethod {
   final String? path;
   final Iterable<MetaParam> params;
   final MetaReturnType returnType;
-  final AnnotationMapper annotationsMapper;
+  final AnnotationMapper annotationsFor;
   final MetaWebSocketMethod? webSocketMethod;
   final bool isSse;
 
