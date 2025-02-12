@@ -6,7 +6,7 @@ final class MyApp extends AppConfig {
   const MyApp()
       : super(
           host: 'localhost',
-          port: 8080,
+          port: 7069,
           prefix: 'aloha',
         );
 }

@@ -1,4 +1,4 @@
-import 'package:hello/manual_gen/lib/implementations.dart';
+import 'package:client_server/server_client.dart';
 
 void main() async {
   final server = Server();
