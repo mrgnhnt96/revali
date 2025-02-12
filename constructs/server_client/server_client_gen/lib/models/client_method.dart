@@ -1,6 +1,7 @@
 import 'package:change_case/change_case.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
+import 'package:server_client_gen/makers/utils/client_param_extensions.dart';
 import 'package:server_client_gen/makers/utils/extract_import.dart';
 import 'package:server_client_gen/models/client_imports.dart';
 import 'package:server_client_gen/models/client_lifecycle_component.dart';
@@ -163,6 +164,15 @@ class ClientMethod with ExtractImport {
     }
 
     return resolve().toList();
+  }
+
+  ({
+    List<ClientParam> body,
+    List<ClientParam> query,
+    List<ClientParam> headers,
+    List<ClientParam> cookies,
+  }) get separateParams {
+    return allParams.separate;
   }
 
   @override

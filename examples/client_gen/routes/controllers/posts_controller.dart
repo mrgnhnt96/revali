@@ -11,6 +11,7 @@ class PostsController {
   @Post()
   String handle({
     @Body() required CreatePostInput input,
+    @Body(['email']) required String email,
   }) {
     return 'Hello world!';
   }
