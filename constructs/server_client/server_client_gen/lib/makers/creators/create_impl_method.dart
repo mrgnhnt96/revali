@@ -16,7 +16,7 @@ Method createImplMethod(ClientMethod method) {
         final e => refer('Future<${e.fullName}>')
       }
       ..optionalParameters.addAll(getPathParams(method))
-      ..optionalParameters.addAll(getParameters(method.parameters))
+      ..optionalParameters.addAll(getParameters(method.allParams))
       ..annotations.add(refer('override'))
       ..modifier = switch (method.returnType) {
         final e when e.isStream => MethodModifier.asyncStar,

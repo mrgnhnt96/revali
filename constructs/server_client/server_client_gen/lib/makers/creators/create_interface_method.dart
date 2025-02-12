@@ -12,6 +12,6 @@ Method createInterfaceMethod(ClientMethod method) {
         final e => refer('Future<${e.fullName}>')
       }
       ..optionalParameters.addAll(getPathParams(method))
-      ..optionalParameters.addAll(getParameters(method.parameters)),
+      ..optionalParameters.addAll(getParameters(method.allParams)),
   );
 }

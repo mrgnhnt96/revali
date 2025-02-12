@@ -1,8 +1,10 @@
 import 'package:revali_construct/revali_construct.dart';
+import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:server_client_gen/makers/utils/extract_import.dart';
 import 'package:server_client_gen/models/client_app.dart';
 import 'package:server_client_gen/models/client_controller.dart';
 import 'package:server_client_gen/models/client_imports.dart';
+import 'package:server_client_gen/models/client_lifecycle_component.dart';
 
 class ClientServer with ExtractImport {
   ClientServer({
@@ -11,6 +13,7 @@ class ClientServer with ExtractImport {
   });
 
   factory ClientServer.fromMeta(RevaliContext context, MetaServer server) {
+    MetaAppConfig? metaApp;
     var app = ClientApp.defaultConfig();
 
     if (server.apps case final apps when apps.isNotEmpty) {
@@ -22,14 +25,34 @@ class ClientServer with ExtractImport {
       for (final e in apps) {
         if (e.appAnnotation.flavor == context.flavor) {
           app = ClientApp.fromMeta(e);
+          metaApp = e;
           break;
         }
       }
     }
 
+    final lifecycleComponents = <ClientLifecycleComponent>[];
+
+    metaApp?.annotationsFor(
+      onMatch: [
+        OnMatch(
+          classType: LifecycleComponent,
+          package: 'revali_router_annotations',
+          convert: (object, annotation) {
+            final component =
+                ClientLifecycleComponent.fromDartObject(annotation);
+
+            lifecycleComponents.add(component);
+          },
+        ),
+      ],
+    );
+
     return ClientServer(
       app: app,
-      controllers: server.routes.map(ClientController.fromMeta).toList(),
+      controllers: server.routes
+          .map((e) => ClientController.fromMeta(e, lifecycleComponents))
+          .toList(),
     );
   }
 

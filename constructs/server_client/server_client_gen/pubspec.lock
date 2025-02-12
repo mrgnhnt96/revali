@@ -324,14 +324,14 @@ packages:
     source: path
     version: "1.2.0"
   revali_router:
-    dependency: "direct overridden"
+    dependency: "direct main"
     description:
       path: "../../../revali_router/revali_router"
       relative: true
     source: path
     version: "1.6.1"
   revali_router_annotations:
-    dependency: "direct overridden"
+    dependency: "direct main"
     description:
       path: "../../../revali_router/revali_router_annotations"
       relative: true

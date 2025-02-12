@@ -12,6 +12,7 @@ void main() {
       return ClientMethod(
         name: 'name',
         parameters: [],
+        lifecycleComponents: [],
         returnType: ClientReturnType(
           fullName: 'fullName',
           resolvedName: 'resolvedName',

@@ -1,6 +1,8 @@
 import 'package:revali_construct/revali_construct.dart';
+import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:server_client_gen/makers/utils/extract_import.dart';
 import 'package:server_client_gen/models/client_imports.dart';
+import 'package:server_client_gen/models/client_lifecycle_component.dart';
 import 'package:server_client_gen/models/client_param.dart';
 import 'package:server_client_gen/models/client_return_type.dart';
 
@@ -14,18 +16,43 @@ class ClientMethod with ExtractImport {
     required this.path,
     required this.parentPath,
     required this.method,
+    required this.lifecycleComponents,
   });
 
-  factory ClientMethod.fromMeta(MetaMethod route, String parentPath) {
+  factory ClientMethod.fromMeta(
+    MetaMethod route,
+    String parentPath,
+    List<ClientLifecycleComponent> parentComponents,
+  ) {
+    final lifecycleComponents = <ClientLifecycleComponent>[
+      ...parentComponents,
+    ];
+
+    route.annotationsFor(
+      onMatch: [
+        OnMatch(
+          classType: LifecycleComponent,
+          package: 'revali_router_annotations',
+          convert: (object, annotation) {
+            final component =
+                ClientLifecycleComponent.fromDartObject(annotation);
+
+            lifecycleComponents.add(component);
+          },
+        ),
+      ],
+    );
+
     return ClientMethod(
       name: route.name,
       parentPath: parentPath,
       method: route.method,
       returnType: ClientReturnType.fromMeta(route.returnType),
-      parameters: route.params.map(ClientParam.fromMeta).toList(),
+      parameters: ClientParam.fromMetas(route.params),
       isWebsocket: route.isWebSocket,
       isSse: route.isSse,
       path: route.path,
+      lifecycleComponents: lifecycleComponents,
     );
   }
 
@@ -37,6 +64,12 @@ class ClientMethod with ExtractImport {
   final List<ClientParam> parameters;
   final bool isWebsocket;
   final bool isSse;
+  final List<ClientLifecycleComponent> lifecycleComponents;
+
+  List<ClientParam> get allParams => [
+        ...lifecycleComponents.expand((e) => e.allParams),
+        ...parameters,
+      ];
 
   String get fullPath =>
       ['', parentPath, if (path case final String p) p].join('/');
