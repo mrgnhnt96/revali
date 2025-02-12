@@ -1,9 +1,11 @@
 class CookieParser {
   const CookieParser(this.cookies);
 
-  final String cookies;
+  final List<dynamic> cookies;
 
   Map<String, String> parse() {
+    final cookies = this.cookies.join(';');
+
     final cookieMap = <String, String>{};
     final cookieList = cookies.split(';');
 

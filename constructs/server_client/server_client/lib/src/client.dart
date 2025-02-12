@@ -1,14 +1,18 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:server_client/src/cookie_parser.dart';
 import 'package:server_client/src/server_exception.dart';
+import 'package:server_client/src/storage.dart';
 
 class Client {
   Client({
+    required this.storage,
     HttpClient? client,
     this.baseUrl,
   }) : _client = client ?? HttpClient();
 
+  final Storage storage;
   final HttpClient _client;
   final String? baseUrl;
 
@@ -55,6 +59,15 @@ class Client {
         statusCode: response.statusCode,
         body: body,
       );
+    }
+
+    if (response.headers['set-cookie'] case final List<dynamic> cookies
+        when cookies.isNotEmpty) {
+      final parser = CookieParser(cookies);
+
+      if (parser.parse() case final cookies when cookies.isNotEmpty) {
+        await storage.saveAll(cookies);
+      }
     }
 
     return response;

@@ -72,6 +72,7 @@ Spec createServerContent(ClientServer client) {
                           refer((HttpClient).name).newInstance([]),
                         ),
                         'baseUrl': refer('url'),
+                        'storage': refer('this').property('storage'),
                       },
                     ),
                   )

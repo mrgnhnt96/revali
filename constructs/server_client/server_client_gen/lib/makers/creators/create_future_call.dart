@@ -1,21 +1,15 @@
 // ignore_for_file: unnecessary_parenthesis
 
 import 'package:code_builder/code_builder.dart';
+import 'package:server_client_gen/makers/creators/create_from_json.dart';
+import 'package:server_client_gen/makers/creators/create_request.dart';
 import 'package:server_client_gen/makers/utils/if_statement.dart';
 import 'package:server_client_gen/makers/utils/type_extensions.dart';
 import 'package:server_client_gen/models/client_method.dart';
-import 'package:server_client_gen/models/client_return_type.dart';
 
 List<Code> createFutureCall(ClientMethod method) {
   return [
-    declareFinal('response')
-        .assign(
-          refer('_client').property('request').call([], {
-            'method': refer("'${method.method}'"),
-            'path': refer("'${method.resolvedPath}'"),
-          }).awaited,
-        )
-        .statement,
+    createRequest(method),
     const Code(''),
     declareFinal('body')
         .assign(
@@ -57,7 +51,11 @@ List<Code> createFutureCall(ClientMethod method) {
                   )
                   ..body = switch (method.returnType) {
                     final e when e.isPrimitive => refer('e'),
-                    final e when e.hasFromJson => createFromJson(e, 'e'),
+                    final e when e.hasFromJson => createFromJson(
+                        e,
+                        'e',
+                        forceMapType: true,
+                      ),
                     _ => refer('e'),
                   }
                       .code,
@@ -78,11 +76,4 @@ List<Code> createFutureCall(ClientMethod method) {
       literalString('Invalid response'),
     ]).statement,
   ];
-}
-
-Expression createFromJson(ClientReturnType method, String variable) {
-  return refer(method.resolvedName).newInstanceNamed(
-    'fromJson',
-    [refer(variable).property('cast').call([])],
-  );
 }

@@ -11,6 +11,7 @@ final class Server {
     this.client = Client(
       client: client ?? HttpClient(),
       baseUrl: url,
+      storage: this.storage,
     );
 
     this.storage.save('__BASE_URL__', url);
