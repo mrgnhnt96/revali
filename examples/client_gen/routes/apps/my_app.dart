@@ -5,8 +5,8 @@ import 'package:revali_router/revali_router.dart';
 final class MyApp extends AppConfig {
   const MyApp()
       : super(
-          host: 'bahama',
-          port: 1010,
+          host: 'localhost',
+          port: 8080,
           prefix: 'aloha',
         );
 }

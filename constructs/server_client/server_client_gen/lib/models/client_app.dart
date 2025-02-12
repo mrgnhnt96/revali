@@ -1,6 +1,7 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:collection/collection.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_core/revali_core.dart';
 
@@ -15,7 +16,7 @@ class ClientApp {
     const appConfig = _AppConfig();
     return ClientApp(
       host: appConfig.host,
-      port: appConfig.port,
+      port: '${appConfig.port}',
       prefix: appConfig.prefix,
     );
   }
@@ -37,7 +38,7 @@ class ClientApp {
   }
 
   final String host;
-  final int port;
+  final String port;
   final String? prefix;
 }
 
@@ -45,7 +46,7 @@ final class _AppConfig extends AppConfig {
   const _AppConfig() : super.defaultApp();
 }
 
-(String? host, int? port, String? prefix) _getConfigs(ClassElement element) {
+(String? host, String? port, String? prefix) _getConfigs(ClassElement element) {
   final session = element.library.session;
   final libraryResult = session.getParsedLibraryByElement(element.library);
 
@@ -54,60 +55,75 @@ final class _AppConfig extends AppConfig {
   var foundPrefix = false;
 
   String? host;
-  int? port;
+  String? port;
   String? prefix;
 
-  if (libraryResult is ParsedLibraryResult) {
-    // Find the constructor declaration from the parsed unit
-    for (final unit in libraryResult.units) {
-      for (final declaration in unit.unit.declarations) {
-        if (declaration is ClassDeclaration &&
-            declaration.name.lexeme == element.name) {
-          for (final member in declaration.members) {
-            if (member is ConstructorDeclaration) {
-              for (final initializer in member.initializers) {
-                if (initializer is SuperConstructorInvocation) {
-                  // Extract arguments
-                  for (final arg in initializer.argumentList.arguments) {
-                    if (arg is NamedExpression) {
-                      if (arg.name.label.name == 'host') {
-                        host = switch (arg.expression) {
-                          final StringLiteral e => e.stringValue,
-                          _ => null,
-                        };
-                        foundHost = true;
-                      } else if (arg.name.label.name == 'port') {
-                        port = switch (arg.expression) {
-                          final IntegerLiteral e => e.value,
-                          _ => null,
-                        };
-                        foundPort = true;
-                      } else if (arg.name.label.name == 'prefix') {
-                        prefix = switch (arg.expression) {
-                          final StringLiteral e => e.stringValue,
-                          NullLiteral() => '',
-                          _ => null,
-                        };
-                        foundPrefix = true;
-                      }
+  const badResponse = (null, null, null);
 
-                      if (foundHost && foundPort && foundPrefix) {
-                        return (host, port, prefix);
-                      }
-                    }
-                  }
+  if (libraryResult is! ParsedLibraryResult) {
+    return badResponse;
+  }
 
-                  if (foundHost && foundPort) {
-                    return (host, port, prefix);
-                  }
-                }
-              }
-            }
-          }
-        }
+  if (libraryResult.units.isEmpty) {
+    return badResponse;
+  }
+
+  final [unit, ...] = libraryResult.units;
+
+  final declaration = unit.unit.declarations.firstWhereOrNull(
+    (e) => e is ClassDeclaration && e.name.lexeme == element.name,
+  );
+
+  if (declaration == null || declaration is! ClassDeclaration) {
+    return badResponse;
+  }
+
+  final ctor = declaration.members.firstWhereOrNull(
+    (e) => e is ConstructorDeclaration,
+  );
+
+  if (ctor == null || ctor is! ConstructorDeclaration) {
+    return badResponse;
+  }
+
+  final initializer = ctor.initializers.firstWhereOrNull(
+    (e) => e is SuperConstructorInvocation,
+  );
+
+  if (initializer == null || initializer is! SuperConstructorInvocation) {
+    return badResponse;
+  }
+
+  for (final arg in initializer.argumentList.arguments) {
+    if (arg is NamedExpression) {
+      if (arg.name.label.name == 'host') {
+        host = switch (arg.expression) {
+          final StringLiteral e => e.stringValue,
+          final InstanceCreationExpression e => '\${${e.toSource()}}',
+          _ => null,
+        };
+        foundHost = true;
+      } else if (arg.name.label.name == 'port') {
+        port = switch (arg.expression) {
+          final IntegerLiteral e => '${e.value}',
+          final InstanceCreationExpression e => '\${${e.toSource()}}',
+          _ => null,
+        };
+        foundPort = true;
+      } else if (arg.name.label.name == 'prefix') {
+        prefix = switch (arg.expression) {
+          final StringLiteral e => e.stringValue,
+          NullLiteral() => '',
+          _ => null,
+        };
+        foundPrefix = true;
+      }
+
+      if (foundHost && foundPort && foundPrefix) {
+        return (host, port, prefix);
       }
     }
   }
 
-  return (null, null, null);
+  return badResponse;
 }
