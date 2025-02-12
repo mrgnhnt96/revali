@@ -6,4 +6,6 @@ environment:
 
 dependencies:
     client_gen_models:
+    client_server:
+      path: ../../.revali/server_client
     server_client:
