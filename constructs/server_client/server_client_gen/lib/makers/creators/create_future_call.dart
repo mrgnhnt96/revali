@@ -57,15 +57,15 @@ List<Code> createFutureCall(ClientMethod method) {
                   )
                   ..body = switch (method.returnType) {
                     final e when e.isPrimitive => refer('e'),
-                    final e when e.hasFromJson => createFromJson(e),
-                    _ => refer('data'),
+                    final e when e.hasFromJson => createFromJson(e, 'e'),
+                    _ => refer('e'),
                   }
                       .code,
               ).closure,
             ])
             .property('toList')
             .call([]),
-        final e when e.hasFromJson => createFromJson(e),
+        final e when e.hasFromJson => createFromJson(e, 'data'),
         final e when e.isPrimitive => refer('data'),
         _ => refer('data'),
       }
@@ -80,7 +80,9 @@ List<Code> createFutureCall(ClientMethod method) {
   ];
 }
 
-Expression createFromJson(ClientReturnType method) {
-  return refer(method.resolvedName)
-      .newInstanceNamed('fromJson', [refer('data').property('cast').call([])]);
+Expression createFromJson(ClientReturnType method, String variable) {
+  return refer(method.resolvedName).newInstanceNamed(
+    'fromJson',
+    [refer(variable).property('cast').call([])],
+  );
 }
