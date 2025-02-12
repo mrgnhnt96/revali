@@ -9,6 +9,7 @@ export 'src/binds.dart';
 export 'src/body.dart';
 export 'src/catches.dart';
 export 'src/combines.dart';
+export 'src/cookie.dart';
 export 'src/data.dart';
 export 'src/dep.dart';
 export 'src/guards.dart';

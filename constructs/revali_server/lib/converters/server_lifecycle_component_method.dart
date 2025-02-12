@@ -28,7 +28,6 @@ class ServerLifecycleComponentMethod with ExtractImport {
 
     final importPaths = <String>{};
 
-    // TODO(mrgnhnt): Handle Future<ALIAS> return types
     if (returnTypeAlias != null && aliasReturnTypes.contains(returnTypeAlias)) {
       returnType = returnTypeAlias;
     } else if (object.returnType case final InterfaceType type

@@ -5,6 +5,9 @@
 // ignore_for_file: directives_ordering
 
 export 'build.dart';
+export 'cli/models/cli_config.dart';
+export 'cli/models/create_paths.dart';
+export 'cli/revali_server_runner.dart';
 export 'models/options.dart';
 export 'revali_build.construct.dart';
 export 'revali_server.construct.dart';
