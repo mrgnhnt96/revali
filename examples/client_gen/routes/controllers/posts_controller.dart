@@ -11,7 +11,8 @@ class PostsController {
   @Post()
   String handle({
     @Body() required CreatePostInput input,
-    @Body(['email']) required String email,
+    @Body(['data', 'email']) required String email,
+    @Query('page') String? page,
   }) {
     return 'Hello world!';
   }

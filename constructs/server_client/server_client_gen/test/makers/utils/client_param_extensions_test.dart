@@ -10,12 +10,13 @@ void main() {
     ClientParam param({
       ParameterPosition position = ParameterPosition.body,
       List<String> access = const [],
+      String? type,
     }) {
       return ClientParam(
         name: 'name',
         position: position,
         type: ClientType(
-          name: 'name',
+          name: type ?? 'FakeType',
           import: ClientImports([]),
         ),
         nullable: false,
@@ -33,6 +34,24 @@ void main() {
         ].roots();
 
         expect(result, isEmpty);
+      });
+
+      test('should throw when paths are the same and types differ', () {
+        final result = [
+          param(access: ['data']),
+          param(access: ['data'], type: 'String'),
+        ].roots;
+
+        expect(result, throwsException);
+      });
+
+      test('should throw when paths are empty and types differ', () {
+        final result = [
+          param(access: []),
+          param(access: [], type: 'String'),
+        ].roots;
+
+        expect(result, throwsException);
       });
 
       test('should return lowest access', () {

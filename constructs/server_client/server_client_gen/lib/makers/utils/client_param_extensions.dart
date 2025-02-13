@@ -91,8 +91,33 @@ extension IterableClientParamX on Iterable<ClientParam> {
   List<List<String>> roots() {
     final paths = <String, Iterable<String>>{};
 
-    if (any((e) => e.access.isEmpty)) {
-      return [];
+    if (where((e) => e.access.isEmpty) case final items when items.isNotEmpty) {
+      if (items.length == 1) {
+        return [];
+      }
+
+      if (items.length > 1) {
+        if (!items.every((e) => e.type == items.first.type)) {
+          throw Exception('Cannot have multiple roots with different types');
+        }
+
+        return [];
+      }
+    }
+
+    final uniquePathsToTypes = <String, String>{};
+    for (final e in this) {
+      if (e.access.isEmpty) {
+        continue;
+      }
+
+      if (uniquePathsToTypes[e.access.join('.')] case final type?) {
+        if (type != e.type.name) {
+          throw Exception('Cannot have multiple roots with different types');
+        }
+      }
+
+      uniquePathsToTypes[e.access.join('.')] = e.type.name;
     }
 
     final sorted = toList().sortedBy<num>((e) => e.access.length).toList();
