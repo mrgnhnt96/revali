@@ -25,16 +25,30 @@ class Client {
   }) async {
     assert(path.isNotEmpty, 'Path cannot be empty');
 
-    final queryString = switch (query) {
-      _ when query.isEmpty => '',
-      // ignore: prefer_interpolation_to_compose_strings
-      _ => '?' + query.entries.map((e) => '${e.key}=${e.value}').join('&')
-    };
+    String formQuery() {
+      if (query.isEmpty) {
+        return '';
+      }
+
+      final buffer = StringBuffer()..write('?');
+
+      for (final (index, MapEntry(:key, :value)) in query.entries.indexed) {
+        if (value == null) continue;
+
+        buffer.write('$key=$value');
+
+        if (index < query.length - 1) {
+          buffer.write('&');
+        }
+      }
+
+      return buffer.toString();
+    }
 
     final fullPath = switch ((path[0], baseUrl)) {
-      ('/', final String base) => '$base$path$queryString',
+      ('/', final String base) => '$base$path${formQuery()}',
       ('/', null) => throw Exception('Base URL not set'),
-      _ => '$path$queryString',
+      _ => '$path${formQuery()}',
     };
 
     final uri = Uri.parse(fullPath);
