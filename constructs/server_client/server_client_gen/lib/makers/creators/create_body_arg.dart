@@ -1,5 +1,4 @@
 import 'package:code_builder/code_builder.dart';
-import 'package:collection/collection.dart';
 import 'package:server_client_gen/enums/parameter_position.dart';
 import 'package:server_client_gen/makers/utils/client_param_extensions.dart';
 import 'package:server_client_gen/makers/utils/create_map.dart';
@@ -24,9 +23,15 @@ Expression createBodyArg(Iterable<ClientParam> params) {
     return createSingle(single);
   }
 
-  if (params.firstWhereOrNull((e) => e.access.isEmpty)
-      case final ClientParam param) {
-    return createSingle(param);
+  if (params.where((e) => e.access.isEmpty) case final params
+      when params.isNotEmpty) {
+    if (params.length > 1) {
+      if (!params.every((e) => e.type.name == params.first.type.name)) {
+        throw Exception('Multiple body params with different types');
+      }
+    }
+
+    return createSingle(params.first);
   }
 
   final roots = params.roots();
