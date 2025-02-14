@@ -115,7 +115,7 @@ class ConstructGenerator with DirectoriesMixin {
     } catch (e) {
       logger
         ..delayed(red.wrap('Error occurred while generating constructs'))
-        ..detail(red.wrap('Error: $e'));
+        ..delayed(red.wrap('Error: $e'));
     }
 
     return null;
