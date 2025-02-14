@@ -10,8 +10,9 @@ class PostsController {
 
   @Post()
   String handle({
-    @Body() required CreatePostInput input,
+    // TODO: Expect `data.input` and `data.email`, right now its only `data.input`
     @Body(['data', 'email']) required String email,
+    @Body(['data', 'input']) required CreatePostInput input,
     @Query('page') String? page,
   }) {
     return 'Hello world!';

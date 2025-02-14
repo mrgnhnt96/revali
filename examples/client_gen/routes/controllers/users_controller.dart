@@ -29,6 +29,11 @@ class UsersController {
       const NonGlobalUser(name: 'Alice'),
     ];
   }
+
+  @Get('profiles-raw-content')
+  StringContent usersRawContent() {
+    return const StringContent('Hello world!');
+  }
 }
 
 class NonGlobalUser {

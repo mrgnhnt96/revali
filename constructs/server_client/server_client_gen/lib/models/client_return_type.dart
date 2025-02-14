@@ -1,6 +1,10 @@
+// ignore_for_file: unnecessary_parenthesis
+
 import 'package:revali_construct/revali_construct.dart';
+import 'package:revali_router/revali_router.dart';
 import 'package:server_client_gen/makers/utils/class_element_extensions.dart';
 import 'package:server_client_gen/makers/utils/extract_import.dart';
+import 'package:server_client_gen/makers/utils/type_extensions.dart';
 import 'package:server_client_gen/models/client_imports.dart';
 
 class ClientReturnType with ExtractImport {
@@ -13,6 +17,7 @@ class ClientReturnType with ExtractImport {
     required this.isIterable,
     required this.hasFromJson,
     required this.isVoid,
+    required this.isStringContent,
   });
 
   ClientReturnType.map()
@@ -23,25 +28,38 @@ class ClientReturnType with ExtractImport {
         isPrimitive = true,
         isIterable = false,
         hasFromJson = false,
+        isStringContent = false,
         import = ClientImports([]);
 
   factory ClientReturnType.fromMeta(MetaReturnType type) {
-    final import = ClientImports.fromElement(type.resolvedElement);
+    var import = ClientImports.fromElement(type.resolvedElement);
 
     if (import.paths.length == 1) {
       // ignore: avoid_print
       print('Warning: Return type cannot be imported: ${type.type}');
       return ClientReturnType.map();
     }
+
+    final (resolvedName, isStringContent) =
+        switch (type.resolvedElement?.name ?? type.type) {
+      final e when e == (StringContent).name => ('String', true),
+      final e => (e, false),
+    };
+
+    if (isStringContent) {
+      import = ClientImports([]);
+    }
+
     return ClientReturnType(
       fullName: type.type,
-      resolvedName: type.resolvedElement?.name ?? type.type,
+      resolvedName: resolvedName,
       isStream: type.isStream,
       import: import,
       isPrimitive: type.isPrimitive,
       isIterable: type.isIterable,
       hasFromJson: type.resolvedElement?.hasFromJsonMember ?? false,
       isVoid: type.isVoid,
+      isStringContent: isStringContent,
     );
   }
 
@@ -53,6 +71,7 @@ class ClientReturnType with ExtractImport {
   final bool isIterable;
   final bool hasFromJson;
   final bool isVoid;
+  final bool isStringContent;
 
   @override
   List<ExtractImport?> get extractors => [];

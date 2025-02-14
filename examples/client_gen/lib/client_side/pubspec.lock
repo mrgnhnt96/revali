@@ -64,7 +64,7 @@ packages:
     source: hosted
     version: "1.9.1"
   server_client:
-    dependency: "direct main"
+    dependency: transitive
     description:
       path: "../../../../constructs/server_client/server_client"
       relative: true

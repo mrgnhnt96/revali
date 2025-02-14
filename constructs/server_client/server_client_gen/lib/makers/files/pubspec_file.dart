@@ -15,6 +15,7 @@ environment:
 
 dependencies:
   # TODO(mrgnhnt): Add dynamic dependencies
+  http: ^1.3.0
   client_gen_models:
     path: ../../models
   server_client:

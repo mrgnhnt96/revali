@@ -1,0 +1,11 @@
+name: whatever
+publish_to: 'none'
+
+environment:
+    sdk: '>=3.2.6 <4.0.0'
+
+dependencies:
+    client_gen_models:
+      path: ../../models
+    client_server:
+      path: ../../.revali/server_client

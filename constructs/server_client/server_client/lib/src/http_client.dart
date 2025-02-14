@@ -1,22 +1,22 @@
 import 'dart:convert';
-import 'dart:io';
 
+import 'package:http/http.dart' as http;
 import 'package:server_client/src/cookie_parser.dart';
 import 'package:server_client/src/server_exception.dart';
 import 'package:server_client/src/storage.dart';
 
-class Client {
-  Client({
+class HttpClient {
+  HttpClient({
     required this.storage,
-    HttpClient? client,
+    http.Client? client,
     this.baseUrl,
-  }) : _client = client ?? HttpClient();
+  }) : _client = client ?? http.Client();
 
   final Storage storage;
-  final HttpClient _client;
+  final http.Client _client;
   final String? baseUrl;
 
-  Future<HttpClientResponse> request({
+  Future<http.ByteStream> request({
     required String method,
     required String path,
     Map<String, String>? headers,
@@ -53,19 +53,17 @@ class Client {
 
     final uri = Uri.parse(fullPath);
 
-    final request = await _client.openUrl(method, uri);
+    final request = http.Request(method, uri);
 
     if (headers != null) {
-      for (final entry in headers.entries) {
-        request.headers.add(entry.key, entry.value);
-      }
+      request.headers.addAll(headers);
     }
 
     if (body != null) {
-      request.write(jsonEncode(body));
+      request.body = jsonEncode(body);
     }
 
-    final response = await request.close();
+    final response = await _client.send(request);
 
     final hasException = switch (response.statusCode) {
       >= 200 && < 300 => false,
@@ -73,16 +71,16 @@ class Client {
     };
 
     if (hasException) {
-      final body = await response.transform(utf8.decoder).join();
+      final body = await response.stream.transform(utf8.decoder).join();
 
       throw ServerException(
-        message: response.reasonPhrase,
+        message: response.reasonPhrase ?? 'Unknown error',
         statusCode: response.statusCode,
         body: body,
       );
     }
 
-    if (response.headers['set-cookie'] case final List<dynamic> cookies
+    if (response.headers['set-cookie'] case final String cookies
         when cookies.isNotEmpty) {
       final parser = CookieParser(cookies);
 
@@ -91,6 +89,6 @@ class Client {
       }
     }
 
-    return response;
+    return response.stream;
   }
 }
