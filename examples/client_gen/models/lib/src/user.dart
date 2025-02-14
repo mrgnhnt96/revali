@@ -10,8 +10,15 @@ class User {
   }
 
   Map<String, dynamic> toJson() {
-    return {};
+    return {
+      'name': name,
+    };
   }
 
   final String name;
+
+  @override
+  String toString() {
+    return 'User(name: $name)';
+  }
 }

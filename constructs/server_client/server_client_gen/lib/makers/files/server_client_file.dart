@@ -11,8 +11,8 @@ DartFile serverClientFile(
   final imports = server.allImports(
     additionalPackages: [
       'dart:convert',
-      'dart:io',
       'package:server_client/server_client.dart',
+      'package:http/http.dart',
     ],
     additionalPaths: ['interfaces.dart'],
   );

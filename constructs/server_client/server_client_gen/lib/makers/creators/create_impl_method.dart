@@ -13,6 +13,7 @@ Method createImplMethod(ClientMethod method) {
       ..name = method.name
       ..returns = switch (method.returnType) {
         final e when e.isStream => refer(e.fullName),
+        final e when e.isStringContent => refer('Future<String>'),
         final e => refer('Future<${e.fullName}>')
       }
       ..optionalParameters.addAll(getPathParams(method))

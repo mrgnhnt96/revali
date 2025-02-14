@@ -1,7 +1,5 @@
 // ignore_for_file: unnecessary_parenthesis, unnecessary_string_interpolations
 
-import 'dart:io';
-
 import 'package:change_case/change_case.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:server_client/server_client.dart';
@@ -31,7 +29,7 @@ Spec createServerContent(ClientServer client) {
                 Parameter(
                   (b) => b
                     ..named = true
-                    ..type = refer('${(HttpClient).name}?')
+                    ..type = refer('Client?')
                     ..name = 'client',
                 ),
                 Parameter(
@@ -65,11 +63,11 @@ Spec createServerContent(ClientServer client) {
               refer('this')
                   .property('client')
                   .assign(
-                    refer((Client).name).newInstance(
+                    refer((HttpClient).name).newInstance(
                       [],
                       {
                         'client': refer('client').ifNullThen(
-                          refer((HttpClient).name).newInstance([]),
+                          refer('Client').newInstance([]),
                         ),
                         'baseUrl': refer('url'),
                         'storage': refer('this').property('storage'),
@@ -89,7 +87,7 @@ Spec createServerContent(ClientServer client) {
           (b) => b
             ..late = true
             ..modifier = FieldModifier.final$
-            ..type = refer('${(Client).name}')
+            ..type = refer((HttpClient).name)
             ..name = 'client'
             ..late = true,
         ),

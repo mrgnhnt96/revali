@@ -1,5 +1,6 @@
 class CookieParser {
-  const CookieParser(this.cookies);
+  CookieParser(String cookies) : cookies = [cookies];
+  const CookieParser.all(this.cookies);
 
   final List<dynamic> cookies;
 
