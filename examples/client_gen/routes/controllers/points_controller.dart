@@ -29,4 +29,15 @@ class PointsController {
 
     yield* Stream.fromIterable(users);
   }
+
+  @SSE('watch')
+  Stream<User> watch() async* {
+    final users = <User>[
+      const User(name: 'John'),
+      const User(name: 'Jane'),
+      const User(name: 'Doe'),
+    ];
+
+    yield* Stream.fromIterable(users);
+  }
 }

@@ -22,6 +22,7 @@ void main() {
           isIterable: false,
           hasFromJson: false,
           isVoid: false,
+          isStringContent: false,
         ),
         isSse: false,
         isWebsocket: false,
