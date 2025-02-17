@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:web_socket_channel/io.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 void main() async {
   await _cors();
@@ -44,13 +44,7 @@ Future<void> _websocket() async {
     final uri = Uri.parse('ws://localhost:1083/api/websocket');
 
     // Connect to the remote WebSocket endpoint.
-    final channel = IOWebSocketChannel.connect(
-      uri.toString(),
-      headers: {
-        Headers.contentEncodingHeader: 'utf-8',
-        Headers.contentTypeHeader: 'application/json',
-      },
-    );
+    final channel = WebSocketChannel.connect(uri);
 
     // Subscribe to messages from the server.
     channel.stream.listen(

@@ -14,7 +14,7 @@ class UsersController {
   @Get('profiles')
   List<User> users() {
     return [
-      const User(name: 'Alice'),
+      const User(name: 'Yooo'),
     ];
   }
 
