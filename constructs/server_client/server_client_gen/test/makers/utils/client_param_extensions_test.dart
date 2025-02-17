@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:server_client_gen/enums/parameter_position.dart';
 import 'package:server_client_gen/makers/utils/client_param_extensions.dart';
 import 'package:server_client_gen/models/client_imports.dart';
@@ -26,6 +27,8 @@ void main() {
     }
 
     group('#roots', () {
+      const deepEquals = DeepCollectionEquality();
+
       test('should return an empty array when any access is empty', () {
         final result = [
           param(access: ['data', 'email']),
@@ -60,8 +63,11 @@ void main() {
           param(access: ['data']),
         ].roots();
 
-        expect(result, hasLength(1));
-        expect(result.single, ['data']);
+        final expected = RecursiveMap({
+          'data': RecursiveMap(),
+        });
+
+        expect(deepEquals.equals(result, expected), isTrue);
       });
 
       test('should return all lowest access', () {
@@ -72,20 +78,29 @@ void main() {
           param(access: ['data']),
         ].roots();
 
-        expect(result, hasLength(2));
-        expect(result[0], ['meta']);
-        expect(result[1], ['data']);
+        final expected = RecursiveMap({
+          'meta': RecursiveMap(),
+          'data': RecursiveMap(),
+        });
+
+        expect(deepEquals.equals(result, expected), isTrue);
       });
 
-      test('should return all lowest access', () {
+      test('should return all access with same roots when last is different',
+          () {
         final result = [
-          param(access: ['meta', 'bananas']),
           param(access: ['data', 'email']),
+          param(access: ['data', 'password']),
         ].roots();
 
-        expect(result, hasLength(2));
-        expect(result[0], ['meta', 'bananas']);
-        expect(result[1], ['data', 'email']);
+        final expected = RecursiveMap({
+          'data': RecursiveMap({
+            'email': RecursiveMap(),
+            'password': RecursiveMap(),
+          }),
+        });
+
+        expect(deepEquals.equals(result, expected), isTrue);
       });
     });
 
@@ -104,7 +119,7 @@ void main() {
           param(access: ['data', 'name']),
         ].needsAssignment(param(access: ['data', 'email']));
 
-        expect(result, true);
+        expect(result, isTrue);
       });
 
       test('should return false when root is empty', () {

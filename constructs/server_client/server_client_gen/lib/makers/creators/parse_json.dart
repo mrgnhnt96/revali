@@ -30,7 +30,7 @@ Expression parseJson(ClientMethod method, String variable) {
           refer('jsonDecode').call([refer(variable)]),
           pattern: (
             cse: switch (method.returnType) {
-              final e when e.isIterable =>
+              final e when e.isIterable && e.isStream =>
                 declareFinal('data', type: refer('List<dynamic>')),
               final e when e.isStream => declareFinal(
                   'data',
@@ -43,6 +43,7 @@ Expression parseJson(ClientMethod method, String variable) {
                   'data': declareFinal(
                     'data',
                     type: switch (method.returnType) {
+                      final e when e.isIterable => refer('List<dynamic>'),
                       final e when e.isPrimitive => refer(e.fullName),
                       _ => refer('Map<dynamic, dynamic>'),
                     },

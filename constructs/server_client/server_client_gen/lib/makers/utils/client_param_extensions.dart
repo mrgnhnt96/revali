@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:math';
 
 import 'package:collection/collection.dart';
@@ -52,48 +53,29 @@ extension IterableClientParamX on Iterable<ClientParam> {
   ///
   /// If `access: [data, email]` were passed in to the [param]
   /// then it would not need to be assigned
-  bool needsAssignment(ClientParam param, [List<List<String>>? existingRoots]) {
+  bool needsAssignment(ClientParam param, [RecursiveMap? existingRoots]) {
     final roots = existingRoots ?? this.roots();
 
     if (roots.isEmpty && isNotEmpty) {
       return param.access.isEmpty;
     }
 
-    bool isWithin(Iterable<String> roots, Iterable<String> access) {
-      if (roots.isEmpty && access.isEmpty) {
-        return true;
-      }
-
-      if (roots.isEmpty) {
+    RecursiveMap? current = roots;
+    for (final segment in param.access) {
+      if (current?[segment] == null) {
         return false;
       }
 
-      if (access.isEmpty) {
-        return true;
-      }
-
-      if (roots.first == access.first) {
-        return isWithin(roots.skip(1), access.skip(1));
-      }
-
-      return false;
+      current = current?[segment];
     }
 
-    for (final r in roots) {
-      if (isWithin(r, param.access)) {
-        return true;
-      }
-    }
-
-    return false;
+    return true;
   }
 
-  List<List<String>> roots() {
-    final paths = <String, Iterable<String>>{};
-
+  RecursiveMap roots() {
     if (where((e) => e.access.isEmpty) case final items when items.isNotEmpty) {
       if (items.length == 1) {
-        return [];
+        return RecursiveMap();
       }
 
       if (items.length > 1) {
@@ -101,7 +83,7 @@ extension IterableClientParamX on Iterable<ClientParam> {
           throw Exception('Cannot have multiple roots with different types');
         }
 
-        return [];
+        return RecursiveMap();
       }
     }
 
@@ -120,51 +102,98 @@ extension IterableClientParamX on Iterable<ClientParam> {
       uniquePathsToTypes[e.access.join('.')] = e.type.name;
     }
 
+    final roots = RecursiveMap();
+    if (isEmpty) return roots;
+
     final sorted = toList().sortedBy<num>((e) => e.access.length).toList();
 
-    for (final e in sorted) {
-      final access = e.access;
-      if (access.isEmpty) {
-        continue;
+    final maxLength = sorted.first.access.length;
+    var skip = 0;
+    for (final ClientParam(:access) in sorted) {
+      if (access.length != maxLength) {
+        break;
       }
 
-      if (paths.isEmpty) {
-        paths[access.first] = access.skip(1);
-        continue;
-      }
+      roots[access.first] = access.skip(1);
 
-      if (paths[access.first] case final segments?) {
-        if (segments.isEmpty) {
-          continue;
-        }
+      skip++;
+    }
 
-        var shouldAdd = true;
-        for (final (index, segment) in segments.indexed) {
-          if (access.length <= index) {
-            shouldAdd = false;
+    for (final ClientParam(:access) in sorted.skip(skip)) {
+      RecursiveMap? current = roots;
+      for (final (index, segment) in access.indexed) {
+        if (current?[segment] == null) {
+          if (index == 0) {
+            current?[segment] = access.skip(1);
             break;
-          }
-
-          if (access[index] != segment) {
-            shouldAdd = false;
+          } else {
             break;
           }
         }
 
-        if (!shouldAdd) {
-          continue;
+        current?[segment] = null;
+        current = current?[segment];
+      }
+    }
+
+    return roots;
+  }
+}
+
+class RecursiveMap with MapMixin<String, RecursiveMap?> {
+  RecursiveMap([Map<String, RecursiveMap>? map]) {
+    if (map != null) {
+      _map.addAll(map);
+    }
+  }
+
+  final _map = <String, RecursiveMap>{};
+
+  @override
+  void operator []=(String key, dynamic value) {
+    _map[key] ??= RecursiveMap();
+
+    switch (value) {
+      case String():
+        (_map[key] ??= RecursiveMap())[value] = null;
+      case Iterable<String>():
+        var k = key;
+        for (final v in value) {
+          (_map[k] ??= RecursiveMap())[v] = null;
+          k = v;
         }
-      }
+      case null:
+        _map[key] ??= RecursiveMap();
+      default:
+        throw Exception('Invalid value type');
+    }
+  }
 
-      paths[access.first] = access.skip(1);
+  @override
+  bool get isEmpty => _map.isEmpty;
+
+  @override
+  bool get isNotEmpty => _map.isNotEmpty;
+
+  @override
+  RecursiveMap? operator [](Object? key) {
+    if (_map.containsKey(key)) {
+      return _map[key] ?? RecursiveMap();
     }
 
-    Iterable<List<String>> roots() sync* {
-      for (final MapEntry(:key, :value) in paths.entries) {
-        yield [key, ...value];
-      }
-    }
+    return null;
+  }
 
-    return roots().toList();
+  @override
+  void clear() {
+    _map.clear();
+  }
+
+  @override
+  Iterable<String> get keys => _map.keys;
+
+  @override
+  RecursiveMap? remove(Object? key) {
+    return _map.remove(key);
   }
 }

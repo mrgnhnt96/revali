@@ -1,8 +1,12 @@
 import 'package:code_builder/code_builder.dart';
 import 'package:server_client_gen/makers/utils/client_param_extensions.dart';
+import 'package:server_client_gen/models/client_method.dart';
 import 'package:server_client_gen/models/client_param.dart';
 
-Iterable<Parameter> getParameters(Iterable<ClientParam> params) sync* {
+Iterable<Parameter> getParameters(
+  Iterable<ClientParam> params,
+  ClientMethod method,
+) sync* {
   final (
     cookies: _,
     :body,
@@ -16,7 +20,7 @@ Iterable<Parameter> getParameters(Iterable<ClientParam> params) sync* {
       continue;
     }
 
-    yield _create(param);
+    yield _create(param, isStream: method.returnType.isStream);
   }
 
   for (final param in query.followedBy(headers)) {
@@ -24,12 +28,19 @@ Iterable<Parameter> getParameters(Iterable<ClientParam> params) sync* {
   }
 }
 
-Parameter _create(ClientParam param) {
+Parameter _create(
+  ClientParam param, {
+  bool isStream = false,
+}) {
+  final type = switch (isStream) {
+    true => refer('Stream<${param.type.name}>'),
+    false => refer(param.type.name),
+  };
   return Parameter(
     (b) => b
       ..name = param.name
       ..named = true
       ..required = !param.nullable
-      ..type = refer(param.type.name),
+      ..type = type,
   );
 }

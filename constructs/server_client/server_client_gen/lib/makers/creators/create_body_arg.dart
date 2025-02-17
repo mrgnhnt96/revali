@@ -36,8 +36,26 @@ Expression createBodyArg(Iterable<ClientParam> params) {
 
   final roots = params.roots();
 
-  final entries = <String, dynamic>{};
+  void add(Map<String, dynamic> entries, String key, dynamic value) {
+    final entry = entries[key];
 
+    if (entry == null) {
+      entries[key] = value;
+      return;
+    }
+
+    if (entry is Map<String, dynamic>) {
+      if (value is! Map<String, dynamic>) {
+        throw Exception('Cannot merge map with non-map');
+      }
+
+      for (final MapEntry(:key, :value) in value.entries) {
+        add(entry, key, value);
+      }
+    }
+  }
+
+  final entries = <String, dynamic>{};
   for (final param in params) {
     if (!params.needsAssignment(param, roots)) {
       continue;
@@ -45,7 +63,9 @@ Expression createBodyArg(Iterable<ClientParam> params) {
 
     final map = _createMapWithKeys(param.access, param);
 
-    entries.addEntries(map.entries);
+    for (final MapEntry(:key, :value) in map.entries) {
+      add(entries, key, value);
+    }
   }
 
   return createMap(entries);
