@@ -32,7 +32,7 @@ Expression parseJson(ClientMethod method, String variable) {
             cse: switch (method.returnType) {
               final e when e.isIterable && e.isStream =>
                 declareFinal('data', type: refer('List<dynamic>')),
-              final e when e.isStream => declareFinal(
+              final e when e.isStream && !method.isWebsocket => declareFinal(
                   'data',
                   type: switch (method.returnType) {
                     final e when e.isPrimitive => refer(e.resolvedName),

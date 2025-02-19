@@ -85,27 +85,31 @@ List<Code> createWebsocketCall(ClientMethod method) {
     refer('channel').property('ready').awaited.statement,
     const Code(''),
     if (body case final body?) ...[
-      refer('channel')
-          .property('sink')
-          .property('addStream')
-          .call(
-            [
-              refer(body.name).property('map').call([
-                Method(
-                  (b) => b
-                    ..lambda = true
-                    ..requiredParameters
-                        .add(Parameter((b) => b..name = body.name))
-                    ..body = refer('utf8').property('encode').call([
-                      refer('jsonEncode').call([
-                        createBodyArg([body]),
-                      ]),
-                    ]).code,
-                ).closure,
-              ]),
-            ],
+      declareFinal('payloadListener')
+          .assign(
+            refer(body.name)
+                .property('map')
+                .call([
+                  Method(
+                    (b) => b
+                      ..lambda = true
+                      ..requiredParameters
+                          .add(Parameter((b) => b..name = body.name))
+                      ..body = refer('utf8').property('encode').call([
+                        refer('jsonEncode').call([
+                          createBodyArg([body]),
+                        ]),
+                      ]).code,
+                  ).closure,
+                ])
+                .property('listen')
+                .call([
+                  refer('channel').property('sink').property('add'),
+                ], {
+                  'onDone': refer('channel').property('sink').property('close'),
+                  'cancelOnError': literalTrue,
+                }),
           )
-          .awaited
           .statement,
       const Code(''),
     ],
@@ -152,5 +156,9 @@ List<Code> createWebsocketCall(ClientMethod method) {
         )
         .yieldedStar
         .statement,
+    const Code(''),
+    if (body case Object()) ...[
+      refer('payloadListener').property('cancel').call([]).awaited.statement,
+    ],
   ];
 }
