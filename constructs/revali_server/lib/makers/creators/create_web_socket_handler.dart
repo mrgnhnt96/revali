@@ -84,6 +84,7 @@ Expression createWebSocketHandler(
   final handler = Method(
     (p) => p
       ..modifier = MethodModifier.asyncStar
+      ..requiredParameters.add(Parameter((b) => b..name = 'context'))
       ..body = Block.of(trigger),
   ).closure;
 

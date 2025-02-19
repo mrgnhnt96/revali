@@ -1,3 +1,5 @@
+import 'package:revali_router_core/endpoint/endpoint_context.dart';
+
 class WebSocketHandler {
   const WebSocketHandler({
     this.onConnect,
@@ -7,6 +9,6 @@ class WebSocketHandler {
           'At least one of onConnect or onMessage must be provided',
         );
 
-  final Stream<dynamic> Function()? onConnect;
-  final Stream<dynamic> Function()? onMessage;
+  final Stream<dynamic> Function(EndpointContext)? onConnect;
+  final Stream<dynamic> Function(EndpointContext)? onMessage;
 }

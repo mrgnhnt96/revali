@@ -105,7 +105,14 @@ class HandleWebSocket {
         return response.toWebSocketResponse();
       }
 
-      if (await runHandler(onMessage) case final WebSocketResponse response) {
+      final HelperMixin(
+        context: ContextMixin(
+          :endpoint,
+        ),
+      ) = helper;
+
+      if (await runHandler(() => onMessage(endpoint))
+          case final WebSocketResponse response) {
         return response;
       }
     }
@@ -125,7 +132,7 @@ class HandleWebSocket {
         encoding: wsRequest.headers.encoding,
       );
 
-      final resolved = await payload.resolve(wsRequest.headers);
+      final resolved = await payload.coerce(wsRequest.headers);
 
       await wsRequest.overrideBody(resolved);
 
@@ -156,6 +163,7 @@ class HandleWebSocket {
       await request.resolvePayload();
       _webSocket = await request.upgradeToWebSocket(ping: ping);
       _wsRequest = MutableWebSocketRequestImpl.fromRequest(request);
+      helper.webSocketRequest = wsRequest;
 
       return null;
     } catch (e, stackTrace) {

@@ -7,7 +7,7 @@ import 'package:mime/mime.dart';
 import 'package:revali_router/src/body/mutable_body_impl.dart';
 import 'package:revali_router/src/body/response_body/base_body_data.dart';
 import 'package:revali_router/src/exceptions/payload_resolve_exception.dart';
-import 'package:revali_router/utils/coerce.dart';
+import 'package:revali_router/utils/coerce.dart' as type;
 import 'package:revali_router_core/revali_router_core.dart';
 
 class PayloadImpl implements Payload {
@@ -86,17 +86,51 @@ class PayloadImpl implements Payload {
   final int? contentLength;
 
   List<int>? _bytes;
+  StreamController<List<int>>? _backupStream;
   @override
   Stream<List<int>> read() async* {
-    if (_bytes != null) {
-      yield _bytes!;
+    if (_backupStream case final bytes?) {
+      yield* bytes.stream;
       return;
     }
 
+    _backupStream ??= StreamController.broadcast();
+
     await for (final chunk in _stream) {
       yield chunk;
+      _backupStream?.add(chunk);
       (_bytes ??= []).addAll(chunk);
     }
+  }
+
+  Future<BodyData?> coerce(ReadOnlyHeaders headers) async {
+    final encoding = headers.encoding;
+
+    if (headers.mimeType case String()) {
+      return resolve(headers);
+    }
+
+    final options = {
+      'application/json': _resolveJson(encoding),
+      'application/x-www-form-urlencoded': _resolveFormUrl(encoding),
+      if (headers.contentType case final MediaType contentType)
+        'multipart/form-data': _resolveFormData(encoding, contentType),
+      'text/plain': _resolveString(encoding),
+      'application/octet-stream': _resolveBinary(encoding),
+      '': additionalParsers[headers.mimeType]
+              ?.parse(encoding, read(), headers) ??
+          _resolveUnknown(encoding, headers.mimeType),
+    };
+
+    for (final attempt in options.values) {
+      try {
+        final resolved = await attempt;
+        return resolved;
+      } catch (_) {
+        continue;
+      }
+    }
+    return null;
   }
 
   @override
@@ -163,7 +197,7 @@ class PayloadImpl implements Payload {
     final data = Uri.splitQueryString(content);
 
     final coerced = {
-      for (final entry in data.entries) entry.key: coerce(entry.value),
+      for (final entry in data.entries) entry.key: type.coerce(entry.value),
     };
 
     return FormDataBodyData(coerced);
@@ -205,7 +239,7 @@ class PayloadImpl implements Payload {
           'bytes': bytes,
         };
       } else {
-        final content = coerce(await encoding.decodeStream(part));
+        final content = type.coerce(await encoding.decodeStream(part));
         data[name] = content;
       }
     }
@@ -242,5 +276,10 @@ class PayloadImpl implements Payload {
     }
 
     return encoding.decode(bytes);
+  }
+
+  @override
+  Future<void> close() async {
+    await _backupStream?.close();
   }
 }

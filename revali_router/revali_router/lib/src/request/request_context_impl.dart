@@ -113,5 +113,10 @@ class RequestContextImpl with EquatableMixin implements RequestContext {
   Payload get originalPayload => request.body;
 
   @override
+  Future<void> close() async {
+    await originalPayload.close();
+  }
+
+  @override
   List<Object?> get props => _$props;
 }

@@ -181,7 +181,10 @@ class Router extends Equatable {
 
     if (response.body case final BodyData body) {
       body.cleanUp = switch (helper.dataHandler.get<CleanUp>()) {
-        final CleanUpImpl cleanUp => cleanUp.clean,
+        final CleanUpImpl cleanUp => () {
+            context.close();
+            cleanUp.clean();
+          },
         _ => () {},
       };
     }

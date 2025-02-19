@@ -18,4 +18,7 @@ abstract interface class RequestContext {
   UnderlyingRequest get request;
 
   Future<WebSocket> upgradeToWebSocket({Duration? ping});
+
+  /// Cleans up any resources used by the request
+  Future<void> close();
 }

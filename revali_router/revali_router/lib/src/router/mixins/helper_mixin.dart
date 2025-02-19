@@ -19,6 +19,8 @@ mixin HelperMixin {
   DefaultResponses get defaultResponses;
   bool get debugResponses;
 
+  set webSocketRequest(MutableWebSocketRequest request);
+
   ContextMixin get context;
   RunMixin get run;
 
