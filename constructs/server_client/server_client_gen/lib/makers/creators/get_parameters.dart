@@ -14,16 +14,29 @@ Iterable<Parameter> getParameters(
     :headers,
   ) = params.separate;
 
-  final roots = body.roots();
-  for (final param in body) {
-    if (!body.needsAssignment(param, roots)) {
-      continue;
-    }
+  if (!method.isWebsocket || method.websocketType.canSendAny) {
+    final roots = body.roots();
+    for (final param in body) {
+      if (!body.needsAssignment(param, roots)) {
+        continue;
+      }
 
-    yield _create(param, isStream: method.returnType.isStream);
+      yield _create(
+        param,
+        isStream: method.websocketType.canSendMany,
+      );
+    }
   }
 
-  for (final param in query.followedBy(headers)) {
+  for (final param in query) {
+    yield _create(param);
+  }
+
+  if (method.isWebsocket) {
+    return;
+  }
+
+  for (final param in headers) {
     yield _create(param);
   }
 }

@@ -65,6 +65,8 @@ class ClientServer with ExtractImport {
   @override
   List<ClientImports?> get imports => [];
 
+  bool get hasWebsockets => controllers.any((e) => e.hasWebsockets);
+
   String allImports({
     Iterable<String> additionalPackages = const [],
     Iterable<String> additionalPaths = const [],

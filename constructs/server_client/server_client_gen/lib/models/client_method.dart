@@ -8,13 +8,43 @@ import 'package:server_client_gen/models/client_lifecycle_component.dart';
 import 'package:server_client_gen/models/client_param.dart';
 import 'package:server_client_gen/models/client_return_type.dart';
 
+enum WebsocketType {
+  none,
+  canSendOnly,
+  canReceiveOnly,
+  canSendAndReceive;
+
+  const WebsocketType();
+
+  bool get canSendMany {
+    return switch (this) {
+      WebsocketType.none || WebsocketType.canReceiveOnly => false,
+      WebsocketType.canSendOnly || WebsocketType.canSendAndReceive => true,
+    };
+  }
+
+  bool get canSendAny {
+    return switch (this) {
+      WebsocketType.none || WebsocketType.canReceiveOnly => false,
+      WebsocketType.canSendOnly || WebsocketType.canSendAndReceive => true,
+    };
+  }
+
+  bool get canReceive {
+    return switch (this) {
+      WebsocketType.none || WebsocketType.canSendOnly => false,
+      WebsocketType.canReceiveOnly || WebsocketType.canSendAndReceive => true,
+    };
+  }
+}
+
 class ClientMethod with ExtractImport {
   ClientMethod({
     required this.name,
     required this.parameters,
     required this.returnType,
     required this.isSse,
-    required this.isWebsocket,
+    required this.websocketType,
     required this.path,
     required this.parentPath,
     required this.method,
@@ -51,7 +81,13 @@ class ClientMethod with ExtractImport {
       method: route.method,
       returnType: ClientReturnType.fromMeta(route.returnType),
       parameters: ClientParam.fromMetas(route.params),
-      isWebsocket: route.isWebSocket,
+      websocketType: switch (route.webSocketMethod) {
+        null => WebsocketType.none,
+        final w when w.mode.isReceiveOnly => WebsocketType.canSendOnly,
+        final w when w.mode.isSendOnly => WebsocketType.canReceiveOnly,
+        final w when w.mode.isTwoWay => WebsocketType.canSendAndReceive,
+        _ => WebsocketType.none,
+      },
       isSse: route.isSse,
       path: route.path,
       lifecycleComponents: lifecycleComponents,
@@ -64,9 +100,11 @@ class ClientMethod with ExtractImport {
   final String? method;
   final ClientReturnType returnType;
   final List<ClientParam> parameters;
-  final bool isWebsocket;
+  final WebsocketType websocketType;
   final bool isSse;
   final List<ClientLifecycleComponent> lifecycleComponents;
+
+  bool get isWebsocket => websocketType != WebsocketType.none;
 
   List<ClientParam> get allParams => [
         ...lifecycleComponents.expand((e) => e.allParams),
@@ -80,7 +118,7 @@ class ClientMethod with ExtractImport {
     final allParts = paramsFor(fullPath);
 
     if (allParts.isEmpty) {
-      return fullPath;
+      return fullPath.replaceFirst(RegExp(r'/$'), '');
     }
 
     final expandedParts = <String, List<int>>{
@@ -124,7 +162,7 @@ class ClientMethod with ExtractImport {
       }
     }
 
-    final resolved = resolve().join('/');
+    final resolved = resolve().join('/').replaceFirst(RegExp(r'/$'), '');
 
     return '/$resolved';
   }

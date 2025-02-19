@@ -56,4 +56,7 @@ class ClientController with ExtractImport {
 
   @override
   List<ClientImports?> get imports => [];
+
+  bool get hasWebsockets =>
+      methods.any((e) => e.websocketType != WebsocketType.none);
 }

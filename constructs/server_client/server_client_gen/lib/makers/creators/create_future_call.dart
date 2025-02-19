@@ -19,7 +19,9 @@ List<Code> createFutureCall(ClientMethod method) {
               .awaited,
         )
         .statement,
-    const Code(''),
-    parseJson(method, 'body').code,
+    if (!method.returnType.isVoid) ...[
+      const Code(''),
+      parseJson(method, 'body').code,
+    ],
   ];
 }

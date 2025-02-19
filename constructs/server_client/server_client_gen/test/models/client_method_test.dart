@@ -25,7 +25,7 @@ void main() {
           isStringContent: false,
         ),
         isSse: false,
-        isWebsocket: false,
+        websocketType: WebsocketType.none,
         path: path,
         parentPath: parentPath ?? '',
         method: 'GET',

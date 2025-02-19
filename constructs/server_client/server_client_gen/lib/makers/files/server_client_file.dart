@@ -13,6 +13,8 @@ DartFile serverClientFile(
       'dart:convert',
       'package:server_client/server_client.dart',
       'package:http/http.dart',
+      if (server.hasWebsockets)
+        'package:web_socket_channel/web_socket_channel.dart',
     ],
     additionalPaths: ['interfaces.dart'],
   );
