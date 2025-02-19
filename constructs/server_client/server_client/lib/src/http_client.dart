@@ -59,8 +59,26 @@ class HttpClient {
       request.headers.addAll(headers);
     }
 
-    if (body != null) {
-      request.body = jsonEncode(body);
+    switch (body) {
+      case List<int>():
+        request.bodyBytes = body;
+        request.headers['content-type'] = 'application/octet-stream';
+
+      case List<dynamic>():
+      case Map<dynamic, dynamic>():
+        request.body = jsonEncode(body);
+        request.headers['content-type'] = 'application/json';
+
+      case String():
+        request.body = body;
+        request.headers['content-type'] = 'text/plain';
+
+      case Stream<dynamic>():
+        throw UnimplementedError('Stream body not implemented');
+      // request.body = body;
+      // request.headers['content-type'] = 'application/octet-stream';
+      default:
+        throw UnimplementedError('Unsupported body type ${body.runtimeType}');
     }
 
     final response = await _client.send(request);
