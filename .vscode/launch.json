@@ -21,7 +21,14 @@
             "request": "launch",
             "type": "dart",
             "program": ".dart_tool/revali/revali.dart",
-            "args": [ "dev" ]
+            "args": [
+                "dev"
+            ]
+        },
+        {
+            "name": "Attach",
+            "request": "attach",
+            "type": "dart",
         }
     ]
 }
