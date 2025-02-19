@@ -9,3 +9,5 @@ dependencies:
     client_server:
       path: ../../.revali/server_client
     server_client:
+    web_socket:
+    web_socket_channel:

@@ -1,3 +1,7 @@
+// ignore_for_file: unnecessary_lambdas
+
+import 'dart:async';
+
 import 'package:client_gen_models/client_gen_models.dart';
 import 'package:client_server/server_client.dart';
 
@@ -9,10 +13,34 @@ void main() async {
     password: 'password',
   );
 
-  final users = await server.posts.handle(
-    input: const CreatePostInput(title: 'Hello world!'),
-    userId: '123',
+  final stream = server.game.handle(
+    user: sendUsers(),
   );
 
-  print(users);
+  final listener = stream.listen(
+    (user) {
+      print(user);
+    },
+    cancelOnError: true,
+    onDone: () {
+      print('done!');
+    },
+    onError: (Object e) {
+      print('An error occurred: $e');
+    },
+  );
+
+  await listener.asFuture<void>();
+
+  listener.cancel().ignore();
+}
+
+Stream<User> sendUsers() async* {
+  for (var i = 0; i < 3; i++) {
+    await Future<void>.delayed(const Duration(seconds: 5));
+    print('sending!');
+    yield User(
+      name: 'name$i',
+    );
+  }
 }

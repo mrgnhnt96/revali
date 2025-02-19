@@ -6,10 +6,11 @@ import 'package:revali_router/revali_router.dart';
 class GameController {
   const GameController();
 
-  @WebSocket('')
-  Stream<String> handle(
+  @WebSocket.mode(WebSocketMode.twoWay)
+  Stream<User> handle(
     @Body() User user,
   ) async* {
-    yield 'Hello world!';
+    print('got user: ${user.name}');
+    yield User(name: 'Hello, ${user.name}!');
   }
 }
