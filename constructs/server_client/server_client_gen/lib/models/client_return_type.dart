@@ -12,6 +12,7 @@ class ClientReturnType with ExtractImport {
     required this.fullName,
     required this.resolvedName,
     required this.isStream,
+    required this.isFuture,
     required this.import,
     required this.isPrimitive,
     required this.isIterable,
@@ -29,6 +30,7 @@ class ClientReturnType with ExtractImport {
         isIterable = false,
         hasFromJson = false,
         isStringContent = false,
+        isFuture = false,
         import = ClientImports([]);
 
   factory ClientReturnType.fromMeta(MetaReturnType type) {
@@ -60,6 +62,7 @@ class ClientReturnType with ExtractImport {
       hasFromJson: type.resolvedElement?.hasFromJsonMember ?? false,
       isVoid: type.isVoid,
       isStringContent: isStringContent,
+      isFuture: type.isFuture,
     );
   }
 
@@ -72,6 +75,7 @@ class ClientReturnType with ExtractImport {
   final bool hasFromJson;
   final bool isVoid;
   final bool isStringContent;
+  final bool isFuture;
 
   @override
   List<ExtractImport?> get extractors => [];
