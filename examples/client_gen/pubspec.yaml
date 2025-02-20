@@ -9,13 +9,13 @@ dependencies:
         path: models
     revali_router:
         path: ../../revali_router/revali_router
-    server_client:
-        path: ../../constructs/server_client/server_client
+    revali_client:
+        path: ../../constructs/revali_client/revali_client
 
 dev_dependencies:
     revali:
         path: ../../packages/revali
     revali_server:
         path: ../../constructs/revali_server
-    server_client_gen:
-        path: ../../constructs/server_client/server_client_gen
+    revali_client_gen:
+        path: ../../constructs/revali_client/revali_client_gen

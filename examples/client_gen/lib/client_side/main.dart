@@ -2,8 +2,8 @@
 
 import 'dart:async';
 
+import 'package:client/client.dart';
 import 'package:client_gen_models/client_gen_models.dart';
-import 'package:client_server/server_client.dart';
 
 void main() async {
   final server = Server();

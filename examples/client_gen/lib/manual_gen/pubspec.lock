@@ -9,17 +9,17 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.13.0"
+  client:
+    dependency: "direct main"
+    description:
+      path: "../../.revali/revali_client"
+      relative: true
+    source: path
+    version: "0.0.0"
   client_gen_models:
     dependency: "direct main"
     description:
       path: "../../models"
-      relative: true
-    source: path
-    version: "0.0.0"
-  client_server:
-    dependency: "direct main"
-    description:
-      path: "../../.revali/server_client"
       relative: true
     source: path
     version: "0.0.0"
@@ -71,10 +71,10 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.9.1"
-  server_client:
+  revali_client:
     dependency: "direct main"
     description:
-      path: "../../../../constructs/server_client/server_client"
+      path: "../../../../constructs/revali_client/revali_client"
       relative: true
     source: path
     version: "1.0.0"
@@ -127,7 +127,7 @@ packages:
     source: hosted
     version: "1.1.0"
   web_socket:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: web_socket
       sha256: "3c12d96c0c9a4eec095246debcea7b86c0324f22df69893d538fcc6f1b8cce83"

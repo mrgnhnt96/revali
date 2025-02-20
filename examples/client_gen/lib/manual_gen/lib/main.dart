@@ -1,4 +1,4 @@
-import 'package:client_server/server_client.dart';
+import 'package:client/client.dart';
 
 void main() async {
   final server = Server();

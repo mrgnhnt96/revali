@@ -11,7 +11,7 @@ dependency_overrides:
     path: ../../revali_router/revali_router_annotations
   revali_router_core:
     path: ../../revali_router/revali_router_core
-  server_client:
-    path: ../../constructs/server_client/server_client
-  server_client_gen:
-    path: ../../constructs/server_client/server_client_gen
+  revali_client:
+    path: ../../constructs/revali_client/revali_client
+  revali_client_gen:
+    path: ../../constructs/revali_client/revali_client_gen

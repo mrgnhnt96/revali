@@ -6,7 +6,7 @@ environment:
 
 dependencies:
     client_gen_models:
-    client_server:
-      path: ../../.revali/server_client
-    server_client:
+    client:
+      path: ../../.revali/revali_client
+    revali_client:
     web_socket_channel: ^3.0.2
