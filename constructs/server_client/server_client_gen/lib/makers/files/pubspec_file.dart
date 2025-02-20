@@ -1,34 +1,78 @@
+import 'dart:isolate';
+
+import 'package:path/path.dart' as p;
 import 'package:revali_construct/revali_construct.dart';
 import 'package:server_client_gen/models/client_server.dart';
+import 'package:server_client_gen/models/settings.dart';
 
-AnyFile pubspecFile(ClientServer server) {
-  final websocket = switch (server.hasWebsockets) {
-    true => '''
+AnyFile pubspecFile(ClientServer server, Settings settings) {
+  final serverClientSegments = Isolate.resolvePackageUriSync(
+    Uri.parse('package:server_client/'),
+  ).toString().split(p.separator);
+
+  final dependencies = StringBuffer();
+
+  for (final dep in settings.dependencies) {
+    var dependency = dep;
+    if (!dep.contains(': ')) {
+      dependency += ': any';
+    }
+
+    dependency = dependency.replaceAll('\n', '\n  ').trim();
+    dependencies.writeln('''
+  $dependency
+''');
+  }
+
+  switch (server.hasWebsockets) {
+    case true:
+      dependencies.writeln('''
   web_socket_channel:
-''',
-    false => ''
-  };
+''');
 
-  // TODO: Leverage options to set properties
+    case false:
+      break;
+  }
+
+  switch ((
+    serverClientSegments.contains('hosted'),
+    serverClientSegments.reversed.toList()..removeWhere((e) => e.isEmpty),
+  )) {
+    case (true, [_, final String package, ...]):
+      final version = package.replaceAll('server_client-', '');
+
+      dependencies.writeln('''
+  server_client: $version
+''');
+    case (false, _):
+      Iterable<String> clean() sync* {
+        for (final part in serverClientSegments.skip(1)) {
+          if (part.isEmpty) continue;
+          if (part == 'lib') continue;
+          yield part;
+        }
+      }
+
+      final path = p.joinAll([p.separator, ...clean()]);
+
+      dependencies.writeln('''
+  server_client:
+    path: $path
+''');
+  }
+
   return AnyFile(
     basename: 'pubspec',
     extension: 'yaml',
     content: '''
-name: client_server
-description: A client server for the server.
+name: ${settings.packageName}
 
 environment:
   sdk: '>=3.5.0 <4.0.0'
 
 dependencies:
-  # TODO(mrgnhnt): Add dynamic dependencies
   http: ^1.3.0
-  client_gen_models:
-    path: ../../models
-  server_client:
-    path: ../../../../constructs/server_client/server_client
-
-$websocket
+$dependencies
 ''',
   );
 }

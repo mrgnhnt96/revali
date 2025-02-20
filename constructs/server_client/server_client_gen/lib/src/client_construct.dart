@@ -5,9 +5,12 @@ import 'package:server_client_gen/makers/files/interface_file.dart';
 import 'package:server_client_gen/makers/files/pubspec_file.dart';
 import 'package:server_client_gen/makers/files/server_client_file.dart';
 import 'package:server_client_gen/models/client_server.dart';
+import 'package:server_client_gen/models/settings.dart';
 
 class ServerClient extends Construct {
-  const ServerClient();
+  const ServerClient(this.settings);
+
+  final Settings settings;
 
   @override
   RevaliDirectory generate(
@@ -34,7 +37,7 @@ class ServerClient extends Construct {
     final files = [
       interfaceFile(client, format),
       serverClientFile(client, format),
-      pubspecFile(client),
+      pubspecFile(client, settings),
     ];
 
     return RevaliDirectory(files: files);
