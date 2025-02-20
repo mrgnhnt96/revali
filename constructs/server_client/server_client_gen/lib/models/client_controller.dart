@@ -1,3 +1,4 @@
+import 'package:change_case/change_case.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:server_client_gen/makers/utils/extract_import.dart';
@@ -43,10 +44,9 @@ class ClientController with ExtractImport {
   }
 
   final String name;
-  String get interfaceName {
-    return name.replaceAll('Controller', '');
-  }
 
+  String get simpleName => name.replaceAll('Controller', '');
+  String get interfaceName => '${simpleName}DataSource'.toPascalCase();
   String get implementationName => '${interfaceName}Impl';
 
   final List<ClientMethod> methods;

@@ -106,7 +106,7 @@ Spec createServerContent(ClientServer client) {
               ..late = true
               ..modifier = FieldModifier.final$
               ..type = refer(controller.interfaceName)
-              ..name = controller.interfaceName.toCamelCase()
+              ..name = controller.simpleName.toCamelCase()
               ..assignment =
                   refer(controller.implementationName).newInstance([], {
                 'client': refer('client'),

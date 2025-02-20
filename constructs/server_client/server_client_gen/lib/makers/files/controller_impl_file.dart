@@ -15,7 +15,7 @@ PartFile controllerImplFile(
       'lib',
       'src',
       'impls',
-      controller.interfaceName.toSnakeCase(),
+      controller.implementationName.toSnakeCase(),
     ],
     content: formatter(content),
   );
