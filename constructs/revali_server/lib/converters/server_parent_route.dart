@@ -40,11 +40,11 @@ class ServerParentRoute with ExtractImport implements ServerRoute {
   final ServerRouteAnnotations annotations;
 
   @override
-  String get handlerName => routePath.toNoCase().toCamelCase();
+  String get handlerName => '${routePath.toNoCase().toCamelCase()}Route';
 
   String get classVarName => className.toNoCase().toCamelCase();
 
-  String get fileName => routePath.toNoCase().toSnakeCase();
+  String get fileName => '${routePath.toNoCase().toSnakeCase()}_route';
 
   Iterable<ServerReflect> get reflects sync* {
     for (final route in routes) {
