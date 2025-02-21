@@ -78,7 +78,8 @@ class HttpClient {
       // request.body = body;
       // request.headers['content-type'] = 'application/octet-stream';
       default:
-        throw UnimplementedError('Unsupported body type ${body.runtimeType}');
+        request.body = jsonEncode(body);
+        request.headers['content-type'] = 'application/json';
     }
 
     final response = await _client.send(request);
