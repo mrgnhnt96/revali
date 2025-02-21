@@ -14,21 +14,7 @@ Code createCookieHeader(Iterable<ClientParam> params) {
   );
 
   return createMap(
-    {
-      for (final param in params)
-        param.name: refer('_storage')
-            .index(literal(param.name))
-            .awaited
-            .ifNullThen(
-              refer((Exception).name)
-                  .newInstance(
-                    [literal('Missing cookie: ${param.name}')],
-                  )
-                  .thrown
-                  .parenthesized,
-            )
-            .code,
-    },
+    Map.fromEntries(params.map(_createEntry)),
     ref: (ref) {
       return ref
           .property('entries')
@@ -50,4 +36,27 @@ Code createCookieHeader(Iterable<ClientParam> params) {
           .code;
     },
   ).code;
+}
+
+MapEntry<Object, Code> _createEntry(ClientParam param) {
+  final access = switch (param.access) {
+    [final String access] => access,
+    _ => param.name,
+  };
+
+  return MapEntry(
+    access,
+    refer('_storage')
+        .index(literal(access))
+        .awaited
+        .ifNullThen(
+          refer((Exception).name)
+              .newInstance(
+                [literal('Missing cookie: $access')],
+              )
+              .thrown
+              .parenthesized,
+        )
+        .code,
+  );
 }
