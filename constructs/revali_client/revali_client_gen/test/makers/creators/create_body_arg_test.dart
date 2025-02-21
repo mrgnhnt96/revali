@@ -1,6 +1,7 @@
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_client_gen/enums/parameter_position.dart';
 import 'package:revali_client_gen/makers/creators/create_body_arg.dart';
+import 'package:revali_client_gen/makers/utils/create_map.dart';
 import 'package:revali_client_gen/models/client_imports.dart';
 import 'package:revali_client_gen/models/client_param.dart';
 import 'package:revali_client_gen/models/client_type.dart';
@@ -39,11 +40,17 @@ void main() {
       ]);
 
       final emitter = DartEmitter.scoped(useNullSafetySyntax: true);
-      final string = result.accept(emitter).toString().replaceAll('\n', '');
+
+      final expected = createMap({
+        'data': createMap({
+          'email': refer('email'),
+          'password': refer('password'),
+        }),
+      });
 
       expect(
-        string,
-        "{'data':{'email':email,'password':password,},}",
+        result.accept(emitter).toString(),
+        expected.accept(emitter).toString(),
       );
     });
   });

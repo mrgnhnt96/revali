@@ -14,6 +14,8 @@ Expression createMap(
           final Map<Object, dynamic> nestedMap =>
             createMap(nestedMap, ref: ref).code,
           Code() => value,
+          Reference() => value.code,
+          CodeExpression() => value.code,
           _ => throw ArgumentError('Invalid value type: ${value.runtimeType}'),
         },
         const Code(','),
