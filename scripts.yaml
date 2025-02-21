@@ -1,8 +1,10 @@
-barrel: barreler build
+barrel: dart run barreler build {--set-exit-if-changed}
 
 docs:
     local: cd doc-site && pnpm start
     build: cd doc-site && pnpm i && pnpm build
+
+hooks: dart run hooksman
 
 build_runner:
     (aliases): br
