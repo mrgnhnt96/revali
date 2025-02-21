@@ -20,7 +20,7 @@ AnyFile pubspecFile(ClientServer server, Settings settings) {
       )
       .toSet();
 
-  final packages = <(String, String)>[('revali_client', serverClient)];
+  final packages = <(String, String)>{('revali_client', serverClient)};
   for (final import in imports) {
     final [_, String packagePath] = import.split(':');
     final [String package, ...] = packagePath.split('/');
