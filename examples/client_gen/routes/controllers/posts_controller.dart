@@ -10,15 +10,11 @@ class PostsController {
 
   @Post()
   Future<String> handle({
-    // TODO: Expect `data.input` and `data.email`, right now its only `data.input`
-    // @Body(['data', 'email']) required String email,
     @Body(['data', 'input']) required CreatePostInput input,
     @Query('page') String? page,
   }) async {
     return input.title;
   }
-
-  // todo: what happens when the input is scoped to the server?
 }
 
 class AuthComponent implements LifecycleComponent {

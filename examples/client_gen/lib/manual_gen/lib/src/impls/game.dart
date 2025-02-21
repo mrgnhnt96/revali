@@ -2,8 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:client_gen_models/client_gen_models.dart';
-import 'package:web_socket/web_socket.dart';
-import 'package:web_socket_channel/adapter_web_socket_channel.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 class Game {
   const Game();
@@ -14,9 +13,7 @@ class Game {
     final uri = Uri.parse('ws://localhost:1083/api/websocket');
 
     // Connect to the remote WebSocket endpoint.
-    final channel = AdapterWebSocketChannel(
-      WebSocket.connect(uri),
-    );
+    final channel = WebSocketChannel.connect(uri);
     await channel.ready;
 
     final payloadListener =

@@ -5,8 +5,9 @@ environment:
     sdk: '>=3.2.6 <4.0.0'
 
 dependencies:
-    client_gen_models:
     client:
       path: ../../.revali/revali_client
+    client_gen_models:
+    http:
     revali_client:
     web_socket_channel: ^3.0.2
