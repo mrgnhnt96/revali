@@ -14,6 +14,7 @@ DartFile interfaceFile(
     basename: 'interfaces',
     content: '''
 $imports
+export 'package:revali_client/src/storage.dart';
 ''',
     parts: [
       for (final controller in server.controllers)
