@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:revali/revali.dart';
@@ -457,8 +459,9 @@ http://revali.dev/constructs#server-constructs
 
       try {
         if (yaml != null) {
-          revaliConfig =
-              RevaliYaml.fromJson(Map<String, dynamic>.from(yaml.value));
+          final json =
+              jsonDecode(jsonEncode(yaml.value)) as Map<String, dynamic>;
+          revaliConfig = RevaliYaml.fromJson(json);
         }
       } catch (_) {
         logger.err('Failed to parse revali.yaml, using default configuration.');
