@@ -6,15 +6,16 @@ import 'package:revali_client/revali_client.dart';
 import 'package:revali_client_gen/makers/utils/type_extensions.dart';
 import 'package:revali_client_gen/models/client_app.dart';
 import 'package:revali_client_gen/models/client_server.dart';
+import 'package:revali_client_gen/models/settings.dart';
 
-Spec createServerContent(ClientServer client) {
+Spec createServerContent(ClientServer client, Settings settings) {
   final ClientApp(:host, :port, :prefix) = client.app;
 
-  // TODO(mrgnhnt): get schema from settings
+  final Settings(:scheme) = settings;
   final baseUrl = switch (('$host:$port', prefix)) {
-    (final String url, null) => 'http://$url',
-    (final String url, final String p) when p.isEmpty => 'http://$url',
-    (final String url, String()) => 'http://$url/$prefix',
+    (final String url, null) => '$scheme://$url',
+    (final String url, final String p) when p.isEmpty => '$scheme://$url',
+    (final String url, String()) => '$scheme://$url/$prefix',
   };
 
   return Class(
@@ -112,6 +113,32 @@ Spec createServerContent(ClientServer client) {
                 'client': refer('client'),
                 'storage': refer('storage'),
               }).code,
+          ),
+      ])
+      ..methods.addAll([
+        if (settings.integrateGetIt)
+          Method(
+            (b) => b
+              ..name = 'register'
+              ..returns = refer('void')
+              ..requiredParameters.add(
+                Parameter(
+                  (b) => b
+                    ..type = refer('GetIt')
+                    ..name = 'getIt',
+                ),
+              )
+              ..body = Block.of([
+                for (final controller in client.controllers)
+                  refer('getIt').property('registerLazySingleton').call([
+                    Method(
+                      (b) => b
+                        ..lambda = true
+                        ..body =
+                            refer(controller.simpleName.toCamelCase()).code,
+                    ).closure,
+                  ]).statement,
+              ]),
           ),
       ]),
   );

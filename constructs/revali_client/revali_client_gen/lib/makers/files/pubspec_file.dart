@@ -20,7 +20,12 @@ AnyFile pubspecFile(ClientServer server, Settings settings) {
       )
       .toSet();
 
-  final packages = <(String, String)>{('revali_client', serverClient)};
+  final packages = <(String, String?)>{
+    ('revali_client', serverClient),
+    if (_getIntegration('get_it') case final String? getIt
+        when settings.integrateGetIt)
+      ('get_it', getIt),
+  };
   for (final import in imports) {
     final [_, String packagePath] = import.split(':');
     final [String package, ...] = packagePath.split('/');
@@ -42,16 +47,24 @@ AnyFile pubspecFile(ClientServer server, Settings settings) {
       break;
   }
 
+  final versionPattern = RegExp(r'-[\d-\.a-zA-Z+]+$');
+
   for (final (package, path) in packages) {
+    if (path == null) {
+      dependencies.writeln('  $package:');
+      continue;
+    }
+
     final segments = path.split('/');
     switch ((
       segments.contains('hosted'),
       segments.reversed.toList()..removeWhere((e) => e.isEmpty),
     )) {
       case (true, [_, final String package, ...]):
-        final version = package.replaceAll('revali_client-', '');
+        final name = package.replaceAll(versionPattern, '');
+        final version = package.replaceAll('$name-', '');
 
-        dependencies.writeln('  $package: $version');
+        dependencies.writeln('  $name: $version');
       case (false, _):
         Iterable<String> clean() sync* {
           for (final part in segments.skip(1)) {
@@ -83,4 +96,14 @@ dependencies:
 $dependencies
 ''',
   );
+}
+
+String? _getIntegration(String name) {
+  final result = Isolate.resolvePackageUriSync(
+    Uri.parse('package:$name/'),
+  );
+
+  if (result == null) return null;
+
+  return result.toString();
 }

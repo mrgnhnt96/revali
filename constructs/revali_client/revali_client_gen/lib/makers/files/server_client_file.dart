@@ -17,6 +17,7 @@ DartFile serverClientFile(
       'package:http/http.dart',
       if (server.hasWebsockets)
         'package:web_socket_channel/web_socket_channel.dart',
+      if (settings.integrateGetIt) 'package:get_it/get_it.dart',
     ],
     additionalPaths: ['interfaces.dart'],
   );
@@ -26,7 +27,7 @@ DartFile serverClientFile(
     parts: [
       for (final controller in server.controllers)
         controllerImplFile(controller, formatter),
-      serverFile(server, formatter),
+      serverFile(server, formatter, settings),
     ],
     content: '''
 $imports
