@@ -44,6 +44,12 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
         help: '(Default) Whether to run in debug mode. Enables hot reload, '
             'debugger, and logger',
       )
+      ..addFlag(
+        'generate-only',
+        help: 'Only generate the constructs, does not run the server',
+        negatable: false,
+        hide: true,
+      )
       ..addOption(
         'dart-vm-service-port',
         help: 'The port to use for the Dart VM service',
@@ -80,6 +86,7 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
   late final debug = argResults?['debug'] as bool? ?? false;
   late final release = argResults?['release'] as bool? ?? false;
   late final profile = argResults?['profile'] as bool? ?? false;
+  late final generateOnly = argResults?['generate-only'] as bool? ?? false;
   late final dartVmServicePort = argResults?['dart-vm-service-port'] as String;
 
   @override
@@ -101,7 +108,7 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
 
     final root = await generator.root;
 
-    if (profile) {
+    if (profile || generateOnly) {
       await generator.clean();
 
       final progress = logger.progress('Generating server code');

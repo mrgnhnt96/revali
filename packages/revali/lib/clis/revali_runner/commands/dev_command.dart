@@ -34,6 +34,12 @@ class DevCommand extends Command<int> with ConstructRunnerArgs {
             'Enables hot reload and debugger',
         negatable: false,
       )
+      ..addFlag(
+        'generate-only',
+        help: 'Only generate the constructs, does not run the server',
+        negatable: false,
+        hide: true,
+      )
       ..addOption(
         'dart-vm-service-port',
         help: 'The port to use for the Dart VM service',
