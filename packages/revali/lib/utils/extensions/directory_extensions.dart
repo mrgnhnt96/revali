@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
 
@@ -47,10 +49,38 @@ extension DirectoryX on Directory {
 
   /// Retrieves a file within the .dart_tool directory
   /// the file may _NOT_ exist
-  Future<File> getDartToolFile(String basename) async {
+  Future<File> getPackageConfig() async {
     final dartTool = await getDartTool();
 
-    return dartTool.childFile(basename);
+    final packageConfig = dartTool.childFile('package_config.json');
+
+    if (await packageConfig.exists()) {
+      return packageConfig;
+    }
+
+    final workspaceRef =
+        dartTool.childFile(p.join('pub', 'workspace_ref.json'));
+
+    if (!await workspaceRef.exists()) {
+      throw Exception('Failed to find package config or workspace_ref');
+    }
+
+    final workspaceRefJson =
+        jsonDecode(await workspaceRef.readAsString()) as Map;
+    final workspaceRoot = switch (workspaceRefJson['workspaceRoot']) {
+      final String workspaceRoot =>
+        workspaceRoot.replaceAll(RegExp('${p.separator}..' r'$'), ''),
+      final other => throw Exception('Invalid workspace root: $other'),
+    };
+
+    // clean up path, the workspaceRoot is usually a path relative and is '../../../'
+
+    final workspace =
+        fileSystem.directory(p.normalize(p.join(dartTool.path, workspaceRoot)));
+
+    return workspace
+        .childDirectory('.dart_tool')
+        .childFile('package_config.json');
   }
 
   /// The utilities directory within the .dart_tool directory
