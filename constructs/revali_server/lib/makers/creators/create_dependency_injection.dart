@@ -7,32 +7,45 @@ import 'package:revali_server/makers/utils/try_catch.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
 
 List<Code> createDependencyInjection(ServerServer server) {
-  final diSetup = Block.of([
-    declareFinal('dependencyInjection')
-        .assign(refer('app').property('initializeDI').call([]))
-        .statement,
-    refer('app')
-        .property('configureDependencies')
-        .call([refer('dependencyInjection')])
-        .awaited
-        .statement,
-    refer('di')
-        .assign(
-          refer((DIHandler).name).newInstance([refer('dependencyInjection')]),
-        )
-        .statement,
-    refer('di').property('finishRegistration').call([]).statement,
-  ]);
-
   if (server.context.mode.isRelease) {
     return [
-      diSetup,
+      declareFinal('dependencyInjection')
+          .assign(refer('app').property('initializeDI').call([]))
+          .statement,
+      refer('app')
+          .property('configureDependencies')
+          .call([refer('dependencyInjection')])
+          .awaited
+          .statement,
+      declareFinal('di')
+          .assign(
+            refer((DIHandler).name).newInstance([refer('dependencyInjection')]),
+          )
+          .statement,
+      refer('di').property('finishRegistration').call([]).statement,
     ];
   }
 
   return [
+    declareFinal('di', type: refer((DIHandler).name)).statement,
     tryCatch(
-      diSetup,
+      Block.of([
+        declareFinal('dependencyInjection')
+            .assign(refer('app').property('initializeDI').call([]))
+            .statement,
+        refer('app')
+            .property('configureDependencies')
+            .call([refer('dependencyInjection')])
+            .awaited
+            .statement,
+        refer('di')
+            .assign(
+              refer((DIHandler).name)
+                  .newInstance([refer('dependencyInjection')]),
+            )
+            .statement,
+        refer('di').property('finishRegistration').call([]).statement,
+      ]),
       Block.of(
         [
           refer('print').call([
