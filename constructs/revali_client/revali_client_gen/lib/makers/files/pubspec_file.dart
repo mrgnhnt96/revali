@@ -6,6 +6,7 @@ import 'package:revali_client_gen/models/settings.dart';
 import 'package:revali_construct/revali_construct.dart';
 
 AnyFile pubspecFile(ClientServer server, Settings settings) {
+  // TODO(mrgnhnt): what happens when the dependency is from git?
   final serverClient = Isolate.resolvePackageUriSync(
     Uri.parse('package:revali_client/'),
   ).toString();
@@ -13,11 +14,15 @@ AnyFile pubspecFile(ClientServer server, Settings settings) {
   final imports = server.controllers
       .expand(
         (e) => e.methods.expand(
-          (e) => e.returnType.imports.expand(
-            (e) => e?.packages.toList() ?? <String>[],
-          ),
+          (e) {
+            return [
+              ...e.returnType.imports,
+              ...e.allParams.expand((e) => e.type.imports),
+            ];
+          },
         ),
       )
+      .expand((e) => e?.packages ?? <String>[])
       .toSet();
 
   final packages = <(String, String?)>{
