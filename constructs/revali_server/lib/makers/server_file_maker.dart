@@ -67,6 +67,14 @@ String serverFile(
           ),
       )
       ..modifier = MethodModifier.async
+      ..optionalParameters.add(
+        Parameter(
+          (e) => e
+            ..name = 'providedServer'
+            ..named = false
+            ..type = refer('${(HttpServer).name}?'),
+        ),
+      )
       ..body = Block.of([
         declareFinal('app', type: refer((AppConfig).name))
             .assign(createApp(app))
@@ -75,19 +83,21 @@ String serverFile(
         tryCatch(
           refer('server')
               .assign(
-                refer((HttpServer).name)
-                    .property(app.isSecure ? 'bindSecure' : 'bind')
-                    .call([
-                  refer('app').property('host'),
-                  refer('app').property('port'),
-                  if (app.isSecure)
-                    refer('app').property('securityContext').nullChecked,
-                ], {
-                  if (app.isSecure)
-                    'requestClientCertificate':
-                        refer('app').property('requestClientCertificate'),
-                  if (server.context.mode.isDebug) 'shared': literalTrue,
-                }).awaited,
+                refer('providedServer').ifNullThen(
+                  refer((HttpServer).name)
+                      .property(app.isSecure ? 'bindSecure' : 'bind')
+                      .call([
+                    refer('app').property('host'),
+                    refer('app').property('port'),
+                    if (app.isSecure)
+                      refer('app').property('securityContext').nullChecked,
+                  ], {
+                    if (app.isSecure)
+                      'requestClientCertificate':
+                          refer('app').property('requestClientCertificate'),
+                    if (server.context.mode.isDebug) 'shared': literalTrue,
+                  }).awaited,
+                ),
               )
               .statement,
           Block.of([
@@ -98,7 +108,6 @@ String serverFile(
           ]),
         ),
         const Code('\n'),
-        declareFinal('di', type: refer((DIHandler).name)).statement,
         ...createDependencyInjection(server),
         const Code('\n'),
         ...createRoutesVariable(server),
