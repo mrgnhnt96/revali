@@ -14,7 +14,9 @@ class TestResponse implements HttpResponse {
   bool bufferOutput = false;
 
   @override
-  int contentLength = -1;
+  int get contentLength => _headers.contentLength;
+  @override
+  set contentLength(int value) => _headers.contentLength = value;
 
   @override
   Duration? deadline;
@@ -31,9 +33,10 @@ class TestResponse implements HttpResponse {
   @override
   int statusCode = -1;
 
-  final List<List<int>> _body = [];
+  List<List<int>>? _body;
 
-  dynamic get json => switch (_body) {
+  dynamic get body => switch (_body) {
+        null => null,
         [final data] => _decode(data),
         final data => [
             for (final item in data) _decode(item),
@@ -51,11 +54,11 @@ class TestResponse implements HttpResponse {
 
   @override
   void add(List<int> data) {
-    _body.add(data);
+    (_body ??= []).add(data);
   }
 
   @override
-  void addError(Object error, [StackTrace? stackTrace]) {
+  Never addError(Object error, [StackTrace? stackTrace]) {
     throw UnimplementedError();
   }
 
@@ -72,27 +75,28 @@ class TestResponse implements HttpResponse {
   }
 
   @override
-  HttpConnectionInfo? get connectionInfo => throw UnimplementedError();
+  Never get connectionInfo => throw UnimplementedError();
 
   @override
-  List<Cookie> get cookies => [];
+  Never get cookies => throw UnimplementedError();
 
   @override
-  Future<Socket> detachSocket({bool writeHeaders = true}) {
+  Never detachSocket({bool writeHeaders = true}) {
     throw UnimplementedError();
   }
 
   @override
-  Future<void> get done => throw UnimplementedError();
+  Never get done => throw UnimplementedError();
 
   @override
   Future<void> flush() async {}
 
   @override
-  HttpHeaders get headers => TestHeaders({});
+  TestHeaders get headers => _headers;
+  final _headers = TestHeaders({});
 
   @override
-  Future<void> redirect(
+  Never redirect(
     Uri location, {
     int status = HttpStatus.movedTemporarily,
   }) {
@@ -100,22 +104,22 @@ class TestResponse implements HttpResponse {
   }
 
   @override
-  void write(Object? object) {
+  Never write(Object? object) {
     throw UnimplementedError('write');
   }
 
   @override
-  void writeAll(Iterable<Object?> objects, [String separator = '']) {
+  Never writeAll(Iterable<Object?> objects, [String separator = '']) {
     throw UnimplementedError('writeAll');
   }
 
   @override
-  void writeCharCode(int charCode) {
+  Never writeCharCode(int charCode) {
     throw UnimplementedError('writeCharCode');
   }
 
   @override
-  void writeln([Object? object = '']) {
+  Never writeln([Object? object = '']) {
     throw UnimplementedError('writeln');
   }
 }

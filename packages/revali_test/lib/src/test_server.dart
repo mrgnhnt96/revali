@@ -18,8 +18,10 @@ class TestServer extends Stream<HttpRequest> implements HttpServer {
     Object? body,
   }) {
     headers ??= {};
-    headers[HttpHeaders.cookieHeader] =
-        cookies.entries.map((e) => '${e.key}=${e.value};').toList();
+    if (cookies.isEmpty) {
+      headers[HttpHeaders.cookieHeader] =
+          cookies.entries.map((e) => '${e.key}=${e.value};').toList();
+    }
 
     final request = TestRequest(
       method: method,

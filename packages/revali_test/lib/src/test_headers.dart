@@ -3,35 +3,61 @@ import 'dart:io';
 class TestHeaders implements HttpHeaders {
   TestHeaders(
     this._headers, {
-    this.port,
-    this.contentType,
-    this.chunkedTransferEncoding = false,
-    this.persistentConnection = false,
-    this.date,
-    this.expires,
-    this.host,
-    this.ifModifiedSince,
+    int? port,
+    String? host,
+    ContentType? contentType,
+    bool? chunkedTransferEncoding,
+    bool? persistentConnection,
+    DateTime? date,
+    DateTime? expires,
+    DateTime? ifModifiedSince,
+    int? contentLength,
   }) {
-    _headers[HttpHeaders.contentLengthHeader] = [
-      if (contentLength case final int length) '$length',
-    ];
-    _headers[HttpHeaders.contentTypeHeader] = [
-      if (contentType case final ContentType contentType) contentType.mimeType,
-    ];
-    _headers[HttpHeaders.dateHeader] = [
-      if (date case final DateTime date) date.toIso8601String(),
-    ];
-    _headers[HttpHeaders.expiresHeader] = [
-      if (expires case final DateTime expires) expires.toIso8601String(),
-    ];
-    _headers[HttpHeaders.hostHeader] = [if (host case final String host) host];
-    _headers[HttpHeaders.ifModifiedSinceHeader] = [
-      if (ifModifiedSince case final DateTime ifModifiedSince)
-        ifModifiedSince.toIso8601String(),
-    ];
+    if (contentLength case final int length when length != -1) {
+      this.contentLength = length;
+    }
+
+    if (contentType case final ContentType contentType) {
+      this.contentType = contentType;
+    }
+
+    if (date case final DateTime date) {
+      this.date = date;
+    }
+
+    if (expires case final DateTime expires) {
+      this.expires = expires;
+    }
+
+    if (host case final String host) {
+      this.host = host;
+    }
+
+    if (port case final int port) {
+      this.port = port;
+    }
+
+    if (ifModifiedSince case final DateTime ifModifiedSince) {
+      this.ifModifiedSince = ifModifiedSince;
+    }
+
+    if (chunkedTransferEncoding case final bool chunk) {
+      this.chunkedTransferEncoding = chunk;
+    }
+
+    if (persistentConnection case final bool value) {
+      this.persistentConnection = value;
+    }
   }
 
   final Map<String, List<String>> _headers;
+
+  Map<String, List<String>> get allValues => Map.unmodifiable(_headers);
+  Map<String, String> get values => Map.unmodifiable(
+        Map.fromEntries(
+          _headers.entries.map((e) => MapEntry(e.key, e.value.firstOrNull)),
+        ),
+      );
 
   @override
   List<String>? operator [](String name) {
@@ -84,30 +110,102 @@ class TestHeaders implements HttpHeaders {
     return _headers[name]?.firstOrNull;
   }
 
+  int _contentLength = -1;
   @override
-  int contentLength = 0;
+  int get contentLength => _contentLength;
+  @override
+  set contentLength(int value) {
+    _add(HttpHeaders.contentLengthHeader, '$value');
 
-  @override
-  ContentType? contentType;
+    _contentLength = value;
+  }
 
+  ContentType? _contentType;
   @override
-  DateTime? date;
+  ContentType? get contentType => _contentType;
+  @override
+  set contentType(ContentType? type) {
+    _add(HttpHeaders.contentTypeHeader, type?.mimeType);
 
-  @override
-  DateTime? expires;
+    _contentType = type;
+  }
 
+  DateTime? _date;
   @override
-  String? host;
+  DateTime? get date => _date;
+  @override
+  set date(DateTime? value) {
+    _add(HttpHeaders.dateHeader, value?.toIso8601String());
 
-  @override
-  DateTime? ifModifiedSince;
+    _date = value;
+  }
 
-  @override
-  int? port;
+  void _add(String key, String? value) {
+    switch (value) {
+      case String():
+        add(key, value);
+      case null:
+        _headers.remove(key);
+    }
+  }
 
+  DateTime? _expires;
   @override
-  bool chunkedTransferEncoding = false;
+  DateTime? get expires => _expires;
+  @override
+  set expires(DateTime? value) {
+    _add(HttpHeaders.expiresHeader, value?.toIso8601String());
 
+    _expires = value;
+  }
+
+  String? _host;
   @override
-  bool persistentConnection = false;
+  String? get host => _host;
+  @override
+  set host(String? host) {
+    _add(HttpHeaders.hostHeader, host);
+
+    _host = host;
+  }
+
+  DateTime? _ifModifiedSince;
+  @override
+  DateTime? get ifModifiedSince => _ifModifiedSince;
+  @override
+  set ifModifiedSince(DateTime? value) {
+    _add(HttpHeaders.expiresHeader, value?.toIso8601String());
+
+    _ifModifiedSince = value;
+  }
+
+  int? _port;
+  @override
+  int? get port => _port;
+  @override
+  set port(int? port) {
+    _add(HttpHeaders.hostHeader, port?.toString());
+
+    _port = port;
+  }
+
+  bool _chunkedTransferEncoding = false;
+  @override
+  bool get chunkedTransferEncoding => _chunkedTransferEncoding;
+  @override
+  set chunkedTransferEncoding(bool value) {
+    _add(HttpHeaders.transferEncodingHeader, '$value');
+
+    _chunkedTransferEncoding = value;
+  }
+
+  bool _persistentConnection = false;
+  @override
+  bool get persistentConnection => _persistentConnection;
+  @override
+  set persistentConnection(bool value) {
+    _add(HttpHeaders.connectionHeader, '$value');
+
+    _persistentConnection = value;
+  }
 }
