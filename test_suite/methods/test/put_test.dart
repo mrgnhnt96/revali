@@ -96,7 +96,7 @@ void main() {
 Not Found
 
 __DEBUG__:
-Error: RouteNotFoundException: HEAD api/post
+Error: RouteNotFoundException: HEAD api/put
 
 Stack Trace:
 package:revali_router/src/router/router.dart 153:34          Router.handle
@@ -115,7 +115,7 @@ package:revali_router/src/server/handle_requests.dart 28:14  handleRequests''');
       );
 
       expect(headers.remove('content-type'), 'text/plain');
-      expect(headers.remove('content-length'), '231');
+      expect(headers.remove('content-length'), '230');
 
       expect(headers, isEmpty);
     });
