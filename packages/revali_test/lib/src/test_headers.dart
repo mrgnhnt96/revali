@@ -112,7 +112,12 @@ class TestHeaders implements HttpHeaders {
 
   int _contentLength = -1;
   @override
-  int get contentLength => _contentLength;
+  int get contentLength => _contentLength != -1
+      ? _contentLength
+      : switch (_headers[HttpHeaders.contentLengthHeader]?.firstOrNull) {
+          final String value => int.tryParse(value) ?? -1,
+          _ => -1,
+        };
   @override
   set contentLength(int value) {
     _add(HttpHeaders.contentLengthHeader, '$value');
@@ -122,7 +127,12 @@ class TestHeaders implements HttpHeaders {
 
   ContentType? _contentType;
   @override
-  ContentType? get contentType => _contentType;
+  ContentType? get contentType => _contentType ??=
+          switch (_headers[HttpHeaders.contentTypeHeader]?.firstOrNull) {
+        final String type => ContentType.parse(type),
+        _ => null,
+      };
+
   @override
   set contentType(ContentType? type) {
     _add(HttpHeaders.contentTypeHeader, type?.mimeType);
@@ -132,7 +142,12 @@ class TestHeaders implements HttpHeaders {
 
   DateTime? _date;
   @override
-  DateTime? get date => _date;
+  DateTime? get date =>
+      _date ??= switch (_headers[HttpHeaders.dateHeader]?.firstOrNull) {
+        final String value => DateTime.tryParse(value),
+        _ => null,
+      };
+
   @override
   set date(DateTime? value) {
     _add(HttpHeaders.dateHeader, value?.toIso8601String());
@@ -140,18 +155,14 @@ class TestHeaders implements HttpHeaders {
     _date = value;
   }
 
-  void _add(String key, String? value) {
-    switch (value) {
-      case String():
-        add(key, value);
-      case null:
-        _headers.remove(key);
-    }
-  }
-
   DateTime? _expires;
   @override
-  DateTime? get expires => _expires;
+  DateTime? get expires =>
+      _expires ??= switch (_headers[HttpHeaders.expiresHeader]?.firstOrNull) {
+        final String value => DateTime.tryParse(value),
+        _ => null,
+      };
+
   @override
   set expires(DateTime? value) {
     _add(HttpHeaders.expiresHeader, value?.toIso8601String());
@@ -161,7 +172,12 @@ class TestHeaders implements HttpHeaders {
 
   String? _host;
   @override
-  String? get host => _host;
+  String? get host =>
+      _host ??= switch (_headers[HttpHeaders.hostHeader]?.firstOrNull) {
+        final String value => value,
+        _ => null,
+      };
+
   @override
   set host(String? host) {
     _add(HttpHeaders.hostHeader, host);
@@ -171,7 +187,12 @@ class TestHeaders implements HttpHeaders {
 
   DateTime? _ifModifiedSince;
   @override
-  DateTime? get ifModifiedSince => _ifModifiedSince;
+  DateTime? get ifModifiedSince => _ifModifiedSince ??=
+          switch (_headers[HttpHeaders.ifModifiedSinceHeader]?.firstOrNull) {
+        final String value => DateTime.tryParse(value),
+        _ => null,
+      };
+
   @override
   set ifModifiedSince(DateTime? value) {
     _add(HttpHeaders.expiresHeader, value?.toIso8601String());
@@ -181,7 +202,12 @@ class TestHeaders implements HttpHeaders {
 
   int? _port;
   @override
-  int? get port => _port;
+  int? get port =>
+      _port ??= switch (_headers[HttpHeaders.hostHeader]?.firstOrNull) {
+        final String value => int.tryParse(value),
+        _ => null,
+      };
+
   @override
   set port(int? port) {
     _add(HttpHeaders.hostHeader, port?.toString());
@@ -189,9 +215,15 @@ class TestHeaders implements HttpHeaders {
     _port = port;
   }
 
-  bool _chunkedTransferEncoding = false;
+  bool? _chunkedTransferEncoding;
   @override
-  bool get chunkedTransferEncoding => _chunkedTransferEncoding;
+  bool get chunkedTransferEncoding =>
+      _chunkedTransferEncoding ??
+      switch (_headers[HttpHeaders.transferEncodingHeader]?.firstOrNull) {
+        'true' => true,
+        _ => false,
+      };
+
   @override
   set chunkedTransferEncoding(bool value) {
     _add(HttpHeaders.transferEncodingHeader, '$value');
@@ -199,13 +231,27 @@ class TestHeaders implements HttpHeaders {
     _chunkedTransferEncoding = value;
   }
 
-  bool _persistentConnection = false;
+  bool? _persistentConnection;
   @override
-  bool get persistentConnection => _persistentConnection;
+  bool get persistentConnection => _persistentConnection ??=
+          switch (_headers[HttpHeaders.connectionHeader]?.firstOrNull) {
+        'true' => true,
+        _ => false,
+      };
+
   @override
   set persistentConnection(bool value) {
     _add(HttpHeaders.connectionHeader, '$value');
 
     _persistentConnection = value;
+  }
+
+  void _add(String key, String? value) {
+    switch (value) {
+      case String():
+        add(key, value);
+      case null:
+        _headers.remove(key);
+    }
   }
 }
