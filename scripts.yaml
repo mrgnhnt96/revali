@@ -158,8 +158,24 @@ publish:
   - cd scripts && dart run lib/prep_for_publish.dart
 
 test-suite:
+  (command):
+    - (+) {$test-suite:methods}
+    - (+) {$test-suite:return-types}
   methods: |
     cd test_suite/methods || exit 1
+
+    if [ -z {--skip} ]; then
+      dart run revali dev --generate-only --recompile
+    fi
+
+    if [ ! $? = 0 ]; then
+      echo "failed to generate revali code"
+      exit 1
+    fi
+
+    dart test
+  return-types: |
+    cd test_suite/return_types || exit 1
 
     if [ -z {--skip} ]; then
       dart run revali dev --generate-only --recompile
