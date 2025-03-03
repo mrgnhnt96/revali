@@ -38,6 +38,7 @@ sealed class BaseBodyData<T> extends BodyData {
       MemoryFile() => MemoryFileBodyData(data),
       Binary() => BinaryBodyData(data),
       List() => ListBodyData(data),
+      Iterable() => ListBodyData([...data]),
       // ignore: prefer_void_to_null
       Null() => NullBodyData(),
       Stream<List<int>>() => ByteStreamBodyData(data),
