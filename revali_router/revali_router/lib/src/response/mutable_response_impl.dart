@@ -22,12 +22,20 @@ class MutableResponseImpl implements MutableResponse {
       return response;
     }
 
-    return MutableResponseImpl(
+    final result = MutableResponseImpl(
       requestHeaders: MutableHeadersImpl(),
       headers: response.headers,
-    )
-      ..statusCode = response.statusCode
-      ..body = response.body;
+    );
+
+    try {
+      result
+        ..statusCode = response.statusCode
+        ..body = response.body;
+    } catch (e) {
+      result.statusCode = HttpStatus.internalServerError;
+    }
+
+    return result;
   }
 
   final ReadOnlyHeaders _requestHeaders;
@@ -46,7 +54,9 @@ class MutableResponseImpl implements MutableResponse {
 
   @override
   set body(Object? newBody) {
-    _body.replace(newBody);
+    _body.replace(newBody).catchError((e) {
+      _statusCode = HttpStatus.internalServerError;
+    });
 
     if (_body is FileBodyData) {
       final file = (_body as FileBodyData).file;
