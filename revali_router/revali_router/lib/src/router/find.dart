@@ -7,14 +7,14 @@ class Find {
     required this.method,
   });
 
-  final Iterable<String> segments;
-  final Iterable<BaseRoute>? routes;
+  final List<String> segments;
+  final List<BaseRoute>? routes;
   final String method;
 
   RouteMatch? run() {
     RouteMatch? find({
-      required Iterable<String> pathSegments,
-      required Iterable<BaseRoute>? routes,
+      required List<String> pathSegments,
+      required List<BaseRoute>? routes,
       required BaseRoute? parent,
       required String method,
       required Map<String, String> pathParameters,
@@ -78,7 +78,8 @@ class Find {
             }
 
             final poss = find(
-              pathSegments: pathSegments.skip(possibleSameSegments.length),
+              pathSegments:
+                  pathSegments.skip(possibleSameSegments.length).toList(),
               routes: route.routes,
               parent: route,
               method: method,

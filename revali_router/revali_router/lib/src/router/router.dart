@@ -113,7 +113,7 @@ class Router extends Equatable {
 
   Future<ResponseHandler> responseHandler(RequestContext context) async {
     final match = Find(
-      segments: context.segments,
+      segments: context.segments.toList(),
       routes: routes,
       method: context.method,
     ).run();

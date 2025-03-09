@@ -36,7 +36,7 @@ class MethodVisitor extends RecursiveElementVisitor<void> {
       }
     }
 
-    final params = getParams(element);
+    final params = getParams(element).toList();
 
     final type = element.returnType.getDisplayString();
 

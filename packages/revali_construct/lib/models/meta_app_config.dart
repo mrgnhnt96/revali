@@ -22,7 +22,7 @@ class MetaAppConfig {
   final AppAnnotation appAnnotation;
   final ClassElement? element;
   final String constructor;
-  final Iterable<MetaParam> params;
+  final List<MetaParam> params;
   final bool isSecure;
   final AnnotationMapper annotationsFor;
 }

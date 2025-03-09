@@ -19,8 +19,8 @@ class MetaRoute {
   final String filePath;
   final String className;
   final String constructorName;
-  final Iterable<MetaMethod> methods;
-  final Iterable<MetaParam> params;
+  final List<MetaMethod> methods;
+  final List<MetaParam> params;
   final AnnotationMapper annotationsFor;
   final ClassElement element;
 }

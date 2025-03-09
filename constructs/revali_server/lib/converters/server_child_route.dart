@@ -95,7 +95,7 @@ class ServerChildRoute with ExtractImport implements ServerRoute {
   final String handlerName;
 
   @override
-  final Iterable<ServerParam> params;
+  final List<ServerParam> params;
 
   Iterable<ServerReflect> get reflects sync* {
     if (returnType.reflect case final reflect?) {

@@ -14,13 +14,13 @@ class ServerRoute with ExtractImport {
   factory ServerRoute.fromMeta(MetaMethod method) {
     return ServerRoute(
       handlerName: method.name,
-      params: method.params.map(ServerParam.fromMeta),
+      params: method.params.map(ServerParam.fromMeta).toList(),
       annotations: ServerRouteAnnotations.fromRoute(method),
     );
   }
 
   final String handlerName;
-  final Iterable<ServerParam> params;
+  final List<ServerParam> params;
   final ServerRouteAnnotations annotations;
 
   @override

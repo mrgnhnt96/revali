@@ -20,8 +20,8 @@ class ServerParentRoute with ExtractImport implements ServerRoute {
 
   factory ServerParentRoute.fromMeta(MetaRoute parentRoute) {
     return ServerParentRoute(
-      routes: parentRoute.methods.map(ServerChildRoute.fromMeta),
-      params: parentRoute.params.map(ServerParam.fromMeta),
+      routes: parentRoute.methods.map(ServerChildRoute.fromMeta).toList(),
+      params: parentRoute.params.map(ServerParam.fromMeta).toList(),
       className: parentRoute.className,
       importPath:
           ServerImports([parentRoute.element.librarySource.uri.toString()]),
@@ -34,8 +34,8 @@ class ServerParentRoute with ExtractImport implements ServerRoute {
   final ServerImports importPath;
   final String routePath;
   @override
-  final Iterable<ServerParam> params;
-  final Iterable<ServerChildRoute> routes;
+  final List<ServerParam> params;
+  final List<ServerChildRoute> routes;
   @override
   final ServerRouteAnnotations annotations;
 

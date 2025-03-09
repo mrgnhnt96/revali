@@ -20,7 +20,7 @@ class MetaMethod {
   final String name;
   final String method;
   final String? path;
-  final Iterable<MetaParam> params;
+  final List<MetaParam> params;
   final MetaReturnType returnType;
   final AnnotationMapper annotationsFor;
   final MetaWebSocketMethod? webSocketMethod;

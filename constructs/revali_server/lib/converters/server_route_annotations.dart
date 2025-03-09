@@ -250,9 +250,9 @@ class ServerRouteAnnotations with ExtractImport {
 
   final _AnnotationTypeReferences coreTypeReferences;
   final _AnnotationMimics coreMimics;
-  final Iterable<ServerMimic> data;
-  final Iterable<ServerMimic> meta;
-  final Iterable<ServerSetHeader> setHeaders;
+  final List<ServerMimic> data;
+  final List<ServerMimic> meta;
+  final List<ServerSetHeader> setHeaders;
   final ServerAllowOrigins? allowOrigins;
   final ServerAllowHeaders? allowHeaders;
   final ServerExpectHeaders? expectHeaders;
@@ -293,11 +293,11 @@ class ServerRouteAnnotations with ExtractImport {
 }
 
 abstract class BaseAnnotations<T> {
-  Iterable<T> get middlewares;
-  Iterable<T> get interceptors;
-  Iterable<T> get catchers;
-  Iterable<T> get guards;
-  Iterable<T> get combines;
+  List<T> get middlewares;
+  List<T> get interceptors;
+  List<T> get catchers;
+  List<T> get guards;
+  List<T> get combines;
 }
 
 class _AnnotationTypeReferences
@@ -317,7 +317,7 @@ class _AnnotationTypeReferences
   @override
   List<ServerTypeReference> combines = [];
 
-  Iterable<ServerTypeReference> get all => [
+  List<ServerTypeReference> get all => [
         ...catchers,
         ...guards,
         ...interceptors,
@@ -342,7 +342,7 @@ class _AnnotationMimics implements BaseAnnotations<ServerMimic> {
   @override
   List<ServerMimic> combines = [];
 
-  Iterable<ServerMimic> get all => [
+  List<ServerMimic> get all => [
         ...catchers,
         ...guards,
         ...interceptors,
