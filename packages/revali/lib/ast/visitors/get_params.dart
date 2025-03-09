@@ -29,6 +29,7 @@ Iterable<MetaParam> getParams(FunctionTypedElement element) {
           importPath: element.importPath,
           element: element,
         ),
+        literalValue: null,
         nullable: param.type.nullabilitySuffix != NullabilitySuffix.none,
         isRequired: param.isRequired,
         isNamed: param.isNamed,

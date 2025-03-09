@@ -76,15 +76,20 @@ Expression createParamArg(
     return expression;
   }
 
-  if (defaultExpression != null) {
-    return defaultExpression;
-  }
-
   final annotation = param.annotations;
-  if (!annotation.hasAnnotation && !param.hasDefaultValue) {
+  if (!annotation.hasAnnotation &&
+      !param.hasDefaultValue &&
+      !param.hasLiteralValue) {
+    if (defaultExpression != null) {
+      return defaultExpression;
+    }
     throw ArgumentError(
       'No annotation or default value for param ${param.name}',
     );
+  }
+
+  if (param.literalValue case final value?) {
+    return CodeExpression(Code(value));
   }
 
   if (param.defaultValue case final value? when !annotation.hasAnnotation) {
@@ -124,6 +129,10 @@ Expression createParamArg(
 
   if (annotation.binds case final binds?) {
     return createArgFromBinds(binds, param);
+  }
+
+  if (defaultExpression != null) {
+    return defaultExpression;
   }
 
   throw ArgumentError('Unknown annotation for param ${param.name}');

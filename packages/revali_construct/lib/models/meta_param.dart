@@ -10,6 +10,7 @@ class MetaParam {
     required this.isNamed,
     required this.defaultValue,
     required this.annotationsFor,
+    required this.literalValue,
   });
 
   final String name;
@@ -19,6 +20,7 @@ class MetaParam {
   final bool isNamed;
   final String? defaultValue;
   final AnnotationMapper annotationsFor;
+  final String? literalValue;
 
   @Deprecated('Use type.importPath')
   String? get typeImport => type.importPath;

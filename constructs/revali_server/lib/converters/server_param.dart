@@ -64,6 +64,13 @@ class ServerParam with ExtractImport {
   final bool hasDefaultValue;
   final ServerImports? importPath;
   final ServerParamAnnotations annotations;
+  String? _literalValue;
+  String? get literalValue => _literalValue;
+  set literalValue(String? value) {
+    assert(_literalValue == null, 'Literal value already set');
+
+    _literalValue = value;
+  }
 
   @override
   List<ExtractImport?> get extractors => [annotations, type];
@@ -73,4 +80,6 @@ class ServerParam with ExtractImport {
 
   @Deprecated('use type.importPath')
   ServerImports? get typeImport => type.importPath;
+
+  bool get hasLiteralValue => literalValue != null;
 }

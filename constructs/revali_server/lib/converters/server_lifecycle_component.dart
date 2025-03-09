@@ -1,8 +1,11 @@
 // ignore_for_file: unnecessary_parenthesis
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+// ignore: implementation_imports
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:change_case/change_case.dart';
 import 'package:collection/collection.dart';
 import 'package:revali_router/revali_router.dart';
@@ -33,6 +36,32 @@ class ServerLifecycleComponent with ExtractImport {
 
     if (element is! ClassElement) {
       throw Exception('Invalid element type');
+    }
+
+    final positionalArguments = <String>[];
+    final namedArguments = <String, String>{};
+
+    if (annotation
+        case ElementAnnotationImpl(
+          annotationAst: Annotation(
+            arguments: ArgumentList(childEntities: final args)
+          )
+        )) {
+      for (final param in args) {
+        if (param case NamedExpression(:final name, :final expression)) {
+          namedArguments[name.label.name] = expression.toSource();
+        } else if (param case final Expression expression) {
+          positionalArguments.add(expression.toSource());
+        }
+      }
+    }
+
+    if (positionalArguments.isNotEmpty || namedArguments.isNotEmpty) {
+      throw Exception(
+        'Arguments should not be provided to $LifecycleComponent annotations, '
+        'Arguments should be provided using dependency injection. '
+        'Class: (${element.name})',
+      );
     }
 
     return ServerLifecycleComponent.fromClassElement(element);
