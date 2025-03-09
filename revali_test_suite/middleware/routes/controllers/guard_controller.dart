@@ -1,0 +1,31 @@
+import 'package:middleware/components/lifecycle_components/guard.dart';
+import 'package:revali_router/revali_router.dart';
+
+// Learn more about Controllers at https://www.revali.dev/constructs/revali_server/core/controllers
+@Controller('guard')
+class GuardController {
+  const GuardController();
+
+  @Get('none')
+  String handle() {
+    return 'Hello world!';
+  }
+
+  @Allow()
+  @Get('allow')
+  String handleAllow() {
+    return 'Hello world!';
+  }
+
+  @Reject()
+  @Get('reject')
+  String handleReject() {
+    return 'Hello world!';
+  }
+
+  @Reject()
+  @Get('reject-with-status')
+  String handleRejectWithStatus() {
+    return 'Hello world!';
+  }
+}
