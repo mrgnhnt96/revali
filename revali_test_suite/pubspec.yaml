@@ -7,3 +7,4 @@ environment:
 workspace:
   - methods
   - return_types
+  - middleware

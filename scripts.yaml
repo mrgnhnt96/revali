@@ -161,6 +161,7 @@ test-suite:
   (command):
     - (+) {$test-suite:methods}
     - (+) {$test-suite:return-types}
+    - (+) {$test-suite:middleware}
   methods: |
     cd revali_test_suite/methods || exit 1
 
@@ -176,6 +177,19 @@ test-suite:
     dart test
   return-types: |
     cd revali_test_suite/return_types || exit 1
+
+    if [ -z {--skip} ]; then
+      dart run revali dev --generate-only --recompile
+    fi
+
+    if [ ! $? = 0 ]; then
+      echo "failed to generate revali code"
+      exit 1
+    fi
+
+    dart test
+  middleware: |
+    cd revali_test_suite/middleware || exit 1
 
     if [ -z {--skip} ]; then
       dart run revali dev --generate-only --recompile
