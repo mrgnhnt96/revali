@@ -10,6 +10,9 @@ Hook main() {
       ShellTask.always(
         commands: (files) => ['sip test --recursive --bail --concurrent'],
       ),
+      ShellTask.always(
+        commands: (files) => ['sip run test-suite'],
+      ),
       ShellTask(
         include: [AllFiles()],
         commands: (files) => ['dart format $files --set-exit-if-changed'],
