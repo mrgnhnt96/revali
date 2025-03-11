@@ -74,6 +74,23 @@ class ServerServer with ExtractImport {
   }
 
   void validate() {
+    _validateApp();
+    _validateRoutes();
+  }
+
+  void _validateRoutes() {
+    final uniquePaths = <String>{};
+
+    for (final route in routes) {
+      if (uniquePaths.contains(route.routePath)) {
+        throw Exception('Duplicate route: ${route.routePath}');
+      }
+
+      uniquePaths.add(route.routePath);
+    }
+  }
+
+  void _validateApp() {
     if (app != null) {
       return;
     }
