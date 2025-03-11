@@ -61,5 +61,27 @@ package:revali_router/src/server/handle_requests.dart 28:29  handleRequests.<fn>
       expect(response.statusCode, 200);
       expect(response.body, {'data': 'Hello world!'});
     });
+
+    test('should reject request when guard is present with status code',
+        () async {
+      final response = await server.send(
+        method: 'GET',
+        path: '/api/guard/reject-with-status',
+      );
+
+      expect(response.statusCode, 419);
+      expect(response.headers.contentType?.mimeType, ContentType.text.mimeType);
+      expect(response.body, '''
+I am a custom rejection message
+
+__DEBUG__:
+Error: GuardStopException: RejectGuard
+
+Stack Trace:
+package:revali_router/src/router/run_guards.dart 34:34       RunGuards.run
+package:revali_router/src/router/execute.dart 43:9           Execute.run
+package:revali_router/src/router/router.dart 178:22          Router.handle
+package:revali_router/src/server/handle_requests.dart 28:29  handleRequests.<fn>''');
+    });
   });
 }

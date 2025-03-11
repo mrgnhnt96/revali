@@ -10,11 +10,13 @@ class Allow implements LifecycleComponent {
 }
 
 class Reject implements LifecycleComponent {
-  const Reject();
+  const Reject({this.statusCode});
+
+  final int? statusCode;
 
   GuardResult guard() {
-    return const GuardResult.block(
-      statusCode: 403,
+    return GuardResult.block(
+      statusCode: statusCode,
       body: 'I am a custom rejection message',
     );
   }

@@ -23,7 +23,7 @@ class GuardController {
     return 'Hello world!';
   }
 
-  @Reject()
+  @Reject(statusCode: 419)
   @Get('reject-with-status')
   String handleRejectWithStatus() {
     return 'Hello world!';
