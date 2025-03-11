@@ -2,13 +2,15 @@ import 'package:revali_router/revali_router.dart';
 
 // Learn more about Lifecycle Components at https://www.revali.dev/constructs/revali_server/lifecycle-components/components
 class Catch implements LifecycleComponent {
-  const Catch();
+  const Catch([this.statusCode]);
+
+  final int? statusCode;
 
   ExceptionCatcherResult<ServerException> exceptionCatcher(
     ServerException exception,
   ) {
     return ExceptionCatcherResult.handled(
-      statusCode: 423,
+      statusCode: statusCode ?? 423,
       body: exception.message,
     );
   }

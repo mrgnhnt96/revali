@@ -52,4 +52,10 @@ class ExceptionCatcherController {
   void handleBool() {
     throw const ServerException(true);
   }
+
+  @Catch(423)
+  @Get('status-code')
+  void handleStatusCode() {
+    throw const ServerException('Hello world!');
+  }
 }
