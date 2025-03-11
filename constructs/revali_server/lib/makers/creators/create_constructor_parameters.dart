@@ -11,7 +11,7 @@ List<Parameter> createConstructorParameters(
           ..name = arg.parameterName
           ..toThis = true
           ..named = true
-          ..required = true,
+          ..required = !arg.isNullable,
       );
     }
 
