@@ -4,6 +4,7 @@ import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_param_annotations.dart';
 import 'package:revali_server/converters/server_type.dart';
+import 'package:revali_server/utils/annotation_argument.dart';
 import 'package:revali_server/utils/extract_import.dart';
 
 class ServerParam with ExtractImport {
@@ -17,7 +18,8 @@ class ServerParam with ExtractImport {
     required this.hasDefaultValue,
     required this.importPath,
     required this.annotations,
-  });
+    AnnotationArgument? argument,
+  }) : _argument = argument;
 
   factory ServerParam.fromMeta(MetaParam param) {
     final importPath = ServerImports.fromElement(param.type.element);
@@ -64,12 +66,12 @@ class ServerParam with ExtractImport {
   final bool hasDefaultValue;
   final ServerImports? importPath;
   final ServerParamAnnotations annotations;
-  String? _literalValue;
-  String? get literalValue => _literalValue;
-  set literalValue(String? value) {
-    assert(_literalValue == null, 'Literal value already set');
+  AnnotationArgument? _argument;
+  AnnotationArgument? get argument => _argument;
+  set argument(AnnotationArgument? value) {
+    assert(_argument == null, 'Literal value already set');
 
-    _literalValue = value;
+    _argument = value;
   }
 
   @override
@@ -81,5 +83,5 @@ class ServerParam with ExtractImport {
   @Deprecated('use type.importPath')
   ServerImports? get typeImport => type.importPath;
 
-  bool get hasLiteralValue => literalValue != null;
+  bool get hasArgument => argument != null;
 }

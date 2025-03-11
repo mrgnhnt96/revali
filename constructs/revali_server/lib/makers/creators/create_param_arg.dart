@@ -67,6 +67,10 @@ Expression createParamArg(
   ServerParam param, {
   Expression? defaultExpression,
   Map<String, Expression> customParams = const {},
+
+  /// When true, the field of the class will be referenced instead of creating a
+  /// new argument. This only applies if [ServerParam.argument] exists
+  bool useField = false,
 }) {
   if (impliedArguments[param.type.name] case final expression?) {
     return expression;
@@ -79,17 +83,25 @@ Expression createParamArg(
   final annotation = param.annotations;
   if (!annotation.hasAnnotation &&
       !param.hasDefaultValue &&
-      !param.hasLiteralValue) {
+      !param.hasArgument) {
     if (defaultExpression != null) {
       return defaultExpression;
     }
     throw ArgumentError(
-      'No annotation or default value for param ${param.name}',
+      'No annotation or default value for param "${param.name}"',
     );
   }
 
-  if (param.literalValue case final value?) {
-    return CodeExpression(Code(value));
+  if (param.argument case final value?) {
+    if (useField) {
+      return refer(value.parameterName);
+    }
+
+    if (value.isInjectable) {
+      return createGetFromDi();
+    }
+
+    return CodeExpression(Code(value.source));
   }
 
   if (param.defaultValue case final value? when !annotation.hasAnnotation) {

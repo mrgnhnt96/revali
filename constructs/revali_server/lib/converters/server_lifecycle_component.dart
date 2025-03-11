@@ -1,11 +1,8 @@
 // ignore_for_file: unnecessary_parenthesis
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:change_case/change_case.dart';
 import 'package:collection/collection.dart';
 import 'package:revali_router/revali_router.dart';
@@ -16,6 +13,7 @@ import 'package:revali_server/converters/server_param.dart';
 import 'package:revali_server/converters/server_param_annotations.dart';
 import 'package:revali_server/converters/server_type.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
+import 'package:revali_server/utils/annotation_arguments.dart';
 import 'package:revali_server/utils/extract_import.dart';
 
 class ServerLifecycleComponent with ExtractImport {
@@ -27,6 +25,7 @@ class ServerLifecycleComponent with ExtractImport {
     required this.exceptionCatchers,
     required this.params,
     required this.import,
+    required this.arguments,
   });
 
   factory ServerLifecycleComponent.fromDartObject(
@@ -38,36 +37,15 @@ class ServerLifecycleComponent with ExtractImport {
       throw Exception('Invalid element type');
     }
 
-    final positionalArguments = <String>[];
-    final namedArguments = <String, String>{};
+    final arguments = AnnotationArguments.fromDartObject(annotation);
 
-    if (annotation
-        case ElementAnnotationImpl(
-          annotationAst: Annotation(
-            arguments: ArgumentList(childEntities: final args)
-          )
-        )) {
-      for (final param in args) {
-        if (param case NamedExpression(:final name, :final expression)) {
-          namedArguments[name.label.name] = expression.toSource();
-        } else if (param case final Expression expression) {
-          positionalArguments.add(expression.toSource());
-        }
-      }
-    }
-
-    if (positionalArguments.isNotEmpty || namedArguments.isNotEmpty) {
-      throw Exception(
-        'Arguments should not be provided to $LifecycleComponent annotations, '
-        'Arguments should be provided using dependency injection. '
-        'Class: (${element.name})',
-      );
-    }
-
-    return ServerLifecycleComponent.fromClassElement(element);
+    return ServerLifecycleComponent.fromClassElement(element, arguments);
   }
 
-  factory ServerLifecycleComponent.fromClassElement(ClassElement element) {
+  factory ServerLifecycleComponent.fromClassElement(
+    ClassElement element,
+    AnnotationArguments arguments,
+  ) {
     final methods = element.methods
         .map(ServerLifecycleComponentMethod.fromElement)
         .whereType<ServerLifecycleComponentMethod>()
@@ -103,7 +81,15 @@ class ServerLifecycleComponent with ExtractImport {
       );
     }
 
-    final params = constructor.parameters.map(ServerParam.fromElement).toList();
+    final params = constructor.parameters.map((e) {
+      final param = ServerParam.fromElement(e);
+
+      if (arguments.all[param.name] case final arg?) {
+        param.argument = arg;
+      }
+
+      return param;
+    }).toList();
     final importPaths = {
       constructor.returnType.element.librarySource.uri.toString(),
     };
@@ -116,6 +102,7 @@ class ServerLifecycleComponent with ExtractImport {
       exceptionCatchers: exceptionCatchers,
       params: params,
       import: ServerImports(importPaths),
+      arguments: arguments,
     );
   }
 
@@ -141,7 +128,10 @@ class ServerLifecycleComponent with ExtractImport {
       );
     }
 
-    return ServerLifecycleComponent.fromClassElement(element);
+    return ServerLifecycleComponent.fromClassElement(
+      element,
+      AnnotationArguments.none(),
+    );
   }
 
   static List<ServerLifecycleComponent> fromTypeReference(
@@ -179,6 +169,7 @@ class ServerLifecycleComponent with ExtractImport {
   final List<ServerParam> params;
   final String name;
   final ServerImports import;
+  final AnnotationArguments arguments;
 
   bool get hasGuards => guards.isNotEmpty;
   bool get hasMiddlewares => middlewares.isNotEmpty;
@@ -208,6 +199,32 @@ class ServerLifecycleComponent with ExtractImport {
           annotations: ServerParamAnnotations.none(),
           isRequired: true,
         ),
+        for (final arg in arguments.positional)
+          ServerParam(
+            name: arg.parameterName,
+            type: arg.type,
+            isNullable: arg.isNullable,
+            isNamed: true,
+            defaultValue: null,
+            hasDefaultValue: false,
+            importPath: ServerImports([]),
+            annotations: ServerParamAnnotations.none(),
+            isRequired: true,
+            argument: arg,
+          ),
+        for (final MapEntry(:key, value: arg) in arguments.named.entries)
+          ServerParam(
+            name: key,
+            type: arg.type,
+            isNullable: arg.isNullable,
+            isNamed: true,
+            defaultValue: null,
+            hasDefaultValue: false,
+            importPath: ServerImports([]),
+            annotations: ServerParamAnnotations.none(),
+            isRequired: true,
+            argument: arg,
+          ),
       ],
       importPath: ServerImports([]),
     );
@@ -237,6 +254,7 @@ class ServerLifecycleComponent with ExtractImport {
         ...interceptors.post,
         ...exceptionCatchers,
         ...params,
+        arguments,
       ];
 
   @override
