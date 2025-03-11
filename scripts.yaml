@@ -158,46 +158,31 @@ publish:
   - cd scripts && dart run lib/prep_for_publish.dart
 
 test-suite:
-  (command):
-    - (+) {$test-suite:methods}
-    - (+) {$test-suite:return-types}
-    - (+) {$test-suite:middleware}
-  methods: |
-    cd revali_test_suite/methods || exit 1
+  (aliases): ts
+  revali_server:
+    (command):
+      - (+) {$test-suite:revali_server:methods}
+      - (+) {$test-suite:revali_server:return-types}
+      - (+) {$test-suite:revali_server:middleware}
+    _package: |
+      cd test_suite/constructs/revali_server/$DIR || exit 1
 
-    if [ -z {--skip} ]; then
-      dart run revali dev --generate-only --recompile
-    fi
+      if [ -z {--skip} ]; then
+        dart run revali dev --generate-only --recompile
+      fi
 
-    if [ ! $? = 0 ]; then
-      echo "failed to generate revali code"
-      exit 1
-    fi
+      if [ ! $? = 0 ]; then
+        echo "failed to generate revali code"
+        exit 1
+      fi
 
-    dart test
-  return-types: |
-    cd revali_test_suite/return_types || exit 1
-
-    if [ -z {--skip} ]; then
-      dart run revali dev --generate-only --recompile
-    fi
-
-    if [ ! $? = 0 ]; then
-      echo "failed to generate revali code"
-      exit 1
-    fi
-
-    dart test
-  middleware: |
-    cd revali_test_suite/middleware || exit 1
-
-    if [ -z {--skip} ]; then
-      dart run revali dev --generate-only --recompile
-    fi
-
-    if [ ! $? = 0 ]; then
-      echo "failed to generate revali code"
-      exit 1
-    fi
-
-    dart test
+      dart test
+    methods: |
+      DIR=methods
+      {$test-suite:revali_server:_package}
+    return-types: |
+      DIR=return_types
+      {$test-suite:revali_server:_package}
+    middleware: |
+      DIR=middleware
+      {$test-suite:revali_server:_package}
