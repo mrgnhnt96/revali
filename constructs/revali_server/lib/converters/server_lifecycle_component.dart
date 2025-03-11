@@ -90,9 +90,6 @@ class ServerLifecycleComponent with ExtractImport {
 
       return param;
     }).toList();
-    final importPaths = {
-      constructor.returnType.element.librarySource.uri.toString(),
-    };
 
     return ServerLifecycleComponent(
       name: element.name,
@@ -101,7 +98,7 @@ class ServerLifecycleComponent with ExtractImport {
       interceptors: interceptors,
       exceptionCatchers: exceptionCatchers,
       params: params,
-      import: ServerImports(importPaths),
+      import: ServerImports.fromElement(constructor.returnType.element),
       arguments: arguments,
     );
   }
