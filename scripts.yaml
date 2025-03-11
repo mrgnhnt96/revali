@@ -159,6 +159,9 @@ publish:
 
 test-suite:
   (aliases): ts
+  (command):
+    - (+) {$test-suite:revali_server}
+
   revali_server:
     (command):
       - (+) {$test-suite:revali_server:methods}
