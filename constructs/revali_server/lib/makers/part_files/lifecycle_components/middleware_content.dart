@@ -3,6 +3,8 @@
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 import 'package:revali_server/converters/server_lifecycle_component.dart';
+import 'package:revali_server/makers/creators/create_constructor_parameters.dart';
+import 'package:revali_server/makers/creators/create_fields.dart';
 import 'package:revali_server/makers/creators/create_get_from_di.dart';
 import 'package:revali_server/makers/part_files/lifecycle_components/utils/create_component_methods.dart';
 import 'package:revali_server/makers/utils/for_in_loop.dart';
@@ -18,7 +20,11 @@ String middlewareContent(
   final (:positioned, :named) = getParams(
     component.params,
     defaultExpression: createGetFromDi(),
+    useField: true,
   );
+
+  final parameter = createConstructorParameters(component.arguments);
+  final fields = createFields(component.arguments);
 
   final clazz = Class(
     (p) => p
@@ -35,7 +41,8 @@ String middlewareContent(
                   ..toThis = true
                   ..named = false,
               ),
-            ),
+            )
+            ..optionalParameters.addAll(parameter),
         ),
       )
       ..fields.add(
@@ -46,6 +53,7 @@ String middlewareContent(
             ..modifier = FieldModifier.final$,
         ),
       )
+      ..fields.addAll(fields)
       ..methods.add(
         Method(
           (p) => p
