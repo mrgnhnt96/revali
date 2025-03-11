@@ -223,6 +223,32 @@ void main() {
           }
         });
 
+        test('when duplicate routes are provided', () {
+          expect(
+            () => Route(
+              'api',
+              routes: [
+                Route('user', method: 'GET', handler: (_) async {}),
+                Route('user', method: 'GET', handler: (_) async {}),
+              ],
+            ),
+            throwsArgumentError,
+          );
+        });
+
+        test('when duplicate routes with many segments are provided', () {
+          expect(
+            () => Route(
+              'api',
+              routes: [
+                Route('user/profile', method: 'GET', handler: (_) async {}),
+                Route('user/profile', method: 'GET', handler: (_) async {}),
+              ],
+            ),
+            throwsArgumentError,
+          );
+        });
+
         group('dynamic paths', () {
           test('when nested contains conflicting paths', () {
             final routes = [
