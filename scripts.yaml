@@ -167,6 +167,7 @@ test-suite:
       - (+) {$test-suite:revali_server:methods}
       - (+) {$test-suite:revali_server:return-types}
       - (+) {$test-suite:revali_server:middleware}
+      - (+) {$test-suite:revali_server:params}
     _package: |
       cd test_suite/constructs/revali_server/$DIR || exit 1
 
@@ -188,4 +189,7 @@ test-suite:
       {$test-suite:revali_server:_package}
     middleware: |
       DIR=middleware
+      {$test-suite:revali_server:_package}
+    params: |
+      DIR=params
       {$test-suite:revali_server:_package}
