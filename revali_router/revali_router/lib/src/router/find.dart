@@ -46,11 +46,31 @@ class Find {
 
       for (final route in sorted) {
         if (pathSegments.length < route.segments.length) {
-          continue;
+          final routeIsEmpty =
+              route.segments.where((e) => e.isNotEmpty).isEmpty;
+          if (pathSegments.isEmpty && routeIsEmpty) {
+            // allow empty route to match when path is empty
+          } else {
+            continue;
+          }
         }
 
         final possibleSameSegments = pathSegments.take(route.segments.length);
         final hasMoreSegments = pathSegments.length > route.segments.length;
+
+        BaseRoute? proxy;
+        if (!route.canInvoke) {
+          final poss = find(
+            pathSegments:
+                pathSegments.skip(possibleSameSegments.length).toList(),
+            routes: route.routes,
+            parent: route,
+            method: method,
+            pathParameters: pathParameters,
+          );
+
+          proxy = poss?.route;
+        }
 
         if (route.isDynamic) {
           final segments = [
@@ -68,13 +88,21 @@ class Find {
           final patternMatches =
               pattern.hasMatch(possibleSameSegments.join('/'));
 
-          if (patternMatches && (methodsMatch || almostMatches)) {
+          if (patternMatches &&
+              (methodsMatch || almostMatches || proxy != null)) {
             for (var i = 0; i < route.segments.length; i++) {
               final segment = route.segments[i];
               if (segment.startsWith(':')) {
                 pathParameters[segment.substring(1)] =
                     possibleSameSegments.elementAt(i);
               }
+            }
+
+            if (proxy != null) {
+              return RouteMatch(
+                route: proxy,
+                pathParameters: pathParameters,
+              );
             }
 
             final poss = find(
