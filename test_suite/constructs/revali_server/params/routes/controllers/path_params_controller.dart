@@ -11,8 +11,8 @@ class PathParamsController {
   }
 
   @Get('product/:productId')
-  String string(@Param() String productId) {
-    return productId;
+  String string(@Param('productId') String id) {
+    return id;
   }
 
   @Get('product/:productId/variant/:variantId')
