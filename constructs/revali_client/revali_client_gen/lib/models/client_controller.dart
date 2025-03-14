@@ -3,6 +3,7 @@ import 'package:revali_client_gen/makers/utils/extract_import.dart';
 import 'package:revali_client_gen/models/client_imports.dart';
 import 'package:revali_client_gen/models/client_lifecycle_component.dart';
 import 'package:revali_client_gen/models/client_method.dart';
+import 'package:revali_client_gen/models/websocket_type.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
 

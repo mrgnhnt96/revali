@@ -1,6 +1,7 @@
 import 'package:revali_client_gen/models/client_imports.dart';
 import 'package:revali_client_gen/models/client_method.dart';
 import 'package:revali_client_gen/models/client_type.dart';
+import 'package:revali_client_gen/models/websocket_type.dart';
 import 'package:test/test.dart';
 
 void main() {
