@@ -5,10 +5,10 @@ import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_mimic.dart';
 import 'package:revali_server/converters/server_param.dart';
 import 'package:revali_server/converters/server_reflect.dart';
-import 'package:revali_server/converters/server_return_type.dart';
 import 'package:revali_server/converters/server_route.dart';
 import 'package:revali_server/converters/server_route_annotations.dart';
 import 'package:revali_server/converters/server_status_code.dart';
+import 'package:revali_server/converters/server_type.dart';
 import 'package:revali_server/utils/extract_import.dart';
 
 class ServerChildRoute with ExtractImport implements ServerRoute {
@@ -69,7 +69,7 @@ class ServerChildRoute with ExtractImport implements ServerRoute {
     return ServerChildRoute(
       method: method.method,
       path: method.path ?? '',
-      returnType: ServerReturnType.fromMeta(method.returnType),
+      returnType: ServerType.fromMeta(method.returnType),
       httpCode: httpCode,
       redirect: redirect,
       annotations: serverRoute.annotations,
@@ -80,7 +80,7 @@ class ServerChildRoute with ExtractImport implements ServerRoute {
     );
   }
 
-  final ServerReturnType returnType;
+  final ServerType returnType;
   final ServerStatusCode? httpCode;
   final ServerMimic? redirect;
   final String method;

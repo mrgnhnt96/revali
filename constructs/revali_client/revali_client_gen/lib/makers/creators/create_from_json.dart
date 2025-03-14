@@ -1,8 +1,8 @@
 import 'package:code_builder/code_builder.dart';
-import 'package:revali_client_gen/models/client_return_type.dart';
+import 'package:revali_client_gen/models/client_type.dart';
 
 Expression createFromJson(
-  ClientReturnType method,
+  ClientType method,
   String variable, {
   bool forceMapType = false,
 }) {

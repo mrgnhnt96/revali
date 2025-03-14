@@ -56,7 +56,7 @@ class ClientParam with ExtractImport {
       name: parameter.name,
       position: position,
       type: ClientType.fromMeta(parameter.type),
-      nullable: parameter.nullable,
+      nullable: parameter.type.isNullable,
       access: access,
       acceptList: acceptList,
     );

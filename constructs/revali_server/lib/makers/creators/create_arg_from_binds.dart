@@ -17,7 +17,7 @@ Expression createArgFromBinds(
   ).property('bind').call([createBindContext(param)]).awaited;
 
   final acceptsNull = annotation.acceptsNull;
-  if ((acceptsNull != null && !acceptsNull) || !param.isNullable) {
+  if ((acceptsNull != null && !acceptsNull) || !param.type.isNullable) {
     paramsRef = paramsRef.ifNullThen(
       createMissingArgumentException(
         key: param.name,

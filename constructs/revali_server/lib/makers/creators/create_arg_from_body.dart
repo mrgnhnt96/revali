@@ -20,7 +20,7 @@ Expression createArgFromBody(
 
     final acceptsNull = annotation.acceptsNull;
     if ((acceptsNull != null && !acceptsNull) ||
-        (!param.isNullable && annotation.pipe == null)) {
+        (!param.type.isNullable && annotation.pipe == null)) {
       bodyVar = bodyVar.ifNullThen(
         createMissingArgumentException(
           key: param.name,

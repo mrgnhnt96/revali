@@ -3,15 +3,15 @@
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_construct/models/meta_web_socket_method.dart';
 import 'package:revali_router/revali_router.dart' show WebSocketHandler;
-import 'package:revali_server/converters/server_return_type.dart';
 import 'package:revali_server/converters/server_route.dart';
+import 'package:revali_server/converters/server_type.dart';
 import 'package:revali_server/makers/utils/get_params.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
 
 Expression createWebSocketHandler(
   MetaWebSocketMethod webSocket, {
   required ServerRoute route,
-  required ServerReturnType returnType,
+  required ServerType returnType,
   required String classVarName,
 }) {
   final trigger = <Code>[];

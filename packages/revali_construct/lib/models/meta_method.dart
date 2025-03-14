@@ -1,7 +1,7 @@
 import 'dart:core';
 
 import 'package:revali_construct/models/meta_param.dart';
-import 'package:revali_construct/models/meta_return_type.dart';
+import 'package:revali_construct/models/meta_type.dart';
 import 'package:revali_construct/models/meta_web_socket_method.dart';
 import 'package:revali_construct/types/annotation_getter.dart';
 
@@ -21,7 +21,7 @@ class MetaMethod {
   final String method;
   final String? path;
   final List<MetaParam> params;
-  final MetaReturnType returnType;
+  final MetaType returnType;
   final AnnotationMapper annotationsFor;
   final MetaWebSocketMethod? webSocketMethod;
   final bool isSse;

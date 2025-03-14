@@ -20,7 +20,7 @@ Expression createArgFromCookie(
 
   final acceptsNull = annotation.acceptsNull;
   if ((acceptsNull != null && !acceptsNull) ||
-      (!param.isNullable && annotation.pipe == null)) {
+      (!param.type.isNullable && annotation.pipe == null)) {
     cookieValue = cookieValue.ifNullThen(
       createMissingArgumentException(
         key: annotation.name ?? param.name,

@@ -4,7 +4,7 @@ import 'package:revali_client_gen/makers/utils/extract_import.dart';
 import 'package:revali_client_gen/models/client_imports.dart';
 import 'package:revali_client_gen/models/client_lifecycle_component.dart';
 import 'package:revali_client_gen/models/client_param.dart';
-import 'package:revali_client_gen/models/client_return_type.dart';
+import 'package:revali_client_gen/models/client_type.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
 
@@ -79,7 +79,7 @@ class ClientMethod with ExtractImport {
       name: route.name,
       parentPath: parentPath,
       method: route.method,
-      returnType: ClientReturnType.fromMeta(route.returnType),
+      returnType: ClientType.fromMeta(route.returnType),
       parameters: ClientParam.fromMetas(route.params),
       websocketType: switch (route.webSocketMethod) {
         null => WebsocketType.none,
@@ -98,7 +98,7 @@ class ClientMethod with ExtractImport {
   final String? path;
   final String parentPath;
   final String? method;
-  final ClientReturnType returnType;
+  final ClientType returnType;
   final List<ClientParam> parameters;
   final WebsocketType websocketType;
   final bool isSse;

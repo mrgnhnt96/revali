@@ -1,7 +1,6 @@
 // ignore_for_file: unnecessary_parenthesis
 
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -18,13 +17,19 @@ class AnnotationArgument with ExtractImport {
     required this.isInjectable,
     required this.type,
     required this.isRequired,
-    required this.isNullable,
     required this.parameterName,
   });
 
   factory AnnotationArgument.fromExpression(Expression expression) {
     final source = expression.toSource();
-    final element = expression.staticType?.element;
+    final type = expression.staticType;
+    final element = type?.element;
+
+    if (element == null || type == null) {
+      throw ArgumentError(
+        'The argument expression has not been resolved yet...',
+      );
+    }
 
     var isInjectable = false;
     final parents = switch (element) {
@@ -41,37 +46,29 @@ class AnnotationArgument with ExtractImport {
       }
     }
 
-    String typeName;
-
     String parameterName;
     bool isRequired;
-    bool isNullable;
 
     if (expression.parent
         case Expression(correspondingParameter: final param?)) {
       parameterName = param.name;
-      typeName = param.type.getDisplayString();
       isRequired = param.isRequiredNamed;
-      isNullable = param.type.nullabilitySuffix == NullabilitySuffix.question;
     } else if (expression
         case Expression(staticParameterElement: final param?)) {
       parameterName = param.name;
-      typeName = param.type.getDisplayString();
       isRequired = param.isRequiredNamed;
-      isNullable = param.type.nullabilitySuffix == NullabilitySuffix.question;
     } else {
       throw ArgumentError('Invalid expression');
     }
 
     return AnnotationArgument(
       parameterName: parameterName,
-      type: ServerType(
-        name: typeName,
-        hasFromJsonConstructor: false,
-        importPath: ServerImports.fromElements([element]),
-      ),
+      type: switch (
+          expression.staticParameterElement?.type ?? expression.staticType) {
+        final e? => ServerType.fromType(e),
+        _ => throw Exception('Expression has not been resolved yet...'),
+      },
       isRequired: isRequired,
-      isNullable: isNullable,
       source: source,
       element: element,
       isInjectable: isInjectable,
@@ -81,7 +78,6 @@ class AnnotationArgument with ExtractImport {
   final String parameterName;
   final ServerType type;
   final bool isRequired;
-  final bool isNullable;
   final String source;
   final Element? element;
 
