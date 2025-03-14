@@ -1,5 +1,5 @@
-import 'package:middleware/components/lifecycle_components/exception_catcher.dart';
 import 'package:revali_router/revali_router.dart';
+import 'package:revali_server_middleware_test/components/lifecycle_components/exception_catcher.dart';
 
 @Controller('exception-catcher')
 class ExceptionCatcherController {

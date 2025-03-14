@@ -1,4 +1,4 @@
-name: middleware
+name: revali_server_middleware_test
 publish_to: none
 
 environment:

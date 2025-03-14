@@ -1,5 +1,5 @@
-import 'package:middleware/components/lifecycle_components/post_interceptor.dart';
 import 'package:revali_router/revali_router.dart';
+import 'package:revali_server_middleware_test/components/lifecycle_components/post_interceptor.dart';
 
 // Learn more about Controllers at https://www.revali.dev/constructs/revali_server/core/controllers
 @Controller('post/interceptor')

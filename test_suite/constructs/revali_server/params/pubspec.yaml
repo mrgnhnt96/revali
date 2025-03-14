@@ -1,4 +1,4 @@
-name: params
+name: revali_server_params_test
 publish_to: none
 
 environment:

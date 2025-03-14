@@ -1,4 +1,4 @@
-name: return_types
+name: revali_server_return_types_test
 publish_to: none
 
 environment:
