@@ -5,6 +5,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 import 'package:revali_server/converters/server_imports.dart';
+import 'package:revali_server/converters/server_record_prop.dart';
 import 'package:revali_server/converters/server_reflect.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
 import 'package:revali_server/utils/extract_import.dart';
@@ -20,11 +21,13 @@ class ServerType with ExtractImport {
     required this.isStream,
     required this.iterableType,
     required this.isNullable,
-    required this.isIterableNullable,
     required this.isPrimitive,
     required this.isStringContent,
     required this.hasToJsonMember,
     required this.isMap,
+    required this.typeArguments,
+    required this.recordProps,
+    required this.isRecord,
   });
 
   factory ServerType.fromMeta(MetaType type) {
@@ -43,7 +46,6 @@ class ServerType with ExtractImport {
       isStream: type.isStream,
       iterableType: type.iterableType,
       isNullable: type.isNullable,
-      isIterableNullable: false,
       isPrimitive: type.isPrimitive,
       isStringContent: switch (type.element) {
         ClassElement(:final name, :final allSupertypes) =>
@@ -55,6 +57,9 @@ class ServerType with ExtractImport {
       },
       hasToJsonMember: type.element?.hasToJsonMember ?? false,
       isMap: type.isMap,
+      typeArguments: type.typeArguments.map(ServerType.fromMeta).toList(),
+      recordProps: type.recordProps?.map(ServerRecordProp.fromMeta).toList(),
+      isRecord: type.isRecord,
     );
   }
 
@@ -71,14 +76,19 @@ class ServerType with ExtractImport {
   final bool isStream;
   final IterableType? iterableType;
   final bool isNullable;
-  final bool isIterableNullable;
   final bool isPrimitive;
   final bool isStringContent;
   final bool hasToJsonMember;
+  final bool isRecord;
   final bool isMap;
+  final List<ServerType> typeArguments;
+  final List<ServerRecordProp>? recordProps;
 
   @override
-  List<ExtractImport?> get extractors => [];
+  List<ExtractImport?> get extractors => [
+        ...typeArguments,
+        ...?recordProps,
+      ];
 
   @override
   List<ServerImports?> get imports => [importPath];
