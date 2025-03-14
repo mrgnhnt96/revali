@@ -60,9 +60,11 @@ void main() {
       );
 
       expect(response.statusCode, 200);
-      expect(response.body, [
-        {'name': 'Hello world!'},
-      ]);
+      expect(response.body, {
+        'data': [
+          {'name': 'Hello world!'},
+        ],
+      });
     });
 
     test('returns future list of users successfully', () async {
@@ -72,9 +74,11 @@ void main() {
       );
 
       expect(response.statusCode, 200);
-      expect(response.body, [
-        {'name': 'Hello world!'},
-      ]);
+      expect(response.body, {
+        'data': [
+          {'name': 'Hello world!'},
+        ],
+      });
     });
 
     test('returns map of users successfully', () async {
