@@ -1,0 +1,20 @@
+name: revali_client_return_types_test
+
+environment:
+  sdk: ">=3.6.0 <4.0.0"
+
+resolution: workspace
+
+dependencies:
+  client:
+    path: .revali/revali_client
+  revali_client:
+  revali_router:
+
+dev_dependencies:
+  http: ^1.3.0
+  revali:
+  revali_client_gen:
+  revali_server:
+  revali_test:
+  test: ^1.25.15

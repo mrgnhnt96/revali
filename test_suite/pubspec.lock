@@ -78,6 +78,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.0"
+  client:
+    dependency: transitive
+    description:
+      path: "constructs/revali_client/return_types/.revali/revali_client"
+      relative: true
+    source: path
+    version: "0.0.0"
   code_builder:
     dependency: transitive
     description:

@@ -162,7 +162,30 @@ test-suite:
   (command):
     - (+) {$test-suite:revali_server}
 
+  revali_client:
+    (aliases): client
+    (command):
+      - (+) {$test-suite:revali_client:return-types}
+    _package: |
+      cd test_suite/constructs/revali_client/$DIR || exit 1
+
+      if [ -z {--skip} ]; then
+        dart run revali dev --generate-only --recompile
+      fi
+
+      if [ ! $? = 0 ]; then
+        echo "failed to generate revali code"
+        exit 1
+      fi
+
+      dart test
+
+    return-types: |
+      DIR=return_types
+      {$test-suite:revali_client:_package}
+
   revali_server:
+    (aliases): server
     (command):
       - (+) {$test-suite:revali_server:methods}
       - (+) {$test-suite:revali_server:return-types}

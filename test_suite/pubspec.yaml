@@ -5,6 +5,7 @@ environment:
   sdk: ">=3.6.0 <4.0.0"
 
 workspace:
+  - constructs/revali_client/return_types
   - constructs/revali_server/methods
   - constructs/revali_server/return_types
   - constructs/revali_server/middleware
