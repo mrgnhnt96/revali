@@ -1,7 +1,6 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:revali/ast/checkers/checkers.dart';
-import 'package:revali/ast/visitors/get_params.dart';
 import 'package:revali/ast/visitors/method_visitor.dart';
 import 'package:revali_construct/revali_construct.dart';
 
@@ -61,7 +60,9 @@ class ControllerVisitor extends RecursiveElementVisitor<void> {
 
     _controller = element;
     _constructor = element.constructors.first;
-    _params.addAll(getParams(_constructor!));
+    if (_constructor case ConstructorElement(:final parameters)) {
+      _params.addAll(parameters.map(MetaParam.fromParam));
+    }
 
     final controller = ControllerAnnotation.fromAnnotation(annotation.first);
     _path = controller.path;
