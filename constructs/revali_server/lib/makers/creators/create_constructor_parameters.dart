@@ -1,27 +1,17 @@
 import 'package:code_builder/code_builder.dart';
-import 'package:revali_server/utils/annotation_arguments.dart';
+import 'package:revali_server/converters/server_param.dart';
 
 List<Parameter> createConstructorParameters(
-  AnnotationArguments arguments,
+  List<ServerParam> params,
 ) {
   Iterable<Parameter> iterate() sync* {
-    for (final arg in arguments.positional) {
+    for (final arg in params) {
       yield Parameter(
         (p) => p
-          ..name = arg.parameterName
+          ..name = arg.name
           ..toThis = true
           ..named = true
-          ..required = !arg.isNullable,
-      );
-    }
-
-    for (final MapEntry(:key, :value) in arguments.named.entries) {
-      yield Parameter(
-        (p) => p
-          ..name = key
-          ..toThis = true
-          ..named = true
-          ..required = value.isRequired,
+          ..required = arg.isRequired,
       );
     }
   }
