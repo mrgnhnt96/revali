@@ -5,6 +5,8 @@
 // ignore_for_file: directives_ordering
 
 export 'src/http_client.dart';
+export 'src/integrations/http_package_client.dart';
+export 'src/revali_client.dart';
 export 'src/server_exception.dart';
 export 'src/session_storage.dart';
 export 'src/storage.dart';

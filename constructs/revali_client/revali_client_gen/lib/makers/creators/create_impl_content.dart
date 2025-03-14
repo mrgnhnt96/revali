@@ -19,7 +19,7 @@ Spec createImplContent(ClientController controller) {
               Parameter(
                 (b) => b
                   ..name = 'client'
-                  ..type = refer((HttpClient).name)
+                  ..type = refer((RevaliClient).name)
                   ..named = true
                   ..required = true,
               ),
@@ -42,7 +42,7 @@ Spec createImplContent(ClientController controller) {
           (b) => b
             ..modifier = FieldModifier.final$
             ..name = '_client'
-            ..type = refer((HttpClient).name),
+            ..type = refer((RevaliClient).name),
         ),
         Field(
           (b) => b

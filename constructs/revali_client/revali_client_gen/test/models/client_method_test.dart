@@ -1,6 +1,6 @@
 import 'package:revali_client_gen/models/client_imports.dart';
 import 'package:revali_client_gen/models/client_method.dart';
-import 'package:revali_client_gen/models/client_return_type.dart';
+import 'package:revali_client_gen/models/client_type.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -13,17 +13,18 @@ void main() {
         name: 'name',
         parameters: [],
         lifecycleComponents: [],
-        returnType: ClientReturnType(
+        returnType: ClientType(
           fullName: 'fullName',
           resolvedName: 'resolvedName',
           isStream: false,
           import: ClientImports([]),
           isPrimitive: false,
           isIterable: false,
-          hasFromJson: false,
           isVoid: false,
           isStringContent: false,
           isFuture: false,
+          name: 'name',
+          hasFromJsonConstructor: false,
         ),
         isSse: false,
         websocketType: WebsocketType.none,

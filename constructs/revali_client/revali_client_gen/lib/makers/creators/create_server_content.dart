@@ -30,7 +30,7 @@ Spec createServerContent(ClientServer client, Settings settings) {
                 Parameter(
                   (b) => b
                     ..named = true
-                    ..type = refer('Client?')
+                    ..type = refer('HttpClient?')
                     ..name = 'client',
                 ),
                 Parameter(
@@ -64,11 +64,11 @@ Spec createServerContent(ClientServer client, Settings settings) {
               refer('this')
                   .property('client')
                   .assign(
-                    refer((HttpClient).name).newInstance(
+                    refer((RevaliClient).name).newInstance(
                       [],
                       {
                         'client': refer('client').ifNullThen(
-                          refer('Client').newInstance([]),
+                          refer('HttpPackageClient').newInstance([]),
                         ),
                         'baseUrl': refer('url'),
                         'storage': refer('this').property('storage'),
@@ -88,7 +88,7 @@ Spec createServerContent(ClientServer client, Settings settings) {
           (b) => b
             ..late = true
             ..modifier = FieldModifier.final$
-            ..type = refer((HttpClient).name)
+            ..type = refer((RevaliClient).name)
             ..name = 'client'
             ..late = true,
         ),
