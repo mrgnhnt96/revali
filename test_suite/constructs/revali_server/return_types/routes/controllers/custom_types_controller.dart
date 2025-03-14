@@ -46,6 +46,11 @@ class CustomTypesController {
     return (name: 'Hello world!', user: const User(name: 'Hello world!'));
   }
 
+  @Get('partial-record-of-users')
+  (String name, {User user}) partialRecordOfUsers() {
+    return ('Hello world!', user: const User(name: 'Hello world!'));
+  }
+
   @Get('future-record-of-users')
   Future<({String name, User user})> futureRecordOfUsers() async {
     return (name: 'Hello world!', user: const User(name: 'Hello world!'));

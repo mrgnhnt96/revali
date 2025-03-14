@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:revali_test/revali_test.dart';
 import 'package:test/test.dart';
 
@@ -115,9 +113,30 @@ void main() {
         path: '/api/custom/types/record-of-users',
       );
 
-      expect(response.statusCode, 500);
-      expect(response.headers.contentType?.mimeType, ContentType.text.mimeType);
-      expect(response.body, null);
+      expect(response.statusCode, 200);
+      expect(response.body, {
+        'data': {
+          'name': 'Hello world!',
+          'user': {'name': 'Hello world!'},
+        },
+      });
+    });
+
+    test('returns partial record of users successfully', () async {
+      final response = await server.send(
+        method: 'GET',
+        path: '/api/custom/types/partial-record-of-users',
+      );
+
+      expect(response.statusCode, 200);
+      expect(response.body, {
+        'data': [
+          'Hello world!',
+          {
+            'user': {'name': 'Hello world!'},
+          },
+        ],
+      });
     });
 
     test('returns future record of users successfully', () async {
@@ -126,9 +145,13 @@ void main() {
         path: '/api/custom/types/future-record-of-users',
       );
 
-      expect(response.statusCode, 500);
-      expect(response.headers.contentType?.mimeType, ContentType.text.mimeType);
-      expect(response.body, null);
+      expect(response.statusCode, 200);
+      expect(response.body, {
+        'data': {
+          'name': 'Hello world!',
+          'user': {'name': 'Hello world!'},
+        },
+      });
     });
   });
 }

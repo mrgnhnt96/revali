@@ -2,11 +2,13 @@
 
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_construct/models/meta_web_socket_method.dart';
+import 'package:revali_server/converters/server_record_prop.dart';
 import 'package:revali_server/converters/server_route.dart';
 import 'package:revali_server/converters/server_type.dart';
 import 'package:revali_server/makers/creators/create_web_socket_handler.dart';
 import 'package:revali_server/makers/utils/get_params.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
+import 'package:revali_server/utils/create_map.dart';
 
 Expression? createHandler({
   required ServerRoute route,
@@ -115,6 +117,67 @@ Expression? createHandler({
 
         result = result.property('map').call([iterates]);
       }
+    } else if (type.recordProps case final props?
+        when type.isRecord && props.isNotEmpty) {
+      Expression extract(ServerRecordProp prop, String access) {
+        var extract = refer('result').property(access);
+        if (prop.type.hasToJsonMember) {
+          if (prop.type.isNullable) {
+            extract = extract.nullSafeProperty('toJson').call([]);
+          } else {
+            extract = extract.property('toJson').call([]);
+          }
+        }
+
+        return extract;
+      }
+
+      Iterable<(String, Expression)> namedProps() sync* {
+        for (final prop in props) {
+          if (!prop.isNamed) continue;
+
+          final name = prop.name;
+          if (name == null) {
+            throw Exception('Named record prop has no name: $prop');
+          }
+
+          yield (name, extract(prop, name));
+        }
+      }
+
+      if (props.first.isNamed) {
+        // all props are named
+        result = createMap(
+          {
+            for (final (key, value) in namedProps()) key: value,
+          },
+        );
+      } else {
+        Iterable<Expression> positionedProps() sync* {
+          for (final (index, prop) in props.indexed) {
+            if (prop.isNamed) continue;
+
+            yield extract(prop, r'$' '${index + 1}');
+          }
+        }
+
+        result = CodeExpression(
+          Block.of([
+            const Code('['),
+            for (final value in positionedProps()) ...[
+              value.code,
+              const Code(','),
+            ],
+            if (namedProps() case final props when props.isNotEmpty)
+              createMap(
+                {
+                  for (final (key, value) in namedProps()) key: value,
+                },
+              ).code,
+            const Code(']'),
+          ]),
+        );
+      }
     } else if (type.hasToJsonMember) {
       if (type.isNullable) {
         result = result.nullSafeProperty('toJson').call([]);
@@ -128,6 +191,7 @@ Expression? createHandler({
     if (type.isPrimitive ||
         type.isMap ||
         type.hasToJsonMember ||
+        type.isRecord ||
         (type.iterableType != null &&
             type.typeArguments.every((e) => e.hasToJsonMember))) {
       setBody = setBody.index(literalString('data')).assign(result);

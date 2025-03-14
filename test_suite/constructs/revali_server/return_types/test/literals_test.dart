@@ -75,9 +75,10 @@ void main() {
         path: '/api/literals/record',
       );
 
-      expect(response.statusCode, HttpStatus.internalServerError);
-      expect(response.headers.contentType?.mimeType, ContentType.text.mimeType);
-      expect(response.body, null);
+      expect(response.statusCode, 200);
+      expect(response.body, {
+        'data': ['hello', 'world'],
+      });
     });
 
     test('named-record', () async {
@@ -86,9 +87,13 @@ void main() {
         path: '/api/literals/named-record',
       );
 
-      expect(response.statusCode, HttpStatus.internalServerError);
-      expect(response.headers.contentType?.mimeType, ContentType.text.mimeType);
-      expect(response.body, null);
+      expect(response.statusCode, 200);
+      expect(response.body, {
+        'data': {
+          'first': 'hello',
+          'second': 'world',
+        },
+      });
     });
 
     test('partial-record', () async {
@@ -97,9 +102,15 @@ void main() {
         path: '/api/literals/partial-record',
       );
 
-      expect(response.statusCode, HttpStatus.internalServerError);
-      expect(response.headers.contentType?.mimeType, ContentType.text.mimeType);
-      expect(response.body, null);
+      expect(response.statusCode, 200);
+      expect(response.body, {
+        'data': [
+          'hello',
+          {
+            'second': 'world',
+          },
+        ],
+      });
     });
 
     test('list-of-strings', () async {
