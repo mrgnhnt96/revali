@@ -6,7 +6,7 @@ final class UsersImpl implements Users {
     required this.storage,
   });
 
-  final HttpClient client;
+  final RevaliClient client;
   final Storage storage;
 
   @override

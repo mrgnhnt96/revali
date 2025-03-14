@@ -2,14 +2,14 @@ part of 'implementations.dart';
 
 final class Server {
   Server({
-    Client? client,
+    HttpClient? client,
     Storage? storage,
     Uri? baseUrl,
   }) : storage = storage ?? SessionStorage() {
     final url = baseUrl?.toString() ?? 'http://localhost:8080/api';
 
-    this.client = HttpClient(
-      client: client ?? Client(),
+    this.client = RevaliClient(
+      client: client ?? HttpPackageClient(),
       baseUrl: url,
       storage: this.storage,
     );
@@ -17,7 +17,7 @@ final class Server {
     this.storage.save('__BASE_URL__', url);
   }
 
-  late final HttpClient client;
+  late final RevaliClient client;
   final Storage storage;
 
   late final Users users = UsersImpl(client: client, storage: storage);
