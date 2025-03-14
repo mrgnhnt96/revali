@@ -7,6 +7,7 @@ import 'package:change_case/change_case.dart';
 import 'package:collection/collection.dart';
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_server/converters/server_class.dart';
+import 'package:revali_server/converters/server_generic_type.dart';
 import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_lifecycle_component_method.dart';
 import 'package:revali_server/converters/server_param.dart';
@@ -26,6 +27,7 @@ class ServerLifecycleComponent with ExtractImport {
     required this.params,
     required this.import,
     required this.arguments,
+    required this.genericTypes,
   });
 
   factory ServerLifecycleComponent.fromDartObject(
@@ -100,6 +102,8 @@ class ServerLifecycleComponent with ExtractImport {
       params: params,
       import: ServerImports.fromElement(constructor.returnType.element),
       arguments: arguments,
+      genericTypes:
+          element.typeParameters.map(ServerGenericType.fromElement).toList(),
     );
   }
 
@@ -167,6 +171,7 @@ class ServerLifecycleComponent with ExtractImport {
   final String name;
   final ServerImports import;
   final AnnotationArguments arguments;
+  final List<ServerGenericType> genericTypes;
 
   bool get hasGuards => guards.isNotEmpty;
   bool get hasMiddlewares => middlewares.isNotEmpty;
@@ -183,43 +188,53 @@ class ServerLifecycleComponent with ExtractImport {
       params: [
         ServerParam(
           name: 'di',
-          type: ServerType(
-            name: 'DI',
-            hasFromJsonConstructor: false,
-            importPath: null,
-          ),
-          isNullable: false,
           isNamed: false,
           defaultValue: null,
           hasDefaultValue: false,
           importPath: ServerImports([]),
           annotations: ServerParamAnnotations.none(),
           isRequired: true,
+          type: ServerType(
+            name: 'DI',
+            hasFromJsonConstructor: false,
+            importPath: null,
+            isVoid: false,
+            reflect: null,
+            isFuture: false,
+            isStream: false,
+            iterableType: null,
+            isNullable: false,
+            isPrimitive: false,
+            isStringContent: false,
+            hasToJsonMember: false,
+            isMap: false,
+            typeArguments: [],
+            recordProps: null,
+            isRecord: false,
+          ),
         ),
         for (final arg in arguments.positional)
           ServerParam(
             name: arg.parameterName,
             type: arg.type,
-            isNullable: arg.isNullable,
             isNamed: true,
             defaultValue: null,
             hasDefaultValue: false,
             importPath: ServerImports([]),
             annotations: ServerParamAnnotations.none(),
-            isRequired: true,
+            isRequired: !arg.type.isNullable,
             argument: arg,
           ),
         for (final MapEntry(:key, value: arg) in arguments.named.entries)
           ServerParam(
             name: key,
             type: arg.type,
-            isNullable: arg.isNullable,
             isNamed: true,
             defaultValue: null,
             hasDefaultValue: false,
             importPath: ServerImports([]),
             annotations: ServerParamAnnotations.none(),
-            isRequired: true,
+            isRequired: arg.isRequired,
             argument: arg,
           ),
       ],

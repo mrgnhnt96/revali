@@ -5,6 +5,7 @@ import 'package:revali_router_core/revali_router_core.dart';
 import 'package:revali_server/converters/server_lifecycle_component.dart';
 import 'package:revali_server/makers/creators/create_constructor_parameters.dart';
 import 'package:revali_server/makers/creators/create_fields.dart';
+import 'package:revali_server/makers/creators/create_generics.dart';
 import 'package:revali_server/makers/creators/create_get_from_di.dart';
 import 'package:revali_server/makers/part_files/lifecycle_components/utils/create_component_methods.dart';
 import 'package:revali_server/makers/utils/for_in_loop.dart';
@@ -21,8 +22,9 @@ String interceptorContent(
     useField: true,
   );
 
-  final parameters = createConstructorParameters(component.arguments);
-  final fields = createFields(component.arguments);
+  final parameters = createConstructorParameters(component.params);
+  final fields = createFields(component.params);
+  final generics = createGenerics(component.genericTypes);
 
   final clazz = Class(
     (p) => p
@@ -43,6 +45,7 @@ String interceptorContent(
             ..optionalParameters.addAll(parameters),
         ),
       )
+      ..types.addAll(generics)
       ..fields.add(
         Field(
           (p) => p

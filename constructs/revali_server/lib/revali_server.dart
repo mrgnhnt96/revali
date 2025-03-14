@@ -14,6 +14,4 @@ export 'revali_server.construct.dart';
 export 'server.dart';
 export 'utils/annotation_argument.dart';
 export 'utils/annotation_arguments.dart';
-export 'utils/class_element_extensions.dart';
-export 'utils/element_extensions.dart';
 export 'utils/extract_import.dart';

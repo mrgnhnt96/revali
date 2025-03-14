@@ -7,6 +7,7 @@ import 'package:revali_server/converters/server_lifecycle_component.dart';
 import 'package:revali_server/converters/server_lifecycle_component_method.dart';
 import 'package:revali_server/makers/creators/create_constructor_parameters.dart';
 import 'package:revali_server/makers/creators/create_fields.dart';
+import 'package:revali_server/makers/creators/create_generics.dart';
 import 'package:revali_server/makers/creators/create_get_from_di.dart';
 import 'package:revali_server/makers/utils/for_in_loop.dart';
 import 'package:revali_server/makers/utils/get_params.dart';
@@ -25,8 +26,9 @@ String exceptionContent(
     useField: true,
   );
 
-  final parameters = createConstructorParameters(component.arguments);
-  final fields = createFields(component.arguments);
+  final parameters = createConstructorParameters(component.params);
+  final fields = createFields(component.params);
+  final generics = createGenerics(component.genericTypes);
 
   final groupedMethods = groupBy(methods, (e) {
     return e.exceptionType ?? 'void';
@@ -52,6 +54,7 @@ String exceptionContent(
             ..optionalParameters.addAll(parameters),
         ),
       )
+      ..types.addAll(generics)
       ..fields.add(
         Field(
           (p) => p
