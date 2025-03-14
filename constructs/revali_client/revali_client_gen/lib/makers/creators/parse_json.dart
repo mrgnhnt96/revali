@@ -65,8 +65,9 @@ Expression parseJson(ClientMethod method, String variable) {
                         ),
                       )
                       ..body = switch (method.returnType) {
-                        final e when e.isPrimitive => refer('e'),
-                        final e when e.hasFromJson => createFromJson(
+                        final e when e.isPrimitive =>
+                          refer('e').asA(refer(e.resolvedName)),
+                        final e when e.hasFromJsonConstructor => createFromJson(
                             e,
                             'e',
                             forceMapType: true,
@@ -78,7 +79,7 @@ Expression parseJson(ClientMethod method, String variable) {
                 ])
                 .property('toList')
                 .call([]),
-            final e when e.hasFromJson => createFromJson(e, 'data'),
+            final e when e.hasFromJsonConstructor => createFromJson(e, 'data'),
             final e when e.isPrimitive => refer('data'),
             _ => refer('data'),
           }
