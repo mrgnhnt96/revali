@@ -43,32 +43,38 @@ Expression? createHandler({
   if (!returnType.isVoid) {
     Expression result = refer('result');
 
-    if (!returnType.isStream && returnType.hasToJsonMember) {
-      if (returnType.iterableType != null) {
+    final type = switch (returnType) {
+      ServerType(typeArguments: [final type], :final isFuture) when isFuture =>
+        type,
+      _ => returnType,
+    };
+
+    if (type.hasToJsonMember) {
+      if (type.iterableType != null) {
         final iterates = Method(
           (p) => p
             ..requiredParameters.add(Parameter((b) => b..name = 'e'))
             ..lambda = true
-            ..body = switch (returnType.typeArguments) {
+            ..body = switch (type.typeArguments) {
               [final first] => switch (first.isNullable) {
                   true => refer('e').nullSafeProperty('toJson').call([]),
                   false => refer('e').property('toJson').call([]),
                 },
               _ => throw Exception(
-                  'Unsupported type arguments: ${returnType.typeArguments}',
+                  'Unsupported type arguments: ${type.typeArguments}',
                 ),
             }
                 .code,
         ).closure;
 
-        if (returnType.isNullable) {
+        if (type.isNullable) {
           result = result.nullSafeProperty('map');
         } else {
           result = result.property('map');
         }
 
         result = result.call([iterates]).property('toList').call([]);
-      } else if (returnType.isNullable) {
+      } else if (type.isNullable) {
         result = result.nullSafeProperty('toJson').call([]);
       } else {
         result = result.property('toJson').call([]);
@@ -77,12 +83,9 @@ Expression? createHandler({
 
     setBody = refer('context').property('response').property('body');
 
-    if (!returnType.isStream &&
-        (returnType.isPrimitive ||
-            returnType.hasToJsonMember ||
-            returnType.isMap)) {
+    if (type.isPrimitive || type.isMap || type.hasToJsonMember) {
       setBody = setBody.index(literalString('data')).assign(result);
-    } else if (returnType.isStringContent) {
+    } else if (type.isStringContent) {
       result = result.property('value');
       setBody = setBody.assign(result);
     } else {
