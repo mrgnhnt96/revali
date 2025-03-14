@@ -9,7 +9,7 @@ class AddData implements LifecycleComponent {
   }
 }
 
-class AddCustomData<T> implements LifecycleComponent {
+class AddCustomData<T extends Object> implements LifecycleComponent {
   const AddCustomData(this.data);
 
   final T data;

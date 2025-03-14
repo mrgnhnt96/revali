@@ -37,6 +37,16 @@ class LiteralsController {
     return ('hello', 'world');
   }
 
+  @Get('named-record')
+  ({String first, String second}) namedRecord() {
+    return (first: 'hello', second: 'world');
+  }
+
+  @Get('partial-record')
+  (String, {String? second}) partialRecord() {
+    return ('hello', second: 'world');
+  }
+
   @Get('list-of-strings')
   List<String> listOfStrings() {
     return ['Hello world!'];

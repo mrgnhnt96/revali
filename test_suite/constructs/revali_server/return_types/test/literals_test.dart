@@ -80,6 +80,28 @@ void main() {
       expect(response.body, null);
     });
 
+    test('named-record', () async {
+      final response = await server.send(
+        method: 'GET',
+        path: '/api/literals/named-record',
+      );
+
+      expect(response.statusCode, HttpStatus.internalServerError);
+      expect(response.headers.contentType?.mimeType, ContentType.text.mimeType);
+      expect(response.body, null);
+    });
+
+    test('partial-record', () async {
+      final response = await server.send(
+        method: 'GET',
+        path: '/api/literals/partial-record',
+      );
+
+      expect(response.statusCode, HttpStatus.internalServerError);
+      expect(response.headers.contentType?.mimeType, ContentType.text.mimeType);
+      expect(response.body, null);
+    });
+
     test('list-of-strings', () async {
       final response = await server.send(
         method: 'GET',
