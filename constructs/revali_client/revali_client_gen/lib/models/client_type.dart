@@ -1,26 +1,30 @@
 // ignore_for_file: unnecessary_parenthesis
 
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:revali_client_gen/makers/utils/extract_import.dart';
 import 'package:revali_client_gen/makers/utils/type_extensions.dart';
 import 'package:revali_client_gen/models/client_imports.dart';
+import 'package:revali_client_gen/models/client_record_prop.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router/revali_router.dart';
 
 class ClientType with ExtractImport {
   ClientType({
     required this.name,
+    required this.hasFromJsonConstructor,
     required this.import,
-    required this.isVoid,
+    required this.isNullable,
+    required this.iterableType,
+    required this.isRecord,
     required this.isStream,
     required this.isFuture,
-    required this.fullName,
-    required this.isStringContent,
+    required this.typeArguments,
+    required this.recordProps,
+    required this.isVoid,
     required this.isPrimitive,
-    required this.isIterable,
-    required this.resolvedName,
-    required this.hasFromJsonConstructor,
+    required this.isDynamic,
+    required this.isMap,
+    required this.isStringContent,
   });
 
   ClientType.map()
@@ -29,20 +33,20 @@ class ClientType with ExtractImport {
         isVoid = false,
         isStream = false,
         isFuture = false,
-        fullName = 'Map<String, dynamic>',
         isStringContent = false,
         isPrimitive = false,
-        isIterable = false,
-        resolvedName = 'Map<String, dynamic>',
-        hasFromJsonConstructor = false;
+        hasFromJsonConstructor = false,
+        isNullable = false,
+        iterableType = null,
+        isRecord = false,
+        recordProps = null,
+        isDynamic = false,
+        isMap = true,
+        typeArguments = [];
 
   factory ClientType.fromMeta(MetaType type) {
     var import =
         ClientImports([if (type.importPath case final String path) path]);
-
-    if (import.packages.isEmpty && import.paths.isNotEmpty) {
-      return ClientType.map();
-    }
 
     final (resolvedName, isStringContent) =
         switch (type.element?.name ?? type.name) {
@@ -60,55 +64,40 @@ class ClientType with ExtractImport {
       isVoid: type.isVoid,
       isStream: type.isStream,
       isFuture: type.isFuture,
-      fullName: type.name,
       isStringContent: isStringContent,
       isPrimitive: type.isPrimitive,
-      isIterable: type.iterableType != null,
-      resolvedName: resolvedName,
+      iterableType: type.iterableType,
+      isRecord: type.isRecord,
+      recordProps: type.recordProps?.map(ClientRecordProp.fromMeta).toList(),
+      isDynamic: type.isDynamic,
+      isMap: type.isMap,
       hasFromJsonConstructor: type.hasFromJsonConstructor,
+      isNullable: type.isNullable,
+      typeArguments: type.typeArguments.map(ClientType.fromMeta).toList(),
     );
   }
 
   factory ClientType.fromElement(ParameterElement element) {
-    final import = ClientImports.fromElement(element.type.element);
-
-    if (import.packages.isEmpty && import.paths.isNotEmpty) {
-      return ClientType.map();
-    }
-
-    final (resolvedName, isStringContent) =
-        switch (element.type.element?.name ?? element.type.getDisplayString()) {
-      final e when e == (StringContent).name => ('String', true),
-      final e => (e, false),
-    };
-
-    return ClientType(
-      name: element.type.getDisplayString(),
-      import: import,
-      isVoid: element.type is VoidType,
-      isStream: false,
-      isFuture: false,
-      fullName: element.type.getDisplayString(),
-      isStringContent: false,
-      isPrimitive: false,
-      isIterable: false,
-      resolvedName: resolvedName,
-      hasFromJsonConstructor:
-          element.type.element?.hasFromJsonConstructor ?? false,
-    );
+    return ClientType.fromMeta(MetaType.fromType(element.type));
   }
 
   final String name;
-  final ClientImports import;
-  final bool isVoid;
+  final bool hasFromJsonConstructor;
+  final ClientImports? import;
+  final bool isNullable;
+  final IterableType? iterableType;
+  final bool isRecord;
   final bool isStream;
   final bool isFuture;
-  final String fullName;
-  final bool isStringContent;
+  final bool isVoid;
   final bool isPrimitive;
-  final bool isIterable;
-  final String resolvedName;
-  final bool hasFromJsonConstructor;
+  final bool isMap;
+  final bool isDynamic;
+  final bool isStringContent;
+  final List<ClientType> typeArguments;
+  final List<ClientRecordProp>? recordProps;
+
+  bool get isIterable => iterableType != null;
 
   @override
   List<ExtractImport?> get extractors => [];

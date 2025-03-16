@@ -22,7 +22,7 @@ DartFile serverClientFile(
     additionalPaths: ['interfaces.dart'],
   );
 
-  return DartFile(
+  final file = DartFile(
     basename: settings.packageName,
     parts: [
       for (final controller in server.controllers)
@@ -34,4 +34,6 @@ $imports
 ''',
     segments: ['lib'],
   );
+
+  return file;
 }
