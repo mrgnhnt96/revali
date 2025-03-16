@@ -113,6 +113,18 @@ void main() {
       });
     });
 
+    test('list-of-records', () async {
+      final response = await server.send(
+        method: 'GET',
+        path: '/api/literals/list-of-records',
+      );
+
+      expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
+      expect(response.body, [
+        ('hello', 'world'),
+      ]);
+    });
+
     test('list-of-strings', () async {
       final response = await server.send(
         method: 'GET',

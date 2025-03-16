@@ -84,6 +84,8 @@ class ServerType with ExtractImport {
   final List<ServerType> typeArguments;
   final List<ServerRecordProp>? recordProps;
 
+  bool get isIterable => iterableType != null;
+
   @override
   List<ExtractImport?> get extractors => [
         ...typeArguments,

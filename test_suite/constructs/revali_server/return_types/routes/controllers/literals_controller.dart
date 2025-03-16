@@ -47,6 +47,11 @@ class LiteralsController {
     return ('hello', second: 'world');
   }
 
+  @Get('list-of-records')
+  List<(String, String)> listOfRecords() {
+    return [('hello', 'world')];
+  }
+
   @Get('list-of-strings')
   List<String> listOfStrings() {
     return ['Hello world!'];
