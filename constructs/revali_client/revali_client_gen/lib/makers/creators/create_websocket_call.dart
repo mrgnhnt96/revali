@@ -148,8 +148,11 @@ List<Code> createWebsocketCall(ClientMethod method) {
                         ),
                       )
                       .statement,
-                  const Code(''),
-                  parseJson(method, 'json').code,
+                  if (parseJson(method.returnType, 'json')
+                      case final parsed?) ...[
+                    const Code(''),
+                    parsed,
+                  ],
                 ]),
             ).closure,
           ],

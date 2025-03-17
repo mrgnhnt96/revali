@@ -10,7 +10,7 @@ Expression createJsonCase(ClientType type) {
         ClientType(isPrimitive: true) => refer(type.name),
         // named record
         ClientType(isRecord: true, recordProps: final props?)
-            when props.isNotEmpty =>
+            when props.isNotEmpty && props.first.isNamed =>
           refer('Map<dynamic, dynamic>'),
         // at least 1 positional record
         ClientType(isRecord: true) => refer('List<dynamic>'),

@@ -6,15 +6,25 @@ import 'package:revali_client_gen/models/client_record_prop.dart';
 import 'package:revali_client_gen/models/client_type.dart';
 import 'package:revali_construct/models/iterable_type.dart';
 
-// this is all sort of a mess, and it doesn't work
-Expression? createReturnTypeFromJson(ClientType provided, Expression variable) {
-  final type = switch (provided) {
-    _
-        when (provided.isFuture || provided.isStream) &&
-            provided.typeArguments.isNotEmpty =>
-      provided.typeArguments.first,
-    _ => provided,
-  };
+Expression? createReturnTypeFromJson(ClientType type, Expression variable) {
+  if (type.isStream) {
+    if (type.typeArguments.length != 1) {
+      throw Exception('Stream type must have exactly one type argument');
+    }
+
+    final typeArgument = type.typeArguments.first;
+
+    return createReturnTypeFromJson(typeArgument, variable);
+  }
+  if (type.isFuture) {
+    if (type.typeArguments.length != 1) {
+      throw Exception('Future type must have exactly one type argument');
+    }
+
+    final typeArgument = type.typeArguments.first;
+
+    return createReturnTypeFromJson(typeArgument, variable);
+  }
 
   if (type.isIterable) {
     if (type.typeArguments.length != 1) {
@@ -62,6 +72,11 @@ Expression? createReturnTypeFromJson(ClientType provided, Expression variable) {
     }
 
     Expression namedParams() {
+      var access = variable;
+      if (props.indexWhere((e) => e.isNamed) case final index when index > 0) {
+        access = variable.index(literal(index));
+      }
+
       Iterable<Code> params(ClientRecordProp prop) sync* {
         if (prop.isPositioned) return;
         final name = prop.name;
@@ -70,11 +85,12 @@ Expression? createReturnTypeFromJson(ClientType provided, Expression variable) {
         yield refer(name).code;
         yield const Code(':');
 
-        final access = variable.index(literal(name));
-        if (createReturnTypeFromJson(prop.type, access) case final fromJson?) {
+        final variableAccess = access.index(literal(name));
+        if (createReturnTypeFromJson(prop.type, variableAccess)
+            case final fromJson?) {
           yield fromJson.code;
         } else {
-          yield access.asA(refer(prop.type.name)).code;
+          yield variableAccess.asA(refer(prop.type.name)).code;
         }
         yield const Code(',');
       }
@@ -94,12 +110,12 @@ Expression? createReturnTypeFromJson(ClientType provided, Expression variable) {
     Iterable<Code> positionalParams(int index, ClientRecordProp prop) sync* {
       if (prop.isNamed) return;
 
-      final access = variable.index(literal(index + 1));
+      final access = variable.index(literal(index));
 
       if (createReturnTypeFromJson(prop.type, access) case final fromJson?) {
         yield fromJson.code;
       } else {
-        yield variable.asA(refer(prop.type.name)).code;
+        yield access.asA(refer(prop.type.name)).code;
       }
 
       yield const Code(',');
