@@ -18,14 +18,14 @@ class ClientType with ExtractImport {
     required this.isRecord,
     required this.isStream,
     required this.isFuture,
-    required this.typeArguments,
+    required List<ClientType> typeArguments,
     required this.recordProps,
     required this.isVoid,
     required this.isPrimitive,
     required this.isDynamic,
     required this.isMap,
     required this.isStringContent,
-  });
+  }) : _typeArguments = typeArguments;
 
   ClientType.map()
       : name = 'Map<String, dynamic>',
@@ -42,7 +42,7 @@ class ClientType with ExtractImport {
         recordProps = null,
         isDynamic = false,
         isMap = true,
-        typeArguments = [];
+        _typeArguments = [];
 
   factory ClientType.fromMeta(MetaType type) {
     var import =
@@ -94,8 +94,27 @@ class ClientType with ExtractImport {
   final bool isMap;
   final bool isDynamic;
   final bool isStringContent;
-  final List<ClientType> typeArguments;
+  final List<ClientType> _typeArguments;
   final List<ClientRecordProp>? recordProps;
+
+  List<ClientType> get typeArguments => List.unmodifiable([
+        for (final arg in _typeArguments) arg..parent = this,
+      ]);
+
+  ClientType? parent;
+
+  ClientType get root {
+    if (parent == null) return this;
+
+    var current = parent;
+    while (true) {
+      if (current == null) return this;
+
+      if (current.parent == null) return current;
+
+      current = current.parent;
+    }
+  }
 
   bool get isIterable => iterableType != null;
 
