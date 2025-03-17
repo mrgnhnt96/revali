@@ -44,6 +44,11 @@ Expression createJsonCase(ClientType type) {
 
   return switch (type) {
     ClientType(isStringContent: true) => result,
+    ClientType(
+      hasFromJsonConstructor: true,
+      root: ClientType(isStream: true)
+    ) =>
+      result,
     // List<int>
     ClientType(isIterable: true, typeArguments: [ClientType(name: 'int')]) =>
       result,
