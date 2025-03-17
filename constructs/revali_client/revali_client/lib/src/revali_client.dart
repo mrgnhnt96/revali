@@ -79,6 +79,8 @@ class RevaliClient {
         throw UnimplementedError('Stream body not implemented');
       // request.body = body;
       // request.headers['content-type'] = 'application/octet-stream';
+      case null:
+        break;
       default:
         request.body = jsonEncode(body);
         request.headers['content-type'] = 'application/json';
