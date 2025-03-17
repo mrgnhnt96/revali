@@ -1,4 +1,6 @@
-class User {
+import 'package:equatable/equatable.dart';
+
+class User extends Equatable {
   const User({
     required this.name,
   });
@@ -16,4 +18,7 @@ class User {
       'name': name,
     };
   }
+
+  @override
+  List<Object?> get props => [name];
 }
