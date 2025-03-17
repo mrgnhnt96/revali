@@ -1,13 +1,12 @@
 // ignore_for_file: unnecessary_parenthesis
 
 import 'package:code_builder/code_builder.dart';
-import 'package:revali_construct/models/meta_web_socket_method.dart';
-import 'package:revali_server/converters/server_record_prop.dart';
+import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_server/converters/server_route.dart';
 import 'package:revali_server/converters/server_type.dart';
+import 'package:revali_server/makers/creators/convert_to_json.dart';
 import 'package:revali_server/makers/creators/create_web_socket_handler.dart';
 import 'package:revali_server/makers/utils/get_params.dart';
-import 'package:revali_server/makers/utils/type_extensions.dart';
 
 Expression? createHandler({
   required ServerRoute route,
@@ -40,14 +39,20 @@ Expression? createHandler({
   }
 
   Expression? setBody;
-  if (!returnType.isVoid) {
+  if (returnType
+      case ServerType(isVoid: false) ||
+          ServerType(typeArguments: [ServerType(isVoid: false)])) {
     handler = declareFinal('result').assign(handler);
 
-    setBody = refer('context')
-        .property('response')
-        .property('body')
-        .index(literalString('data'))
-        .assign(createJsonSafe(returnType, refer('result')) ?? refer('result'));
+    setBody = refer('context').property('response').property('body');
+
+    final json = convertToJson(returnType, refer('result')) ?? refer('result');
+
+    if (_shouldNestInData(returnType)) {
+      setBody = setBody.index(literalString('data')).assign(json);
+    } else {
+      setBody = setBody.assign(json);
+    }
   }
 
   return Method(
@@ -74,173 +79,46 @@ Expression? createHandler({
   ).closure;
 }
 
-Expression? createJsonSafe(ServerType type, Expression result) {
-  if (type.isStream) {
-    if (type.typeArguments.length != 1) {
-      throw Exception('Unsupported stream type: $type');
-    }
-
-    final typeArg = type.typeArguments.first;
-
-    final methodBody = createJsonSafe(typeArg, refer('e'));
-
-    if (methodBody == null) {
-      return null;
-    }
-
-    return result.property('map').call([
-      Method(
-        (b) => b
-          ..lambda = true
-          ..requiredParameters.add(Parameter((p) => p.name = 'e'))
-          ..body = methodBody.code,
-      ).closure,
-    ]);
+bool _shouldNestInData(ServerType returnType) {
+  if (returnType.isStream) {
+    return false;
   }
 
-  if (type.isFuture) {
-    if (type.typeArguments.length != 1) {
-      throw Exception('Unsupported future type: $type');
-    }
+  final type = switch (returnType) {
+    ServerType(isFuture: true, typeArguments: [final type]) => type,
+    _ => returnType,
+  };
 
-    return createJsonSafe(type.typeArguments.first, result);
+  // List<int>
+  if (type
+      case ServerType(
+        iterableType: IterableType.list,
+        typeArguments: [
+          ServerType(name: 'int'),
+        ],
+      )) {
+    return false;
   }
 
-  if (type.isIterable) {
-    if (type.typeArguments.length != 1) {
-      throw Exception('Unsupported iterable type: ${type.iterableType}');
-    }
-
-    final typeArg = type.typeArguments.first;
-
-    final methodBody = createJsonSafe(typeArg, refer('e'));
-
-    if (methodBody == null) {
-      return null;
-    }
-
-    final iterates = Method(
-      (p) => p
-        ..requiredParameters.add(Parameter((b) => b..name = 'e'))
-        ..lambda = true
-        ..body = methodBody.code,
-    ).closure;
-
-    return switch (type.isNullable) {
-      true => result.nullSafeProperty('map'),
-      false => result.property('map'),
-    }
-        .call([iterates])
-        .property('toList')
-        .call([]);
-  }
-
-  if (type.isMap) {
-    if (type.typeArguments.length != 2) {
-      throw Exception('Unsupported map type');
-    }
-
-    final [keyType, valueType] = type.typeArguments;
-
-    if (!(keyType.hasToJsonMember || valueType.hasToJsonMember)) {
-      return null;
-    }
-
-    final keyMethodBody = createJsonSafe(keyType, refer('key'));
-    final valueMethodBody = createJsonSafe(valueType, refer('value'));
-
-    if (keyMethodBody == null && valueMethodBody == null) {
-      return null;
-    }
-
-    final iterates = Method(
-      (p) => p
-        ..requiredParameters.addAll(
-          [
-            Parameter((b) => b.name = 'key'),
-            Parameter((b) => b.name = 'value'),
-          ],
-        )
-        ..lambda = true
-        ..body = refer((MapEntry).name).call([
-          keyMethodBody ?? refer('key'),
-          valueMethodBody ?? refer('value'),
-        ]).code,
-    ).closure;
-
-    return result.property('map').call([iterates]);
-  }
-
-  if (type.recordProps case final props?
-      when type.isRecord && props.isNotEmpty) {
-    Expression extract(ServerRecordProp prop, String access) {
-      var extract = result.property(access);
-      if (prop.type.hasToJsonMember) {
-        if (prop.type.isNullable) {
-          extract = extract.nullSafeProperty('toJson').call([]);
-        } else {
-          extract = extract.property('toJson').call([]);
-        }
-      }
-
-      return extract;
-    }
-
-    Expression namedProps() {
-      final named = props.where((e) => e.isNamed).toList();
-
-      if (named.isEmpty) {
-        return const CodeExpression(Code(''));
-      }
-
-      return CodeExpression(
-        Block.of([
-          const Code('{'),
-          for (final prop in named)
-            if (prop.name case final String name when prop.isNamed) ...[
-              literal(name).code,
-              const Code(':'),
-              extract(prop, name).code,
-              const Code(','),
+  // List<List<int>>
+  if (type
+      case ServerType(
+        iterableType: IterableType.list,
+        typeArguments: [
+          ServerType(
+            iterableType: IterableType.list,
+            typeArguments: [
+              ServerType(isPrimitive: true),
             ],
-          const Code('}'),
-        ]),
-      );
-    }
-
-    if (props.first.isNamed) {
-      // all props are named
-      return namedProps();
-    } else {
-      Iterable<Expression> positionedProps() sync* {
-        for (final (index, prop) in props.indexed) {
-          if (prop.isNamed) continue;
-
-          yield extract(prop, r'$' '${index + 1}');
-        }
-      }
-
-      return CodeExpression(
-        Block.of([
-          const Code('['),
-          for (final value in positionedProps()) ...[
-            value.code,
-            const Code(','),
-          ],
-          namedProps().code,
-          const Code(']'),
-        ]),
-      );
-    }
+          ),
+        ],
+      )) {
+    return false;
   }
 
-  if (type.hasToJsonMember) {
-    if (type.isNullable) {
-      return result.nullSafeProperty('toJson').call([]);
-    } else {
-      return result.property('toJson').call([]);
-    }
+  if (type.isStringContent) {
+    return false;
   }
 
-  return null;
+  return true;
 }
