@@ -1,13 +1,12 @@
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:client/client.dart';
 import 'package:http/http.dart';
-import 'package:revali_client/revali_client.dart';
 import 'package:revali_test/revali_test.dart';
 import 'package:test/test.dart';
 
 import '../.revali/server/server.dart';
+import 'utils.dart';
 
 void main() {
   group(
@@ -31,44 +30,140 @@ void main() {
         server.close();
       });
 
+      void verifyGetRequest(String path) {
+        expect(request?.url.path, path);
+        expect(request?.headers, isEmpty);
+        expect(request?.body, isEmpty);
+        expect(request?.method, 'GET');
+      }
+
       test('data-string', () async {
         final response = await client.literals.dataString();
 
-        expect(response, isNotNull);
-        expect(request, isNotNull);
+        expect(response, 'Hello world!');
+        verifyGetRequest('/api/literals/data-string');
+      });
+
+      test('string', () async {
+        final response = await client.literals.string();
+
+        expect(response, 'Hello world!');
+        verifyGetRequest('/api/literals/string');
+      });
+
+      test('bool', () async {
+        final response = await client.literals.boolean();
+
+        expect(response, true);
+        verifyGetRequest('/api/literals/bool');
+      });
+
+      test('int', () async {
+        final response = await client.literals.integer();
+
+        expect(response, 1);
+        verifyGetRequest('/api/literals/int');
+      });
+
+      test('double', () async {
+        final response = await client.literals.dub();
+
+        expect(response, 1);
+        verifyGetRequest('/api/literals/double');
+      });
+
+      test('record', () async {
+        final response = await client.literals.record();
+
+        expect(response, ('hello', 'world'));
+        verifyGetRequest('/api/literals/record');
+      });
+
+      test('named-record', () async {
+        final response = await client.literals.namedRecord();
+
+        expect(response, (first: 'hello', second: 'world'));
+        verifyGetRequest('/api/literals/named-record');
+      });
+
+      test('partial-record', () async {
+        final response = await client.literals.partialRecord();
+
+        expect(response, ('hello', second: 'world'));
+        verifyGetRequest('/api/literals/partial-record');
+      });
+
+      test('list-of-records', () async {
+        final response = await client.literals.listOfRecords();
+
+        expect(response, [('hello', 'world')]);
+        verifyGetRequest('/api/literals/list-of-records');
+      });
+
+      test('list-of-strings', () async {
+        final response = await client.literals.listOfStrings();
+
+        expect(response, ['Hello world!']);
+        verifyGetRequest('/api/literals/list-of-strings');
+      });
+
+      test('list-of-maps', () async {
+        final response = await client.literals.listOfMaps();
+
+        expect(response, [
+          {'hello': 1},
+        ]);
+        verifyGetRequest('/api/literals/list-of-maps');
+      });
+
+      test('map-string-dynamic', () async {
+        final response = await client.literals.map();
+
+        expect(response, {'hello': 1});
+        verifyGetRequest('/api/literals/map-string-dynamic');
+      });
+
+      test('map-dynamic-dynamic', () async {
+        final response = await client.literals.dynamicMap();
+
+        expect(response, {'true': true});
+        verifyGetRequest('/api/literals/map-dynamic-dynamic');
+      });
+
+      test('set', () async {
+        final response = await client.literals.set();
+
+        expect(response, {'Hello world!'});
+        verifyGetRequest('/api/literals/set');
+      });
+
+      test('iterable', () async {
+        final response = await client.literals.iterable();
+
+        expect(response, ['Hello world!']);
+        verifyGetRequest('/api/literals/iterable');
+      });
+
+      test('stream-string', () async {
+        final response = await client.literals.stream().join();
+
+        expect(response, 'Hello world!');
+        verifyGetRequest('/api/literals/stream-string');
+      });
+
+      test('bytes', () async {
+        final response = await client.literals.bytes();
+
+        expect(response, [utf8.encode('Hello world!')]);
+        verifyGetRequest('/api/literals/bytes');
+      });
+
+      test('stream-bytes', () async {
+        final response = await client.literals.streamBytes().toList();
+
+        expect(response, [utf8.encode('Hello world!')]);
+        verifyGetRequest('/api/literals/stream-bytes');
       });
     },
-    skip: true,
   );
-}
-
-final class TestClient implements HttpClient {
-  TestClient(this.server, this.onRequest);
-
-  final TestServer server;
-  final void Function(Request) onRequest;
-
-  @override
-  Future<StreamedResponse> send(Request request) async {
-    onRequest(request);
-
-    final response = await server.send(
-      method: request.method,
-      path: request.url.path,
-      headers: request.headers.map(
-        (key, value) => MapEntry(key, value.split(',')),
-      ),
-      body: request.body,
-    );
-
-    return StreamedResponse(
-      Stream.value(utf8.encode(jsonEncode(response.body))),
-      response.statusCode,
-      headers: response.headers.values,
-      contentLength: response.contentLength,
-      request: request,
-      persistentConnection: response.persistentConnection,
-      reasonPhrase: response.reasonPhrase,
-    );
-  }
 }
