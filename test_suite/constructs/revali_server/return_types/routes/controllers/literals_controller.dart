@@ -57,6 +57,13 @@ class LiteralsController {
     return ['Hello world!'];
   }
 
+  @Get('list-of-maps')
+  List<Map<String, dynamic>> listOfMaps() {
+    return [
+      {'hello': 1},
+    ];
+  }
+
   @Get('map-string-dynamic')
   Map<String, dynamic> map() {
     return {'hello': 1};

@@ -120,9 +120,11 @@ void main() {
       );
 
       expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
-      expect(response.body, [
-        ('hello', 'world'),
-      ]);
+      expect(response.body, {
+        'data': [
+          ['hello', 'world'],
+        ],
+      });
     });
 
     test('list-of-strings', () async {
@@ -132,7 +134,23 @@ void main() {
       );
 
       expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
-      expect(response.body, ['Hello world!']);
+      expect(response.body, {
+        'data': ['Hello world!'],
+      });
+    });
+
+    test('list-of-maps', () async {
+      final response = await server.send(
+        method: 'GET',
+        path: '/api/literals/list-of-maps',
+      );
+
+      expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
+      expect(response.body, {
+        'data': [
+          {'hello': 1},
+        ],
+      });
     });
 
     test('map-string-dynamic', () async {
@@ -166,7 +184,9 @@ void main() {
       );
 
       expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
-      expect(response.body, ['Hello world!']);
+      expect(response.body, {
+        'data': ['Hello world!'],
+      });
     });
 
     test('iterable', () async {
@@ -176,7 +196,9 @@ void main() {
       );
 
       expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
-      expect(response.body, ['Hello world!']);
+      expect(response.body, {
+        'data': ['Hello world!'],
+      });
     });
 
     test('stream-string', () async {
