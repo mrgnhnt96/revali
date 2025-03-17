@@ -8,7 +8,14 @@ Hook main() {
         commands: (files) => ['sip run barrel --set-exit-if-changed'],
       ),
       ShellTask.always(
-        commands: (files) => ['sip test --recursive --bail --concurrent'],
+        commands: (files) {
+          const test = 'sip test --recursive --bail --concurrent';
+          return [
+            'cd constructs && $test',
+            'cd packages && $test',
+            'cd revali_router && $test',
+          ];
+        },
       ),
       ShellTask.always(
         commands: (files) => ['sip run test-suite'],
