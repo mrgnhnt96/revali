@@ -1,7 +1,24 @@
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_client_gen/models/client_type.dart';
 
-Expression createJsonCase(ClientType type, {required bool isWebsocket}) {
+Expression createJsonCase(ClientType type) {
+  Expression data(ClientType type) {
+    return declareFinal(
+      'data',
+      type: switch (type) {
+        ClientType(isIterable: true) => refer('List<dynamic>'),
+        ClientType(isPrimitive: true) => refer(type.name),
+        // named record
+        ClientType(isRecord: true, recordProps: final props?)
+            when props.isNotEmpty =>
+          refer('Map<dynamic, dynamic>'),
+        // at least 1 positional record
+        ClientType(isRecord: true) => refer('List<dynamic>'),
+        _ => refer('Map<dynamic, dynamic>'),
+      },
+    );
+  }
+
   if (type.isFuture) {
     if (type.typeArguments.length != 1) {
       throw Exception('Future must have exactly one type argument');
@@ -9,7 +26,7 @@ Expression createJsonCase(ClientType type, {required bool isWebsocket}) {
 
     final typeArgument = type.typeArguments.first;
 
-    return createJsonCase(typeArgument, isWebsocket: isWebsocket);
+    return createJsonCase(typeArgument);
   }
 
   if (type.isStream) {
@@ -19,21 +36,25 @@ Expression createJsonCase(ClientType type, {required bool isWebsocket}) {
 
     final typeArgument = type.typeArguments.first;
 
-    return createJsonCase(typeArgument, isWebsocket: isWebsocket);
+    return data(typeArgument);
   }
 
-  final data = declareFinal(
-    'data',
-    type: switch (type) {
-      final e when e.isIterable => refer('List<dynamic>'),
-      final e when e.isPrimitive => refer(e.name),
-      _ => refer('Map<dynamic, dynamic>'),
-    },
-  );
+  final result = data(type);
+  final dataNested = literalMap({'data': result});
 
-  if (type.isStringContent) {
-    return data;
-  }
-
-  return literalMap({'data': data});
+  return switch (type) {
+    ClientType(isStringContent: true) => result,
+    // List<int>
+    ClientType(isIterable: true, typeArguments: [ClientType(name: 'int')]) =>
+      result,
+    // List<List<int>>
+    ClientType(
+      isIterable: true,
+      typeArguments: [
+        ClientType(isIterable: true, typeArguments: [ClientType(name: 'int')])
+      ]
+    ) =>
+      result,
+    _ => dataNested,
+  };
 }

@@ -17,11 +17,13 @@ Expression parseJson(ClientMethod method, String variable) {
   }
 
   if (method.returnType.isStream && method.returnType.isPrimitive) {
-    return CodeExpression(
-      createReturnTypeFromJson(method.returnType, refer(variable))
-          .returned
-          .statement,
-    );
+    final fromJson = switch (
+        createReturnTypeFromJson(method.returnType, refer(variable))) {
+      final e? => e,
+      _ => refer(variable)
+    };
+
+    return CodeExpression(fromJson.returned.statement);
   }
 
   return CodeExpression(
@@ -30,13 +32,14 @@ Expression parseJson(ClientMethod method, String variable) {
         ifStatement(
           refer('jsonDecode').call([refer(variable)]),
           pattern: (
-            cse: createJsonCase(
-              method.returnType,
-              isWebsocket: method.isWebsocket,
-            ),
+            cse: createJsonCase(method.returnType),
             when: null,
           ),
-          body: createReturnTypeFromJson(method.returnType, refer('data'))
+          body: switch (
+                  createReturnTypeFromJson(method.returnType, refer('data'))) {
+            final e? => e,
+            _ => refer('data')
+          }
               .returned
               .statement,
         ).code,
