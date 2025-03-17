@@ -44,7 +44,7 @@ class TestResponse implements HttpResponse {
       };
 
   dynamic _decode(List<int> data) {
-    final decoded = utf8.decode(data);
+    final decoded = encoding.decode(data);
     try {
       return jsonDecode(decoded);
     } catch (_) {}
