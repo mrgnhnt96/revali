@@ -17,7 +17,7 @@ void main() {
       server.close();
     });
 
-    test('returns user successfully', () async {
+    test('user', () async {
       final response = await server.send(
         method: 'GET',
         path: '/api/custom/types/user',
@@ -29,7 +29,7 @@ void main() {
       });
     });
 
-    test('returns future user successfully', () async {
+    test('future-user', () async {
       final response = await server.send(
         method: 'GET',
         path: '/api/custom/types/future-user',
@@ -41,7 +41,7 @@ void main() {
       });
     });
 
-    test('returns stream user successfully', () async {
+    test('stream-user', () async {
       final response = await server.send(
         method: 'GET',
         path: '/api/custom/types/stream-user',
@@ -51,7 +51,7 @@ void main() {
       expect(response.body, {'name': 'Hello world!'});
     });
 
-    test('returns list of users successfully', () async {
+    test('list-of-users', () async {
       final response = await server.send(
         method: 'GET',
         path: '/api/custom/types/list-of-users',
@@ -65,7 +65,7 @@ void main() {
       });
     });
 
-    test('returns future list of users successfully', () async {
+    test('future-list-of-users', () async {
       final response = await server.send(
         method: 'GET',
         path: '/api/custom/types/future-list-of-users',
@@ -79,7 +79,7 @@ void main() {
       });
     });
 
-    test('returns map of users successfully', () async {
+    test('map-of-users', () async {
       final response = await server.send(
         method: 'GET',
         path: '/api/custom/types/map-of-users',
@@ -93,7 +93,7 @@ void main() {
       });
     });
 
-    test('returns future map of users successfully', () async {
+    test('future-map-of-users', () async {
       final response = await server.send(
         method: 'GET',
         path: '/api/custom/types/future-map-of-users',
@@ -107,7 +107,7 @@ void main() {
       });
     });
 
-    test('returns record of users successfully', () async {
+    test('record-of-users', () async {
       final response = await server.send(
         method: 'GET',
         path: '/api/custom/types/record-of-users',
@@ -122,7 +122,7 @@ void main() {
       });
     });
 
-    test('returns partial record of users successfully', () async {
+    test('partial-record-of-users', () async {
       final response = await server.send(
         method: 'GET',
         path: '/api/custom/types/partial-record-of-users',
@@ -139,7 +139,7 @@ void main() {
       });
     });
 
-    test('returns future record of users successfully', () async {
+    test('future-record-of-users', () async {
       final response = await server.send(
         method: 'GET',
         path: '/api/custom/types/future-record-of-users',
