@@ -1,0 +1,11 @@
+name: revali_client_test
+
+environment:
+  sdk: ">=3.6.0 <4.0.0"
+
+dependencies:
+  http: ^1.3.0
+  revali_client:
+    path: ../revali_client
+  revali_test:
+    path: ../../../packages/revali_test

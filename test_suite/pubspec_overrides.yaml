@@ -21,3 +21,5 @@ dependency_overrides:
     path: ../constructs/revali_client/revali_client
   revali_client_gen:
     path: ../constructs/revali_client/revali_client_gen
+  revali_client_test:
+    path: ../constructs/revali_client/revali_client_test
