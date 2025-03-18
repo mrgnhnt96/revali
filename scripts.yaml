@@ -163,6 +163,23 @@ test-suite:
     - (+) {$test-suite:revali_server}
     - (+) {$test-suite:revali_client}
 
+  _pubspec:
+    comment-out: |
+      # get the line number of the first line that contains 'path: .revali/*'
+      LINE_NUMBER=$(grep -n "path: .revali/*" pubspec.yaml | cut -d: -f1)
+
+      # comment out the line and the preceding line
+      sed -i '' "$((LINE_NUMBER))s/^/#/" pubspec.yaml
+      sed -i '' "$((LINE_NUMBER - 1))s/^/#/" pubspec.yaml
+
+    uncomment: |
+      # get the line number of the first line that contains 'path: .revali/*'
+      LINE_NUMBER=$(grep -n "path: .revali/*" pubspec.yaml | cut -d: -f1)
+
+      # uncomment the line and the preceding line
+      sed -i '' "$((LINE_NUMBER))s/^#//" pubspec.yaml
+      sed -i '' "$((LINE_NUMBER - 1))s/^#//" pubspec.yaml
+
   revali_client:
     (aliases): client
     (command):
@@ -171,9 +188,13 @@ test-suite:
     _package: |
       cd test_suite/constructs/revali_client/$DIR || exit 1
 
+      {$test-suite:_pubspec:comment-out}
+
       if [ -z {--skip} ]; then
         dart run revali dev --generate-only --recompile
       fi
+
+      {$test-suite:_pubspec:uncomment}
 
       if [ ! $? = 0 ]; then
         echo "failed to generate revali code"
