@@ -167,6 +167,7 @@ test-suite:
     (aliases): client
     (command):
       - (+) {$test-suite:revali_client:return-types}
+      - (+) {$test-suite:revali_client:methods}
     _package: |
       cd test_suite/constructs/revali_client/$DIR || exit 1
 
@@ -183,6 +184,9 @@ test-suite:
 
     return-types: |
       DIR=return_types
+      {$test-suite:revali_client:_package}
+    methods: |
+      DIR=methods
       {$test-suite:revali_client:_package}
 
   revali_server:
