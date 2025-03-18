@@ -1,5 +1,5 @@
-import 'package:client/client.dart';
 import 'package:http/http.dart';
+import 'package:revali_client_return_types/revali_client_return_types.dart';
 import 'package:revali_client_return_types_test/models/user.dart';
 import 'package:revali_client_test/test_client.dart';
 import 'package:revali_test/revali_test.dart';
