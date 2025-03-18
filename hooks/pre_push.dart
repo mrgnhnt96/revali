@@ -17,20 +17,25 @@ Hook main() {
           ];
         },
       ),
-      ShellTask.always(
-        commands: (files) => ['sip run test-suite'],
+      SequentialTasks.always(
+        tasks: [
+          ShellTask.always(
+            commands: (files) => ['sip run test-suite'],
+          ),
+          ShellTask(
+            include: [AllFiles()],
+            commands: (files) {
+              final nonGenGlob = Glob('**.g.dart');
+              final nonGeneratedFiles =
+                  files.where((e) => !nonGenGlob.matches(e));
+              return ['dart analyze ${nonGeneratedFiles.join(' ')}'];
+            },
+          ),
+        ],
       ),
       ShellTask(
         include: [AllFiles()],
         commands: (files) => ['dart format $files --set-exit-if-changed'],
-      ),
-      ShellTask(
-        include: [AllFiles()],
-        commands: (files) {
-          final nonGenGlob = Glob('**.g.dart');
-          final nonGeneratedFiles = files.where((e) => !nonGenGlob.matches(e));
-          return ['dart analyze ${nonGeneratedFiles.join(' ')}'];
-        },
       ),
     ],
   );
