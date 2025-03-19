@@ -45,6 +45,13 @@ Spec createServerContent(ClientServer client, Settings settings) {
                     ..type = refer('${(Uri).name}?')
                     ..name = 'baseUrl',
                 ),
+                if (client.hasWebsockets)
+                  Parameter(
+                    (b) => b
+                      ..named = true
+                      ..type = refer('WebSocketConnect?')
+                      ..name = 'websocket',
+                  ),
               ],
             )
             ..initializers.add(
@@ -80,6 +87,15 @@ Spec createServerContent(ClientServer client, Settings settings) {
               refer('this').property('storage').property('save').call(
                 [literal('__BASE_URL__'), refer('url')],
               ).statement,
+              const Code(''),
+              refer('this')
+                  .property('websocket')
+                  .assign(
+                    refer('websocket').ifNullThen(
+                      refer('WebSocketChannel').property('connect'),
+                    ),
+                  )
+                  .statement,
             ]),
         ),
       )
@@ -99,6 +115,14 @@ Spec createServerContent(ClientServer client, Settings settings) {
             ..type = refer('${(Storage).name}')
             ..name = 'storage',
         ),
+        if (client.hasWebsockets)
+          Field(
+            (b) => b
+              ..late = true
+              ..modifier = FieldModifier.final$
+              ..type = refer('WebSocketConnect')
+              ..name = 'websocket',
+          ),
       ])
       ..fields.addAll([
         for (final controller in client.controllers)
@@ -112,6 +136,7 @@ Spec createServerContent(ClientServer client, Settings settings) {
                   refer(controller.implementationName).newInstance([], {
                 'client': refer('client'),
                 'storage': refer('storage'),
+                if (controller.hasWebsockets) 'websocket': refer('websocket'),
               }).code,
           ),
       ])

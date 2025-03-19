@@ -8,3 +8,4 @@ export 'src/test_headers.dart';
 export 'src/test_request.dart';
 export 'src/test_response.dart';
 export 'src/test_server.dart';
+export 'src/test_socket.dart';

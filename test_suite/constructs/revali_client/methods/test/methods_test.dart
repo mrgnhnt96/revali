@@ -1,6 +1,6 @@
 import 'package:http/http.dart';
 import 'package:revali_client_methods/revali_client_methods.dart';
-import 'package:revali_client_test/test_client.dart';
+import 'package:revali_client_test/revali_client_test.dart';
 import 'package:revali_test/revali_test.dart';
 import 'package:test/test.dart';
 

@@ -1,14 +1,19 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
-import 'package:revali_test/src/test_headers.dart';
+import 'package:revali_test/revali_test.dart';
 
 class TestResponse implements HttpResponse {
   TestResponse({
     required this.onClose,
+    this.webSocketInput,
+    this.onWebSocketMessage,
   });
 
   final void Function(TestResponse response) onClose;
+  final Stream<Uint8List>? webSocketInput;
+  final void Function(List<int>)? onWebSocketMessage;
 
   @override
   bool bufferOutput = false;
@@ -81,8 +86,11 @@ class TestResponse implements HttpResponse {
   Never get cookies => throw UnimplementedError();
 
   @override
-  Never detachSocket({bool writeHeaders = true}) {
-    throw UnimplementedError();
+  Future<Socket> detachSocket({bool writeHeaders = true}) async {
+    return TestSocket(
+      input: webSocketInput,
+      onWebSocketMessage: onWebSocketMessage,
+    );
   }
 
   @override

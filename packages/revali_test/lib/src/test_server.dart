@@ -5,9 +5,12 @@ import 'package:revali_test/src/test_request.dart';
 import 'package:revali_test/src/test_response.dart';
 
 class TestServer extends Stream<HttpRequest> implements HttpServer {
-  TestServer() : _controller = StreamController<HttpRequest>.broadcast();
+  TestServer()
+      : _controller = StreamController.broadcast(),
+        _webSocketResponses = StreamController.broadcast();
 
   final StreamController<HttpRequest> _controller;
+  final StreamController<List<int>> _webSocketResponses;
   Completer<TestResponse>? _response;
 
   Future<TestResponse> send({
@@ -28,6 +31,7 @@ class TestServer extends Stream<HttpRequest> implements HttpServer {
       path: path,
       headers: headers,
       body: body,
+      onWebSocketMessage: _webSocketResponses.add,
       onResponse: (response) {
         _response?.complete(response);
       },
@@ -42,9 +46,39 @@ class TestServer extends Stream<HttpRequest> implements HttpServer {
     return _response!.future;
   }
 
+  Stream<List<int>> connect({
+    required String method,
+    required String path,
+    Map<String, List<String>>? headers,
+    Map<String, String> cookies = const {},
+    Stream<List<int>>? body,
+  }) {
+    headers ??= {};
+    if (cookies.isEmpty) {
+      headers[HttpHeaders.cookieHeader] =
+          cookies.entries.map((e) => '${e.key}=${e.value};').toList();
+    }
+
+    final request = TestRequest(
+      method: method,
+      path: path,
+      headers: headers,
+      body: body,
+      onWebSocketMessage: _webSocketResponses.add,
+      onResponse: (response) {
+        _response?.complete(response);
+      },
+    );
+
+    _controller.add(request);
+
+    return _webSocketResponses.stream;
+  }
+
   @override
   Future<void> close({bool force = false}) async {
     await _controller.close();
+    await _webSocketResponses.close();
   }
 
   @override
@@ -81,6 +115,8 @@ class TestServer extends Stream<HttpRequest> implements HttpServer {
       cancelOnError: cancelOnError,
     );
   }
+
+  Stream<dynamic> get webSocketResponses => _webSocketResponses.stream;
 
   @override
   int get port => 8080;

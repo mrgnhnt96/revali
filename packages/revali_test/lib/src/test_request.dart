@@ -11,17 +11,34 @@ class TestRequest extends Stream<Uint8List> implements HttpRequest {
     required this.method,
     required this.path,
     required this.onResponse,
+    required this.onWebSocketMessage,
     Map<String, List<String>> headers = const {},
     Object? body,
-  })  : _headers = headers,
-        _body = body;
+  }) : _headers = headers {
+    if (body is Stream) {
+      _webSocketInput = switch (body) {
+        Stream<Uint8List>() => body,
+        Stream<List<int>>() => body.map(Uint8List.fromList),
+        _ => throw Exception(
+            'Invalid body type, expected Stream<List<int>>, got $body',
+          ),
+      };
+
+      _body = null;
+    } else {
+      _body = body;
+      _webSocketInput = null;
+    }
+  }
 
   @override
   final String method;
   final String path;
   final Map<String, List<String>> _headers;
-  final Object? _body;
+  late final Object? _body;
+  late final Stream<Uint8List>? _webSocketInput;
   final void Function(TestResponse response) onResponse;
+  final void Function(List<int>)? onWebSocketMessage;
 
   @override
   X509Certificate? get certificate => throw UnimplementedError();
@@ -60,7 +77,6 @@ class TestRequest extends Stream<Uint8List> implements HttpRequest {
   }
 
   @override
-  @override
   bool get persistentConnection => throw UnimplementedError();
 
   @override
@@ -72,6 +88,8 @@ class TestRequest extends Stream<Uint8List> implements HttpRequest {
   @override
   HttpResponse get response => TestResponse(
         onClose: onResponse,
+        webSocketInput: _webSocketInput,
+        onWebSocketMessage: onWebSocketMessage,
       );
 
   @override

@@ -30,10 +30,20 @@ Spec createImplContent(ClientController controller) {
                   ..named = true
                   ..required = true,
               ),
+              if (controller.hasWebsockets)
+                Parameter(
+                  (b) => b
+                    ..name = 'websocket'
+                    ..type = refer('WebSocketConnect')
+                    ..named = true
+                    ..required = true,
+                ),
             ])
             ..initializers.addAll([
               refer('_client').assign(refer('client')).code,
               refer('_storage').assign(refer('storage')).code,
+              if (controller.hasWebsockets)
+                refer('_websocket').assign(refer('websocket')).code,
             ]),
         ),
       )
@@ -50,6 +60,13 @@ Spec createImplContent(ClientController controller) {
             ..name = '_storage'
             ..type = refer((Storage).name),
         ),
+        if (controller.hasWebsockets)
+          Field(
+            (b) => b
+              ..modifier = FieldModifier.final$
+              ..name = '_websocket'
+              ..type = refer('WebSocketConnect'),
+          ),
       ])
       ..methods.addAll(controller.methods.map(createImplMethod)),
   );

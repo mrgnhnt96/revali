@@ -61,8 +61,7 @@ List<Code> createWebsocketCall(ClientMethod method) {
     const Code(''),
     declareFinal('channel')
         .assign(
-          refer('WebSocketChannel').newInstanceNamed(
-            'connect',
+          refer('_websocket').call(
             [
               refer((Uri).name).newInstanceNamed(
                 'parse',
