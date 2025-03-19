@@ -7,6 +7,7 @@ environment:
 workspace:
   - constructs/revali_client/return_types
   - constructs/revali_client/methods
+  - constructs/revali_client/websockets
   - constructs/revali_server/methods
   - constructs/revali_server/return_types
   - constructs/revali_server/middleware

@@ -1,40 +1,30 @@
 // ignore_for_file: unnecessary_parenthesis
 
 import 'package:code_builder/code_builder.dart';
-import 'package:revali_client_gen/makers/creators/create_body_arg.dart';
+import 'package:revali_client_gen/makers/creators/convert_to_json.dart';
 import 'package:revali_client_gen/makers/creators/parse_json.dart';
+import 'package:revali_client_gen/makers/creators/should_decode_json.dart';
 import 'package:revali_client_gen/makers/utils/binary_expression_extensions.dart';
 import 'package:revali_client_gen/makers/utils/client_param_extensions.dart';
 import 'package:revali_client_gen/makers/utils/create_switch_pattern.dart';
 import 'package:revali_client_gen/makers/utils/type_extensions.dart';
 import 'package:revali_client_gen/models/client_method.dart';
-import 'package:revali_client_gen/models/client_param.dart';
+import 'package:revali_client_gen/models/client_type.dart';
 
 List<Code> createWebsocketCall(ClientMethod method) {
   final (
-    body: bodyParts,
+    body: _,
     query: queries,
     headers: _,
     cookies: _,
   ) = method.parameters.separate;
 
-  ClientParam? body;
-  if (method.websocketType.canSendAny) {
-    final roots = bodyParts.roots();
-    for (final e in bodyParts) {
-      if (!bodyParts.needsAssignment(e, roots)) {
-        continue;
-      }
-
-      if (body != null) {
-        throw Exception(
-          'Cannot have multiple body params for a WebSocket call',
-        );
-      }
-
-      body = e;
-    }
-  }
+  final body = method.websocketBody;
+  final bodyType = switch (body?.type) {
+    ClientType(isStream: true, typeArguments: [final type]) => type,
+    null => null,
+    _ => throw Exception('Invalid body type'),
+  };
 
   StringBuffer? queryBuffer;
   for (final param in queries) {
@@ -84,23 +74,24 @@ List<Code> createWebsocketCall(ClientMethod method) {
         .statement,
     refer('channel').property('ready').awaited.statement,
     const Code(''),
-    if (body case final body?) ...[
+    if ((body, bodyType) case (final body?, final bodyType?)) ...[
       declareFinal('payloadListener')
           .assign(
             refer(body.name)
                 .property('map')
                 .call([
-                  Method(
-                    (b) => b
-                      ..lambda = true
-                      ..requiredParameters
-                          .add(Parameter((b) => b..name = body.name))
-                      ..body = refer('utf8').property('encode').call([
-                        refer('jsonEncode').call([
-                          createBodyArg([body]),
-                        ]),
-                      ]).code,
-                  ).closure,
+                  if (encodeJson(bodyType, 'e') case final encode?)
+                    Method(
+                      (b) => b
+                        ..lambda = true
+                        ..requiredParameters
+                            .add(Parameter((b) => b..name = 'e'))
+                        ..body = refer('utf8')
+                            .property('encode')
+                            .call([encode]).code,
+                    ).closure
+                  else
+                    refer('utf8').property('encode'),
                 ])
                 .property('listen')
                 .call([
@@ -113,55 +104,47 @@ List<Code> createWebsocketCall(ClientMethod method) {
           .statement,
       const Code(''),
     ],
-    refer('channel')
-        .property('stream')
-        .property('map')
-        .call(
-          [
-            Method(
-              (b) => b
-                ..requiredParameters.add(
-                  Parameter((b) => b..name = 'event'),
-                )
-                ..body = Block.of([
-                  declareFinal('json')
-                      .assign(
-                        createSwitchPattern(
-                          refer('event'),
-                          {
-                            const Code('String()'): refer('event'),
-                            const Code('List<int>()'):
-                                refer('utf8').property('decode').call([
-                              refer('List<int>')
-                                  .newInstanceNamed('from', [refer('event')]),
-                            ]),
-                            const Code('_'):
-                                refer('UnsupportedError').newInstance(
-                              [
-                                literalString(
-                                  'Unsupported message type: '
-                                  r'${event.runtimeType}',
-                                ),
-                              ],
-                            ).thrown,
-                          },
-                        ),
-                      )
-                      .statement,
-                  if (parseJson(method.returnType, 'json')
-                      case final parsed?) ...[
-                    const Code(''),
-                    parsed,
-                  ],
-                ]),
-            ).closure,
-          ],
-        )
-        .yieldedStar
-        .statement,
+    channel(method.returnType).yieldedStar.statement,
     const Code(''),
     if (body case Object()) ...[
       refer('payloadListener').property('cancel').call([]).awaited.statement,
     ],
   ];
+}
+
+Expression? encodeJson(ClientType type, String variable) {
+  final toJson = convertToJson(type, refer(variable));
+
+  if (shouldDecodeJson(type) case false) {
+    return toJson;
+  }
+
+  return refer('jsonEncode').call([toJson ?? refer(variable)]);
+}
+
+Expression channel(ClientType type) {
+  final channel = refer('channel').property('stream');
+
+  final event = switch (type) {
+    ClientType(isStringContent: true) => refer('event'),
+    _ => refer('utf8').property('decode').call([refer('event')]),
+  };
+
+  final fromJson = parseJson(type, event);
+
+  if (fromJson == null) {
+    return channel.property('cast').call([]);
+  }
+
+  return channel.property('map').call(
+    [
+      Method(
+        (b) => b
+          ..requiredParameters.add(
+            Parameter((b) => b..name = 'event'),
+          )
+          ..body = fromJson,
+      ).closure,
+    ],
+  );
 }

@@ -20,7 +20,7 @@ List<Code> createFutureCall(ClientMethod method) {
     _ => false,
   };
 
-  final fromJson = parseJson(returnType, 'body');
+  final fromJson = parseJson(returnType, refer('body'));
 
   final body = refer('response')
       .property('transform')

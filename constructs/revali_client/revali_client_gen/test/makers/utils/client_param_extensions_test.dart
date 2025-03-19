@@ -32,10 +32,10 @@ void main() {
           isDynamic: false,
           isMap: false,
           typeArguments: [],
+          hasToJsonMember: false,
         ),
-        nullable: false,
         access: access,
-        acceptList: false,
+        acceptMultiple: false,
       );
     }
 

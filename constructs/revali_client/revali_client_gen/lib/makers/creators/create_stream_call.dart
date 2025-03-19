@@ -22,7 +22,7 @@ List<Code> createStreamCall(ClientMethod method) {
     _ => refer('response').property('transform').call([refer('utf8.decoder')]),
   };
 
-  final fromJson = parseJson(typeArgument, 'event');
+  final fromJson = parseJson(typeArgument, refer('event'));
 
   Expression mapOver(Expression variable) {
     return variable.property('map').call([

@@ -30,6 +30,7 @@ void main() {
           isDynamic: false,
           isMap: false,
           typeArguments: [],
+          hasToJsonMember: false,
         ),
         isSse: false,
         websocketType: WebsocketType.none,

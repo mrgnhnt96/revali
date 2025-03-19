@@ -1,9 +1,11 @@
 import 'package:change_case/change_case.dart';
+import 'package:revali_client_gen/enums/parameter_position.dart';
 import 'package:revali_client_gen/makers/utils/client_param_extensions.dart';
 import 'package:revali_client_gen/makers/utils/extract_import.dart';
 import 'package:revali_client_gen/models/client_imports.dart';
 import 'package:revali_client_gen/models/client_lifecycle_component.dart';
 import 'package:revali_client_gen/models/client_param.dart';
+import 'package:revali_client_gen/models/client_record_prop.dart';
 import 'package:revali_client_gen/models/client_type.dart';
 import 'package:revali_client_gen/models/websocket_type.dart';
 import 'package:revali_construct/revali_construct.dart';
@@ -74,6 +76,99 @@ class ClientMethod with ExtractImport {
   final WebsocketType websocketType;
   final bool isSse;
   final List<ClientLifecycleComponent> lifecycleComponents;
+
+  ClientParam? get websocketBody {
+    if (!websocketType.canSendAny) {
+      return null;
+    }
+
+    final body = parameters.separate.body;
+
+    if (body case [final part]) {
+      return switch (part.type) {
+        ClientType(isStream: true) => part,
+        ClientType(isFuture: true, typeArguments: [final type]) ||
+        final type =>
+          part.changeType(
+            ClientType(
+              name: 'Stream<${type.name}>',
+              isStream: true,
+              isFuture: false,
+              isNullable: false,
+              isRecord: false,
+              hasFromJsonConstructor: false,
+              iterableType: null,
+              import: null,
+              isVoid: false,
+              isPrimitive: false,
+              isDynamic: false,
+              isMap: false,
+              isStringContent: false,
+              hasToJsonMember: false,
+              recordProps: [],
+              typeArguments: [type],
+            ),
+          )
+      };
+    }
+
+    final params = StringBuffer();
+
+    for (final param in body) {
+      params.write('${param.type.name} ${param.name}, ');
+    }
+
+    return ClientParam(
+      name: 'body',
+      position: ParameterPosition.body,
+      access: [],
+      acceptMultiple: false,
+      type: ClientType(
+        name: 'Stream<({$params})>',
+        isStream: true,
+        isFuture: false,
+        isNullable: false,
+        isRecord: false,
+        hasFromJsonConstructor: false,
+        iterableType: null,
+        import: null,
+        isVoid: false,
+        isPrimitive: false,
+        isDynamic: false,
+        isMap: false,
+        isStringContent: false,
+        hasToJsonMember: false,
+        recordProps: [],
+        typeArguments: [
+          ClientType(
+            name: '({$params})',
+            hasFromJsonConstructor: false,
+            typeArguments: [],
+            isRecord: true,
+            import: null,
+            isNullable: false,
+            iterableType: null,
+            isStream: false,
+            isFuture: false,
+            isVoid: false,
+            isPrimitive: false,
+            isDynamic: false,
+            isMap: false,
+            isStringContent: false,
+            hasToJsonMember: false,
+            recordProps: [
+              for (final param in body)
+                ClientRecordProp(
+                  name: param.name,
+                  isNamed: true,
+                  type: param.type,
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
   bool get isWebsocket => websocketType != WebsocketType.none;
 

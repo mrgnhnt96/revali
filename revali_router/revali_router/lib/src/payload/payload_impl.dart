@@ -126,9 +126,7 @@ class PayloadImpl implements Payload {
       try {
         final resolved = await attempt;
         return resolved;
-      } catch (_) {
-        continue;
-      }
+      } catch (_) {}
     }
     return null;
   }

@@ -1,6 +1,5 @@
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:revali_client_gen/enums/parameter_position.dart';
 import 'package:revali_client_gen/makers/utils/extract_import.dart';
 import 'package:revali_client_gen/models/client_imports.dart';
@@ -13,13 +12,12 @@ class ClientParam with ExtractImport {
     required this.name,
     required this.position,
     required this.type,
-    required this.nullable,
     required this.access,
-    required this.acceptList,
+    required this.acceptMultiple,
   });
 
   static ClientParam? fromElement(ParameterElement element) {
-    final (:acceptList, :access, :position) = _getPosition(
+    final (:acceptMultiple, :access, :position) = _getPosition(
       element.name,
       ({required List<OnMatch> onMatch, NonMatch? onNonMatch}) =>
           getAnnotations(
@@ -36,15 +34,14 @@ class ClientParam with ExtractImport {
     return ClientParam(
       name: element.name,
       type: ClientType.fromElement(element),
-      nullable: element.type.nullabilitySuffix == NullabilitySuffix.question,
       position: position,
       access: access,
-      acceptList: acceptList,
+      acceptMultiple: acceptMultiple,
     );
   }
 
   static ClientParam? fromMeta(MetaParam parameter) {
-    final (:acceptList, :access, :position) = _getPosition(
+    final (:acceptMultiple, :access, :position) = _getPosition(
       parameter.name,
       parameter.annotationsFor,
     );
@@ -56,18 +53,20 @@ class ClientParam with ExtractImport {
       name: parameter.name,
       position: position,
       type: ClientType.fromMeta(parameter.type),
-      nullable: parameter.type.isNullable,
       access: access,
-      acceptList: acceptList,
+      acceptMultiple: acceptMultiple,
     );
   }
 
-  static ({bool acceptList, List<String> access, ParameterPosition? position})
-      _getPosition(
+  static ({
+    bool acceptMultiple,
+    List<String> access,
+    ParameterPosition? position
+  }) _getPosition(
     String name,
     AnnotationMapper annotationsFor,
   ) {
-    var acceptList = false;
+    var acceptMultiple = false;
     ParameterPosition? position;
     final access = <String>[];
 
@@ -121,7 +120,7 @@ class ClientParam with ExtractImport {
           package: 'revali_router_annotations',
           convert: (object, annotation) {
             if (object.getField('all')?.toBoolValue() case true) {
-              acceptList = true;
+              acceptMultiple = true;
             }
             set(ParameterPosition.header);
             getAccess(object);
@@ -132,7 +131,7 @@ class ClientParam with ExtractImport {
           package: 'revali_router_annotations',
           convert: (object, annotation) {
             if (object.getField('all')?.toBoolValue() case true) {
-              acceptList = true;
+              acceptMultiple = true;
             }
             set(ParameterPosition.query);
             getAccess(object);
@@ -150,7 +149,7 @@ class ClientParam with ExtractImport {
     );
 
     return (
-      acceptList: acceptList,
+      acceptMultiple: acceptMultiple,
       access: access,
       position: position,
     );
@@ -164,8 +163,17 @@ class ClientParam with ExtractImport {
   final List<String> access;
   final ClientType type;
   final ParameterPosition position;
-  final bool nullable;
-  final bool acceptList;
+  final bool acceptMultiple;
+
+  ClientParam changeType(ClientType type) {
+    return ClientParam(
+      name: name,
+      type: type,
+      position: position,
+      access: access,
+      acceptMultiple: acceptMultiple,
+    );
+  }
 
   @override
   List<ExtractImport?> get extractors => [type];

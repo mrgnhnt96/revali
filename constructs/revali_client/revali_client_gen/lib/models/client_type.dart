@@ -25,6 +25,7 @@ class ClientType with ExtractImport {
     required this.isDynamic,
     required this.isMap,
     required this.isStringContent,
+    required this.hasToJsonMember,
   }) : _typeArguments = typeArguments;
 
   ClientType.map()
@@ -42,6 +43,7 @@ class ClientType with ExtractImport {
         recordProps = null,
         isDynamic = false,
         isMap = true,
+        hasToJsonMember = false,
         _typeArguments = [];
 
   factory ClientType.fromMeta(MetaType type) {
@@ -72,6 +74,7 @@ class ClientType with ExtractImport {
       isDynamic: type.isDynamic,
       isMap: type.isMap,
       hasFromJsonConstructor: type.hasFromJsonConstructor,
+      hasToJsonMember: type.hasToJsonMember,
       isNullable: type.isNullable,
       typeArguments: type.typeArguments.map(ClientType.fromMeta).toList(),
     );
@@ -83,6 +86,7 @@ class ClientType with ExtractImport {
 
   final String name;
   final bool hasFromJsonConstructor;
+  final bool hasToJsonMember;
   final ClientImports? import;
   final bool isNullable;
   final IterableType? iterableType;

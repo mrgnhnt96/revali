@@ -125,5 +125,5 @@ final class _AppConfig extends AppConfig {
     }
   }
 
-  return badResponse;
+  return (host, port, prefix);
 }

@@ -29,16 +29,6 @@ Expression createJsonCase(ClientType type) {
     return createJsonCase(typeArgument);
   }
 
-  if (type.isStream) {
-    if (type.typeArguments.length != 1) {
-      throw Exception('Stream must have exactly one type argument');
-    }
-
-    final typeArgument = type.typeArguments.first;
-
-    return data(typeArgument);
-  }
-
   final result = data(type);
   final dataNested = literalMap({'data': result});
 

@@ -23,6 +23,7 @@ class MetaType {
     required this.isPrimitive,
     required this.isDynamic,
     required this.isMap,
+    required this.hasToJsonMember,
   });
 
   factory MetaType.fromType(DartType type) {
@@ -30,6 +31,7 @@ class MetaType {
       name: type.getDisplayString(),
       isVoid: type is VoidType,
       hasFromJsonConstructor: type.element?.hasFromJsonConstructor ?? false,
+      hasToJsonMember: type.element?.hasToJsonMember ?? false,
       importPath: type.element?.importPath,
       element: type.element,
       isNullable: type.nullabilitySuffix != NullabilitySuffix.none,
@@ -58,6 +60,7 @@ class MetaType {
 
   final String name;
   final bool hasFromJsonConstructor;
+  final bool hasToJsonMember;
   final String? importPath;
   final bool isNullable;
   final IterableType? iterableType;

@@ -16,15 +16,26 @@ Iterable<Parameter> getParameters(
 
   if (!method.isWebsocket || method.websocketType.canSendAny) {
     final roots = body.roots();
-    for (final param in body) {
-      if (!body.needsAssignment(param, roots)) {
-        continue;
-      }
 
-      yield _create(
-        param,
-        isStream: method.websocketType.canSendMany,
+    if (method.websocketBody case final ClientParam param) {
+      yield Parameter(
+        (b) => b
+          ..type = refer(param.type.name)
+          ..name = param.name
+          ..named = true
+          ..required = true,
       );
+    } else {
+      for (final param in body) {
+        if (!body.needsAssignment(param, roots)) {
+          continue;
+        }
+
+        yield _create(
+          param,
+          isStream: method.websocketType.canSendMany,
+        );
+      }
     }
   }
 
@@ -53,7 +64,7 @@ Parameter _create(
     (b) => b
       ..name = param.name
       ..named = true
-      ..required = !param.nullable
+      ..required = !param.type.isNullable
       ..type = type,
   );
 }

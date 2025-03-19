@@ -27,9 +27,8 @@ AnyFile pubspecFile(ClientServer server, Settings settings) {
 
   final packages = <(String, String?)>{
     ('revali_client', serverClient),
-    if (_getIntegration('get_it') case final String? getIt
-        when settings.integrateGetIt)
-      ('get_it', getIt),
+    if (settings.integrateGetIt)
+      if (_getIntegration('get_it') case final String? getIt) ('get_it', getIt),
   };
   for (final import in imports) {
     final [_, String packagePath] = import.split(':');
