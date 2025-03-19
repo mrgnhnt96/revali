@@ -37,6 +37,5 @@ void main() async {
         expect(result, const User(name: 'John'));
       });
     },
-    timeout: const Timeout(Duration(seconds: 100)),
   );
 }

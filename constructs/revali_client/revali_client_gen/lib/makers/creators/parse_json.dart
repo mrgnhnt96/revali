@@ -4,11 +4,17 @@ import 'package:code_builder/code_builder.dart';
 import 'package:revali_client_gen/makers/creators/create_from_json.dart';
 import 'package:revali_client_gen/makers/creators/create_json_case.dart';
 import 'package:revali_client_gen/makers/creators/should_decode_json.dart';
+import 'package:revali_client_gen/makers/utils/binary_expression_extensions.dart';
 import 'package:revali_client_gen/makers/utils/if_statement.dart';
 import 'package:revali_client_gen/makers/utils/type_extensions.dart';
 import 'package:revali_client_gen/models/client_type.dart';
 
-Code? parseJson(ClientType type, Expression variable) {
+Code? parseJson(
+  ClientType type,
+  Expression variable, {
+  bool yield = false,
+  List<Code> postYieldCode = const [],
+}) {
   if (type.isStringContent) {
     return null;
   }
@@ -21,6 +27,11 @@ Code? parseJson(ClientType type, Expression variable) {
 
     return fromJson;
   }
+
+  final body = switch (createReturnTypeFromJson(type, refer('data'))) {
+    final e? => e,
+    _ => refer('data')
+  };
 
   return CodeExpression(
     Block.of(
@@ -38,12 +49,18 @@ Code? parseJson(ClientType type, Expression variable) {
             cse: createJsonCase(type),
             when: null,
           ),
-          body: switch (createReturnTypeFromJson(type, refer('data'))) {
-            final e? => e,
-            _ => refer('data')
-          }
-              .returned
-              .statement,
+          body: switch (yield) {
+            true => Block.of([
+                body.yielded.statement,
+                if (postYieldCode.isNotEmpty) ...[
+                  const Code(''),
+                  ...postYieldCode,
+                ],
+                const Code(''),
+                refer('continue').statement,
+              ]),
+            false => body.returned.statement,
+          },
         ).code,
         const Code(''),
         refer((Exception).name)

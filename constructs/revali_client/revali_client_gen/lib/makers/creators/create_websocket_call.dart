@@ -4,9 +4,10 @@ import 'package:code_builder/code_builder.dart';
 import 'package:revali_client_gen/makers/creators/convert_to_json.dart';
 import 'package:revali_client_gen/makers/creators/parse_json.dart';
 import 'package:revali_client_gen/makers/creators/should_decode_json.dart';
-import 'package:revali_client_gen/makers/utils/binary_expression_extensions.dart';
 import 'package:revali_client_gen/makers/utils/client_param_extensions.dart';
 import 'package:revali_client_gen/makers/utils/create_switch_pattern.dart';
+import 'package:revali_client_gen/makers/utils/for_in_loop.dart';
+import 'package:revali_client_gen/makers/utils/if_statement.dart';
 import 'package:revali_client_gen/makers/utils/type_extensions.dart';
 import 'package:revali_client_gen/models/client_method.dart';
 import 'package:revali_client_gen/models/client_type.dart';
@@ -74,6 +75,7 @@ List<Code> createWebsocketCall(ClientMethod method) {
     refer('channel').property('ready').awaited.statement,
     const Code(''),
     if ((body, bodyType) case (final body?, final bodyType?)) ...[
+      declareVar('hasClosed').assign(literalFalse).statement,
       declareFinal('payloadListener')
           .assign(
             refer(body.name)
@@ -96,14 +98,23 @@ List<Code> createWebsocketCall(ClientMethod method) {
                 .call([
                   refer('channel').property('sink').property('add'),
                 ], {
-                  'onDone': refer('channel').property('sink').property('close'),
+                  'onDone': Method(
+                    (b) => b
+                      ..body = Block.of([
+                        refer('hasClosed').assign(literalTrue).statement,
+                        refer('channel')
+                            .property('sink')
+                            .property('close')
+                            .call([]).statement,
+                      ]),
+                  ).closure,
                   'cancelOnError': literalTrue,
                 }),
           )
           .statement,
       const Code(''),
     ],
-    channel(method.returnType).yieldedStar.statement,
+    channel(method.returnType).code,
     const Code(''),
     if (body case Object()) ...[
       refer('payloadListener').property('cancel').call([]).awaited.statement,
@@ -129,21 +140,25 @@ Expression channel(ClientType type) {
     _ => refer('utf8').property('decode').call([refer('event')]),
   };
 
-  final fromJson = parseJson(type, event);
-
-  if (fromJson == null) {
-    return channel.property('cast').call([]);
-  }
-
-  return channel.property('map').call(
-    [
-      Method(
-        (b) => b
-          ..requiredParameters.add(
-            Parameter((b) => b..name = 'event'),
-          )
-          ..body = fromJson,
-      ).closure,
+  final fromJson = parseJson(
+    type,
+    event,
+    yield: true,
+    postYieldCode: [
+      ifStatement(
+        refer('hasClosed').equalTo(literalTrue),
+        body: refer('break').statement,
+      ).code,
     ],
   );
+
+  if (fromJson == null) {
+    return CodeExpression(channel.property('cast').call([]).statement);
+  }
+
+  return forInLoop(
+    declaration: declareFinal('event'),
+    iterable: channel,
+    body: fromJson,
+  ).awaited;
 }
