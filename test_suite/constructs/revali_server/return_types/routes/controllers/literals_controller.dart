@@ -84,9 +84,14 @@ class LiteralsController {
     yield 'Hello world!';
   }
 
-  @Get('stream-string')
+  @Get('stream-data-string')
   Stream<String> stream() async* {
     yield 'Hello world!';
+  }
+
+  @Get('stream-string')
+  Stream<StringContent> streamString() async* {
+    yield const StringContent('Hello world!');
   }
 
   @Get('bytes')

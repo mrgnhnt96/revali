@@ -201,6 +201,19 @@ void main() {
       });
     });
 
+    test('stream-data-string', () async {
+      final response = await server.send(
+        method: 'GET',
+        path: '/api/literals/stream-string',
+      );
+
+      expect(
+        response.headers.contentType?.mimeType,
+        ContentType.parse('application/octet-stream').mimeType,
+      );
+      expect(response.body, {'data': 'Hello world!'});
+    });
+
     test('stream-string', () async {
       final response = await server.send(
         method: 'GET',
