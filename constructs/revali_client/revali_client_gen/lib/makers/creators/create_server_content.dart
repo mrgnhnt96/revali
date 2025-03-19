@@ -87,15 +87,17 @@ Spec createServerContent(ClientServer client, Settings settings) {
               refer('this').property('storage').property('save').call(
                 [literal('__BASE_URL__'), refer('url')],
               ).statement,
-              const Code(''),
-              refer('this')
-                  .property('websocket')
-                  .assign(
-                    refer('websocket').ifNullThen(
-                      refer('WebSocketChannel').property('connect'),
-                    ),
-                  )
-                  .statement,
+              if (client.hasWebsockets) ...[
+                const Code(''),
+                refer('this')
+                    .property('websocket')
+                    .assign(
+                      refer('websocket').ifNullThen(
+                        refer('WebSocketChannel').property('connect'),
+                      ),
+                    )
+                    .statement,
+              ],
             ]),
         ),
       )
