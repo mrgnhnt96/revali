@@ -29,18 +29,10 @@ void main() async {
       });
 
       test('user', () async {
-        final controller = StreamController<User>();
-        Future<void>.delayed(const Duration(milliseconds: 100)).then(
-          (_) async {
-            controller.add(const User(name: 'John'));
-            await Future<void>.delayed(const Duration(milliseconds: 100));
-            await controller.close();
-          },
-        ).ignore();
+        final stream = client.customWebsocket
+            .user(user: Stream.value(const User(name: 'John')));
 
-        final stream = client.customWebsocket.user(user: controller.stream);
-
-        final result = await stream.first;
+        final result = await stream.single;
 
         expect(result, const User(name: 'John'));
       });

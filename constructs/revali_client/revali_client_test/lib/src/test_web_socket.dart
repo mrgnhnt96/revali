@@ -167,9 +167,17 @@ class TestSink implements WebSocketSink {
 
   final TestWebSocket webSocket;
 
+  bool _hasWaitedInitial = false;
+
   @override
-  void add(dynamic data) {
+  Future<void> add(dynamic data) async {
     if (data case final List<int> data) {
+      if (!_hasWaitedInitial) {
+        // needed to allow event loop to process the connection
+        await Future<void>.delayed(Duration.zero);
+        _hasWaitedInitial = true;
+      }
+
       webSocket._sending.add(data);
     } else {
       throw Exception('Invalid data $data');
