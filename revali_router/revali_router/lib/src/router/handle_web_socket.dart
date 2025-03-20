@@ -52,7 +52,8 @@ class HandleWebSocket {
       return response.toWebSocketResponse();
     }
 
-    if (handler.onConnect case final Stream<dynamic> Function() onConnect) {
+    if (handler.onConnect
+        case final Stream<dynamic> Function(EndpointContext) onConnect) {
       if (await runHandler(onConnect) case final WebSocketResponse response) {
         return response.toWebSocketResponse();
       }
@@ -105,14 +106,7 @@ class HandleWebSocket {
         return response.toWebSocketResponse();
       }
 
-      final HelperMixin(
-        context: ContextMixin(
-          :endpoint,
-        ),
-      ) = helper;
-
-      if (await runHandler(() => onMessage(endpoint))
-          case final WebSocketResponse response) {
+      if (await runHandler(onMessage) case final WebSocketResponse response) {
         return response;
       }
     }
@@ -220,7 +214,9 @@ class HandleWebSocket {
     await webSocket.close(code, truncated);
   }
 
-  Future<WebSocketResponse?> runHandler(Stream<void> Function() stream) async {
+  Future<WebSocketResponse?> runHandler(
+    Stream<void> Function(EndpointContext) stream,
+  ) async {
     final HelperMixin(
       run: RunMixin(
         :interceptors,
@@ -228,12 +224,15 @@ class HandleWebSocket {
       ),
       :debugErrorResponse,
       :debugResponses,
+      context: ContextMixin(
+        :endpoint,
+      )
     ) = helper;
 
     try {
       await interceptors.pre();
 
-      await for (final _ in stream()) {
+      await for (final _ in stream(endpoint)) {
         await sendResponse();
       }
 
