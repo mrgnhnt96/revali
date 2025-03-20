@@ -5,6 +5,7 @@ import 'package:revali_construct/models/meta_web_socket_method.dart';
 import 'package:revali_router/revali_router.dart' show WebSocketHandler;
 import 'package:revali_server/converters/server_route.dart';
 import 'package:revali_server/converters/server_type.dart';
+import 'package:revali_server/makers/creators/should_nest_json_in_data.dart';
 import 'package:revali_server/makers/utils/get_params.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
 
@@ -16,12 +17,15 @@ Expression createWebSocketHandler(
 }) {
   final trigger = <Code>[];
 
-  final bodyAssignment = refer('context')
-      .property('response')
-      .property('body')
-      .index(literalString('data'))
-      .assign(refer('result'))
-      .statement;
+  final shouldNest = shouldNestJsonInData(returnType);
+
+  var bodyAssignment = refer('context').property('response').property('body');
+
+  if (shouldNest) {
+    bodyAssignment = bodyAssignment.index(literalString('data'));
+  }
+
+  bodyAssignment = bodyAssignment.assign(refer('result'));
 
   final (:positioned, :named) = getParams(route.params);
 
@@ -34,7 +38,7 @@ Expression createWebSocketHandler(
       Method(
         (p) => p
           ..requiredParameters.add(Parameter((b) => b..name = 'result'))
-          ..body = Block.of([bodyAssignment]),
+          ..body = Block.of([bodyAssignment.statement]),
       ).closure,
     ]).statement;
 
@@ -63,7 +67,7 @@ Expression createWebSocketHandler(
 
     trigger.addAll([
       futureResult,
-      bodyAssignment,
+      bodyAssignment.statement,
       const Code('yield null;'),
     ]);
   } else {
@@ -77,7 +81,7 @@ Expression createWebSocketHandler(
 
     trigger.addAll([
       result,
-      bodyAssignment,
+      bodyAssignment.statement,
       const Code('yield null;'),
     ]);
   }
