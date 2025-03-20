@@ -33,6 +33,8 @@ class TestWebSocket implements WebSocketChannel {
   }
 
   Future<void> _startConnection(Uri uri, {Iterable<String>? protocols}) async {
+    StreamSubscription<List<int>>? receivingListener;
+
     final stream = server.connect(
       method: 'GET',
       path: uri.path,
@@ -43,13 +45,16 @@ class TestWebSocket implements WebSocketChannel {
         'Sec-WebSocket-Version': ['13'],
         'Sec-WebSocket-Key': ['123'],
       },
+      onClose: () {
+        receivingListener?.cancel();
+        _receiving.close();
+        _sending.close();
+      },
     );
 
     _ready?.complete(true);
 
-    await for (final data in stream) {
-      _receiving.add(data);
-    }
+    receivingListener = stream.listen(_receiving.add);
   }
 
   List<int> createWebSocketFrame(dynamic payload) {
