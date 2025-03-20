@@ -25,6 +25,10 @@ Hook main() {
               continue;
             }
 
+            if (file.contains('test_suite')) {
+              continue;
+            }
+
             final packagePath = file.split('${p.separator}lib').first;
             packages.add(packagePath);
           }
