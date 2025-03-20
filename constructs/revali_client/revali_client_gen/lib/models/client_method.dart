@@ -83,6 +83,9 @@ class ClientMethod with ExtractImport {
     }
 
     final body = parameters.separate.body;
+    if (body.isEmpty) {
+      return null;
+    }
 
     if (body case [final part]) {
       return switch (part.type) {
