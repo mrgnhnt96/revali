@@ -5,6 +5,7 @@ import 'package:revali_client_gen/makers/creators/create_request.dart';
 import 'package:revali_client_gen/makers/creators/parse_json.dart';
 import 'package:revali_client_gen/makers/utils/binary_expression_extensions.dart';
 import 'package:revali_client_gen/models/client_method.dart';
+import 'package:revali_client_gen/models/client_type.dart';
 
 List<Code> createStreamCall(ClientMethod method) {
   final returnType = method.returnType;
@@ -17,8 +18,8 @@ List<Code> createStreamCall(ClientMethod method) {
   }
 
   final typeArgument = returnType.typeArguments.first;
-  final body = switch (typeArgument.name) {
-    'List<int>' => refer('response'),
+  final body = switch (typeArgument) {
+    ClientType(isBytes: true) => refer('response'),
     _ => refer('response').property('transform').call([refer('utf8.decoder')]),
   };
 
@@ -41,8 +42,8 @@ List<Code> createStreamCall(ClientMethod method) {
     const Code(''),
     if (fromJson == null)
       body.yieldedStar.statement
-    else if (typeArgument.name == 'List<int>')
-      mapOver(refer('response')).yieldedStar.statement
+    else if (typeArgument.isBytes)
+      mapOver(body).yieldedStar.statement
     else ...[
       declareFinal('stream').assign(body).statement,
       const Code(''),

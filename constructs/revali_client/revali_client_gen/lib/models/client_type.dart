@@ -102,10 +102,11 @@ class ClientType with ExtractImport {
   final List<ClientRecordProp>? recordProps;
 
   List<ClientType> get typeArguments => List.unmodifiable([
-        for (final arg in _typeArguments) arg..parent = this,
+        for (final arg in _typeArguments) arg.._parent = this,
       ]);
 
-  ClientType? parent;
+  ClientType? _parent;
+  ClientType? get parent => _parent;
 
   ClientType get root {
     if (parent == null) return this;
@@ -121,6 +122,32 @@ class ClientType with ExtractImport {
   }
 
   bool get isIterable => iterableType != null;
+
+  bool get isBytes {
+    bool isBytes(String name) {
+      return switch (name) {
+        'List<int>' => true,
+        'List<List<int>>' => true,
+        _ => false,
+      };
+    }
+
+    final root = this.root;
+
+    if (root.name == name) {
+      return isBytes(name);
+    }
+
+    bool iterate(ClientType type) {
+      if (isBytes(type.name)) {
+        return true;
+      }
+
+      return type.typeArguments.any(iterate);
+    }
+
+    return iterate(root);
+  }
 
   @override
   List<ExtractImport?> get extractors => [];

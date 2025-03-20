@@ -16,6 +16,7 @@ Expression? createReturnTypeFromJson(ClientType type, Expression variable) {
 
     return createReturnTypeFromJson(typeArgument, variable);
   }
+
   if (type.isFuture) {
     if (type.typeArguments.length != 1) {
       throw Exception('Future type must have exactly one type argument');

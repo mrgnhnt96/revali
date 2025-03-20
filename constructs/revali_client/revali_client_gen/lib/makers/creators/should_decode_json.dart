@@ -29,9 +29,9 @@ bool? shouldDecodeJson(ClientType type) {
     ClientType(isMap: true) => true,
     ClientType(hasFromJsonConstructor: true) => true,
     ClientType(isRecord: true) => true,
-    ClientType(root: ClientType(isStream: true)) => false,
     ClientType(isStringContent: true) => false,
     ClientType(isDynamic: true) => false,
+    ClientType(isBytes: true) => false,
     _ => null,
   };
 }

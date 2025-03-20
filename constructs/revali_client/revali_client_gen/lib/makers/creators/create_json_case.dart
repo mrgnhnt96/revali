@@ -34,22 +34,7 @@ Expression createJsonCase(ClientType type) {
 
   return switch (type) {
     ClientType(isStringContent: true) => result,
-    ClientType(
-      hasFromJsonConstructor: true,
-      root: ClientType(isStream: true)
-    ) =>
-      result,
-    // List<int>
-    ClientType(isIterable: true, typeArguments: [ClientType(name: 'int')]) =>
-      result,
-    // List<List<int>>
-    ClientType(
-      isIterable: true,
-      typeArguments: [
-        ClientType(isIterable: true, typeArguments: [ClientType(name: 'int')])
-      ]
-    ) =>
-      result,
+    ClientType(isBytes: true) => result,
     _ => dataNested,
   };
 }

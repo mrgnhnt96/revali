@@ -14,12 +14,6 @@ List<Code> createFutureCall(ClientMethod method) {
     _ => returnType,
   };
 
-  final isBytes = switch (coreType.name) {
-    'List<int>' => true,
-    'List<List<int>>' => true,
-    _ => false,
-  };
-
   final fromJson = parseJson(returnType, refer('body'));
 
   final body = refer('response')
@@ -34,7 +28,7 @@ List<Code> createFutureCall(ClientMethod method) {
     const Code(''),
     if (fromJson == null)
       body.returned.statement
-    else if (isBytes)
+    else if (coreType.isBytes)
       refer('response').property('toList').call([]).awaited.returned.statement
     else ...[
       declareFinal('body').assign(body).statement,
