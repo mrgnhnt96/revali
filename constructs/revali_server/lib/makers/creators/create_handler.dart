@@ -49,7 +49,7 @@ Expression? createHandler({
 
     final json = convertToJson(returnType, refer('result')) ?? refer('result');
 
-    if (shouldNestJsonInData(returnType)) {
+    if (shouldNestJsonInData(returnType) && !returnType.isStream) {
       setBody = setBody.index(literalString('data')).assign(json);
     } else {
       setBody = setBody.assign(json);
