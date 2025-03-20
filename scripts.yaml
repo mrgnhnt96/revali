@@ -186,6 +186,7 @@ test-suite:
       - (+) {$test-suite:revali_client:return-types}
       - (+) {$test-suite:revali_client:methods}
       - (+) {$test-suite:revali_client:websockets}
+      - (+) {$test-suite:revali_client:websocket-params}
     _package: |
       cd test_suite/constructs/revali_client/$DIR || exit 1
 
@@ -212,6 +213,9 @@ test-suite:
       {$test-suite:revali_client:_package}
     websockets: |
       DIR=websockets
+      {$test-suite:revali_client:_package}
+    websocket-params: |
+      DIR=websocket_params
       {$test-suite:revali_client:_package}
 
   revali_server:

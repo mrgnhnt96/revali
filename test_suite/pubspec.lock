@@ -382,6 +382,13 @@ packages:
       relative: true
     source: path
     version: "0.0.0"
+  revali_client_websockets_params:
+    dependency: transitive
+    description:
+      path: "constructs/revali_client/websocket_params/.revali/revali_client"
+      relative: true
+    source: path
+    version: "0.0.0"
   revali_construct:
     dependency: "direct overridden"
     description:
