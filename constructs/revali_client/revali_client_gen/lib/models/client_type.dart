@@ -134,8 +134,8 @@ class ClientType with ExtractImport {
 
     final root = this.root;
 
-    if (root.name == name) {
-      return isBytes(name);
+    if (root.name == name && isBytes(name)) {
+      return true;
     }
 
     bool iterate(ClientType type) {
