@@ -30,7 +30,7 @@ void main() async {
 
         final result = await stream.single;
 
-        expect(result, 'Hello');
+        expect(result, 'Hello world!');
       });
 
       test('string', () async {
@@ -38,15 +38,23 @@ void main() async {
 
         final result = await stream.single;
 
-        expect(result, 'Hello');
+        expect(result, 'Hello world!');
       });
 
-      test('stream-string', () async {
-        final stream = client.primitiveWebsocket.streamString();
+      test('stream-data-string', () async {
+        final stream = client.primitiveWebsocket.streamDataString();
 
         final result = await stream.single;
 
-        expect(result, 'Hello');
+        expect(result, 'Hello world!');
+      });
+
+      test('stream-string-content', () async {
+        final stream = client.primitiveWebsocket.streamStringContent();
+
+        final result = await stream.single;
+
+        expect(result, 'Hello world!');
       });
     },
   );
