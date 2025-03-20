@@ -4,6 +4,7 @@ import 'package:code_builder/code_builder.dart';
 import 'package:revali_client_gen/makers/creators/convert_to_json.dart';
 import 'package:revali_client_gen/makers/creators/parse_json.dart';
 import 'package:revali_client_gen/makers/creators/should_encode_json.dart';
+import 'package:revali_client_gen/makers/utils/binary_expression_extensions.dart';
 import 'package:revali_client_gen/makers/utils/client_param_extensions.dart';
 import 'package:revali_client_gen/makers/utils/create_switch_pattern.dart';
 import 'package:revali_client_gen/makers/utils/for_in_loop.dart';
@@ -114,7 +115,10 @@ List<Code> createWebsocketCall(ClientMethod method) {
           .statement,
       const Code(''),
     ],
-    channel(method.returnType, method).code,
+    channel(
+      method.returnType,
+      includeHasClosed: (body, bodyType) != (null, null),
+    ).code,
     const Code(''),
     if (body case Object()) ...[
       refer('payloadListener').property('cancel').call([]).awaited.statement,
@@ -132,15 +136,16 @@ Expression? encodeJson(ClientType type, String variable) {
   return refer('jsonEncode').call([toJson ?? refer(variable)]);
 }
 
-Expression channel(ClientType type, ClientMethod method) {
+Expression channel(ClientType type, {required bool includeHasClosed}) {
   final channel = refer('channel').property('stream');
+  final event = refer('utf8').property('decode').call([refer('event')]);
 
   final fromJson = parseJson(
     type,
-    refer('utf8').property('decode').call([refer('event')]),
+    event,
     yield: true,
     postYieldCode: [
-      if (method.websocketType.canSendAny && method.websocketBody != null)
+      if (includeHasClosed)
         ifStatement(
           refer('hasClosed').equalTo(literalTrue),
           body: refer('break').statement,
@@ -148,13 +153,21 @@ Expression channel(ClientType type, ClientMethod method) {
     ],
   );
 
-  if (fromJson == null) {
-    return CodeExpression(channel.property('cast').call([]).statement);
+  if (fromJson == null && type.isBytes) {
+    return CodeExpression(
+      channel.property('cast').call([]).yieldedStar.statement,
+    );
   }
 
   return forInLoop(
     declaration: declareFinal('event'),
     iterable: channel,
-    body: fromJson,
+    body: switch (type) {
+      ClientType(isStringContent: true) ||
+      ClientType(typeArguments: [ClientType(isStringContent: true)])
+          when fromJson == null =>
+        event.yielded.statement,
+      _ => fromJson,
+    },
   ).awaited;
 }
