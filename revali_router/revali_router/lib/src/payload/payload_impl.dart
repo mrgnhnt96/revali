@@ -89,6 +89,11 @@ class PayloadImpl implements Payload {
   StreamController<List<int>>? _backupStream;
   @override
   Stream<List<int>> read() async* {
+    if (_bytes case final bytes?) {
+      yield* Stream.value(bytes);
+      return;
+    }
+
     if (_backupStream case final bytes?) {
       yield* bytes.stream;
       return;
@@ -111,22 +116,26 @@ class PayloadImpl implements Payload {
     }
 
     final options = {
-      'application/json': _resolveJson(encoding),
-      'application/x-www-form-urlencoded': _resolveFormUrl(encoding),
+      'application/json': () => _resolveJson(encoding),
+      'application/x-www-form-urlencoded': () => _resolveFormUrl(encoding),
       if (headers.contentType case final MediaType contentType)
-        'multipart/form-data': _resolveFormData(encoding, contentType),
-      'text/plain': _resolveString(encoding),
-      'application/octet-stream': _resolveBinary(encoding),
-      '': additionalParsers[headers.mimeType]
+        'multipart/form-data': () => _resolveFormData(encoding, contentType),
+      'text/plain': () => _resolveString(encoding),
+      'application/octet-stream': () => _resolveBinary(encoding),
+      '': () =>
+          additionalParsers[headers.mimeType]
               ?.parse(encoding, read(), headers) ??
           _resolveUnknown(encoding, headers.mimeType),
     };
 
     for (final attempt in options.values) {
       try {
-        final resolved = await attempt;
-        return resolved;
-      } catch (_) {}
+        if (await attempt() case final resolved) {
+          return resolved;
+        }
+      } catch (_) {
+        continue;
+      }
     }
     return null;
   }
@@ -192,7 +201,11 @@ class PayloadImpl implements Payload {
     Encoding encoding,
   ) async {
     final content = await encoding.decodeStream(read());
-    final data = Uri.splitQueryString(content);
+    if (!content.contains('=')) {
+      throw const FormatException('Invalid form data');
+    }
+
+    final data = Uri.splitQueryString(content, encoding: encoding);
 
     final coerced = {
       for (final entry in data.entries) entry.key: type.coerce(entry.value),
