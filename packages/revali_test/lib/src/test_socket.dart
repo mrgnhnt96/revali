@@ -7,10 +7,12 @@ class TestSocket extends Stream<Uint8List> implements Socket {
   TestSocket({
     this.onWebSocketMessage,
     Stream<Uint8List>? input,
+    this.onClose,
   }) : _input = input;
 
   final void Function(List<int>)? onWebSocketMessage;
   final Stream<Uint8List>? _input;
+  final void Function()? onClose;
 
   @override
   Encoding encoding = utf8;
@@ -28,12 +30,11 @@ class TestSocket extends Stream<Uint8List> implements Socket {
   @override
   Future<void> addStream(Stream<List<int>> stream) async {
     await for (final data in stream) {
-      // check if data is header
+      // check if data is close frame
       if (data.length == 2) {
-        // check if data is close frame
-        if (data[0] == 0x88 && data[1] == 0x00) {
+        if (data case [0x88, _]) {
           await close();
-          return;
+          break;
         }
 
         continue;
@@ -47,7 +48,9 @@ class TestSocket extends Stream<Uint8List> implements Socket {
   InternetAddress get address => InternetAddress('0.0.0.0');
 
   @override
-  Future<void> close() async {}
+  Future<void> close() async {
+    onClose?.call();
+  }
 
   @override
   void destroy() {

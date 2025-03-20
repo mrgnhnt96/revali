@@ -52,6 +52,7 @@ class TestServer extends Stream<HttpRequest> implements HttpServer {
     Map<String, List<String>>? headers,
     Map<String, String> cookies = const {},
     Stream<List<int>>? body,
+    void Function()? onClose,
   }) {
     headers ??= {};
     if (cookies.isEmpty) {
@@ -67,6 +68,8 @@ class TestServer extends Stream<HttpRequest> implements HttpServer {
       onWebSocketMessage: _webSocketResponses.add,
       onResponse: (response) {
         _response?.complete(response);
+        close(force: true);
+        onClose?.call();
       },
     );
 

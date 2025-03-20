@@ -90,6 +90,9 @@ class TestResponse implements HttpResponse {
     return TestSocket(
       input: webSocketInput,
       onWebSocketMessage: onWebSocketMessage,
+      onClose: () {
+        onClose(this);
+      },
     );
   }
 
