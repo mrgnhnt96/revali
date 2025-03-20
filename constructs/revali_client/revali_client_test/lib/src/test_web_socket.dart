@@ -94,7 +94,7 @@ class TestWebSocket implements WebSocketChannel {
       (i) => data[i] ^ maskingKey[i % 4],
     );
 
-    // Return as a stream
+    // Return as a list
     return header.followedBy(maskedPayload).toList();
   }
 
