@@ -114,7 +114,7 @@ List<Code> createWebsocketCall(ClientMethod method) {
           .statement,
       const Code(''),
     ],
-    channel(method.returnType).code,
+    channel(method.returnType, method).code,
     const Code(''),
     if (body case Object()) ...[
       refer('payloadListener').property('cancel').call([]).awaited.statement,
@@ -132,7 +132,7 @@ Expression? encodeJson(ClientType type, String variable) {
   return refer('jsonEncode').call([toJson ?? refer(variable)]);
 }
 
-Expression channel(ClientType type) {
+Expression channel(ClientType type, ClientMethod method) {
   final channel = refer('channel').property('stream');
 
   final fromJson = parseJson(
@@ -140,10 +140,11 @@ Expression channel(ClientType type) {
     refer('utf8').property('decode').call([refer('event')]),
     yield: true,
     postYieldCode: [
-      ifStatement(
-        refer('hasClosed').equalTo(literalTrue),
-        body: refer('break').statement,
-      ).code,
+      if (method.websocketType.canSendAny && method.websocketBody != null)
+        ifStatement(
+          refer('hasClosed').equalTo(literalTrue),
+          body: refer('break').statement,
+        ).code,
     ],
   );
 
