@@ -40,7 +40,7 @@ Code? parseJson(
           switch (type) {
             ClientType(
               isStream: true,
-              typeArguments: [ClientType(isPrimitive: true)]
+              typeArguments: [ClientType(isStringContent: true)]
             ) =>
               variable,
             _ => refer('jsonDecode').call([variable]),
