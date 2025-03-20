@@ -21,6 +21,7 @@ Code? parseJson(
 
   if (shouldDecodeJson(type) case false) {
     final fromJson = switch (createReturnTypeFromJson(type, variable)) {
+      final e? when yield => e.yielded.statement,
       final e? => e.returned.statement,
       _ => null,
     };
