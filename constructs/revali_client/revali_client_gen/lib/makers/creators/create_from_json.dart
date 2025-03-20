@@ -27,6 +27,10 @@ Expression? createReturnTypeFromJson(ClientType type, Expression variable) {
     return createReturnTypeFromJson(typeArgument, variable);
   }
 
+  if (type.isBytes) {
+    return null;
+  }
+
   if (type.isIterable) {
     if (type.typeArguments.length != 1) {
       throw Exception('Iterable type must have exactly one type argument');

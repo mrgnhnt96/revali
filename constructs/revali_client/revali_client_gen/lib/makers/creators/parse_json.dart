@@ -19,6 +19,10 @@ Code? parseJson(
     return null;
   }
 
+  if (type.isBytes) {
+    return null;
+  }
+
   if (shouldDecodeJson(type) case false) {
     final fromJson = switch (createReturnTypeFromJson(type, variable)) {
       final e? when yield => e.yielded.statement,
