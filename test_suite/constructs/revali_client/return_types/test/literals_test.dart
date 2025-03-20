@@ -145,10 +145,17 @@ void main() {
       });
 
       test('stream-string', () async {
-        final response = await client.literals.stream().join();
+        final response = await client.literals.streamString().join();
 
         expect(response, 'Hello world!');
         verifyGetRequest('/api/literals/stream-string');
+      });
+
+      test('stream-data-string', () async {
+        final response = await client.literals.streamDataString().join();
+
+        expect(response, 'Hello world!');
+        verifyGetRequest('/api/literals/stream-data-string');
       });
 
       test('bytes', () async {

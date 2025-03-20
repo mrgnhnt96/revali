@@ -204,7 +204,7 @@ void main() {
     test('stream-data-string', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/literals/stream-string',
+        path: '/api/literals/stream-data-string',
       );
 
       expect(
