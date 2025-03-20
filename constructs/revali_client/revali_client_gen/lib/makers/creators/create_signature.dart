@@ -15,8 +15,18 @@ Method createSignature(ClientMethod method, {Code? body}) {
         ClientType(isStream: false, isFuture: false, :final name)
             when method.isWebsocket =>
           refer('Stream<$name>'),
-        ClientType(isFuture: true, :final name) => refer(name),
-        ClientType(isStream: true, :final name) => refer(name),
+        ClientType(:final isStream, isStringContent: true) ||
+        ClientType(
+          :final isStream,
+          typeArguments: [ClientType(isStringContent: true)]
+        ) =>
+          switch (isStream) {
+            true => refer('Stream<String>'),
+            false => refer('Future<String>'),
+          },
+        ClientType(isFuture: true, :final name) ||
+        ClientType(isStream: true, :final name) =>
+          refer(name),
         ClientType(:final name) => refer('Future<$name>')
       }
       ..optionalParameters.addAll(getPathParams(method))

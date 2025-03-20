@@ -19,6 +19,16 @@ Expression createJsonCase(ClientType type) {
     );
   }
 
+  if (type.isStream) {
+    if (type.typeArguments.length != 1) {
+      throw Exception('Stream must have exactly one type argument');
+    }
+
+    final typeArgument = type.typeArguments.first;
+
+    return createJsonCase(typeArgument);
+  }
+
   if (type.isFuture) {
     if (type.typeArguments.length != 1) {
       throw Exception('Future must have exactly one type argument');

@@ -4,6 +4,7 @@ import 'package:code_builder/code_builder.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_server/converters/server_record_prop.dart';
 import 'package:revali_server/converters/server_type.dart';
+import 'package:revali_server/makers/creators/should_nest_json_in_data.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
 
 Expression? convertToJson(ServerType type, Expression result) {
@@ -14,9 +15,11 @@ Expression? convertToJson(ServerType type, Expression result) {
 
     final typeArg = type.typeArguments.first;
 
-    final methodBody = convertToJson(typeArg, refer('e'));
+    final toJson = convertToJson(typeArg, refer('e'));
 
-    if (methodBody == null) {
+    final shouldNest = shouldNestJsonInData(typeArg);
+
+    if (toJson == null && !shouldNest) {
       return null;
     }
 
@@ -25,7 +28,11 @@ Expression? convertToJson(ServerType type, Expression result) {
         (b) => b
           ..lambda = true
           ..requiredParameters.add(Parameter((p) => p.name = 'e'))
-          ..body = methodBody.code,
+          ..body = switch ((shouldNest, toJson)) {
+            (false, final json?) => json.code,
+            (true, _) => literalMap({'data': toJson?.code ?? refer('e')}).code,
+            (false, null) => throw Exception('Expected toJson to be non-null'),
+          },
       ).closure,
     ]);
   }
@@ -45,9 +52,9 @@ Expression? convertToJson(ServerType type, Expression result) {
 
     final typeArg = type.typeArguments.first;
 
-    final methodBody = convertToJson(typeArg, refer('e'));
+    final toJson = convertToJson(typeArg, refer('e'));
 
-    if (methodBody == null) {
+    if (toJson == null) {
       return switch (iterableType) {
         IterableType.set => result.property('toList').call([]),
         IterableType.iterable => result.property('toList').call([]),
@@ -59,7 +66,7 @@ Expression? convertToJson(ServerType type, Expression result) {
       (p) => p
         ..requiredParameters.add(Parameter((b) => b..name = 'e'))
         ..lambda = true
-        ..body = methodBody.code,
+        ..body = toJson.code,
     ).closure;
 
     return switch (type.isNullable) {

@@ -6,6 +6,7 @@ import 'package:revali_server/converters/server_route.dart';
 import 'package:revali_server/converters/server_type.dart';
 import 'package:revali_server/makers/creators/convert_to_json.dart';
 import 'package:revali_server/makers/creators/create_web_socket_handler.dart';
+import 'package:revali_server/makers/creators/should_nest_json_in_data.dart';
 import 'package:revali_server/makers/utils/get_params.dart';
 
 Expression? createHandler({
@@ -48,7 +49,7 @@ Expression? createHandler({
 
     final json = convertToJson(returnType, refer('result')) ?? refer('result');
 
-    if (_shouldNestInData(returnType)) {
+    if (shouldNestJsonInData(returnType)) {
       setBody = setBody.index(literalString('data')).assign(json);
     } else {
       setBody = setBody.assign(json);
@@ -77,48 +78,4 @@ Expression? createHandler({
         ],
       ]),
   ).closure;
-}
-
-bool _shouldNestInData(ServerType returnType) {
-  if (returnType.isStream) {
-    return false;
-  }
-
-  final type = switch (returnType) {
-    ServerType(isFuture: true, typeArguments: [final type]) => type,
-    _ => returnType,
-  };
-
-  // List<int>
-  if (type
-      case ServerType(
-        iterableType: IterableType.list,
-        typeArguments: [
-          ServerType(name: 'int'),
-        ],
-      )) {
-    return false;
-  }
-
-  // List<List<int>>
-  if (type
-      case ServerType(
-        iterableType: IterableType.list,
-        typeArguments: [
-          ServerType(
-            iterableType: IterableType.list,
-            typeArguments: [
-              ServerType(isPrimitive: true),
-            ],
-          ),
-        ],
-      )) {
-    return false;
-  }
-
-  if (type.isStringContent) {
-    return false;
-  }
-
-  return true;
 }
