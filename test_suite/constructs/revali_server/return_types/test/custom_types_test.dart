@@ -48,7 +48,9 @@ void main() {
       );
 
       expect(response.statusCode, 200);
-      expect(response.body, {'name': 'Hello world!'});
+      expect(response.body, {
+        'data': {'name': 'Hello world!'},
+      });
     });
 
     test('list-of-users', () async {
