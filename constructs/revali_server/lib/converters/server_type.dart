@@ -25,10 +25,10 @@ class ServerType with ExtractImport {
     required this.isStringContent,
     required this.hasToJsonMember,
     required this.isMap,
-    required this.typeArguments,
+    required List<ServerType> typeArguments,
     required this.recordProps,
     required this.isRecord,
-  });
+  }) : _typeArguments = List.unmodifiable(typeArguments);
 
   factory ServerType.fromMeta(MetaType type) {
     return ServerType(
@@ -81,10 +81,54 @@ class ServerType with ExtractImport {
   final bool hasToJsonMember;
   final bool isRecord;
   final bool isMap;
-  final List<ServerType> typeArguments;
+  final List<ServerType> _typeArguments;
   final List<ServerRecordProp>? recordProps;
 
-  bool get isIterable => iterableType != null;
+  List<ServerType> get typeArguments => List.unmodifiable([
+        for (final arg in _typeArguments) arg.._parent = this,
+      ]);
+
+  ServerType? _parent;
+  ServerType? get parent => _parent;
+
+  ServerType get root {
+    if (parent == null) return this;
+
+    var current = parent;
+    while (true) {
+      if (current == null) return this;
+
+      if (current.parent == null) return current;
+
+      current = current.parent;
+    }
+  }
+
+  bool get isBytes {
+    bool isBytes(String name) {
+      return switch (name) {
+        'List<int>' => true,
+        'List<List<int>>' => true,
+        _ => false,
+      };
+    }
+
+    final root = this.root;
+
+    if (root.name == name && isBytes(name)) {
+      return true;
+    }
+
+    bool iterate(ServerType type) {
+      if (isBytes(type.name)) {
+        return true;
+      }
+
+      return type.typeArguments.any(iterate);
+    }
+
+    return iterate(root);
+  }
 
   @override
   List<ExtractImport?> get extractors => [
