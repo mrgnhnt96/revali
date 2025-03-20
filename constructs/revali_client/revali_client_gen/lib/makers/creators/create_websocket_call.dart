@@ -3,7 +3,7 @@
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_client_gen/makers/creators/convert_to_json.dart';
 import 'package:revali_client_gen/makers/creators/parse_json.dart';
-import 'package:revali_client_gen/makers/creators/should_decode_json.dart';
+import 'package:revali_client_gen/makers/creators/should_encode_json.dart';
 import 'package:revali_client_gen/makers/utils/client_param_extensions.dart';
 import 'package:revali_client_gen/makers/utils/create_switch_pattern.dart';
 import 'package:revali_client_gen/makers/utils/for_in_loop.dart';
@@ -125,7 +125,7 @@ List<Code> createWebsocketCall(ClientMethod method) {
 Expression? encodeJson(ClientType type, String variable) {
   final toJson = convertToJson(type, refer(variable));
 
-  if (shouldDecodeJson(type) case false) {
+  if (shouldEncodeJson(type) case false) {
     return toJson;
   }
 
@@ -135,14 +135,9 @@ Expression? encodeJson(ClientType type, String variable) {
 Expression channel(ClientType type) {
   final channel = refer('channel').property('stream');
 
-  final event = switch (type) {
-    ClientType(isStringContent: true) => refer('event'),
-    _ => refer('utf8').property('decode').call([refer('event')]),
-  };
-
   final fromJson = parseJson(
     type,
-    event,
+    refer('utf8').property('decode').call([refer('event')]),
     yield: true,
     postYieldCode: [
       ifStatement(
