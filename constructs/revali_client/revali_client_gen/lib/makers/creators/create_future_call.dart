@@ -26,10 +26,10 @@ List<Code> createFutureCall(ClientMethod method) {
   return [
     createRequest(method),
     const Code(''),
-    if (fromJson == null)
-      body.returned.statement
-    else if (coreType.isBytes)
+    if (coreType.isBytes)
       refer('response').property('toList').call([]).awaited.returned.statement
+    else if (fromJson == null)
+      body.returned.statement
     else ...[
       declareFinal('body').assign(body).statement,
       const Code(''),
