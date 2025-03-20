@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:revali_client_test/revali_client_test.dart';
 import 'package:revali_client_websockets/revali_client_websockets.dart';
-import 'package:revali_client_websockets_test/models/user.dart';
 import 'package:revali_test/revali_test.dart';
 import 'package:test/test.dart';
 
@@ -28,33 +27,34 @@ void main() async {
         server.close();
       });
 
-      test('user', () async {
-        final stream = client.customWebsocket
-            .user(user: Stream.value(const User(name: 'John')));
-
-        final result = await stream.single;
-
-        expect(result, const User(name: 'John'));
-      });
-
-      test('stream-user', () async {
-        final stream = client.customWebsocket.streamUser(
-          body: Stream.value((name: 'John', user: const User(name: 'John'))),
+      test('future-string', () async {
+        final stream = client.primitiveWebsocket.futureString(
+          message: Stream.value('Hello'),
         );
 
         final result = await stream.single;
 
-        expect(result, const User(name: 'John'));
+        expect(result, 'Hello');
       });
 
-      test('future-user', () async {
-        final stream = client.customWebsocket.futureUser(
-          user: Stream.value(const User(name: 'John')),
+      test('string', () async {
+        final stream = client.primitiveWebsocket.string(
+          message: Stream.value('Hello'),
         );
 
         final result = await stream.single;
 
-        expect(result, const User(name: 'John'));
+        expect(result, 'Hello');
+      });
+
+      test('stream-string', () async {
+        final stream = client.primitiveWebsocket.streamString(
+          message: Stream.value('Hello'),
+        );
+
+        final result = await stream.single;
+
+        expect(result, 'Hello');
       });
     },
   );
