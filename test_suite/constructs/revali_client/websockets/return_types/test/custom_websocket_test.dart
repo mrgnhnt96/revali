@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:revali_client_test/revali_client_test.dart';
-import 'package:revali_client_websockets/revali_client_websockets.dart';
-import 'package:revali_client_websockets_test/models/user.dart';
+import 'package:revali_client_websocket_return_types/revali_client_websocket_return_types.dart';
+import 'package:revali_client_websocket_return_types_test/models/user.dart';
 import 'package:revali_test/revali_test.dart';
 import 'package:test/test.dart';
 

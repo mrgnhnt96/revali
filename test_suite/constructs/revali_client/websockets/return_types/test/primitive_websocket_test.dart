@@ -1,7 +1,5 @@
-import 'dart:async';
-
 import 'package:revali_client_test/revali_client_test.dart';
-import 'package:revali_client_websockets_params/revali_client_websockets_params.dart';
+import 'package:revali_client_websocket_return_types/revali_client_websocket_return_types.dart';
 import 'package:revali_test/revali_test.dart';
 import 'package:test/test.dart';
 
@@ -28,9 +26,7 @@ void main() async {
       });
 
       test('future-string', () async {
-        final stream = client.params.futureString(
-          message: Stream.value('Hello'),
-        );
+        final stream = client.primitiveWebsocket.futureString();
 
         final result = await stream.single;
 
@@ -38,9 +34,7 @@ void main() async {
       });
 
       test('string', () async {
-        final stream = client.params.string(
-          message: Stream.value('Hello'),
-        );
+        final stream = client.primitiveWebsocket.string();
 
         final result = await stream.single;
 
@@ -48,9 +42,7 @@ void main() async {
       });
 
       test('stream-string', () async {
-        final stream = client.params.streamString(
-          message: Stream.value('Hello'),
-        );
+        final stream = client.primitiveWebsocket.streamString();
 
         final result = await stream.single;
 

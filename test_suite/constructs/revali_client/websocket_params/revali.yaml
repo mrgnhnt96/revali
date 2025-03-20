@@ -1,4 +1,0 @@
-constructs:
-  - name: revali_client
-    options:
-      package_name: revali_client_websockets_params

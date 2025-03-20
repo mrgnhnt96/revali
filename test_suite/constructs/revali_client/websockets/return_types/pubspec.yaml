@@ -1,4 +1,4 @@
-name: revali_client_websocket_params_test
+name: revali_client_websocket_return_types_test
 publish_to: none
 
 environment:
@@ -9,7 +9,7 @@ resolution: workspace
 dependencies:
   equatable: ^2.0.7
   revali_client:
-  revali_client_websockets_params:
+  revali_client_websocket_return_types:
     path: .revali/revali_client
   revali_router:
   web_socket_channel: ^3.0.2
