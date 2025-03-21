@@ -22,57 +22,72 @@ void main() {
     test('data-string', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/literals/data-string',
+        path: '/api/stream-literals/data-string',
       );
 
-      expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
+      expect(
+        response.headers.contentType?.mimeType,
+        ContentType.parse('application/octet-stream').mimeType,
+      );
       expect(response.body, {'data': 'Hello world!'});
     });
 
     test('string', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/literals/string',
+        path: '/api/stream-literals/string',
       );
 
-      expect(response.headers.contentType?.mimeType, ContentType.text.mimeType);
+      expect(
+        response.headers.contentType?.mimeType,
+        ContentType.parse('application/octet-stream').mimeType,
+      );
       expect(response.body, 'Hello world!');
     });
 
     test('bool', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/literals/bool',
+        path: '/api/stream-literals/bool',
       );
 
-      expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
+      expect(
+        response.headers.contentType?.mimeType,
+        ContentType.parse('application/octet-stream').mimeType,
+      );
       expect(response.body, {'data': true});
     });
 
     test('int', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/literals/int',
+        path: '/api/stream-literals/int',
       );
 
-      expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
+      expect(
+        response.headers.contentType?.mimeType,
+        ContentType.parse('application/octet-stream').mimeType,
+      );
       expect(response.body, {'data': 1});
     });
 
     test('double', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/literals/double',
+        path: '/api/stream-literals/double',
       );
 
-      expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
+      expect(
+        response.headers.contentType?.mimeType,
+        ContentType.parse('application/octet-stream').mimeType,
+      );
       expect(response.body, {'data': 1});
     });
 
     test('record', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/literals/record',
+        path: '/api/stream-literals/record',
       );
 
       expect(response.statusCode, 200);
@@ -84,7 +99,7 @@ void main() {
     test('named-record', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/literals/named-record',
+        path: '/api/stream-literals/named-record',
       );
 
       expect(response.statusCode, 200);
@@ -99,7 +114,7 @@ void main() {
     test('partial-record', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/literals/partial-record',
+        path: '/api/stream-literals/partial-record',
       );
 
       expect(response.statusCode, 200);
@@ -116,10 +131,13 @@ void main() {
     test('list-of-records', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/literals/list-of-records',
+        path: '/api/stream-literals/list-of-records',
       );
 
-      expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
+      expect(
+        response.headers.contentType?.mimeType,
+        ContentType.parse('application/octet-stream').mimeType,
+      );
       expect(response.body, {
         'data': [
           ['hello', 'world'],
@@ -130,10 +148,13 @@ void main() {
     test('list-of-strings', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/literals/list-of-strings',
+        path: '/api/stream-literals/list-of-strings',
       );
 
-      expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
+      expect(
+        response.headers.contentType?.mimeType,
+        ContentType.parse('application/octet-stream').mimeType,
+      );
       expect(response.body, {
         'data': ['Hello world!'],
       });
@@ -142,10 +163,13 @@ void main() {
     test('list-of-maps', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/literals/list-of-maps',
+        path: '/api/stream-literals/list-of-maps',
       );
 
-      expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
+      expect(
+        response.headers.contentType?.mimeType,
+        ContentType.parse('application/octet-stream').mimeType,
+      );
       expect(response.body, {
         'data': [
           {'hello': 1},
@@ -156,10 +180,13 @@ void main() {
     test('map-string-dynamic', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/literals/map-string-dynamic',
+        path: '/api/stream-literals/map-string-dynamic',
       );
 
-      expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
+      expect(
+        response.headers.contentType?.mimeType,
+        ContentType.parse('application/octet-stream').mimeType,
+      );
       expect(response.body, {
         'data': {'hello': 1},
       });
@@ -168,10 +195,13 @@ void main() {
     test('map-dynamic-dynamic', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/literals/map-dynamic-dynamic',
+        path: '/api/stream-literals/map-dynamic-dynamic',
       );
 
-      expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
+      expect(
+        response.headers.contentType?.mimeType,
+        ContentType.parse('application/octet-stream').mimeType,
+      );
       expect(response.body, {
         'data': {'true': true},
       });
@@ -180,10 +210,13 @@ void main() {
     test('set', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/literals/set',
+        path: '/api/stream-literals/set',
       );
 
-      expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
+      expect(
+        response.headers.contentType?.mimeType,
+        ContentType.parse('application/octet-stream').mimeType,
+      );
       expect(response.body, {
         'data': ['Hello world!'],
       });
@@ -192,10 +225,13 @@ void main() {
     test('iterable', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/literals/iterable',
+        path: '/api/stream-literals/iterable',
       );
 
-      expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
+      expect(
+        response.headers.contentType?.mimeType,
+        ContentType.parse('application/octet-stream').mimeType,
+      );
       expect(response.body, {
         'data': ['Hello world!'],
       });
@@ -204,7 +240,7 @@ void main() {
     test('bytes', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/literals/bytes',
+        path: '/api/stream-literals/bytes',
       );
 
       expect(
