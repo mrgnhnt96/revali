@@ -41,7 +41,7 @@ Expression? createHandler({
 
   Expression? setBody;
   if (returnType
-      case ServerType(isVoid: false) ||
+      case ServerType(isVoid: false) &&
           ServerType(typeArguments: [ServerType(isVoid: false)])) {
     handler = declareFinal('result').assign(handler);
 

@@ -7,6 +7,9 @@ import 'package:revali_router/revali_router.dart';
 class LiteralsController {
   const LiteralsController();
 
+  @Get('void')
+  void voidCall() {}
+
   @Get('data-string')
   String dataString() {
     return 'Hello world!';

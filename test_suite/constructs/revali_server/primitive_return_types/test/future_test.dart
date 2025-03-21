@@ -19,6 +19,16 @@ void main() {
       server.close();
     });
 
+    test('void', () async {
+      final response = await server.send(
+        method: 'GET',
+        path: '/api/future/void',
+      );
+
+      expect(response.statusCode, 200);
+      expect(response.body, null);
+    });
+
     test('data-string', () async {
       final response = await server.send(
         method: 'GET',

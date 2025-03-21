@@ -7,6 +7,9 @@ import 'package:revali_router/revali_router.dart';
 class FutureController {
   const FutureController();
 
+  @Get('void')
+  Future<void> voidCall() async {}
+
   @Get('data-string')
   Future<String> dataString() async {
     return 'Hello world!';
