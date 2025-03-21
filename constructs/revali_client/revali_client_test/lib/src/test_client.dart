@@ -23,13 +23,22 @@ final class TestClient implements HttpClient {
       body: request.body,
     );
 
-    final encoded = switch (response.body) {
-      final String e => utf8.encode(e),
-      _ => utf8.encode(jsonEncode(response.body)),
+    final stream = switch (response.body) {
+      final String e => Stream.value(utf8.encode(e)),
+      final List<dynamic> e => Stream.fromIterable(
+          e.map((e) {
+            if (e is String) {
+              return utf8.encode(e);
+            }
+
+            return utf8.encode(jsonEncode(e));
+          }),
+        ),
+      _ => Stream.value(utf8.encode(jsonEncode(response.body))),
     };
 
     return StreamedResponse(
-      Stream.value(encoded),
+      stream,
       response.statusCode,
       headers: response.headers.values,
       contentLength: switch (response.contentLength) {
