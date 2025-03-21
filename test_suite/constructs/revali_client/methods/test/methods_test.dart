@@ -26,50 +26,47 @@ void main() {
       server.close();
     });
 
-    void verifyRequest(
-      HttpRequest? request,
-      String path, {
-      required String method,
-    }) {
-      expect(request?.url.path, path);
-      expect(request?.headers, isEmpty);
-      expect(request?.body, isEmpty);
-      expect(request?.method, method);
+    void verifyRequest(String path, {required String method}) {
+      final req = request;
+      expect(req?.url.path, path);
+      expect(req?.headers, isEmpty);
+      expect(req?.body, isEmpty);
+      expect(req?.method, method);
     }
 
     test('returns a successful response when DELETE request', () async {
       final response = await client.methods.delete();
 
       expect(response, 'Hello world!');
-      verifyRequest(request, '/api/methods', method: 'DELETE');
+      verifyRequest('/api/methods', method: 'DELETE');
     });
 
     test('returns a successful response when GET request', () async {
       final response = await client.methods.get();
 
       expect(response, 'Hello world!');
-      verifyRequest(request, '/api/methods', method: 'GET');
+      verifyRequest('/api/methods', method: 'GET');
     });
 
     test('returns a successful response when PATCH request', () async {
       final response = await client.methods.patch();
 
       expect(response, 'Hello world!');
-      verifyRequest(request, '/api/methods', method: 'PATCH');
+      verifyRequest('/api/methods', method: 'PATCH');
     });
 
     test('returns a successful response when POST request', () async {
       final response = await client.methods.post();
 
       expect(response, 'Hello world!');
-      verifyRequest(request, '/api/methods', method: 'POST');
+      verifyRequest('/api/methods', method: 'POST');
     });
 
     test('returns a successful response when PUT request', () async {
       final response = await client.methods.put();
 
       expect(response, 'Hello world!');
-      verifyRequest(request, '/api/methods', method: 'PUT');
+      verifyRequest('/api/methods', method: 'PUT');
     });
   });
 }
