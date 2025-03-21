@@ -8,7 +8,7 @@ import 'package:revali_client_gen/models/client_method.dart';
 import 'package:revali_client_gen/models/client_type.dart';
 
 List<Code> createStreamCall(ClientMethod method) {
-  final returnType = method.returnType;
+  final returnType = method.returnType.typeForClient;
   if (!returnType.isStream) {
     throw Exception('Stream type expected');
   }
