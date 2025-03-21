@@ -45,7 +45,7 @@ void main() {
         response.headers.contentType?.mimeType,
         ContentType.parse('application/octet-stream').mimeType,
       );
-      expect(response.body, [null, null]);
+      expect(response.body, ['', '']);
     });
 
     test('bool', () async {
@@ -317,7 +317,7 @@ void main() {
         response.headers.contentType?.mimeType,
         ContentType.parse('application/octet-stream').mimeType,
       );
-      expect(response.body, [null, null]);
+      expect(response.body, ['', '']);
     });
   });
 }
