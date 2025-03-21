@@ -7,35 +7,56 @@ Hook main() {
       ShellTask.always(
         commands: (files) => ['sip run barrel --set-exit-if-changed'],
       ),
-      ShellTask.always(
-        commands: (files) {
-          const test = 'sip test --recursive --bail --concurrent';
-          return [
-            'cd constructs && $test',
-            'cd packages && $test',
-            'cd revali_router && $test',
-          ];
-        },
-      ),
-      SequentialTasks.always(
+      ParallelTasks.always(
         tasks: [
           ShellTask.always(
-            commands: (files) => ['sip run test-suite'],
-          ),
-          ShellTask(
-            include: [AllFiles()],
             commands: (files) {
-              final nonGenGlob = Glob('**.g.dart');
-              final nonGeneratedFiles =
-                  files.where((e) => !nonGenGlob.matches(e));
-              return ['dart analyze ${nonGeneratedFiles.join(' ')}'];
+              return [
+                'cd constructs && sip test --recursive --bail --concurrent',
+              ];
+            },
+          ),
+          ShellTask.always(
+            commands: (files) {
+              return [
+                'cd packages && sip test --recursive --bail --concurrent',
+              ];
+            },
+          ),
+          ShellTask.always(
+            commands: (files) {
+              return [
+                'cd revali_router && sip test --recursive --bail --concurrent',
+              ];
             },
           ),
         ],
       ),
-      ShellTask(
-        include: [AllFiles()],
-        commands: (files) => ['dart format $files --set-exit-if-changed'],
+      SequentialTasks.always(
+        tasks: [
+          ShellTask.always(
+            commands: (files) => [
+              'sip run test-suite --gen-only',
+              'sip run test-suite --skip-gen',
+            ],
+          ),
+          ParallelTasks.always(
+            tasks: [
+              ShellTask.always(
+                commands: (files) {
+                  final nonGenGlob = Glob('**.g.dart');
+                  final nonGeneratedFiles =
+                      files.where((e) => !nonGenGlob.matches(e));
+                  return ['dart analyze ${nonGeneratedFiles.join(' ')}'];
+                },
+              ),
+              ShellTask.always(
+                commands: (files) =>
+                    ['dart format $files --set-exit-if-changed'],
+              ),
+            ],
+          ),
+        ],
       ),
     ],
   );

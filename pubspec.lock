@@ -146,10 +146,10 @@ packages:
     dependency: "direct main"
     description:
       name: hooksman
-      sha256: d990eb600b244bc7cc889a357e4410735a6952e0de1232ea3ff37c943915a1d5
+      sha256: "7d3d1bf560d1ac66b523ec51de6a6b6308ebcea92fd6355102a17a879908232a"
       url: "https://pub.dev"
     source: hosted
-    version: "1.3.0"
+    version: "1.3.1"
   http:
     dependency: transitive
     description:
