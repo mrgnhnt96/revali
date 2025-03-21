@@ -4,7 +4,7 @@ import 'package:test/test.dart';
 import '../.revali/server/server.dart';
 
 void main() {
-  group('custom-types', () {
+  group('future', () {
     late TestServer server;
 
     setUp(() {
@@ -20,31 +20,7 @@ void main() {
     test('user', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/custom/types/user',
-      );
-
-      expect(response.statusCode, 200);
-      expect(response.body, {
-        'data': {'name': 'Hello world!'},
-      });
-    });
-
-    test('future-user', () async {
-      final response = await server.send(
-        method: 'GET',
-        path: '/api/custom/types/future-user',
-      );
-
-      expect(response.statusCode, 200);
-      expect(response.body, {
-        'data': {'name': 'Hello world!'},
-      });
-    });
-
-    test('stream-user', () async {
-      final response = await server.send(
-        method: 'GET',
-        path: '/api/custom/types/stream-user',
+        path: '/api/future/user',
       );
 
       expect(response.statusCode, 200);
@@ -56,7 +32,7 @@ void main() {
     test('list-of-users', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/custom/types/list-of-users',
+        path: '/api/future/list-of-users',
       );
 
       expect(response.statusCode, 200);
@@ -67,10 +43,24 @@ void main() {
       });
     });
 
-    test('future-list-of-users', () async {
+    test('set-of-users', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/custom/types/future-list-of-users',
+        path: '/api/future/set-of-users',
+      );
+
+      expect(response.statusCode, 200);
+      expect(response.body, {
+        'data': [
+          {'name': 'Hello world!'},
+        ],
+      });
+    });
+
+    test('iterable-of-users', () async {
+      final response = await server.send(
+        method: 'GET',
+        path: '/api/future/iterable-of-users',
       );
 
       expect(response.statusCode, 200);
@@ -84,21 +74,7 @@ void main() {
     test('map-of-users', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/custom/types/map-of-users',
-      );
-
-      expect(response.statusCode, 200);
-      expect(response.body, {
-        'data': {
-          'user': {'name': 'Hello world!'},
-        },
-      });
-    });
-
-    test('future-map-of-users', () async {
-      final response = await server.send(
-        method: 'GET',
-        path: '/api/custom/types/future-map-of-users',
+        path: '/api/future/map-of-users',
       );
 
       expect(response.statusCode, 200);
@@ -112,7 +88,7 @@ void main() {
     test('record-of-users', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/custom/types/record-of-users',
+        path: '/api/future/record-of-users',
       );
 
       expect(response.statusCode, 200);
@@ -127,7 +103,7 @@ void main() {
     test('partial-record-of-users', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/custom/types/partial-record-of-users',
+        path: '/api/future/partial-record-of-users',
       );
 
       expect(response.statusCode, 200);
@@ -138,21 +114,6 @@ void main() {
             'user': {'name': 'Hello world!'},
           },
         ],
-      });
-    });
-
-    test('future-record-of-users', () async {
-      final response = await server.send(
-        method: 'GET',
-        path: '/api/custom/types/future-record-of-users',
-      );
-
-      expect(response.statusCode, 200);
-      expect(response.body, {
-        'data': {
-          'name': 'Hello world!',
-          'user': {'name': 'Hello world!'},
-        },
       });
     });
   });
