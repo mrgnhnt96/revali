@@ -34,7 +34,8 @@ class MetaType {
       hasToJsonMember: type.element?.hasToJsonMember ?? false,
       importPath: type.element?.importPath,
       element: type.element,
-      isNullable: type.nullabilitySuffix != NullabilitySuffix.none,
+      isNullable: (type.nullabilitySuffix != NullabilitySuffix.none) ^
+          (type is DynamicType),
       iterableType: switch (type) {
         final InterfaceType type => IterableType.fromType(type),
         _ => null,

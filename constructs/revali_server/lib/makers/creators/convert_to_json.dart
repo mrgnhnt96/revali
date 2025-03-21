@@ -5,9 +5,15 @@ import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_server/converters/server_record_prop.dart';
 import 'package:revali_server/converters/server_type.dart';
 import 'package:revali_server/makers/creators/should_nest_json_in_data.dart';
+import 'package:revali_server/makers/utils/switch_statement.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
+import 'package:revali_server/utils/safe_property.dart';
 
-Expression? convertToJson(ServerType type, Expression result) {
+Expression? convertToJson(
+  ServerType type,
+  Expression result, {
+  bool handleNull = true,
+}) {
   if (type.isStream) {
     if (type.typeArguments.length != 1) {
       throw Exception('Unsupported stream type: $type');
@@ -37,6 +43,22 @@ Expression? convertToJson(ServerType type, Expression result) {
     ]);
   }
 
+  if (type.isNullable && handleNull) {
+    final toJson = convertToJson(type, result, handleNull: false);
+
+    if (toJson == null) {
+      return null;
+    }
+
+    return switchPatternStatement(
+      result,
+      cases: [
+        (literalNull.code, literalNull.code),
+        (const Code('_'), toJson.code),
+      ],
+    );
+  }
+
   if (type.isFuture) {
     if (type.typeArguments.length != 1) {
       throw Exception('Unsupported future type: $type');
@@ -56,8 +78,8 @@ Expression? convertToJson(ServerType type, Expression result) {
 
     if (toJson == null) {
       return switch (iterableType) {
-        IterableType.set => result.property('toList').call([]),
-        IterableType.iterable => result.property('toList').call([]),
+        IterableType.set => result.safeProperty(type, 'toList').call([]),
+        IterableType.iterable => result.safeProperty(type, 'toList').call([]),
         IterableType.list => null,
       };
     }
@@ -69,10 +91,8 @@ Expression? convertToJson(ServerType type, Expression result) {
         ..body = toJson.code,
     ).closure;
 
-    return switch (type.isNullable) {
-      true => result.nullSafeProperty('map'),
-      false => result.property('map'),
-    }
+    return result
+        .safeProperty(type, 'map')
         .call([iterates])
         .property('toList')
         .call([]);
@@ -111,19 +131,15 @@ Expression? convertToJson(ServerType type, Expression result) {
         ]).code,
     ).closure;
 
-    return result.property('map').call([iterates]);
+    return result.safeProperty(type, 'map').call([iterates]);
   }
 
   if (type.recordProps case final props?
       when type.isRecord && props.isNotEmpty) {
     Expression extract(ServerRecordProp prop, String access) {
-      var extract = result.property(access);
+      var extract = result.safeProperty(prop.type, access);
       if (prop.type.hasToJsonMember) {
-        if (prop.type.isNullable) {
-          extract = extract.nullSafeProperty('toJson').call([]);
-        } else {
-          extract = extract.property('toJson').call([]);
-        }
+        extract = extract.safeProperty(prop.type, 'toJson').call([]);
       }
 
       return extract;
@@ -178,15 +194,11 @@ Expression? convertToJson(ServerType type, Expression result) {
   }
 
   if (type.hasToJsonMember) {
-    if (type.isNullable) {
-      return result.nullSafeProperty('toJson').call([]);
-    } else {
-      return result.property('toJson').call([]);
-    }
+    return result.safeProperty(type, 'toJson').call([]);
   }
 
   if (type.isStringContent) {
-    return result.property('value');
+    return result.safeProperty(type, 'value');
   }
 
   return null;

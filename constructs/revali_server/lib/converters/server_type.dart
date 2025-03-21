@@ -107,8 +107,8 @@ class ServerType with ExtractImport {
   bool get isBytes {
     bool isBytes(String name) {
       return switch (name) {
-        'List<int>' => true,
-        'List<List<int>>' => true,
+        'List<int>' || 'List<int>?' => true,
+        'List<List<int>>' || 'List<List<int>>?' => true,
         _ => false,
       };
     }
