@@ -75,53 +75,55 @@ List<Code> createWebsocketCall(ClientMethod method) {
         .statement,
     refer('channel').property('ready').awaited.statement,
     const Code(''),
-    if ((body, bodyType) case (final body?, final bodyType?)) ...[
-      declareVar('hasClosed').assign(literalFalse).statement,
-      declareFinal('payloadListener')
-          .assign(
-            refer(body.name)
-                .property('map')
-                .call([
-                  if (encodeJson(bodyType, 'e') case final encode?)
-                    Method(
+    if (method.returnType.isVoid case false) ...[
+      if ((body, bodyType) case (final body?, final bodyType?)) ...[
+        declareVar('hasClosed').assign(literalFalse).statement,
+        declareFinal('payloadListener')
+            .assign(
+              refer(body.name)
+                  .property('map')
+                  .call([
+                    if (encodeJson(bodyType, 'e') case final encode?)
+                      Method(
+                        (b) => b
+                          ..lambda = true
+                          ..requiredParameters
+                              .add(Parameter((b) => b..name = 'e'))
+                          ..body = refer('utf8')
+                              .property('encode')
+                              .call([encode]).code,
+                      ).closure
+                    else
+                      refer('utf8').property('encode'),
+                  ])
+                  .property('listen')
+                  .call([
+                    refer('channel').property('sink').property('add'),
+                  ], {
+                    'onDone': Method(
                       (b) => b
-                        ..lambda = true
-                        ..requiredParameters
-                            .add(Parameter((b) => b..name = 'e'))
-                        ..body = refer('utf8')
-                            .property('encode')
-                            .call([encode]).code,
-                    ).closure
-                  else
-                    refer('utf8').property('encode'),
-                ])
-                .property('listen')
-                .call([
-                  refer('channel').property('sink').property('add'),
-                ], {
-                  'onDone': Method(
-                    (b) => b
-                      ..body = Block.of([
-                        refer('hasClosed').assign(literalTrue).statement,
-                        refer('channel')
-                            .property('sink')
-                            .property('close')
-                            .call([]).statement,
-                      ]),
-                  ).closure,
-                  'cancelOnError': literalTrue,
-                }),
-          )
-          .statement,
+                        ..body = Block.of([
+                          refer('hasClosed').assign(literalTrue).statement,
+                          refer('channel')
+                              .property('sink')
+                              .property('close')
+                              .call([]).statement,
+                        ]),
+                    ).closure,
+                    'cancelOnError': literalTrue,
+                  }),
+            )
+            .statement,
+        const Code(''),
+      ],
+      channel(
+        method.returnType,
+        includeHasClosed: (body, bodyType) != (null, null),
+      ).code,
       const Code(''),
-    ],
-    channel(
-      method.returnType,
-      includeHasClosed: (body, bodyType) != (null, null),
-    ).code,
-    const Code(''),
-    if (body case Object()) ...[
-      refer('payloadListener').property('cancel').call([]).awaited.statement,
+      if (body case Object()) ...[
+        refer('payloadListener').property('cancel').call([]).awaited.statement,
+      ],
     ],
   ];
 }
