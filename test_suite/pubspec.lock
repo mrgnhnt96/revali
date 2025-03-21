@@ -347,6 +347,13 @@ packages:
       relative: true
     source: path
     version: "1.0.0"
+  revali_client_custom_return_types:
+    dependency: transitive
+    description:
+      path: "constructs/revali_client/custom_return_types/.revali/revali_client"
+      relative: true
+    source: path
+    version: "0.0.0"
   revali_client_gen:
     dependency: "direct overridden"
     description:
@@ -361,10 +368,10 @@ packages:
       relative: true
     source: path
     version: "0.0.0"
-  revali_client_return_types:
+  revali_client_primitive_return_types:
     dependency: transitive
     description:
-      path: "constructs/revali_client/return_types/.revali/revali_client"
+      path: "constructs/revali_client/primitive_return_types/.revali/revali_client"
       relative: true
     source: path
     version: "0.0.0"

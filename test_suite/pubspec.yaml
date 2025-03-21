@@ -5,7 +5,8 @@ environment:
   sdk: ">=3.6.0 <4.0.0"
 
 workspace:
-  - constructs/revali_client/return_types
+  - constructs/revali_client/custom_return_types
+  - constructs/revali_client/primitive_return_types
   - constructs/revali_client/methods
   - constructs/revali_client/websockets/return_types
   - constructs/revali_client/websockets/params
