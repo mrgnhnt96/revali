@@ -15,14 +15,14 @@ class ClientMethod with ExtractImport {
   ClientMethod({
     required this.name,
     required this.parameters,
-    required this.returnType,
+    required ClientType returnType,
     required this.isSse,
     required this.websocketType,
     required this.path,
     required this.parentPath,
     required this.method,
     required this.lifecycleComponents,
-  });
+  }) : _returnType = returnType;
 
   factory ClientMethod.fromMeta(
     MetaMethod route,
@@ -71,7 +71,8 @@ class ClientMethod with ExtractImport {
   final String? path;
   final String parentPath;
   final String? method;
-  final ClientType returnType;
+  final ClientType _returnType;
+  ClientType get returnType => _returnType..method = this;
   final List<ClientParam> parameters;
   final WebsocketType websocketType;
   final bool isSse;
@@ -96,20 +97,8 @@ class ClientMethod with ExtractImport {
             ClientType(
               name: 'Stream<${type.name}>',
               isStream: true,
-              isFuture: false,
-              isNullable: false,
-              isRecord: false,
-              hasFromJsonConstructor: false,
-              iterableType: null,
-              import: null,
-              isVoid: false,
-              isPrimitive: false,
-              isDynamic: false,
-              isMap: false,
-              isStringContent: false,
-              hasToJsonMember: false,
-              recordProps: [],
               typeArguments: [type],
+              method: this,
             ),
           )
       };
@@ -129,42 +118,19 @@ class ClientMethod with ExtractImport {
       type: ClientType(
         name: 'Stream<({$params})>',
         isStream: true,
-        isFuture: false,
-        isNullable: false,
-        isRecord: false,
-        hasFromJsonConstructor: false,
-        iterableType: null,
-        import: null,
-        isVoid: false,
-        isPrimitive: false,
-        isDynamic: false,
-        isMap: false,
-        isStringContent: false,
-        hasToJsonMember: false,
         recordProps: [],
+        method: this,
         typeArguments: [
           ClientType(
             name: '({$params})',
-            hasFromJsonConstructor: false,
             typeArguments: [],
             isRecord: true,
-            import: null,
-            isNullable: false,
-            iterableType: null,
-            isStream: false,
-            isFuture: false,
-            isVoid: false,
-            isPrimitive: false,
-            isDynamic: false,
-            isMap: false,
-            isStringContent: false,
-            hasToJsonMember: false,
             recordProps: [
               for (final param in body)
                 ClientRecordProp(
                   name: param.name,
                   isNamed: true,
-                  type: param.type,
+                  type: param.type..method = this,
                 ),
             ],
           ),

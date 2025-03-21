@@ -4,12 +4,34 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:revali_client_gen/makers/utils/extract_import.dart';
 import 'package:revali_client_gen/makers/utils/type_extensions.dart';
 import 'package:revali_client_gen/models/client_imports.dart';
+import 'package:revali_client_gen/models/client_method.dart';
 import 'package:revali_client_gen/models/client_record_prop.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router/revali_router.dart';
 
 class ClientType with ExtractImport {
   ClientType({
+    required this.name,
+    this.hasFromJsonConstructor = false,
+    this.import,
+    this.isNullable = false,
+    this.iterableType,
+    this.isRecord = false,
+    this.isStream = false,
+    this.isFuture = false,
+    List<ClientType> typeArguments = const [],
+    this.recordProps,
+    this.isVoid = false,
+    this.isPrimitive = false,
+    this.isDynamic = false,
+    this.isMap = false,
+    this.isStringContent = false,
+    this.hasToJsonMember = false,
+    this.method,
+  })  : _typeArguments = typeArguments,
+        _parent = null;
+
+  ClientType._required({
     required this.name,
     required this.hasFromJsonConstructor,
     required this.import,
@@ -26,25 +48,8 @@ class ClientType with ExtractImport {
     required this.isMap,
     required this.isStringContent,
     required this.hasToJsonMember,
+    this.method,
   }) : _typeArguments = typeArguments;
-
-  ClientType.map()
-      : name = 'Map<String, dynamic>',
-        import = ClientImports([]),
-        isVoid = false,
-        isStream = false,
-        isFuture = false,
-        isStringContent = false,
-        isPrimitive = false,
-        hasFromJsonConstructor = false,
-        isNullable = false,
-        iterableType = null,
-        isRecord = false,
-        recordProps = null,
-        isDynamic = false,
-        isMap = true,
-        hasToJsonMember = false,
-        _typeArguments = [];
 
   factory ClientType.fromMeta(MetaType type) {
     var import =
@@ -60,7 +65,7 @@ class ClientType with ExtractImport {
       import = ClientImports([]);
     }
 
-    return ClientType(
+    return ClientType._required(
       name: type.name,
       import: import,
       isVoid: type.isVoid,
@@ -105,8 +110,12 @@ class ClientType with ExtractImport {
         for (final arg in _typeArguments) arg.._parent = this,
       ]);
 
+  ClientMethod? method;
+
   ClientType? _parent;
   ClientType? get parent => _parent;
+  bool get isRoot => root.name == name;
+  bool get isIterable => iterableType != null;
 
   ClientType get root {
     if (parent == null) return this;
@@ -120,8 +129,6 @@ class ClientType with ExtractImport {
       current = current.parent;
     }
   }
-
-  bool get isIterable => iterableType != null;
 
   bool get isBytes {
     bool isBytes(String name) {
@@ -147,6 +154,67 @@ class ClientType with ExtractImport {
     }
 
     return iterate(root);
+  }
+
+  /// The Client's type can differ fromt the Server's type. For example,
+  /// if the server is returning a `Stream<String>` the client will receive
+  /// a `List<String>` because the stream is sent to the client as a list.
+  ClientType get typeForClient {
+    final method = this.method;
+    if (!isRoot || method == null) {
+      // ignore: avoid_returning_this
+      return this;
+    }
+
+    if ((method.isSse, method.isWebsocket) case (true, true)) {
+      if (isStream || isVoid) {
+        return this;
+      }
+
+      return ClientType(
+        name: 'Stream<$name>',
+        isStream: true,
+        method: method,
+        typeArguments: [_copy()],
+      );
+    }
+
+    if (isBytes && isStream) {
+      return this;
+    }
+
+    if (!isFuture && !isStream) {
+      return ClientType(
+        name: 'Future<$name>',
+        isFuture: true,
+        method: method,
+        typeArguments: [_copy()],
+      );
+    }
+
+    return this;
+  }
+
+  ClientType _copy() {
+    return ClientType._required(
+      name: name,
+      hasFromJsonConstructor: hasFromJsonConstructor,
+      import: import,
+      isNullable: isNullable,
+      iterableType: iterableType,
+      isRecord: isRecord,
+      isStream: isStream,
+      isFuture: isFuture,
+      typeArguments: _typeArguments,
+      recordProps: recordProps,
+      isVoid: isVoid,
+      isPrimitive: isPrimitive,
+      isDynamic: isDynamic,
+      isMap: isMap,
+      isStringContent: isStringContent,
+      hasToJsonMember: hasToJsonMember,
+      method: method,
+    );
   }
 
   @override
