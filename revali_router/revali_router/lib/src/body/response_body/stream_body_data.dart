@@ -23,6 +23,14 @@ final class StreamBodyData<T> extends BaseBodyData<Stream<T>> {
       final e => e.map((e) {
           String data;
 
+          if (e is String) {
+            return utf8.encode(e);
+          }
+
+          if (e == null) {
+            return [];
+          }
+
           try {
             data = jsonEncode(e);
           } catch (_) {
