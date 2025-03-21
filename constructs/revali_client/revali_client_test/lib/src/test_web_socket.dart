@@ -5,17 +5,17 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:async/async.dart';
-import 'package:http/http.dart';
+import 'package:revali_client/revali_client.dart';
 import 'package:revali_test/revali_test.dart';
 import 'package:stream_channel/stream_channel.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class TestWebSocket implements WebSocketChannel {
-  TestWebSocket(this.server, {this.onRequest})
+  TestWebSocket(this.server, [this.onRequest])
       : _sending = StreamController<List<int>>.broadcast(),
         _receiving = StreamController<dynamic>.broadcast();
   final TestServer server;
-  final void Function(Request)? onRequest;
+  final void Function(HttpRequest)? onRequest;
 
   final StreamController<List<int>> _sending;
   final StreamController<dynamic> _receiving;
@@ -44,6 +44,21 @@ class TestWebSocket implements WebSocketChannel {
         'upgrade': ['websocket'],
         'Sec-WebSocket-Version': ['13'],
         'Sec-WebSocket-Key': ['123'],
+      },
+      onRequest: (request) {
+        final headers = <String, String>{};
+        request.headers.forEach((key, value) {
+          headers[key] = value.toList().join(', ');
+        });
+
+        onRequest?.call(
+          HttpRequest(
+            method: request.method,
+            url: request.uri,
+            headers: headers,
+            contentLength: request.contentLength,
+          ),
+        );
       },
       onClose: () {
         receivingListener?.cancel();

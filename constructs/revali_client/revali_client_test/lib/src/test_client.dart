@@ -4,14 +4,14 @@ import 'package:revali_client/revali_client.dart';
 import 'package:revali_test/revali_test.dart';
 
 final class TestClient implements HttpClient {
-  TestClient(this.server, this.onRequest);
+  TestClient(this.server, [this.onRequest]);
 
   final TestServer server;
-  final void Function(HttpRequest) onRequest;
+  final void Function(HttpRequest)? onRequest;
 
   @override
   Future<HttpResponse> send(HttpRequest request) async {
-    onRequest(request);
+    onRequest?.call(request);
 
     final response = await server.send(
       method: request.method,
