@@ -1,24 +1,14 @@
-import 'package:revali_client_return_types_test/models/user.dart';
+import 'package:revali_client_custom_return_types_test/models/user.dart';
 import 'package:revali_router/revali_router.dart';
 
 // Learn more about Controllers at https://www.revali.dev/constructs/revali_server/core/controllers
-@Controller('custom/types')
-class CustomTypesController {
-  const CustomTypesController();
+@Controller('literal')
+class LiteralController {
+  const LiteralController();
 
   @Get('user')
-  User handle() {
+  User user() {
     return const User(name: 'Hello world!');
-  }
-
-  @Get('future-user')
-  Future<User> futureUser() async {
-    return const User(name: 'Hello world!');
-  }
-
-  @Get('stream-user')
-  Stream<User> streamUser() async* {
-    yield const User(name: 'Hello world!');
   }
 
   @Get('list-of-users')
@@ -26,18 +16,18 @@ class CustomTypesController {
     return [const User(name: 'Hello world!')];
   }
 
-  @Get('future-list-of-users')
-  Future<List<User>> futureListOfUsers() async {
+  @Get('set-of-users')
+  Set<User> setOfUsers() {
+    return {const User(name: 'Hello world!')};
+  }
+
+  @Get('iterable-of-users')
+  Iterable<User> iterableOfUsers() {
     return [const User(name: 'Hello world!')];
   }
 
   @Get('map-of-users')
   Map<String, User> mapOfUsers() {
-    return {'user': const User(name: 'Hello world!')};
-  }
-
-  @Get('future-map-of-users')
-  Future<Map<String, User>> futureMapOfUsers() async {
     return {'user': const User(name: 'Hello world!')};
   }
 
@@ -49,10 +39,5 @@ class CustomTypesController {
   @Get('partial-record-of-users')
   (String name, {User user}) partialRecordOfUsers() {
     return ('Hello world!', user: const User(name: 'Hello world!'));
-  }
-
-  @Get('future-record-of-users')
-  Future<({String name, User user})> futureRecordOfUsers() async {
-    return (name: 'Hello world!', user: const User(name: 'Hello world!'));
   }
 }

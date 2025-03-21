@@ -1,4 +1,4 @@
-name: revali_client_return_types_test
+name: revali_client_custom_return_types_test
 
 environment:
   sdk: ">=3.6.0 <4.0.0"
@@ -8,7 +8,7 @@ resolution: workspace
 dependencies:
   equatable: ^2.0.7
   revali_client:
-  revali_client_return_types:
+  revali_client_custom_return_types:
     path: .revali/revali_client
   revali_router:
 
