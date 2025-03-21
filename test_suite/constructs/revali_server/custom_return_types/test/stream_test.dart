@@ -3,7 +3,7 @@ import 'package:test/test.dart';
 
 import '../.revali/server/server.dart';
 
-void main1() {
+void main() {
   group('stream', () {
     late TestServer server;
 

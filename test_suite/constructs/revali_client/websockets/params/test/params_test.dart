@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 
 import '../.revali/server/server.dart';
 
-void main() async {
+void main() {
   group(
     'custom websocket',
     () {
