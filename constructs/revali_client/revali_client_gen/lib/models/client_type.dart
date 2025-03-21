@@ -172,16 +172,30 @@ class ClientType with ExtractImport {
       return this;
     }
 
-    if ((method.isSse, method.isWebsocket) case (true, true)) {
-      if (isStream || isVoid) {
+    if (method
+        case ClientMethod(isWebsocket: true) || ClientMethod(isSse: true)) {
+      if (isStream) {
         return this;
       }
 
+      if (isVoid) {
+        if (this case ClientType(isFuture: true, typeArguments: [final type])) {
+          return type;
+        }
+
+        return this;
+      }
+
+      final type = switch (this) {
+        ClientType(isFuture: true, typeArguments: [final type]) => type,
+        _ => this,
+      };
+
       return ClientType(
-        name: 'Stream<$name>',
+        name: 'Stream<${type.name}>',
         isStream: true,
         method: method,
-        typeArguments: [_copy()],
+        typeArguments: [type._copy()],
       );
     }
 
