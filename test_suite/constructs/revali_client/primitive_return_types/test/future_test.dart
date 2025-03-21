@@ -9,156 +9,153 @@ import 'package:test/test.dart';
 import '../.revali/server/server.dart';
 
 void main() {
-  group(
-    'future',
-    () {
-      late TestServer server;
-      late Server client;
-      HttpRequest? request;
+  group('future', () {
+    late TestServer server;
+    late Server client;
+    HttpRequest? request;
 
-      setUp(() {
-        server = TestServer();
+    setUp(() {
+      server = TestServer();
 
-        client = Server(
-          client: TestClient(server, (req) => request = req),
-        );
+      client = Server(
+        client: TestClient(server, (req) => request = req),
+      );
 
-        createServer(server);
-      });
+      createServer(server);
+    });
 
-      tearDown(() {
-        server.close();
-      });
+    tearDown(() {
+      server.close();
+    });
 
-      void verifyGetRequest(String path) {
-        expect(request?.url.path, path);
-        expect(request?.headers, isEmpty);
-        expect(request?.body, isEmpty);
-        expect(request?.method, 'GET');
-      }
+    void verifyGetRequest(String path) {
+      expect(request?.url.path, path);
+      expect(request?.headers, isEmpty);
+      expect(request?.body, isEmpty);
+      expect(request?.method, 'GET');
+    }
 
-      test('void', () async {
-        final call = client.future.voidCall();
+    test('void', () async {
+      final call = client.future.voidCall();
 
-        expect(call, isA<Future<void>>());
+      expect(call, isA<Future<void>>());
 
-        expect(call, completes);
-        verifyGetRequest('/api/future/void');
-      });
+      expect(call, completes);
+      verifyGetRequest('/api/future/void');
+    });
 
-      test('data-string', () async {
-        final response = await client.future.dataString();
+    test('data-string', () async {
+      final response = await client.future.dataString();
 
-        expect(response, 'Hello world!');
-        verifyGetRequest('/api/future/data-string');
-      });
+      expect(response, 'Hello world!');
+      verifyGetRequest('/api/future/data-string');
+    });
 
-      test('string', () async {
-        final response = await client.future.string();
+    test('string', () async {
+      final response = await client.future.string();
 
-        expect(response, 'Hello world!');
-        verifyGetRequest('/api/future/string');
-      });
+      expect(response, 'Hello world!');
+      verifyGetRequest('/api/future/string');
+    });
 
-      test('bool', () async {
-        final response = await client.future.boolean();
+    test('bool', () async {
+      final response = await client.future.boolean();
 
-        expect(response, true);
-        verifyGetRequest('/api/future/bool');
-      });
+      expect(response, true);
+      verifyGetRequest('/api/future/bool');
+    });
 
-      test('int', () async {
-        final response = await client.future.integer();
+    test('int', () async {
+      final response = await client.future.integer();
 
-        expect(response, 1);
-        verifyGetRequest('/api/future/int');
-      });
+      expect(response, 1);
+      verifyGetRequest('/api/future/int');
+    });
 
-      test('double', () async {
-        final response = await client.future.dub();
+    test('double', () async {
+      final response = await client.future.dub();
 
-        expect(response, 1);
-        verifyGetRequest('/api/future/double');
-      });
+      expect(response, 1);
+      verifyGetRequest('/api/future/double');
+    });
 
-      test('record', () async {
-        final response = await client.future.record();
+    test('record', () async {
+      final response = await client.future.record();
 
-        expect(response, ('hello', 'world'));
-        verifyGetRequest('/api/future/record');
-      });
+      expect(response, ('hello', 'world'));
+      verifyGetRequest('/api/future/record');
+    });
 
-      test('named-record', () async {
-        final response = await client.future.namedRecord();
+    test('named-record', () async {
+      final response = await client.future.namedRecord();
 
-        expect(response, (first: 'hello', second: 'world'));
-        verifyGetRequest('/api/future/named-record');
-      });
+      expect(response, (first: 'hello', second: 'world'));
+      verifyGetRequest('/api/future/named-record');
+    });
 
-      test('partial-record', () async {
-        final response = await client.future.partialRecord();
+    test('partial-record', () async {
+      final response = await client.future.partialRecord();
 
-        expect(response, ('hello', second: 'world'));
-        verifyGetRequest('/api/future/partial-record');
-      });
+      expect(response, ('hello', second: 'world'));
+      verifyGetRequest('/api/future/partial-record');
+    });
 
-      test('list-of-records', () async {
-        final response = await client.future.listOfRecords();
+    test('list-of-records', () async {
+      final response = await client.future.listOfRecords();
 
-        expect(response, [('hello', 'world')]);
-        verifyGetRequest('/api/future/list-of-records');
-      });
+      expect(response, [('hello', 'world')]);
+      verifyGetRequest('/api/future/list-of-records');
+    });
 
-      test('list-of-strings', () async {
-        final response = await client.future.listOfStrings();
+    test('list-of-strings', () async {
+      final response = await client.future.listOfStrings();
 
-        expect(response, ['Hello world!']);
-        verifyGetRequest('/api/future/list-of-strings');
-      });
+      expect(response, ['Hello world!']);
+      verifyGetRequest('/api/future/list-of-strings');
+    });
 
-      test('list-of-maps', () async {
-        final response = await client.future.listOfMaps();
+    test('list-of-maps', () async {
+      final response = await client.future.listOfMaps();
 
-        expect(response, [
-          {'hello': 1},
-        ]);
-        verifyGetRequest('/api/future/list-of-maps');
-      });
+      expect(response, [
+        {'hello': 1},
+      ]);
+      verifyGetRequest('/api/future/list-of-maps');
+    });
 
-      test('map-string-dynamic', () async {
-        final response = await client.future.map();
+    test('map-string-dynamic', () async {
+      final response = await client.future.map();
 
-        expect(response, {'hello': 1});
-        verifyGetRequest('/api/future/map-string-dynamic');
-      });
+      expect(response, {'hello': 1});
+      verifyGetRequest('/api/future/map-string-dynamic');
+    });
 
-      test('map-dynamic-dynamic', () async {
-        final response = await client.future.dynamicMap();
+    test('map-dynamic-dynamic', () async {
+      final response = await client.future.dynamicMap();
 
-        expect(response, {'true': true});
-        verifyGetRequest('/api/future/map-dynamic-dynamic');
-      });
+      expect(response, {'true': true});
+      verifyGetRequest('/api/future/map-dynamic-dynamic');
+    });
 
-      test('set', () async {
-        final response = await client.future.set();
+    test('set', () async {
+      final response = await client.future.set();
 
-        expect(response, {'Hello world!'});
-        verifyGetRequest('/api/future/set');
-      });
+      expect(response, {'Hello world!'});
+      verifyGetRequest('/api/future/set');
+    });
 
-      test('iterable', () async {
-        final response = await client.future.iterable();
+    test('iterable', () async {
+      final response = await client.future.iterable();
 
-        expect(response, ['Hello world!']);
-        verifyGetRequest('/api/future/iterable');
-      });
+      expect(response, ['Hello world!']);
+      verifyGetRequest('/api/future/iterable');
+    });
 
-      test('bytes', () async {
-        final response = await client.future.bytes();
+    test('bytes', () async {
+      final response = await client.future.bytes();
 
-        expect(response, [utf8.encode('Hello world!')]);
-        verifyGetRequest('/api/future/bytes');
-      });
-    },
-  );
+      expect(response, [utf8.encode('Hello world!')]);
+      verifyGetRequest('/api/future/bytes');
+    });
+  });
 }
