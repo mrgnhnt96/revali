@@ -2,12 +2,15 @@ import 'package:analyzer/dart/element/type.dart';
 
 extension DartTypeX on DartType {
   bool get isPrimitive {
-    bool isPrimitive(String value) {
-      return value == 'String' ||
-          value == 'int' ||
-          value == 'double' ||
-          value == 'num' ||
-          value == 'bool';
+    bool isPrimitive(DartType type) {
+      return switch (type) {
+        DartType(isDartCoreBool: true) => true,
+        DartType(isDartCoreInt: true) => true,
+        DartType(isDartCoreDouble: true) => true,
+        DartType(isDartCoreString: true) => true,
+        DartType(isDartCoreNum: true) => true,
+        _ => false,
+      };
     }
 
     if (isFuture || isStream) {
@@ -16,7 +19,7 @@ extension DartTypeX on DartType {
           return false;
         }
 
-        return isPrimitive(typeArguments.first.getDisplayString());
+        return isPrimitive(typeArguments.first);
       }
 
       return false;
@@ -26,7 +29,7 @@ extension DartTypeX on DartType {
       return false;
     }
 
-    return isPrimitive(getDisplayString());
+    return isPrimitive(this);
   }
 
   bool get isVoid {
