@@ -53,4 +53,17 @@ extension ExpressionX on Expression {
         this,
         '',
       );
+
+  Expression nullSafeIndex(Expression index) => _BinaryExpression._(
+        this,
+        CodeExpression(
+          Block.of([
+            const Code('?'),
+            const Code('['),
+            index.code,
+            const Code(']'),
+          ]),
+        ),
+        '',
+      );
 }
