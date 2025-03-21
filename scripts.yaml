@@ -181,7 +181,7 @@ test-suite:
       exit 0
     fi
 
-    dart test
+    sip test --test-randomize-ordering-seed random --bail
 
   _pubspec:
     comment-out: |
