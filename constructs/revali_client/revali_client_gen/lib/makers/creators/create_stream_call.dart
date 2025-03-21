@@ -4,6 +4,7 @@ import 'package:code_builder/code_builder.dart';
 import 'package:revali_client_gen/makers/creators/create_request.dart';
 import 'package:revali_client_gen/makers/creators/parse_json.dart';
 import 'package:revali_client_gen/makers/utils/binary_expression_extensions.dart';
+import 'package:revali_client_gen/makers/utils/create_switch_pattern.dart';
 import 'package:revali_client_gen/models/client_method.dart';
 import 'package:revali_client_gen/models/client_type.dart';
 
@@ -41,9 +42,22 @@ List<Code> createStreamCall(ClientMethod method) {
     createRequest(method),
     const Code(''),
     if (fromJson == null)
-      body.yieldedStar.statement
-    else if (typeArgument.isBytes)
-      mapOver(body).yieldedStar.statement
+      switch (typeArgument.isNullable && typeArgument.isBytes) {
+        true => body.property('map').call([
+            Method(
+              (b) => b
+                ..lambda = true
+                ..requiredParameters.add(Parameter((e) => e..name = 'e'))
+                ..body = createSwitchPattern(refer('e'), {
+                  literal([]): literalNull,
+                  declareFinal('value'): refer('value'),
+                }).code,
+            ).closure,
+          ]),
+        false => body
+      }
+          .yieldedStar
+          .statement
     else ...[
       declareFinal('stream').assign(body).statement,
       const Code(''),

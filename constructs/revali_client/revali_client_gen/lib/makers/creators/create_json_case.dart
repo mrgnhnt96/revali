@@ -1,20 +1,31 @@
 import 'package:code_builder/code_builder.dart';
+import 'package:revali_client_gen/models/client_record_prop.dart';
 import 'package:revali_client_gen/models/client_type.dart';
 
 Expression createJsonCase(ClientType type) {
   Expression data(ClientType type) {
+    final map = TypeReference(
+      (b) => b..symbol = 'Map${type.isNullable ? '?' : ''}',
+    );
+
+    final list = TypeReference(
+      (b) => b..symbol = 'List${type.isNullable ? '?' : ''}',
+    );
+
     return declareFinal(
       'data',
       type: switch (type) {
-        ClientType(isIterable: true) => refer('List<dynamic>'),
+        ClientType(isIterable: true) => list,
         ClientType(isPrimitive: true) => refer(type.name),
-        // named record
-        ClientType(isRecord: true, recordProps: final props?)
-            when props.isNotEmpty && props.first.isNamed =>
-          refer('Map<dynamic, dynamic>'),
+        // named records
+        ClientType(
+          isRecord: true,
+          recordProps: [ClientRecordProp(isNamed: true), ...]
+        ) =>
+          map,
         // at least 1 positional record
-        ClientType(isRecord: true) => refer('List<dynamic>'),
-        _ => refer('Map<dynamic, dynamic>'),
+        ClientType(isRecord: true) => list,
+        _ => map,
       },
     );
   }

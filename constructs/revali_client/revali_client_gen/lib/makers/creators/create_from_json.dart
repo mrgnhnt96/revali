@@ -1,6 +1,8 @@
 // ignore_for_file: unnecessary_parenthesis
 
 import 'package:code_builder/code_builder.dart';
+import 'package:revali_client_gen/makers/utils/create_switch_pattern.dart';
+import 'package:revali_client_gen/makers/utils/safe_property.dart';
 import 'package:revali_client_gen/makers/utils/type_extensions.dart';
 import 'package:revali_client_gen/models/client_record_prop.dart';
 import 'package:revali_client_gen/models/client_type.dart';
@@ -41,8 +43,8 @@ Expression? createReturnTypeFromJson(ClientType type, Expression variable) {
     Expression callToType(Expression variable, {bool includeList = true}) {
       return switch (type.iterableType) {
         IterableType.list when includeList =>
-          variable.property('toList').call([]),
-        IterableType.set => variable.property('toSet').call([]),
+          variable.safeProperty(type, 'toList').call([]),
+        IterableType.set => variable.safeProperty(type, 'toSet').call([]),
         _ => variable,
       };
     }
@@ -55,10 +57,10 @@ Expression? createReturnTypeFromJson(ClientType type, Expression variable) {
 
     return switch (createReturnTypeFromJson(typeArgument, reference)) {
       null => callToType(variable, includeList: false)
-          .property('cast<${typeArgument.name}>')
+          .safeProperty(type, 'cast<${typeArgument.name}>')
           .call([]),
       final e => callToType(
-          variable.property('map').call([
+          variable.safeProperty(type, 'map').call([
             Method(
               (b) => b
                 ..lambda = true
@@ -79,7 +81,7 @@ Expression? createReturnTypeFromJson(ClientType type, Expression variable) {
     Expression namedParams() {
       var access = variable;
       if (props.indexWhere((e) => e.isNamed) case final index when index > 0) {
-        access = variable.index(literal(index));
+        access = variable.safeIndex(type, literal(index));
       }
 
       Iterable<Code> params(ClientRecordProp prop) sync* {
@@ -90,7 +92,7 @@ Expression? createReturnTypeFromJson(ClientType type, Expression variable) {
         yield refer(name).code;
         yield const Code(':');
 
-        final variableAccess = access.index(literal(name));
+        final variableAccess = access.safeIndex(type, literal(name));
         if (createReturnTypeFromJson(prop.type, variableAccess)
             case final fromJson?) {
           yield fromJson.code;
@@ -109,13 +111,19 @@ Expression? createReturnTypeFromJson(ClientType type, Expression variable) {
 
     if (props.first.isNamed) {
       // all are named
-      return namedParams().parenthesized;
+      return switch (type.isNullable) {
+        true => createSwitchPattern(variable, {
+            literalNull: literalNull,
+            const Code('_'): namedParams().parenthesized,
+          }),
+        false => namedParams().parenthesized,
+      };
     }
 
     Iterable<Code> positionalParams(int index, ClientRecordProp prop) sync* {
       if (prop.isNamed) return;
 
-      final access = variable.index(literal(index));
+      final access = variable.safeIndex(type, literal(index));
 
       if (createReturnTypeFromJson(prop.type, access) case final fromJson?) {
         yield fromJson.code;
@@ -126,13 +134,21 @@ Expression? createReturnTypeFromJson(ClientType type, Expression variable) {
       yield const Code(',');
     }
 
-    return CodeExpression(
+    final record = CodeExpression(
       Block.of([
         for (final (index, prop) in props.indexed)
           ...positionalParams(index, prop),
         namedParams().code,
       ]),
     ).parenthesized;
+
+    return switch (type.isNullable) {
+      true => createSwitchPattern(variable, {
+          literalNull: literalNull,
+          const Code('_'): record,
+        }),
+      false => record,
+    };
   }
 
   if (type.isMap) {
@@ -157,7 +173,7 @@ Expression? createReturnTypeFromJson(ClientType type, Expression variable) {
       return null;
     }
 
-    return variable.property('map').call([
+    return variable.safeProperty(type, 'map').call([
       Method(
         (b) => b
           ..lambda = true

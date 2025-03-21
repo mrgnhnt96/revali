@@ -9,10 +9,10 @@ Reference createReturnType(ClientType type) {
         ClientType(isFuture: true) => 'Future',
         ClientType(isMap: true) => 'Map',
         ClientType(:final iterableType?) => iterableType.symbol,
-        ClientType(isStringContent: true, isNullable: true) => 'String?',
         ClientType(isStringContent: true) => 'String',
-        ClientType(:final name) => name,
+        ClientType(:final name) => name.replaceAll(RegExp(r'\?$'), ''),
       }
+      ..isNullable = type.isNullable
       ..types.addAll([
         if (type case ClientType(typeArguments: final types))
           for (final type in types) createReturnType(type),

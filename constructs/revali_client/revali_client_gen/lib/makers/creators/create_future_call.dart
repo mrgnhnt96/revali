@@ -3,6 +3,7 @@
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_client_gen/makers/creators/create_request.dart';
 import 'package:revali_client_gen/makers/creators/parse_json.dart';
+import 'package:revali_client_gen/makers/utils/create_switch_pattern.dart';
 import 'package:revali_client_gen/models/client_method.dart';
 import 'package:revali_client_gen/models/client_type.dart';
 
@@ -10,7 +11,9 @@ List<Code> createFutureCall(ClientMethod method) {
   final returnType = method.returnType;
 
   final coreType = switch (returnType) {
-    ClientType(typeArguments: [final type]) => type,
+    ClientType(isStream: true, typeArguments: [final type]) ||
+    ClientType(isFuture: true, typeArguments: [final type]) =>
+      type,
     _ => returnType,
   };
 
@@ -23,15 +26,43 @@ List<Code> createFutureCall(ClientMethod method) {
       .call([])
       .awaited;
 
+  final bytes = refer('response')
+      .property('expand')
+      .call([
+        Method(
+          (b) => b
+            ..lambda = true
+            ..requiredParameters.add(Parameter((b) => b..name = 'e'))
+            ..body = refer('e').code,
+        ).closure,
+      ])
+      .property('toList')
+      .call([])
+      .awaited;
+
   return [
     createRequest(method),
     const Code(''),
     if (coreType.isVoid)
       ...[]
     else if (coreType.isBytes)
-      refer('response').property('toList').call([]).awaited.returned.statement
+      switch (coreType.isNullable) {
+        true => createSwitchPattern(bytes, {
+            literal([]): literalNull,
+            declareFinal('value'): refer('value'),
+          }),
+        false => bytes,
+      }
+          .returned
+          .statement
     else if (fromJson == null)
-      body.returned.statement
+      switch (coreType.isNullable) {
+        true => createSwitchPattern(body, {
+            literalString(''): literalNull,
+            declareFinal('value'): refer('value'),
+          }).returned.statement,
+        false => body.returned.statement
+      }
     else ...[
       declareFinal('body').assign(body).statement,
       const Code(''),

@@ -33,9 +33,11 @@ Code? parseJson(
     return fromJson;
   }
 
-  final body = switch (createReturnTypeFromJson(type, refer('data'))) {
+  final data = refer('data');
+
+  final body = switch (createReturnTypeFromJson(type, data)) {
     final e? => e,
-    _ => refer('data')
+    _ => data
   };
 
   return CodeExpression(
