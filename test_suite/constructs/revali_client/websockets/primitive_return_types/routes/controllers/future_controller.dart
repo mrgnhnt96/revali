@@ -3,41 +3,44 @@ import 'dart:convert';
 import 'package:revali_router/revali_router.dart';
 
 // Learn more about Controllers at https://www.revali.dev/constructs/revali_server/core/controllers
-@Controller('literals')
-class LiteralsController {
-  const LiteralsController();
+@Controller('future')
+class FutureController {
+  const FutureController();
+
+  @WebSocket('void', triggerOnConnect: true, mode: WebSocketMode.sendOnly)
+  Future<void> voidCall() async {}
 
   @WebSocket(
     'data-string',
     triggerOnConnect: true,
     mode: WebSocketMode.sendOnly,
   )
-  String dataString() {
+  Future<String> dataString() async {
     return 'Hello world!';
   }
 
   @WebSocket('string', triggerOnConnect: true, mode: WebSocketMode.sendOnly)
-  StringContent string() {
+  Future<StringContent> string() async {
     return const StringContent('Hello world!');
   }
 
   @WebSocket('bool', triggerOnConnect: true, mode: WebSocketMode.sendOnly)
-  bool boolean() {
+  Future<bool> boolean() async {
     return true;
   }
 
   @WebSocket('int', triggerOnConnect: true, mode: WebSocketMode.sendOnly)
-  int integer() {
+  Future<int> integer() async {
     return 1;
   }
 
   @WebSocket('double', triggerOnConnect: true, mode: WebSocketMode.sendOnly)
-  double dub() {
+  Future<double> dub() async {
     return 1;
   }
 
   @WebSocket('record', triggerOnConnect: true, mode: WebSocketMode.sendOnly)
-  (String, String) record() {
+  Future<(String, String)> record() async {
     return ('hello', 'world');
   }
 
@@ -46,7 +49,7 @@ class LiteralsController {
     triggerOnConnect: true,
     mode: WebSocketMode.sendOnly,
   )
-  ({String first, String second}) namedRecord() {
+  Future<({String first, String second})> namedRecord() async {
     return (first: 'hello', second: 'world');
   }
 
@@ -55,7 +58,7 @@ class LiteralsController {
     triggerOnConnect: true,
     mode: WebSocketMode.sendOnly,
   )
-  (String, {String? second}) partialRecord() {
+  Future<(String, {String? second})> partialRecord() async {
     return ('hello', second: 'world');
   }
 
@@ -64,7 +67,7 @@ class LiteralsController {
     triggerOnConnect: true,
     mode: WebSocketMode.sendOnly,
   )
-  List<(String, String)> listOfRecords() {
+  Future<List<(String, String)>> listOfRecords() async {
     return [('hello', 'world')];
   }
 
@@ -73,7 +76,7 @@ class LiteralsController {
     triggerOnConnect: true,
     mode: WebSocketMode.sendOnly,
   )
-  List<String> listOfStrings() {
+  Future<List<String>> listOfStrings() async {
     return ['Hello world!'];
   }
 
@@ -82,7 +85,7 @@ class LiteralsController {
     triggerOnConnect: true,
     mode: WebSocketMode.sendOnly,
   )
-  List<Map<String, dynamic>> listOfMaps() {
+  Future<List<Map<String, dynamic>>> listOfMaps() async {
     return [
       {'hello': 1},
     ];
@@ -93,7 +96,7 @@ class LiteralsController {
     triggerOnConnect: true,
     mode: WebSocketMode.sendOnly,
   )
-  Map<String, dynamic> map() {
+  Future<Map<String, dynamic>> map() async {
     return {'hello': 1};
   }
 
@@ -102,22 +105,22 @@ class LiteralsController {
     triggerOnConnect: true,
     mode: WebSocketMode.sendOnly,
   )
-  Map<dynamic, dynamic> dynamicMap() {
+  Future<Map<dynamic, dynamic>> dynamicMap() async {
     return {'true': true};
   }
 
   @WebSocket('set', triggerOnConnect: true, mode: WebSocketMode.sendOnly)
-  Set<String> set() {
+  Future<Set<String>> set() async {
     return {'Hello world!'};
   }
 
   @WebSocket('iterable', triggerOnConnect: true, mode: WebSocketMode.sendOnly)
-  Iterable<String> iterable() sync* {
-    yield 'Hello world!';
+  Future<Iterable<String>> iterable() async {
+    return ['Hello world!'];
   }
 
   @WebSocket('bytes', triggerOnConnect: true, mode: WebSocketMode.sendOnly)
-  List<List<int>> bytes() {
+  Future<List<List<int>>> bytes() async {
     return [utf8.encode('Hello world!')];
   }
 }
