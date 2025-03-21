@@ -1,10 +1,10 @@
-import 'package:revali_client_websocket_return_types_test/models/user.dart';
+import 'package:revali_client_websocket_custom_return_types_test/models/user.dart';
 import 'package:revali_router/revali_router.dart';
 
 // Learn more about Controllers at https://www.revali.dev/constructs/revali_server/core/controllers
-@Controller('websocket/custom')
-class CustomWebsocketController {
-  const CustomWebsocketController();
+@Controller('literal')
+class LiteralController {
+  const LiteralController();
 
   @WebSocket('user')
   User user(@Body() User user) {

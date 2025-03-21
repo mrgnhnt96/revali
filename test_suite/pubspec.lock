@@ -382,6 +382,13 @@ packages:
       relative: true
     source: path
     version: "0.0.0"
+  revali_client_websocket_custom_return_types:
+    dependency: transitive
+    description:
+      path: "constructs/revali_client/websockets/custom_return_types/.revali/revali_client"
+      relative: true
+    source: path
+    version: "0.0.0"
   revali_client_websocket_params:
     dependency: transitive
     description:
@@ -389,10 +396,10 @@ packages:
       relative: true
     source: path
     version: "0.0.0"
-  revali_client_websocket_return_types:
+  revali_client_websocket_primitive_return_types:
     dependency: transitive
     description:
-      path: "constructs/revali_client/websockets/return_types/.revali/revali_client"
+      path: "constructs/revali_client/websockets/primitive_return_types/.revali/revali_client"
       relative: true
     source: path
     version: "0.0.0"

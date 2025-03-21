@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'package:revali_router/revali_router.dart';
 
 // Learn more about Controllers at https://www.revali.dev/constructs/revali_server/core/controllers
-@Controller('websocket/primitive')
-class PrimitiveWebsocketController {
-  const PrimitiveWebsocketController();
+@Controller('literal')
+class LiteralController {
+  const LiteralController();
 
   @WebSocket(
     'data-string',
