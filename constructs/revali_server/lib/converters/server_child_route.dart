@@ -13,7 +13,7 @@ import 'package:revali_server/utils/extract_import.dart';
 
 class ServerChildRoute with ExtractImport implements ServerRoute {
   ServerChildRoute({
-    required this.returnType,
+    required ServerType returnType,
     required this.httpCode,
     required this.redirect,
     required this.method,
@@ -23,7 +23,7 @@ class ServerChildRoute with ExtractImport implements ServerRoute {
     required this.params,
     required this.webSocket,
     required this.isSse,
-  });
+  }) : _returnType = returnType;
 
   factory ServerChildRoute.fromMeta(MetaMethod method) {
     ServerStatusCode? httpCode;
@@ -80,7 +80,8 @@ class ServerChildRoute with ExtractImport implements ServerRoute {
     );
   }
 
-  final ServerType returnType;
+  final ServerType _returnType;
+  ServerType get returnType => _returnType..route = this;
   final ServerStatusCode? httpCode;
   final ServerMimic? redirect;
   final String method;

@@ -7,6 +7,7 @@ import 'package:revali_router_core/revali_router_core.dart';
 import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_record_prop.dart';
 import 'package:revali_server/converters/server_reflect.dart';
+import 'package:revali_server/converters/server_route.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
 import 'package:revali_server/utils/extract_import.dart';
 
@@ -91,6 +92,8 @@ class ServerType with ExtractImport {
 
     return typeArguments.any((e) => e._isVoid);
   }
+
+  ServerRoute? route;
 
   List<ServerType> get typeArguments => List.unmodifiable([
         for (final arg in _typeArguments) arg.._parent = this,

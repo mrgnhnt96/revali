@@ -2,6 +2,7 @@
 
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_construct/revali_construct.dart';
+import 'package:revali_server/converters/server_child_route.dart';
 import 'package:revali_server/converters/server_route.dart';
 import 'package:revali_server/converters/server_type.dart';
 import 'package:revali_server/makers/creators/convert_to_json.dart';
@@ -9,17 +10,14 @@ import 'package:revali_server/makers/creators/create_web_socket_handler.dart';
 import 'package:revali_server/makers/creators/should_nest_json_in_data.dart';
 import 'package:revali_server/makers/utils/get_params.dart';
 
-Expression? createHandler({
+Expression createHandler({
   required ServerRoute route,
-  required ServerType? returnType,
-  required String? classVarName,
+  required ServerType returnType,
+  required String classVarName,
   required MetaWebSocketMethod? webSocket,
   List<Code> additionalHandlerCode = const [],
+  List<Code> postBodyCode = const [],
 }) {
-  if (returnType == null || classVarName == null) {
-    return null;
-  }
-
   if (webSocket != null) {
     return createWebSocketHandler(
       webSocket,
@@ -57,7 +55,10 @@ Expression? createHandler({
   return Method(
     (p) => p
       ..requiredParameters.add(Parameter((b) => b..name = 'context'))
-      ..modifier = MethodModifier.async
+      ..modifier = switch (returnType.route) {
+        ServerChildRoute(isWebSocket: true) => MethodModifier.asyncStar,
+        _ => MethodModifier.async,
+      }
       ..body = Block.of([
         if (route.params.any((e) => e.annotations.body != null))
           refer('context')
@@ -73,6 +74,10 @@ Expression? createHandler({
         if (setBody != null) ...[
           const Code('\n'),
           setBody.statement,
+        ],
+        if (postBodyCode.isNotEmpty) ...[
+          const Code('\n'),
+          ...postBodyCode,
         ],
       ]),
   ).closure;

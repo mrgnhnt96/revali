@@ -5,8 +5,8 @@ import 'package:revali_construct/models/meta_web_socket_method.dart';
 import 'package:revali_router/revali_router.dart' show WebSocketHandler;
 import 'package:revali_server/converters/server_route.dart';
 import 'package:revali_server/converters/server_type.dart';
-import 'package:revali_server/makers/creators/should_nest_json_in_data.dart';
-import 'package:revali_server/makers/utils/get_params.dart';
+import 'package:revali_server/makers/creators/create_handler.dart';
+import 'package:revali_server/makers/utils/binary_expression_extensions.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
 
 Expression createWebSocketHandler(
@@ -15,82 +15,15 @@ Expression createWebSocketHandler(
   required ServerType returnType,
   required String classVarName,
 }) {
-  final trigger = <Code>[];
-
-  final shouldNest = shouldNestJsonInData(returnType);
-
-  var bodyAssignment = refer('context').property('response').property('body');
-
-  if (shouldNest) {
-    bodyAssignment = bodyAssignment.index(literalString('data'));
-  }
-
-  bodyAssignment = bodyAssignment.assign(refer('result'));
-
-  final (:positioned, :named) = getParams(route.params);
-
-  if (returnType.isStream) {
-    final stream = refer(classVarName)
-        .property(route.handlerName)
-        .call(positioned, named)
-        .property('asyncMap')
-        .call([
-      Method(
-        (p) => p
-          ..requiredParameters.add(Parameter((b) => b..name = 'result'))
-          ..body = Block.of([bodyAssignment.statement]),
-      ).closure,
-    ]).statement;
-
-    trigger.addAll([
-      const Code('yield*'),
-      stream,
-    ]);
-  } else if (returnType.isVoid) {
-    var invoke =
-        refer(classVarName).property(route.handlerName).call(positioned, named);
-
-    if (returnType.isFuture) {
-      invoke = invoke.awaited;
-    }
-
-    trigger.add(invoke.statement);
-  } else if (returnType.isFuture) {
-    final futureResult = declareFinal('result')
-        .assign(
-          refer(classVarName)
-              .property(route.handlerName)
-              .call(positioned, named)
-              .awaited,
-        )
-        .statement;
-
-    trigger.addAll([
-      futureResult,
-      bodyAssignment.statement,
-      const Code('yield null;'),
-    ]);
-  } else {
-    final result = declareFinal('result')
-        .assign(
-          refer(classVarName)
-              .property(route.handlerName)
-              .call(positioned, named),
-        )
-        .statement;
-
-    trigger.addAll([
-      result,
-      bodyAssignment.statement,
-      const Code('yield null;'),
-    ]);
-  }
-  final handler = Method(
-    (p) => p
-      ..modifier = MethodModifier.asyncStar
-      ..requiredParameters.add(Parameter((b) => b..name = 'context'))
-      ..body = Block.of(trigger),
-  ).closure;
+  final handler = createHandler(
+    route: route,
+    returnType: returnType,
+    classVarName: classVarName,
+    webSocket: null,
+    postBodyCode: [
+      literalNull.yielded.statement,
+    ],
+  );
 
   return Method(
     (p) => p
