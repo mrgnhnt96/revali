@@ -7,6 +7,7 @@ environment:
 workspace:
   - constructs/revali_client/custom_return_types
   - constructs/revali_client/primitive_return_types
+  - constructs/revali_client/null_primitive_return_types
   - constructs/revali_client/methods
   - constructs/revali_client/websockets/custom_return_types
   - constructs/revali_client/websockets/primitive_return_types

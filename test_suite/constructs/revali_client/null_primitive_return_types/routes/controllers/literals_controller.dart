@@ -1,92 +1,92 @@
 import 'package:revali_router/revali_router.dart';
 
 // Learn more about Controllers at https://www.revali.dev/constructs/revali_server/core/controllers
-@Controller('future')
-class FutureController {
-  const FutureController();
+@Controller('literals')
+class LiteralsController {
+  const LiteralsController();
 
   @Get('data-string')
-  Future<String?> dataString() async {
+  String? dataString() {
     return null;
   }
 
   @Get('string')
-  Future<StringContent?> string() async {
+  StringContent? string() {
     return null;
   }
 
   @Get('bool')
-  Future<bool?> boolean() async {
+  bool? boolean() {
     return null;
   }
 
   @Get('int')
-  Future<int?> integer() async {
+  int? integer() {
     return null;
   }
 
   @Get('double')
-  Future<double?> dub() async {
+  double? dub() {
     return null;
   }
 
   @Get('record')
-  Future<(String?, String?)?> record() async {
+  (String?, String?)? record() {
     return null;
   }
 
   @Get('named-record')
-  Future<({String? first, String? second})?> namedRecord() async {
+  ({String? first, String? second})? namedRecord() {
     return null;
   }
 
   @Get('partial-record')
-  Future<(String?, {String? second})?> partialRecord() async {
+  (String?, {String? second})? partialRecord() {
     return null;
   }
 
   @Get('list-of-records')
-  Future<List<(String?, String?)?>?> listOfRecords() async {
+  List<(String?, String?)>? listOfRecords() {
     return null;
   }
 
   @Get('list-of-strings')
-  Future<List<String?>?> listOfStrings() async {
+  List<String?>? listOfStrings() {
     return null;
   }
 
   @Get('list-of-maps')
-  Future<List<Map<String?, dynamic>?>?> listOfMaps() async {
+  List<Map<String?, dynamic>?>? listOfMaps() {
     return null;
   }
 
   @Get('map-string-dynamic')
-  Future<Map<String?, dynamic>?> map() async {
+  Map<String?, dynamic>? map() {
     return null;
   }
 
   @Get('map-dynamic-dynamic')
-  Future<Map<dynamic, dynamic>?> dynamicMap() async {
+  Map<dynamic, dynamic>? dynamicMap() {
     return null;
   }
 
   @Get('map-dynamic-dynamic-with-null')
-  Future<Map<dynamic, dynamic>?> dynamicMapWithNull() async {
+  Map<dynamic, dynamic>? dynamicMapWithNull() {
     return {'foo': null};
   }
 
   @Get('set')
-  Future<Set<String?>?> set() async {
+  Set<String?>? set() {
     return null;
   }
 
   @Get('iterable')
-  Future<Iterable<String?>?> iterable() async {
+  Iterable<String?>? iterable() {
     return null;
   }
 
   @Get('bytes')
-  Future<List<int>?> bytes() async {
+  List<int>? bytes() {
     return null;
   }
 }
