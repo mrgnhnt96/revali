@@ -186,10 +186,22 @@ class ClientType with ExtractImport {
         return this;
       }
 
-      final type = switch (this) {
+      var type = switch (this) {
         ClientType(isFuture: true, typeArguments: [final type]) => type,
         _ => this,
       };
+
+      if (type
+          case ClientType(
+            iterableType: IterableType.list,
+            typeArguments: [
+              ClientType(
+                iterableType: IterableType.list,
+              )
+            ]
+          )) {
+        type = type.typeArguments.first;
+      }
 
       return ClientType(
         name: 'Stream<${type.name}>',
