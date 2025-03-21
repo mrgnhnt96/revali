@@ -24,4 +24,12 @@ enum IterableType {
   bool get isIterable => this == iterable;
   bool get isList => this == list;
   bool get isSet => this == set;
+
+  String get symbol {
+    return switch (this) {
+      IterableType.list => 'List',
+      IterableType.set => 'Set',
+      IterableType.iterable => 'Iterable',
+    };
+  }
 }
