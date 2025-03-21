@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:http/http.dart';
 import 'package:revali_client/revali_client.dart';
 import 'package:revali_test/revali_test.dart';
 
@@ -8,10 +7,10 @@ final class TestClient implements HttpClient {
   TestClient(this.server, this.onRequest);
 
   final TestServer server;
-  final void Function(Request) onRequest;
+  final void Function(HttpRequest) onRequest;
 
   @override
-  Future<StreamedResponse> send(Request request) async {
+  Future<HttpResponse> send(HttpRequest request) async {
     onRequest(request);
 
     final response = await server.send(
@@ -24,6 +23,7 @@ final class TestClient implements HttpClient {
     );
 
     final stream = switch (response.body) {
+      null => const Stream<List<int>>.empty(),
       final String e => Stream.value(utf8.encode(e)),
       final List<dynamic> e => Stream.fromIterable(
           e.map((e) {
@@ -37,9 +37,9 @@ final class TestClient implements HttpClient {
       _ => Stream.value(utf8.encode(jsonEncode(response.body))),
     };
 
-    return StreamedResponse(
-      stream,
-      response.statusCode,
+    return HttpResponse(
+      stream: stream,
+      statusCode: response.statusCode,
       headers: response.headers.values,
       contentLength: switch (response.contentLength) {
         -1 => null,

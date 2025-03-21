@@ -1,4 +1,4 @@
-import 'package:http/http.dart';
+import 'package:revali_client/revali_client.dart';
 import 'package:revali_client_custom_return_types/revali_client_custom_return_types.dart';
 import 'package:revali_client_custom_return_types_test/models/user.dart';
 import 'package:revali_client_test/revali_client_test.dart';
@@ -11,7 +11,7 @@ void main() {
   group('literals', () {
     late TestServer server;
     late Server client;
-    Request? request;
+    HttpRequest? request;
 
     setUp(() {
       server = TestServer();

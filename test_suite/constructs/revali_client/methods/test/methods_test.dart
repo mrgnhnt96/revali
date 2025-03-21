@@ -1,4 +1,4 @@
-import 'package:http/http.dart';
+import 'package:revali_client/revali_client.dart';
 import 'package:revali_client_methods/revali_client_methods.dart';
 import 'package:revali_client_test/revali_client_test.dart';
 import 'package:revali_test/revali_test.dart';
@@ -10,7 +10,7 @@ void main() {
   group('methods DELETE', () {
     late TestServer server;
     late Server client;
-    Request? request;
+    HttpRequest? request;
 
     setUp(() {
       server = TestServer();

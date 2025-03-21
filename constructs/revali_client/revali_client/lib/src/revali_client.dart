@@ -1,8 +1,9 @@
 import 'dart:convert';
 
-import 'package:http/http.dart';
 import 'package:revali_client/src/cookie_parser.dart';
 import 'package:revali_client/src/http_client.dart';
+import 'package:revali_client/src/http_request.dart';
+import 'package:revali_client/src/http_response.dart';
 import 'package:revali_client/src/integrations/http_package_client.dart';
 import 'package:revali_client/src/server_exception.dart';
 import 'package:revali_client/src/storage.dart';
@@ -18,7 +19,7 @@ class RevaliClient {
   final HttpClient _client;
   final String? baseUrl;
 
-  Future<ByteStream> request({
+  Future<HttpResponse> request({
     required String method,
     required String path,
     Map<String, String>? headers,
@@ -55,7 +56,7 @@ class RevaliClient {
 
     final uri = Uri.parse(fullPath);
 
-    final request = Request(method, uri);
+    final request = HttpRequest(method: method, url: uri);
 
     if (headers != null) {
       request.headers.addAll(headers);
@@ -112,6 +113,6 @@ class RevaliClient {
       }
     }
 
-    return response.stream;
+    return response;
   }
 }

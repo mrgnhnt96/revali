@@ -1,7 +1,8 @@
-import 'package:http/http.dart' as http;
+import 'package:revali_client/src/http_request.dart';
+import 'package:revali_client/src/http_response.dart';
 
 abstract interface class HttpClient {
   const HttpClient();
 
-  Future<http.StreamedResponse> send(http.Request request);
+  Future<HttpResponse> send(HttpRequest request);
 }
