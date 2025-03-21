@@ -1,5 +1,0 @@
-dependency_overrides:
-    client_gen_models:
-        path: ../../models
-    revali_client:
-        path: ../../../../constructs/revali_client/revali_client
