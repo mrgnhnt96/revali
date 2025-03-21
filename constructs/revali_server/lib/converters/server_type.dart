@@ -15,7 +15,7 @@ class ServerType with ExtractImport {
     required this.name,
     required this.hasFromJsonConstructor,
     required this.importPath,
-    required this.isVoid,
+    required bool isVoid,
     required this.reflect,
     required this.isFuture,
     required this.isStream,
@@ -28,7 +28,8 @@ class ServerType with ExtractImport {
     required List<ServerType> typeArguments,
     required this.recordProps,
     required this.isRecord,
-  }) : _typeArguments = List.unmodifiable(typeArguments);
+  })  : _typeArguments = List.unmodifiable(typeArguments),
+        _isVoid = isVoid;
 
   factory ServerType.fromMeta(MetaType type) {
     return ServerType(
@@ -70,7 +71,6 @@ class ServerType with ExtractImport {
   final String name;
   final bool hasFromJsonConstructor;
   final ServerImports? importPath;
-  final bool isVoid;
   final ServerReflect? reflect;
   final bool isFuture;
   final bool isStream;
@@ -83,6 +83,14 @@ class ServerType with ExtractImport {
   final bool isMap;
   final List<ServerType> _typeArguments;
   final List<ServerRecordProp>? recordProps;
+  final bool _isVoid;
+  bool get isVoid {
+    if (_isVoid) {
+      return true;
+    }
+
+    return typeArguments.any((e) => e._isVoid);
+  }
 
   List<ServerType> get typeArguments => List.unmodifiable([
         for (final arg in _typeArguments) arg.._parent = this,
