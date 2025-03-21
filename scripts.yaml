@@ -226,7 +226,8 @@ test-suite:
     (aliases): server
     (command):
       - (+) {$test-suite:revali_server:methods}
-      - (+) {$test-suite:revali_server:return-types}
+      - (+) {$test-suite:revali_server:custom-return-types}
+      - (+) {$test-suite:revali_server:primitive-return-types}
       - (+) {$test-suite:revali_server:middleware}
       - (+) {$test-suite:revali_server:params}
     _package: |
@@ -245,8 +246,11 @@ test-suite:
     methods: |
       DIR=methods
       {$test-suite:revali_server:_package}
-    return-types: |
-      DIR=return_types
+    custom-return-types: |
+      DIR=custom_return_types
+      {$test-suite:revali_server:_package}
+    primitive-return-types: |
+      DIR=primitive_return_types
       {$test-suite:revali_server:_package}
     middleware: |
       DIR=middleware
