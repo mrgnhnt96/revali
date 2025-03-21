@@ -4,16 +4,18 @@ import 'package:revali_client_gen/makers/creators/create_signature.dart';
 import 'package:revali_client_gen/makers/creators/create_stream_call.dart';
 import 'package:revali_client_gen/makers/creators/create_websocket_call.dart';
 import 'package:revali_client_gen/models/client_method.dart';
+import 'package:revali_client_gen/models/client_type.dart';
 
 Method createImplMethod(ClientMethod method) {
   return createSignature(
     method,
     body: Block.of(
       switch (method) {
-        final m when m.isSse => createStreamCall(m),
-        final m when m.isWebsocket => createWebsocketCall(m),
-        final m when m.returnType.isStream => createStreamCall(m),
-        final m => createFutureCall(m),
+        ClientMethod(isSse: true) => createStreamCall(method),
+        ClientMethod(returnType: ClientType(isStream: true, isBytes: true)) =>
+          createStreamCall(method),
+        ClientMethod(isWebsocket: true) => createWebsocketCall(method),
+        _ => createFutureCall(method),
       },
     ),
   );

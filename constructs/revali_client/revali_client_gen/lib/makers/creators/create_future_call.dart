@@ -10,7 +10,7 @@ List<Code> createFutureCall(ClientMethod method) {
   final returnType = method.returnType;
 
   final coreType = switch (returnType) {
-    ClientType(isFuture: true, typeArguments: [final type]) => type,
+    ClientType(typeArguments: [final type]) => type,
     _ => returnType,
   };
 
