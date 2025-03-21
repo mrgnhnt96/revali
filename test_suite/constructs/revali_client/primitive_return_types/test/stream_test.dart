@@ -36,116 +36,149 @@ void main() {
     }
 
     test('data-string', () async {
-      final response = await client.stream.dataString();
+      final response = await client.stream.dataString().toList();
 
-      expect(response, 'Hello world!');
+      expect(response, ['Hello', 'world']);
       verifyGetRequest('/api/stream/data-string');
     });
 
     test('string', () async {
-      final response = await client.stream.string();
+      final response = await client.stream.string().toList();
 
-      expect(response, 'Hello world!');
+      expect(response, ['Hello', 'world']);
       verifyGetRequest('/api/stream/string');
     });
 
     test('bool', () async {
-      final response = await client.stream.boolean();
+      final response = await client.stream.boolean().toList();
 
-      expect(response, true);
+      expect(response, [true, false]);
       verifyGetRequest('/api/stream/bool');
     });
 
     test('int', () async {
-      final response = await client.stream.integer();
+      final response = await client.stream.integer().toList();
 
-      expect(response, 1);
+      expect(response, [1, 2]);
       verifyGetRequest('/api/stream/int');
     });
 
     test('double', () async {
-      final response = await client.stream.dub();
+      final response = await client.stream.dub().toList();
 
-      expect(response, 1);
+      expect(response, [1.0, 2.0]);
       verifyGetRequest('/api/stream/double');
     });
 
     test('record', () async {
-      final response = await client.stream.record();
+      final response = await client.stream.record().toList();
 
-      expect(response, ('hello', 'world'));
+      expect(response, [('hello', 'world'), ('foo', 'bar')]);
       verifyGetRequest('/api/stream/record');
     });
 
     test('named-record', () async {
-      final response = await client.stream.namedRecord();
+      final response = await client.stream.namedRecord().toList();
 
-      expect(response, (first: 'hello', second: 'world'));
+      expect(response, [
+        (first: 'hello', second: 'world'),
+        (first: 'foo', second: 'bar'),
+      ]);
       verifyGetRequest('/api/stream/named-record');
     });
 
     test('partial-record', () async {
-      final response = await client.stream.partialRecord();
+      final response = await client.stream.partialRecord().toList();
 
-      expect(response, ('hello', second: 'world'));
+      expect(response, [
+        ('hello', second: 'world'),
+        ('foo', second: 'bar'),
+      ]);
       verifyGetRequest('/api/stream/partial-record');
     });
 
     test('list-of-records', () async {
-      final response = await client.stream.listOfRecords();
+      final response = await client.stream.listOfRecords().toList();
 
-      expect(response, [('hello', 'world')]);
+      expect(response, [
+        [
+          ('hello', 'world'),
+        ],
+        [
+          ('foo', 'bar'),
+        ]
+      ]);
       verifyGetRequest('/api/stream/list-of-records');
     });
 
     test('list-of-strings', () async {
-      final response = await client.stream.listOfStrings();
+      final response = await client.stream.listOfStrings().toList();
 
-      expect(response, ['Hello world!']);
+      expect(response, [
+        ['Hello'],
+        ['world'],
+      ]);
       verifyGetRequest('/api/stream/list-of-strings');
     });
 
     test('list-of-maps', () async {
-      final response = await client.stream.listOfMaps();
+      final response = await client.stream.listOfMaps().toList();
 
       expect(response, [
-        {'hello': 1},
+        [
+          {'hello': 1},
+        ],
+        [
+          {'foo': 2},
+        ],
       ]);
       verifyGetRequest('/api/stream/list-of-maps');
     });
 
     test('map-string-dynamic', () async {
-      final response = await client.stream.map();
+      final response = await client.stream.map().toList();
 
-      expect(response, {'hello': 1});
+      expect(response, [
+        {'hello': 1},
+        {'foo': 2},
+      ]);
       verifyGetRequest('/api/stream/map-string-dynamic');
     });
 
     test('map-dynamic-dynamic', () async {
-      final response = await client.stream.dynamicMap();
+      final response = await client.stream.dynamicMap().toList();
 
-      expect(response, {'true': true});
+      expect(response, [
+        {'true': true},
+        {'false': false},
+      ]);
       verifyGetRequest('/api/stream/map-dynamic-dynamic');
     });
 
     test('set', () async {
-      final response = await client.stream.set();
+      final response = await client.stream.set().toList();
 
-      expect(response, {'Hello world!'});
+      expect(response, [
+        {'Hello'},
+        {'world'},
+      ]);
       verifyGetRequest('/api/stream/set');
     });
 
     test('iterable', () async {
-      final response = await client.stream.iterable();
+      final response = await client.stream.iterable().toList();
 
-      expect(response, ['Hello world!']);
+      expect(response, [
+        ['Hello'],
+        ['world'],
+      ]);
       verifyGetRequest('/api/stream/iterable');
     });
 
     test('bytes', () async {
       final response = await client.stream.bytes().toList();
 
-      expect(response, [utf8.encode('Hello world!')]);
+      expect(response, [utf8.encode('Hello'), utf8.encode('world')]);
       verifyGetRequest('/api/stream/bytes');
     });
   });
