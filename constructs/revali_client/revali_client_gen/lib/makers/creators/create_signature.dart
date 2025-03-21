@@ -15,6 +15,8 @@ Method createSignature(ClientMethod method, {Code? body}) {
       ..optionalParameters.addAll(getParameters(method.allParams, method))
       ..modifier = switch (returnType) {
         ClientType(isStream: true) => MethodModifier.asyncStar,
+        ClientType(isFuture: true, method: ClientMethod(isWebsocket: true)) =>
+          MethodModifier.asyncStar,
         _ when body == null => null,
         _ => MethodModifier.async,
       }
