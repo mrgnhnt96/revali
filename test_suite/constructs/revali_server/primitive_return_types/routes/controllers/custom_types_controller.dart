@@ -1,5 +1,5 @@
 import 'package:revali_router/revali_router.dart';
-import 'package:revali_server_return_types_test/models/user.dart';
+import 'package:revali_server_primitive_return_types_test/models/user.dart';
 
 // Learn more about Controllers at https://www.revali.dev/constructs/revali_server/core/controllers
 @Controller('custom/types')
