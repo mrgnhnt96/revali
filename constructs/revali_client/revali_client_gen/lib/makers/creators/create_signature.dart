@@ -8,29 +8,11 @@ Method createSignature(ClientMethod method, {Code? body}) {
   return Method(
     (b) => b
       ..name = method.name
-      ..returns = switch (method.returnType) {
-        ClientType(:final isStream, isStringContent: true) ||
-        ClientType(
-          :final isStream,
-          typeArguments: [ClientType(isStringContent: true)]
-        ) =>
-          switch ((isStream && method.isSse) | method.isWebsocket) {
-            true => refer('Stream<String>'),
-            false => refer('Future<String>'),
-          },
-        ClientType(isStream: true, isBytes: true, :final name) => refer(name),
-        ClientType(
-          iterableType: null,
-          typeArguments: [ClientType(:final name)]
-        ) ||
-        ClientType(isStream: false, isFuture: false, :final name)
-            when method.isWebsocket =>
-          refer('Stream<$name>'),
-        ClientType(isStream: true, typeArguments: [ClientType(:final name)]) =>
-          refer('Future<$name>'),
-        ClientType(isFuture: true, :final name) => refer(name),
-        ClientType(:final name) => refer('Future<$name>')
-      }
+      ..returns = createReturnType(
+        method.returnType,
+        isSse: method.isSse,
+        isWebsocket: method.isWebsocket,
+      )
       ..optionalParameters.addAll(getPathParams(method))
       ..optionalParameters.addAll(getParameters(method.allParams, method))
       ..modifier = switch (method.returnType) {
@@ -46,5 +28,42 @@ Method createSignature(ClientMethod method, {Code? body}) {
         if (body != null) refer('override'),
       ])
       ..body = body,
+  );
+}
+
+Reference createReturnType(
+  ClientType type, {
+  required bool isSse,
+  required bool isWebsocket,
+  bool skipRoot = false,
+}) {
+  return TypeReference(
+    (b) => b
+      ..symbol = switch (type) {
+        ClientType(isStream: true) when isSse => 'Stream',
+        ClientType(isStream: true) when isWebsocket => 'Stream',
+        ClientType(isStream: true, isBytes: true) => 'Stream',
+        ClientType(isStream: true) => 'Future',
+        ClientType(isFuture: true) => 'Future',
+        ClientType(isRoot: true, isFuture: false) when !skipRoot => 'Future',
+        ClientType(isMap: true) => 'Map',
+        ClientType(:final iterableType?) => iterableType.symbol,
+        ClientType(isStringContent: true) => 'String',
+        ClientType(:final name) => name,
+      }
+      ..isNullable = type.isNullable
+      ..types.addAll([
+        if (type case ClientType(isRoot: true, isFuture: false, isStream: false)
+            when !skipRoot)
+          createReturnType(
+            type,
+            isSse: isSse,
+            isWebsocket: isWebsocket,
+            skipRoot: true,
+          )
+        else if (type case ClientType(typeArguments: final types))
+          for (final type in types)
+            createReturnType(type, isSse: isSse, isWebsocket: isWebsocket),
+      ]),
   );
 }
