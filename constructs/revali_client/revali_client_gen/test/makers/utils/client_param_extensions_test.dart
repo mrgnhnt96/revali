@@ -1,7 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:revali_client_gen/enums/parameter_position.dart';
 import 'package:revali_client_gen/makers/utils/client_param_extensions.dart';
-import 'package:revali_client_gen/models/client_imports.dart';
 import 'package:revali_client_gen/models/client_param.dart';
 import 'package:revali_client_gen/models/client_type.dart';
 import 'package:test/test.dart';
@@ -18,21 +17,6 @@ void main() {
         position: position,
         type: ClientType(
           name: type ?? 'FakeType',
-          import: ClientImports([]),
-          isVoid: false,
-          isStream: false,
-          isFuture: false,
-          isStringContent: false,
-          isPrimitive: false,
-          hasFromJsonConstructor: false,
-          isNullable: false,
-          iterableType: null,
-          isRecord: false,
-          recordProps: null,
-          isDynamic: false,
-          isMap: false,
-          typeArguments: [],
-          hasToJsonMember: false,
         ),
         access: access,
         acceptMultiple: false,
