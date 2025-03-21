@@ -21,7 +21,7 @@ class HttpPackageClient implements HttpClient {
       httpRequest.bodyBytes = bytes;
     }
 
-    if (request.body case final body?) {
+    if (request.body case final body when body.isNotEmpty) {
       httpRequest.body = body;
     }
 
