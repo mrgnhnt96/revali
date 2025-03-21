@@ -47,7 +47,7 @@ class TestRequest extends Stream<Uint8List> implements HttpRequest {
   HttpConnectionInfo? get connectionInfo => throw UnimplementedError();
 
   @override
-  int get contentLength => throw UnimplementedError();
+  int get contentLength => -1;
 
   @override
   List<Cookie> get cookies => throw UnimplementedError();
