@@ -26,19 +26,22 @@ List<Code> createFutureCall(ClientMethod method) {
       .call([])
       .awaited;
 
-  final bytes = refer('response')
-      .property('expand')
-      .call([
-        Method(
-          (b) => b
-            ..lambda = true
-            ..requiredParameters.add(Parameter((b) => b..name = 'e'))
-            ..body = refer('e').code,
-        ).closure,
-      ])
-      .property('toList')
-      .call([])
-      .awaited;
+  final bytes = switch (coreType) {
+    ClientType(typeArguments: [ClientType(name: 'int')]) => refer('response')
+        .property('expand')
+        .call([
+          Method(
+            (b) => b
+              ..lambda = true
+              ..requiredParameters.add(Parameter((b) => b..name = 'e'))
+              ..body = refer('e').code,
+          ).closure,
+        ])
+        .property('toList')
+        .call([])
+        .awaited,
+    _ => refer('response').property('toList').call([]).awaited
+  };
 
   return [
     createRequest(method),
