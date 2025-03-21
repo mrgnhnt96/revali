@@ -105,12 +105,9 @@ class ServerType with ExtractImport {
   }
 
   bool get isBytes {
+    final pattern = RegExp(r'(?:List<){1,2}int(?:>\??){1,2}');
     bool isBytes(String name) {
-      return switch (name) {
-        'List<int>' || 'List<int>?' => true,
-        'List<List<int>>' || 'List<List<int>>?' => true,
-        _ => false,
-      };
+      return pattern.hasMatch(name);
     }
 
     final root = this.root;
