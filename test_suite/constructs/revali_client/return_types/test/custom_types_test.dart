@@ -49,7 +49,7 @@ void main() {
     });
 
     test('stream-user', () async {
-      final response = await client.customTypes.streamUser().toList();
+      final response = await client.customTypes.streamUser();
 
       expect(response, [const User(name: 'Hello world!')]);
       verifyGetRequest('/api/custom/types/stream-user');

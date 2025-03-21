@@ -10,7 +10,7 @@ import '../.revali/server/server.dart';
 
 void main() {
   group(
-    'literals',
+    'stream literals',
     () {
       late TestServer server;
       late Server client;
@@ -38,117 +38,117 @@ void main() {
       }
 
       test('data-string', () async {
-        final response = await client.literals.dataString();
+        final response = client.streamLiterals.dataString();
 
         expect(response, 'Hello world!');
-        verifyGetRequest('/api/literals/data-string');
+        verifyGetRequest('/api/stream-literals/data-string');
       });
 
       test('string', () async {
-        final response = await client.literals.string();
+        final response = client.streamLiterals.string();
 
         expect(response, 'Hello world!');
-        verifyGetRequest('/api/literals/string');
+        verifyGetRequest('/api/stream-literals/string');
       });
 
       test('bool', () async {
-        final response = await client.literals.boolean();
+        final response = client.streamLiterals.boolean();
 
         expect(response, true);
-        verifyGetRequest('/api/literals/bool');
+        verifyGetRequest('/api/stream-literals/bool');
       });
 
       test('int', () async {
-        final response = await client.literals.integer();
+        final response = client.streamLiterals.integer();
 
         expect(response, 1);
-        verifyGetRequest('/api/literals/int');
+        verifyGetRequest('/api/stream-literals/int');
       });
 
       test('double', () async {
-        final response = await client.literals.dub();
+        final response = client.streamLiterals.dub();
 
         expect(response, 1);
-        verifyGetRequest('/api/literals/double');
+        verifyGetRequest('/api/stream-literals/double');
       });
 
       test('record', () async {
-        final response = await client.literals.record();
+        final response = client.streamLiterals.record();
 
         expect(response, ('hello', 'world'));
-        verifyGetRequest('/api/literals/record');
+        verifyGetRequest('/api/stream-literals/record');
       });
 
       test('named-record', () async {
-        final response = await client.literals.namedRecord();
+        final response = client.streamLiterals.namedRecord();
 
         expect(response, (first: 'hello', second: 'world'));
-        verifyGetRequest('/api/literals/named-record');
+        verifyGetRequest('/api/stream-literals/named-record');
       });
 
       test('partial-record', () async {
-        final response = await client.literals.partialRecord();
+        final response = client.streamLiterals.partialRecord();
 
         expect(response, ('hello', second: 'world'));
-        verifyGetRequest('/api/literals/partial-record');
+        verifyGetRequest('/api/stream-literals/partial-record');
       });
 
       test('list-of-records', () async {
-        final response = await client.literals.listOfRecords();
+        final response = client.streamLiterals.listOfRecords();
 
         expect(response, [('hello', 'world')]);
-        verifyGetRequest('/api/literals/list-of-records');
+        verifyGetRequest('/api/stream-literals/list-of-records');
       });
 
       test('list-of-strings', () async {
-        final response = await client.literals.listOfStrings();
+        final response = client.streamLiterals.listOfStrings();
 
         expect(response, ['Hello world!']);
-        verifyGetRequest('/api/literals/list-of-strings');
+        verifyGetRequest('/api/stream-literals/list-of-strings');
       });
 
       test('list-of-maps', () async {
-        final response = await client.literals.listOfMaps();
+        final response = client.streamLiterals.listOfMaps();
 
         expect(response, [
           {'hello': 1},
         ]);
-        verifyGetRequest('/api/literals/list-of-maps');
+        verifyGetRequest('/api/stream-literals/list-of-maps');
       });
 
       test('map-string-dynamic', () async {
-        final response = await client.literals.map();
+        final response = client.streamLiterals.map();
 
         expect(response, {'hello': 1});
-        verifyGetRequest('/api/literals/map-string-dynamic');
+        verifyGetRequest('/api/stream-literals/map-string-dynamic');
       });
 
       test('map-dynamic-dynamic', () async {
-        final response = await client.literals.dynamicMap();
+        final response = client.streamLiterals.dynamicMap();
 
         expect(response, {'true': true});
-        verifyGetRequest('/api/literals/map-dynamic-dynamic');
+        verifyGetRequest('/api/stream-literals/map-dynamic-dynamic');
       });
 
       test('set', () async {
-        final response = await client.literals.set();
+        final response = client.streamLiterals.set();
 
         expect(response, {'Hello world!'});
-        verifyGetRequest('/api/literals/set');
+        verifyGetRequest('/api/stream-literals/set');
       });
 
       test('iterable', () async {
-        final response = await client.literals.iterable();
+        final response = client.streamLiterals.iterable();
 
         expect(response, ['Hello world!']);
-        verifyGetRequest('/api/literals/iterable');
+        verifyGetRequest('/api/stream-literals/iterable');
       });
 
       test('bytes', () async {
-        final response = await client.literals.bytes();
+        final response = client.streamLiterals.bytes();
 
         expect(response, [utf8.encode('Hello world!')]);
-        verifyGetRequest('/api/literals/bytes');
+        verifyGetRequest('/api/stream-literals/bytes');
       });
     },
   );
