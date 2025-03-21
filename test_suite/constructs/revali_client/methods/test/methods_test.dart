@@ -26,7 +26,11 @@ void main() {
       server.close();
     });
 
-    void verifyRequest(String path, {required String method}) {
+    void verifyRequest(
+      HttpRequest? request,
+      String path, {
+      required String method,
+    }) {
       expect(request?.url.path, path);
       expect(request?.headers, isEmpty);
       expect(request?.body, isEmpty);
@@ -37,35 +41,35 @@ void main() {
       final response = await client.methods.delete();
 
       expect(response, 'Hello world!');
-      verifyRequest('/api/methods', method: 'DELETE');
+      verifyRequest(request, '/api/methods', method: 'DELETE');
     });
 
     test('returns a successful response when GET request', () async {
       final response = await client.methods.get();
 
       expect(response, 'Hello world!');
-      verifyRequest('/api/methods', method: 'GET');
+      verifyRequest(request, '/api/methods', method: 'GET');
     });
 
     test('returns a successful response when PATCH request', () async {
       final response = await client.methods.patch();
 
       expect(response, 'Hello world!');
-      verifyRequest('/api/methods', method: 'PATCH');
+      verifyRequest(request, '/api/methods', method: 'PATCH');
     });
 
     test('returns a successful response when POST request', () async {
       final response = await client.methods.post();
 
       expect(response, 'Hello world!');
-      verifyRequest('/api/methods', method: 'POST');
+      verifyRequest(request, '/api/methods', method: 'POST');
     });
 
     test('returns a successful response when PUT request', () async {
       final response = await client.methods.put();
 
       expect(response, 'Hello world!');
-      verifyRequest('/api/methods', method: 'PUT');
+      verifyRequest(request, '/api/methods', method: 'PUT');
     });
   });
 }
