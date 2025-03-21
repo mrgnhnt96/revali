@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'package:revali_router/revali_router.dart';
 
 // Learn more about Controllers at https://www.revali.dev/constructs/revali_server/core/controllers
-@Controller('stream-literals')
-class StreamLiteralsController {
-  const StreamLiteralsController();
+@Controller('stream')
+class StreamController {
+  const StreamController();
 
   @Get('data-string')
   Stream<String> dataString() async* {

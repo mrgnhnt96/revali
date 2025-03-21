@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'package:revali_router/revali_router.dart';
 
 // Learn more about Controllers at https://www.revali.dev/constructs/revali_server/core/controllers
-@Controller('future-literals')
-class FutureLiteralsController {
-  const FutureLiteralsController();
+@Controller('future')
+class FutureController {
+  const FutureController();
 
   @Get('data-string')
   Future<String> dataString() async {

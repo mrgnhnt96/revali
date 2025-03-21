@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 import '../.revali/server/server.dart';
 
 void main() {
-  group('literals', () {
+  group('stream', () {
     late TestServer server;
 
     setUp(() {
@@ -22,7 +22,7 @@ void main() {
     test('data-string', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/stream-literals/data-string',
+        path: '/api/stream/data-string',
       );
 
       expect(
@@ -35,7 +35,7 @@ void main() {
     test('string', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/stream-literals/string',
+        path: '/api/stream/string',
       );
 
       expect(
@@ -48,7 +48,7 @@ void main() {
     test('bool', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/stream-literals/bool',
+        path: '/api/stream/bool',
       );
 
       expect(
@@ -61,7 +61,7 @@ void main() {
     test('int', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/stream-literals/int',
+        path: '/api/stream/int',
       );
 
       expect(
@@ -74,7 +74,7 @@ void main() {
     test('double', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/stream-literals/double',
+        path: '/api/stream/double',
       );
 
       expect(
@@ -87,7 +87,7 @@ void main() {
     test('record', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/stream-literals/record',
+        path: '/api/stream/record',
       );
 
       expect(response.statusCode, 200);
@@ -99,7 +99,7 @@ void main() {
     test('named-record', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/stream-literals/named-record',
+        path: '/api/stream/named-record',
       );
 
       expect(response.statusCode, 200);
@@ -114,7 +114,7 @@ void main() {
     test('partial-record', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/stream-literals/partial-record',
+        path: '/api/stream/partial-record',
       );
 
       expect(response.statusCode, 200);
@@ -131,7 +131,7 @@ void main() {
     test('list-of-records', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/stream-literals/list-of-records',
+        path: '/api/stream/list-of-records',
       );
 
       expect(
@@ -148,7 +148,7 @@ void main() {
     test('list-of-strings', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/stream-literals/list-of-strings',
+        path: '/api/stream/list-of-strings',
       );
 
       expect(
@@ -163,7 +163,7 @@ void main() {
     test('list-of-maps', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/stream-literals/list-of-maps',
+        path: '/api/stream/list-of-maps',
       );
 
       expect(
@@ -180,7 +180,7 @@ void main() {
     test('map-string-dynamic', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/stream-literals/map-string-dynamic',
+        path: '/api/stream/map-string-dynamic',
       );
 
       expect(
@@ -195,7 +195,7 @@ void main() {
     test('map-dynamic-dynamic', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/stream-literals/map-dynamic-dynamic',
+        path: '/api/stream/map-dynamic-dynamic',
       );
 
       expect(
@@ -210,7 +210,7 @@ void main() {
     test('set', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/stream-literals/set',
+        path: '/api/stream/set',
       );
 
       expect(
@@ -225,7 +225,7 @@ void main() {
     test('iterable', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/stream-literals/iterable',
+        path: '/api/stream/iterable',
       );
 
       expect(
@@ -240,7 +240,7 @@ void main() {
     test('bytes', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/stream-literals/bytes',
+        path: '/api/stream/bytes',
       );
 
       expect(

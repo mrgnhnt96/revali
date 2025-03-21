@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 import '../.revali/server/server.dart';
 
 void main() {
-  group('future-literals', () {
+  group('future', () {
     late TestServer server;
 
     setUp(() {
@@ -22,7 +22,7 @@ void main() {
     test('data-string', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/future-literals/data-string',
+        path: '/api/future/data-string',
       );
 
       expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
@@ -32,7 +32,7 @@ void main() {
     test('string', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/future-literals/string',
+        path: '/api/future/string',
       );
 
       expect(response.headers.contentType?.mimeType, ContentType.text.mimeType);
@@ -42,7 +42,7 @@ void main() {
     test('bool', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/future-literals/bool',
+        path: '/api/future/bool',
       );
 
       expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
@@ -52,7 +52,7 @@ void main() {
     test('int', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/future-literals/int',
+        path: '/api/future/int',
       );
 
       expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
@@ -62,7 +62,7 @@ void main() {
     test('double', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/future-literals/double',
+        path: '/api/future/double',
       );
 
       expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
@@ -72,7 +72,7 @@ void main() {
     test('record', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/future-literals/record',
+        path: '/api/future/record',
       );
 
       expect(response.statusCode, 200);
@@ -84,7 +84,7 @@ void main() {
     test('named-record', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/future-literals/named-record',
+        path: '/api/future/named-record',
       );
 
       expect(response.statusCode, 200);
@@ -99,7 +99,7 @@ void main() {
     test('partial-record', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/future-literals/partial-record',
+        path: '/api/future/partial-record',
       );
 
       expect(response.statusCode, 200);
@@ -116,7 +116,7 @@ void main() {
     test('list-of-records', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/future-literals/list-of-records',
+        path: '/api/future/list-of-records',
       );
 
       expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
@@ -130,7 +130,7 @@ void main() {
     test('list-of-strings', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/future-literals/list-of-strings',
+        path: '/api/future/list-of-strings',
       );
 
       expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
@@ -142,7 +142,7 @@ void main() {
     test('list-of-maps', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/future-literals/list-of-maps',
+        path: '/api/future/list-of-maps',
       );
 
       expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
@@ -156,7 +156,7 @@ void main() {
     test('map-string-dynamic', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/future-literals/map-string-dynamic',
+        path: '/api/future/map-string-dynamic',
       );
 
       expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
@@ -168,7 +168,7 @@ void main() {
     test('map-dynamic-dynamic', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/future-literals/map-dynamic-dynamic',
+        path: '/api/future/map-dynamic-dynamic',
       );
 
       expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
@@ -180,7 +180,7 @@ void main() {
     test('set', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/future-literals/set',
+        path: '/api/future/set',
       );
 
       expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
@@ -192,7 +192,7 @@ void main() {
     test('iterable', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/future-literals/iterable',
+        path: '/api/future/iterable',
       );
 
       expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
@@ -204,7 +204,7 @@ void main() {
     test('bytes', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/future-literals/bytes',
+        path: '/api/future/bytes',
       );
 
       expect(
