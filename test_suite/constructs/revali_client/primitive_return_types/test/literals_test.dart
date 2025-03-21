@@ -35,6 +35,15 @@ void main() {
       expect(request?.method, 'GET');
     }
 
+    test('void', () async {
+      final call = client.literals.voidCall();
+
+      expect(call, isA<Future<void>>());
+
+      expect(call, completes);
+      verifyGetRequest('/api/literals/void');
+    });
+
     test('data-string', () async {
       final response = await client.literals.dataString();
 

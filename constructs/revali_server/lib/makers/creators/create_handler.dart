@@ -40,9 +40,7 @@ Expression? createHandler({
   }
 
   Expression? setBody;
-  if (returnType
-      case ServerType(isVoid: false) &&
-          ServerType(typeArguments: [ServerType(isVoid: false)])) {
+  if (returnType case ServerType(isVoid: false)) {
     handler = declareFinal('result').assign(handler);
 
     setBody = refer('context').property('response').property('body');

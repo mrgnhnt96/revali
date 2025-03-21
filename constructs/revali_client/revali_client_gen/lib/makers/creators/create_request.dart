@@ -31,15 +31,17 @@ Code createRequest(ClientMethod method) {
     }
   }
 
-  return declareFinal('response')
-      .assign(
-        refer('_client').property('request').call([], {
-          'method': refer("'${method.method}'"),
-          'path': refer("'${method.resolvedPath}'"),
-          if (headers.isNotEmpty) 'headers': createMap(headers),
-          if (queryParams.isNotEmpty) 'query': createQueryArg(queryParams),
-          if (bodyParams.isNotEmpty) 'body': createBodyArg(bodyParams),
-        }).awaited,
-      )
-      .statement;
+  final call = refer('_client').property('request').call([], {
+    'method': refer("'${method.method}'"),
+    'path': refer("'${method.resolvedPath}'"),
+    if (headers.isNotEmpty) 'headers': createMap(headers),
+    if (queryParams.isNotEmpty) 'query': createQueryArg(queryParams),
+    if (bodyParams.isNotEmpty) 'body': createBodyArg(bodyParams),
+  }).awaited;
+
+  if (method.returnType.isVoid) {
+    return call.statement;
+  }
+
+  return declareFinal('response').assign(call).statement;
 }

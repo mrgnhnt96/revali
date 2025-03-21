@@ -21,7 +21,7 @@ class ClientType with ExtractImport {
     this.isFuture = false,
     List<ClientType> typeArguments = const [],
     this.recordProps,
-    this.isVoid = false,
+    bool isVoid = false,
     this.isPrimitive = false,
     this.isDynamic = false,
     this.isMap = false,
@@ -29,7 +29,8 @@ class ClientType with ExtractImport {
     this.hasToJsonMember = false,
     this.method,
   })  : _typeArguments = typeArguments,
-        _parent = null;
+        _parent = null,
+        _isVoid = isVoid;
 
   ClientType._required({
     required this.name,
@@ -42,14 +43,15 @@ class ClientType with ExtractImport {
     required this.isFuture,
     required List<ClientType> typeArguments,
     required this.recordProps,
-    required this.isVoid,
+    required bool isVoid,
     required this.isPrimitive,
     required this.isDynamic,
     required this.isMap,
     required this.isStringContent,
     required this.hasToJsonMember,
     this.method,
-  }) : _typeArguments = typeArguments;
+  })  : _typeArguments = typeArguments,
+        _isVoid = isVoid;
 
   factory ClientType.fromMeta(MetaType type) {
     var import =
@@ -98,13 +100,20 @@ class ClientType with ExtractImport {
   final bool isRecord;
   final bool isStream;
   final bool isFuture;
-  final bool isVoid;
   final bool isPrimitive;
   final bool isMap;
   final bool isDynamic;
   final bool isStringContent;
   final List<ClientType> _typeArguments;
   final List<ClientRecordProp>? recordProps;
+  final bool _isVoid;
+  bool get isVoid {
+    if (_isVoid) {
+      return true;
+    }
+
+    return typeArguments.any((e) => e._isVoid);
+  }
 
   List<ClientType> get typeArguments => List.unmodifiable([
         for (final arg in _typeArguments) arg.._parent = this,
