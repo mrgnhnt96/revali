@@ -29,7 +29,10 @@ void main() {
         response.headers.contentType?.mimeType,
         ContentType.parse('application/octet-stream').mimeType,
       );
-      expect(response.body, {'data': 'Hello world!'});
+      expect(response.body, [
+        {'data': 'Hello'},
+        {'data': 'world'},
+      ]);
     });
 
     test('string', () async {
@@ -42,7 +45,7 @@ void main() {
         response.headers.contentType?.mimeType,
         ContentType.parse('application/octet-stream').mimeType,
       );
-      expect(response.body, 'Hello world!');
+      expect(response.body, ['Hello', 'world']);
     });
 
     test('bool', () async {
@@ -55,7 +58,10 @@ void main() {
         response.headers.contentType?.mimeType,
         ContentType.parse('application/octet-stream').mimeType,
       );
-      expect(response.body, {'data': true});
+      expect(response.body, [
+        {'data': true},
+        {'data': false},
+      ]);
     });
 
     test('int', () async {
@@ -68,7 +74,10 @@ void main() {
         response.headers.contentType?.mimeType,
         ContentType.parse('application/octet-stream').mimeType,
       );
-      expect(response.body, {'data': 1});
+      expect(response.body, [
+        {'data': 1},
+        {'data': 2},
+      ]);
     });
 
     test('double', () async {
@@ -81,7 +90,10 @@ void main() {
         response.headers.contentType?.mimeType,
         ContentType.parse('application/octet-stream').mimeType,
       );
-      expect(response.body, {'data': 1});
+      expect(response.body, [
+        {'data': 1.0},
+        {'data': 2.0},
+      ]);
     });
 
     test('record', () async {
@@ -91,9 +103,14 @@ void main() {
       );
 
       expect(response.statusCode, 200);
-      expect(response.body, {
-        'data': ['hello', 'world'],
-      });
+      expect(response.body, [
+        {
+          'data': ['hello', 'world'],
+        },
+        {
+          'data': ['foo', 'bar'],
+        },
+      ]);
     });
 
     test('named-record', () async {
@@ -103,12 +120,14 @@ void main() {
       );
 
       expect(response.statusCode, 200);
-      expect(response.body, {
-        'data': {
-          'first': 'hello',
-          'second': 'world',
+      expect(response.body, [
+        {
+          'data': {'first': 'hello', 'second': 'world'},
         },
-      });
+        {
+          'data': {'first': 'foo', 'second': 'bar'},
+        },
+      ]);
     });
 
     test('partial-record', () async {
@@ -118,14 +137,20 @@ void main() {
       );
 
       expect(response.statusCode, 200);
-      expect(response.body, {
-        'data': [
-          'hello',
-          {
-            'second': 'world',
-          },
-        ],
-      });
+      expect(response.body, [
+        {
+          'data': [
+            'hello',
+            {'second': 'world'},
+          ],
+        },
+        {
+          'data': [
+            'foo',
+            {'second': 'bar'},
+          ],
+        },
+      ]);
     });
 
     test('list-of-records', () async {
@@ -138,11 +163,18 @@ void main() {
         response.headers.contentType?.mimeType,
         ContentType.parse('application/octet-stream').mimeType,
       );
-      expect(response.body, {
-        'data': [
-          ['hello', 'world'],
-        ],
-      });
+      expect(response.body, [
+        {
+          'data': [
+            ['hello', 'world'],
+          ],
+        },
+        {
+          'data': [
+            ['foo', 'bar'],
+          ],
+        },
+      ]);
     });
 
     test('list-of-strings', () async {
@@ -155,9 +187,14 @@ void main() {
         response.headers.contentType?.mimeType,
         ContentType.parse('application/octet-stream').mimeType,
       );
-      expect(response.body, {
-        'data': ['Hello world!'],
-      });
+      expect(response.body, [
+        {
+          'data': ['Hello'],
+        },
+        {
+          'data': ['world'],
+        },
+      ]);
     });
 
     test('list-of-maps', () async {
@@ -170,11 +207,18 @@ void main() {
         response.headers.contentType?.mimeType,
         ContentType.parse('application/octet-stream').mimeType,
       );
-      expect(response.body, {
-        'data': [
-          {'hello': 1},
-        ],
-      });
+      expect(response.body, [
+        {
+          'data': [
+            {'hello': 1},
+          ],
+        },
+        {
+          'data': [
+            {'foo': 2},
+          ],
+        },
+      ]);
     });
 
     test('map-string-dynamic', () async {
@@ -187,9 +231,14 @@ void main() {
         response.headers.contentType?.mimeType,
         ContentType.parse('application/octet-stream').mimeType,
       );
-      expect(response.body, {
-        'data': {'hello': 1},
-      });
+      expect(response.body, [
+        {
+          'data': {'hello': 1},
+        },
+        {
+          'data': {'foo': 2},
+        },
+      ]);
     });
 
     test('map-dynamic-dynamic', () async {
@@ -202,9 +251,14 @@ void main() {
         response.headers.contentType?.mimeType,
         ContentType.parse('application/octet-stream').mimeType,
       );
-      expect(response.body, {
-        'data': {'true': true},
-      });
+      expect(response.body, [
+        {
+          'data': {'true': true},
+        },
+        {
+          'data': {'false': false},
+        },
+      ]);
     });
 
     test('set', () async {
@@ -217,9 +271,14 @@ void main() {
         response.headers.contentType?.mimeType,
         ContentType.parse('application/octet-stream').mimeType,
       );
-      expect(response.body, {
-        'data': ['Hello world!'],
-      });
+      expect(response.body, [
+        {
+          'data': {'Hello'},
+        },
+        {
+          'data': {'world'},
+        },
+      ]);
     });
 
     test('iterable', () async {
@@ -232,9 +291,14 @@ void main() {
         response.headers.contentType?.mimeType,
         ContentType.parse('application/octet-stream').mimeType,
       );
-      expect(response.body, {
-        'data': ['Hello world!'],
-      });
+      expect(response.body, [
+        {
+          'data': ['Hello'],
+        },
+        {
+          'data': ['world'],
+        },
+      ]);
     });
 
     test('bytes', () async {
@@ -247,7 +311,7 @@ void main() {
         response.headers.contentType?.mimeType,
         ContentType.parse('application/octet-stream').mimeType,
       );
-      expect(response.body, 'Hello world!');
+      expect(response.body, ['Hello', 'world']);
     });
   });
 }

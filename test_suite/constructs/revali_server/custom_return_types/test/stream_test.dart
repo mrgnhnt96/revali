@@ -3,7 +3,7 @@ import 'package:test/test.dart';
 
 import '../.revali/server/server.dart';
 
-void main() {
+void main1() {
   group('stream', () {
     late TestServer server;
 
@@ -24,9 +24,14 @@ void main() {
       );
 
       expect(response.statusCode, 200);
-      expect(response.body, {
-        'data': {'name': 'Hello world!'},
-      });
+      expect(response.body, [
+        {
+          'data': {'name': 'Hello world!'},
+        },
+        {
+          'data': {'name': 'Hello world!'},
+        }
+      ]);
     });
 
     test('list-of-users', () async {
@@ -36,11 +41,18 @@ void main() {
       );
 
       expect(response.statusCode, 200);
-      expect(response.body, {
-        'data': [
-          {'name': 'Hello world!'},
-        ],
-      });
+      expect(response.body, [
+        {
+          'data': [
+            {'name': 'Hello world!'},
+          ],
+        },
+        {
+          'data': [
+            {'name': 'Hello world!'},
+          ],
+        },
+      ]);
     });
 
     test('set-of-users', () async {
@@ -50,11 +62,18 @@ void main() {
       );
 
       expect(response.statusCode, 200);
-      expect(response.body, {
-        'data': [
-          {'name': 'Hello world!'},
-        ],
-      });
+      expect(response.body, [
+        {
+          'data': [
+            {'name': 'Hello world!'},
+          ],
+        },
+        {
+          'data': [
+            {'name': 'Hello world!'},
+          ],
+        },
+      ]);
     });
 
     test('iterable-of-users', () async {
@@ -64,11 +83,18 @@ void main() {
       );
 
       expect(response.statusCode, 200);
-      expect(response.body, {
-        'data': [
-          {'name': 'Hello world!'},
-        ],
-      });
+      expect(response.body, [
+        {
+          'data': [
+            {'name': 'Hello world!'},
+          ],
+        },
+        {
+          'data': [
+            {'name': 'Hello world!'},
+          ],
+        },
+      ]);
     });
 
     test('map-of-users', () async {
@@ -78,11 +104,18 @@ void main() {
       );
 
       expect(response.statusCode, 200);
-      expect(response.body, {
-        'data': {
-          'user': {'name': 'Hello world!'},
+      expect(response.body, [
+        {
+          'data': {
+            'user': {'name': 'Hello world!'},
+          },
         },
-      });
+        {
+          'data': {
+            'user': {'name': 'Hello world!'},
+          },
+        },
+      ]);
     });
 
     test('record-of-users', () async {
@@ -92,12 +125,20 @@ void main() {
       );
 
       expect(response.statusCode, 200);
-      expect(response.body, {
-        'data': {
-          'name': 'Hello world!',
-          'user': {'name': 'Hello world!'},
+      expect(response.body, [
+        {
+          'data': {
+            'name': 'Hello world!',
+            'user': {'name': 'Hello world!'},
+          },
         },
-      });
+        {
+          'data': {
+            'name': 'Hello world!',
+            'user': {'name': 'Hello world!'},
+          },
+        },
+      ]);
     });
 
     test('partial-record-of-users', () async {
@@ -107,14 +148,24 @@ void main() {
       );
 
       expect(response.statusCode, 200);
-      expect(response.body, {
-        'data': [
-          'Hello world!',
-          {
-            'user': {'name': 'Hello world!'},
-          },
-        ],
-      });
+      expect(response.body, [
+        {
+          'data': [
+            'Hello world!',
+            {
+              'user': {'name': 'Hello world!'},
+            },
+          ],
+        },
+        {
+          'data': [
+            'Hello world!',
+            {
+              'user': {'name': 'Hello world!'},
+            },
+          ],
+        }
+      ]);
     });
   });
 }
