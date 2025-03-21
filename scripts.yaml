@@ -236,6 +236,7 @@ test-suite:
       - (+) {$test-suite:revali_server:methods}
       - (+) {$test-suite:revali_server:custom-return-types}
       - (+) {$test-suite:revali_server:primitive-return-types}
+      - (+) {$test-suite:revali_server:null-primitive-return-types}
       - (+) {$test-suite:revali_server:middleware}
       - (+) {$test-suite:revali_server:params}
     _package: |
@@ -259,6 +260,9 @@ test-suite:
       {$test-suite:revali_server:_package}
     primitive-return-types: |
       DIR=primitive_return_types
+      {$test-suite:revali_server:_package}
+    null-primitive-return-types: |
+      DIR=null_primitive_return_types
       {$test-suite:revali_server:_package}
     middleware: |
       DIR=middleware
