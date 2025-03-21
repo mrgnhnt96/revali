@@ -1,4 +1,5 @@
 import 'package:code_builder/code_builder.dart';
+import 'package:revali_client_gen/models/client_method.dart';
 import 'package:revali_client_gen/models/client_type.dart';
 
 Reference createReturnType(ClientType type) {
@@ -6,6 +7,8 @@ Reference createReturnType(ClientType type) {
     (b) => b
       ..symbol = switch (type) {
         ClientType(isStream: true) => 'Stream',
+        ClientType(isFuture: true, method: ClientMethod(isWebsocket: true)) =>
+          'Stream',
         ClientType(isFuture: true) => 'Future',
         ClientType(isMap: true) => 'Map',
         ClientType(:final iterableType?) => iterableType.symbol,
