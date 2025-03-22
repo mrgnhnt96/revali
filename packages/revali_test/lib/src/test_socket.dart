@@ -19,6 +19,12 @@ class TestSocket extends Stream<Uint8List> implements Socket {
 
   @override
   void add(List<int> data) {
+    if (data.length <= 2) {
+      return;
+    } else if (data case [48, 13, 10, 13, 10]) {
+      return;
+    }
+
     onWebSocketMessage?.call(data);
   }
 
