@@ -24,7 +24,7 @@ void main() {
         method: 'GET',
         path: '/api/middleware/read',
         headers: {
-          'auth': ['sup dude'],
+          'auth': 'sup dude',
         },
       );
 
@@ -38,7 +38,7 @@ void main() {
         method: 'GET',
         path: '/api/middleware/write',
         headers: {
-          'auth': ['sup dude'],
+          'auth': 'sup dude',
         },
       );
 

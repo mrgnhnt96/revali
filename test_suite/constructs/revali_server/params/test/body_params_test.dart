@@ -24,7 +24,7 @@ void main() {
         method: 'GET',
         path: '/api/body/root',
         headers: {
-          'content-type': ['text/plain'],
+          'content-type': 'text/plain',
         },
         body: '123',
       );
@@ -38,7 +38,7 @@ void main() {
         method: 'GET',
         path: '/api/body/nested',
         headers: {
-          'content-type': ['application/json'],
+          'content-type': 'application/json',
         },
         body: {'data': '456'},
       );
@@ -54,7 +54,7 @@ void main() {
         method: 'GET',
         path: '/api/body/multiple',
         headers: {
-          'content-type': ['application/json'],
+          'content-type': 'application/json',
         },
         body: {'name': 'John', 'age': 30},
       );
