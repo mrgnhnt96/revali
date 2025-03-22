@@ -190,7 +190,14 @@ class TestSink implements WebSocketSink {
   bool _hasWaitedInitial = false;
 
   @override
-  Future<void> add(dynamic data) async {
+  Future<void> add(dynamic d) async {
+    final data = switch (d) {
+      final String string => utf8.encode(string),
+      final List<int> list => list,
+      final List<dynamic> list => utf8.encode(jsonEncode(list)),
+      _ => d,
+    };
+
     if (data case final List<int> data) {
       if (!_hasWaitedInitial) {
         // needed to allow event loop to process the connection
