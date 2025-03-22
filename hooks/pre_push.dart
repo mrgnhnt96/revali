@@ -36,7 +36,8 @@ Hook main() {
         tasks: [
           ShellTask.always(
             commands: (files) => [
-              'sip run test-suite',
+              'sip run test-suite --gen-only',
+              'sip run test-suite --skip-gen',
             ],
           ),
           ParallelTasks.always(
