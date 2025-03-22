@@ -26,3 +26,4 @@ workspace:
   - constructs/revali_server/params
   - constructs/revali_server/primitive_return_types
   - constructs/revali_server/sse
+  - constructs/revali_server/sse_custom

@@ -275,6 +275,7 @@ test-suite:
       - (+) {$test-suite:revali_server:middleware}
       - (+) {$test-suite:revali_server:params}
       - (+) {$test-suite:revali_server:sse}
+      - (+) {$test-suite:revali_server:sse_custom}
     _package: |
       cd test_suite/constructs/revali_server/$DIR || exit 1
       {$test-suite:_test}
@@ -298,4 +299,7 @@ test-suite:
       {$test-suite:revali_server:_package}
     sse: |
       DIR=sse
+      {$test-suite:revali_server:_package}
+    sse_custom: |
+      DIR=sse_custom
       {$test-suite:revali_server:_package}
