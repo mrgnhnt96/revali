@@ -6,24 +6,25 @@ class HttpResponse extends StreamView<List<int>> {
   HttpResponse({
     required this.request,
     required this.statusCode,
-    required this.headers,
     required this.persistentConnection,
     required this.reasonPhrase,
     required this.contentLength,
     required this.stream,
-  }) : super(stream);
+    Map<String, String>? headers,
+  })  : headers = {...?headers},
+        super(stream);
 
   final HttpRequest request;
 
-  final int statusCode;
+  int statusCode;
 
-  final Map<String, String> headers;
+  Map<String, String> headers;
 
-  final bool persistentConnection;
+  bool persistentConnection;
 
-  final String? reasonPhrase;
+  String? reasonPhrase;
 
-  final int? contentLength;
+  int? contentLength;
 
-  final Stream<List<int>> stream;
+  Stream<List<int>> stream;
 }
