@@ -50,23 +50,23 @@ class TestHeaders implements HttpHeaders {
     }
   }
 
-  final Map<String, List<String>> _headers;
+  final Map<String, String> _headers;
 
-  Map<String, List<String>> get allValues => Map.unmodifiable(_headers);
+  Map<String, String> get allValues => Map.unmodifiable(_headers);
   Map<String, String> get values => Map.unmodifiable(
         Map.fromEntries(
-          _headers.entries.map((e) => MapEntry(e.key, e.value.firstOrNull)),
+          _headers.entries.map((e) => MapEntry(e.key, e.value)),
         ),
       );
 
   @override
   List<String>? operator [](String name) {
-    return _headers[name];
+    return _headers[name]?.split(',');
   }
 
   @override
   void add(String name, Object value, {bool preserveHeaderCase = false}) {
-    (_headers[name] ??= []).add(value.toString());
+    _headers[name] = value.toString();
   }
 
   @override
@@ -76,7 +76,9 @@ class TestHeaders implements HttpHeaders {
 
   @override
   void forEach(void Function(String name, List<String> values) action) {
-    _headers.forEach(action);
+    _headers.forEach((key, value) {
+      action(key, value.split(','));
+    });
   }
 
   @override
@@ -107,14 +109,14 @@ class TestHeaders implements HttpHeaders {
 
   @override
   String? value(String name) {
-    return _headers[name]?.firstOrNull;
+    return _headers[name];
   }
 
   int _contentLength = -1;
   @override
   int get contentLength => _contentLength != -1
       ? _contentLength
-      : switch (_headers[HttpHeaders.contentLengthHeader]?.firstOrNull) {
+      : switch (_headers[HttpHeaders.contentLengthHeader]) {
           final String value => int.tryParse(value) ?? -1,
           _ => -1,
         };
@@ -127,8 +129,8 @@ class TestHeaders implements HttpHeaders {
 
   ContentType? _contentType;
   @override
-  ContentType? get contentType => _contentType ??=
-          switch (_headers[HttpHeaders.contentTypeHeader]?.firstOrNull) {
+  ContentType? get contentType =>
+      _contentType ??= switch (_headers[HttpHeaders.contentTypeHeader]) {
         final String type => ContentType.parse(type),
         _ => null,
       };
@@ -142,8 +144,7 @@ class TestHeaders implements HttpHeaders {
 
   DateTime? _date;
   @override
-  DateTime? get date =>
-      _date ??= switch (_headers[HttpHeaders.dateHeader]?.firstOrNull) {
+  DateTime? get date => _date ??= switch (_headers[HttpHeaders.dateHeader]) {
         final String value => DateTime.tryParse(value),
         _ => null,
       };
@@ -158,7 +159,7 @@ class TestHeaders implements HttpHeaders {
   DateTime? _expires;
   @override
   DateTime? get expires =>
-      _expires ??= switch (_headers[HttpHeaders.expiresHeader]?.firstOrNull) {
+      _expires ??= switch (_headers[HttpHeaders.expiresHeader]) {
         final String value => DateTime.tryParse(value),
         _ => null,
       };
@@ -172,8 +173,7 @@ class TestHeaders implements HttpHeaders {
 
   String? _host;
   @override
-  String? get host =>
-      _host ??= switch (_headers[HttpHeaders.hostHeader]?.firstOrNull) {
+  String? get host => _host ??= switch (_headers[HttpHeaders.hostHeader]) {
         final String value => value,
         _ => null,
       };
@@ -188,7 +188,7 @@ class TestHeaders implements HttpHeaders {
   DateTime? _ifModifiedSince;
   @override
   DateTime? get ifModifiedSince => _ifModifiedSince ??=
-          switch (_headers[HttpHeaders.ifModifiedSinceHeader]?.firstOrNull) {
+          switch (_headers[HttpHeaders.ifModifiedSinceHeader]) {
         final String value => DateTime.tryParse(value),
         _ => null,
       };
@@ -202,8 +202,7 @@ class TestHeaders implements HttpHeaders {
 
   int? _port;
   @override
-  int? get port =>
-      _port ??= switch (_headers[HttpHeaders.hostHeader]?.firstOrNull) {
+  int? get port => _port ??= switch (_headers[HttpHeaders.hostHeader]) {
         final String value => int.tryParse(value),
         _ => null,
       };
@@ -219,7 +218,7 @@ class TestHeaders implements HttpHeaders {
   @override
   bool get chunkedTransferEncoding =>
       _chunkedTransferEncoding ??
-      switch (_headers[HttpHeaders.transferEncodingHeader]?.firstOrNull) {
+      switch (_headers[HttpHeaders.transferEncodingHeader]) {
         'true' => true,
         _ => false,
       };
@@ -234,7 +233,7 @@ class TestHeaders implements HttpHeaders {
   bool? _persistentConnection;
   @override
   bool get persistentConnection => _persistentConnection ??=
-          switch (_headers[HttpHeaders.connectionHeader]?.firstOrNull) {
+          switch (_headers[HttpHeaders.connectionHeader]) {
         'true' => true,
         _ => false,
       };

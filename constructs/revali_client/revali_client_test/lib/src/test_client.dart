@@ -16,9 +16,7 @@ final class TestClient implements HttpClient {
     final response = await server.send(
       method: request.method,
       path: request.url.path,
-      headers: request.headers.map(
-        (key, value) => MapEntry(key, value.split(',')),
-      ),
+      headers: request.headers,
       body: request.body,
     );
 

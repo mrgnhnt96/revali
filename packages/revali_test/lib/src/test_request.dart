@@ -12,7 +12,7 @@ class TestRequest extends Stream<Uint8List> implements HttpRequest {
     required this.path,
     required this.onResponse,
     required this.onWebSocketMessage,
-    Map<String, List<String>> headers = const {},
+    Map<String, String> headers = const {},
     Object? body,
   }) : _headers = headers {
     if (body is Stream) {
@@ -34,7 +34,7 @@ class TestRequest extends Stream<Uint8List> implements HttpRequest {
   @override
   final String method;
   final String path;
-  final Map<String, List<String>> _headers;
+  final Map<String, String> _headers;
   late final Object? _body;
   late final Stream<Uint8List>? _webSocketInput;
   final void Function(TestResponse response) onResponse;

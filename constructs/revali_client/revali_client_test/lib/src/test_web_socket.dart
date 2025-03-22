@@ -40,10 +40,10 @@ class TestWebSocket implements WebSocketChannel {
       path: uri.path,
       body: _sending.stream.map(createWebSocketFrame),
       headers: {
-        'connection': ['Upgrade'],
-        'upgrade': ['websocket'],
-        'Sec-WebSocket-Version': ['13'],
-        'Sec-WebSocket-Key': ['123'],
+        'connection': 'Upgrade',
+        'upgrade': 'websocket',
+        'Sec-WebSocket-Version': '13',
+        'Sec-WebSocket-Key': '123',
       },
       onRequest: (request) {
         final headers = <String, String>{};

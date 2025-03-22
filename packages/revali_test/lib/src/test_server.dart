@@ -16,14 +16,14 @@ class TestServer extends Stream<HttpRequest> implements HttpServer {
   Future<TestResponse> send({
     required String method,
     required String path,
-    Map<String, List<String>>? headers,
+    Map<String, String>? headers,
     Map<String, String> cookies = const {},
     Object? body,
   }) {
     headers ??= {};
-    if (cookies.isEmpty) {
+    if (cookies.isNotEmpty) {
       headers[HttpHeaders.cookieHeader] =
-          cookies.entries.map((e) => '${e.key}=${e.value};').toList();
+          cookies.entries.map((e) => '${e.key}=${e.value};').join();
     }
 
     final request = TestRequest(
@@ -49,16 +49,16 @@ class TestServer extends Stream<HttpRequest> implements HttpServer {
   Stream<List<int>> connect({
     required String method,
     required String path,
-    Map<String, List<String>>? headers,
+    Map<String, String>? headers,
     Map<String, String> cookies = const {},
     Stream<List<int>>? body,
     void Function()? onClose,
     void Function(HttpRequest)? onRequest,
   }) {
     headers ??= {};
-    if (cookies.isEmpty) {
+    if (cookies.isNotEmpty) {
       headers[HttpHeaders.cookieHeader] =
-          cookies.entries.map((e) => '${e.key}=${e.value};').toList();
+          cookies.entries.map((e) => '${e.key}=${e.value};').join();
     }
 
     final request = TestRequest(
