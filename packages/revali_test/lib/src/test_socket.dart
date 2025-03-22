@@ -19,7 +19,7 @@ class TestSocket extends Stream<Uint8List> implements Socket {
 
   @override
   void add(List<int> data) {
-    if (data.length <= 2) {
+    if (data.length <= 2 && data.isNotEmpty) {
       return;
     } else if (data case [48, 13, 10, 13, 10]) {
       return;
