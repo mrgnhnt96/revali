@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:convert';
 
 import 'package:revali_test/revali_test.dart';
 import 'package:test/test.dart';
@@ -20,208 +20,274 @@ void main() {
     });
 
     test('void', () async {
-      final response = await server.send(
+      final stream = server.connect(
         method: 'GET',
         path: '/api/literals/void',
       );
 
-      expect(response.statusCode, 200);
-      expect(response.body, null);
+      final responses = await stream.toList();
+
+      expect(responses, isEmpty);
     });
 
     test('data-string', () async {
-      final response = await server.send(
+      final stream = server.connect(
         method: 'GET',
         path: '/api/literals/data-string',
       );
 
-      expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
-      expect(response.body, {'data': 'Hello world!'});
+      final responses = await stream.toList();
+
+      expect(responses, [
+        utf8.encode(jsonEncode({'data': 'Hello world!'})),
+      ]);
     });
 
     test('string', () async {
-      final response = await server.send(
+      final stream = server.connect(
         method: 'GET',
         path: '/api/literals/string',
       );
 
-      expect(response.headers.contentType?.mimeType, ContentType.text.mimeType);
-      expect(response.body, 'Hello world!');
+      final responses = await stream.toList();
+
+      expect(responses, [
+        utf8.encode('Hello world!'),
+      ]);
     });
 
     test('bool', () async {
-      final response = await server.send(
+      final stream = server.connect(
         method: 'GET',
         path: '/api/literals/bool',
       );
 
-      expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
-      expect(response.body, {'data': true});
+      final responses = await stream.toList();
+
+      expect(responses, [
+        utf8.encode(jsonEncode({'data': true})),
+      ]);
     });
 
     test('int', () async {
-      final response = await server.send(
+      final stream = server.connect(
         method: 'GET',
         path: '/api/literals/int',
       );
 
-      expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
-      expect(response.body, {'data': 1});
+      final responses = await stream.toList();
+
+      expect(responses, [
+        utf8.encode(jsonEncode({'data': 1})),
+      ]);
     });
 
     test('double', () async {
-      final response = await server.send(
+      final stream = server.connect(
         method: 'GET',
         path: '/api/literals/double',
       );
 
-      expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
-      expect(response.body, {'data': 1});
+      final responses = await stream.toList();
+
+      expect(responses, [
+        utf8.encode(jsonEncode({'data': 1.0})),
+      ]);
     });
 
     test('record', () async {
-      final response = await server.send(
+      final stream = server.connect(
         method: 'GET',
         path: '/api/literals/record',
       );
 
-      expect(response.statusCode, 200);
-      expect(response.body, {
-        'data': ['hello', 'world'],
-      });
+      final responses = await stream.toList();
+
+      expect(responses, [
+        utf8.encode(
+          jsonEncode({
+            'data': ['hello', 'world'],
+          }),
+        ),
+      ]);
     });
 
     test('named-record', () async {
-      final response = await server.send(
+      final stream = server.connect(
         method: 'GET',
         path: '/api/literals/named-record',
       );
 
-      expect(response.statusCode, 200);
-      expect(response.body, {
-        'data': {
-          'first': 'hello',
-          'second': 'world',
-        },
-      });
+      final responses = await stream.toList();
+
+      expect(responses, [
+        utf8.encode(
+          jsonEncode({
+            'data': {
+              'first': 'hello',
+              'second': 'world',
+            },
+          }),
+        ),
+      ]);
     });
 
     test('partial-record', () async {
-      final response = await server.send(
+      final stream = server.connect(
         method: 'GET',
         path: '/api/literals/partial-record',
       );
 
-      expect(response.statusCode, 200);
-      expect(response.body, {
-        'data': [
-          'hello',
-          {
-            'second': 'world',
-          },
-        ],
-      });
+      final responses = await stream.toList();
+
+      expect(responses, [
+        utf8.encode(
+          jsonEncode({
+            'data': [
+              'hello',
+              {
+                'second': 'world',
+              },
+            ],
+          }),
+        ),
+      ]);
     });
 
     test('list-of-records', () async {
-      final response = await server.send(
+      final stream = server.connect(
         method: 'GET',
         path: '/api/literals/list-of-records',
       );
 
-      expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
-      expect(response.body, {
-        'data': [
-          ['hello', 'world'],
-        ],
-      });
+      final responses = await stream.toList();
+
+      expect(responses, [
+        utf8.encode(
+          jsonEncode({
+            'data': [
+              ['hello', 'world'],
+            ],
+          }),
+        ),
+      ]);
     });
 
     test('list-of-strings', () async {
-      final response = await server.send(
+      final stream = server.connect(
         method: 'GET',
         path: '/api/literals/list-of-strings',
       );
 
-      expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
-      expect(response.body, {
-        'data': ['Hello world!'],
-      });
+      final responses = await stream.toList();
+
+      expect(responses, [
+        utf8.encode(
+          jsonEncode({
+            'data': ['Hello world!'],
+          }),
+        ),
+      ]);
     });
 
     test('list-of-maps', () async {
-      final response = await server.send(
+      final stream = server.connect(
         method: 'GET',
         path: '/api/literals/list-of-maps',
       );
 
-      expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
-      expect(response.body, {
-        'data': [
-          {'hello': 1},
-        ],
-      });
+      final responses = await stream.toList();
+
+      expect(responses, [
+        utf8.encode(
+          jsonEncode({
+            'data': [
+              {'hello': 1},
+            ],
+          }),
+        ),
+      ]);
     });
 
     test('map-string-dynamic', () async {
-      final response = await server.send(
+      final stream = server.connect(
         method: 'GET',
         path: '/api/literals/map-string-dynamic',
       );
 
-      expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
-      expect(response.body, {
-        'data': {'hello': 1},
-      });
+      final responses = await stream.toList();
+
+      expect(responses, [
+        utf8.encode(
+          jsonEncode({
+            'data': {'hello': 1},
+          }),
+        ),
+      ]);
     });
 
     test('map-dynamic-dynamic', () async {
-      final response = await server.send(
+      final stream = server.connect(
         method: 'GET',
         path: '/api/literals/map-dynamic-dynamic',
       );
 
-      expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
-      expect(response.body, {
-        'data': {'true': true},
-      });
+      final responses = await stream.toList();
+
+      expect(responses, [
+        utf8.encode(
+          jsonEncode({
+            'data': {'true': true},
+          }),
+        ),
+      ]);
     });
 
     test('set', () async {
-      final response = await server.send(
+      final stream = server.connect(
         method: 'GET',
         path: '/api/literals/set',
       );
 
-      expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
-      expect(response.body, {
-        'data': ['Hello world!'],
-      });
+      final responses = await stream.toList();
+
+      expect(responses, [
+        utf8.encode(
+          jsonEncode({
+            'data': ['Hello world!'],
+          }),
+        ),
+      ]);
     });
 
     test('iterable', () async {
-      final response = await server.send(
+      final stream = server.connect(
         method: 'GET',
         path: '/api/literals/iterable',
       );
 
-      expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
-      expect(response.body, {
-        'data': ['Hello world!'],
-      });
+      final responses = await stream.toList();
+
+      expect(responses, [
+        utf8.encode(
+          jsonEncode({
+            'data': ['Hello world!'],
+          }),
+        ),
+      ]);
     });
 
     test('bytes', () async {
-      final response = await server.send(
+      final stream = server.connect(
         method: 'GET',
         path: '/api/literals/bytes',
       );
 
-      expect(
-        response.headers.contentType?.mimeType,
-        ContentType.parse('application/octet-stream').mimeType,
-      );
-      expect(response.body, 'Hello world!');
+      final responses = await stream.toList();
+
+      expect(responses, [
+        utf8.encode('Hello world!'),
+      ]);
     });
   });
 }
