@@ -181,29 +181,15 @@ package:revali_router/src/server/handle_requests.dart 28:29  handleRequests.<fn>
       ]);
     });
 
-    test('should catch exception and return bool with internal error',
-        () async {
+    test('should catch exception and return bool', () async {
       final response = await server.send(
         method: 'GET',
         path: '/api/exception-catcher/bool',
       );
 
-      expect(response.statusCode, 500);
+      expect(response.statusCode, 423);
       expect(response.headers.contentType?.mimeType, ContentType.text.mimeType);
-      expect(response.body, '''
-Internal Server Error
-
-__DEBUG__:
-Error: Unsupported operation: Unsupported body data type: true
-
-Stack Trace:
-routes/controllers/exception_catcher_controller.dart 53:5    ExceptionCatcherController.handleBool
-.revali/server/routes/__exception_catcher_route.dart 62:38   exceptionCatcherRoute.<fn>
-package:revali_router/src/router/execute.dart 63:24          Execute.run.<fn>
-dart:async                                                   runZonedGuarded
-package:revali_router/src/router/execute.dart 61:13          Execute.run
-package:revali_router/src/router/router.dart 178:22          Router.handle
-package:revali_router/src/server/handle_requests.dart 28:29  handleRequests.<fn>''');
+      expect(response.body, true);
     });
 
     test('should catch exception and return custom status code', () async {
