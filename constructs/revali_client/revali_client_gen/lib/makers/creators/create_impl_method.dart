@@ -11,7 +11,8 @@ Method createImplMethod(ClientMethod method) {
     method,
     body: Block.of(
       switch (method) {
-        ClientMethod(isSse: true) => createStreamCall(method),
+        ClientMethod(isSse: true, returnType: [ClientType(isVoid: false)]) =>
+          createStreamCall(method),
         ClientMethod(isWebsocket: true) => createWebsocketCall(method),
         ClientMethod(
           returnType: ClientType(typeForClient: ClientType(isStream: true))
