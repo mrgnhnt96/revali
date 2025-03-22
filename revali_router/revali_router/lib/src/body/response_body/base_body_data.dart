@@ -19,6 +19,7 @@ part 'json_data.dart';
 part 'list_body_data.dart';
 part 'memory_file_body_data.dart';
 part 'null_body_data.dart';
+part 'primitive_non_string_body_data.dart';
 part 'stream_body_data.dart';
 part 'string_body_data.dart';
 part 'unknown_body_data.dart';
@@ -45,6 +46,9 @@ sealed class BaseBodyData<T> extends BodyData {
       Stream<dynamic>() => StreamBodyData(data),
       ReadOnlyBody() => BaseBodyData<dynamic>.from(data.data),
       StringContent() => StringBodyData(data.value),
+      bool() => PrimitiveNonStringBodyData(data),
+      int() => PrimitiveNonStringBodyData(data),
+      double() => PrimitiveNonStringBodyData(data),
       _ => throw UnsupportedError('Unsupported body data type: $data'),
     };
 

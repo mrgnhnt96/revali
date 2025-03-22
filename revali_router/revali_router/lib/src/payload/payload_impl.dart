@@ -4,11 +4,8 @@ import 'dart:io';
 
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
-import 'package:revali_router/src/body/mutable_body_impl.dart';
-import 'package:revali_router/src/body/response_body/base_body_data.dart';
-import 'package:revali_router/src/exceptions/payload_resolve_exception.dart';
+import 'package:revali_router/revali_router.dart';
 import 'package:revali_router/utils/coerce.dart' as type;
-import 'package:revali_router_core/revali_router_core.dart';
 
 class PayloadImpl implements Payload {
   factory PayloadImpl(
@@ -115,20 +112,21 @@ class PayloadImpl implements Payload {
       return resolve(headers);
     }
 
-    final options = {
-      'application/json': () => _resolveJson(encoding),
-      'application/x-www-form-urlencoded': () => _resolveFormUrl(encoding),
+    final options = [
+      () => _resolveJson(encoding),
+      () => _resolveFormUrl(encoding),
       if (headers.contentType case final MediaType contentType)
-        'multipart/form-data': () => _resolveFormData(encoding, contentType),
-      'text/plain': () => _resolveString(encoding),
-      'application/octet-stream': () => _resolveBinary(encoding),
-      '': () =>
+        () => _resolveFormData(encoding, contentType),
+      () => _resolvePrimitiveNonString(encoding),
+      () => _resolveString(encoding),
+      () => _resolveBinary(encoding),
+      () =>
           additionalParsers[headers.mimeType]
               ?.parse(encoding, read(), headers) ??
           _resolveUnknown(encoding, headers.mimeType),
-    };
+    ];
 
-    for (final attempt in options.values) {
+    for (final attempt in options) {
       try {
         if (await attempt() case final resolved) {
           return resolved;
@@ -262,6 +260,24 @@ class PayloadImpl implements Payload {
     final data = await encoding.decodeStream(read());
 
     return StringBodyData(data);
+  }
+
+  Future<PrimitiveNonStringBodyData<dynamic>> _resolvePrimitiveNonString(
+    Encoding encoding,
+  ) async {
+    final data = await encoding.decodeStream(read());
+
+    final coerced = await type.coerce(data);
+
+    if (coerced == null) {
+      throw const FormatException('Invalid primitive non-string data');
+    }
+
+    if (coerced is String) {
+      throw const FormatException('Invalid primitive non-string data');
+    }
+
+    return PrimitiveNonStringBodyData(coerced);
   }
 
   Future<BinaryBodyData> _resolveBinary(Encoding encoding) async {
