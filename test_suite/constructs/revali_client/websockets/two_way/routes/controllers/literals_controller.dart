@@ -16,7 +16,7 @@ class LiteralsController {
   }
 
   @WebSocket('bool')
-  bool boolean({@Body() required bool data}) {
+  bool boolean({@Body(['data']) required bool data}) {
     return data;
   }
 
@@ -87,7 +87,7 @@ class LiteralsController {
   }
 
   @WebSocket('bytes')
-  List<int> bytes(@Body() List<int> data) {
+  List<List<int>> bytes(@Body(['data']) List<List<int>> data) {
     return data;
   }
 }
