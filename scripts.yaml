@@ -213,6 +213,7 @@ test-suite:
       - (+) {$test-suite:revali_client:methods}
       - (+) {$test-suite:revali_client:params}
       - (+) {$test-suite:revali_client:sse}
+      - (+) {$test-suite:revali_client:sse_custom}
       - (+) {$test-suite:revali_client:websocket}
 
     _package: |
@@ -236,6 +237,9 @@ test-suite:
       {$test-suite:revali_client:_package}
     sse: |
       DIR=sse
+      {$test-suite:revali_client:_package}
+    sse_custom: |
+      DIR=sse_custom
       {$test-suite:revali_client:_package}
     websocket:
       (aliases): ws
