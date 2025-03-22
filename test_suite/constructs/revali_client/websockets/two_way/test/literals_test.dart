@@ -60,8 +60,9 @@ void main() {
     });
 
     test('bool', () async {
-      final response =
-          await client.literals.boolean(data: Stream.value(true)).toList();
+      final response = await client.literals
+          .boolean(body: Stream.value((data: true)))
+          .toList();
 
       expect(response, [true]);
       verifyGetRequest('/api/literals/bool');
@@ -156,11 +157,8 @@ void main() {
     });
 
     test('map-string-dynamic', () async {
-      final response = await client.literals
-          .map(
-            data: Stream.value({'hello': 1}),
-          )
-          .toList();
+      final response =
+          await client.literals.map(data: Stream.value({'hello': 1})).toList();
 
       expect(response, [
         {'hello': 1},
@@ -170,9 +168,7 @@ void main() {
 
     test('map-dynamic-dynamic', () async {
       final response = await client.literals
-          .dynamicMap(
-            data: Stream.value({'true': true}),
-          )
+          .dynamicMap(data: Stream.value({'true': true}))
           .toList();
 
       expect(response, [
@@ -207,7 +203,7 @@ void main() {
       'bytes',
       () async {
         final response = await client.literals
-            .bytes(data: Stream.value(utf8.encode('Hello world!')))
+            .bytes(body: Stream.value((data: [utf8.encode('Hello world!')])))
             .toList();
 
         expect(response, utf8.encode('Hello world!'));
