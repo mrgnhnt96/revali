@@ -9,7 +9,7 @@ import '../.revali/server/server.dart';
 
 void main() {
   group(
-    'custom websocket',
+    'params',
     () {
       late TestServer server;
       late Server client;
