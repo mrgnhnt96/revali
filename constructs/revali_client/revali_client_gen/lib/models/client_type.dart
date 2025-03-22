@@ -182,8 +182,13 @@ class ClientType with ExtractImport {
       }
 
       if (isVoid) {
-        if (this case ClientType(isFuture: true, typeArguments: [final type])) {
-          return type;
+        if (!isFuture) {
+          return ClientType(
+            name: 'Future<$name>',
+            isFuture: true,
+            method: method,
+            typeArguments: [_copy()],
+          );
         }
 
         return this;

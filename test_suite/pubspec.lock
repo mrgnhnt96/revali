@@ -389,6 +389,13 @@ packages:
       relative: true
     source: path
     version: "0.0.0"
+  revali_client_sse:
+    dependency: transitive
+    description:
+      path: "constructs/revali_client/sse/.revali/revali_client"
+      relative: true
+    source: path
+    version: "0.0.0"
   revali_client_test:
     dependency: "direct overridden"
     description:

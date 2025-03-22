@@ -33,7 +33,11 @@ class TestServer extends Stream<HttpRequest> implements HttpServer {
       body: body,
       onWebSocketMessage: _webSocketResponses.add,
       onResponse: (response) {
-        _response?.complete(response);
+        if (response.statusCode != -1) {
+          if (_response?.isCompleted case false) {
+            _response?.complete(response);
+          }
+        }
       },
     );
 

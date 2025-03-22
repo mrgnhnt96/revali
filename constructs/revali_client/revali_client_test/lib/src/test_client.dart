@@ -4,13 +4,23 @@ import 'package:revali_client/revali_client.dart';
 import 'package:revali_test/revali_test.dart';
 
 final class TestClient implements HttpClient {
-  TestClient(this.server, [this.onRequest]);
+  TestClient(this.server, [this.onRequest]) : sse = false;
+  TestClient.sse(this.server, [this.onRequest]) : sse = true;
+
+  final bool sse;
 
   final TestServer server;
   final void Function(HttpRequest)? onRequest;
 
   @override
   Future<HttpResponse> send(HttpRequest request) async {
+    return switch (sse) {
+      true => _connect(request),
+      false => _send(request),
+    };
+  }
+
+  Future<HttpResponse> _send(HttpRequest request) async {
     onRequest?.call(request);
 
     final response = await server.send(
@@ -46,6 +56,27 @@ final class TestClient implements HttpClient {
       request: request,
       persistentConnection: response.persistentConnection,
       reasonPhrase: response.reasonPhrase,
+    );
+  }
+
+  Future<HttpResponse> _connect(HttpRequest request) async {
+    onRequest?.call(request);
+
+    final stream = server.connect(
+      method: request.method,
+      path: request.url.path,
+      headers: request.headers,
+      body: Stream.value(utf8.encode(request.body)),
+    );
+
+    return HttpResponse(
+      stream: stream,
+      request: request,
+      statusCode: 200,
+      headers: const {},
+      contentLength: null,
+      persistentConnection: false,
+      reasonPhrase: 'OK',
     );
   }
 }

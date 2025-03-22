@@ -8,13 +8,14 @@ workspace:
   # client
   - constructs/revali_client/custom_return_types
   - constructs/revali_client/methods
-  - constructs/revali_client/params
   - constructs/revali_client/null_primitive_return_types
+  - constructs/revali_client/params
   - constructs/revali_client/primitive_return_types
+  - constructs/revali_client/sse
   - constructs/revali_client/websockets/custom_return_types
+  - constructs/revali_client/websockets/null_primitive_return_types
   - constructs/revali_client/websockets/params
   - constructs/revali_client/websockets/primitive_return_types
-  - constructs/revali_client/websockets/null_primitive_return_types
   - constructs/revali_client/websockets/two_way
   # server
   - constructs/revali_server/custom_return_types
