@@ -157,7 +157,23 @@ Expression channel(ClientType type, {required bool includeHasClosed}) {
 
   if (fromJson == null && type.isBytes) {
     return CodeExpression(
-      channel.property('cast').call([]).yieldedStar.statement,
+      switch (type) {
+        ClientType(typeArguments: [ClientType(isNullable: true)]) =>
+          channel.property('map').call([
+            Method(
+              (b) => b
+                ..lambda = true
+                ..requiredParameters.add(Parameter((e) => e..name = 'e'))
+                ..body = createSwitchPattern(refer('e'), {
+                  literal([]): literalNull,
+                  declareFinal('value'): refer('value'),
+                }).code,
+            ).closure,
+          ]),
+        _ => channel.property('cast').call([]),
+      }
+          .yieldedStar
+          .statement,
     );
   }
 
@@ -165,10 +181,26 @@ Expression channel(ClientType type, {required bool includeHasClosed}) {
     declaration: declareFinal('event'),
     iterable: channel,
     body: switch (type) {
-      ClientType(isStringContent: true) ||
-      ClientType(typeArguments: [ClientType(isStringContent: true)])
+      ClientType(isStringContent: true, :final isNullable) ||
+      ClientType(
+        typeArguments: [ClientType(isStringContent: true, :final isNullable)]
+      )
           when fromJson == null =>
-        event.yielded.statement,
+        switch (isNullable) {
+          true => Block.of([
+              ifStatement(
+                refer('event'),
+                pattern: (cse: literal([]), when: null),
+                body: Block.of([
+                  literalNull.yielded.statement,
+                  refer('continue').statement,
+                ]),
+              ).code,
+              const Code(''),
+              event.yielded.statement,
+            ]),
+          false => event.yielded.statement,
+        },
       _ => fromJson,
     },
   ).awaited;
