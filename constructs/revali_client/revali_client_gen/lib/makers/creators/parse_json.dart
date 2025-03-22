@@ -30,7 +30,17 @@ Code? parseJson(
       _ => null,
     };
 
-    return fromJson;
+    if (fromJson == null) {
+      return null;
+    }
+
+    return Block.of([
+      fromJson,
+      if (yield && postYieldCode.isNotEmpty) ...[
+        const Code(''),
+        ...postYieldCode,
+      ],
+    ]);
   }
 
   final data = refer('data');

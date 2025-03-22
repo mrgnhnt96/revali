@@ -78,42 +78,7 @@ List<Code> createWebsocketCall(ClientMethod method) {
     if (method.returnType.isVoid case false) ...[
       if ((body, bodyType) case (final body?, final bodyType?)) ...[
         declareVar('hasClosed').assign(literalFalse).statement,
-        declareFinal('payloadListener')
-            .assign(
-              refer(body.name)
-                  .property('map')
-                  .call([
-                    if (encodeJson(bodyType, 'e') case final encode?)
-                      Method(
-                        (b) => b
-                          ..lambda = true
-                          ..requiredParameters
-                              .add(Parameter((b) => b..name = 'e'))
-                          ..body = refer('utf8')
-                              .property('encode')
-                              .call([encode]).code,
-                      ).closure
-                    else
-                      refer('utf8').property('encode'),
-                  ])
-                  .property('listen')
-                  .call([
-                    refer('channel').property('sink').property('add'),
-                  ], {
-                    'onDone': Method(
-                      (b) => b
-                        ..body = Block.of([
-                          refer('hasClosed').assign(literalTrue).statement,
-                          refer('channel')
-                              .property('sink')
-                              .property('close')
-                              .call([]).statement,
-                        ]),
-                    ).closure,
-                    'cancelOnError': literalTrue,
-                  }),
-            )
-            .statement,
+        payloadListener(bodyType, refer(body.name)),
         const Code(''),
       ],
       channel(
@@ -128,10 +93,53 @@ List<Code> createWebsocketCall(ClientMethod method) {
   ];
 }
 
+Code payloadListener(ClientType type, Expression variable) {
+  final encode = encodeJson(type, 'e');
+
+  var assignment = variable;
+
+  if (encode != null) {
+    assignment = assignment.property('map').call([
+      Method(
+        (b) => b
+          ..lambda = true
+          ..requiredParameters.add(Parameter((b) => b..name = 'e'))
+          ..body = refer('utf8').property('encode').call([encode]).code,
+      ).closure,
+    ]);
+  }
+
+  return declareFinal('payloadListener')
+      .assign(
+        assignment.property('listen').call([
+          refer('channel').property('sink').property('add'),
+        ], {
+          'onDone': Method(
+            (b) => b
+              ..body = Block.of([
+                refer('hasClosed').assign(literalTrue).statement,
+                refer('channel')
+                    .property('sink')
+                    .property('close')
+                    .call([]).statement,
+              ]),
+          ).closure,
+          'cancelOnError': literalTrue,
+        }),
+      )
+      .statement;
+}
+
 Expression? encodeJson(ClientType type, String variable) {
   final toJson = convertToJson(type, refer(variable));
 
-  if (shouldEncodeJson(type) case false) {
+  final shouldEncode = shouldEncodeJson(type);
+
+  if (shouldEncode == null) {
+    return null;
+  }
+
+  if (shouldEncode case false) {
     return toJson;
   }
 
@@ -142,17 +150,16 @@ Expression channel(ClientType type, {required bool includeHasClosed}) {
   final channel = refer('channel').property('stream');
   final event = refer('utf8').property('decode').call([refer('event')]);
 
+  final hasClosed = ifStatement(
+    refer('hasClosed'),
+    body: refer('break').statement,
+  ).code;
+
   final fromJson = parseJson(
     type,
     event,
     yield: true,
-    postYieldCode: [
-      if (includeHasClosed)
-        ifStatement(
-          refer('hasClosed').equalTo(literalTrue),
-          body: refer('break').statement,
-        ).code,
-    ],
+    postYieldCode: [if (includeHasClosed) hasClosed],
   );
 
   if (fromJson == null && type.isBytes) {
@@ -198,8 +205,18 @@ Expression channel(ClientType type, {required bool includeHasClosed}) {
               ).code,
               const Code(''),
               event.yielded.statement,
+              if (includeHasClosed) ...[
+                const Code(''),
+                hasClosed,
+              ],
             ]),
-          false => event.yielded.statement,
+          false => Block.of([
+              event.yielded.statement,
+              if (includeHasClosed) ...[
+                const Code(''),
+                hasClosed,
+              ],
+            ]),
         },
       _ => fromJson,
     },

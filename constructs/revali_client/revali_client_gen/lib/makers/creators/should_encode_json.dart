@@ -28,11 +28,13 @@ bool? shouldEncodeJson(ClientType type) {
   return switch (type) {
     ClientType(isMap: true) => true,
     ClientType(hasFromJsonConstructor: true) => true,
+    ClientType(name: 'String', parent: ClientType(isIterable: true)) => true,
+    ClientType(name: 'String') => false,
     ClientType(isRecord: true) => true,
     ClientType(isStringContent: true) => false,
     ClientType(isDynamic: true) => false,
-    ClientType(isBytes: true) => false,
-    ClientType(isPrimitive: true) => false,
+    ClientType(isBytes: true) => null,
+    ClientType(isPrimitive: true) => true,
     _ => null,
   };
 }

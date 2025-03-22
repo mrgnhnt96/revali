@@ -116,7 +116,10 @@ class ClientType with ExtractImport {
   }
 
   List<ClientType> get typeArguments => List.unmodifiable([
-        for (final arg in _typeArguments) arg.._parent = this,
+        for (final arg in _typeArguments)
+          arg
+            .._parent = this
+            ..method = method,
       ]);
 
   ClientMethod? method;
