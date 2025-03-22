@@ -22,6 +22,8 @@ class ServerRecordProp with ExtractImport {
   final bool isNamed;
   final ServerType type;
 
+  bool get isPositioned => !isNamed;
+
   @override
   List<ExtractImport?> get extractors => [type];
 

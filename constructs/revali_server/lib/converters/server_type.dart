@@ -138,6 +138,8 @@ class ServerType with ExtractImport {
     return iterate(root);
   }
 
+  bool get isIterable => iterableType != null;
+
   @override
   List<ExtractImport?> get extractors => [
         ...typeArguments,

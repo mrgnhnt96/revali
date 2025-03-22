@@ -2,9 +2,12 @@ import 'package:code_builder/code_builder.dart';
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_server/converters/server_body_annotation.dart';
 import 'package:revali_server/converters/server_param.dart';
+import 'package:revali_server/makers/creators/create_from_json.dart';
 import 'package:revali_server/makers/creators/create_from_json_arg.dart';
 import 'package:revali_server/makers/creators/create_missing_argument_exception.dart';
 import 'package:revali_server/makers/creators/create_pipe.dart';
+import 'package:revali_server/makers/creators/get_raw_type.dart';
+import 'package:revali_server/makers/utils/create_switch_pattern.dart';
 
 Expression createArgFromBody(
   ServerBodyAnnotation annotation,
@@ -45,12 +48,27 @@ Expression createArgFromBody(
       type: AnnotationType.body,
       access: bodyVar,
     );
-  } else if (param.type.hasFromJsonConstructor) {
+  }
+
+  if (param.type.hasFromJsonConstructor) {
     return createFromJsonArg(
       param.type,
       access: bodyVar,
     );
   }
 
-  return bodyVar;
+  final fromJson = createFromJson(param.type, refer('data'));
+
+  if (fromJson == null) {
+    return bodyVar;
+  }
+
+  return createSwitchPattern(bodyVar, {
+    declareFinal('data', type: getRawType(param.type)): fromJson,
+    if (param.type.isNullable) literalNull: literalNull,
+    const Code('_'): createMissingArgumentException(
+      key: param.name,
+      location: '@${AnnotationType.body.name}',
+    ).thrown,
+  });
 }
