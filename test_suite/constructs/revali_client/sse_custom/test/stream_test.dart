@@ -17,7 +17,7 @@ void main() {
       server = TestServer();
 
       client = Server(
-        client: TestClient(server, (req) => request = req),
+        client: TestClient.sse(server, (req) => request = req),
       );
 
       createServer(server);

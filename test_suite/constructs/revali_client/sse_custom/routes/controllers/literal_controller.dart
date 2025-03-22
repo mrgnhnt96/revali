@@ -6,37 +6,37 @@ import 'package:revali_router/revali_router.dart';
 class LiteralController {
   const LiteralController();
 
-  @Get('user')
+  @SSE('user')
   User user() {
     return const User(name: 'Hello world!');
   }
 
-  @Get('list-of-users')
+  @SSE('list-of-users')
   List<User> listOfUsers() {
     return [const User(name: 'Hello world!')];
   }
 
-  @Get('set-of-users')
+  @SSE('set-of-users')
   Set<User> setOfUsers() {
     return {const User(name: 'Hello world!')};
   }
 
-  @Get('iterable-of-users')
+  @SSE('iterable-of-users')
   Iterable<User> iterableOfUsers() {
     return [const User(name: 'Hello world!')];
   }
 
-  @Get('map-of-users')
+  @SSE('map-of-users')
   Map<String, User> mapOfUsers() {
     return {'user': const User(name: 'Hello world!')};
   }
 
-  @Get('record-of-users')
+  @SSE('record-of-users')
   ({String name, User user}) recordOfUsers() {
     return (name: 'Hello world!', user: const User(name: 'Hello world!'));
   }
 
-  @Get('partial-record-of-users')
+  @SSE('partial-record-of-users')
   (String name, {User user}) partialRecordOfUsers() {
     return ('Hello world!', user: const User(name: 'Hello world!'));
   }

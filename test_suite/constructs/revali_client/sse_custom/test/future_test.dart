@@ -17,7 +17,7 @@ void main() {
       server = TestServer();
 
       client = Server(
-        client: TestClient(server, (req) => request = req),
+        client: TestClient.sse(server, (req) => request = req),
       );
 
       createServer(server);
@@ -35,57 +35,63 @@ void main() {
     }
 
     test('user', () async {
-      final response = await client.future.user();
+      final response = await client.future.user().toList();
 
-      expect(response, const User(name: 'Hello world!'));
+      expect(response, [const User(name: 'Hello world!')]);
       verifyGetRequest('/api/future/user');
     });
 
     test('list-of-users', () async {
-      final response = await client.future.listOfUsers();
+      final response = await client.future.listOfUsers().toList();
 
-      expect(response, [const User(name: 'Hello world!')]);
+      expect(response, [
+        [const User(name: 'Hello world!')],
+      ]);
       verifyGetRequest('/api/future/list-of-users');
     });
 
     test('set-of-users', () async {
-      final response = await client.future.setOfUsers();
+      final response = await client.future.setOfUsers().toList();
 
-      expect(response, {const User(name: 'Hello world!')});
+      expect(response, [
+        {const User(name: 'Hello world!')},
+      ]);
       verifyGetRequest('/api/future/set-of-users');
     });
 
     test('iterable-of-users', () async {
-      final response = await client.future.iterableOfUsers();
+      final response = await client.future.iterableOfUsers().toList();
 
-      expect(response, [const User(name: 'Hello world!')]);
+      expect(response, [
+        [const User(name: 'Hello world!')],
+      ]);
       verifyGetRequest('/api/future/iterable-of-users');
     });
 
     test('map-of-users', () async {
-      final response = await client.future.mapOfUsers();
+      final response = await client.future.mapOfUsers().toList();
 
-      expect(response, {'user': const User(name: 'Hello world!')});
+      expect(response, [
+        {'user': const User(name: 'Hello world!')},
+      ]);
       verifyGetRequest('/api/future/map-of-users');
     });
 
     test('record-of-users', () async {
-      final response = await client.future.recordOfUsers();
+      final response = await client.future.recordOfUsers().toList();
 
-      expect(
-        response,
+      expect(response, [
         (name: 'Hello world!', user: const User(name: 'Hello world!')),
-      );
+      ]);
       verifyGetRequest('/api/future/record-of-users');
     });
 
     test('partial-record-of-users', () async {
-      final response = await client.future.partialRecordOfUsers();
+      final response = await client.future.partialRecordOfUsers().toList();
 
-      expect(
-        response,
+      expect(response, [
         ('Hello world!', user: const User(name: 'Hello world!')),
-      );
+      ]);
       verifyGetRequest('/api/future/partial-record-of-users');
     });
   });

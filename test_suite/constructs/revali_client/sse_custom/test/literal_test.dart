@@ -17,7 +17,7 @@ void main() {
       server = TestServer();
 
       client = Server(
-        client: TestClient(server, (req) => request = req),
+        client: TestClient.sse(server, (req) => request = req),
       );
 
       createServer(server);
@@ -35,57 +35,63 @@ void main() {
     }
 
     test('user', () async {
-      final response = await client.literal.user();
+      final response = await client.literal.user().toList();
 
-      expect(response, const User(name: 'Hello world!'));
+      expect(response, [const User(name: 'Hello world!')]);
       verifyGetRequest('/api/literal/user');
     });
 
     test('list-of-users', () async {
-      final response = await client.literal.listOfUsers();
+      final response = await client.literal.listOfUsers().toList();
 
-      expect(response, [const User(name: 'Hello world!')]);
+      expect(response, [
+        [const User(name: 'Hello world!')],
+      ]);
       verifyGetRequest('/api/literal/list-of-users');
     });
 
     test('set-of-users', () async {
-      final response = await client.literal.setOfUsers();
+      final response = await client.literal.setOfUsers().toList();
 
-      expect(response, {const User(name: 'Hello world!')});
+      expect(response, [
+        {const User(name: 'Hello world!')},
+      ]);
       verifyGetRequest('/api/literal/set-of-users');
     });
 
     test('iterable-of-users', () async {
-      final response = await client.literal.iterableOfUsers();
+      final response = await client.literal.iterableOfUsers().toList();
 
-      expect(response, [const User(name: 'Hello world!')]);
+      expect(response, [
+        [const User(name: 'Hello world!')],
+      ]);
       verifyGetRequest('/api/literal/iterable-of-users');
     });
 
     test('map-of-users', () async {
-      final response = await client.literal.mapOfUsers();
+      final response = await client.literal.mapOfUsers().toList();
 
-      expect(response, {'user': const User(name: 'Hello world!')});
+      expect(response, [
+        {'user': const User(name: 'Hello world!')},
+      ]);
       verifyGetRequest('/api/literal/map-of-users');
     });
 
     test('record-of-users', () async {
-      final response = await client.literal.recordOfUsers();
+      final response = await client.literal.recordOfUsers().toList();
 
-      expect(
-        response,
+      expect(response, [
         (name: 'Hello world!', user: const User(name: 'Hello world!')),
-      );
+      ]);
       verifyGetRequest('/api/literal/record-of-users');
     });
 
     test('partial-record-of-users', () async {
-      final response = await client.literal.partialRecordOfUsers();
+      final response = await client.literal.partialRecordOfUsers().toList();
 
-      expect(
-        response,
+      expect(response, [
         ('Hello world!', user: const User(name: 'Hello world!')),
-      );
+      ]);
       verifyGetRequest('/api/literal/partial-record-of-users');
     });
   });
