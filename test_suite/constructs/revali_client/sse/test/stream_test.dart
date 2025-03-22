@@ -14,12 +14,17 @@ void main() {
     late Server client;
     // ignore: unused_local_variable
     HttpRequest? request;
+    HttpResponse? response;
 
     setUp(() {
       server = TestServer();
 
       client = Server(
-        client: TestClient.sse(server, (req) => request = req),
+        client: TestClient.sse(
+          server,
+          (req) => request = req,
+          (resp) => response = resp,
+        ),
       );
 
       createServer(server);
@@ -32,6 +37,7 @@ void main() {
     void verifyRequest(String method, String path) {
       expect(request?.method, method);
       expect(request?.url.path, path);
+      expect(response?.statusCode, 200);
     }
 
     test('data-string', () async {
