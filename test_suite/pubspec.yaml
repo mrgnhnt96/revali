@@ -13,6 +13,7 @@ workspace:
   - constructs/revali_client/websockets/custom_return_types
   - constructs/revali_client/websockets/params
   - constructs/revali_client/websockets/primitive_return_types
+  - constructs/revali_client/websockets/null_primitive_return_types
   # server
   - constructs/revali_server/custom_return_types
   - constructs/revali_server/methods

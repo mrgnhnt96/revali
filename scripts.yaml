@@ -234,11 +234,15 @@ test-suite:
         - (+) {$test-suite:revali_client:websocket:custom-return-types}
         - (+) {$test-suite:revali_client:websocket:primitive-return-types}
         - (+) {$test-suite:revali_client:websocket:params}
+        - (+) {$test-suite:revali_client:websocket:null-primitive-return-types}
       custom-return-types: |
         DIR=websockets/custom_return_types
         {$test-suite:revali_client:_package}
       primitive-return-types: |
         DIR=websockets/primitive_return_types
+        {$test-suite:revali_client:_package}
+      null-primitive-return-types: |
+        DIR=websockets/null_primitive_return_types
         {$test-suite:revali_client:_package}
       params: |
         DIR=websockets/params
