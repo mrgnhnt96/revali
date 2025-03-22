@@ -88,7 +88,7 @@ class ClientMethod with ExtractImport {
       return null;
     }
 
-    if (body case [final part]) {
+    if (body case [final part] when part.access.isEmpty) {
       return switch (part.type) {
         ClientType(isStream: true) => part,
         ClientType(isFuture: true, typeArguments: [final type]) ||
