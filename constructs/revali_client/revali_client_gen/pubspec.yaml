@@ -1,7 +1,7 @@
 name: revali_client_gen
 version: 1.0.0
 description: A Revali Server Client Construct to generate client code using `revali_router`
-repository: https://github.com/mrgnhnt96/revali/tree/main/constructs/revali_client/revali_client_gen
+repository: https://github.com/mrgnhnt96/revali/tree/main/constructs/revali_client
 issue_tracker: https://github.com/mrgnhnt96/revali/issues
 documentation: https://revali.dev
 funding:
