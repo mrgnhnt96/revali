@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 1.6.0 | 03.24.25
+
+### Features
+
+- Support for `Cookie` param
+
+### Enhancements
+
+- Change return type of `MutableBody.replace` method to `Future<void>`
+
 ## 1.5.1 | 02.08.25
 
 ### Chores

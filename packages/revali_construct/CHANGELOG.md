@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 1.3.0 | 03.24.25
+
+### Features
+
+- Create classes to support records
+
+### Enhancements
+
+- Remove type argument from `RevaliDirectory`
+- Merge `MetaReturnType` into `MetaType`
+
 ## 1.2.1 | 02.08.25
 
 ### Chores

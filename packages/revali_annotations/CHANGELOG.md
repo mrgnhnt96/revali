@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 1.3.0 | 03.24.25
+
+### Features
+
+- Create `Inject` class to resolve types at runtime and compile-time
+
+### Enhancements
+
+- Add new constructor `WebSocket.mode`
+
 ## 1.2.0 | 11.21.24
 
 ### Features

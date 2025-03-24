@@ -1,5 +1,23 @@
 # CHANGELOG
 
+## 1.7.0 | 03.24.25
+
+### Features
+
+- Add support for primitive body types
+  - `int`, `double`, `bool`
+
+### Enhancements
+
+- Clean up resources after request is complete
+
+### Fixes
+
+- Issue where streamed responses were not encoded correctly
+- Issue where body could throw exception during `set`ting
+  - Now catches and sets status code to 500
+- Issue where on connect was not being called for `WebSocket`
+
 ## 1.6.1 | 02.08.25
 
 ### Chores

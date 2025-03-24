@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## 1.4.0 | 03.24.25
+
+### Enhancements
+
+- Improve and clean up `MetaType` resolution
+- Safely retrieve constructor from the controller
+
+### Features
+
+- Add (hidden) `--generate-only` flag to `dev` command
+- Support for `workspace`s in `pubspec.yaml`
+
+### Fixes
+
+- Add `--profile` flag to `dev` (runner) command
+
 ## 1.3.3 | 02.08.25
 
 ### Chores

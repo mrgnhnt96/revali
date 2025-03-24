@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 1.10.0 | 03.24.25
+
+### Features
+
+- Support for `Cookie` param
+- Support for generic types in `LifecycleComponent`
+- Support `Inject` types in annotations
+  - Allows for constant resolution of annotations that require dependency injection and need arguments
+- Support record types
+
 ## 1.9.5 | 02.08.25
 
 ### Fix

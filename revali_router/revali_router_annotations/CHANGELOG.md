@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.2.0 | 03.24.25
+
+### Features
+
+- Add `Cookie` param annotation to retrieve cookies from request
+
 ## 1.1.0 | 12.11.24
 
 ### Features
