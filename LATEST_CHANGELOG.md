@@ -6,29 +6,46 @@
 
 # revali
 
-## 1.3.3
+## 1.4.0
 
-### Chores
+### Enhancements
 
-- Upgrade dependencies
-- Fix breaking changes
-
-# revali_annotations
-
-## 1.2.0
+- Improve and clean up `MetaType` resolution
+- Safely retrieve constructor from the controller
 
 ### Features
 
-- Create `ExpectHeaders` annotation
-- Add new `common` constructor for `AllowHeaders`
+- Add (hidden) `--generate-only` flag to `dev` command
+- Support for `workspace`s in `pubspec.yaml`
+
+### Fixes
+
+- Add `--profile` flag to `dev` (runner) command
+
+# revali_annotations
+
+## 1.3.0
+
+### Features
+
+- Create `Inject` class to resolve types at runtime and compile-time
+
+### Enhancements
+
+- Add new constructor `WebSocket.mode`
 
 # revali_construct
 
-## 1.2.1
+## 1.3.0
 
-### Chores
+### Features
 
-- Upgrade dependencies
+- Create classes to support records
+
+### Enhancements
+
+- Remove type argument from `RevaliDirectory`
+- Merge `MetaReturnType` into `MetaType`
 
 # revali_core
 
@@ -42,35 +59,69 @@
 
 # revali_router
 
-## 1.6.1
-
-### Chores
-
-- Upgrade dependencies
-
-# revali_router_annotations
-
-## 1.1.0
+## 1.7.0
 
 ### Features
 
-- Add `LifecycleComponent` annotation to support creating lifecycle components using classes
-- Add `LifecycleComponents` annotation to support registering multiple lifecycle components via type referencing
+- Add support for primitive body types
+  - `int`, `double`, `bool`
+
+### Enhancements
+
+- Clean up resources after request is complete
+
+### Fixes
+
+- Issue where streamed responses were not encoded correctly
+- Issue where body could throw exception during `set`ting
+  - Now catches and sets status code to 500
+- Issue where on connect was not being called for `WebSocket`
+
+# revali_router_annotations
+
+## 1.2.0
+
+### Features
+
+- Add `Cookie` param annotation to retrieve cookies from request
 
 # revali_router_core
 
-## 1.5.1
+## 1.6.0
 
-### Chores
+### Features
 
-- Upgrade dependencies
+- Support for `Cookie` param
+
+### Enhancements
+
+- Change return type of `MutableBody.replace` method to `Future<void>`
 
 <!-- CONSTRUCTS -->
 
 # revali_server
 
-## 1.9.5
+## 1.10.1
 
-### Fix
+### Features
 
-- Issue where dependency injection was not setup correctly during build mode
+- Support for `Cookie` param
+- Support for generic types in `LifecycleComponent`
+<!-- Add docs for Inject! -->
+- Support `Inject` types in annotations
+  - Allows for constant resolution of annotations that require dependency injection and need arguments
+- Support record types
+
+<!-- REVALI CLIENT -->
+
+# revali_client
+
+## 1.0.1
+
+Initial Release!
+
+# revali_client_gen
+
+## 1.0.1
+
+Initial Release!
