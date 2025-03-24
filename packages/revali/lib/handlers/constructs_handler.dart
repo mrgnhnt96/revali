@@ -36,7 +36,7 @@ class ConstructsHandler {
 
     final revaliConstructs = <ConstructYaml>[];
 
-    final packageJsonFile = await root.getDartToolFile('package_config.json');
+    final packageJsonFile = await root.getPackageConfig();
     if (!await packageJsonFile.exists()) {
       throw Exception('Failed to find package.json, run `dart pub get`');
     }

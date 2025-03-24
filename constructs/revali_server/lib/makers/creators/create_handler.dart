@@ -1,21 +1,23 @@
+// ignore_for_file: unnecessary_parenthesis
+
 import 'package:code_builder/code_builder.dart';
-import 'package:revali_construct/models/meta_web_socket_method.dart';
-import 'package:revali_server/converters/server_return_type.dart';
+import 'package:revali_construct/revali_construct.dart';
+import 'package:revali_server/converters/server_child_route.dart';
 import 'package:revali_server/converters/server_route.dart';
+import 'package:revali_server/converters/server_type.dart';
+import 'package:revali_server/makers/creators/convert_to_json.dart';
 import 'package:revali_server/makers/creators/create_web_socket_handler.dart';
+import 'package:revali_server/makers/creators/should_nest_json_in_data.dart';
 import 'package:revali_server/makers/utils/get_params.dart';
 
-Expression? createHandler({
+Expression createHandler({
   required ServerRoute route,
-  required ServerReturnType? returnType,
-  required String? classVarName,
+  required ServerType returnType,
+  required String classVarName,
   required MetaWebSocketMethod? webSocket,
   List<Code> additionalHandlerCode = const [],
+  List<Code> postBodyCode = const [],
 }) {
-  if (returnType == null || classVarName == null) {
-    return null;
-  }
-
   if (webSocket != null) {
     return createWebSocketHandler(
       webSocket,
@@ -35,60 +37,28 @@ Expression? createHandler({
     handler = handler.awaited;
   }
 
-  if (!returnType.isVoid) {
-    handler = declareFinal('result').assign(handler);
-  }
-
   Expression? setBody;
-  if (!returnType.isVoid) {
-    Expression result = refer('result');
-
-    if (!returnType.isStream && returnType.hasToJsonMember) {
-      if (returnType.isIterable) {
-        final iterates = Method(
-          (p) => p
-            ..requiredParameters.add(Parameter((b) => b..name = 'e'))
-            ..lambda = true
-            ..body = switch (returnType.isIterableNullable) {
-              true => refer('e').nullSafeProperty('toJson').call([]),
-              false => refer('e').property('toJson').call([]),
-            }
-                .code,
-        ).closure;
-
-        if (returnType.isNullable) {
-          result = result.nullSafeProperty('map');
-        } else {
-          result = result.property('map');
-        }
-
-        result = result.call([iterates]).property('toList').call([]);
-      } else if (returnType.isNullable) {
-        result = result.nullSafeProperty('toJson').call([]);
-      } else {
-        result = result.property('toJson').call([]);
-      }
-    }
+  if (returnType case ServerType(isVoid: false)) {
+    handler = declareFinal('result').assign(handler);
 
     setBody = refer('context').property('response').property('body');
 
-    if (!returnType.isStream &&
-        (returnType.isPrimitive ||
-            returnType.hasToJsonMember ||
-            returnType.isMap)) {
-      setBody = setBody.index(literalString('data')).assign(result);
-    } else if (returnType.isStringContent) {
-      result = result.property('value');
-      setBody = setBody.assign(result);
+    final json = convertToJson(returnType, refer('result')) ?? refer('result');
+
+    if (shouldNestJsonInData(returnType) && !returnType.isStream) {
+      setBody = setBody.index(literalString('data')).assign(json);
     } else {
-      setBody = setBody.assign(result);
+      setBody = setBody.assign(json);
     }
   }
 
   return Method(
     (p) => p
       ..requiredParameters.add(Parameter((b) => b..name = 'context'))
-      ..modifier = MethodModifier.async
+      ..modifier = switch (returnType.route) {
+        ServerChildRoute(isWebSocket: true) => MethodModifier.asyncStar,
+        _ => MethodModifier.async,
+      }
       ..body = Block.of([
         if (route.params.any((e) => e.annotations.body != null))
           refer('context')
@@ -104,6 +74,10 @@ Expression? createHandler({
         if (setBody != null) ...[
           const Code('\n'),
           setBody.statement,
+        ],
+        if (postBodyCode.isNotEmpty) ...[
+          const Code('\n'),
+          ...postBodyCode,
         ],
       ]),
   ).closure;

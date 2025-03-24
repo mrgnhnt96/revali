@@ -13,6 +13,8 @@ class AnyFile {
   final String? extension;
   final String content;
 
+  List<AnyFile> get subFiles => [];
+
   String get fileName {
     var prefix = '';
     if (segments case final segments when segments.isNotEmpty) {

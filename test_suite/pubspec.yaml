@@ -1,0 +1,29 @@
+name: test_suite
+publish_to: none
+
+environment:
+  sdk: ">=3.6.0 <4.0.0"
+
+workspace:
+  # client
+  - constructs/revali_client/custom_return_types
+  - constructs/revali_client/methods
+  - constructs/revali_client/null_primitive_return_types
+  - constructs/revali_client/params
+  - constructs/revali_client/primitive_return_types
+  - constructs/revali_client/sse
+  - constructs/revali_client/sse_custom
+  - constructs/revali_client/websockets/custom_return_types
+  - constructs/revali_client/websockets/null_primitive_return_types
+  - constructs/revali_client/websockets/params
+  - constructs/revali_client/websockets/primitive_return_types
+  - constructs/revali_client/websockets/two_way
+  # server
+  - constructs/revali_server/custom_return_types
+  - constructs/revali_server/methods
+  - constructs/revali_server/middleware
+  - constructs/revali_server/null_primitive_return_types
+  - constructs/revali_server/params
+  - constructs/revali_server/primitive_return_types
+  - constructs/revali_server/sse
+  - constructs/revali_server/sse_custom

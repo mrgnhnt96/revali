@@ -5,7 +5,7 @@ import 'package:revali_router/src/body/response_body/base_body_data.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group(StreamBodyData, () {
+  group('StreamBodyData', () {
     test('should return correct mimeType', () {
       final data = StreamBodyData(const Stream<void>.empty());
       expect(data.mimeType, 'application/octet-stream');
@@ -48,6 +48,19 @@ void main() {
       expect(result, [
         utf8.encode('{key, value}'),
       ]);
+    });
+
+    test('should convert null to empty list', () async {
+      final data = StreamBodyData(Stream.value(null));
+      final result = await data.read().toList();
+      // ignore: inference_failure_on_collection_literal
+      expect(result, [[]]);
+    });
+
+    test('should handle strings', () async {
+      final data = StreamBodyData(Stream.value('test'));
+      final result = await data.read().toList();
+      expect(result, [utf8.encode('test')]);
     });
 
     test('should handle unknown stream types', () async {

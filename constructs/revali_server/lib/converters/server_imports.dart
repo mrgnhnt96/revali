@@ -1,6 +1,6 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:path/path.dart' as p;
-import 'package:revali_server/utils/element_extensions.dart';
+import 'package:revali_construct/revali_construct.dart';
 
 class ServerImports {
   ServerImports(Iterable<String> imports) {

@@ -18,7 +18,7 @@ Expression createArgFromParam(
 
   final acceptsNull = annotation.acceptsNull;
   if ((acceptsNull != null && !acceptsNull) ||
-      (!param.isNullable && annotation.pipe == null)) {
+      (!param.type.isNullable && annotation.pipe == null)) {
     paramValue = paramValue.ifNullThen(
       createMissingArgumentException(
         key: annotation.name ?? param.name,

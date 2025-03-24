@@ -5,15 +5,15 @@ import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_mimic.dart';
 import 'package:revali_server/converters/server_param.dart';
 import 'package:revali_server/converters/server_reflect.dart';
-import 'package:revali_server/converters/server_return_type.dart';
 import 'package:revali_server/converters/server_route.dart';
 import 'package:revali_server/converters/server_route_annotations.dart';
 import 'package:revali_server/converters/server_status_code.dart';
+import 'package:revali_server/converters/server_type.dart';
 import 'package:revali_server/utils/extract_import.dart';
 
 class ServerChildRoute with ExtractImport implements ServerRoute {
   ServerChildRoute({
-    required this.returnType,
+    required ServerType returnType,
     required this.httpCode,
     required this.redirect,
     required this.method,
@@ -23,13 +23,13 @@ class ServerChildRoute with ExtractImport implements ServerRoute {
     required this.params,
     required this.webSocket,
     required this.isSse,
-  });
+  }) : _returnType = returnType;
 
   factory ServerChildRoute.fromMeta(MetaMethod method) {
     ServerStatusCode? httpCode;
     ServerMimic? redirect;
 
-    method.annotationsMapper(
+    method.annotationsFor(
       onMatch: [
         OnMatch(
           classType: StatusCode,
@@ -69,7 +69,7 @@ class ServerChildRoute with ExtractImport implements ServerRoute {
     return ServerChildRoute(
       method: method.method,
       path: method.path ?? '',
-      returnType: ServerReturnType.fromMeta(method.returnType),
+      returnType: ServerType.fromMeta(method.returnType),
       httpCode: httpCode,
       redirect: redirect,
       annotations: serverRoute.annotations,
@@ -80,7 +80,8 @@ class ServerChildRoute with ExtractImport implements ServerRoute {
     );
   }
 
-  final ServerReturnType returnType;
+  final ServerType _returnType;
+  ServerType get returnType => _returnType..route = this;
   final ServerStatusCode? httpCode;
   final ServerMimic? redirect;
   final String method;
@@ -95,7 +96,7 @@ class ServerChildRoute with ExtractImport implements ServerRoute {
   final String handlerName;
 
   @override
-  final Iterable<ServerParam> params;
+  final List<ServerParam> params;
 
   Iterable<ServerReflect> get reflects sync* {
     if (returnType.reflect case final reflect?) {

@@ -1,0 +1,21 @@
+name: hello
+publish_to: 'none'
+
+environment:
+    sdk: '>=3.2.6 <4.0.0'
+
+dependencies:
+    client_gen_models:
+        path: models
+    revali_client:
+        path: ../../constructs/revali_client/revali_client
+    revali_router:
+        path: ../../revali_router/revali_router
+
+dev_dependencies:
+    revali:
+        path: ../../packages/revali
+    revali_client_gen:
+        path: ../../constructs/revali_client/revali_client_gen
+    revali_server:
+        path: ../../constructs/revali_server

@@ -4,11 +4,8 @@ import 'dart:io';
 
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
-import 'package:revali_router/src/body/mutable_body_impl.dart';
-import 'package:revali_router/src/body/response_body/base_body_data.dart';
-import 'package:revali_router/src/exceptions/payload_resolve_exception.dart';
-import 'package:revali_router/utils/coerce.dart';
-import 'package:revali_router_core/revali_router_core.dart';
+import 'package:revali_router/revali_router.dart';
+import 'package:revali_router/utils/coerce.dart' as type;
 
 class PayloadImpl implements Payload {
   factory PayloadImpl(
@@ -86,17 +83,59 @@ class PayloadImpl implements Payload {
   final int? contentLength;
 
   List<int>? _bytes;
+  StreamController<List<int>>? _backupStream;
   @override
   Stream<List<int>> read() async* {
-    if (_bytes != null) {
-      yield _bytes!;
+    if (_bytes case final bytes?) {
+      yield* Stream.value(bytes);
       return;
     }
 
+    if (_backupStream case final bytes?) {
+      yield* bytes.stream;
+      return;
+    }
+
+    _backupStream ??= StreamController.broadcast();
+
     await for (final chunk in _stream) {
       yield chunk;
+      _backupStream?.add(chunk);
       (_bytes ??= []).addAll(chunk);
     }
+  }
+
+  Future<BodyData?> coerce(ReadOnlyHeaders headers) async {
+    final encoding = headers.encoding;
+
+    if (headers.mimeType case String()) {
+      return resolve(headers);
+    }
+
+    final options = [
+      () => _resolveJson(encoding),
+      () => _resolveFormUrl(encoding),
+      if (headers.contentType case final MediaType contentType)
+        () => _resolveFormData(encoding, contentType),
+      () => _resolvePrimitiveNonString(encoding),
+      () => _resolveString(encoding),
+      () => _resolveBinary(encoding),
+      () =>
+          additionalParsers[headers.mimeType]
+              ?.parse(encoding, read(), headers) ??
+          _resolveUnknown(encoding, headers.mimeType),
+    ];
+
+    for (final attempt in options) {
+      try {
+        if (await attempt() case final resolved) {
+          return resolved;
+        }
+      } catch (_) {
+        continue;
+      }
+    }
+    return null;
   }
 
   @override
@@ -160,10 +199,14 @@ class PayloadImpl implements Payload {
     Encoding encoding,
   ) async {
     final content = await encoding.decodeStream(read());
-    final data = Uri.splitQueryString(content);
+    if (!content.contains('=')) {
+      throw const FormatException('Invalid form data');
+    }
+
+    final data = Uri.splitQueryString(content, encoding: encoding);
 
     final coerced = {
-      for (final entry in data.entries) entry.key: coerce(entry.value),
+      for (final entry in data.entries) entry.key: type.coerce(entry.value),
     };
 
     return FormDataBodyData(coerced);
@@ -205,7 +248,7 @@ class PayloadImpl implements Payload {
           'bytes': bytes,
         };
       } else {
-        final content = coerce(await encoding.decodeStream(part));
+        final content = type.coerce(await encoding.decodeStream(part));
         data[name] = content;
       }
     }
@@ -217,6 +260,24 @@ class PayloadImpl implements Payload {
     final data = await encoding.decodeStream(read());
 
     return StringBodyData(data);
+  }
+
+  Future<PrimitiveNonStringBodyData<dynamic>> _resolvePrimitiveNonString(
+    Encoding encoding,
+  ) async {
+    final data = await encoding.decodeStream(read());
+
+    final coerced = await type.coerce(data);
+
+    if (coerced == null) {
+      throw const FormatException('Invalid primitive non-string data');
+    }
+
+    if (coerced is String) {
+      throw const FormatException('Invalid primitive non-string data');
+    }
+
+    return PrimitiveNonStringBodyData(coerced);
   }
 
   Future<BinaryBodyData> _resolveBinary(Encoding encoding) async {
@@ -242,5 +303,10 @@ class PayloadImpl implements Payload {
     }
 
     return encoding.decode(bytes);
+  }
+
+  @override
+  Future<void> close() async {
+    await _backupStream?.close();
   }
 }

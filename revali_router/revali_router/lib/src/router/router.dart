@@ -113,7 +113,7 @@ class Router extends Equatable {
 
   Future<ResponseHandler> responseHandler(RequestContext context) async {
     final match = Find(
-      segments: context.segments,
+      segments: context.segments.toList(),
       routes: routes,
       method: context.method,
     ).run();
@@ -181,7 +181,10 @@ class Router extends Equatable {
 
     if (response.body case final BodyData body) {
       body.cleanUp = switch (helper.dataHandler.get<CleanUp>()) {
-        final CleanUpImpl cleanUp => cleanUp.clean,
+        final CleanUpImpl cleanUp => () {
+            context.close();
+            cleanUp.clean();
+          },
         _ => () {},
       };
     }

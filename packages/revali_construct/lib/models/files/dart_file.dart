@@ -1,3 +1,4 @@
+import 'package:path/path.dart' as p;
 import 'package:revali_construct/models/files/any_file.dart';
 import 'package:revali_construct/models/files/part_file.dart';
 
@@ -5,6 +6,7 @@ class DartFile extends AnyFile {
   DartFile({
     required super.basename,
     required super.content,
+    super.segments,
     List<PartFile> parts = const [],
   })  : parts = parts.map((e) {
           if (e.path.isEmpty) {
@@ -44,30 +46,41 @@ class DartFile extends AnyFile {
   final List<PartFile> parts;
 
   @override
+  List<AnyFile> get subFiles => parts;
+
+  @override
   String get content {
     final content = super.content;
 
-    final partDirectives =
-        parts.map((part) => "part '${part.fileName}';").toList()..sort();
+    final partDirectives = parts.map((part) {
+      final pathParts = p.split(part.fileName)..remove('lib');
+
+      return "part '${p.joinAll(pathParts)}';";
+    }).toList()
+      ..sort();
 
     final partString = partDirectives.join('\n');
 
     // inject part directives after all import statements
-    final importIndex = content.lastIndexOf('import');
-    var importStatements = '';
-    var contentWithoutImports = content;
-    if (importIndex != -1) {
-      final importEndIndex = content.indexOf(';', importIndex);
-      importStatements = content.substring(0, importEndIndex + 1);
+    final directiveIndex = switch (content.contains('export')) {
+      true => content.lastIndexOf('export'),
+      false => content.lastIndexOf('import'),
+    };
+    var directiveStatements = '';
+    var contentWithoutDirectives = content;
 
-      contentWithoutImports = content.substring(importEndIndex + 1);
+    if (directiveIndex != -1) {
+      final directiveEndIndex = content.indexOf(';', directiveIndex);
+      directiveStatements = content.substring(0, directiveEndIndex + 1);
+
+      contentWithoutDirectives = content.substring(directiveEndIndex + 1);
     }
 
     final trimmed = '''
-$importStatements
+$directiveStatements
 
 $partString
-$contentWithoutImports'''
+$contentWithoutDirectives'''
         .trim();
 
     return '$trimmed\n';

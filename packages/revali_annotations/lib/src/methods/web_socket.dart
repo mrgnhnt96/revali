@@ -9,6 +9,12 @@ final class WebSocket extends Method {
   })  : ping = null,
         super('WS', path: path);
 
+  const WebSocket.mode(
+    this.mode, {
+    this.triggerOnConnect = false,
+  })  : ping = null,
+        super('WS', path: null);
+
   const WebSocket.ping({
     required Duration this.ping,
     String? path,

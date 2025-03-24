@@ -6,4 +6,6 @@ abstract class Payload implements ReadOnlyPayload {
   const Payload();
 
   Future<BodyData> resolve(ReadOnlyHeaders headers);
+
+  Future<void> close();
 }

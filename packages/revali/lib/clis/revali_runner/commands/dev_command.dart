@@ -29,10 +29,22 @@ class DevCommand extends Command<int> with ConstructRunnerArgs {
         negatable: false,
       )
       ..addFlag(
+        'profile',
+        help: 'Whether to run in profile mode. Enables logger, '
+            'but disables hot reload and debugger',
+        negatable: false,
+      )
+      ..addFlag(
         'debug',
         help: '(Default) Whether to run in debug mode. '
             'Enables hot reload and debugger',
         negatable: false,
+      )
+      ..addFlag(
+        'generate-only',
+        help: 'Only generate the constructs, does not run the server',
+        negatable: false,
+        hide: true,
       )
       ..addOption(
         'dart-vm-service-port',

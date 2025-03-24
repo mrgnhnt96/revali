@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:revali/revali.dart';
@@ -115,7 +117,7 @@ class ConstructGenerator with DirectoriesMixin {
     } catch (e) {
       logger
         ..delayed(red.wrap('Error occurred while generating constructs'))
-        ..detail(red.wrap('Error: $e'));
+        ..delayed(red.wrap('Error: $e'));
     }
 
     return null;
@@ -420,14 +422,11 @@ http://revali.dev/constructs#server-constructs
     MetaServer server,
   ) async {
     try {
-      final ServerDirectory(files: [result]) =
-          construct.generate(context, server);
+      final directory = construct.generate(context, server);
 
       await _generateDirectory(
         'server',
-        RevaliDirectory(
-          files: [result, ...result.parts],
-        ),
+        directory,
         hasNameConflict: false,
         package: null,
       );
@@ -460,8 +459,9 @@ http://revali.dev/constructs#server-constructs
 
       try {
         if (yaml != null) {
-          revaliConfig =
-              RevaliYaml.fromJson(Map<String, dynamic>.from(yaml.value));
+          final json =
+              jsonDecode(jsonEncode(yaml.value)) as Map<String, dynamic>;
+          revaliConfig = RevaliYaml.fromJson(json);
         }
       } catch (_) {
         logger.err('Failed to parse revali.yaml, using default configuration.');

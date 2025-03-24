@@ -3,6 +3,9 @@
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 import 'package:revali_server/converters/server_lifecycle_component.dart';
+import 'package:revali_server/makers/creators/create_constructor_parameters.dart';
+import 'package:revali_server/makers/creators/create_fields.dart';
+import 'package:revali_server/makers/creators/create_generics.dart';
 import 'package:revali_server/makers/creators/create_get_from_di.dart';
 import 'package:revali_server/makers/part_files/lifecycle_components/utils/create_component_methods.dart';
 import 'package:revali_server/makers/utils/for_in_loop.dart';
@@ -16,7 +19,12 @@ String interceptorContent(
   final params = getParams(
     component.params,
     defaultExpression: createGetFromDi(),
+    useField: true,
   );
+
+  final parameters = createConstructorParameters(component.params);
+  final fields = createFields(component.params);
+  final generics = createGenerics(component.genericTypes);
 
   final clazz = Class(
     (p) => p
@@ -33,9 +41,11 @@ String interceptorContent(
                   ..toThis = true
                   ..named = false,
               ),
-            ),
+            )
+            ..optionalParameters.addAll(parameters),
         ),
       )
+      ..types.addAll(generics)
       ..fields.add(
         Field(
           (p) => p
@@ -44,6 +54,7 @@ String interceptorContent(
             ..modifier = FieldModifier.final$,
         ),
       )
+      ..fields.addAll(fields)
       ..methods.addAll([
         _pre(component, params),
         _post(component, params),
@@ -69,7 +80,7 @@ Method _pre(
         Parameter(
           (p) => p
             ..name = 'context'
-            ..type = refer((RestrictedInterceptorContext).name),
+            ..type = refer('RestrictedInterceptorContext'),
         ),
       )
       ..body = Block.of(
@@ -87,7 +98,8 @@ Method _pre(
                     ...createComponentMethods(
                       component.interceptors.pre,
                       inferredParams: {
-                        (RestrictedInterceptorContext).name: refer('context'),
+                        'RestrictedInterceptorContext': refer('context'),
+                        (InterceptorContext).name: refer('context'),
                         (InterceptorMeta).name: refer('context.meta'),
                         (ReadOnlyReflectHandler).name: refer('context.reflect'),
                       },
@@ -124,7 +136,7 @@ Method _post(
         Parameter(
           (p) => p
             ..name = 'context'
-            ..type = refer((FullInterceptorContext).name),
+            ..type = refer('FullInterceptorContext'),
         ),
       )
       ..body = Block.of(
@@ -142,7 +154,8 @@ Method _post(
                     ...createComponentMethods(
                       component.interceptors.post,
                       inferredParams: {
-                        (FullInterceptorContext).name: refer('context'),
+                        'FullInterceptorContext': refer('context'),
+                        (InterceptorContext).name: refer('context'),
                         (InterceptorMeta).name: refer('context.meta'),
                         (ReadOnlyReflectHandler).name: refer('context.reflect'),
                         (ReflectHandler).name: refer('context.reflect'),

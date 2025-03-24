@@ -28,6 +28,9 @@ class CreateLifecycleComponentCommand extends CreateAComponentCommand {
   String get fileName => '${_name.toSnakeCase()}.dart';
 
   @override
+  List<String> get aliases => ['lc', 'lifecycle', 'component'];
+
+  @override
   String get directory => config.createPaths.lifecycleComponent;
 
   String _name = '';

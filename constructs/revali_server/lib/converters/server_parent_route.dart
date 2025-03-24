@@ -20,8 +20,8 @@ class ServerParentRoute with ExtractImport implements ServerRoute {
 
   factory ServerParentRoute.fromMeta(MetaRoute parentRoute) {
     return ServerParentRoute(
-      routes: parentRoute.methods.map(ServerChildRoute.fromMeta),
-      params: parentRoute.params.map(ServerParam.fromMeta),
+      routes: parentRoute.methods.map(ServerChildRoute.fromMeta).toList(),
+      params: parentRoute.params.map(ServerParam.fromMeta).toList(),
       className: parentRoute.className,
       importPath:
           ServerImports([parentRoute.element.librarySource.uri.toString()]),
@@ -34,17 +34,17 @@ class ServerParentRoute with ExtractImport implements ServerRoute {
   final ServerImports importPath;
   final String routePath;
   @override
-  final Iterable<ServerParam> params;
-  final Iterable<ServerChildRoute> routes;
+  final List<ServerParam> params;
+  final List<ServerChildRoute> routes;
   @override
   final ServerRouteAnnotations annotations;
 
   @override
-  String get handlerName => routePath.toNoCase().toCamelCase();
+  String get handlerName => '${routePath.toNoCase().toCamelCase()}Route';
 
   String get classVarName => className.toNoCase().toCamelCase();
 
-  String get fileName => routePath.toNoCase().toSnakeCase();
+  String get fileName => '${routePath.toNoCase().toSnakeCase()}_route';
 
   Iterable<ServerReflect> get reflects sync* {
     for (final route in routes) {

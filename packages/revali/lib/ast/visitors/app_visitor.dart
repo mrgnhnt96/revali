@@ -16,7 +16,7 @@ class _AppEntry {
 
   final ClassElement element;
   final ConstructorElement constructor;
-  final Iterable<MetaParam> params;
+  final List<MetaParam> params;
   final AppAnnotation annotation;
   final bool isSecure;
 }
@@ -52,7 +52,7 @@ class AppVisitor extends RecursiveElementVisitor<void> {
       _AppEntry(
         element: element,
         constructor: constructor,
-        params: getParams(constructor),
+        params: getParams(constructor).toList(),
         annotation: AppAnnotation.fromAnnotation(
           appChecker.firstAnnotationOf(element)!,
         ),

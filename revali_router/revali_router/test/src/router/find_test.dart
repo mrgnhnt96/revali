@@ -287,6 +287,33 @@ void main() {
         expect(result?.route, id);
       });
 
+      test('should return match when parent route has path parameters', () {
+        final route = Route(
+          '',
+          method: 'GET',
+          handler: (_) async {},
+        );
+
+        final router = Router(
+          routes: [
+            Route(
+              'shop/:shopId',
+              routes: [route],
+            ),
+          ],
+        );
+
+        final result = Find(
+          segments: ['shop', '123'],
+          routes: router.routes,
+          method: 'GET',
+        ).run();
+
+        expect(result, isNotNull);
+        expect(result?.route, route);
+        expect(result?.pathParameters, {'shopId': '123'});
+      });
+
       test('should return match with path parameters', () {
         final name = Route(
           ':name',

@@ -86,6 +86,10 @@ class AnalyzerFile implements File {
 
   @override
   String readAsStringSync() {
+    if (!file.existsSync()) {
+      return '';
+    }
+
     return file.readAsStringSync();
   }
 

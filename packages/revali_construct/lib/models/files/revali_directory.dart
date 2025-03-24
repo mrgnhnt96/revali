@@ -1,9 +1,17 @@
 import 'package:revali_construct/models/files/any_file.dart';
 
-class RevaliDirectory<T extends AnyFile> {
-  const RevaliDirectory({
-    required this.files,
-  }) : assert(files.length != 0, 'Directory must contain at least one file.');
+class RevaliDirectory {
+  RevaliDirectory({
+    required List<AnyFile> files,
+  }) : assert(files.isNotEmpty, 'Directory must contain at least one file.') {
+    final allFiles = <AnyFile>[...files];
 
-  final List<T> files;
+    for (final file in files) {
+      allFiles.addAll(file.subFiles);
+    }
+
+    this.files = allFiles;
+  }
+
+  late final List<AnyFile> files;
 }

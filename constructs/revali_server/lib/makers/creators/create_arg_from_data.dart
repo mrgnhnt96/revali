@@ -6,7 +6,7 @@ import 'package:revali_server/makers/creators/create_missing_argument_exception.
 Expression createArgFromData(ServerParam param) {
   var dataVar = refer('context').property('data').property('get').call([]);
 
-  if (!param.isNullable) {
+  if (!param.type.isNullable) {
     dataVar = dataVar.ifNullThen(
       createMissingArgumentException(
         key: param.name,

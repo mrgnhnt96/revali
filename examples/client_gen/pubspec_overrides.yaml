@@ -1,0 +1,17 @@
+dependency_overrides:
+  revali_annotations:
+    path: ../../packages/revali_annotations
+  revali_core:
+    path: ../../packages/revali_core
+  revali_construct:
+    path: ../../packages/revali_construct
+  revali_router:
+    path: ../../revali_router/revali_router
+  revali_router_annotations:
+    path: ../../revali_router/revali_router_annotations
+  revali_router_core:
+    path: ../../revali_router/revali_router_core
+  revali_client:
+    path: ../../constructs/revali_client/revali_client
+  revali_client_gen:
+    path: ../../constructs/revali_client/revali_client_gen

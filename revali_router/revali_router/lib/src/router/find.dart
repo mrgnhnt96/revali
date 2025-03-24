@@ -7,14 +7,14 @@ class Find {
     required this.method,
   });
 
-  final Iterable<String> segments;
-  final Iterable<BaseRoute>? routes;
+  final List<String> segments;
+  final List<BaseRoute>? routes;
   final String method;
 
   RouteMatch? run() {
     RouteMatch? find({
-      required Iterable<String> pathSegments,
-      required Iterable<BaseRoute>? routes,
+      required List<String> pathSegments,
+      required List<BaseRoute>? routes,
       required BaseRoute? parent,
       required String method,
       required Map<String, String> pathParameters,
@@ -46,11 +46,31 @@ class Find {
 
       for (final route in sorted) {
         if (pathSegments.length < route.segments.length) {
-          continue;
+          final routeIsEmpty =
+              route.segments.where((e) => e.isNotEmpty).isEmpty;
+          if (pathSegments.isEmpty && routeIsEmpty) {
+            // allow empty route to match when path is empty
+          } else {
+            continue;
+          }
         }
 
         final possibleSameSegments = pathSegments.take(route.segments.length);
         final hasMoreSegments = pathSegments.length > route.segments.length;
+
+        BaseRoute? proxy;
+        if (!route.canInvoke) {
+          final poss = find(
+            pathSegments:
+                pathSegments.skip(possibleSameSegments.length).toList(),
+            routes: route.routes,
+            parent: route,
+            method: method,
+            pathParameters: pathParameters,
+          );
+
+          proxy = poss?.route;
+        }
 
         if (route.isDynamic) {
           final segments = [
@@ -68,7 +88,8 @@ class Find {
           final patternMatches =
               pattern.hasMatch(possibleSameSegments.join('/'));
 
-          if (patternMatches && (methodsMatch || almostMatches)) {
+          if (patternMatches &&
+              (methodsMatch || almostMatches || proxy != null)) {
             for (var i = 0; i < route.segments.length; i++) {
               final segment = route.segments[i];
               if (segment.startsWith(':')) {
@@ -77,8 +98,16 @@ class Find {
               }
             }
 
+            if (proxy != null) {
+              return RouteMatch(
+                route: proxy,
+                pathParameters: pathParameters,
+              );
+            }
+
             final poss = find(
-              pathSegments: pathSegments.skip(possibleSameSegments.length),
+              pathSegments:
+                  pathSegments.skip(possibleSameSegments.length).toList(),
               routes: route.routes,
               parent: route,
               method: method,

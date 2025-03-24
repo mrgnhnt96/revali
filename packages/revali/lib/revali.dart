@@ -24,7 +24,5 @@ export 'handlers/construct_entrypoint_handler.dart';
 export 'handlers/constructs_handler.dart';
 export 'handlers/routes_handler.dart';
 export 'handlers/vm_service_handler.dart';
-export 'utils/extensions/class_element_extensions.dart';
 export 'utils/extensions/directory_extensions.dart';
-export 'utils/extensions/element_extensions.dart';
 export 'utils/mixins/directories_mixin.dart';

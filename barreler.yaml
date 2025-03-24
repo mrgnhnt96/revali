@@ -16,6 +16,8 @@ dirs:
     name: revali_annotations
   - path: packages/revali/lib
     name: revali
+  - path: packages/revali_test/lib
+    name: revali_test
   - path: packages/revali_core/lib
     name: revali_core
   - path: packages/revali_construct/lib
@@ -28,6 +30,12 @@ dirs:
     exclude:
       - "**/makers/**"
       - "**/converters/**"
+  - path: constructs/revali_client/revali_client/lib
+    name: revali_client
+    exclude:
+      - "**/cookie_parser.dart"
+  - path: constructs/revali_client/revali_client_test/lib
+    name: revali_client_test
   - path: revali_router/revali_router/lib
     name: revali_router
     exclude:

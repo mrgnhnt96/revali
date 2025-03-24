@@ -1,156 +1,305 @@
-barrel: barreler build
+barrel: dart run barreler build {--set-exit-if-changed}
 
 docs:
-    local: cd doc-site && pnpm start
-    build: cd doc-site && pnpm i && pnpm build
+  local: cd doc-site && pnpm start
+  build: cd doc-site && pnpm i && pnpm build
+
+hooks: dart run hooksman
 
 build_runner:
-    (aliases): br
-    build:
-        (aliases): b
-        (command): dart run build_runner build --delete-conflicting-outputs
-        revali_construct:
-            (aliases): construct
-            (command): cd packages/revali_construct && {$build_runner:build}
-        revali_router:
-            (aliases): router
-            (command): cd revali_router/revali_router && {$build_runner:build}
-        revali_server: cd constructs/revali_server && {$build_runner:build}
-    watch:
-        (aliases): w
-        (command): dart run build_runner watch --delete-conflicting-outputs
-        revali_construct:
-            (aliases): gen_core
-            (command): cd packages/revali_construct && {$build_runner:watch}
-        revali_router:
-            (aliases): router
-            (command): cd revali_router/revali_router && {$build_runner:watch}
-        revali_server: cd constructs/revali_server && {$build_runner:watch}
+  (aliases): br
+  build:
+    (aliases): b
+    (command): dart run build_runner build --delete-conflicting-outputs
+    revali_construct:
+      (aliases): construct
+      (command): cd packages/revali_construct && {$build_runner:build}
+    revali_router:
+      (aliases): router
+      (command): cd revali_router/revali_router && {$build_runner:build}
+    revali_server: cd constructs/revali_server && {$build_runner:build}
+  watch:
+    (aliases): w
+    (command): dart run build_runner watch --delete-conflicting-outputs
+    revali_construct:
+      (aliases): gen_core
+      (command): cd packages/revali_construct && {$build_runner:watch}
+    revali_router:
+      (aliases): router
+      (command): cd revali_router/revali_router && {$build_runner:watch}
+    revali_server: cd constructs/revali_server && {$build_runner:watch}
 
 test:
-    (command):
-        - |
-            rm -rf **/coverage/ || true
-            sip test -r {--coverage} --recursive --concurrent --no-version-check --test-randomize-ordering-seed random {--bail}
-        - |
-            PACKAGES=(revali_router/revali_router)
+  (command):
+    - |
+      rm -rf **/coverage/ || true
+      sip test -r {--coverage} --recursive --concurrent --no-version-check --test-randomize-ordering-seed random {--bail}
+    - |
+      PACKAGES=(revali_router/revali_router)
 
-            for DIR in "${PACKAGES[@]}"; do
-                # split the package name from the path
-                PACKAGE=$(echo $DIR | cut -d'/' -f2)
+      for DIR in "${PACKAGES[@]}"; do
+          # split the package name from the path
+          PACKAGE=$(echo $DIR | cut -d'/' -f2)
 
-                cd {scriptsRoot}/$DIR
-                {$test:_format-coverage}
-                {$test:_transfer-coverage}
-            done
-    _test:
-        - '{$test:_clear-coverage}'
-        - sip test {--coverage}
-        - '{$test:_format-coverage}'
-        - '{$test:_open-coverage}'
-    _clear-coverage: |
-        if [ -z "{--coverage}" ]; then
-            exit 0
-        fi
+          cd {scriptsRoot}/$DIR
+          {$test:_format-coverage}
+          {$test:_transfer-coverage}
+      done
+  _test:
+    - "{$test:_clear-coverage}"
+    - sip test {--coverage}
+    - "{$test:_format-coverage}"
+    - "{$test:_open-coverage}"
+  _clear-coverage: |
+    if [ -z "{--coverage}" ]; then
+        exit 0
+    fi
 
-        if [ -d coverage ]; then
-            rm -rf coverage
-        fi
-    _format-coverage: |
-        if [ -z "{--coverage}" ]; then
-            exit 0
-        fi
+    if [ -d coverage ]; then
+        rm -rf coverage
+    fi
+  _format-coverage: |
+    if [ -z "{--coverage}" ]; then
+        exit 0
+    fi
 
-        JSON_FILE=coverage/test/.test_optimizer.dart.vm.json
+    JSON_FILE=coverage/test/.test_optimizer.dart.vm.json
 
-        if [ -f "$JSON_FILE" ]; then
-            format_coverage \
-              --in="$JSON_FILE" \
-              --out="coverage/lcov.info" \
-              --report-on="lib" \
-              --packages=".dart_tool/package_config.json" \
-              --lcov \
-              --base-directory="." \
-              --ignore-files="**/*.g.dart"
-
-            EXIT_CODE=$?
-
-            if [ $EXIT_CODE -ne 0 ]; then
-                echo ""
-                echo "🛑 Failed to format coverage report"
-                exit 1
-            fi
-        fi
-    _open-coverage: |
-        if [ -z "{--coverage}" ]; then
-            exit 0
-        fi
-
-        DIR="$(basename $(pwd))"
-        # uppercase DIR
-        DIR=$(echo $DIR | tr '[:lower:]' '[:upper:]')
-
-        genhtml \
-          -o coverage/lcov-report coverage/lcov.info \
-          --exclude="**/*.g.dart" \
-          --quiet \
-          --ignore-errors unused,unused \
-          --legend \
-          --highlight \
-          --sort \
-          --title "$DIR" \
-          --header-title "$DIR" \
-          --no-function-coverage \
-          --sort \
-          --hierarchical \
-          --synthesize-missing \
-          --footer "Generated by 'sip run test $(basename $(pwd)) --coverage'"
-
+    if [ -f "$JSON_FILE" ]; then
+        format_coverage \
+          --in="$JSON_FILE" \
+          --out="coverage/lcov.info" \
+          --report-on="lib" \
+          --packages=".dart_tool/package_config.json" \
+          --lcov \
+          --base-directory="." \
+          --ignore-files="**/*.g.dart"
 
         EXIT_CODE=$?
 
-        if [ $EXIT_CODE -eq 0 ]; then
-            open coverage/lcov-report/index.html
-        else
+        if [ $EXIT_CODE -ne 0 ]; then
             echo ""
-            echo "🛑 Failed to generate coverage report"
+            echo "🛑 Failed to format coverage report"
             exit 1
         fi
-    _transfer-coverage: |
-        if [ -z "{--coverage}" ]; then
-            exit 0
-        fi
+    fi
+  _open-coverage: |
+    if [ -z "{--coverage}" ]; then
+        exit 0
+    fi
 
-        LCOV_PATH="coverage/lcov.info"
+    DIR="$(basename $(pwd))"
+    # uppercase DIR
+    DIR=$(echo $DIR | tr '[:lower:]' '[:upper:]')
 
-        if [ -f "$LCOV_PATH" ]; then
-            mkdir -p "{scriptsRoot}/../../coverage/apps/mobile/$(basename $(pwd))"
-            cp "$LCOV_PATH" "{scriptsRoot}/../../coverage/apps/mobile/$(basename $(pwd))/lcov.info"
-        fi
-    revali_router: |
-        cd revali_router/revali_router || exit 1
-        {$test:_test}
-    revali_router_annotations: |
-        cd revali_router/revali_router_annotations || exit 1
-        {$test:_test}
-    revali_router_core: |
-        cd revali_router/revali_router_core || exit 1
-        {$test:_test}
-    revali: |
-        cd packages/revali || exit 1
-        {$test:_test}
-    revali_annotations: |
-        cd packages/revali_annotations || exit 1
-        {$test:_test}
-    revali_construct: |
-        cd packages/revali_construct || exit 1
-        {$test:_test}
-    revali_core: |
-        cd packages/revali_core || exit 1
-        {$test:_test}
+    genhtml \
+      -o coverage/lcov-report coverage/lcov.info \
+      --exclude="**/*.g.dart" \
+      --quiet \
+      --ignore-errors unused,unused \
+      --legend \
+      --highlight \
+      --sort \
+      --title "$DIR" \
+      --header-title "$DIR" \
+      --no-function-coverage \
+      --sort \
+      --hierarchical \
+      --synthesize-missing \
+      --footer "Generated by 'sip run test $(basename $(pwd)) --coverage'"
+
+
+    EXIT_CODE=$?
+
+    if [ $EXIT_CODE -eq 0 ]; then
+        open coverage/lcov-report/index.html
+    else
+        echo ""
+        echo "🛑 Failed to generate coverage report"
+        exit 1
+    fi
+  _transfer-coverage: |
+    if [ -z "{--coverage}" ]; then
+        exit 0
+    fi
+
+    LCOV_PATH="coverage/lcov.info"
+
+    if [ -f "$LCOV_PATH" ]; then
+        mkdir -p "{scriptsRoot}/../../coverage/apps/mobile/$(basename $(pwd))"
+        cp "$LCOV_PATH" "{scriptsRoot}/../../coverage/apps/mobile/$(basename $(pwd))/lcov.info"
+    fi
+  revali_router: |
+    cd revali_router/revali_router || exit 1
+    {$test:_test}
+  revali_router_annotations: |
+    cd revali_router/revali_router_annotations || exit 1
+    {$test:_test}
+  revali_router_core: |
+    cd revali_router/revali_router_core || exit 1
+    {$test:_test}
+  revali: |
+    cd packages/revali || exit 1
+    {$test:_test}
+  revali_annotations: |
+    cd packages/revali_annotations || exit 1
+    {$test:_test}
+  revali_construct: |
+    cd packages/revali_construct || exit 1
+    {$test:_test}
+  revali_core: |
+    cd packages/revali_core || exit 1
+    {$test:_test}
 
 spell_check: cspell "./doc-site/docs/**/*" --config ".github/cspell/cspell.json"
 
 publish:
-    - dart analyze --fatal-infos --fatal-warnings
-    - cd scripts && dart run lib/prep_for_publish.dart
+  - dart analyze --fatal-infos --fatal-warnings
+  - cd scripts && dart run lib/prep_for_publish.dart
+
+test-suite:
+  (aliases): ts
+  (command):
+    - (+) {$test-suite:revali_server}
+    - (+) {$test-suite:revali_client}
+
+  _test: |
+    {$test-suite:_pubspec:comment-out}
+
+    if [ -z "{--skip-gen}" ]; then
+      dart run revali dev --generate-only --recompile
+    fi
+
+    {$test-suite:_pubspec:uncomment}
+
+    if [ ! $? = 0 ]; then
+      echo "failed to generate revali code"
+      exit 1
+    fi
+
+    if [ -n "{--gen-only}" ]; then
+      exit 0
+    fi
+
+    sip test --test-randomize-ordering-seed random --bail
+
+  _pubspec:
+    comment-out: |
+      # get the line number of the first line that contains 'path: .revali/*'
+      LINE_NUMBER=$(grep -n "path: .revali/*" pubspec.yaml | cut -d: -f1)
+
+      if [ -n "$LINE_NUMBER" ]; then
+        # comment out the line and the preceding line
+        sed -i '' "$((LINE_NUMBER))s/^/#/" pubspec.yaml
+        sed -i '' "$((LINE_NUMBER - 1))s/^/#/" pubspec.yaml
+      fi
+
+    uncomment: |
+      # get the line number of the first line that contains 'path: .revali/*'
+      LINE_NUMBER=$(grep -n "path: .revali/*" pubspec.yaml | cut -d: -f1)
+
+      if [ -n "$LINE_NUMBER" ]; then
+        # uncomment the line and the preceding line
+        sed -i '' "$((LINE_NUMBER))s/^#//" pubspec.yaml
+        sed -i '' "$((LINE_NUMBER - 1))s/^#//" pubspec.yaml
+      fi
+
+  revali_client:
+    (aliases): client
+    (command):
+      - (+) {$test-suite:revali_client:primitive-return-types}
+      - (+) {$test-suite:revali_client:null-primitive-return-types}
+      - (+) {$test-suite:revali_client:custom-return-types}
+      - (+) {$test-suite:revali_client:methods}
+      - (+) {$test-suite:revali_client:params}
+      - (+) {$test-suite:revali_client:sse}
+      - (+) {$test-suite:revali_client:sse_custom}
+      - (+) {$test-suite:revali_client:websocket}
+
+    _package: |
+      cd test_suite/constructs/revali_client/$DIR || exit 1
+      {$test-suite:_test}
+
+    primitive-return-types: |
+      DIR=primitive_return_types
+      {$test-suite:revali_client:_package}
+    null-primitive-return-types: |
+      DIR=null_primitive_return_types
+      {$test-suite:revali_client:_package}
+    custom-return-types: |
+      DIR=custom_return_types
+      {$test-suite:revali_client:_package}
+    methods: |
+      DIR=methods
+      {$test-suite:revali_client:_package}
+    params: |
+      DIR=params
+      {$test-suite:revali_client:_package}
+    sse: |
+      DIR=sse
+      {$test-suite:revali_client:_package}
+    sse_custom: |
+      DIR=sse_custom
+      {$test-suite:revali_client:_package}
+    websocket:
+      (aliases): ws
+      (command):
+        - (+) {$test-suite:revali_client:websocket:custom-return-types}
+        - (+) {$test-suite:revali_client:websocket:primitive-return-types}
+        - (+) {$test-suite:revali_client:websocket:params}
+        - (+) {$test-suite:revali_client:websocket:null-primitive-return-types}
+        - (+) {$test-suite:revali_client:websocket:two-way}
+      custom-return-types: |
+        DIR=websockets/custom_return_types
+        {$test-suite:revali_client:_package}
+      primitive-return-types: |
+        DIR=websockets/primitive_return_types
+        {$test-suite:revali_client:_package}
+      null-primitive-return-types: |
+        DIR=websockets/null_primitive_return_types
+        {$test-suite:revali_client:_package}
+      params: |
+        DIR=websockets/params
+        {$test-suite:revali_client:_package}
+      two-way: |
+        DIR=websockets/two_way
+        {$test-suite:revali_client:_package}
+
+  revali_server:
+    (aliases): server
+    (command):
+      - (+) {$test-suite:revali_server:methods}
+      - (+) {$test-suite:revali_server:custom-return-types}
+      - (+) {$test-suite:revali_server:primitive-return-types}
+      - (+) {$test-suite:revali_server:null-primitive-return-types}
+      - (+) {$test-suite:revali_server:middleware}
+      - (+) {$test-suite:revali_server:params}
+      - (+) {$test-suite:revali_server:sse}
+      - (+) {$test-suite:revali_server:sse_custom}
+    _package: |
+      cd test_suite/constructs/revali_server/$DIR || exit 1
+      {$test-suite:_test}
+    methods: |
+      DIR=methods
+      {$test-suite:revali_server:_package}
+    custom-return-types: |
+      DIR=custom_return_types
+      {$test-suite:revali_server:_package}
+    primitive-return-types: |
+      DIR=primitive_return_types
+      {$test-suite:revali_server:_package}
+    null-primitive-return-types: |
+      DIR=null_primitive_return_types
+      {$test-suite:revali_server:_package}
+    middleware: |
+      DIR=middleware
+      {$test-suite:revali_server:_package}
+    params: |
+      DIR=params
+      {$test-suite:revali_server:_package}
+    sse: |
+      DIR=sse
+      {$test-suite:revali_server:_package}
+    sse_custom: |
+      DIR=sse_custom
+      {$test-suite:revali_server:_package}

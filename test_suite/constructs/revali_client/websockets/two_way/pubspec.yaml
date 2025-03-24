@@ -1,0 +1,23 @@
+name: revali_client_websocket_two_way_test
+publish_to: none
+
+environment:
+  sdk: ">=3.6.0 <4.0.0"
+
+resolution: workspace
+
+dependencies:
+  equatable: ^2.0.7
+  revali_client:
+  revali_client_websocket_two_way:
+    path: .revali/revali_client
+  revali_router:
+  web_socket_channel: ^3.0.2
+
+dev_dependencies:
+  revali:
+  revali_client_gen:
+  revali_client_test:
+  revali_server:
+  revali_test:
+  test: ^1.25.15

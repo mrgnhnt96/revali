@@ -5,6 +5,7 @@ import 'package:revali_router/revali_router.dart';
 import 'package:revali_server/converters/server_param.dart';
 import 'package:revali_server/makers/creators/create_arg_from_binds.dart';
 import 'package:revali_server/makers/creators/create_arg_from_body.dart';
+import 'package:revali_server/makers/creators/create_arg_from_cookie.dart';
 import 'package:revali_server/makers/creators/create_arg_from_custom_param.dart';
 import 'package:revali_server/makers/creators/create_arg_from_data.dart';
 import 'package:revali_server/makers/creators/create_arg_from_header.dart';
@@ -66,6 +67,10 @@ Expression createParamArg(
   ServerParam param, {
   Expression? defaultExpression,
   Map<String, Expression> customParams = const {},
+
+  /// When true, the field of the class will be referenced instead of creating a
+  /// new argument. This only applies if [ServerParam.argument] exists
+  bool useField = false,
 }) {
   if (impliedArguments[param.type.name] case final expression?) {
     return expression;
@@ -75,15 +80,28 @@ Expression createParamArg(
     return expression;
   }
 
-  if (defaultExpression != null) {
-    return defaultExpression;
+  final annotation = param.annotations;
+  if (!annotation.hasAnnotation &&
+      !param.hasDefaultValue &&
+      !param.hasArgument) {
+    if (defaultExpression != null) {
+      return defaultExpression;
+    }
+    throw ArgumentError(
+      'No annotation or default value for param "${param.name}"',
+    );
   }
 
-  final annotation = param.annotations;
-  if (!annotation.hasAnnotation && !param.hasDefaultValue) {
-    throw ArgumentError(
-      'No annotation or default value for param ${param.name}',
-    );
+  if (param.argument case final value?) {
+    if (useField) {
+      return refer(value.parameterName);
+    }
+
+    if (value.isInjectable) {
+      return createGetFromDi();
+    }
+
+    return CodeExpression(Code(value.source));
   }
 
   if (param.defaultValue case final value? when !annotation.hasAnnotation) {
@@ -113,6 +131,9 @@ Expression createParamArg(
   if (annotation.header case final headerAnnotation?) {
     return createArgFromHeader(headerAnnotation, param);
   }
+  if (annotation.cookie case final cookieAnnotation?) {
+    return createArgFromCookie(cookieAnnotation, param);
+  }
 
   if (annotation.bind case final bind?) {
     return createArgFromBind(bind, param);
@@ -120,6 +141,10 @@ Expression createParamArg(
 
   if (annotation.binds case final binds?) {
     return createArgFromBinds(binds, param);
+  }
+
+  if (defaultExpression != null) {
+    return defaultExpression;
   }
 
   throw ArgumentError('Unknown annotation for param ${param.name}');

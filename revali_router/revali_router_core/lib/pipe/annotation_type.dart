@@ -3,6 +3,7 @@ enum AnnotationType {
   data,
   query,
   queryAll,
+  cookie,
   param,
   bind,
   header,

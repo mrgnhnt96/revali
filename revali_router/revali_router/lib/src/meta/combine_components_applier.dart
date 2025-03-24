@@ -4,7 +4,7 @@ class CombineComponentsApplier {
   const CombineComponentsApplier(this.route, this.combine);
 
   final LifecycleComponents route;
-  final Iterable<CombineComponents> combine;
+  final List<CombineComponents> combine;
 
   void apply() {
     for (final c in combine) {

@@ -98,8 +98,8 @@ void main() {
       const expectedContent = '''
 import 'package:flutter/material.dart';
 
-part 'lib/src/part1.dart';
-part 'lib/src/part2.dart';
+part 'src/part1.dart';
+part 'src/part2.dart';
 
 void main() {}
 ''';

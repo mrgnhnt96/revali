@@ -35,7 +35,7 @@ class ServerTypeReference with ExtractImport {
     return ServerTypeReference(types: types);
   }
 
-  final Iterable<ServerClass> types;
+  final List<ServerClass> types;
 
   @override
   List<ExtractImport?> get extractors => [...types];

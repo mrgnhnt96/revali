@@ -1,0 +1,21 @@
+name: revali_client_null_primitive_return_types_test
+publish_to: none
+
+environment:
+  sdk: ">=3.6.0 <4.0.0"
+
+resolution: workspace
+
+dependencies:
+  revali_client:
+  revali_client_null_primitive_return_types:
+    path: .revali/revali_client
+  revali_router:
+
+dev_dependencies:
+  revali:
+  revali_client_gen:
+  revali_client_test:
+  revali_server:
+  revali_test:
+  test: ^1.25.15

@@ -81,8 +81,26 @@ void main() {
       expect(data.data, stream);
     });
 
+    test('should create PrimitiveNonStringBodyData from int', () {
+      final data = BaseBodyData.from(123);
+      expect(data, isA<PrimitiveNonStringBodyData>());
+      expect(data.data, 123);
+    });
+
+    test('should create PrimitiveNonStringBodyData from double', () {
+      final data = BaseBodyData.from(123.456);
+      expect(data, isA<PrimitiveNonStringBodyData>());
+      expect(data.data, 123.456);
+    });
+
+    test('should create PrimitiveNonStringBodyData from bool', () {
+      final data = BaseBodyData.from(true);
+      expect(data, isA<PrimitiveNonStringBodyData>());
+      expect(data.data, true);
+    });
+
     test('should throw UnsupportedError for unsupported type', () {
-      expect(() => BaseBodyData.from(123), throwsUnsupportedError);
+      expect(() => BaseBodyData.from(('123', 'two')), throwsUnsupportedError);
     });
 
     group('bool checks', () {

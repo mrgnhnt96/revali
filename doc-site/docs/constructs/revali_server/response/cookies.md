@@ -36,16 +36,20 @@ Read more about the [Lifecycle Component's context][lifecycle-context].
 
 ### Via Binding
 
-The cookies sent by the client (in the request) can be accessed via the lifecycle method or controller's endpoint by adding the `ReadOnlyCookies` type to a parameter.
+The cookies sent by the client (in the request) can be accessed via the lifecycle method or controller's endpoint by adding the `Cookie` type to a parameter.
 
 ```dart
 @Get()
 Future<void> helloWorld(
-    ReadOnlyCookies cookies,
+    Cookie() String cookieName,
 ) async {
-    final cookieValue = cookies['cookieName'];
+    ...
 }
 ```
+
+:::note
+You can use `ReadOnlyCookies` to access all the cookies sent by the client, but it's recommended to use `Cookie` to access a specific cookie.
+:::
 
 To set cookies in the response, you can use the `MutableSetCookies` type in the lifecycle method or controller's endpoint.
 

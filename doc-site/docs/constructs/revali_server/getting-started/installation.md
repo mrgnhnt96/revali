@@ -95,7 +95,7 @@ Handles the request routing for your application during runtime.
 
 ### `revali_router_annotations`
 
-The annotations used by `revali_router`, such as `Middleware` and `ExceptionCatcher`
+The annotations used by `revali_router`, such as `LifecycleComponent` and `Body`
 
 ### `revali_router_core`
 

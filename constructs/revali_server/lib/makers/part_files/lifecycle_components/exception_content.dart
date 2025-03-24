@@ -5,6 +5,9 @@ import 'package:collection/collection.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 import 'package:revali_server/converters/server_lifecycle_component.dart';
 import 'package:revali_server/converters/server_lifecycle_component_method.dart';
+import 'package:revali_server/makers/creators/create_constructor_parameters.dart';
+import 'package:revali_server/makers/creators/create_fields.dart';
+import 'package:revali_server/makers/creators/create_generics.dart';
 import 'package:revali_server/makers/creators/create_get_from_di.dart';
 import 'package:revali_server/makers/utils/for_in_loop.dart';
 import 'package:revali_server/makers/utils/get_params.dart';
@@ -20,19 +23,13 @@ String exceptionContent(
   final (:named, :positioned) = getParams(
     component.params,
     defaultExpression: createGetFromDi(),
+    useField: true,
   );
 
-  // final exceptionType = method.exceptionType ?? (Exception).name;
+  final parameters = createConstructorParameters(component.params);
+  final fields = createFields(component.params);
+  final generics = createGenerics(component.genericTypes);
 
-  // final methodParams = getParams(
-  //   method.parameters,
-  //   inferredParams: {
-  //     exceptionType: refer('exception'),
-  //     (ExceptionCatcherContext).name: refer('context'),
-  //     (ExceptionCatcherMeta).name: refer('context.meta'),
-  //     (RouteEntry).name: refer('context.meta.route'),
-  //   },
-  // );
   final groupedMethods = groupBy(methods, (e) {
     return e.exceptionType ?? 'void';
   });
@@ -53,9 +50,11 @@ String exceptionContent(
                   ..toThis = true
                   ..named = false,
               ),
-            ),
+            )
+            ..optionalParameters.addAll(parameters),
         ),
       )
+      ..types.addAll(generics)
       ..fields.add(
         Field(
           (p) => p
@@ -64,6 +63,7 @@ String exceptionContent(
             ..modifier = FieldModifier.final$,
         ),
       )
+      ..fields.addAll(fields)
       ..methods.addAll([
         Method(
           (p) => p

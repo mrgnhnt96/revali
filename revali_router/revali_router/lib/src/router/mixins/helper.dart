@@ -3,7 +3,7 @@ part of '../router.dart';
 class Helper with HelperMixin, ContextMixin {
   Helper({
     required this.route,
-    required this.request,
+    required FullRequest request,
     required Router router,
   }) {
     globalComponents = router._globalComponents ?? LifecycleComponentsImpl();
@@ -17,6 +17,7 @@ class Helper with HelperMixin, ContextMixin {
     inheritedMeta = route.getMeta(inherit: true);
     globalComponents.getMeta(handler: inheritedMeta);
     response = MutableResponseImpl(requestHeaders: request.headers);
+    _request = request;
   }
 
   @override
@@ -35,7 +36,8 @@ class Helper with HelperMixin, ContextMixin {
   late final ReflectHandler reflectHandler;
 
   @override
-  final FullRequest request;
+  FullRequest get request => _webSocketRequest ?? _request;
+  late final FullRequest _request;
 
   @override
   late final MutableResponse response;
@@ -57,4 +59,12 @@ class Helper with HelperMixin, ContextMixin {
 
   @override
   RunMixin get run => Run(this);
+
+  @override
+  // ignore: avoid_setters_without_getters
+  set webSocketRequest(MutableWebSocketRequest request) {
+    _webSocketRequest = request;
+  }
+
+  MutableWebSocketRequest? _webSocketRequest;
 }

@@ -28,10 +28,18 @@ final class PartFile extends DartFile {
       throw Exception('Part files cannot contain import statements.');
     }
 
+    final sanitizedPath = p.split(
+      p.joinAll(
+        [
+          ...[...path]..remove('lib'),
+        ].skip(1),
+      ),
+    );
+
     final partsToParent = [
-      for (final _ in path.skip(1)) '..',
-      parent.fileName,
-    ];
+      for (final _ in sanitizedPath) '..',
+      ...p.split(parent.fileName),
+    ]..remove('lib');
 
     final parentPath = p.joinAll(partsToParent);
 

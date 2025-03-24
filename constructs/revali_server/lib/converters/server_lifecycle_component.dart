@@ -7,12 +7,14 @@ import 'package:change_case/change_case.dart';
 import 'package:collection/collection.dart';
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_server/converters/server_class.dart';
+import 'package:revali_server/converters/server_generic_type.dart';
 import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_lifecycle_component_method.dart';
 import 'package:revali_server/converters/server_param.dart';
 import 'package:revali_server/converters/server_param_annotations.dart';
 import 'package:revali_server/converters/server_type.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
+import 'package:revali_server/utils/annotation_arguments.dart';
 import 'package:revali_server/utils/extract_import.dart';
 
 class ServerLifecycleComponent with ExtractImport {
@@ -24,6 +26,8 @@ class ServerLifecycleComponent with ExtractImport {
     required this.exceptionCatchers,
     required this.params,
     required this.import,
+    required this.arguments,
+    required this.genericTypes,
   });
 
   factory ServerLifecycleComponent.fromDartObject(
@@ -35,10 +39,15 @@ class ServerLifecycleComponent with ExtractImport {
       throw Exception('Invalid element type');
     }
 
-    return ServerLifecycleComponent.fromClassElement(element);
+    final arguments = AnnotationArguments.fromDartObject(annotation);
+
+    return ServerLifecycleComponent.fromClassElement(element, arguments);
   }
 
-  factory ServerLifecycleComponent.fromClassElement(ClassElement element) {
+  factory ServerLifecycleComponent.fromClassElement(
+    ClassElement element,
+    AnnotationArguments arguments,
+  ) {
     final methods = element.methods
         .map(ServerLifecycleComponentMethod.fromElement)
         .whereType<ServerLifecycleComponentMethod>()
@@ -74,10 +83,15 @@ class ServerLifecycleComponent with ExtractImport {
       );
     }
 
-    final params = constructor.parameters.map(ServerParam.fromElement).toList();
-    final importPaths = {
-      constructor.returnType.element.librarySource.uri.toString(),
-    };
+    final params = constructor.parameters.map((e) {
+      final param = ServerParam.fromElement(e);
+
+      if (arguments.all[param.name] case final arg?) {
+        param.argument = arg;
+      }
+
+      return param;
+    }).toList();
 
     return ServerLifecycleComponent(
       name: element.name,
@@ -86,7 +100,10 @@ class ServerLifecycleComponent with ExtractImport {
       interceptors: interceptors,
       exceptionCatchers: exceptionCatchers,
       params: params,
-      import: ServerImports(importPaths),
+      import: ServerImports.fromElement(constructor.returnType.element),
+      arguments: arguments,
+      genericTypes:
+          element.typeParameters.map(ServerGenericType.fromElement).toList(),
     );
   }
 
@@ -112,7 +129,10 @@ class ServerLifecycleComponent with ExtractImport {
       );
     }
 
-    return ServerLifecycleComponent.fromClassElement(element);
+    return ServerLifecycleComponent.fromClassElement(
+      element,
+      AnnotationArguments.none(),
+    );
   }
 
   static List<ServerLifecycleComponent> fromTypeReference(
@@ -150,6 +170,8 @@ class ServerLifecycleComponent with ExtractImport {
   final List<ServerParam> params;
   final String name;
   final ServerImports import;
+  final AnnotationArguments arguments;
+  final List<ServerGenericType> genericTypes;
 
   bool get hasGuards => guards.isNotEmpty;
   bool get hasMiddlewares => middlewares.isNotEmpty;
@@ -166,19 +188,55 @@ class ServerLifecycleComponent with ExtractImport {
       params: [
         ServerParam(
           name: 'di',
-          type: ServerType(
-            name: 'DI',
-            hasFromJsonConstructor: false,
-            importPath: null,
-          ),
-          isNullable: false,
           isNamed: false,
           defaultValue: null,
           hasDefaultValue: false,
           importPath: ServerImports([]),
           annotations: ServerParamAnnotations.none(),
           isRequired: true,
+          type: ServerType(
+            name: 'DI',
+            hasFromJsonConstructor: false,
+            importPath: null,
+            isVoid: false,
+            reflect: null,
+            isFuture: false,
+            isStream: false,
+            iterableType: null,
+            isNullable: false,
+            isPrimitive: false,
+            isStringContent: false,
+            hasToJsonMember: false,
+            isMap: false,
+            typeArguments: [],
+            recordProps: null,
+            isRecord: false,
+          ),
         ),
+        for (final arg in arguments.positional)
+          ServerParam(
+            name: arg.parameterName,
+            type: arg.type,
+            isNamed: true,
+            defaultValue: null,
+            hasDefaultValue: false,
+            importPath: ServerImports([]),
+            annotations: ServerParamAnnotations.none(),
+            isRequired: !arg.type.isNullable,
+            argument: arg,
+          ),
+        for (final MapEntry(:key, value: arg) in arguments.named.entries)
+          ServerParam(
+            name: key,
+            type: arg.type,
+            isNamed: true,
+            defaultValue: null,
+            hasDefaultValue: false,
+            importPath: ServerImports([]),
+            annotations: ServerParamAnnotations.none(),
+            isRequired: arg.isRequired,
+            argument: arg,
+          ),
       ],
       importPath: ServerImports([]),
     );
@@ -208,6 +266,7 @@ class ServerLifecycleComponent with ExtractImport {
         ...interceptors.post,
         ...exceptionCatchers,
         ...params,
+        arguments,
       ];
 
   @override
