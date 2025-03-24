@@ -32,11 +32,15 @@ The headers of the request can be accessed via the lifecycle method or controlle
 ```dart
 @Get()
 Future<void> helloWorld(
-    ReadOnlyHeaders headers,
+    Header() final String headerName,
 ) async {
     ...
 }
 ```
+
+:::note
+You can use `ReadOnlyHeaders` to access all the headers sent by the client, but it's recommended to use `Header` to access specific headers.
+:::
 
 :::tip
 Read more about the [Lifecycle Components][lifecycle-components].
