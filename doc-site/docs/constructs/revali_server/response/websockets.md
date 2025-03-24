@@ -4,7 +4,7 @@ description: Two-way communication between a client and a server
 
 # WebSockets
 
-WebSockets allow two-way communication between a client and a server, enabling both to send messages at any time. Unlike HTTP, which is request-response based,  support real-time data exchange.
+WebSockets allow two-way communication between a client and a server, enabling both to send messages at any time. Unlike HTTP, which is request-response based, support real-time data exchange.
 
 ## Creating a WebSocket Handler
 
@@ -61,7 +61,7 @@ If you only want the server to send messages to the client, you can set the mode
 
 ## Closing the Connection
 
-To close the connection, throw a `CloseWebSocketException` exception. The exception can be thrown with a status code and a reason. This exception will be automatically handled by the server, and the connection will be closed.
+To close/cancel the connection, throw a `CloseWebSocketException` exception. The exception can be thrown with a status code and a reason. This exception will be automatically handled by the server, and the connection will be closed/cancelled.
 
 :::note
 The `CloseWebSocketException` cannot be caught using [Exception Catchers][exception-catchers]
@@ -180,8 +180,8 @@ The WebSocket lifecycle is similar to the [HTTP lifecycle][lifecycle-order], how
 1. Observer
 1. Middleware
 1. Guard\
--- On Connect --\
--- Message Loop --
+   -- On Connect --\
+   -- Message Loop --
 1. Observer
 1. Close Connection
 
@@ -200,4 +200,4 @@ On Connect is the same as the message loop, but is only run once, when the conne
 [binding]: ../core/binding.md
 [exception-catchers]: ../lifecycle-components/advanced/exception-catchers.md
 [web-socket-error-codes]: https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent/code
-[lifecycle-order]:../lifecycle-components/overview.md#lifecycle-order
+[lifecycle-order]: ../lifecycle-components/overview.md#lifecycle-order
