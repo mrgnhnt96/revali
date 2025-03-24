@@ -154,8 +154,10 @@ test:
 spell_check: cspell "./doc-site/docs/**/*" --config ".github/cspell/cspell.json"
 
 publish:
-  - dart analyze --fatal-infos --fatal-warnings
-  - cd scripts && dart run lib/prep_for_publish.dart
+  (bail):
+  (command):
+    - dart analyze --fatal-infos --fatal-warnings
+    - cd scripts && dart run lib/prep_for_publish.dart
 
 test-suite:
   (aliases): ts
