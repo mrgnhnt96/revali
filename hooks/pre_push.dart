@@ -37,7 +37,7 @@ Hook main() {
           ShellTask.always(
             commands: (files) => [
               'sip run test-suite --gen-only',
-              'cd test_suite && sip pub get',
+              'cd test_suite && sip pub get && sleep 1',
               'sip run test-suite --skip-gen',
             ],
           ),
