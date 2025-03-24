@@ -41,7 +41,10 @@ Hook main() {
               'sip run test-suite --skip-gen',
             ],
           ),
-          ParallelTasks.always(
+          ParallelTasks(
+            include: [
+              Glob('**/*.dart'),
+            ],
             tasks: [
               ShellTask.always(
                 commands: (files) {
