@@ -74,6 +74,7 @@ Hook main() {
         ],
         exclude: [
           Glob('**.g.dart'),
+          Glob('**/example/**.dart'),
         ],
         commands: (files) {
           return [

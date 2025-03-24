@@ -43,7 +43,10 @@ Hook main() {
           ),
           ParallelTasks(
             include: [
-              Glob('**/*.dart'),
+              Glob('**.dart'),
+            ],
+            exclude: [
+              Glob('**/example/**.dart'),
             ],
             tasks: [
               ShellTask.always(
