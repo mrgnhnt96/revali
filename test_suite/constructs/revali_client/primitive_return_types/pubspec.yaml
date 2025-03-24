@@ -1,4 +1,5 @@
 name: revali_client_primitive_return_types_test
+publish_to: none
 
 environment:
   sdk: ">=3.6.0 <4.0.0"
