@@ -20,4 +20,4 @@ class HelloController {
 
 ## Documentation
 
-Check out the [documentation](https://www.revali.dev/constructs/revali_server/) for more information on how to use Revali Server.
+Check out the [documentation](https://www.revali.dev/constructs/revali_server/overview) for more information on how to use Revali Server.
