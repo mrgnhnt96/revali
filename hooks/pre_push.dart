@@ -53,7 +53,7 @@ Hook main() {
               ),
               ShellTask.always(
                 commands: (files) =>
-                    ['dart format $files --set-exit-if-changed'],
+                    ['dart format ${files.join(' ')} --set-exit-if-changed'],
               ),
             ],
           ),
