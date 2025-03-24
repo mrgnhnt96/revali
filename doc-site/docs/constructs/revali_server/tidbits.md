@@ -93,6 +93,56 @@ final userService = UserService(database: database);
 final user = await UserPipe(userService: userService).transform(...);
 ```
 
+### Injecting Types
+
+Occasionally, you'll come across a situation where you need to supply 2 or more arguments to an annotation. One of which can't be resolved at compile-time and the other that can't be resolved using dependency injection.
+
+For example, let's say that we have a [`LifecycleComponent`][lifecycle-component]:
+
+```dart
+class MyComponent implements LifecycleComponent {
+    const MyComponent(this.statusCode, this.service);
+
+    final int statusCode;
+    final Service service;
+}
+```
+
+We can see that the `MyComponent` class requires a `statusCode` and a `service`. The `statusCode` can be resolved at compile-time and (for sake of the example) the `service` doesn't have a constant constructor. This puts us in a bit of a pickle, because we can't do the following:
+
+```dart
+class MyController {
+    @MyComponent(200, Service()) // Error! Service is not a constant
+    @Get()
+    User getUser() ...
+
+    @LifecycleComponents([MyComponent]) // Works, but what's the value of the `statusCode`?
+    @Get()
+    User getUser() ...
+}
+```
+
+To solve this, we can leverage the `Inject` class to "fake" the `Service` class to acheive a compile-time constant.
+
+```dart
+import 'package:revali/revali.dart';
+
+final class InjectService extends Inject implements Service {
+    const InjectService();
+}
+```
+
+Now, we can use the `InjectService` class in our annotation and it will be resolved at compile-time.
+
+```dart
+@MyComponent(200, InjectService())
+@Get()
+User getUser() ...
+```
+
+When Revali encounters an `Inject` class in an annotation, it will inspect the class and resolve the actual implementation at runtime using dependency injection. In this case, Revali will see that `InjectService` implements `Service` and will resolve a `Service` instance from the dependency injection.
+
 [dart-constants]: https://dart.dev/language/variables#final-and-const
 [pipes]: ./core/pipes.md
 [bindings]: ./core/binding.md
+[lifecycle-component]: ./lifecycle-components/overview.md
