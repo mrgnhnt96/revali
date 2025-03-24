@@ -470,7 +470,7 @@ class ChangeLogEntry {
 
 Iterable<Package> findPackages() sync* {
   const ignorePackages = {'scripts'};
-  const ignoreDirectories = {'examples'};
+  const ignoreDirectories = {'examples', '.revali'};
 
   final pubspecGlob = Glob('**/pubspec.yaml');
 
@@ -485,6 +485,8 @@ Iterable<Package> findPackages() sync* {
     final content = loadYaml(File(entity.path).readAsStringSync()) as YamlMap;
 
     if (ignorePackages.contains(content['name'])) continue;
+
+    if (content['publish_to'] case 'none') continue;
 
     if (p.split(entity.parent.path).any(ignoreDirectories.contains)) continue;
 
