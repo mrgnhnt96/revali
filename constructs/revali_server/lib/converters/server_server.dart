@@ -18,7 +18,10 @@ class ServerServer with ExtractImport {
   factory ServerServer.fromMeta(RevaliContext context, MetaServer server) {
     return ServerServer(
       context: context,
-      routes: server.routes.map(ServerParentRoute.fromMeta).toList(),
+      routes: [
+        for (final (index, route) in server.routes.indexed)
+          ServerParentRoute.fromMeta(route, index),
+      ],
       apps: server.apps.map(ServerApp.fromMeta).toList(),
       public: server.public.map(ServerPublic.fromMeta).toList(),
     );

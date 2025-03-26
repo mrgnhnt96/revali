@@ -2,6 +2,8 @@
 
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router/revali_router.dart';
+import 'package:revali_server/converters/annotation_mimics.dart';
+import 'package:revali_server/converters/annotation_type_references.dart';
 import 'package:revali_server/converters/server_allow_headers.dart';
 import 'package:revali_server/converters/server_allow_origins.dart';
 import 'package:revali_server/converters/server_expect_headers.dart';
@@ -26,6 +28,20 @@ class ServerRouteAnnotations with ExtractImport {
     required this.lifecycleComponents,
   }) : _responseHandler = responseHandler;
 
+  ServerRouteAnnotations.none()
+      : this(
+          coreMimics: AnnotationMimics(),
+          coreTypeReferences: AnnotationTypeReferences(),
+          data: [],
+          meta: [],
+          setHeaders: [],
+          allowOrigins: null,
+          allowHeaders: null,
+          expectHeaders: null,
+          responseHandler: null,
+          lifecycleComponents: [],
+        );
+
   factory ServerRouteAnnotations.fromApp(MetaAppConfig app) {
     return ServerRouteAnnotations._fromGetter(app.annotationsFor);
   }
@@ -38,8 +54,8 @@ class ServerRouteAnnotations with ExtractImport {
   }
 
   factory ServerRouteAnnotations._fromGetter(AnnotationMapper getter) {
-    final mimics = _AnnotationMimics();
-    final types = _AnnotationTypeReferences();
+    final mimics = AnnotationMimics();
+    final types = AnnotationTypeReferences();
 
     final data = <ServerMimic>[];
     final setHeaders = <ServerSetHeader>[];
@@ -248,8 +264,8 @@ class ServerRouteAnnotations with ExtractImport {
     );
   }
 
-  final _AnnotationTypeReferences coreTypeReferences;
-  final _AnnotationMimics coreMimics;
+  final AnnotationTypeReferences coreTypeReferences;
+  final AnnotationMimics coreMimics;
   final List<ServerMimic> data;
   final List<ServerMimic> meta;
   final List<ServerSetHeader> setHeaders;
@@ -290,63 +306,4 @@ class ServerRouteAnnotations with ExtractImport {
 
   @override
   List<ServerImports?> get imports => const [];
-}
-
-abstract class BaseAnnotations<T> {
-  List<T> get middlewares;
-  List<T> get interceptors;
-  List<T> get catchers;
-  List<T> get guards;
-  List<T> get combines;
-}
-
-class _AnnotationTypeReferences
-    implements BaseAnnotations<ServerTypeReference> {
-  @override
-  List<ServerTypeReference> catchers = [];
-
-  @override
-  List<ServerTypeReference> guards = [];
-
-  @override
-  List<ServerTypeReference> interceptors = [];
-
-  @override
-  List<ServerTypeReference> middlewares = [];
-
-  @override
-  List<ServerTypeReference> combines = [];
-
-  List<ServerTypeReference> get all => [
-        ...catchers,
-        ...guards,
-        ...interceptors,
-        ...middlewares,
-        ...combines,
-      ];
-}
-
-class _AnnotationMimics implements BaseAnnotations<ServerMimic> {
-  @override
-  List<ServerMimic> catchers = [];
-
-  @override
-  List<ServerMimic> guards = [];
-
-  @override
-  List<ServerMimic> interceptors = [];
-
-  @override
-  List<ServerMimic> middlewares = [];
-
-  @override
-  List<ServerMimic> combines = [];
-
-  List<ServerMimic> get all => [
-        ...catchers,
-        ...guards,
-        ...interceptors,
-        ...middlewares,
-        ...combines,
-      ];
 }
