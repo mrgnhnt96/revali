@@ -187,7 +187,7 @@ Expression? createFromJson(ServerType type, Expression variable) {
     ]);
   }
 
-  if (type.hasFromJsonConstructor) {
+  if (type.hasFromJson) {
     return refer(type.name).newInstanceNamed(
       'fromJson',
       [

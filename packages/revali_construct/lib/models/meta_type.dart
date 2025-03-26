@@ -2,6 +2,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:revali_construct/models/iterable_type.dart';
+import 'package:revali_construct/models/meta_from_json.dart';
 import 'package:revali_construct/models/meta_record_prop.dart';
 import 'package:revali_construct/utils/dart_type_extensions.dart';
 import 'package:revali_construct/utils/element_extensions.dart';
@@ -9,7 +10,7 @@ import 'package:revali_construct/utils/element_extensions.dart';
 class MetaType {
   const MetaType({
     required this.name,
-    required this.hasFromJsonConstructor,
+    required this.fromJson,
     required this.importPath,
     required this.isNullable,
     required this.element,
@@ -30,7 +31,7 @@ class MetaType {
     return MetaType(
       name: type.getDisplayString(),
       isVoid: type is VoidType,
-      hasFromJsonConstructor: type.element?.hasFromJsonConstructor ?? false,
+      fromJson: MetaFromJson.fromElement(type.element),
       hasToJsonMember: type.element?.hasToJsonMember ?? false,
       importPath: type.element?.importPath,
       element: type.element,
@@ -60,7 +61,7 @@ class MetaType {
   }
 
   final String name;
-  final bool hasFromJsonConstructor;
+  final MetaFromJson? fromJson;
   final bool hasToJsonMember;
   final String? importPath;
   final bool isNullable;

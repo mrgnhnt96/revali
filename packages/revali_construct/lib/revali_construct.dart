@@ -25,6 +25,7 @@ export 'models/files/server_directory.dart';
 export 'models/files/server_file.dart';
 export 'models/iterable_type.dart';
 export 'models/meta_app_config.dart';
+export 'models/meta_from_json.dart';
 export 'models/meta_method.dart';
 export 'models/meta_middleware.dart';
 export 'models/meta_param.dart';

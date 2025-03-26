@@ -49,7 +49,7 @@ Expression createArgFromQuery(
       type: annotation.all ? AnnotationType.queryAll : AnnotationType.query,
       access: queryValue,
     );
-  } else if (param.type.hasFromJsonConstructor) {
+  } else if (param.type.hasFromJson) {
     return createFromJsonArg(
       param.type,
       access: queryValue,

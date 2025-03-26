@@ -38,7 +38,7 @@ Expression createArgFromCookie(
       type: AnnotationType.cookie,
       access: cookieValue,
     );
-  } else if (param.type.hasFromJsonConstructor) {
+  } else if (param.type.hasFromJson) {
     return createFromJsonArg(
       param.type,
       access: cookieValue,

@@ -188,8 +188,8 @@ Expression? createReturnTypeFromJson(ClientType type, Expression variable) {
     ]);
   }
 
-  if (type.hasFromJsonConstructor) {
-    return refer(type.name).newInstanceNamed(
+  if (type.hasFromJson) {
+    return refer(type.nonNullName).newInstanceNamed(
       'fromJson',
       [
         refer((Map).name).newInstanceNamed('from', [

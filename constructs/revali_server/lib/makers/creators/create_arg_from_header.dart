@@ -50,7 +50,7 @@ Expression createArgFromHeader(
       type: annotation.all ? AnnotationType.headerAll : AnnotationType.header,
       access: headerValue,
     );
-  } else if (param.type.hasFromJsonConstructor) {
+  } else if (param.type.hasFromJson) {
     return createFromJsonArg(
       param.type,
       access: headerValue,

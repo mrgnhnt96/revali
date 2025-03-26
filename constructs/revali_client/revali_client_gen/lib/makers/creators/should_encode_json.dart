@@ -27,7 +27,7 @@ bool? shouldEncodeJson(ClientType type) {
 
   return switch (type) {
     ClientType(isMap: true) => true,
-    ClientType(hasFromJsonConstructor: true) => true,
+    ClientType(hasFromJson: true) => true,
     ClientType(name: 'String', parent: ClientType(isIterable: true)) => true,
     ClientType(name: 'String') => false,
     ClientType(isRecord: true) => true,

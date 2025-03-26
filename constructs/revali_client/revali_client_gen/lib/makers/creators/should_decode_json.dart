@@ -28,7 +28,7 @@ bool? shouldDecodeJson(ClientType type) {
   return switch (type) {
     ClientType(isMap: true) => true,
     ClientType(isPrimitive: true, isBytes: false) => true,
-    ClientType(hasFromJsonConstructor: true) => true,
+    ClientType(hasFromJson: true) => true,
     ClientType(isRecord: true) => true,
     ClientType(isStringContent: true) => false,
     ClientType(isDynamic: true) => false,

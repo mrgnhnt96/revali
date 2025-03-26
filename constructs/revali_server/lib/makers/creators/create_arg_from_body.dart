@@ -50,7 +50,7 @@ Expression createArgFromBody(
     );
   }
 
-  if (param.type.hasFromJsonConstructor) {
+  if (param.type.hasFromJson) {
     return createFromJsonArg(
       param.type,
       access: bodyVar,

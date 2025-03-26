@@ -36,7 +36,7 @@ Expression createArgFromParam(
       type: AnnotationType.param,
       access: paramValue,
     );
-  } else if (param.type.hasFromJsonConstructor) {
+  } else if (param.type.hasFromJson) {
     return createFromJsonArg(
       param.type,
       access: paramValue,

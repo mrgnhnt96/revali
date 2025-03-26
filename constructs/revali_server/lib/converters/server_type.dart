@@ -4,6 +4,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_core/revali_router_core.dart';
+import 'package:revali_server/converters/server_from_json.dart';
 import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_record_prop.dart';
 import 'package:revali_server/converters/server_reflect.dart';
@@ -14,7 +15,7 @@ import 'package:revali_server/utils/extract_import.dart';
 class ServerType with ExtractImport {
   ServerType({
     required this.name,
-    required this.hasFromJsonConstructor,
+    required this.fromJson,
     required this.importPath,
     required bool isVoid,
     required this.reflect,
@@ -35,7 +36,7 @@ class ServerType with ExtractImport {
   factory ServerType.fromMeta(MetaType type) {
     return ServerType(
       name: type.name,
-      hasFromJsonConstructor: type.hasFromJsonConstructor,
+      fromJson: ServerFromJson.fromMeta(type.fromJson),
       importPath: ServerImports([
         if (type.importPath case final String path) path,
       ]),
@@ -70,7 +71,7 @@ class ServerType with ExtractImport {
   }
 
   final String name;
-  final bool hasFromJsonConstructor;
+  final ServerFromJson? fromJson;
   final ServerImports? importPath;
   final ServerReflect? reflect;
   final bool isFuture;
@@ -84,6 +85,9 @@ class ServerType with ExtractImport {
   final bool isMap;
   final List<ServerType> _typeArguments;
   final List<ServerRecordProp>? recordProps;
+
+  bool get hasFromJson => fromJson != null;
+
   final bool _isVoid;
   bool get isVoid {
     if (_isVoid) {
@@ -148,4 +152,6 @@ class ServerType with ExtractImport {
 
   @override
   List<ServerImports?> get imports => [importPath];
+
+  String get nonNullName => name.replaceAll(RegExp(r'\?$'), '');
 }

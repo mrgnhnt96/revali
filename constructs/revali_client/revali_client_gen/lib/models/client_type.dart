@@ -3,6 +3,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:revali_client_gen/makers/utils/extract_import.dart';
 import 'package:revali_client_gen/makers/utils/type_extensions.dart';
+import 'package:revali_client_gen/models/client_from_json.dart';
 import 'package:revali_client_gen/models/client_imports.dart';
 import 'package:revali_client_gen/models/client_method.dart';
 import 'package:revali_client_gen/models/client_record_prop.dart';
@@ -12,7 +13,7 @@ import 'package:revali_router/revali_router.dart';
 class ClientType with ExtractImport {
   ClientType({
     required this.name,
-    this.hasFromJsonConstructor = false,
+    this.fromJson,
     this.import,
     this.isNullable = false,
     this.iterableType,
@@ -34,7 +35,7 @@ class ClientType with ExtractImport {
 
   ClientType._required({
     required this.name,
-    required this.hasFromJsonConstructor,
+    required this.fromJson,
     required this.import,
     required this.isNullable,
     required this.iterableType,
@@ -80,7 +81,7 @@ class ClientType with ExtractImport {
       recordProps: type.recordProps?.map(ClientRecordProp.fromMeta).toList(),
       isDynamic: type.isDynamic,
       isMap: type.isMap,
-      hasFromJsonConstructor: type.hasFromJsonConstructor,
+      fromJson: ClientFromJson.fromMeta(type.fromJson),
       hasToJsonMember: type.hasToJsonMember,
       isNullable: type.isNullable,
       typeArguments: type.typeArguments.map(ClientType.fromMeta).toList(),
@@ -92,7 +93,7 @@ class ClientType with ExtractImport {
   }
 
   final String name;
-  final bool hasFromJsonConstructor;
+  final ClientFromJson? fromJson;
   final bool hasToJsonMember;
   final ClientImports? import;
   final bool isNullable;
@@ -106,6 +107,9 @@ class ClientType with ExtractImport {
   final bool isStringContent;
   final List<ClientType> _typeArguments;
   final List<ClientRecordProp>? recordProps;
+
+  bool get hasFromJson => fromJson != null;
+
   final bool _isVoid;
   bool get isVoid {
     if (_isVoid) {
@@ -238,7 +242,7 @@ class ClientType with ExtractImport {
   ClientType _copy() {
     return ClientType._required(
       name: name,
-      hasFromJsonConstructor: hasFromJsonConstructor,
+      fromJson: fromJson,
       import: import,
       isNullable: isNullable,
       iterableType: iterableType,
@@ -262,4 +266,6 @@ class ClientType with ExtractImport {
 
   @override
   List<ClientImports?> get imports => [import];
+
+  String get nonNullName => name.replaceAll(RegExp(r'\?$'), '');
 }

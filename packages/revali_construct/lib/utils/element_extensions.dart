@@ -8,20 +8,32 @@ extension ElementX on Element {
     };
   }
 
-  bool get hasFromJsonConstructor {
+  /// Could be a constructor or a static method.
+  Element? get fromJsonElement {
     final element = this;
 
     if (element is! ClassElement) {
-      return false;
+      return null;
     }
 
-    return element.constructors.any((ctor) {
-      if (ctor.name != 'fromJson') return false;
-      if (ctor.parameters.length != 1) return false;
+    for (final ctor in element.constructors) {
+      if (ctor.name != 'fromJson') continue;
+      if (ctor.parameters.length != 1) continue;
 
-      return true;
-    });
+      return ctor;
+    }
+
+    for (final method in element.methods) {
+      if (method.name != 'fromJson') continue;
+      if (!method.isStatic) continue;
+
+      return method;
+    }
+
+    return null;
   }
+
+  bool get hasFromJsonConstructor => fromJsonElement != null;
 
   bool get hasToJsonMember {
     final element = this;
