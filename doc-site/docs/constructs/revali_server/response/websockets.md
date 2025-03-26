@@ -61,38 +61,56 @@ If you only want the server to send messages to the client, you can set the mode
 
 ## Closing the Connection
 
-To close/cancel the connection, throw a `CloseWebSocketException` exception. The exception can be thrown with a status code and a reason. This exception will be automatically handled by the server, and the connection will be closed/cancelled.
+Closing a connection to the WebSocket can be done in a few ways. It depends on type of Web Socket you are using.
 
-:::note
-The `CloseWebSocketException` cannot be caught using [Exception Catchers][exception-catchers]
-:::
+### Send Only
+
+As soon as your handler is resolved, the connection will be closed.
 
 ```dart
-import 'package:revali_router/revali_router.dart';
-
-@Controller('example')
-class MyController {
-    const MyController();
-
-    @WebSocket('websocket')
-    String echoMessage() {
-        // highlight-start
-        if (...) {
-            throw CloseWebSocketException(1000, 'Connection closed by client');
-        }
-        // highlight-end
-
-        return 'Hello World';
-    }
+@WebSocket('websocket', mode: WebSocketMode.sendOnly)
+String sendOnly() {
+    return 'Hello World'; // Returning a value will close the connection
 }
 ```
+
+### Two Way or Receive Only
+
+Since we are receiving messages from the client, the connection will stay open until the client closes the connection or until you manually close the connection.
+
+```dart
+@WebSocket('websocket', mode: WebSocketMode.twoWay)
+String twoWay() {
+    return 'Hello World'; // Does not close the connection
+}
+```
+
+The example above will not close the connection, because the handler is going to be called again when a new message is received from the client. To close the connection, you will need to add a `CloseWebSocket` parameter to your handler.
+
+```dart
+@WebSocket('websocket', mode: WebSocketMode.twoWay)
+String twoWay(CloseWebSocket closer) {
+    if (...) {
+        closer.close(1000, 'Normal Closure');
+        return;
+    }
+
+    return 'Hello World'; // Does not close the connection
+}
+```
+
+Once the `CloseWebSocket.close` is called, any remaining messages will be processed and sent to the client. After the messages are sent, the connection will be closed.
+
+---
+
+The `CloseWebSocket.close` method accepts a `code` and a `reason` argument. The `code` is the status code of the close event, and carries the same principles as a normal `HTTP` status code. The difference is that the codes are in the range of `1000` to `4999`. The `reason` is the reason for closing the connection, and is a string that is limited to 125 bytes (Which is 125 characters in UTF-8).
 
 :::tip
 Learn more about [websocket error codes][web-socket-error-codes].
 :::
 
 :::danger
-The reason can be a maximum of 125 bytes (Which is 125 characters in UTF-8).
+The `reason` will be truncated if it is longer than 125 bytes.
 :::
 
 ## Connecting to the WebSocket
@@ -198,6 +216,5 @@ On Connect is the same as the message loop, but is only run once, when the conne
 :::
 
 [binding]: ../core/binding.md
-[exception-catchers]: ../lifecycle-components/advanced/exception-catchers.md
 [web-socket-error-codes]: https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent/code
 [lifecycle-order]: ../lifecycle-components/overview.md#lifecycle-order

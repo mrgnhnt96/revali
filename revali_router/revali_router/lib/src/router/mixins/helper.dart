@@ -67,4 +67,9 @@ class Helper with HelperMixin, ContextMixin {
   }
 
   MutableWebSocketRequest? _webSocketRequest;
+
+  @override
+  CloseWebSocket get close => CloseWebSocketImpl((code, reason) async {
+        await _webSocketRequest?.close(code, reason);
+      });
 }

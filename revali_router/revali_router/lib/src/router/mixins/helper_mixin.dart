@@ -11,6 +11,7 @@ mixin HelperMixin {
   LifecycleComponents get globalComponents;
   FullRequest get request;
   MutableResponse get response;
+  CloseWebSocket get close;
   DataHandler get dataHandler;
   MetaHandler get directMeta;
   MetaHandler get inheritedMeta;

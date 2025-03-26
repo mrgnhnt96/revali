@@ -9,6 +9,15 @@ mixin ContextMixin on HelperMixin {
         response: response,
       );
 
+  WebSocketContext get webSocket => WebSocketContextImpl(
+        meta: directMeta,
+        reflect: reflectHandler,
+        request: request,
+        response: response,
+        data: dataHandler,
+        close: close,
+      );
+
   ExceptionCatcherContext get exceptionCatcher => ExceptionCatcherContextImpl(
         data: dataHandler,
         meta: ExceptionCatcherMetaImpl(

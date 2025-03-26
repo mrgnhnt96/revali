@@ -3,6 +3,7 @@
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_construct/models/meta_web_socket_method.dart';
 import 'package:revali_router/revali_router.dart' show WebSocketHandler;
+import 'package:revali_router_core/revali_router_core.dart';
 import 'package:revali_server/converters/server_route.dart';
 import 'package:revali_server/converters/server_type.dart';
 import 'package:revali_server/makers/creators/create_handler.dart';
@@ -23,6 +24,9 @@ Expression createWebSocketHandler(
     postBodyCode: [
       literalNull.yielded.statement,
     ],
+    inferredParams: {
+      (CloseWebSocket).name: refer('context').property('close'),
+    },
   );
 
   return Method(

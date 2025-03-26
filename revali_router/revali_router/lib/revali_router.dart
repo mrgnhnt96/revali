@@ -62,5 +62,7 @@ export 'src/route/sse_route.dart';
 export 'src/route/web_socket_route.dart';
 export 'src/router/router.dart';
 export 'src/server/handle_requests.dart';
+export 'src/web_socket/web_socket_close_impl.dart';
+export 'src/web_socket/web_socket_context_impl.dart';
 export 'src/web_socket/web_socket_handler.dart';
 export 'utils/coerce.dart';

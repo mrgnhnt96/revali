@@ -17,6 +17,7 @@ Expression createHandler({
   required MetaWebSocketMethod? webSocket,
   List<Code> additionalHandlerCode = const [],
   List<Code> postBodyCode = const [],
+  Map<String, Expression> inferredParams = const {},
 }) {
   if (webSocket != null) {
     return createWebSocketHandler(
@@ -29,7 +30,10 @@ Expression createHandler({
 
   var handler = literalNull;
 
-  final (:positioned, :named) = getParams(route.params);
+  final (:positioned, :named) = getParams(
+    route.params,
+    inferredParams: inferredParams,
+  );
   handler =
       refer(classVarName).property(route.handlerName).call(positioned, named);
 

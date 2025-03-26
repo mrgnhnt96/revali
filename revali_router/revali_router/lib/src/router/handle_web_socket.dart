@@ -23,6 +23,8 @@ class HandleWebSocket {
   final Duration? ping;
   final HelperMixin helper;
 
+  Completer<WebSocketResponse>? _closed;
+
   Completer<void>? sending;
 
   MutableWebSocketRequest? _wsRequest;
@@ -52,8 +54,7 @@ class HandleWebSocket {
       return response.toWebSocketResponse();
     }
 
-    if (handler.onConnect
-        case final Stream<dynamic> Function(EndpointContext) onConnect) {
+    if (handler.onConnect case final WebSocketCallBack onConnect) {
       if (await runHandler(onConnect) case final WebSocketResponse response) {
         return response.toWebSocketResponse();
       }
@@ -83,6 +84,10 @@ class HandleWebSocket {
       :debugErrorResponse,
       :response,
     ) = helper;
+
+    if (await _closed?.future case final response?) {
+      return response;
+    }
 
     final onMessage = handler.onMessage;
     if (onMessage == null) {
@@ -156,7 +161,13 @@ class HandleWebSocket {
     try {
       await request.resolvePayload();
       _webSocket = await request.upgradeToWebSocket(ping: ping);
-      _wsRequest = MutableWebSocketRequestImpl.fromRequest(request);
+      _wsRequest = MutableWebSocketRequestImpl.fromRequest(
+        request,
+        (code, reason) async {
+          await sendResponse();
+          await close(code, reason);
+        },
+      );
       helper.webSocketRequest = wsRequest;
 
       return null;
@@ -171,6 +182,9 @@ class HandleWebSocket {
 
   Future<void> sendResponse() async {
     if (!mode.canSend) {
+      return;
+    }
+    if (sending != null) {
       return;
     }
 
@@ -205,6 +219,7 @@ class HandleWebSocket {
   }
 
   Future<void> close(int code, String reason) async {
+    _closed = Completer<WebSocketResponse>();
     await sending?.future;
 
     // up to 125 bytes
@@ -212,11 +227,11 @@ class HandleWebSocket {
     final truncated = utf8.decode(bytes.sublist(0, min(125, bytes.length)));
 
     await webSocket.close(code, truncated);
+
+    _closed?.complete(WebSocketResponse(code, body: truncated));
   }
 
-  Future<WebSocketResponse?> runHandler(
-    Stream<void> Function(EndpointContext) stream,
-  ) async {
+  Future<WebSocketResponse?> runHandler(WebSocketCallBack stream) async {
     final HelperMixin(
       run: RunMixin(
         :interceptors,
@@ -225,14 +240,14 @@ class HandleWebSocket {
       :debugErrorResponse,
       :debugResponses,
       context: ContextMixin(
-        :endpoint,
+        :webSocket,
       )
     ) = helper;
 
     try {
       await interceptors.pre();
 
-      await for (final _ in stream(endpoint)) {
+      await for (final _ in stream(webSocket)) {
         await sendResponse();
       }
 

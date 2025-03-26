@@ -1,4 +1,6 @@
-import 'package:revali_router_core/endpoint/endpoint_context.dart';
+import 'package:revali_router_core/web_socket/web_socket_context.dart';
+
+typedef WebSocketCallBack = Stream<dynamic> Function(WebSocketContext);
 
 class WebSocketHandler {
   const WebSocketHandler({
@@ -9,6 +11,6 @@ class WebSocketHandler {
           'At least one of onConnect or onMessage must be provided',
         );
 
-  final Stream<dynamic> Function(EndpointContext)? onConnect;
-  final Stream<dynamic> Function(EndpointContext)? onMessage;
+  final WebSocketCallBack? onConnect;
+  final WebSocketCallBack? onMessage;
 }
