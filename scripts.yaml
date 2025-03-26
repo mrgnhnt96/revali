@@ -164,8 +164,20 @@ test-suite:
   (command):
     - (+) {$test-suite:revali_server}
     - (+) {$test-suite:revali_client}
+    - |
+      if [ -n "{--gen-only}" ]; then
+        exit 0
+      fi
 
-  _test: |
+      cd test_suite || exit 1
+
+      sip test --test-randomize-ordering-seed random --bail --recursive --concurrent
+
+      if [ $? -ne 0 ]; then
+        exit 1
+      fi
+
+  _generate: |
     echo $TEST_DIR
     cd $TEST_DIR || exit 1
     {$test-suite:_pubspec:comment-out}
@@ -180,12 +192,6 @@ test-suite:
       echo "failed to generate revali code"
       exit 1
     fi
-
-    if [ -n "{--gen-only}" ]; then
-      exit 0
-    fi
-
-    sip test --test-randomize-ordering-seed random --bail
 
   _pubspec:
     comment-out: |
@@ -222,7 +228,7 @@ test-suite:
 
     _package: |
       TEST_DIR=test_suite/constructs/revali_client/$DIR
-      {$test-suite:_test}
+      {$test-suite:_generate}
 
     primitive-return-types: |
       DIR=primitive_return_types
@@ -283,7 +289,7 @@ test-suite:
       - (+) {$test-suite:revali_server:sse_custom}
     _package: |
       TEST_DIR=test_suite/constructs/revali_server/$DIR
-      {$test-suite:_test}
+      {$test-suite:_generate}
     methods: |
       DIR=methods
       {$test-suite:revali_server:_package}
