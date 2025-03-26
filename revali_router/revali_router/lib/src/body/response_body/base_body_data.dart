@@ -22,7 +22,6 @@ part 'null_body_data.dart';
 part 'primitive_non_string_body_data.dart';
 part 'stream_body_data.dart';
 part 'string_body_data.dart';
-part 'unknown_body_data.dart';
 
 sealed class BaseBodyData<T> extends BodyData {
   BaseBodyData(this.data);
@@ -65,7 +64,6 @@ sealed class BaseBodyData<T> extends BodyData {
   bool get isJson => this is JsonBodyData;
   bool get isList => this is ListBodyData;
   bool get isFormData => this is FormDataBodyData;
-  bool get isUnknown => this is UnknownBodyData;
   bool get isStream => this is StreamBodyData;
   bool get isFile => this is FileBodyData;
   bool get isMemoryFile => this is MemoryFileBodyData;
@@ -77,7 +75,6 @@ sealed class BaseBodyData<T> extends BodyData {
   JsonBodyData get asJson => this as JsonBodyData;
   ListBodyData get asList => this as ListBodyData;
   FormDataBodyData get asFormData => this as FormDataBodyData;
-  UnknownBodyData get asUnknown => this as UnknownBodyData;
   StreamBodyData<dynamic> get asStream => this as StreamBodyData;
   FileBodyData get asFile => this as FileBodyData;
   MemoryFileBodyData get asMemoryFile => this as MemoryFileBodyData;

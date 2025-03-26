@@ -138,12 +138,6 @@ void main() {
         expect(data.isFormData, isTrue);
       });
 
-      test('isUnknown should be true for UnknownBodyData', () {
-        final unknownData = UnknownBodyData([], mimeType: 'text/plain');
-        final data = BaseBodyData.from(unknownData);
-        expect(data.isUnknown, isTrue);
-      });
-
       test('isStream should be true for StreamBodyData', () {
         const stream = Stream<dynamic>.empty();
         final data = BaseBodyData.from(stream);
@@ -202,12 +196,6 @@ void main() {
         final formData = FormDataBodyData({});
         final data = BaseBodyData.from(formData);
         expect(data.asFormData, isA<FormDataBodyData>());
-      });
-
-      test('asUnknown should cast to UnknownBodyData', () {
-        final unknownData = UnknownBodyData([], mimeType: 'text/plain');
-        final data = BaseBodyData.from(unknownData);
-        expect(data.asUnknown, isA<UnknownBodyData>());
       });
 
       test('asStream should cast to StreamBodyData', () {

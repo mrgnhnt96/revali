@@ -112,7 +112,7 @@ class PayloadImpl implements Payload {
     final encoding = headers.encoding;
 
     if (headers.mimeType case String()) {
-      return resolve(headers);
+      return await resolve(headers);
     }
 
     final options = [
@@ -123,10 +123,10 @@ class PayloadImpl implements Payload {
       () => _resolvePrimitiveNonString(encoding),
       () => _resolveString(encoding),
       () => _resolveBinary(encoding),
-      () =>
-          additionalParsers[headers.mimeType]
-              ?.parse(encoding, read(), headers) ??
-          _resolveUnknown(encoding, headers.mimeType),
+      switch (additionalParsers[headers.mimeType]) {
+        null => () async => ByteStreamBodyData(read()),
+        final parser => () => parser.parse(encoding, read(), headers)
+      },
     ];
 
     for (final attempt in options) {
@@ -147,16 +147,17 @@ class PayloadImpl implements Payload {
 
     try {
       final bodyData = await switch (headers.mimeType) {
-        'application/json' => _resolveJson(encoding),
-        'application/x-www-form-urlencoded' => _resolveFormUrl(encoding),
-        'multipart/form-data' =>
-          _resolveFormData(encoding, headers.contentType),
-        'text/plain' => _resolveString(encoding),
-        'application/octet-stream' => _resolveBinary(encoding),
-        _ => additionalParsers[headers.mimeType]
-                ?.parse(encoding, read(), headers) ??
-            _resolveUnknown(encoding, headers.mimeType),
-      };
+        'application/json' => () => _resolveJson(encoding),
+        'application/x-www-form-urlencoded' => () => _resolveFormUrl(encoding),
+        'multipart/form-data' => () =>
+            _resolveFormData(encoding, headers.contentType),
+        'text/plain' => () => _resolveString(encoding),
+        'application/octet-stream' => () => _resolveBinary(encoding),
+        final mimeType => switch (additionalParsers[mimeType]) {
+            null => () async => ByteStreamBodyData(read()),
+            final parser => () => parser.parse(encoding, read(), headers)
+          },
+      }();
 
       return MutableBodyImpl(bodyData);
     } catch (e) {
@@ -287,15 +288,6 @@ class PayloadImpl implements Payload {
     final data = await read().toList();
 
     return BinaryBodyData(data);
-  }
-
-  Future<UnknownBodyData> _resolveUnknown(
-    Encoding encoding,
-    String? mimeType,
-  ) async {
-    final data = await read().toList();
-
-    return UnknownBodyData(data, mimeType: mimeType);
   }
 
   @override
