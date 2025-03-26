@@ -166,6 +166,8 @@ test-suite:
     - (+) {$test-suite:revali_client}
 
   _test: |
+    echo $TEST_DIR
+    cd $TEST_DIR || exit 1
     {$test-suite:_pubspec:comment-out}
 
     if [ -z "{--skip-gen}" ]; then
@@ -219,7 +221,7 @@ test-suite:
       - (+) {$test-suite:revali_client:websocket}
 
     _package: |
-      cd test_suite/constructs/revali_client/$DIR || exit 1
+      TEST_DIR=test_suite/constructs/revali_client/$DIR
       {$test-suite:_test}
 
     primitive-return-types: |
@@ -280,7 +282,7 @@ test-suite:
       - (+) {$test-suite:revali_server:sse}
       - (+) {$test-suite:revali_server:sse_custom}
     _package: |
-      cd test_suite/constructs/revali_server/$DIR || exit 1
+      TEST_DIR=test_suite/constructs/revali_server/$DIR
       {$test-suite:_test}
     methods: |
       DIR=methods
