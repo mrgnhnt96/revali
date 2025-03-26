@@ -14,10 +14,11 @@ analyzer:
     public_member_api_docs: ignore
     prefer_void_to_null: ignore
     one_member_abstracts: ignore
+    unnecessary_await_in_return: ignore
 
   exclude:
-    - '**/*.g.dart'
-    - '**/example/example.dart'
+    - "**/*.g.dart"
+    - "**/example/example.dart"
     - test/.test_coverage.dart
     - lib/generated_plugin_registrant.dart
 
