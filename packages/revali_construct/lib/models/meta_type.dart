@@ -76,4 +76,9 @@ class MetaType {
   final List<MetaType> typeArguments;
   final Element? element;
   final List<MetaRecordProp>? recordProps;
+
+  @Deprecated('Use `hasFromJson` instead')
+  bool get hasFromJsonConstructor => hasFromJson;
+
+  bool get hasFromJson => fromJson != null;
 }
