@@ -276,7 +276,7 @@ test-suite:
       - (+) {$test-suite:revali_server:null-primitive-return-types}
       - (+) {$test-suite:revali_server:middleware}
       - (+) {$test-suite:revali_server:params}
-      - (+) {$test-suite:revali_server:null-params}
+      - (+) {$test-suite:revali_server:custom-params}
       - (+) {$test-suite:revali_server:sse}
       - (+) {$test-suite:revali_server:sse_custom}
     _package: |
