@@ -99,7 +99,7 @@ __DEBUG__:
 Error: RouteNotFoundException: HEAD api/delete
 
 Stack Trace:
-package:revali_router/src/router/router.dart 153:34          Router.handle
+package:revali_router/src/router/router.dart 155:34          Router.handle
 package:revali_router/src/server/handle_requests.dart 28:14  handleRequests''');
       final headers = {...response.headers.values};
 
