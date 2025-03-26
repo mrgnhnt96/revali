@@ -91,7 +91,10 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
       }
     }
 
-    if (path.isEmpty && providedRoutes != null && providedRoutes.isNotEmpty) {
+    if (path.isEmpty &&
+        handler != null &&
+        providedRoutes != null &&
+        providedRoutes.isNotEmpty) {
       throw ArgumentError('path cannot be empty if routes are provided');
     }
 

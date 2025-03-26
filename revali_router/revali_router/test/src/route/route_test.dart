@@ -43,6 +43,21 @@ void main() {
         expect(route.path, '');
       });
 
+      test('allows empty parent with route when no handler is provided', () {
+        final route = Route(
+          '',
+          routes: [
+            Route(
+              '',
+              method: 'GET',
+              handler: (_) async {},
+            ),
+          ],
+        );
+
+        expect(route.path, '');
+      });
+
       group('dynamic paths', () {
         test('should not conflict', () {
           final routes = [
@@ -128,22 +143,6 @@ void main() {
               'user',
               method: '',
               handler: (_) async {},
-            ),
-            throwsArgumentError,
-          );
-        });
-
-        test('if path is empty and routes are provided', () {
-          expect(
-            () => Route(
-              '',
-              routes: [
-                Route(
-                  'user',
-                  method: 'GET',
-                  handler: (_) async {},
-                ),
-              ],
             ),
             throwsArgumentError,
           );
