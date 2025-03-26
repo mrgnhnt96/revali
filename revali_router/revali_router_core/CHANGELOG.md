@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 1.7.0 | 03.26.25
+
+### Features
+
+- Create `CloseWebSocket` class to manually close a `WebSocket`
+- Create `WebSocketContext` class for context management of `WebSocket` connections
+- Add `code` and `reason` params to `MutableWebSocketRequest.close`
+
 ## 1.6.0 | 03.24.25
 
 ### Features

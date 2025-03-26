@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## 2.0.0 | 03.26.25
+
+### Breaking Changes
+
+- Remove `UnknownBodyData`, will default to a `ByteStreamBodyData` instead
+  - `UnknownBodyData` had the potential to hang if the body was a open stream
+
+### Features
+
+- Create `WebSocketContext` class for context management of `WebSocket` connections
+  - Specifically `close`ing the connection
+- Allow empty paths for parent routes when their handler has not been set
+
 ## 1.7.0 | 03.24.25
 
 ### Features

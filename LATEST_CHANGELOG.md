@@ -36,16 +36,17 @@
 
 # revali_construct
 
-## 1.3.0
+## 1.4.0
 
 ### Features
 
-- Create classes to support records
+- Create `MetaFromJson` class to improve support for `fromJson` factory/static methods
+- Resolve `fromJson` static methods within types
 
-### Enhancements
+### Breaking Changes (future)
 
-- Remove type argument from `RevaliDirectory`
-- Merge `MetaReturnType` into `MetaType`
+- Deprecate `hasFromJsonConstructor` in `MetaType`
+  - Use `hasFromJson` instead
 
 # revali_core
 
@@ -59,23 +60,18 @@
 
 # revali_router
 
-## 1.7.0
+## 2.0.0
+
+### Breaking Changes
+
+- Remove `UnknownBodyData`, will default to a `ByteStreamBodyData` instead
+  - `UnknownBodyData` had the potential to hang if the body was a open stream
 
 ### Features
 
-- Add support for primitive body types
-  - `int`, `double`, `bool`
-
-### Enhancements
-
-- Clean up resources after request is complete
-
-### Fixes
-
-- Issue where streamed responses were not encoded correctly
-- Issue where body could throw exception during `set`ting
-  - Now catches and sets status code to 500
-- Issue where on connect was not being called for `WebSocket`
+- Create `WebSocketContext` class for context management of `WebSocket` connections
+  - Specifically `close`ing the connection
+- Allow empty paths for parent routes when their handler has not been set
 
 # revali_router_annotations
 
@@ -87,30 +83,37 @@
 
 # revali_router_core
 
-## 1.6.0
+## 1.7.0
 
 ### Features
 
-- Support for `Cookie` param
-
-### Enhancements
-
-- Change return type of `MutableBody.replace` method to `Future<void>`
+- Create `CloseWebSocket` class to manually close a `WebSocket`
+- Create `WebSocketContext` class for context management of `WebSocket` connections
+- Add `code` and `reason` params to `MutableWebSocketRequest.close`
 
 <!-- CONSTRUCTS -->
 
 # revali_server
 
-## 1.10.1
+## 1.11.0
 
 ### Features
 
-- Support for `Cookie` param
-- Support for generic types in `LifecycleComponent`
-<!-- Add docs for Inject! -->
-- Support `Inject` types in annotations
-  - Allows for constant resolution of annotations that require dependency injection and need arguments
-- Support record types
+- Support empty paths for `Controller`s
+- Support `fromJson` resolution for static methods within return types
+- Create `CloseWebSocket` class to manually close a `WebSocket`
+  - [docs](https://www.revali.dev/constructs/revali_server/response/websockets#closing-the-connection)
+
+### Fixes
+
+- Prepend (generated) route & file name with `r` + index when the `Controller`'s path is empty
+- Type resolution when converting dynamic types to `Map` within a `fromJson` call
+
+### Enhancements
+
+- Create `ServerFromJson` class to match change from `revali_construct`
+
+-
 
 <!-- REVALI CLIENT -->
 
@@ -122,6 +125,8 @@ Initial Release!
 
 # revali_client_gen
 
-## 1.0.1
+## 1.1.0
 
-Initial Release!
+### Enhancements
+
+- Create `ClientFromJson` class to match change from `revali_construct`

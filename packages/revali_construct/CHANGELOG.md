@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 1.4.0 | 03.26.25
+
+### Features
+
+- Create `MetaFromJson` class to improve support for `fromJson` factory/static methods
+- Resolve `fromJson` static methods within types
+
+### Breaking Changes (future)
+
+- Deprecate `hasFromJsonConstructor` in `MetaType`
+  - Use `hasFromJson` instead
+
 ## 1.3.0 | 03.24.25
 
 ### Features
