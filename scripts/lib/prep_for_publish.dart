@@ -19,6 +19,21 @@ final date = DateFormat('MM.dd.yy').format(DateTime.now());
 final logger = Logger();
 
 void main() async {
+  // check if git is clean
+  if (!File(p.join(root, 'FAILED_PUSH.md')).existsSync()) {
+    final gitStatus = await Process.run(
+      'git',
+      ['status', '--porcelain'],
+      workingDirectory: root,
+      runInShell: true,
+    );
+
+    if (gitStatus.exitCode != 0) {
+      logger.err('Git is not clean! Push your changes first.');
+      exit(1);
+    }
+  }
+
   final packagesProgress = logger.progress('Finding packages');
   final packages = findPackages();
   packagesProgress.complete('Found ${packages.length} packages');
@@ -40,7 +55,9 @@ void main() async {
   for (final (package, _) in changedPackages) {
     logger.info('  - ${package.name}');
   }
-  logger.write('\n');
+  if (changedPackages.isNotEmpty) {
+    logger.write('\n');
+  }
 
   for (final (package, changelog) in changedPackages) {
     logger.info('Updating ${package.name}');
@@ -100,25 +117,64 @@ void main() async {
       runInShell: true,
     );
 
-    // commit all changes
-    await Process.run(
-      'git',
-      [
-        'commit',
-        '-m',
-        '"Publish Packages | $date"',
-      ],
-      workingDirectory: root,
-      runInShell: true,
-    );
+    {
+      // commit all changes
+      final commit = await Process.run(
+        'git',
+        [
+          'commit',
+          '-m',
+          '"Publish Packages | $date"',
+        ],
+        workingDirectory: root,
+        runInShell: true,
+      );
 
-    // push all changes
-    await Process.run(
-      'git',
-      ['push', 'origin', 'HEAD'],
-      workingDirectory: root,
-      runInShell: true,
-    );
+      if (commit.exitCode != 0) {
+        // create failed commit file
+        File(p.join(root, 'FAILED_COMMIT.md'))
+          ..createSync()
+          ..writeAsStringSync('''
+# Failed to commit changes
+
+## Error
+${commit.stderr}
+
+## Output
+${commit.stdout}
+''');
+        createFailedRelease(successPublishes, commit);
+        return;
+      }
+    }
+
+    {
+      // push all changes
+      final push = await Process.run(
+        'git',
+        ['push', 'origin', 'HEAD', '--no-verify'],
+        workingDirectory: root,
+        runInShell: true,
+      );
+
+      if (push.exitCode != 0) {
+        // create failed push file
+        File(p.join(root, 'FAILED_PUSH.md'))
+          ..createSync()
+          ..writeAsStringSync('''
+# Failed to push changes
+
+## Error
+${push.stderr}
+
+## Output
+${push.stdout}
+''');
+
+        createFailedRelease(successPublishes, push);
+        return;
+      }
+    }
   }
 
   final failedRelease = logger.progress('Checking for failed releases');
@@ -140,13 +196,17 @@ void main() async {
     await createRelease(package, changeLogEntry);
   }
 
-  // push all tags
-  await Process.run(
-    'git',
-    ['push', 'origin', 'HEAD'],
-    workingDirectory: root,
-    runInShell: true,
-  );
+  try {
+    // push all tags
+    await Process.run(
+      'git',
+      ['push', 'origin', 'HEAD'],
+      workingDirectory: root,
+      runInShell: true,
+    );
+  } catch (e) {
+    print('Failed to push: $e');
+  }
 }
 
 Future<void> createRelease(Package package, ChangeLogEntry changelog) async {
@@ -174,18 +234,10 @@ Future<void> createRelease(Package package, ChangeLogEntry changelog) async {
   if (process.exitCode == 0) {
     logger.info('Created release for ${package.name}');
   } else {
-    failedReleaseFile
-      ..createSync()
-      ..writeAsStringSync('''
-# Failed to create release for ${package.name}
-
-## Error
-${process.stderr}
-
-## Output
-${process.stdout}
-''');
-    logger.err('Failed to create release for ${package.name}');
+    if (!process.stderr.toString().contains('already exists')) {
+      createFailedRelease([package], process);
+      logger.err('Failed to create release for ${package.name}');
+    }
   }
 }
 
@@ -233,6 +285,24 @@ Iterable<Package> findFailedPublishes(Iterable<Package> packages) sync* {
     if (failedPublishFile.existsSync()) {
       yield package;
     }
+  }
+}
+
+void createFailedRelease(Iterable<Package> packages, ProcessResult result) {
+  for (final package in packages) {
+    package.failedRelease
+      ..createSync()
+      ..writeAsStringSync('''
+# Failed to create release for ${package.name}
+
+Version: ${package.version}
+
+## Error
+${result.stderr}
+
+## Output
+${result.stdout}
+''');
   }
 }
 
