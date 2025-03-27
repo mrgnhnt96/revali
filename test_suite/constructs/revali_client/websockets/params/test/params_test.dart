@@ -28,13 +28,18 @@ void main() {
       });
 
       test('future-string', () async {
+        final controller = StreamController<String>();
         final stream = client.params.futureString(
-          message: Stream.value('Hello'),
+          message: controller.stream,
         );
 
-        final result = await stream.single;
+        controller
+          ..add('Hello')
+          ..add('world');
 
-        expect(result, 'Hello');
+        await expectLater(stream, emitsInOrder(['Hello', 'world']));
+
+        await controller.close();
       });
 
       test('string', () async {
