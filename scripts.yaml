@@ -6,6 +6,20 @@ docs:
 
 hooks: dart run hooksman
 
+pub:
+  get: |
+    {$test-suite:_pubspec:comment-out}
+    sip pub get --recursive --no-version-check
+
+    FAILED=$?
+
+    {$test-suite:_pubspec:uncomment}
+
+    if [ $FAILED -ne 0 ]; then
+      echo "🛑 Failed to get dependencies, you may need to run `sip run test-suite --gen-only`"
+      exit 1
+    fi
+
 build_runner:
   (aliases): br
   build:
