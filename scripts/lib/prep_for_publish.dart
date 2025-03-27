@@ -25,7 +25,6 @@ void main() async {
       'git',
       ['status', '--porcelain'],
       workingDirectory: root,
-      runInShell: true,
     );
 
     if (gitStatus.exitCode != 0) {
@@ -90,12 +89,13 @@ void main() async {
     for (final (pkg, _) in changedPackages) pkg.name: pkg,
   }.values.toList();
 
+  final successPublishes = <Package>[];
+
   if (packagesToPublish.isEmpty) {
     logger.info('No packages to publish');
   } else {
     logger.info('Publishing ${packagesToPublish.length} packages');
 
-    final successPublishes = <Package>[];
     for (final package in packagesToPublish) {
       logger.info('  - ${package.name}');
       final success = await publish(package);
@@ -114,68 +114,11 @@ void main() async {
       'git',
       ['add', '.'],
       workingDirectory: root,
-      runInShell: true,
     );
-
-    {
-      // commit all changes
-      final commit = await Process.run(
-        'git',
-        [
-          'commit',
-          '-m',
-          '"Publish Packages | $date"',
-        ],
-        workingDirectory: root,
-        runInShell: true,
-      );
-
-      if (commit.exitCode != 0) {
-        // create failed commit file
-        File(p.join(root, 'FAILED_COMMIT.md'))
-          ..createSync()
-          ..writeAsStringSync('''
-# Failed to commit changes
-
-## Error
-${commit.stderr}
-
-## Output
-${commit.stdout}
-''');
-        createFailedRelease(successPublishes, commit);
-        return;
-      }
-    }
-
-    {
-      // push all changes
-      final push = await Process.run(
-        'git',
-        ['push', 'origin', 'HEAD', '--no-verify'],
-        workingDirectory: root,
-        runInShell: true,
-      );
-
-      if (push.exitCode != 0) {
-        // create failed push file
-        File(p.join(root, 'FAILED_PUSH.md'))
-          ..createSync()
-          ..writeAsStringSync('''
-# Failed to push changes
-
-## Error
-${push.stderr}
-
-## Output
-${push.stdout}
-''');
-
-        createFailedRelease(successPublishes, push);
-        return;
-      }
-    }
   }
+  await commitChanges(successPublishes);
+
+  await pushChanges(successPublishes);
 
   final failedRelease = logger.progress('Checking for failed releases');
   final failedReleases = findFailedReleases(packages);
@@ -200,9 +143,14 @@ ${push.stdout}
     // push all tags
     await Process.run(
       'git',
-      ['push', 'origin', 'HEAD'],
+      [
+        'push',
+        'origin',
+        'HEAD',
+        '--tags',
+        '--no-verify',
+      ],
       workingDirectory: root,
-      runInShell: true,
     );
   } catch (e) {
     print('Failed to push: $e');
@@ -228,7 +176,6 @@ Future<void> createRelease(Package package, ChangeLogEntry changelog) async {
       changelog.changes,
     ],
     workingDirectory: package.root,
-    runInShell: true,
   );
 
   if (process.exitCode == 0) {
@@ -238,6 +185,82 @@ Future<void> createRelease(Package package, ChangeLogEntry changelog) async {
       createFailedRelease([package], process);
       logger.err('Failed to create release for ${package.name}');
     }
+  }
+}
+
+Future<void> pushChanges(List<Package> packages) async {
+  final failedPushFile = File(p.join(root, 'FAILED_PUSH.md'));
+
+  if (failedPushFile.existsSync()) {
+    failedPushFile.deleteSync();
+  }
+
+  // push all changes
+  final push = await Process.run(
+    'git',
+    ['push', 'origin', 'HEAD', '--no-verify'],
+    workingDirectory: root,
+  );
+
+  if (push.exitCode != 0) {
+    // create failed push file
+    failedPushFile
+      ..createSync()
+      ..writeAsStringSync('''
+# Failed to push changes
+
+## Error
+${push.stderr}
+
+## Output
+${push.stdout}
+''');
+
+    createFailedRelease(packages, push);
+    return;
+  }
+}
+
+Future<void> commitChanges(List<Package> packages) async {
+  final failedCommitFile = File(p.join(root, 'FAILED_COMMIT.md'));
+
+  if (failedCommitFile.existsSync()) {
+    failedCommitFile.deleteSync();
+  }
+
+  // commit all changes
+  final commit = await Process.run(
+    'git',
+    [
+      'commit',
+      '-m',
+      '"Publish Packages | $date"',
+      '--no-verify',
+    ],
+    workingDirectory: root,
+  );
+
+  final output = commit.stdout.toString();
+
+  if (output.contains('up to date')) {
+    return;
+  }
+
+  if (commit.exitCode != 0) {
+    // create failed commit file
+    failedCommitFile
+      ..createSync()
+      ..writeAsStringSync('''
+# Failed to commit changes
+
+## Error
+${commit.stderr}
+
+## Output
+${commit.stdout}
+''');
+    createFailedRelease(packages, commit);
+    return;
   }
 }
 
@@ -252,7 +275,6 @@ Future<bool> publish(Package package) async {
     'dart',
     ['pub', 'publish', '--force'],
     workingDirectory: package.root,
-    runInShell: true,
   );
 
   if (process.exitCode == 0) {
