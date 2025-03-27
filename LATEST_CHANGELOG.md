@@ -60,12 +60,11 @@
 
 # revali_router
 
-## 2.0.0
+## 2.0.1
 
-### Breaking Changes
+### Fixes
 
-- Remove `UnknownBodyData`, will default to a `ByteStreamBodyData` instead
-  - `UnknownBodyData` had the potential to hang if the body was a open stream
+- Issue where `WebSocket` would only send the first message
 
 ### Features
 

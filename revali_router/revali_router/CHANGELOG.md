@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 2.0.1 | 03.26.25
+
+### Fixes
+
+- Issue where `WebSocket` would only send the first message
+
+### Features
+
+- Create `WebSocketContext` class for context management of `WebSocket` connections
+  - Specifically `close`ing the connection
+- Allow empty paths for parent routes when their handler has not been set
+
 ## 2.0.0 | 03.26.25
 
 ### Breaking Changes
