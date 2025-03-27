@@ -196,18 +196,22 @@ class HandleWebSocket {
     ) = helper;
 
     sending = Completer<void>();
+    void complete() {
+      sending?.complete();
+      sending = null;
+    }
 
     await interceptors.post();
 
     final body = response.body;
     if (body.isNull) {
-      sending?.complete();
+      complete();
       return;
     }
 
     final stream = body.read();
     if (stream == null) {
-      sending?.complete();
+      complete();
       return;
     }
 
@@ -215,7 +219,7 @@ class HandleWebSocket {
       webSocket.add(chunk);
     }
 
-    sending?.complete();
+    complete();
   }
 
   Future<void> close(int code, String reason) async {
