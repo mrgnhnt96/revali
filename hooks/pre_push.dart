@@ -15,7 +15,7 @@ Hook main() {
             name: 'Generate Test Suite',
             commands: (files) => [
               'sip run test-suite --gen-only',
-              'sleep 1',
+              'sleep 3',
             ],
           ),
           ParallelTasks(
