@@ -232,8 +232,8 @@ test-suite:
 
       if [ -n "$LINE_NUMBER" ]; then
           # uncomment the line and the preceding line
-          sed -i '' "$((LINE_NUMBER))s/^#//" $PUBSPEC
-          sed -i '' "$((LINE_NUMBER - 1))s/^#//" $PUBSPEC
+          sed -i '' "$((LINE_NUMBER))s/^#*//g" $PUBSPEC
+          sed -i '' "$((LINE_NUMBER - 1))s/^#*//g" $PUBSPEC
         fi
       done
 
