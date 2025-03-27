@@ -25,7 +25,7 @@ Map<String, Expression> createModifierArgs({
           for (final catcher in catchers) createMimic(catcher),
         if (typeReferences.catchers.expand((e) => e.types) case final catchers)
           for (final catcher in catchers) createClass(catcher),
-        for (final component in lifecycleComponents)
+        for (final component in lifecycleComponents.exceptionCatchers)
           createClass(component.exceptionClass),
       ]),
     if (annotations.data.isNotEmpty)
@@ -38,7 +38,7 @@ Map<String, Expression> createModifierArgs({
         for (final guard in mimics.guards) createMimic(guard),
         for (final guards in typeReferences.guards)
           for (final guard in guards.types) createClass(guard),
-        for (final component in lifecycleComponents)
+        for (final component in lifecycleComponents.guards)
           createClass(component.guardClass),
       ]),
     if (mimics.interceptors.isNotEmpty ||
@@ -48,7 +48,7 @@ Map<String, Expression> createModifierArgs({
         for (final interceptor in mimics.interceptors) createMimic(interceptor),
         for (final intercepts in typeReferences.interceptors)
           for (final interceptor in intercepts.types) createClass(interceptor),
-        for (final component in lifecycleComponents)
+        for (final component in lifecycleComponents.interceptors)
           createClass(component.interceptorClass),
       ]),
     if (mimics.middlewares.isNotEmpty ||
@@ -58,7 +58,7 @@ Map<String, Expression> createModifierArgs({
         for (final middleware in mimics.middlewares) createMimic(middleware),
         for (final middlewares in typeReferences.middlewares)
           for (final middleware in middlewares.types) createClass(middleware),
-        for (final component in lifecycleComponents)
+        for (final component in lifecycleComponents.middlewares)
           createClass(component.middlewareClass),
       ]),
     if (annotations.allowOrigins case final allow?
@@ -123,4 +123,21 @@ extension _IterableServerLifecycleComponentX
   bool get hasGuards => any((e) => e.hasGuards);
   bool get hasInterceptors => any((e) => e.hasInterceptors);
   bool get hasMiddlewares => any((e) => e.hasMiddlewares);
+
+  List<ServerLifecycleComponent> get guards => [
+        for (final component in this)
+          if (component.hasGuards) component,
+      ];
+  List<ServerLifecycleComponent> get interceptors => [
+        for (final component in this)
+          if (component.hasInterceptors) component,
+      ];
+  List<ServerLifecycleComponent> get middlewares => [
+        for (final component in this)
+          if (component.hasMiddlewares) component,
+      ];
+  List<ServerLifecycleComponent> get exceptionCatchers => [
+        for (final component in this)
+          if (component.hasExceptionCatchers) component,
+      ];
 }
