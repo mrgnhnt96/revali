@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 1.11.1 | 03.27.25
+
+### Enhancements
+
+- Add check to ensure controller names are unique
+
+### Fixes
+
+- Issue where lifecycle components that didn't exist would be generated
+
 ## 1.11.0 | 03.26.25
 
 ### Features

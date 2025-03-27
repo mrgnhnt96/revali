@@ -94,25 +94,15 @@
 
 # revali_server
 
-## 1.11.0
-
-### Features
-
-- Support empty paths for `Controller`s
-- Support `fromJson` resolution for static methods within return types
-- Create `CloseWebSocket` class to manually close a `WebSocket`
-  - [docs](https://www.revali.dev/constructs/revali_server/response/websockets#closing-the-connection)
-
-### Fixes
-
-- Prepend (generated) route & file name with `r` + index when the `Controller`'s path is empty
-- Type resolution when converting dynamic types to `Map` within a `fromJson` call
+## 1.11.1
 
 ### Enhancements
 
-- Create `ServerFromJson` class to match change from `revali_construct`
+- Add check to ensure controller names are unique
 
--
+### Fixes
+
+- Issue where lifecycle components that didn't exist would be generated
 
 <!-- REVALI CLIENT -->
 

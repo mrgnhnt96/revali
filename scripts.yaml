@@ -174,7 +174,8 @@ publish:
       GEN_ONLY: true
   (command):
     - "{$test-suite}"
-    - sip test --recursive --bail --concurrent
+    - sleep 3
+    - sip test --recursive --bail
     - cd scripts && dart run lib/prep_for_publish.dart
 
 test-suite:
