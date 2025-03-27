@@ -18,8 +18,6 @@
 
 - Create `ServerFromJson` class to match change from `revali_construct`
 
--
-
 ## 1.10.1 | 03.24.25
 
 ### Features
