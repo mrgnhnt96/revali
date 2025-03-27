@@ -8,12 +8,12 @@ hooks: dart run hooksman
 
 pub:
   get: |
-    {$test-suite:_pubspec:comment-out}
+    {$test-suite:pubspec:comment-out}
     sip pub get --recursive --no-version-check
 
     FAILED=$?
 
-    {$test-suite:_pubspec:uncomment}
+    {$test-suite:pubspec:uncomment}
 
     if [ $FAILED -ne 0 ]; then
       echo "🛑 Failed to get dependencies, you may need to run `sip run test-suite --gen-only`"
@@ -170,14 +170,18 @@ spell_check: cspell "./doc-site/docs/**/*" --config ".github/cspell/cspell.json"
 publish:
   (bail):
   (command):
-    - dart analyze --fatal-infos --fatal-warnings
+    - sip test --recursive --bail --concurrent
     - cd scripts && dart run lib/prep_for_publish.dart
 
 test-suite:
   (aliases): ts
   (command):
+    - "{$test-suite:pubspec:comment-out}"
+    - cd test_suite && dart pub get
     - (+) {$test-suite:revali_server}
     - (+) {$test-suite:revali_client}
+    - "{$test-suite:pubspec:uncomment}"
+    - cd test_suite && dart pub get
     - |
       if [ -n "{--gen-only}" ]; then
         exit 0
@@ -194,39 +198,44 @@ test-suite:
   _generate: |
     echo $TEST_DIR
     cd $TEST_DIR || exit 1
-    {$test-suite:_pubspec:comment-out}
 
     if [ -z "{--skip-gen}" ]; then
       dart run revali dev --generate-only --recompile
     fi
-
-    {$test-suite:_pubspec:uncomment}
 
     if [ ! $? = 0 ]; then
       echo "failed to generate revali code"
       exit 1
     fi
 
-  _pubspec:
+  pubspec:
     comment-out: |
-      # get the line number of the first line that contains 'path: .revali/*'
-      LINE_NUMBER=$(grep -n "path: .revali/*" pubspec.yaml | cut -d: -f1)
+      ALL_PUBSPECS=$(find . -name "pubspec.yaml" -not -path ".revali")
 
-      if [ -n "$LINE_NUMBER" ]; then
-        # comment out the line and the preceding line
-        sed -i '' "$((LINE_NUMBER))s/^/#/" pubspec.yaml
-        sed -i '' "$((LINE_NUMBER - 1))s/^/#/" pubspec.yaml
-      fi
+      for PUBSPEC in $ALL_PUBSPECS; do
+        # get the line number of the first line that contains 'path: .revali/*'
+        LINE_NUMBER=$(grep -n "path: .revali/*" $PUBSPEC | cut -d: -f1)
+
+        if [ -n "$LINE_NUMBER" ]; then
+          # comment out the line and the preceding line
+          sed -i '' "$((LINE_NUMBER))s/^/#/" $PUBSPEC
+          sed -i '' "$((LINE_NUMBER - 1))s/^/#/" $PUBSPEC
+        fi
+      done
 
     uncomment: |
-      # get the line number of the first line that contains 'path: .revali/*'
-      LINE_NUMBER=$(grep -n "path: .revali/*" pubspec.yaml | cut -d: -f1)
+      ALL_PUBSPECS=$(find . -name "pubspec.yaml" -not -path ".revali")  
+
+      for PUBSPEC in $ALL_PUBSPECS; do
+        # get the line number of the first line that contains 'path: .revali/*'
+        LINE_NUMBER=$(grep -n "path: .revali/*" $PUBSPEC | cut -d: -f1)
 
       if [ -n "$LINE_NUMBER" ]; then
-        # uncomment the line and the preceding line
-        sed -i '' "$((LINE_NUMBER))s/^#//" pubspec.yaml
-        sed -i '' "$((LINE_NUMBER - 1))s/^#//" pubspec.yaml
-      fi
+          # uncomment the line and the preceding line
+          sed -i '' "$((LINE_NUMBER))s/^#//" $PUBSPEC
+          sed -i '' "$((LINE_NUMBER - 1))s/^#//" $PUBSPEC
+        fi
+      done
 
   revali_client:
     (aliases): client
