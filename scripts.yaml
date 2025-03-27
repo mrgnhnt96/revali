@@ -169,7 +169,11 @@ spell_check: cspell "./doc-site/docs/**/*" --config ".github/cspell/cspell.json"
 
 publish:
   (bail):
+  (env):
+    vars:
+      GEN_ONLY: true
   (command):
+    - "{$test-suite}"
     - sip test --recursive --bail --concurrent
     - cd scripts && dart run lib/prep_for_publish.dart
 
@@ -183,8 +187,10 @@ test-suite:
     - "{$test-suite:pubspec:uncomment}"
     - cd test_suite && dart pub get
     - |
-      if [ -n "{--gen-only}" ]; then
+      if [ "$GEN_ONLY" = "true" ]; then
         exit 0
+      elif [ -n "{--gen-only}" ]; then
+          exit 0
       fi
 
       cd test_suite || exit 1
