@@ -79,6 +79,7 @@ class ServerServer with ExtractImport {
   void validate() {
     _validateApp();
     _validateRoutes();
+    _validateControllers();
   }
 
   void _validateRoutes() {
@@ -90,6 +91,18 @@ class ServerServer with ExtractImport {
       }
 
       uniquePaths.add(route.routePath);
+    }
+  }
+
+  void _validateControllers() {
+    final uniqueNames = <String>{};
+
+    for (final route in routes) {
+      if (uniqueNames.contains(route.className)) {
+        throw Exception('Duplicate controller name: ${route.className}');
+      }
+
+      uniqueNames.add(route.className);
     }
   }
 
