@@ -4,17 +4,15 @@ import 'package:revali_server/converters/server_binds_annotation.dart';
 import 'package:revali_server/converters/server_param.dart';
 import 'package:revali_server/makers/creators/create_bind_context.dart';
 import 'package:revali_server/makers/creators/create_class.dart';
-import 'package:revali_server/makers/creators/create_get_from_di.dart';
 import 'package:revali_server/makers/creators/create_missing_argument_exception.dart';
 
 Expression createArgFromBinds(
   ServerBindsAnnotation annotation,
   ServerParam param,
 ) {
-  var paramsRef = createClass(
-    annotation.bind.bind,
-    defaultArg: createGetFromDi(),
-  ).property('bind').call([createBindContext(param)]).awaited;
+  var paramsRef = createClass(annotation.bind.bind)
+      .property('bind')
+      .call([createBindContext(param)]).awaited;
 
   final acceptsNull = annotation.acceptsNull;
   if ((acceptsNull != null && !acceptsNull) || !param.type.isNullable) {

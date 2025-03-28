@@ -33,5 +33,15 @@ void main() {
       expect(response.headers['x-middleware'], ['loz']);
       expect(response.headers['x-auth'], isNull);
     });
+
+    test('should proceed when annotations are as type reference', () async {
+      final response = await server.send(
+        method: 'GET',
+        path: '/api/multiple/type-reference',
+      );
+
+      expect(response.statusCode, 200);
+      expect(response.body, {'data': 'loz'});
+    });
   });
 }

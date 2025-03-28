@@ -4,7 +4,6 @@ import 'package:code_builder/code_builder.dart';
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_server/converters/server_pipe.dart';
 import 'package:revali_server/makers/creators/create_class.dart';
-import 'package:revali_server/makers/creators/create_get_from_di.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
 
 Expression createPipe(
@@ -14,10 +13,7 @@ Expression createPipe(
   required AnnotationType type,
   required Expression access,
 }) {
-  final pipeClass = createClass(
-    pipe.pipe,
-    defaultArg: createGetFromDi(),
-  );
+  final pipeClass = createClass(pipe.pipe);
 
   final context = refer((PipeContextImpl).name).newInstanceNamed(
     'from',

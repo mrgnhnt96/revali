@@ -183,6 +183,8 @@ class ServerLifecycleComponent with ExtractImport {
     final sub = subType ?? '';
     final className = '$name$sub${(type).name}'.toNoCase().toPascalCase();
 
+    final argsByParamName = arguments.all;
+
     return ServerClass(
       className: className,
       params: [
@@ -213,29 +215,17 @@ class ServerLifecycleComponent with ExtractImport {
             isRecord: false,
           ),
         ),
-        for (final arg in arguments.positional)
+        for (final param in params)
           ServerParam(
-            name: arg.parameterName,
-            type: arg.type,
+            name: param.name,
+            type: param.type,
             isNamed: true,
-            defaultValue: null,
-            hasDefaultValue: false,
-            importPath: ServerImports([]),
-            annotations: ServerParamAnnotations.none(),
-            isRequired: !arg.type.isNullable,
-            argument: arg,
-          ),
-        for (final MapEntry(:key, value: arg) in arguments.named.entries)
-          ServerParam(
-            name: key,
-            type: arg.type,
-            isNamed: true,
-            defaultValue: null,
-            hasDefaultValue: false,
-            importPath: ServerImports([]),
-            annotations: ServerParamAnnotations.none(),
-            isRequired: arg.isRequired,
-            argument: arg,
+            defaultValue: param.defaultValue,
+            hasDefaultValue: param.hasDefaultValue,
+            importPath: param.importPath,
+            annotations: param.annotations,
+            isRequired: !param.type.isNullable,
+            argument: argsByParamName[param.name] ?? param.argument,
           ),
       ],
       importPath: ServerImports([]),

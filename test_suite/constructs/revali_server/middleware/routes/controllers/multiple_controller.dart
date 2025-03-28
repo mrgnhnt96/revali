@@ -19,4 +19,10 @@ class MultipleController {
   String readAuth(@Data() String auth) {
     return auth;
   }
+
+  @LifecycleComponents([SomeLogger, AddData, AddHeader, Catch, Allow, Continue])
+  @Get('type-reference')
+  String typeReference() {
+    return 'loz';
+  }
 }

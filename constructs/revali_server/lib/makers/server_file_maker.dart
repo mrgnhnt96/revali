@@ -8,7 +8,6 @@ import 'package:revali_server/converters/server_server.dart';
 import 'package:revali_server/makers/creators/create_app.dart';
 import 'package:revali_server/makers/creators/create_class.dart';
 import 'package:revali_server/makers/creators/create_dependency_injection.dart';
-import 'package:revali_server/makers/creators/create_get_from_di.dart';
 import 'package:revali_server/makers/creators/create_mimic.dart';
 import 'package:revali_server/makers/creators/create_modifier_args.dart';
 import 'package:revali_server/makers/creators/create_routes_variable.dart';
@@ -148,8 +147,7 @@ String serverFile(
                     'observers': literalList([
                       if (app.observers.types.expand((e) => e.types)
                           case final observers when observers.isNotEmpty)
-                        for (final observer in observers)
-                          createClass(observer, defaultArg: createGetFromDi()),
+                        for (final observer in observers) createClass(observer),
                       if (app.observers.mimics case final mimics
                           when mimics.isNotEmpty)
                         for (final type in mimics) createMimic(type),

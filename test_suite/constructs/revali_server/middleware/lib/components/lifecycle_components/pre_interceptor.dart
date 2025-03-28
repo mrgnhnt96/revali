@@ -9,6 +9,24 @@ class AddData implements LifecycleComponent {
   }
 }
 
+class SomeLogger implements LifecycleComponent {
+  const SomeLogger(
+    this.logger, {
+    this.fallback,
+  });
+
+  final Logger logger;
+  final Logger? fallback;
+
+  InterceptorPreResult addData(DataHandler data) {
+    data.add('loz');
+  }
+}
+
+class Logger {
+  const Logger();
+}
+
 class AddCustomData<T extends Object> implements LifecycleComponent {
   const AddCustomData(this.data);
 

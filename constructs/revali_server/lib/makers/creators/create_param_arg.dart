@@ -84,9 +84,16 @@ Expression createParamArg(
   if (!annotation.hasAnnotation &&
       !param.hasDefaultValue &&
       !param.hasArgument) {
-    if (defaultExpression != null) {
-      return defaultExpression;
+    if (!param.type.isPrimitive) {
+      if (defaultExpression != null) {
+        return defaultExpression;
+      }
     }
+
+    if (param.type.isNullable) {
+      return literalNull;
+    }
+
     throw ArgumentError(
       'No annotation or default value for param "${param.name}"',
     );
