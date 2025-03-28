@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.1.1 | 03.27.25
+
+### Fixes
+
+- Issue where not all imports were being added to the generated code from type's type arguments
+
 ## 1.1.0 | 03.26.25
 
 ### Enhancements

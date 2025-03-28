@@ -110,8 +110,8 @@ Initial Release!
 
 # revali_client_gen
 
-## 1.1.0
+## 1.1.1
 
-### Enhancements
+### Fixes
 
-- Create `ClientFromJson` class to match change from `revali_construct`
+- Issue where not all imports were being added to the generated code from type's type arguments
