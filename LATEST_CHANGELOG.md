@@ -94,15 +94,11 @@
 
 # revali_server
 
-## 1.11.1
-
-### Enhancements
-
-- Add check to ensure controller names are unique
+## 1.11.2
 
 ### Fixes
 
-- Issue where lifecycle components that didn't exist would be generated
+- Issue where arguments were not passed properly to class from type references
 
 <!-- REVALI CLIENT -->
 

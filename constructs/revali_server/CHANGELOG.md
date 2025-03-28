@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.11.2 | 03.27.25
+
+### Fixes
+
+- Issue where arguments were not passed properly to class from type references
+
 ## 1.11.1 | 03.27.25
 
 ### Enhancements
