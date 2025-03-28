@@ -20,7 +20,7 @@ class MultipleController {
     return auth;
   }
 
-  @LifecycleComponents([SomeLogger, AddData, AddHeader, Catch, Allow, Continue])
+  @LifecycleComponents([SomeLogger, AddData, AddHeader, Catch, Allow])
   @Get('type-reference')
   String typeReference() {
     return 'loz';
