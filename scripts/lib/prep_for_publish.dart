@@ -181,7 +181,11 @@ Future<void> createRelease(Package package, ChangeLogEntry changelog) async {
   if (process.exitCode == 0) {
     logger.info('Created release for ${package.name}');
   } else {
-    if (!process.stderr.toString().contains('already exists')) {
+    if (process.stderr.toString().contains('already exists')) {
+      logger.info(
+        'Release already exists for ${package.name} (${changelog.version})',
+      );
+    } else {
       createFailedRelease([package], process);
       logger.err('Failed to create release for ${package.name}');
     }
