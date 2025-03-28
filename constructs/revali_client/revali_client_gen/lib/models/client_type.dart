@@ -55,8 +55,7 @@ class ClientType with ExtractImport {
         _isVoid = isVoid;
 
   factory ClientType.fromMeta(MetaType type) {
-    var import =
-        ClientImports([if (type.importPath case final String path) path]);
+    var import = ClientImports.fromElement(type.element);
 
     final (resolvedName, isStringContent) =
         switch (type.element?.name ?? type.name) {
@@ -262,10 +261,20 @@ class ClientType with ExtractImport {
   }
 
   @override
-  List<ExtractImport?> get extractors => [];
+  List<ExtractImport?> get extractors => [...typeArguments];
 
   @override
-  List<ClientImports?> get imports => [import];
+  List<ClientImports?> get imports {
+    Iterable<ClientImports?> iterate(ClientType type) sync* {
+      yield type.import;
+
+      for (final type in type.typeArguments) {
+        yield* iterate(type);
+      }
+    }
+
+    return iterate(this).toList();
+  }
 
   String get nonNullName => name.replaceAll(RegExp(r'\?$'), '');
 }
