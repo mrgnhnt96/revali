@@ -16,7 +16,7 @@ base class MutableBodyImpl extends MutableBody {
   dynamic get data => _data?.data;
 
   @override
-  bool get isNull => _data == null;
+  bool get isNull => _data is NullBodyData || _data == null;
 
   @override
   void operator []=(String key, Object? data) {
