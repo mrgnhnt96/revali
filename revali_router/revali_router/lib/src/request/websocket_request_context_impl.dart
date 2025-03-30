@@ -15,10 +15,10 @@ class MutableWebSocketRequestImpl extends MutableRequestImpl
 
   var _hasOverridden = false;
   MutableBody? _overrideBody;
-  final ReadOnlyBody _originalBody;
+  final MutableBody _originalBody;
 
   @override
-  ReadOnlyBody get body {
+  MutableBody get body {
     if (_overrideBody case final body? when _hasOverridden) {
       return body;
     }

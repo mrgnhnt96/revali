@@ -142,7 +142,7 @@ class PayloadImpl implements Payload {
   }
 
   @override
-  Future<BodyData> resolve(ReadOnlyHeaders headers) async {
+  Future<MutableBody> resolve(ReadOnlyHeaders headers) async {
     final encoding = headers.encoding;
 
     try {
