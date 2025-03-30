@@ -20,4 +20,11 @@ class CleanUpImpl implements CleanUp {
   void remove(void Function() fn) {
     _fns.remove(fn);
   }
+
+  @override
+  void merge(CleanUp other) {
+    if (other is CleanUpImpl) {
+      _fns.addAll(other._fns);
+    }
+  }
 }
