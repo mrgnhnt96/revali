@@ -5,7 +5,7 @@ import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_server/converters/server_record_prop.dart';
 import 'package:revali_server/converters/server_type.dart';
 import 'package:revali_server/makers/creators/should_nest_json_in_data.dart';
-import 'package:revali_server/makers/utils/switch_statement.dart';
+import 'package:revali_server/makers/utils/create_switch_pattern.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
 import 'package:revali_server/utils/safe_property.dart';
 
@@ -50,19 +50,21 @@ Expression? convertToJson(
       return null;
     }
 
-    return switchPatternStatement(
-      result,
-      cases: [
-        (
-          literalNull.code,
-          switch (type) {
-            ServerType(isStringContent: true) => literal('').code,
-            _ => literalNull.code,
-          }
-        ),
-        (const Code('_'), toJson.code),
-      ],
-    );
+    if (type case ServerType(isStringContent: true, isNullable: true)) {
+      return createSwitchPattern(result, {
+        literalNull: literal(''),
+        const Code('_'): toJson,
+      });
+    }
+
+    if (type case ServerType(isRecord: true, isNullable: true)) {
+      return createSwitchPattern(result, {
+        literalNull: literalNull,
+        const Code('_'): toJson,
+      });
+    }
+
+    return toJson;
   }
 
   if (type.isFuture) {
