@@ -16,6 +16,7 @@ mixin ContextMixin on HelperMixin {
         response: response,
         data: dataHandler,
         close: close,
+        asyncSender: asyncSender,
       );
 
   ExceptionCatcherContext get exceptionCatcher => ExceptionCatcherContextImpl(

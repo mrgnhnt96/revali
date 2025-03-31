@@ -80,6 +80,7 @@ export 'return_types/string_content.dart';
 export 'route/lifecycle_components.dart';
 export 'route/route_entry.dart';
 export 'utils/types.dart';
+export 'web_socket/async_web_socket_sender.dart';
 export 'web_socket/close_web_socket.dart';
 export 'web_socket/mutable_web_socket_request.dart';
 export 'web_socket/web_socket_context.dart';

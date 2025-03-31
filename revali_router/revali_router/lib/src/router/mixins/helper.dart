@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_setters_without_getters
+
 part of '../router.dart';
 
 class Helper with HelperMixin, ContextMixin {
@@ -60,13 +62,23 @@ class Helper with HelperMixin, ContextMixin {
   @override
   RunMixin get run => Run(this);
 
+  MutableWebSocketRequest? _webSocketRequest;
   @override
-  // ignore: avoid_setters_without_getters
   set webSocketRequest(MutableWebSocketRequest request) {
     _webSocketRequest = request;
   }
 
-  MutableWebSocketRequest? _webSocketRequest;
+  void Function(dynamic data)? _webSocketSender;
+  @override
+  set webSocketSender(void Function(dynamic data) sender) {
+    _webSocketSender = sender;
+  }
+
+  @override
+  AsyncWebSocketSender<dynamic> get asyncSender =>
+      AsyncWebSocketSenderImpl<dynamic>((data) {
+        _webSocketSender?.call(data);
+      });
 
   @override
   CloseWebSocket get close => CloseWebSocketImpl((code, reason) async {

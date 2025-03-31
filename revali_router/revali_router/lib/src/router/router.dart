@@ -36,6 +36,7 @@ import 'package:revali_router/src/route/base_route.dart';
 import 'package:revali_router/src/route/lifecycle_components_impl.dart';
 import 'package:revali_router/src/route/route_match.dart';
 import 'package:revali_router/src/route/web_socket_route.dart';
+import 'package:revali_router/src/web_socket/async_web_socket_sender_impl.dart';
 import 'package:revali_router/src/web_socket/web_socket_close_impl.dart';
 import 'package:revali_router/src/web_socket/web_socket_context_impl.dart';
 import 'package:revali_router/src/web_socket/web_socket_handler.dart';

@@ -10,8 +10,12 @@ class WebSocketContextImpl extends EndpointContextImpl
     required super.request,
     required super.response,
     required this.close,
+    required this.asyncSender,
   });
 
   @override
   final CloseWebSocket close;
+
+  @override
+  final AsyncWebSocketSender<dynamic> asyncSender;
 }

@@ -76,7 +76,16 @@ Expression createParamArg(
     return expression;
   }
 
+  if (impliedArguments[param.type.name.split('<').first]
+      case final expression?) {
+    return expression;
+  }
+
   if (customParams[param.type.name] case final expression?) {
+    return expression;
+  }
+
+  if (customParams[param.type.name.split('<').first] case final expression?) {
     return expression;
   }
 

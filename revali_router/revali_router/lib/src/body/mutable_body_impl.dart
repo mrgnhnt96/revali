@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:revali_router/src/body/response_body/base_body_data.dart';
 import 'package:revali_router/src/headers/mutable_headers_impl.dart';
 import 'package:revali_router_core/revali_router_core.dart';
@@ -83,7 +85,13 @@ base class MutableBodyImpl extends MutableBody {
   Future<void> replace(Object? data) async {
     _data = switch (data) {
       BodyData() => data,
-      _ => BaseBodyData<dynamic>.from(data),
+      _ => () {
+          try {
+            return BaseBodyData<dynamic>.from(data);
+          } catch (_) {
+            return BaseBodyData<dynamic>.from(jsonDecode(jsonEncode(data)));
+          }
+        }()
     };
   }
 

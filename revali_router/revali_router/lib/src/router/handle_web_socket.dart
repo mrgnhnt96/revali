@@ -156,6 +156,7 @@ class HandleWebSocket {
     final HelperMixin(
       :debugErrorResponse,
       :request,
+      :response,
     ) = helper;
 
     try {
@@ -168,7 +169,13 @@ class HandleWebSocket {
           await close(code, reason);
         },
       );
-      helper.webSocketRequest = wsRequest;
+      helper
+        ..webSocketRequest = wsRequest
+        ..webSocketSender = (data) async {
+          response.body = data;
+
+          await sendResponse();
+        };
 
       return null;
     } catch (e, stackTrace) {
@@ -184,8 +191,8 @@ class HandleWebSocket {
     if (!mode.canSend) {
       return;
     }
-    if (sending != null) {
-      return;
+    if (sending case final sending?) {
+      await sending.future;
     }
 
     final HelperMixin(

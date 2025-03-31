@@ -154,4 +154,16 @@ class ServerType with ExtractImport {
   List<ServerImports?> get imports => [importPath];
 
   String get nonNullName => name.replaceAll(RegExp(r'\?$'), '');
+
+  ServerType get nonAsyncType {
+    ServerType extract(ServerType type) {
+      if (type case ServerType(isFuture: true)) {
+        return extract(type.typeArguments.first);
+      }
+
+      return type;
+    }
+
+    return extract(this);
+  }
 }

@@ -20,6 +20,9 @@ mixin HelperMixin {
   DefaultResponses get defaultResponses;
   bool get debugResponses;
 
+  AsyncWebSocketSender<dynamic> get asyncSender;
+  set webSocketSender(void Function(dynamic data) sender);
+
   set webSocketRequest(MutableWebSocketRequest request);
 
   ContextMixin get context;

@@ -6,6 +6,7 @@ import 'package:revali_router/revali_router.dart' show WebSocketHandler;
 import 'package:revali_router_core/revali_router_core.dart';
 import 'package:revali_server/converters/server_route.dart';
 import 'package:revali_server/converters/server_type.dart';
+import 'package:revali_server/makers/creators/convert_to_json.dart';
 import 'package:revali_server/makers/creators/create_handler.dart';
 import 'package:revali_server/makers/utils/binary_expression_extensions.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
@@ -26,6 +27,23 @@ Expression createWebSocketHandler(
     ],
     inferredParams: {
       (CloseWebSocket).name: refer('context').property('close'),
+      (AsyncWebSocketSender).name: refer('${(AsyncWebSocketSender).name}Impl'
+              '<${returnType.nonAsyncType.name}>')
+          .newInstance([
+        Method(
+          (b) => b
+            ..lambda = true
+            ..requiredParameters.add(Parameter((b) => b..name = 'data'))
+            ..body = Block.of([
+              refer('context').property('asyncSender').property('send').call(
+                [
+                  convertToJson(returnType.nonAsyncType, refer('data')) ??
+                      refer('data'),
+                ],
+              ).code,
+            ]),
+        ).closure,
+      ]),
     },
   );
 
