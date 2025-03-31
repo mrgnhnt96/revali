@@ -27,7 +27,7 @@ class ExceptionCatcherController {
   @Catch()
   @Get('list')
   void handleList() {
-    throw const ServerException([1, 2, 3]);
+    throw const ServerException(['a', 'b', 'c']);
   }
 
   @Catch()

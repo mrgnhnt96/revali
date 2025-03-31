@@ -105,12 +105,12 @@ package:revali_router/src/server/handle_requests.dart 28:29  handleRequests.<fn>
       expect(response.statusCode, 423);
       expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
       expect(response.body, [
-        1,
-        2,
-        3,
+        'a',
+        'b',
+        'c',
         {
           '__DEBUG__': {
-            'error': '[1, 2, 3]',
+            'error': '[a, b, c]',
             'stackTrace': [
               'routes/controllers/exception_catcher_controller.dart 30:5    ExceptionCatcherController.handleList',
               '.revali/server/routes/__exception_catcher_route.dart 38:38   exceptionCatcherRoute.<fn>',
