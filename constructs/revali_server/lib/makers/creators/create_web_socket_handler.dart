@@ -8,7 +8,7 @@ import 'package:revali_server/converters/server_route.dart';
 import 'package:revali_server/converters/server_type.dart';
 import 'package:revali_server/makers/creators/convert_to_json.dart';
 import 'package:revali_server/makers/creators/create_handler.dart';
-import 'package:revali_server/makers/utils/binary_expression_extensions.dart';
+import 'package:revali_server/makers/creators/should_nest_json_in_data.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
 
 Expression createWebSocketHandler(
@@ -22,28 +22,10 @@ Expression createWebSocketHandler(
     returnType: returnType,
     classVarName: classVarName,
     webSocket: null,
-    postBodyCode: [
-      literalNull.yielded.statement,
-    ],
+    yieldData: true,
     inferredParams: {
       (CloseWebSocket).name: refer('context').property('close'),
-      (AsyncWebSocketSender).name: refer('${(AsyncWebSocketSender).name}Impl'
-              '<${returnType.nonAsyncType.name}>')
-          .newInstance([
-        Method(
-          (b) => b
-            ..lambda = true
-            ..requiredParameters.add(Parameter((b) => b..name = 'data'))
-            ..body = Block.of([
-              refer('context').property('asyncSender').property('send').call(
-                [
-                  convertToJson(returnType.nonAsyncType, refer('data')) ??
-                      refer('data'),
-                ],
-              ).code,
-            ]),
-        ).closure,
-      ]),
+      (AsyncWebSocketSender).name: _createAsyncWebSocketSender(returnType),
     },
   );
 
@@ -65,4 +47,28 @@ Expression createWebSocketHandler(
             .statement,
       ]),
   ).closure;
+}
+
+Expression _createAsyncWebSocketSender(ServerType returnType) {
+  final data =
+      convertToJson(returnType.nonAsyncType, refer('data')) ?? refer('data');
+  return refer('${(AsyncWebSocketSender).name}Impl'
+          '<${returnType.nonAsyncType.name}>')
+      .newInstance([
+    Method(
+      (b) => b
+        ..lambda = true
+        ..requiredParameters.add(Parameter((b) => b..name = 'data'))
+        ..body = Block.of([
+          refer('context').property('asyncSender').property('send').call(
+            [
+              if (shouldNestJsonInData(returnType) && !returnType.isStream)
+                literalMap({'data': data})
+              else
+                data,
+            ],
+          ).code,
+        ]),
+    ).closure,
+  ]);
 }

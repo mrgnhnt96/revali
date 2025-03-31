@@ -165,16 +165,16 @@ class HandleWebSocket {
       _wsRequest = MutableWebSocketRequestImpl.fromRequest(
         request,
         (code, reason) async {
-          await sendResponse();
           await close(code, reason);
         },
       );
       helper
         ..webSocketRequest = wsRequest
         ..webSocketSender = (data) async {
-          response.body = data;
+          final body = MutableBodyImpl();
+          await body.replace(data);
 
-          await sendResponse();
+          await sendResponse(body);
         };
 
       return null;
@@ -187,10 +187,11 @@ class HandleWebSocket {
     }
   }
 
-  Future<void> sendResponse() async {
+  Future<void> sendResponse(BodyData bodyData) async {
     if (!mode.canSend) {
       return;
     }
+
     if (sending case final sending?) {
       await sending.future;
     }
@@ -206,6 +207,13 @@ class HandleWebSocket {
     void complete() {
       sending?.complete();
       sending = null;
+    }
+
+    // Not using `equatable`, so this check is if the body is the
+    // same object in memory. Without this check a `StackOverflow`
+    // could occur
+    if (response.body != bodyData) {
+      response.body = bodyData;
     }
 
     await interceptors.post();
@@ -258,8 +266,11 @@ class HandleWebSocket {
     try {
       await interceptors.pre();
 
-      await for (final _ in stream(webSocket)) {
-        await sendResponse();
+      await for (final data in stream(webSocket)) {
+        final body = MutableBodyImpl();
+        await body.replace(data);
+
+        await sendResponse(body);
       }
 
       return null;

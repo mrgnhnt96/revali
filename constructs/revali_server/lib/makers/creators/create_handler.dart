@@ -8,6 +8,7 @@ import 'package:revali_server/converters/server_type.dart';
 import 'package:revali_server/makers/creators/convert_to_json.dart';
 import 'package:revali_server/makers/creators/create_web_socket_handler.dart';
 import 'package:revali_server/makers/creators/should_nest_json_in_data.dart';
+import 'package:revali_server/makers/utils/binary_expression_extensions.dart';
 import 'package:revali_server/makers/utils/get_params.dart';
 
 Expression createHandler({
@@ -15,8 +16,8 @@ Expression createHandler({
   required ServerType returnType,
   required String classVarName,
   required MetaWebSocketMethod? webSocket,
+  bool yieldData = false,
   List<Code> additionalHandlerCode = const [],
-  List<Code> postBodyCode = const [],
   Map<String, Expression> inferredParams = const {},
 }) {
   if (webSocket != null) {
@@ -41,18 +42,18 @@ Expression createHandler({
     handler = handler.awaited;
   }
 
-  Expression? setBody;
+  final responseBody = refer('context').property('response').property('body');
+
+  Expression? data;
   if (returnType case ServerType(isVoid: false)) {
     handler = declareFinal('result').assign(handler);
-
-    setBody = refer('context').property('response').property('body');
 
     final json = convertToJson(returnType, refer('result')) ?? refer('result');
 
     if (shouldNestJsonInData(returnType) && !returnType.isStream) {
-      setBody = setBody.index(literalString('data')).assign(json);
+      data = literalMap({'data': json});
     } else {
-      setBody = setBody.assign(json);
+      data = json;
     }
   }
 
@@ -75,13 +76,15 @@ Expression createHandler({
         ...additionalHandlerCode,
         const Code('\n'),
         handler.statement,
-        if (setBody != null) ...[
+        if (data != null) ...[
           const Code('\n'),
-          setBody.statement,
-        ],
-        if (postBodyCode.isNotEmpty) ...[
-          const Code('\n'),
-          ...postBodyCode,
+          if (yieldData)
+            switch (returnType.isStream) {
+              true => data.yieldedStar.statement,
+              false => data.yielded.statement,
+            }
+          else
+            responseBody.assign(data).statement,
         ],
       ]),
   ).closure;
