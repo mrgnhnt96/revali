@@ -115,8 +115,18 @@ class RequestContextImpl with EquatableMixin implements RequestContext {
   @override
   Future<void> close() async {
     await originalPayload.close();
+    for (final cleanUp in _cleanUps) {
+      cleanUp();
+    }
   }
 
   @override
   List<Object?> get props => _$props;
+
+  final _cleanUps = <void Function()>[];
+
+  @override
+  void addCleanUp(void Function() cleanUp) {
+    _cleanUps.add(cleanUp);
+  }
 }

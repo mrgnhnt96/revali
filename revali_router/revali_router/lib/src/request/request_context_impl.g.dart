@@ -11,6 +11,7 @@ extension _$RequestContextImplAutoequal on RequestContextImpl {
         _headers,
         _payload,
         payloadResolver,
+        _cleanUps,
         segments,
         method,
         headers,

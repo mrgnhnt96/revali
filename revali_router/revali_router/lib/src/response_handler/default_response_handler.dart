@@ -22,10 +22,7 @@ class DefaultResponseHandler
     Future<void> complete() async {
       await http.flush();
       await http.close();
-
-      if (response.body case BodyData(:final cleanUp)) {
-        cleanUp?.call();
-      }
+      await context.close();
     }
 
     final responseHeaders = switch (response) {

@@ -34,6 +34,4 @@ abstract base class BodyData extends ReadOnlyBody {
   /// - `Content-Length`
   /// - `Content-Encoding`
   ReadOnlyHeaders headers(ReadOnlyHeaders? requestHeaders);
-
-  void Function()? cleanUp;
 }

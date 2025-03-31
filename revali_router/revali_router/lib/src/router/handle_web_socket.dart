@@ -171,10 +171,15 @@ class HandleWebSocket {
       helper
         ..webSocketRequest = wsRequest
         ..webSocketSender = (data) async {
+          if (_closed case Object()) {
+            return;
+          }
           final body = MutableBodyImpl();
           await body.replace(data);
 
-          await sendResponse(body);
+          if (await sendResponse(body) case (final code, final reason)) {
+            await close(code, reason);
+          }
         };
 
       return null;
@@ -187,9 +192,9 @@ class HandleWebSocket {
     }
   }
 
-  Future<void> sendResponse(BodyData bodyData) async {
+  Future<(int, String)?> sendResponse(BodyData bodyData) async {
     if (!mode.canSend) {
-      return;
+      return (1000, 'Normal closure');
     }
 
     if (sending case final sending?) {
@@ -221,14 +226,20 @@ class HandleWebSocket {
     final stream = response.body.read();
     if (stream == null) {
       complete();
-      return;
+      return null;
     }
 
     await for (final chunk in stream) {
+      if (webSocket case WebSocket(:final int closeCode, :final closeReason)) {
+        complete();
+        return (closeCode, closeReason ?? '');
+      }
       webSocket.add(chunk);
     }
 
     complete();
+
+    return null;
   }
 
   Future<void> close(int code, String reason) async {
@@ -264,7 +275,10 @@ class HandleWebSocket {
         final body = MutableBodyImpl();
         await body.replace(data);
 
-        await sendResponse(body);
+        if (await sendResponse(body) case (final code, final reason)) {
+          await close(code, reason);
+          break;
+        }
       }
 
       return null;

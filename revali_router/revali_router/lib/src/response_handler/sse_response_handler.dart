@@ -37,15 +37,9 @@ class SseResponseHandler with RemoveHeadersMixin implements ResponseHandler {
       http.headers.set(key, values.join(','));
     });
 
-    final (streamBody, close) = switch (response.body) {
-      final body? when !body.isNull => (
-          body.read(),
-          switch (body) {
-            BodyData() => body.cleanUp,
-            _ => null,
-          }
-        ),
-      _ => (null, null),
+    final streamBody = switch (response) {
+      ReadOnlyResponse(:final body?) when !body.isNull => body.read(),
+      _ => null,
     };
 
     if (streamBody == null) {
@@ -62,11 +56,11 @@ class SseResponseHandler with RemoveHeadersMixin implements ResponseHandler {
       cancelOnError: true,
       onDone: () {
         socketListener?.cancel().ignore();
-        close?.call();
+        context.close();
       },
       onError: (e) {
         socketListener?.cancel().ignore();
-        close?.call();
+        context.close();
       },
     );
 

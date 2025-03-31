@@ -21,4 +21,6 @@ abstract interface class RequestContext {
 
   /// Cleans up any resources used by the request
   Future<void> close();
+
+  void addCleanUp(void Function() cleanUp);
 }
