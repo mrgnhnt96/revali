@@ -159,7 +159,7 @@ void main() {
     test('bytes', () async {
       final response = await client.stream.bytes().toList();
 
-      expect(response, [null, null]);
+      expect(response, []);
       verifyGetRequest('/api/stream/bytes');
     });
   });

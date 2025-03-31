@@ -53,7 +53,13 @@ Expression? convertToJson(
     return switchPatternStatement(
       result,
       cases: [
-        (literalNull.code, literalNull.code),
+        (
+          literalNull.code,
+          switch (type) {
+            ServerType(isStringContent: true) => literal('').code,
+            _ => literalNull.code,
+          }
+        ),
         (const Code('_'), toJson.code),
       ],
     );

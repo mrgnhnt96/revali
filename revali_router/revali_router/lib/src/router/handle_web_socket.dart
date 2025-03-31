@@ -218,13 +218,7 @@ class HandleWebSocket {
 
     await interceptors.post();
 
-    final body = response.body;
-    if (body.isNull) {
-      complete();
-      return;
-    }
-
-    final stream = body.read();
+    final stream = response.body.read();
     if (stream == null) {
       complete();
       return;
