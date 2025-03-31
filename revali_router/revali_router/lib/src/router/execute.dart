@@ -5,8 +5,6 @@ class Execute {
 
   final HelperMixin helper;
 
-  Future<ReadOnlyResponse> call() => run();
-
   Future<ReadOnlyResponse> run() async {
     final HelperMixin(
       :route,

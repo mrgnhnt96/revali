@@ -178,20 +178,15 @@ class Router extends Equatable {
       return response;
     }
 
+    final cleanUp = helper.dataHandler.get<CleanUp>();
+    if (cleanUp is CleanUpImpl) {
+      context.addCleanUp(cleanUp.clean);
+    }
+
     // ignore: argument_type_not_assignable_to_error_handler
     final response = await _handle(helper).catchError(helper.run.catchers.call);
 
     responseCompleter.complete(response);
-
-    if (response.body case final BodyData body) {
-      body.cleanUp = switch (helper.dataHandler.get<CleanUp>()) {
-        final CleanUpImpl cleanUp => () {
-            context.close();
-            cleanUp.clean();
-          },
-        _ => () {},
-      };
-    }
 
     return response;
   }
@@ -220,7 +215,7 @@ class Router extends Equatable {
     }
 
     // ignore: argument_type_not_assignable_to_error_handler
-    return execute().catchError(catchers.call);
+    return execute.run().catchError(catchers.call);
   }
 
   HelperMixin _createHelper(BaseRoute route, MutableRequestImpl request) {
