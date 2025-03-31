@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:file/file.dart';
 import 'package:file/local.dart';
@@ -37,6 +38,8 @@ sealed class BaseBodyData<T> extends BodyData {
       io.File() => FileBodyData(data),
       MemoryFile() => MemoryFileBodyData(data),
       Binary() => BinaryBodyData(data),
+      Uint8List() => BinaryBodyData([data]),
+      List<int>() => BinaryBodyData([data]),
       List() => ListBodyData(data),
       Iterable() => ListBodyData([...data]),
       // ignore: prefer_void_to_null

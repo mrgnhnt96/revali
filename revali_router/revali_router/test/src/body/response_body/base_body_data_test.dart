@@ -61,10 +61,26 @@ void main() {
       expect(data.data, binary);
     });
 
-    test('should create ListBodyData from List', () {
+    test('should create BinaryBodyData from List<int>', () {
       final data = BaseBodyData.from([1, 2, 3]);
+      expect(data, isA<BinaryBodyData>());
+      expect(data.data, [
+        [1, 2, 3],
+      ]);
+    });
+
+    test('should create BinaryBodyData from Uint8List', () {
+      final data = BaseBodyData.from(Uint8List.fromList([1, 2, 3]));
+      expect(data, isA<BinaryBodyData>());
+      expect(data.data, [
+        [1, 2, 3],
+      ]);
+    });
+
+    test('should create ListBodyData from Iterable', () {
+      final data = BaseBodyData.from(['a', 'b', 'c']);
       expect(data, isA<ListBodyData>());
-      expect(data.data, [1, 2, 3]);
+      expect(data.data, ['a', 'b', 'c']);
     });
 
     test('should create ByteStreamBodyData from Stream<List<int>>', () {
@@ -127,8 +143,13 @@ void main() {
         expect(data.isJson, isTrue);
       });
 
-      test('isList should be true for ListBodyData', () {
+      test('isBinary should be true for BinaryBodyData', () {
         final data = BaseBodyData.from([1, 2, 3]);
+        expect(data.isBinary, isTrue);
+      });
+
+      test('isList should be true for ListBodyData', () {
+        final data = BaseBodyData.from(['a', 'b', 'c']);
         expect(data.isList, isTrue);
       });
 
@@ -187,8 +208,13 @@ void main() {
         expect(data.asJson, isA<JsonBodyData>());
       });
 
-      test('asList should cast to ListBodyData', () {
+      test('asBinary should cast to BinaryBodyData', () {
         final data = BaseBodyData.from([1, 2, 3]);
+        expect(data.asBinary, isA<BinaryBodyData>());
+      });
+
+      test('asList should cast to ListBodyData', () {
+        final data = BaseBodyData.from(['a', 'b', 'c']);
         expect(data.asList, isA<ListBodyData>());
       });
 
