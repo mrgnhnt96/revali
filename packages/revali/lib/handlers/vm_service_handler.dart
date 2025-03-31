@@ -572,9 +572,14 @@ class VMServiceHandler {
 extension _MethodX on MetaMethod {
   /// Wraps the method with an associated color
   String? get wrappedMethod {
-    final padded = method.padRight(6);
+    final padded = switch (this) {
+      MetaMethod(:final method, isSse: true) => '$method (SSE)',
+      MetaMethod(:final method) => method,
+    }
+        .padRight(10);
+
     switch (method) {
-      case 'GET':
+      case 'GET' when isSse:
         return yellow.wrap(padded);
       case 'POST':
         return green.wrap(padded);
