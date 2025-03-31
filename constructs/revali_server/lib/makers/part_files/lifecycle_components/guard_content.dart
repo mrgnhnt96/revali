@@ -8,10 +8,10 @@ import 'package:revali_server/makers/creators/create_fields.dart';
 import 'package:revali_server/makers/creators/create_generics.dart';
 import 'package:revali_server/makers/creators/create_get_from_di.dart';
 import 'package:revali_server/makers/part_files/lifecycle_components/utils/create_component_methods.dart';
+import 'package:revali_server/makers/utils/create_switch_pattern.dart';
 import 'package:revali_server/makers/utils/for_in_loop.dart';
 import 'package:revali_server/makers/utils/get_params.dart';
 import 'package:revali_server/makers/utils/if_statement.dart';
-import 'package:revali_server/makers/utils/switch_statement.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
 
 String guardContent(
@@ -103,27 +103,18 @@ String guardContent(
                   body: Block.of([
                     declareFinal('result')
                         .assign(
-                          switchPatternStatement(
-                            refer('guard').call([]),
-                            cases: [
-                              (
-                                declareFinal(
-                                  'future',
-                                  type: refer('Future<${(GuardResult).name}>'),
-                                ).code,
-                                refer('future').code,
-                              ),
-                              (
-                                declareFinal(
-                                  'result',
-                                  type: refer((GuardResult).name),
-                                ).code,
-                                refer('Future')
-                                    .property('value')
-                                    .call([refer('result')]).code,
-                              ),
-                            ],
-                          ).awaited,
+                          createSwitchPattern(refer('guard').call([]), {
+                            declareFinal(
+                              'future',
+                              type: refer('Future<${(GuardResult).name}>'),
+                            ): refer('future'),
+                            declareFinal(
+                              'result',
+                              type: refer((GuardResult).name),
+                            ): refer('Future')
+                                .property('value')
+                                .call([refer('result')]),
+                          }).awaited,
                         )
                         .statement,
                     const Code('\n'),
