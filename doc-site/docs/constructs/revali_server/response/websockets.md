@@ -29,10 +29,34 @@ class MyController {
 If you're running the server locally, you can connect to the WebSocket via `ws://localhost:8080/example/websocket`.
 :::
 
-Every time a message is sent to the WebSocket, the handler (`echoMessage`) will be called. If you're expecting a message sent from the client, you can bind the message using the `@Body` annotation. The headers sent by the client to connect to the WebSocket will remain the same throughout the connection.
+Every time a message is sent to the WebSocket, the handler (`echoMessage`) will be called. If you're expecting data from the client, you can bind the message using the `@Body` annotation. The headers sent by the client to connect to the WebSocket will remain the same throughout the connection.
 
 :::tip
 Learn more about [binding] parameters.
+:::
+
+If you need to send data to the client _without_ waiting for a message from the client, you can use the `AsyncWebSocketSender` parameter.
+
+```dart
+@WebSocket('websocket')
+String sendMessage(AsyncWebSocketSender<String> sender) {
+    someAsyncOperation().then((value) {
+        sender.send(value);
+    });
+
+    ...
+}
+```
+
+:::important
+The `AsyncWebSocketSender` **must** contain the same type parameter as the return type of the handler. However, you must drop the `Future` type (if applicable).
+
+```dart
+Future<String> => AsyncWebSocketSender<String>
+Stream<String> => AsyncWebSocketSender<<Stream<String>>>
+String => AsyncWebSocketSender<String>
+```
+
 :::
 
 ### Two-Way Communication
