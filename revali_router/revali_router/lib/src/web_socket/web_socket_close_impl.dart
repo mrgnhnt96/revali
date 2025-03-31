@@ -6,6 +6,11 @@ class CloseWebSocketImpl implements CloseWebSocket {
   final Future<void> Function(int code, String reason) _close;
 
   @override
+  void call([int code = 1000, String reason = 'Closed by the server']) {
+    close(code, reason);
+  }
+
+  @override
   Future<void> close([
     int code = 1000,
     String reason = 'Closed by the server',
