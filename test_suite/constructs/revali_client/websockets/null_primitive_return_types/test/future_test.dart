@@ -51,7 +51,7 @@ void main() {
     test('string', () async {
       final response = await client.future.string().toList();
 
-      expect(response, []);
+      expect(response, [null]);
       verifyGetRequest('/api/future/string');
     });
 

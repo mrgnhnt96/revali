@@ -36,7 +36,7 @@ void main() {
       );
 
       expect(response.headers.contentType?.mimeType, ContentType.text.mimeType);
-      expect(response.body, null);
+      expect(response.body, '');
     });
 
     test('bool', () async {
