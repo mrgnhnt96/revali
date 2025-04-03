@@ -61,7 +61,7 @@ class Find {
         BaseRoute? proxy;
         if (!route.canInvoke) {
           final segmentsToSkip = switch (route) {
-            BaseRoute(path: '') => possibleSameSegments.length - 1,
+            BaseRoute(path: '') => max(possibleSameSegments.length - 1, 0),
             _ => possibleSameSegments.length,
           };
           final poss = find(
