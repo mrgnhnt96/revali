@@ -49,33 +49,51 @@ class SseResponseHandler with RemoveHeadersMixin implements ResponseHandler {
     }
 
     final socket = await http.detachSocket();
+    var isDone = false;
 
     StreamSubscription<Uint8List>? socketListener;
     socketListener = socket.listen(
       (_) {},
       cancelOnError: true,
       onDone: () {
+        isDone = true;
         socketListener?.cancel().ignore();
         context.close();
       },
       onError: (e) {
+        isDone = true;
         socketListener?.cancel().ignore();
         context.close();
       },
     );
 
-    try {
-      await for (final event in streamBody) {
-        socket
-          ..add(utf8.encode(event.length.toRadixString(16)))
-          ..add([13, 10]) // CRLF
-          ..add(event)
-          ..add([13, 10]); // CRLF
-
-        await socket.flush();
+    void add(List<int> data) {
+      if (isDone) {
+        return;
       }
 
-      socket.add([48, 13, 10, 13, 10]); // 0 CRLF CRLF
+      socket.add(data);
+    }
+
+    Future<void> flush() async {
+      if (isDone) {
+        return;
+      }
+
+      await socket.flush();
+    }
+
+    try {
+      await for (final event in streamBody) {
+        add(utf8.encode(event.length.toRadixString(16)));
+        add([13, 10]); // CRLF
+        add(event);
+        add([13, 10]); // CRLF
+
+        await flush();
+      }
+
+      add([48, 13, 10, 13, 10]); // 0 CRLF CRLF
     } catch (e) {
       // ignore
     }
