@@ -53,7 +53,8 @@ $typedefs
 ''',
     parts: [
       for (final controller in server.controllers)
-        controllerInterfaceFile(controller, formatter),
+        if (!controller.isExcluded)
+          controllerInterfaceFile(controller, formatter),
     ],
     segments: ['lib'],
   );

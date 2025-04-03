@@ -21,6 +21,7 @@ void main() {
         path: path,
         parentPath: parentPath ?? '',
         method: 'GET',
+        isExcluded: false,
       );
     }
 

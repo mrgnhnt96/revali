@@ -1,4 +1,5 @@
 import 'package:change_case/change_case.dart';
+import 'package:revali_client/revali_client.dart';
 import 'package:revali_client_gen/enums/parameter_position.dart';
 import 'package:revali_client_gen/makers/utils/client_param_extensions.dart';
 import 'package:revali_client_gen/makers/utils/extract_import.dart';
@@ -22,6 +23,7 @@ class ClientMethod with ExtractImport {
     required this.parentPath,
     required this.method,
     required this.lifecycleComponents,
+    required this.isExcluded,
   }) : _returnType = returnType;
 
   factory ClientMethod.fromMeta(
@@ -32,6 +34,7 @@ class ClientMethod with ExtractImport {
     final lifecycleComponents = <ClientLifecycleComponent>[
       ...parentComponents,
     ];
+    var isExcluded = false;
 
     route.annotationsFor(
       onMatch: [
@@ -43,6 +46,13 @@ class ClientMethod with ExtractImport {
                 ClientLifecycleComponent.fromDartObject(annotation);
 
             lifecycleComponents.add(component);
+          },
+        ),
+        OnMatch(
+          classType: ExcludeFromClient,
+          package: 'revali_client',
+          convert: (object, annotation) {
+            isExcluded = true;
           },
         ),
       ],
@@ -64,6 +74,7 @@ class ClientMethod with ExtractImport {
       isSse: route.isSse,
       path: route.path,
       lifecycleComponents: lifecycleComponents,
+      isExcluded: isExcluded,
     );
   }
 
@@ -77,6 +88,7 @@ class ClientMethod with ExtractImport {
   final WebsocketType websocketType;
   final bool isSse;
   final List<ClientLifecycleComponent> lifecycleComponents;
+  final bool isExcluded;
 
   ClientParam? get websocketBody {
     if (!websocketType.canSendAny) {

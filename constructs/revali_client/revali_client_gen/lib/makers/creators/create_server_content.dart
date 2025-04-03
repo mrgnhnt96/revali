@@ -128,19 +128,20 @@ Spec createServerContent(ClientServer client, Settings settings) {
       ])
       ..fields.addAll([
         for (final controller in client.controllers)
-          Field(
-            (b) => b
-              ..late = true
-              ..modifier = FieldModifier.final$
-              ..type = refer(controller.interfaceName)
-              ..name = controller.simpleName.toCamelCase()
-              ..assignment =
-                  refer(controller.implementationName).newInstance([], {
-                'client': refer('client'),
-                'storage': refer('storage'),
-                if (controller.hasWebsockets) 'websocket': refer('websocket'),
-              }).code,
-          ),
+          if (!controller.isExcluded)
+            Field(
+              (b) => b
+                ..late = true
+                ..modifier = FieldModifier.final$
+                ..type = refer(controller.interfaceName)
+                ..name = controller.simpleName.toCamelCase()
+                ..assignment =
+                    refer(controller.implementationName).newInstance([], {
+                  'client': refer('client'),
+                  'storage': refer('storage'),
+                  if (controller.hasWebsockets) 'websocket': refer('websocket'),
+                }).code,
+            ),
       ])
       ..methods.addAll([
         if (settings.integrateGetIt)

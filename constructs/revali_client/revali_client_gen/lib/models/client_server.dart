@@ -60,12 +60,15 @@ class ClientServer with ExtractImport {
   final ClientApp app;
 
   @override
-  List<ExtractImport?> get extractors => [...controllers];
+  List<ExtractImport?> get extractors => [
+        ...controllers.where((e) => !e.isExcluded),
+      ];
 
   @override
   List<ClientImports?> get imports => [];
 
-  bool get hasWebsockets => controllers.any((e) => e.hasWebsockets);
+  bool get hasWebsockets =>
+      controllers.any((e) => e.hasWebsockets && !e.isExcluded);
 
   String allImports({
     Iterable<String> additionalPackages = const [],

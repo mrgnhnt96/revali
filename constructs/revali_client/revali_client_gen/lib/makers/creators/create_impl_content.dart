@@ -68,6 +68,9 @@ Spec createImplContent(ClientController controller) {
               ..type = refer('WebSocketConnect'),
           ),
       ])
-      ..methods.addAll(controller.methods.map(createImplMethod)),
+      ..methods.addAll([
+        for (final method in controller.methods)
+          if (!method.isExcluded) createImplMethod(method),
+      ]),
   );
 }

@@ -26,7 +26,7 @@ DartFile serverClientFile(
     basename: settings.packageName,
     parts: [
       for (final controller in server.controllers)
-        controllerImplFile(controller, formatter),
+        if (!controller.isExcluded) controllerImplFile(controller, formatter),
       serverFile(server, formatter, settings),
     ],
     content: '''

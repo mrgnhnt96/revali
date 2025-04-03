@@ -1,4 +1,5 @@
 import 'package:change_case/change_case.dart';
+import 'package:revali_client/revali_client.dart';
 import 'package:revali_client_gen/makers/utils/extract_import.dart';
 import 'package:revali_client_gen/models/client_imports.dart';
 import 'package:revali_client_gen/models/client_lifecycle_component.dart';
@@ -11,6 +12,7 @@ class ClientController with ExtractImport {
   ClientController({
     required this.name,
     required this.methods,
+    required this.isExcluded,
   });
 
   factory ClientController.fromMeta(
@@ -20,6 +22,7 @@ class ClientController with ExtractImport {
     final lifecycleComponents = <ClientLifecycleComponent>[
       ...parentComponents,
     ];
+    var isExcluded = false;
 
     route.annotationsFor(
       onMatch: [
@@ -33,11 +36,19 @@ class ClientController with ExtractImport {
             lifecycleComponents.add(component);
           },
         ),
+        OnMatch(
+          classType: ExcludeFromClient,
+          package: 'revali_client',
+          convert: (object, annotation) {
+            isExcluded = true;
+          },
+        ),
       ],
     );
 
     return ClientController(
       name: route.className,
+      isExcluded: isExcluded,
       methods: route.methods
           .map((e) => ClientMethod.fromMeta(e, route.path, lifecycleComponents))
           .toList(),
@@ -45,6 +56,7 @@ class ClientController with ExtractImport {
   }
 
   final String name;
+  final bool isExcluded;
 
   String get simpleName => name.replaceAll('Controller', '');
   String get interfaceName => '${simpleName}DataSource'.toPascalCase();
@@ -53,11 +65,18 @@ class ClientController with ExtractImport {
   final List<ClientMethod> methods;
 
   @override
-  List<ExtractImport?> get extractors => [...methods];
+  List<ExtractImport?> get extractors => [
+        ...methods.where((e) => !e.isExcluded),
+      ];
 
   @override
   List<ClientImports?> get imports => [];
 
-  bool get hasWebsockets =>
-      methods.any((e) => e.websocketType != WebsocketType.none);
+  bool get hasWebsockets => methods.any((e) {
+        if (e.isExcluded) {
+          return false;
+        }
+
+        return e.websocketType != WebsocketType.none;
+      });
 }

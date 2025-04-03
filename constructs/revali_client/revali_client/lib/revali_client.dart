@@ -4,6 +4,7 @@
 //
 // ignore_for_file: directives_ordering
 
+export 'src/annotations/exclude_from_client.dart';
 export 'src/http_client.dart';
 export 'src/http_request.dart';
 export 'src/http_response.dart';
