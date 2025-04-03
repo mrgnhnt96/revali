@@ -96,6 +96,32 @@ void main() {
       expect(result?.route, getter);
     });
 
+    test('should return the route when parent has child proxy', () {
+      final analyzer = Route(
+        'analyzer',
+        method: 'GET',
+        handler: (_) async {},
+        routes: const [],
+      );
+      final router = Router(
+        routes: [
+          Route(
+            '',
+            routes: [analyzer],
+          ),
+        ],
+      );
+
+      final result = Find(
+        segments: ['analyzer'],
+        routes: router.routes,
+        method: 'GET',
+      ).run();
+
+      expect(result, isNotNull);
+      expect(result?.route, analyzer);
+    });
+
     test('should return nested route when matches', () {
       final create = Route(
         'create',

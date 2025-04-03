@@ -60,9 +60,12 @@ class Find {
 
         BaseRoute? proxy;
         if (!route.canInvoke) {
+          final segmentsToSkip = switch (route) {
+            BaseRoute(path: '') => possibleSameSegments.length - 1,
+            _ => possibleSameSegments.length,
+          };
           final poss = find(
-            pathSegments:
-                pathSegments.skip(possibleSameSegments.length).toList(),
+            pathSegments: pathSegments.skip(segmentsToSkip).toList(),
             routes: route.routes,
             parent: route,
             method: method,
@@ -118,12 +121,20 @@ class Find {
               return poss;
             }
           }
-        } else if (possibleSameSegments.join('/') == route.path) {
+        } else if (possibleSameSegments.join('/') case final path
+            when path == route.path ||
+                (route.path.isEmpty && path == proxy?.path)) {
+          final checkRoute = switch (route.path) {
+            _ when route.path == path => route,
+            '' => proxy,
+            _ => null,
+          };
+
           final segments =
               pathSegments.skip(possibleSameSegments.length).toList();
 
           if (segments.isEmpty) {
-            if (route.canInvoke) {
+            if (checkRoute case final route? when route.canInvoke) {
               if (route.method == method ||
                   (route.method == 'GET' && method == 'HEAD') ||
                   method == 'OPTIONS') {
@@ -144,7 +155,7 @@ class Find {
 
           return find(
             pathSegments: segments,
-            routes: route.routes,
+            routes: checkRoute?.routes,
             parent: route,
             method: method,
             pathParameters: pathParameters,
