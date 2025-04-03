@@ -56,7 +56,6 @@ class SseResponseHandler with RemoveHeadersMixin implements ResponseHandler {
       (_) {},
       cancelOnError: true,
       onDone: () {
-        isDone = true;
         socketListener?.cancel().ignore();
         context.close();
       },
