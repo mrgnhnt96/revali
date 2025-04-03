@@ -6,7 +6,7 @@ class HandleWebSocket {
     required this.mode,
     required this.ping,
     required this.helper,
-  }) {
+  }) : _sequentialExecutor = SequentialExecutor<(int, String)?>() {
     if (handler is! WebSocketHandler) {
       throw InvalidHandlerResultException('${handler.runtimeType}', [
         '$WebSocketHandler',
@@ -22,6 +22,7 @@ class HandleWebSocket {
   final WebSocketMode mode;
   final Duration? ping;
   final HelperMixin helper;
+  final SequentialExecutor<(int, String)?> _sequentialExecutor;
 
   Completer<WebSocketResponse>? _closed;
 
@@ -197,49 +198,55 @@ class HandleWebSocket {
       return (1000, 'Normal closure');
     }
 
-    if (sending case final sending?) {
-      await sending.future;
-    }
+    Future<(int, String)?> send() async {
+      final HelperMixin(
+        :response,
+        run: RunMixin(
+          :interceptors,
+        )
+      ) = helper;
 
-    final HelperMixin(
-      :response,
-      run: RunMixin(
-        :interceptors,
-      )
-    ) = helper;
+      sending = Completer<void>();
+      void complete() {
+        sending?.complete();
+        sending = null;
+      }
 
-    sending = Completer<void>();
-    void complete() {
-      sending?.complete();
-      sending = null;
-    }
+      // Not using `equatable`, so this check is if the body is the
+      // same object in memory. Without this check a `StackOverflow`
+      // could occur
+      if (response.body != bodyData) {
+        response.body = bodyData;
+      }
 
-    // Not using `equatable`, so this check is if the body is the
-    // same object in memory. Without this check a `StackOverflow`
-    // could occur
-    if (response.body != bodyData) {
-      response.body = bodyData;
-    }
+      await interceptors.post();
 
-    await interceptors.post();
+      final stream = response.body.read();
+      if (stream == null) {
+        complete();
+        return null;
+      }
 
-    final stream = response.body.read();
-    if (stream == null) {
+      try {
+        await for (final chunk in stream) {
+          if (webSocket
+              case WebSocket(:final int closeCode, :final closeReason)) {
+            complete();
+            return (closeCode, closeReason ?? '');
+          }
+          webSocket.add(chunk);
+        }
+      } catch (e) {
+        complete();
+        return (1011, 'Internal server error');
+      }
+
       complete();
+
       return null;
     }
 
-    await for (final chunk in stream) {
-      if (webSocket case WebSocket(:final int closeCode, :final closeReason)) {
-        complete();
-        return (closeCode, closeReason ?? '');
-      }
-      webSocket.add(chunk);
-    }
-
-    complete();
-
-    return null;
+    return await _sequentialExecutor.add(send);
   }
 
   Future<void> close(int code, String reason) async {

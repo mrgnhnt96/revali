@@ -41,6 +41,7 @@ import 'package:revali_router/src/web_socket/async_web_socket_sender_impl.dart';
 import 'package:revali_router/src/web_socket/web_socket_close_impl.dart';
 import 'package:revali_router/src/web_socket/web_socket_context_impl.dart';
 import 'package:revali_router/src/web_socket/web_socket_handler.dart';
+import 'package:revali_router/utils/sequential_executor.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 import 'package:stack_trace/stack_trace.dart';
 
