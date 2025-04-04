@@ -15,6 +15,7 @@ void main() {
       return ClientParam(
         name: 'name',
         position: position,
+        hasDefaultValue: false,
         type: ClientType(
           name: type ?? 'FakeType',
         ),

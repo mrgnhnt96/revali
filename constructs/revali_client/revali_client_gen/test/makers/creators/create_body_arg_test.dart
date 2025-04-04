@@ -21,6 +21,7 @@ void main() {
           name: 'FakeType',
           import: ClientImports([]),
         ),
+        hasDefaultValue: false,
         access: access,
         acceptMultiple: false,
       );

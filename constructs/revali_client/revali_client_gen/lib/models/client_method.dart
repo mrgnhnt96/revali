@@ -127,6 +127,7 @@ class ClientMethod with ExtractImport {
       position: ParameterPosition.body,
       access: [],
       acceptMultiple: false,
+      hasDefaultValue: false,
       type: ClientType(
         name: 'Stream<({$params})>',
         isStream: true,

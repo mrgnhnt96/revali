@@ -14,6 +14,7 @@ class ClientParam with ExtractImport {
     required this.type,
     required this.access,
     required this.acceptMultiple,
+    required this.hasDefaultValue,
   });
 
   static ClientParam? fromElement(ParameterElement element) {
@@ -37,6 +38,7 @@ class ClientParam with ExtractImport {
       position: position,
       access: access,
       acceptMultiple: acceptMultiple,
+      hasDefaultValue: element.defaultValueCode != null,
     );
   }
 
@@ -55,6 +57,7 @@ class ClientParam with ExtractImport {
       type: ClientType.fromMeta(parameter.type),
       access: access,
       acceptMultiple: acceptMultiple,
+      hasDefaultValue: parameter.hasDefaultValue,
     );
   }
 
@@ -164,6 +167,7 @@ class ClientParam with ExtractImport {
   final ClientType type;
   final ParameterPosition position;
   final bool acceptMultiple;
+  final bool hasDefaultValue;
 
   ClientParam changeType(ClientType type) {
     return ClientParam(
@@ -172,6 +176,7 @@ class ClientParam with ExtractImport {
       position: position,
       access: access,
       acceptMultiple: acceptMultiple,
+      hasDefaultValue: hasDefaultValue,
     );
   }
 
