@@ -1,18 +1,18 @@
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:collection/collection.dart';
-import 'package:revali_router_annotations/revali_router_annotations.dart';
+import 'package:revali_router_core/revali_router_core.dart';
+import 'package:revali_server/converters/base_parameter_annotation.dart';
+import 'package:revali_server/converters/has_pipe.dart';
 import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_pipe.dart';
-import 'package:revali_server/makers/utils/type_extensions.dart';
 import 'package:revali_server/utils/extract_import.dart';
 
-class ServerHeaderAnnotation with ExtractImport {
+class ServerHeaderAnnotation
+    with ExtractImport
+    implements HasPipe, BaseParameterAnnotation {
   ServerHeaderAnnotation({
     required this.name,
     required this.pipe,
-    required this.acceptsNull,
     required this.all,
   });
 
@@ -23,30 +23,26 @@ class ServerHeaderAnnotation with ExtractImport {
   ) {
     final name = object.getField('name')?.toStringValue();
     final pipe = object.getField('pipe')?.toTypeValue();
-
-    final pipeSuper = (pipe?.element as ClassElement?)
-        ?.allSupertypes
-        .firstWhereOrNull((element) {
-      // ignore: unnecessary_parenthesis
-      return element.element.name == (Pipe).name;
-    });
-
-    final firstTypeArg = pipeSuper?.typeArguments.first;
+    final all = object.getField('all')?.toBoolValue();
 
     return ServerHeaderAnnotation(
       name: name,
-      pipe: pipe != null ? ServerPipe.fromType(pipe) : null,
-      all: object.getField('all')?.toBoolValue() ?? false,
-      acceptsNull: firstTypeArg == null
-          ? null
-          : firstTypeArg.nullabilitySuffix == NullabilitySuffix.question,
+      pipe: ServerPipe.fromType(pipe),
+      all: all ?? false,
     );
   }
 
+  @override
   final String? name;
+  @override
   final ServerPipe? pipe;
-  final bool? acceptsNull;
   final bool all;
+
+  @override
+  AnnotationType get type => switch (all) {
+        true => AnnotationType.headerAll,
+        false => AnnotationType.header,
+      };
 
   @override
   List<ExtractImport?> get extractors => [pipe];

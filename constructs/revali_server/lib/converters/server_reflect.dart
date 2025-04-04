@@ -14,7 +14,11 @@ class ServerReflect {
       : className = null,
         metas = null;
 
-  factory ServerReflect.fromElement(Element element) {
+  factory ServerReflect.fromElement(Element? element) {
+    if (element == null) {
+      return const ServerReflect.none();
+    }
+
     if (element is! ClassElement) {
       return const ServerReflect.none();
     }

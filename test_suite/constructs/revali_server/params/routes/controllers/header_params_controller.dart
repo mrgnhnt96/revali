@@ -1,27 +1,27 @@
 import 'package:revali_router/revali_router.dart';
 
 // Learn more about Controllers at https://www.revali.dev/constructs/revali_server/core/controllers
-@Controller('query')
-class QueryParamsController {
-  const QueryParamsController();
+@Controller('header')
+class HeaderParamsController {
+  const HeaderParamsController();
 
   @Get('required')
-  String required(@Query() String shopId) {
+  String required(@Header('X-Shop-Id') String shopId) {
     return shopId;
   }
 
   @Get('optional')
-  String optional(@Query() String? shopId) {
+  String optional(@Header('X-Shop-Id') String? shopId) {
     return shopId ?? 'no shop id';
   }
 
   @Get('all')
-  String all(@Query.all('shopId') List<String> shopIds) {
+  String all(@Header.all('X-Shop-Id') List<String> shopIds) {
     return shopIds.join(',');
   }
 
   @Get('all-optional')
-  String allOptional(@Query.all('shopId') List<String>? shopIds) {
+  String allOptional(@Header.all('X-Shop-Id') List<String>? shopIds) {
     return shopIds?.join(',') ?? 'no shop ids';
   }
 }

@@ -6,22 +6,26 @@ class QueryParamsController {
   const QueryParamsController();
 
   @Get('required')
-  String required(@Query() String shopId) {
+  String required([@Query() String shopId = '123']) {
     return shopId;
   }
 
   @Get('optional')
-  String optional(@Query() String? shopId) {
+  String optional([@Query() String? shopId = '123']) {
     return shopId ?? 'no shop id';
   }
 
   @Get('all')
-  String all(@Query.all('shopId') List<String> shopIds) {
+  String all([
+    @Query.all('shopId') List<String> shopIds = const ['123', '456'],
+  ]) {
     return shopIds.join(',');
   }
 
   @Get('all-optional')
-  String allOptional(@Query.all('shopId') List<String>? shopIds) {
+  String allOptional([
+    @Query.all('shopId') List<String>? shopIds = const ['123', '456'],
+  ]) {
     return shopIds?.join(',') ?? 'no shop ids';
   }
 }

@@ -1,14 +1,30 @@
 # TODO
 
+## 4.3.25
+
+- [ ] Get default arg from method param and supply to server handler instead of throwing
+- [ ] Check for null values before piping
+  - Unless the pipe can handle nulls
+  - If default value is available, and the body is null and the pipe can't handle nulls, provide the default value (without piping)
+  - If default value is not available, proceed as normal
+- [ ] Add a switch before piping to determine if body is correct type then throw custom error or proceed as normal
+
+## 3.29.25
+
+- [x] Create a new type to asynchronously send websocket messages
+  - The current setup allows for reactive responses, but doesn't allow for sending messages _whenever_ we want
+- [x] I think that websockets might need to be handled differently. Instead of `yield null` I think that we need to be yielding the response of the handler
+  - When creating L.K., the message was getting sent immediately, causing the client to receive an empty message, causing the client to re-request the message
+
 ## 1.22.25
 
 ### Revali
 
 #### Fix
 
-- It seems like SSE blocks the further requests from coming in..
+- [x] It seems like SSE blocks the further requests from coming in..
 
-- Get super methods from classes to allow for inheritance and better community support
+- [ ] Get super methods from classes to allow for inheritance and better community support
 
 ## 10.3.2024
 

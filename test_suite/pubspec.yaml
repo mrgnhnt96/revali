@@ -24,6 +24,7 @@ workspace:
   - constructs/revali_server/middleware
   - constructs/revali_server/null_primitive_return_types
   - constructs/revali_server/params
+  - constructs/revali_server/default_params
   - constructs/revali_server/custom_params
   - constructs/revali_server/primitive_return_types
   - constructs/revali_server/sse

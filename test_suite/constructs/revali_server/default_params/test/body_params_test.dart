@@ -19,44 +19,42 @@ void main() {
       server.close();
     });
 
-    test('root', () async {
+    test('non-null', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/body/root',
-        headers: {
-          'content-type': 'text/plain',
-        },
-        body: '123',
+        path: '/api/body/non-null',
       );
 
       expect(response.statusCode, HttpStatus.ok);
       expect(response.body, {'data': '123'});
     });
 
-    test('nested', () async {
+    test('nullable', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/body/nested',
-        headers: {
-          'content-type': 'application/json',
-        },
-        body: {'data': '456'},
+        path: '/api/body/nullable',
       );
 
       expect(response.statusCode, HttpStatus.ok);
       expect(response.body, {
-        'data': '456',
+        'data': '123',
       });
     });
 
-    test('multiple', () async {
+    test('multiple-non-null', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/body/multiple',
-        headers: {
-          'content-type': 'application/json',
-        },
-        body: {'name': 'John', 'age': 30},
+        path: '/api/body/multiple-non-null',
+      );
+
+      expect(response.statusCode, HttpStatus.ok);
+      expect(response.body, {'data': 'John 30'});
+    });
+
+    test('multiple-nullable', () async {
+      final response = await server.send(
+        method: 'GET',
+        path: '/api/body/multiple-nullable',
       );
 
       expect(response.statusCode, HttpStatus.ok);

@@ -147,6 +147,7 @@ class PayloadImpl implements Payload {
 
     try {
       final bodyData = await switch (headers.mimeType) {
+        null => () => coerce(headers),
         'application/json' => () => _resolveJson(encoding),
         'application/x-www-form-urlencoded' => () => _resolveFormUrl(encoding),
         'multipart/form-data' => () =>

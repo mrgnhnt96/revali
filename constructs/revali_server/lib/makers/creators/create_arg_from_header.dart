@@ -1,10 +1,10 @@
 import 'package:code_builder/code_builder.dart';
-import 'package:revali_router/revali_router.dart';
 import 'package:revali_server/converters/server_header_annotation.dart';
 import 'package:revali_server/converters/server_param.dart';
 import 'package:revali_server/makers/creators/create_from_json_arg.dart';
-import 'package:revali_server/makers/creators/create_missing_argument_exception.dart';
 import 'package:revali_server/makers/creators/create_pipe.dart';
+import 'package:revali_server/makers/utils/create_default_argument.dart';
+import 'package:revali_server/makers/utils/create_throw_missing_argument.dart';
 
 Expression createArgFromHeader(
   ServerHeaderAnnotation annotation,
@@ -30,24 +30,20 @@ Expression createArgFromHeader(
     };
   }
 
-  final acceptsNull = annotation.acceptsNull;
-  if ((acceptsNull != null && !acceptsNull) ||
-      (!param.type.isNullable && annotation.pipe == null)) {
-    headerValue = headerValue.ifNullThen(
-      createMissingArgumentException(
-        key: annotation.name ?? param.name,
-        location: '@${AnnotationType.header.name}',
-      ).thrown.parenthesized,
-    );
+  if (createThrowMissingArgument(annotation, param) case final thrown?) {
+    headerValue = headerValue.ifNullThen(thrown);
   }
+
+  headerValue = createDefaultArgument(headerValue, param);
 
   if (annotation.pipe case final pipe?) {
     final name = annotation.name;
     return createPipe(
       pipe,
+      defaultArgument: param.defaultValue,
       annotationArgument: name == null ? literalNull : literalString(name),
       nameOfParameter: param.name,
-      type: annotation.all ? AnnotationType.headerAll : AnnotationType.header,
+      type: annotation.type,
       access: headerValue,
     );
   } else if (param.type.hasFromJson) {

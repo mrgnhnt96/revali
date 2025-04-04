@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 import '../.revali/server/server.dart';
 
 void main() {
-  group('body-params', () {
+  group('query-params', () {
     late TestServer server;
 
     setUp(() {
@@ -19,48 +19,44 @@ void main() {
       server.close();
     });
 
-    test('root', () async {
+    test('required should return success when not provided', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/body/root',
-        headers: {
-          'content-type': 'text/plain',
-        },
-        body: '123',
+        path: '/api/query/required',
       );
 
       expect(response.statusCode, HttpStatus.ok);
       expect(response.body, {'data': '123'});
     });
 
-    test('nested', () async {
+    test('optional should return success when provided', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/body/nested',
-        headers: {
-          'content-type': 'application/json',
-        },
-        body: {'data': '456'},
+        path: '/api/query/optional',
       );
 
       expect(response.statusCode, HttpStatus.ok);
-      expect(response.body, {
-        'data': '456',
-      });
+      expect(response.body, {'data': '123'});
     });
 
-    test('multiple', () async {
+    test('all should return success when not provided', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/body/multiple',
-        headers: {
-          'content-type': 'application/json',
-        },
-        body: {'name': 'John', 'age': 30},
+        path: '/api/query/all',
       );
 
       expect(response.statusCode, HttpStatus.ok);
-      expect(response.body, {'data': 'John 30'});
+      expect(response.body, {'data': '123,456'});
+    });
+
+    test('all-optional should return success when not provided', () async {
+      final response = await server.send(
+        method: 'GET',
+        path: '/api/query/all-optional',
+      );
+
+      expect(response.statusCode, HttpStatus.ok);
+      expect(response.body, {'data': '123,456'});
     });
   });
 }

@@ -74,10 +74,18 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
   }
 
   @override
-  Iterable<String>? getAll(String key) sync* {
-    for (final header in _headers[key] ?? <String>[]) {
-      yield* header.split(',');
+  List<String>? getAll(String key) {
+    if (!_headers.containsKey(key)) {
+      return null;
     }
+
+    Iterable<String> iterate() sync* {
+      for (final header in _headers[key] ?? <String>[]) {
+        yield* header.split(',');
+      }
+    }
+
+    return iterate().toList();
   }
 
   @override

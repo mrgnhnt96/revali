@@ -314,6 +314,7 @@ test-suite:
       - (+) {$test-suite:revali_server:null-primitive-return-types}
       - (+) {$test-suite:revali_server:middleware}
       - (+) {$test-suite:revali_server:params}
+      - (+) {$test-suite:revali_server:default-params}
       - (+) {$test-suite:revali_server:custom-params}
       - (+) {$test-suite:revali_server:sse}
       - (+) {$test-suite:revali_server:sse_custom}
@@ -337,6 +338,9 @@ test-suite:
       {$test-suite:revali_server:_package}
     params: |
       DIR=params
+      {$test-suite:revali_server:_package}
+    default-params: |
+      DIR=default_params
       {$test-suite:revali_server:_package}
     custom-params: |
       DIR=custom_params

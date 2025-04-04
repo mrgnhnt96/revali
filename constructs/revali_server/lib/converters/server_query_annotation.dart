@@ -1,18 +1,18 @@
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:collection/collection.dart';
-import 'package:revali_router_annotations/revali_router_annotations.dart';
+import 'package:revali_router_core/revali_router_core.dart';
+import 'package:revali_server/converters/base_parameter_annotation.dart';
+import 'package:revali_server/converters/has_pipe.dart';
 import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_pipe.dart';
-import 'package:revali_server/makers/utils/type_extensions.dart';
 import 'package:revali_server/utils/extract_import.dart';
 
-class ServerQueryAnnotation with ExtractImport {
+class ServerQueryAnnotation
+    with ExtractImport
+    implements HasPipe, BaseParameterAnnotation {
   ServerQueryAnnotation({
     required this.name,
     required this.pipe,
-    required this.acceptsNull,
     required this.all,
   });
 
@@ -23,35 +23,26 @@ class ServerQueryAnnotation with ExtractImport {
   ) {
     final name = object.getField('name')?.toStringValue();
     final pipe = object.getField('pipe')?.toTypeValue();
-    final all = object.getField('all')?.toBoolValue() ?? false;
-
-    final pipeSuper = (pipe?.element as ClassElement?)
-        ?.allSupertypes
-        .firstWhereOrNull((element) {
-      // ignore: unnecessary_parenthesis
-      return element.element.name == (Pipe).name;
-    });
-
-    final firstTypeArg = pipeSuper?.typeArguments.first;
+    final all = object.getField('all')?.toBoolValue();
 
     return ServerQueryAnnotation(
-      all: all,
+      all: all ?? false,
       name: name,
-      pipe: switch (pipe) {
-        final pipe? => ServerPipe.fromType(pipe),
-        _ => null,
-      },
-      acceptsNull: switch (firstTypeArg?.nullabilitySuffix) {
-        final prefix? => prefix == NullabilitySuffix.question,
-        _ => null,
-      },
+      pipe: ServerPipe.fromType(pipe),
     );
   }
 
+  @override
   final String? name;
+  @override
   final ServerPipe? pipe;
   final bool all;
-  final bool? acceptsNull;
+
+  @override
+  AnnotationType get type => switch (all) {
+        true => AnnotationType.queryAll,
+        false => AnnotationType.query,
+      };
 
   @override
   List<ExtractImport?> get extractors => [pipe];

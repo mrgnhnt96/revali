@@ -7,7 +7,9 @@ import 'package:revali_server/makers/creators/create_from_json_arg.dart';
 import 'package:revali_server/makers/creators/create_missing_argument_exception.dart';
 import 'package:revali_server/makers/creators/create_pipe.dart';
 import 'package:revali_server/makers/creators/get_raw_type.dart';
+import 'package:revali_server/makers/utils/create_default_argument.dart';
 import 'package:revali_server/makers/utils/create_switch_pattern.dart';
+import 'package:revali_server/makers/utils/create_throw_missing_argument.dart';
 
 Expression createArgFromBody(
   ServerBodyAnnotation annotation,
@@ -21,24 +23,25 @@ Expression createArgFromBody(
       bodyVar = bodyVar.index(literalString(part));
     }
 
-    final acceptsNull = annotation.acceptsNull;
-    if ((acceptsNull != null && !acceptsNull) ||
-        (!param.type.isNullable && annotation.pipe == null)) {
-      bodyVar = bodyVar.ifNullThen(
-        createMissingArgumentException(
-          key: param.name,
-          location: '@${AnnotationType.body.name}#${access.join('.')}',
-        ).thrown.parenthesized,
-      );
+    if (createThrowMissingArgument(
+      annotation,
+      param,
+      location: access.join('.'),
+    )
+        case final thrown?) {
+      bodyVar = bodyVar.ifNullThen(thrown);
     }
   } else {
     bodyVar = bodyVar.property('data');
   }
 
+  bodyVar = createDefaultArgument(bodyVar, param);
+
   if (annotation.pipe case final pipe?) {
     final access = annotation.access;
     return createPipe(
       pipe,
+      defaultArgument: param.defaultValue,
       annotationArgument: access == null
           ? literalNull
           : literalList([

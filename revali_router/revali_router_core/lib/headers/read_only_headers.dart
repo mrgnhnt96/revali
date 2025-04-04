@@ -14,12 +14,12 @@ abstract class ReadOnlyHeaders {
   String? get(String key);
   String? operator [](String value);
   Iterable<String> get keys;
-  Map<String, Iterable<String>> get values;
+  Map<String, List<String>> get values;
 
   ReadOnlyCookies get cookies;
   ReadOnlySetCookies get setCookies;
 
-  Iterable<String>? getAll(String key);
+  List<String>? getAll(String key);
   void forEach(void Function(String key, Iterable<String> value) f);
 
   /// If [ReadOnlyHeaders] doesn't have a Content-Type header or it specifies an

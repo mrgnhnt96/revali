@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 import '../.revali/server/server.dart';
 
 void main() {
-  group('query-params', () {
+  group('header-params', () {
     late TestServer server;
 
     setUp(() {
@@ -22,7 +22,8 @@ void main() {
     test('required should return success when provided', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/query/required?shopId=123',
+        path: '/api/header/required',
+        headers: {'X-Shop-Id': '123'},
       );
 
       expect(response.statusCode, HttpStatus.ok);
@@ -32,7 +33,7 @@ void main() {
     test('required should return error when not provided', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/query/required',
+        path: '/api/header/required',
       );
 
       expect(response.statusCode, 500);
@@ -40,10 +41,10 @@ void main() {
 Internal Server Error
 
 __DEBUG__:
-Error: MissingArgumentException: key: shopId, location: @query
+Error: MissingArgumentException: key: X-Shop-Id, location: @header
 
 Stack Trace:
-.revali/server/routes/__bananas_route.dart 13:18             bananasRoute.<fn>
+.revali/server/routes/__header_params_controller.dart 13:18             headerParamsController.<fn>
 package:revali_router/src/router/execute.dart 63:24          Execute.run.<fn>
 dart:async                                                   runZonedGuarded
 package:revali_router/src/router/execute.dart 61:13          Execute.run
@@ -54,17 +55,19 @@ package:revali_router/src/server/handle_requests.dart 28:29  handleRequests.<fn>
     test('optional should return success when provided', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/query/optional',
+        path: '/api/header/optional',
+        headers: {'X-Shop-Id': '123'},
       );
 
       expect(response.statusCode, HttpStatus.ok);
-      expect(response.body, {'data': 'no shop id'});
+      expect(response.body, {'data': '123'});
     });
 
     test('all should return success when provided', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/query/all?shopId=123&shopId=456',
+        path: '/api/header/all',
+        headers: {'X-Shop-Id': '123,456'},
       );
 
       expect(response.statusCode, HttpStatus.ok);
@@ -74,7 +77,7 @@ package:revali_router/src/server/handle_requests.dart 28:29  handleRequests.<fn>
     test('all should return error when not provided', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/query/all',
+        path: '/api/header/all',
       );
 
       expect(response.statusCode, 500);
@@ -82,10 +85,10 @@ package:revali_router/src/server/handle_requests.dart 28:29  handleRequests.<fn>
 Internal Server Error
 
 __DEBUG__:
-Error: MissingArgumentException: key: shopId, location: @query
+Error: MissingArgumentException: key: X-Shop-Id, location: @header
 
 Stack Trace:
-.revali/server/routes/__bananas_route.dart 39:18             bananasRoute.<fn>
+.revali/server/routes/__header_params_controller.dart 39:18             headerParamsController.<fn>
 package:revali_router/src/router/execute.dart 63:24          Execute.run.<fn>
 dart:async                                                   runZonedGuarded
 package:revali_router/src/router/execute.dart 61:13          Execute.run
@@ -96,11 +99,12 @@ package:revali_router/src/server/handle_requests.dart 28:29  handleRequests.<fn>
     test('all-optional should return success when provided', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/query/all-optional',
+        path: '/api/header/all-optional',
+        headers: {'X-Shop-Id': '123,456'},
       );
 
       expect(response.statusCode, HttpStatus.ok);
-      expect(response.body, {'data': 'no shop ids'});
+      expect(response.body, {'data': '123,456'});
     });
   });
 }
