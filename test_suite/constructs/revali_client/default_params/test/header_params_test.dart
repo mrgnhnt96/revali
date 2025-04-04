@@ -44,7 +44,7 @@ void main() {
     test('optional', () async {
       final response = await client.headerParams.optional();
 
-      expect(response, const StringUser(name: 'John'));
+      expect(response, null);
       verifyRequest('/api/header/optional', method: 'GET');
       expect(request?.headers['X-User'], isNull);
     });

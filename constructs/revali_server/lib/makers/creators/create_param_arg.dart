@@ -3,14 +3,9 @@
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_server/converters/server_param.dart';
-import 'package:revali_server/makers/creators/create_arg_from_binds.dart';
-import 'package:revali_server/makers/creators/create_arg_from_body.dart';
-import 'package:revali_server/makers/creators/create_arg_from_cookie.dart';
+import 'package:revali_server/makers/creators/create_arg_for_param.dart';
 import 'package:revali_server/makers/creators/create_arg_from_custom_param.dart';
 import 'package:revali_server/makers/creators/create_arg_from_data.dart';
-import 'package:revali_server/makers/creators/create_arg_from_header.dart';
-import 'package:revali_server/makers/creators/create_arg_from_param.dart';
-import 'package:revali_server/makers/creators/create_arg_from_query.dart';
 import 'package:revali_server/makers/creators/create_get_from_di.dart';
 import 'package:revali_server/makers/creators/create_missing_argument_exception.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
@@ -132,31 +127,12 @@ Expression createParamArg(
     return createArgFromData(param);
   }
 
-  if (annotation.body case final bodyAnnotation?) {
-    return createArgFromBody(bodyAnnotation, param);
-  }
-
-  if (annotation.param case final paramAnnotation?) {
-    return createArgFromParam(paramAnnotation, param);
-  }
-
-  if (annotation.query case final queryAnnotation?) {
-    return createArgFromQuery(queryAnnotation, param);
-  }
-
-  if (annotation.header case final headerAnnotation?) {
-    return createArgFromHeader(headerAnnotation, param);
-  }
-  if (annotation.cookie case final cookieAnnotation?) {
-    return createArgFromCookie(cookieAnnotation, param);
-  }
-
   if (annotation.bind case final bind?) {
     return createArgFromBind(bind, param);
   }
 
-  if (annotation.binds case final binds?) {
-    return createArgFromBinds(binds, param);
+  if (annotation.baseAnnotation case final annotation?) {
+    return createArgForParam(annotation, param);
   }
 
   if (defaultExpression != null) {

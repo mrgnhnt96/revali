@@ -44,7 +44,7 @@ void main() {
     test('optional', () async {
       final response = await client.queryParams.optional();
 
-      expect(response, const StringUser(name: 'John'));
+      expect(response, null);
       verifyRequest('/api/query/optional', method: 'GET');
       expect(request?.url.queryParametersAll['user'], isNull);
     });

@@ -5,6 +5,7 @@ import 'package:revali_client_gen/makers/creators/create_from_json.dart';
 import 'package:revali_client_gen/makers/creators/create_json_case.dart';
 import 'package:revali_client_gen/makers/creators/should_decode_json.dart';
 import 'package:revali_client_gen/makers/utils/binary_expression_extensions.dart';
+import 'package:revali_client_gen/makers/utils/create_switch_pattern.dart';
 import 'package:revali_client_gen/makers/utils/if_statement.dart';
 import 'package:revali_client_gen/makers/utils/type_extensions.dart';
 import 'package:revali_client_gen/models/client_type.dart';
@@ -76,7 +77,15 @@ Code? parseJson(
                 const Code(''),
                 refer('continue').statement,
               ]),
-            false => body.returned.statement,
+            false => Block.of([
+                if (type.isNullable && !type.isIterable)
+                  createSwitchPattern(refer('data'), {
+                    literalNull: literalNull,
+                    declareFinal('data'): body,
+                  }).returned.statement
+                else
+                  body.returned.statement,
+              ]),
           },
         ).code,
         const Code(''),

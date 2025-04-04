@@ -1,9 +1,23 @@
 import 'package:code_builder/code_builder.dart';
+import 'package:revali_server/converters/base_parameter_annotation.dart';
 import 'package:revali_server/converters/server_binds_annotation.dart';
 import 'package:revali_server/converters/server_param.dart';
 import 'package:revali_server/makers/creators/create_bind_context.dart';
 import 'package:revali_server/makers/creators/create_class.dart';
 import 'package:revali_server/makers/utils/create_throw_missing_argument.dart';
+
+Expression createBindsVar(
+  BaseParameterAnnotation annotation,
+  ServerParam param,
+) {
+  if (annotation is! ServerBindsAnnotation) {
+    throw ArgumentError('Invalid annotation type: ${annotation.runtimeType}');
+  }
+
+  return createClass(annotation.bind.bind)
+      .property('bind')
+      .call([createBindContext(param)]).awaited;
+}
 
 Expression createArgFromBinds(
   ServerBindsAnnotation annotation,

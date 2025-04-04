@@ -1,21 +1,16 @@
-import 'package:code_builder/code_builder.dart';
 import 'package:revali_client_gen/models/client_record_prop.dart';
 import 'package:revali_client_gen/models/client_to_json.dart';
 import 'package:revali_client_gen/models/client_type.dart';
 
-Reference getRawType(ClientType type) {
-  Reference data(ClientType type) {
-    final map = TypeReference(
-      (b) => b..symbol = 'Map${type.isNullable ? '?' : ''}',
-    );
+String getRawType(ClientType type) {
+  String data(ClientType type) {
+    final map = 'Map${type.isNullable ? '?' : ''}';
 
-    final list = TypeReference(
-      (b) => b..symbol = 'List${type.isNullable ? '?' : ''}',
-    );
+    final list = 'List${type.isNullable ? '?' : ''}';
 
     return switch (type) {
       ClientType(isIterable: true) => list,
-      ClientType(isPrimitive: true) => refer(type.name),
+      ClientType(isPrimitive: true) => type.name,
       // named records
       ClientType(
         isRecord: true,

@@ -1,6 +1,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
+import 'package:revali_server/converters/base_parameter_annotation.dart';
 import 'package:revali_server/converters/server_binds_annotation.dart';
 import 'package:revali_server/converters/server_body_annotation.dart';
 import 'package:revali_server/converters/server_cookie_annotation.dart';
@@ -169,6 +170,34 @@ class ServerParamAnnotations with ExtractImport {
       binds: binds,
       data: data ?? false,
     );
+  }
+
+  BaseParameterAnnotation? get baseAnnotation {
+    if (body case final value?) {
+      return value;
+    }
+
+    if (query case final value?) {
+      return value;
+    }
+
+    if (header case final value?) {
+      return value;
+    }
+
+    if (cookie case final value?) {
+      return value;
+    }
+
+    if (param case final value?) {
+      return value;
+    }
+
+    if (binds case final value?) {
+      return value;
+    }
+
+    return null;
   }
 
   final ServerBodyAnnotation? body;
