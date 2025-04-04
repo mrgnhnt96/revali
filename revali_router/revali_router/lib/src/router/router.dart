@@ -164,7 +164,9 @@ class Router extends Equatable {
       }
 
       final RouteMatch(:route, :pathParameters) = match;
-      request.pathParameters = pathParameters;
+      request.pathParameters =
+          // TODO(mrgnhnt): Support dynamic path parameters
+          pathParameters.map((key, value) => MapEntry(key, value.first));
 
       helper = _createHelper(route, request);
     } catch (e, stackTrace) {

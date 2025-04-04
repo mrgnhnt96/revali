@@ -8,7 +8,7 @@ abstract interface class RequestContext {
   const RequestContext();
 
   PayloadResolver? get payloadResolver;
-  Iterable<String> get segments;
+  List<String> get segments;
   String get method;
   ReadOnlyHeaders get headers;
   Map<String, String> get queryParameters;

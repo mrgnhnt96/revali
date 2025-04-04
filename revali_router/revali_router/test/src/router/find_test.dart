@@ -337,7 +337,9 @@ void main() {
 
         expect(result, isNotNull);
         expect(result?.route, route);
-        expect(result?.pathParameters, {'shopId': '123'});
+        expect(result?.pathParameters, {
+          'shopId': ['123'],
+        });
       });
 
       test('should return match with path parameters', () {
@@ -395,7 +397,10 @@ void main() {
 
         expect(user, isNotNull);
         expect(user?.route, name);
-        expect(user?.pathParameters, {'id': '123', 'name': 'bob'});
+        expect(user?.pathParameters, {
+          'id': ['123'],
+          'name': ['bob'],
+        });
 
         final shop = Find(
           segments: ['shop', '123', '456'],
@@ -405,7 +410,10 @@ void main() {
 
         expect(shop, isNotNull);
         expect(shop?.route, productId);
-        expect(shop?.pathParameters, {'shopId': '123', 'productId': '456'});
+        expect(shop?.pathParameters, {
+          'shopId': ['123'],
+          'productId': ['456'],
+        });
       });
 
       test('should return nothing when root is not handled', () {

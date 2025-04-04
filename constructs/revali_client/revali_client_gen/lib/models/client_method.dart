@@ -178,13 +178,14 @@ class ClientMethod with ExtractImport {
     };
 
     Iterable<String> resolve() sync* {
-      Iterable<String> replace(String path) sync* {
+      String replace(String path) {
         final params = paramsFor(path);
 
         if (params.isEmpty) {
-          yield path;
-          return;
+          return path;
         }
+
+        var updatedPath = path;
 
         for (final key in params.keys) {
           final count = expandedParts[key];
@@ -200,13 +201,15 @@ class ClientMethod with ExtractImport {
             expandedParts[key] = count.sublist(1);
           }
 
-          yield path.replaceAll(':$key', '\${$replacement}');
+          updatedPath = updatedPath.replaceAll(':$key', '\${$replacement}');
         }
+
+        return updatedPath;
       }
 
-      yield* replace(parentPath);
+      yield replace(parentPath);
       if (path case final String path) {
-        yield* replace(path);
+        yield replace(path);
       }
     }
 

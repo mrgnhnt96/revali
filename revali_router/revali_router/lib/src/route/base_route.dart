@@ -209,7 +209,8 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
 
   bool get canInvoke => handler != null && method != null;
   List<String> get segments => path.split('/');
-  bool get isDynamic => segments.any((s) => s.startsWith(':'));
+  List<String> get fullSegments => fullPath.substring(1).split('/');
+  bool get isDynamic => fullPath.contains(RegExp('[:*]'));
   bool get isStatic => !isDynamic;
 
   BaseRoute setParent(BaseRoute route) {

@@ -17,7 +17,6 @@ class Find {
       required List<BaseRoute>? routes,
       required BaseRoute? parent,
       required String method,
-      required Map<String, String> pathParameters,
     }) {
       if (routes == null || routes.isEmpty) {
         if (parent == null) {
@@ -31,10 +30,7 @@ class Find {
             (parent.canInvoke &&
                 (parent.method == method ||
                     parent.method == 'GET' && method == 'HEAD'))) {
-          return RouteMatch(
-            route: parent,
-            pathParameters: pathParameters,
-          );
+          return RouteMatch(parent);
         }
 
         return null;
@@ -69,7 +65,6 @@ class Find {
             routes: route.routes,
             parent: route,
             method: method,
-            pathParameters: pathParameters,
           );
 
           proxy = poss?.route;
@@ -93,19 +88,8 @@ class Find {
 
           if (patternMatches &&
               (methodsMatch || almostMatches || proxy != null)) {
-            for (var i = 0; i < route.segments.length; i++) {
-              final segment = route.segments[i];
-              if (segment.startsWith(':')) {
-                pathParameters[segment.substring(1)] =
-                    possibleSameSegments.elementAt(i);
-              }
-            }
-
             if (proxy != null) {
-              return RouteMatch(
-                route: proxy,
-                pathParameters: pathParameters,
-              );
+              return RouteMatch(proxy);
             }
 
             final poss = find(
@@ -114,7 +98,6 @@ class Find {
               routes: route.routes,
               parent: route,
               method: method,
-              pathParameters: pathParameters,
             );
 
             if (poss != null) {
@@ -138,10 +121,7 @@ class Find {
               if (route.method == method ||
                   (route.method == 'GET' && method == 'HEAD') ||
                   method == 'OPTIONS') {
-                return RouteMatch(
-                  route: route,
-                  pathParameters: pathParameters,
-                );
+                return RouteMatch(route);
               } else {
                 continue;
               }
@@ -158,7 +138,6 @@ class Find {
             routes: checkRoute?.routes,
             parent: route,
             method: method,
-            pathParameters: pathParameters,
           );
         }
       }
@@ -166,12 +145,17 @@ class Find {
       return null;
     }
 
-    return find(
+    final result = find(
       pathSegments: segments,
       routes: routes,
       parent: null,
       method: method,
-      pathParameters: {},
     );
+
+    if (result == null) {
+      return null;
+    }
+
+    return result.resolvePathParameters(segments);
   }
 }
