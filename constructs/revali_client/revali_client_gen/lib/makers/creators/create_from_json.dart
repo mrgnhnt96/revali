@@ -4,6 +4,7 @@ import 'package:code_builder/code_builder.dart';
 import 'package:revali_client_gen/makers/utils/create_switch_pattern.dart';
 import 'package:revali_client_gen/makers/utils/safe_property.dart';
 import 'package:revali_client_gen/makers/utils/type_extensions.dart';
+import 'package:revali_client_gen/models/client_from_json.dart';
 import 'package:revali_client_gen/models/client_record_prop.dart';
 import 'package:revali_client_gen/models/client_type.dart';
 import 'package:revali_construct/models/iterable_type.dart';
@@ -188,13 +189,18 @@ Expression? createReturnTypeFromJson(ClientType type, Expression variable) {
     ]);
   }
 
-  if (type.hasFromJson) {
+  if (type.fromJson case final fromJson?) {
     return refer(type.nonNullName).newInstanceNamed(
       'fromJson',
       [
-        refer((Map).name).newInstanceNamed('from', [
-          variable.asA(refer((Map).name)),
-        ]),
+        if (fromJson case ClientFromJson(params: [ClientType(isMap: true)]))
+          refer((Map).name).newInstanceNamed('from', [
+            variable.asA(refer((Map).name)),
+          ])
+        else if (fromJson case ClientFromJson(params: [final type]))
+          variable.asA(refer(type.name))
+        else
+          variable,
       ],
     );
   }

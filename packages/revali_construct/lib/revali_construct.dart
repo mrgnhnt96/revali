@@ -33,6 +33,7 @@ export 'models/meta_public.dart';
 export 'models/meta_record_prop.dart';
 export 'models/meta_route.dart';
 export 'models/meta_server.dart';
+export 'models/meta_to_json.dart';
 export 'models/meta_type.dart';
 export 'models/meta_web_socket_method.dart';
 export 'models/method_annotation.dart';

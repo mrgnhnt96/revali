@@ -9,6 +9,7 @@ import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_record_prop.dart';
 import 'package:revali_server/converters/server_reflect.dart';
 import 'package:revali_server/converters/server_route.dart';
+import 'package:revali_server/converters/server_to_json.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
 import 'package:revali_server/utils/extract_import.dart';
 
@@ -16,6 +17,7 @@ class ServerType with ExtractImport {
   ServerType({
     required this.name,
     required this.fromJson,
+    required this.toJson,
     required this.importPath,
     required bool isVoid,
     required this.reflect,
@@ -37,6 +39,7 @@ class ServerType with ExtractImport {
     return ServerType(
       name: type.name,
       fromJson: ServerFromJson.fromMeta(type.fromJson),
+      toJson: ServerToJson.fromMeta(type.toJson),
       importPath: ServerImports([
         if (type.importPath case final String path) path,
       ]),
@@ -72,6 +75,7 @@ class ServerType with ExtractImport {
 
   final String name;
   final ServerFromJson? fromJson;
+  final ServerToJson? toJson;
   final ServerImports? importPath;
   final ServerReflect? reflect;
   final bool isFuture;
@@ -87,6 +91,8 @@ class ServerType with ExtractImport {
   final List<ServerRecordProp>? recordProps;
 
   bool get hasFromJson => fromJson != null;
+
+  bool get isIterable => iterableType != null;
 
   final bool _isVoid;
   bool get isVoid {
@@ -141,8 +147,6 @@ class ServerType with ExtractImport {
 
     return iterate(root);
   }
-
-  bool get isIterable => iterableType != null;
 
   @override
   List<ExtractImport?> get extractors => [

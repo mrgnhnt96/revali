@@ -56,15 +56,23 @@ Parameter _create(
   ClientParam param, {
   bool isStream = false,
 }) {
-  final type = switch (isStream) {
-    true => refer('Stream<${param.type.name}>'),
-    false => refer(param.type.name),
+  final makeNull = param.type.isNullable || param.hasDefaultValue;
+
+  final typeName = switch (makeNull) {
+    true => param.type.nullName,
+    false => param.type.name,
   };
+
+  final type = switch (isStream) {
+    true => refer('Stream<$typeName>'),
+    false => refer(typeName),
+  };
+
   return Parameter(
     (b) => b
       ..name = param.name
       ..named = true
-      ..required = !param.type.isNullable
+      ..required = !makeNull
       ..type = type,
   );
 }

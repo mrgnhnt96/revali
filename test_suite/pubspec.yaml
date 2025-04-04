@@ -10,6 +10,7 @@ workspace:
   - constructs/revali_client/methods
   - constructs/revali_client/null_primitive_return_types
   - constructs/revali_client/params
+  - constructs/revali_client/default_params
   - constructs/revali_client/primitive_return_types
   - constructs/revali_client/sse
   - constructs/revali_client/sse_custom

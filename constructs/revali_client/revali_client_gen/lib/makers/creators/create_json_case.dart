@@ -1,5 +1,7 @@
 import 'package:code_builder/code_builder.dart';
+import 'package:revali_client_gen/makers/utils/get_raw_type.dart';
 import 'package:revali_client_gen/models/client_record_prop.dart';
+import 'package:revali_client_gen/models/client_to_json.dart';
 import 'package:revali_client_gen/models/client_type.dart';
 
 Expression createJsonCase(ClientType type) {
@@ -25,6 +27,8 @@ Expression createJsonCase(ClientType type) {
           map,
         // at least 1 positional record
         ClientType(isRecord: true) => list,
+        ClientType(toJson: ClientToJson(returnType: final type)) =>
+          getRawType(type),
         _ => map,
       },
     );

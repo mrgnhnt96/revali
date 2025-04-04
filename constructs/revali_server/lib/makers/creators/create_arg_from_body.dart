@@ -3,13 +3,10 @@ import 'package:revali_router/revali_router.dart';
 import 'package:revali_server/converters/server_body_annotation.dart';
 import 'package:revali_server/converters/server_param.dart';
 import 'package:revali_server/makers/creators/create_from_json.dart';
-import 'package:revali_server/makers/creators/create_from_json_arg.dart';
 import 'package:revali_server/makers/creators/create_missing_argument_exception.dart';
 import 'package:revali_server/makers/creators/create_pipe.dart';
 import 'package:revali_server/makers/creators/get_raw_type.dart';
-import 'package:revali_server/makers/utils/create_default_argument.dart';
 import 'package:revali_server/makers/utils/create_switch_pattern.dart';
-import 'package:revali_server/makers/utils/create_throw_missing_argument.dart';
 
 Expression createArgFromBody(
   ServerBodyAnnotation annotation,
@@ -22,20 +19,9 @@ Expression createArgFromBody(
     for (final part in access) {
       bodyVar = bodyVar.index(literalString(part));
     }
-
-    if (createThrowMissingArgument(
-      annotation,
-      param,
-      location: access.join('.'),
-    )
-        case final thrown?) {
-      bodyVar = bodyVar.ifNullThen(thrown);
-    }
   } else {
     bodyVar = bodyVar.property('data');
   }
-
-  bodyVar = createDefaultArgument(bodyVar, param);
 
   if (annotation.pipe case final pipe?) {
     final access = annotation.access;
@@ -53,25 +39,27 @@ Expression createArgFromBody(
     );
   }
 
-  if (param.type.hasFromJson) {
-    return createFromJsonArg(
-      param.type,
-      access: bodyVar,
-    );
-  }
-
   final fromJson = createFromJson(param.type, refer('data'));
 
-  if (fromJson == null) {
-    return bodyVar;
-  }
-
   return createSwitchPattern(bodyVar, {
-    declareFinal('data', type: getRawType(param.type)): fromJson,
-    if (param.type.isNullable) literalNull: literalNull,
-    const Code('_'): createMissingArgumentException(
-      key: param.name,
-      location: '@${AnnotationType.body.name}',
-    ).thrown,
+    Block.of([
+      if (getRawType(param.type) case final type) ...[
+        declareFinal('data', type: type).code,
+        if (type.symbol case final String symbol
+            when symbol.startsWith('Map')) ...[
+          const Code('when'),
+          refer('data').property('isNotEmpty').code,
+        ],
+      ],
+    ]): fromJson ?? refer('data'),
+    if (param.defaultValue case final defaultValue?)
+      const Code('_'): CodeExpression(Code(defaultValue))
+    else ...{
+      if (param.type.isNullable) literalNull: literalNull,
+      const Code('_'): createMissingArgumentException(
+        key: param.name,
+        location: '@${AnnotationType.body.name}',
+      ).thrown,
+    },
   });
 }

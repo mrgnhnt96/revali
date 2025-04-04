@@ -4,6 +4,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:revali_construct/models/iterable_type.dart';
 import 'package:revali_construct/models/meta_from_json.dart';
 import 'package:revali_construct/models/meta_record_prop.dart';
+import 'package:revali_construct/models/meta_to_json.dart';
 import 'package:revali_construct/utils/dart_type_extensions.dart';
 import 'package:revali_construct/utils/element_extensions.dart';
 
@@ -24,7 +25,7 @@ class MetaType {
     required this.isPrimitive,
     required this.isDynamic,
     required this.isMap,
-    required this.hasToJsonMember,
+    required this.toJson,
   });
 
   factory MetaType.fromType(DartType type) {
@@ -32,7 +33,7 @@ class MetaType {
       name: type.getDisplayString(),
       isVoid: type is VoidType,
       fromJson: MetaFromJson.fromElement(type.element),
-      hasToJsonMember: type.element?.hasToJsonMember ?? false,
+      toJson: MetaToJson.fromElement(type.element),
       importPath: type.element?.importPath,
       element: type.element,
       isNullable: (type.nullabilitySuffix != NullabilitySuffix.none) ^
@@ -62,7 +63,7 @@ class MetaType {
 
   final String name;
   final MetaFromJson? fromJson;
-  final bool hasToJsonMember;
+  final MetaToJson? toJson;
   final String? importPath;
   final bool isNullable;
   final IterableType? iterableType;
@@ -81,4 +82,5 @@ class MetaType {
   bool get hasFromJsonConstructor => hasFromJson;
 
   bool get hasFromJson => fromJson != null;
+  bool get hasToJson => toJson != null;
 }

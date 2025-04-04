@@ -1,10 +1,10 @@
 import 'package:code_builder/code_builder.dart';
-import 'package:revali_server/converters/server_from_json.dart';
-import 'package:revali_server/converters/server_record_prop.dart';
-import 'package:revali_server/converters/server_type.dart';
+import 'package:revali_client_gen/models/client_record_prop.dart';
+import 'package:revali_client_gen/models/client_to_json.dart';
+import 'package:revali_client_gen/models/client_type.dart';
 
-Reference getRawType(ServerType type) {
-  Reference data(ServerType type) {
+Reference getRawType(ClientType type) {
+  Reference data(ClientType type) {
     final map = TypeReference(
       (b) => b..symbol = 'Map${type.isNullable ? '?' : ''}',
     );
@@ -14,17 +14,17 @@ Reference getRawType(ServerType type) {
     );
 
     return switch (type) {
-      ServerType(isIterable: true) => list,
-      ServerType(isPrimitive: true) => refer(type.name),
+      ClientType(isIterable: true) => list,
+      ClientType(isPrimitive: true) => refer(type.name),
       // named records
-      ServerType(
+      ClientType(
         isRecord: true,
-        recordProps: [ServerRecordProp(isNamed: true), ...]
+        recordProps: [ClientRecordProp(isNamed: true), ...]
       ) =>
         map,
       // at least 1 positional record
-      ServerType(isRecord: true) => list,
-      ServerType(fromJson: ServerFromJson(params: [final type])) =>
+      ClientType(isRecord: true) => list,
+      ClientType(toJson: ClientToJson(returnType: final type)) =>
         getRawType(type),
       _ => map,
     };

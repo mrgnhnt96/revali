@@ -7,6 +7,7 @@ import 'package:revali_client_gen/models/client_from_json.dart';
 import 'package:revali_client_gen/models/client_imports.dart';
 import 'package:revali_client_gen/models/client_method.dart';
 import 'package:revali_client_gen/models/client_record_prop.dart';
+import 'package:revali_client_gen/models/client_to_json.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router/revali_router.dart';
 
@@ -27,7 +28,7 @@ class ClientType with ExtractImport {
     this.isDynamic = false,
     this.isMap = false,
     this.isStringContent = false,
-    this.hasToJsonMember = false,
+    this.toJson,
     this.method,
   })  : _typeArguments = typeArguments,
         _parent = null,
@@ -49,7 +50,7 @@ class ClientType with ExtractImport {
     required this.isDynamic,
     required this.isMap,
     required this.isStringContent,
-    required this.hasToJsonMember,
+    required this.toJson,
     this.method,
   })  : _typeArguments = typeArguments,
         _isVoid = isVoid;
@@ -81,7 +82,7 @@ class ClientType with ExtractImport {
       isDynamic: type.isDynamic,
       isMap: type.isMap,
       fromJson: ClientFromJson.fromMeta(type.fromJson),
-      hasToJsonMember: type.hasToJsonMember,
+      toJson: ClientToJson.fromMeta(type.toJson),
       isNullable: type.isNullable,
       typeArguments: type.typeArguments.map(ClientType.fromMeta).toList(),
     );
@@ -93,7 +94,7 @@ class ClientType with ExtractImport {
 
   final String name;
   final ClientFromJson? fromJson;
-  final bool hasToJsonMember;
+  final ClientToJson? toJson;
   final ClientImports? import;
   final bool isNullable;
   final IterableType? iterableType;
@@ -108,6 +109,7 @@ class ClientType with ExtractImport {
   final List<ClientRecordProp>? recordProps;
 
   bool get hasFromJson => fromJson != null;
+  bool get hasToJsonMember => toJson != null;
 
   final bool _isVoid;
   bool get isVoid {
@@ -255,7 +257,7 @@ class ClientType with ExtractImport {
       isDynamic: isDynamic,
       isMap: isMap,
       isStringContent: isStringContent,
-      hasToJsonMember: hasToJsonMember,
+      toJson: toJson,
       method: method,
     );
   }
@@ -277,4 +279,12 @@ class ClientType with ExtractImport {
   }
 
   String get nonNullName => name.replaceAll(RegExp(r'\?$'), '');
+
+  String get nullName {
+    if (name.endsWith('?')) {
+      return name;
+    }
+
+    return '$name?';
+  }
 }

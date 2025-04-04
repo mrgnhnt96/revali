@@ -2,6 +2,7 @@
 
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_construct/models/iterable_type.dart';
+import 'package:revali_server/converters/server_from_json.dart';
 import 'package:revali_server/converters/server_record_prop.dart';
 import 'package:revali_server/converters/server_type.dart';
 import 'package:revali_server/makers/utils/create_switch_pattern.dart';
@@ -187,13 +188,18 @@ Expression? createFromJson(ServerType type, Expression variable) {
     ]);
   }
 
-  if (type.hasFromJson) {
-    return refer(type.name).newInstanceNamed(
+  if (type.fromJson case final fromJson?) {
+    return refer(type.nonNullName).newInstanceNamed(
       'fromJson',
       [
-        refer((Map).name).newInstanceNamed('from', [
-          variable.asA(refer((Map).name)),
-        ]),
+        if (fromJson case ServerFromJson(params: [ServerType(isMap: true)]))
+          refer((Map).name).newInstanceNamed('from', [
+            variable.asA(refer((Map).name)),
+          ])
+        else if (fromJson case ServerFromJson(params: [final type]))
+          variable.asA(refer(type.name))
+        else
+          variable,
       ],
     );
   }

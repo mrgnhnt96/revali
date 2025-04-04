@@ -2,7 +2,7 @@ import 'package:code_builder/code_builder.dart';
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_server/converters/server_param.dart';
 import 'package:revali_server/converters/server_param_annotation.dart';
-import 'package:revali_server/makers/creators/create_from_json_arg.dart';
+import 'package:revali_server/makers/creators/create_from_json.dart';
 import 'package:revali_server/makers/creators/create_pipe.dart';
 import 'package:revali_server/makers/utils/create_default_argument.dart';
 import 'package:revali_server/makers/utils/create_throw_missing_argument.dart';
@@ -21,7 +21,9 @@ Expression createArgFromParam(
     paramValue = paramValue.ifNullThen(thrown);
   }
 
-  paramValue = createDefaultArgument(paramValue, param);
+  paramValue = createDefaultArgument(paramValue, param) ??
+      createFromJson(param.type, paramValue) ??
+      paramValue;
 
   if (annotation.pipe case final pipe?) {
     final name = annotation.name;
@@ -31,11 +33,6 @@ Expression createArgFromParam(
       annotationArgument: name == null ? literalNull : literalString(name),
       nameOfParameter: param.name,
       type: AnnotationType.param,
-      access: paramValue,
-    );
-  } else if (param.type.hasFromJson) {
-    return createFromJsonArg(
-      param.type,
       access: paramValue,
     );
   }

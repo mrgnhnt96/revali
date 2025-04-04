@@ -16,5 +16,5 @@ Expression createArgFromData(ServerParam param) {
     dataVar = dataVar.ifNullThen(thrown);
   }
 
-  return createDefaultArgument(dataVar, param);
+  return createDefaultArgument(dataVar, param) ?? dataVar;
 }
