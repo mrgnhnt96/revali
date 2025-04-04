@@ -87,7 +87,7 @@ class Router extends Equatable {
   /// Passes the request to the [handle] method.
   Future<ReadOnlyResponse> handleHttpRequest(HttpRequest request) async {
     final context = RequestContextImpl.fromRequest(request);
-    return handle(context);
+    return await handle(context);
   }
 
   ReadOnlyResponse _debugResponse(
