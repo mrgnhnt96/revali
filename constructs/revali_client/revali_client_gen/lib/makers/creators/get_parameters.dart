@@ -23,7 +23,7 @@ Iterable<Parameter> getParameters(
           ..type = refer(param.type.name)
           ..name = param.name
           ..named = true
-          ..required = true,
+          ..required = !(param.type.isNullable || param.hasDefaultValue),
       );
     } else {
       for (final param in body) {
