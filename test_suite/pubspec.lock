@@ -354,6 +354,13 @@ packages:
       relative: true
     source: path
     version: "0.0.0"
+  revali_client_default_custom_params:
+    dependency: transitive
+    description:
+      path: "constructs/revali_client/default_custom_params/.revali/revali_client"
+      relative: true
+    source: path
+    version: "0.0.0"
   revali_client_default_params:
     dependency: transitive
     description:
