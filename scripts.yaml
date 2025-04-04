@@ -334,6 +334,12 @@ test-suite:
       - (+) {$test-suite:revali_server:sse_custom}
     _package: |
       TEST_DIR=test_suite/constructs/revali_server/$DIR
+      if [ -n "{--test}" ]; then
+        cd $TEST_DIR || exit 1
+        sip test
+        exit $?
+      fi
+
       {$test-suite:_generate}
     methods: |
       DIR=methods
