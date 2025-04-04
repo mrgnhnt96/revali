@@ -1,6 +1,6 @@
 import 'package:revali_client/revali_client.dart';
-import 'package:revali_client_default_params/revali_client_default_params.dart';
-import 'package:revali_client_default_params_test/lib/models/string_user.dart';
+import 'package:revali_client_default_custom_params/revali_client_default_custom_params.dart';
+import 'package:revali_client_default_custom_params_test/lib/models/string_user.dart';
 import 'package:revali_client_test/revali_client_test.dart';
 import 'package:revali_test/revali_test.dart';
 import 'package:test/test.dart';
@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 import '../.revali/server/server.dart';
 
 void main() {
-  group('header params', () {
+  group('query params', () {
     late TestServer server;
     late Server client;
     HttpRequest? request;
@@ -34,38 +34,38 @@ void main() {
     }
 
     test('required', () async {
-      final response = await client.headerParams.required();
+      final response = await client.queryParams.required();
 
       expect(response, const StringUser(name: 'John'));
-      verifyRequest('/api/header/required', method: 'GET');
-      expect(request?.headers['X-User'], isNull);
+      verifyRequest('/api/query/required', method: 'GET');
+      expect(request?.url.queryParametersAll['user'], isNull);
     });
 
     test('optional', () async {
-      final response = await client.headerParams.optional();
+      final response = await client.queryParams.optional();
 
       expect(response, null);
-      verifyRequest('/api/header/optional', method: 'GET');
-      expect(request?.headers['X-User'], isNull);
+      verifyRequest('/api/query/optional', method: 'GET');
+      expect(request?.url.queryParametersAll['user'], isNull);
     });
 
     test('all', () async {
-      final response = await client.headerParams.all();
+      final response = await client.queryParams.all();
 
       expect(response, [
         const StringUser(name: 'John'),
         const StringUser(name: 'Jane'),
       ]);
-      verifyRequest('/api/header/all', method: 'GET');
-      expect(request?.headers['X-User'], isNull);
+      verifyRequest('/api/query/all', method: 'GET');
+      expect(request?.url.queryParametersAll['user'], isNull);
     });
 
     test('all-optional', () async {
-      final response = await client.headerParams.allOptional();
+      final response = await client.queryParams.allOptional();
 
       expect(response, isNull);
-      verifyRequest('/api/header/all-optional', method: 'GET');
-      expect(request?.headers['X-User'], isNull);
+      verifyRequest('/api/query/all-optional', method: 'GET');
+      expect(request?.url.queryParametersAll['user'], isNull);
     });
   });
 }

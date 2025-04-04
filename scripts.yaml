@@ -250,7 +250,7 @@ test-suite:
       - (+) {$test-suite:revali_client:primitive-return-types}
       - (+) {$test-suite:revali_client:null-primitive-return-types}
       - (+) {$test-suite:revali_client:custom-return-types}
-      - (+) {$test-suite:revali_client:default-params}
+      - (+) {$test-suite:revali_client:default-custom-params}
       - (+) {$test-suite:revali_client:methods}
       - (+) {$test-suite:revali_client:params}
       - (+) {$test-suite:revali_client:sse}
@@ -273,8 +273,8 @@ test-suite:
     methods: |
       DIR=methods
       {$test-suite:revali_client:_package}
-    default-params: |
-      DIR=default_params
+    default-custom-params: |
+      DIR=default_custom_params
       {$test-suite:revali_client:_package}
     params: |
       DIR=params

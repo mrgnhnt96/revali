@@ -1,4 +1,4 @@
-import 'package:revali_client_default_params_test/lib/models/string_user.dart';
+import 'package:revali_client_default_custom_params_test/lib/models/string_user.dart';
 import 'package:revali_router/revali_router.dart';
 
 // Learn more about Controllers at https://www.revali.dev/constructs/revali_server/core/controllers
