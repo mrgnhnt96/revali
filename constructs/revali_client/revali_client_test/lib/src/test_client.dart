@@ -30,7 +30,10 @@ final class TestClient implements HttpClient {
 
     final response = await server.send(
       method: request.method,
-      path: request.url.path,
+      path: switch ((request.url.path, request.url.query)) {
+        (final String path, '') => path,
+        (final String path, final String query) => '$path?$query',
+      },
       headers: request.headers,
       body: request.body,
     );

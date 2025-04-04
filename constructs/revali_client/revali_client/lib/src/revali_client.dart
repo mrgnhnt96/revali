@@ -19,10 +19,15 @@ class RevaliClient {
   final HttpClient _client;
   final String? baseUrl;
 
+  /// [headers] Accepts either a Map<String, List<String>>
+  /// or a Map<String, String>.
+  ///
+  /// [query] Accepts either a Map<String, List<String>>
+  /// or a Map<String, String>.
   Future<HttpResponse> request({
     required String method,
     required String path,
-    Map<String, String>? headers,
+    Map<String, dynamic>? headers,
     Object? body,
     Map<String, dynamic> query = const {},
   }) async {
@@ -35,10 +40,22 @@ class RevaliClient {
 
       final buffer = StringBuffer()..write('?');
 
-      for (final (index, MapEntry(:key, :value)) in query.entries.indexed) {
-        if (value == null) continue;
+      void write(String key, dynamic value) {
+        if (value == null) return;
 
-        buffer.write('$key=$value');
+        if (value is List) {
+          for (final e in value) {
+            write(key, e);
+            buffer.write('&');
+          }
+        } else {
+          buffer.write('$key=$value');
+        }
+      }
+
+      for (final (index, MapEntry(:key, value: rawValue))
+          in query.entries.indexed) {
+        write(key, rawValue);
 
         if (index < query.length - 1) {
           buffer.write('&');
@@ -59,7 +76,17 @@ class RevaliClient {
     final request = HttpRequest(method: method, url: uri);
 
     if (headers != null) {
-      request.headers.addAll(headers);
+      void addHeader(String key, dynamic value) {
+        if (value == null) return;
+
+        if (value is List) {
+          request.headers[key] = value.map((e) => '$e').join(',');
+        } else {
+          request.headers[key] = value.toString();
+        }
+      }
+
+      headers.forEach(addHeader);
     }
 
     switch (body) {
