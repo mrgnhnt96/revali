@@ -4,10 +4,11 @@ import 'package:revali_router/revali_router.dart';
 import 'package:revali_server/converters/base_parameter_annotation.dart';
 import 'package:revali_server/converters/has_pipe.dart';
 import 'package:revali_server/converters/server_param.dart';
+import 'package:revali_server/converters/server_type.dart';
 import 'package:revali_server/makers/creators/create_arg_from_binds.dart';
-import 'package:revali_server/makers/creators/create_arg_from_data.dart';
 import 'package:revali_server/makers/creators/create_body_var.dart';
 import 'package:revali_server/makers/creators/create_cookie_var.dart';
+import 'package:revali_server/makers/creators/create_data_var.dart';
 import 'package:revali_server/makers/creators/create_from_json.dart';
 import 'package:revali_server/makers/creators/create_header_var.dart';
 import 'package:revali_server/makers/creators/create_missing_argument_exception.dart';
@@ -32,7 +33,7 @@ Expression createArgForParam(
     AnnotationType.headerAll =>
       createHeaderVar(annotation, param),
     AnnotationType.binds => createBindsVar(annotation, param),
-    AnnotationType.data => createDataVar(),
+    AnnotationType.data => createDataVar(param),
   };
 
   if (annotation.type
@@ -58,23 +59,45 @@ Expression createArgForParam(
 
   final fromJson = createFromJson(param.type, refer('data'));
 
+  final rawType = getRawType(param.type).replaceAll('?', '');
+
   return createSwitchPattern(variable, {
     Block.of([
-      if (getRawType(param.type).replaceAll('?', '') case final type) ...[
-        declareFinal('data', type: refer(type)).code,
-        if (type case final String symbol when symbol.startsWith('Map')) ...[
-          const Code('when'),
-          refer('data').property('isNotEmpty').code,
-        ],
+      declareFinal('data', type: refer(rawType)).code,
+      if (rawType.startsWith('Map')) ...[
+        const Code('when'),
+        refer('data').property('isNotEmpty').code,
       ],
-    ]): fromJson ?? refer('data'),
+    ]): fromJson ??
+        switch (param.type) {
+          ServerType(:final iterableType?) => switch (iterableType) {
+              IterableType.list => refer('data').property('cast').call([]),
+              IterableType.set => refer('data')
+                  .property('toSet')
+                  .call([])
+                  .property('cast')
+                  .call([]),
+              IterableType.iterable => refer('data'),
+            },
+          _ => refer('data'),
+        },
     if (param.defaultValue case final defaultValue?)
       const Code('_'): CodeExpression(Code(defaultValue))
     else ...{
-      if (param.type.isNullable) literalNull: literalNull,
+      if (param.type.isNullable)
+        Block.of([
+          literalNull.code,
+          if (rawType.startsWith('Map')) ...[
+            const Code('||'),
+            const Code('Map()'),
+          ] else if (rawType.startsWith('List')) ...[
+            const Code('||'),
+            const Code('List()'),
+          ],
+        ]): literalNull,
       const Code('_'): createMissingArgumentException(
-        key: param.name,
-        location: '@${AnnotationType.body.name}',
+        key: annotation.name ?? param.name,
+        location: annotation.type.location,
       ).thrown,
     },
   });

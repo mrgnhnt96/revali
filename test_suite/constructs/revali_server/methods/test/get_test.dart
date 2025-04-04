@@ -30,7 +30,7 @@ __DEBUG__:
 Error: RouteNotFoundException: GET 
 
 Stack Trace:
-package:revali_router/src/router/router.dart 157:34          Router.handle
+package:revali_router/src/router/router.dart 158:34          Router.handle
 package:revali_router/src/server/handle_requests.dart 28:14  handleRequests''');
 
       final headers = {...response.headers.values};

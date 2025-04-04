@@ -43,11 +43,11 @@ __DEBUG__:
 Error: MissingArgumentException: key: shopId, location: @query
 
 Stack Trace:
-.revali/server/routes/__bananas_route.dart 13:18             bananasRoute.<fn>
-package:revali_router/src/router/execute.dart 63:24          Execute.run.<fn>
+.revali/server/routes/__query_route.dart 16:15               queryRoute.<fn>
+package:revali_router/src/router/execute.dart 61:24          Execute.run.<fn>
 dart:async                                                   runZonedGuarded
-package:revali_router/src/router/execute.dart 61:13          Execute.run
-package:revali_router/src/router/router.dart 182:22          Router.handle
+package:revali_router/src/router/execute.dart 59:13          Execute.run
+package:revali_router/src/router/router.dart 190:22          Router.handle
 package:revali_router/src/server/handle_requests.dart 28:29  handleRequests.<fn>''');
     });
 
@@ -82,14 +82,14 @@ package:revali_router/src/server/handle_requests.dart 28:29  handleRequests.<fn>
 Internal Server Error
 
 __DEBUG__:
-Error: MissingArgumentException: key: shopId, location: @query
+Error: MissingArgumentException: key: shopId, location: @query (all)
 
 Stack Trace:
-.revali/server/routes/__bananas_route.dart 39:18             bananasRoute.<fn>
-package:revali_router/src/router/execute.dart 63:24          Execute.run.<fn>
+.revali/server/routes/__query_route.dart 54:15               queryRoute.<fn>
+package:revali_router/src/router/execute.dart 61:24          Execute.run.<fn>
 dart:async                                                   runZonedGuarded
-package:revali_router/src/router/execute.dart 61:13          Execute.run
-package:revali_router/src/router/router.dart 182:22          Router.handle
+package:revali_router/src/router/execute.dart 59:13          Execute.run
+package:revali_router/src/router/router.dart 190:22          Router.handle
 package:revali_router/src/server/handle_requests.dart 28:29  handleRequests.<fn>''');
     });
 

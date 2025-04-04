@@ -44,11 +44,11 @@ __DEBUG__:
 Error: MissingArgumentException: key: X-Shop-Id, location: @header
 
 Stack Trace:
-.revali/server/routes/__header_params_controller.dart 13:18             headerParamsController.<fn>
-package:revali_router/src/router/execute.dart 63:24          Execute.run.<fn>
+.revali/server/routes/__header_route.dart 17:15              headerRoute.<fn>
+package:revali_router/src/router/execute.dart 61:24          Execute.run.<fn>
 dart:async                                                   runZonedGuarded
-package:revali_router/src/router/execute.dart 61:13          Execute.run
-package:revali_router/src/router/router.dart 182:22          Router.handle
+package:revali_router/src/router/execute.dart 59:13          Execute.run
+package:revali_router/src/router/router.dart 190:22          Router.handle
 package:revali_router/src/server/handle_requests.dart 28:29  handleRequests.<fn>''');
     });
 
@@ -85,14 +85,14 @@ package:revali_router/src/server/handle_requests.dart 28:29  handleRequests.<fn>
 Internal Server Error
 
 __DEBUG__:
-Error: MissingArgumentException: key: X-Shop-Id, location: @header
+Error: MissingArgumentException: key: X-Shop-Id, location: @header (all)
 
 Stack Trace:
-.revali/server/routes/__header_params_controller.dart 39:18             headerParamsController.<fn>
-package:revali_router/src/router/execute.dart 63:24          Execute.run.<fn>
+.revali/server/routes/__header_route.dart 57:15              headerRoute.<fn>
+package:revali_router/src/router/execute.dart 61:24          Execute.run.<fn>
 dart:async                                                   runZonedGuarded
-package:revali_router/src/router/execute.dart 61:13          Execute.run
-package:revali_router/src/router/router.dart 182:22          Router.handle
+package:revali_router/src/router/execute.dart 59:13          Execute.run
+package:revali_router/src/router/router.dart 190:22          Router.handle
 package:revali_router/src/server/handle_requests.dart 28:29  handleRequests.<fn>''');
     });
 

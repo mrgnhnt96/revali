@@ -82,10 +82,6 @@ void main() {
         final response = await server.send(
           method: 'GET',
           path: '/api/null/root',
-          headers: {
-            // this creates an empty body, not sure if this is a bug or not...
-            // 'content-type': 'application/json',
-          },
         );
 
         expect(response.statusCode, HttpStatus.ok);
