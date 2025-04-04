@@ -44,7 +44,7 @@ void main() {
     test('optional', () async {
       final response = await client.headerParams.optional();
 
-      expect(response, null);
+      expect(response, const StringUser(name: 'John'));
       verifyRequest('/api/header/optional', method: 'GET');
       expect(request?.headers['X-User'], isNull);
     });
@@ -63,7 +63,10 @@ void main() {
     test('all-optional', () async {
       final response = await client.headerParams.allOptional();
 
-      expect(response, isNull);
+      expect(response, [
+        const StringUser(name: 'John'),
+        const StringUser(name: 'Jane'),
+      ]);
       verifyRequest('/api/header/all-optional', method: 'GET');
       expect(request?.headers['X-User'], isNull);
     });

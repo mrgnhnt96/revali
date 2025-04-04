@@ -5,10 +5,10 @@ import 'package:revali_router/revali_router.dart';
 import 'package:revali_server/converters/server_param.dart';
 import 'package:revali_server/makers/creators/create_arg_for_param.dart';
 import 'package:revali_server/makers/creators/create_arg_from_custom_param.dart';
-import 'package:revali_server/makers/creators/create_arg_from_data.dart';
 import 'package:revali_server/makers/creators/create_get_from_di.dart';
 import 'package:revali_server/makers/creators/create_missing_argument_exception.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
+import 'package:revali_server/utils/data_annotation.dart';
 
 final impliedArguments = <String, Expression>{
   // --- dependency injection ---
@@ -123,16 +123,16 @@ Expression createParamArg(
     return createGetFromDi();
   }
 
-  if (annotation.data) {
-    return createArgFromData(param);
-  }
-
   if (annotation.bind case final bind?) {
     return createArgFromBind(bind, param);
   }
 
   if (annotation.baseAnnotation case final annotation?) {
     return createArgForParam(annotation, param);
+  }
+
+  if (annotation.data) {
+    return createArgForParam(const DataAnnotation(), param);
   }
 
   if (defaultExpression != null) {

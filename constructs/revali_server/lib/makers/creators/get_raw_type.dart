@@ -1,21 +1,16 @@
-import 'package:code_builder/code_builder.dart';
 import 'package:revali_server/converters/server_from_json.dart';
 import 'package:revali_server/converters/server_record_prop.dart';
 import 'package:revali_server/converters/server_type.dart';
 
-Reference getRawType(ServerType type) {
-  Reference data(ServerType type) {
-    final map = TypeReference(
-      (b) => b..symbol = 'Map${type.isNullable ? '?' : ''}',
-    );
+String getRawType(ServerType type) {
+  String data(ServerType type) {
+    final map = 'Map${type.isNullable ? '?' : ''}';
 
-    final list = TypeReference(
-      (b) => b..symbol = 'List${type.isNullable ? '?' : ''}',
-    );
+    final list = 'List${type.isNullable ? '?' : ''}';
 
     return switch (type) {
       ServerType(isIterable: true) => list,
-      ServerType(isPrimitive: true) => refer(type.name),
+      ServerType(isPrimitive: true) => type.name,
       // named records
       ServerType(
         isRecord: true,

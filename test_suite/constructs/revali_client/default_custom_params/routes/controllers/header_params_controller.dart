@@ -14,7 +14,9 @@ class HeaderParamsController {
   }
 
   @Get('optional')
-  StringUser? optional([@Header('X-User') StringUser? user]) {
+  StringUser? optional([
+    @Header('X-User') StringUser? user = const StringUser(name: 'John'),
+  ]) {
     return user;
   }
 

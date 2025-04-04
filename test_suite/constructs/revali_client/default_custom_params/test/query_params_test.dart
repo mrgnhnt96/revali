@@ -44,7 +44,7 @@ void main() {
     test('optional', () async {
       final response = await client.queryParams.optional();
 
-      expect(response, null);
+      expect(response, const StringUser(name: 'John'));
       verifyRequest('/api/query/optional', method: 'GET');
       expect(request?.url.queryParametersAll['user'], isNull);
     });
@@ -63,7 +63,10 @@ void main() {
     test('all-optional', () async {
       final response = await client.queryParams.allOptional();
 
-      expect(response, isNull);
+      expect(response, [
+        const StringUser(name: 'John'),
+        const StringUser(name: 'Jane'),
+      ]);
       verifyRequest('/api/query/all-optional', method: 'GET');
       expect(request?.url.queryParametersAll['user'], isNull);
     });

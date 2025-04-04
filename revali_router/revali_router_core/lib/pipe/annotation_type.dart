@@ -7,4 +7,5 @@ enum AnnotationType {
   header,
   headerAll,
   binds,
+  data;
 }

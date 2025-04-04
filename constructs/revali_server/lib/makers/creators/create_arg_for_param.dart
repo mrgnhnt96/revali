@@ -5,6 +5,7 @@ import 'package:revali_server/converters/base_parameter_annotation.dart';
 import 'package:revali_server/converters/has_pipe.dart';
 import 'package:revali_server/converters/server_param.dart';
 import 'package:revali_server/makers/creators/create_arg_from_binds.dart';
+import 'package:revali_server/makers/creators/create_arg_from_data.dart';
 import 'package:revali_server/makers/creators/create_body_var.dart';
 import 'package:revali_server/makers/creators/create_cookie_var.dart';
 import 'package:revali_server/makers/creators/create_from_json.dart';
@@ -31,6 +32,7 @@ Expression createArgForParam(
     AnnotationType.headerAll =>
       createHeaderVar(annotation, param),
     AnnotationType.binds => createBindsVar(annotation, param),
+    AnnotationType.data => createDataVar(),
   };
 
   if (annotation.type
@@ -58,10 +60,9 @@ Expression createArgForParam(
 
   return createSwitchPattern(variable, {
     Block.of([
-      if (getRawType(param.type) case final type) ...[
-        declareFinal('data', type: type).code,
-        if (type.symbol case final String symbol
-            when symbol.startsWith('Map')) ...[
+      if (getRawType(param.type).replaceAll('?', '') case final type) ...[
+        declareFinal('data', type: refer(type)).code,
+        if (type case final String symbol when symbol.startsWith('Map')) ...[
           const Code('when'),
           refer('data').property('isNotEmpty').code,
         ],
