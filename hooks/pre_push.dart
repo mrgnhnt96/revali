@@ -15,7 +15,7 @@ Hook main() {
             name: 'Generate Test Suite',
             commands: (files) => [
               'sip run test-suite --gen-only',
-              'sleep 3',
+              'cd test_suite && dart pub get',
             ],
           ),
           ParallelTasks(
