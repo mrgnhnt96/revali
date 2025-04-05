@@ -3,6 +3,7 @@ import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_server/converters/server_child_route.dart';
 import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_param.dart';
+import 'package:revali_server/converters/server_pipe.dart';
 import 'package:revali_server/converters/server_reflect.dart';
 import 'package:revali_server/converters/server_route.dart';
 import 'package:revali_server/converters/server_route_annotations.dart';
@@ -72,6 +73,19 @@ class ServerParentRoute with ExtractImport implements ServerRoute {
     for (final param in params) {
       yield* param.annotations.reflects;
     }
+  }
+
+  @override
+  List<ServerPipe> get pipes {
+    final pipes = <String, ServerPipe>{};
+
+    for (final param in params) {
+      for (final pipe in param.annotations.pipes) {
+        pipes[pipe.clazz.className] = pipe;
+      }
+    }
+
+    return pipes.values.toList();
   }
 
   @override

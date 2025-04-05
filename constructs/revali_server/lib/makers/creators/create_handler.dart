@@ -6,6 +6,7 @@ import 'package:revali_server/converters/server_child_route.dart';
 import 'package:revali_server/converters/server_route.dart';
 import 'package:revali_server/converters/server_type.dart';
 import 'package:revali_server/makers/creators/convert_to_json.dart';
+import 'package:revali_server/makers/creators/create_class.dart';
 import 'package:revali_server/makers/creators/create_web_socket_handler.dart';
 import 'package:revali_server/makers/creators/should_nest_json_in_data.dart';
 import 'package:revali_server/makers/utils/binary_expression_extensions.dart';
@@ -73,6 +74,13 @@ Expression createHandler({
               .awaited
               .statement,
         const Code('\n'),
+        if (route.pipes case final pipes when pipes.isNotEmpty) ...[
+          for (final pipe in pipes)
+            declareFinal(pipe.clazz.variableName)
+                .assign(createClass(pipe.clazz))
+                .statement,
+          const Code('\n'),
+        ],
         ...additionalHandlerCode,
         const Code('\n'),
         handler.statement,

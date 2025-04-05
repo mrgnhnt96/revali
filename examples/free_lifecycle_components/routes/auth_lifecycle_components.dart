@@ -81,7 +81,7 @@ class User {
 
 class UserPipe implements Pipe<String, User> {
   @override
-  FutureOr<User> transform(String value, PipeContext context) {
+  Future<User> transform(String value, PipeContext context) async {
     return User(
       id: value,
       name: 'name',

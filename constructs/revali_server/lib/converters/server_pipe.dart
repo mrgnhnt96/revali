@@ -11,7 +11,7 @@ import 'package:revali_server/utils/extract_import.dart';
 
 class ServerPipe with ExtractImport {
   ServerPipe({
-    required this.pipe,
+    required this.clazz,
     required this.reflect,
     required this.convertFrom,
     required this.convertTo,
@@ -47,20 +47,20 @@ class ServerPipe with ExtractImport {
     final [first, second] = typeArgs;
 
     return ServerPipe(
-      pipe: ServerClass.fromType(type, superType: Pipe),
+      clazz: ServerClass.fromType(type, superType: Pipe),
       reflect: ServerReflect.fromElement(first.element),
       convertFrom: ServerType.fromType(first),
       convertTo: ServerType.fromType(second),
     );
   }
 
-  final ServerClass pipe;
+  final ServerClass clazz;
   final ServerReflect reflect;
   final ServerType convertFrom;
   final ServerType convertTo;
 
   @override
-  List<ExtractImport> get extractors => [pipe, convertFrom, convertTo];
+  List<ExtractImport> get extractors => [clazz, convertFrom, convertTo];
 
   @override
   List<ServerImports> get imports => const [];

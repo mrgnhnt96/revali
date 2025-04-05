@@ -4,6 +4,7 @@ import 'package:revali_router_core/revali_router_core.dart';
 import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_mimic.dart';
 import 'package:revali_server/converters/server_param.dart';
+import 'package:revali_server/converters/server_pipe.dart';
 import 'package:revali_server/converters/server_reflect.dart';
 import 'package:revali_server/converters/server_route.dart';
 import 'package:revali_server/converters/server_route_annotations.dart';
@@ -104,6 +105,21 @@ class ServerChildRoute with ExtractImport implements ServerRoute {
     }
   }
 
+  bool get isWebSocket => webSocket != null;
+
+  @override
+  List<ServerPipe> get pipes {
+    final pipes = <String, ServerPipe>{};
+
+    for (final param in params) {
+      for (final pipe in param.annotations.pipes) {
+        pipes[pipe.clazz.className] = pipe;
+      }
+    }
+
+    return pipes.values.toList();
+  }
+
   @override
   List<ExtractImport?> get extractors => [
         redirect,
@@ -113,6 +129,4 @@ class ServerChildRoute with ExtractImport implements ServerRoute {
 
   @override
   List<ServerImports?> get imports => const [];
-
-  bool get isWebSocket => webSocket != null;
 }

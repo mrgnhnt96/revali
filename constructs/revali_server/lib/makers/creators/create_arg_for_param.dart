@@ -49,10 +49,8 @@ Expression createArgForParam(
   if (annotation case HasPipe(:final pipe?)) {
     return createPipe(
       pipe,
-      defaultArgument: param.defaultValue,
-      annotationArgument: literalNull,
-      nameOfParameter: param.name,
-      type: annotation.type,
+      param: param,
+      annotation: annotation,
       access: variable,
     );
   }

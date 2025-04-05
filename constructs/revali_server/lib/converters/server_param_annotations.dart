@@ -9,6 +9,7 @@ import 'package:revali_server/converters/server_header_annotation.dart';
 import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_mimic.dart';
 import 'package:revali_server/converters/server_param_annotation.dart';
+import 'package:revali_server/converters/server_pipe.dart';
 import 'package:revali_server/converters/server_query_annotation.dart';
 import 'package:revali_server/converters/server_reflect.dart';
 import 'package:revali_server/utils/extract_import.dart';
@@ -260,4 +261,30 @@ class ServerParamAnnotations with ExtractImport {
 
   @override
   List<ServerImports?> get imports => const [];
+
+  List<ServerPipe> get pipes {
+    Iterable<ServerPipe> iterate() sync* {
+      if (body?.pipe case final value?) {
+        yield value;
+      }
+
+      if (query?.pipe case final value?) {
+        yield value;
+      }
+
+      if (param?.pipe case final value?) {
+        yield value;
+      }
+
+      if (header?.pipe case final value?) {
+        yield value;
+      }
+
+      if (cookie?.pipe case final value?) {
+        yield value;
+      }
+    }
+
+    return iterate().toList();
+  }
 }

@@ -1,5 +1,6 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:change_case/change_case.dart';
 import 'package:collection/collection.dart';
 import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_param.dart';
@@ -66,6 +67,8 @@ class ServerClass with ExtractImport {
   final String className;
   final Iterable<ServerParam> params;
   final ServerImports importPath;
+
+  String get variableName => className.toCamelCase();
 
   @override
   List<ExtractImport> get extractors => [...params];
