@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## 1.2.0 | 04.07.25
+
+### Features
+
+- Support `ExcludeFromClient` annotation to exclude controllers/methods from being generated in the client
+- Support explicit types for `toJson` return types
+- Support explicit types for `fromJson` parameters
+
+### Fixes
+
+- Issue where multiple path parameters would malform the generated endpoint path
+
+### Enhancements
+
+- Mark parameters as optional if there is a default value or if the type is nullable
+
 ## 1.1.1 | 03.27.25
 
 ### Fixes

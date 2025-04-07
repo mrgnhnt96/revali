@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 1.12.0 | 04.07.25
+
+### Features
+
+- Support default arguments for parameters
+
+### Enhancements
+
+- Clean up argument generation for methods
+- Clean up class parsing from analyzed files
+
 ## 1.11.2 | 03.27.25
 
 ### Fixes

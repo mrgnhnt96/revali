@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.3.0 | 04.07.25
+
+### Enhancements
+
+- Change return type for `Pipe.transform` to `Future<T>`
+
 ## 1.2.0 | 03.24.25
 
 ### Features

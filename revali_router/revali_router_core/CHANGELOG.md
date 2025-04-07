@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 1.8.0 | 04.07.25
+
+### Features
+
+- Add `MutableBody` getter to `MutableRequest`
+
+### Enhancements
+
+- Create `AsyncWebSocketSender` interface to send messages asynchronously
+
 ## 1.7.0 | 03.26.25
 
 ### Features

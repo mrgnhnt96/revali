@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.5.0 | 04.07.25
+
+### Features
+
+- Create `MetaToJson` class to provide details about `toJson` methods
+
 ## 1.4.0 | 03.26.25
 
 ### Features

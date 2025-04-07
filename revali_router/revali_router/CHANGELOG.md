@@ -1,5 +1,27 @@
 # CHANGELOG
 
+## 2.1.0 | 04.07.25
+
+### Features
+
+- Explicitly check for binary types when resolving body
+- Clean up resources after response has been handled
+- Support sending data asynchronously
+  - As opposed to only on an event received
+
+### Enhancements
+
+- Check for `null` values in addition to `NullBody` body data types
+- Handle exceptions when resolving body
+- Coerce body types when no mime type is provided
+- Improve path parameter extraction
+- Force sequential execution of sent `WebSocket` messages
+
+### Fixes
+
+- Issue where crash would occur during SSE when connection was closed by client unexpectedly
+- Issue where endpoint path would result in 404 when parent controller's path was empty
+
 ## 2.0.1 | 03.26.25
 
 ### Fixes

@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.4.1 | 04.07.25
+
+### Enhancements
+
+- Print `GET (SSE)` when using `@SSE` methods
+
 ## 1.4.0 | 03.24.25
 
 ### Enhancements
