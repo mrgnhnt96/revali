@@ -36,7 +36,7 @@ build_runner:
     (aliases): w
     (command): dart run build_runner watch --delete-conflicting-outputs
     revali_construct:
-      (aliases): gen_core
+      (aliases): construct
       (command): cd packages/revali_construct && {$build_runner:watch}
     revali_router:
       (aliases): router
