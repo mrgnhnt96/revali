@@ -581,6 +581,8 @@ extension _MethodX on MetaMethod {
     switch (method) {
       case 'GET' when isSse:
         return yellow.wrap(padded);
+      case 'GET':
+        return lightYellow.wrap(padded);
       case 'POST':
         return green.wrap(padded);
       case 'PUT':
