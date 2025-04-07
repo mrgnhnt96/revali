@@ -57,5 +57,25 @@ constructs:
       scheme: https
 ```
 
+### Exclusion
+
+Occasionally, you may want to exclude a controller or method from being generated in the client. You can do this by using the `ExcludeFromClient` annotation.
+
+```dart
+@ExcludeFromClient()
+@Controller('user')
+class UserController {
+  // ...
+}
+```
+
+```dart
+@ExcludeFromClient()
+@Get('user')
+Future<User> getUser() async {
+  // ...
+}
+```
+
 [get-it]: https://pub.dev/packages/get_it
 [get-it-integration]: ../integrations/get_it.md

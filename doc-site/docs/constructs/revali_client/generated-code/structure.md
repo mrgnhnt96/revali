@@ -8,7 +8,7 @@ sidebar_position: 1
 
 The Revali Client generates well-structured, idiomatic Dart code designed to interact with your Revali server. All generated code adheres to SOLID principles, promoting separation of concerns, testability, and long-term maintainability.
 
-### Overview
+## Overview
 
 At the heart of the client lies the `Server` class — the primary entry point for accessing backend functionality. For each server-side controller, a corresponding _data source_ is generated on the client side. This includes:
 
