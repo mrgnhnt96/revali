@@ -16,6 +16,28 @@ import 'package:revali_server/utils/extract_import.dart';
 class ServerType with ExtractImport {
   ServerType({
     required this.name,
+    this.fromJson,
+    this.toJson,
+    this.importPath,
+    bool isVoid = false,
+    this.reflect,
+    this.isFuture = false,
+    this.isStream = false,
+    this.iterableType,
+    this.isNullable = false,
+    this.isPrimitive = false,
+    this.isStringContent = false,
+    this.hasToJsonMember = false,
+    this.isMap = false,
+    this.isDynamic = false,
+    List<ServerType> typeArguments = const [],
+    this.recordProps,
+    this.isRecord = false,
+  })  : _typeArguments = List.unmodifiable(typeArguments),
+        _isVoid = isVoid;
+
+  ServerType._({
+    required this.name,
     required this.fromJson,
     required this.toJson,
     required this.importPath,
@@ -29,6 +51,7 @@ class ServerType with ExtractImport {
     required this.isStringContent,
     required this.hasToJsonMember,
     required this.isMap,
+    required this.isDynamic,
     required List<ServerType> typeArguments,
     required this.recordProps,
     required this.isRecord,
@@ -36,7 +59,7 @@ class ServerType with ExtractImport {
         _isVoid = isVoid;
 
   factory ServerType.fromMeta(MetaType type) {
-    return ServerType(
+    return ServerType._(
       name: type.name,
       fromJson: ServerFromJson.fromMeta(type.fromJson),
       toJson: ServerToJson.fromMeta(type.toJson),
@@ -53,6 +76,7 @@ class ServerType with ExtractImport {
       iterableType: type.iterableType,
       isNullable: type.isNullable,
       isPrimitive: type.isPrimitive,
+      isDynamic: type.isDynamic,
       isStringContent: switch (type.element) {
         ClassElement(:final name, :final allSupertypes) =>
           name == (StringContent).name ||
@@ -87,6 +111,7 @@ class ServerType with ExtractImport {
   final bool hasToJsonMember;
   final bool isRecord;
   final bool isMap;
+  final bool isDynamic;
   final List<ServerType> _typeArguments;
   final List<ServerRecordProp>? recordProps;
 

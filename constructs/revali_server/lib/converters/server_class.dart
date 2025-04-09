@@ -10,6 +10,12 @@ class ServerClass with ExtractImport {
   ServerClass({
     required this.className,
     required this.params,
+    this.importPath,
+  });
+
+  ServerClass._({
+    required this.className,
+    required this.params,
     required this.importPath,
   });
 
@@ -58,7 +64,7 @@ class ServerClass with ExtractImport {
 
     final imports = ServerImports([uri]);
 
-    return ServerClass(
+    return ServerClass._(
       className: className,
       params: params,
       importPath: imports,
@@ -66,7 +72,7 @@ class ServerClass with ExtractImport {
   }
   final String className;
   final Iterable<ServerParam> params;
-  final ServerImports importPath;
+  final ServerImports? importPath;
 
   String get variableName => className.toCamelCase();
 
@@ -74,5 +80,5 @@ class ServerClass with ExtractImport {
   List<ExtractImport> get extractors => [...params];
 
   @override
-  List<ServerImports> get imports => [importPath];
+  List<ServerImports?> get imports => [importPath];
 }

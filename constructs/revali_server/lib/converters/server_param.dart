@@ -10,13 +10,26 @@ class ServerParam with ExtractImport {
   ServerParam({
     required this.name,
     required this.type,
+    this.isRequired = false,
+    this.isNamed = false,
+    this.defaultValue,
+    this.hasDefaultValue = false,
+    this.importPath,
+    ServerParamAnnotations? annotations,
+    AnnotationArgument? argument,
+  })  : _argument = argument,
+        annotations = annotations ?? ServerParamAnnotations.none();
+
+  ServerParam._({
+    required this.name,
+    required this.type,
     required this.isRequired,
     required this.isNamed,
     required this.defaultValue,
     required this.hasDefaultValue,
     required this.importPath,
     required this.annotations,
-    AnnotationArgument? argument,
+    required AnnotationArgument? argument,
   }) : _argument = argument;
 
   factory ServerParam.fromMeta(MetaParam param) {
@@ -24,7 +37,7 @@ class ServerParam with ExtractImport {
     final paramAnnotations = ServerParamAnnotations.fromMeta(param);
     final type = ServerType.fromMeta(param.type);
 
-    return ServerParam(
+    return ServerParam._(
       name: param.name,
       type: type,
       isRequired: param.isRequired,
@@ -33,6 +46,7 @@ class ServerParam with ExtractImport {
       hasDefaultValue: param.hasDefaultValue,
       importPath: importPath,
       annotations: paramAnnotations,
+      argument: null,
     );
   }
 
@@ -67,6 +81,24 @@ class ServerParam with ExtractImport {
     assert(_argument == null, 'Literal value already set');
 
     _argument = value;
+  }
+
+  ServerParam copyWith({
+    bool? isNamed,
+    bool? isRequired,
+    AnnotationArgument? argument,
+  }) {
+    return ServerParam._(
+      name: name,
+      type: type,
+      isRequired: isRequired ?? this.isRequired,
+      isNamed: isNamed ?? this.isNamed,
+      defaultValue: defaultValue,
+      hasDefaultValue: hasDefaultValue,
+      importPath: importPath,
+      annotations: annotations,
+      argument: argument ?? this.argument,
+    );
   }
 
   @override

@@ -11,7 +11,6 @@ import 'package:revali_server/converters/server_generic_type.dart';
 import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_lifecycle_component_method.dart';
 import 'package:revali_server/converters/server_param.dart';
-import 'package:revali_server/converters/server_param_annotations.dart';
 import 'package:revali_server/converters/server_type.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
 import 'package:revali_server/utils/annotation_arguments.dart';
@@ -190,46 +189,18 @@ class ServerLifecycleComponent with ExtractImport {
       params: [
         ServerParam(
           name: 'di',
-          isNamed: false,
-          defaultValue: null,
-          hasDefaultValue: false,
-          importPath: ServerImports([]),
-          annotations: ServerParamAnnotations.none(),
           isRequired: true,
           type: ServerType(
             name: 'DI',
-            toJson: null,
-            fromJson: null,
-            importPath: null,
-            isVoid: false,
-            reflect: null,
-            isFuture: false,
-            isStream: false,
-            iterableType: null,
-            isNullable: false,
-            isPrimitive: false,
-            isStringContent: false,
-            hasToJsonMember: false,
-            isMap: false,
-            typeArguments: [],
-            recordProps: null,
-            isRecord: false,
           ),
         ),
         for (final param in params)
-          ServerParam(
-            name: param.name,
-            type: param.type,
+          param.copyWith(
             isNamed: true,
-            defaultValue: param.defaultValue,
-            hasDefaultValue: param.hasDefaultValue,
-            importPath: param.importPath,
-            annotations: param.annotations,
             isRequired: !param.type.isNullable,
             argument: argsByParamName[param.name] ?? param.argument,
           ),
       ],
-      importPath: ServerImports([]),
     );
   }
 
