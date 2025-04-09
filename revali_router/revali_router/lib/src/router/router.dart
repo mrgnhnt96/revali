@@ -25,8 +25,8 @@ import 'package:revali_router/src/meta/meta_detailed_impl.dart';
 import 'package:revali_router/src/middleware/middleware_context_impl.dart';
 import 'package:revali_router/src/payload/payload_impl.dart';
 import 'package:revali_router/src/request/mutable_request_impl.dart';
+import 'package:revali_router/src/request/mutable_web_socket_request_context_impl.dart';
 import 'package:revali_router/src/request/request_context_impl.dart';
-import 'package:revali_router/src/request/websocket_request_context_impl.dart';
 import 'package:revali_router/src/response/canned_response.dart';
 import 'package:revali_router/src/response/default_responses.dart';
 import 'package:revali_router/src/response/mutable_response_impl.dart';
@@ -218,7 +218,7 @@ class Router extends Equatable {
     }
 
     // ignore: argument_type_not_assignable_to_error_handler
-    return execute.run().catchError(catchers.call);
+    return await execute.run().catchError(catchers.call);
   }
 
   HelperMixin _createHelper(BaseRoute route, MutableRequestImpl request) {

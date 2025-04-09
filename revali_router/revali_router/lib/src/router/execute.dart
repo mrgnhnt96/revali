@@ -43,7 +43,7 @@ class Execute {
     }
 
     if (route is WebSocketRoute) {
-      return handleWebSocket(await handler(context)).execute();
+      return await handleWebSocket(await handler(context)).execute();
     }
 
     await interceptors.pre();
