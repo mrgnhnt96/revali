@@ -57,6 +57,10 @@ Expression createArgForParam(
 
   final fromJson = createFromJson(param.type, refer('data'));
 
+  if (param.type.isDynamic) {
+    return fromJson ?? variable;
+  }
+
   final rawType = getRawType(param.type).replaceAll('?', '');
 
   return createSwitchPattern(variable, {

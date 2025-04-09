@@ -62,5 +62,33 @@ void main() {
       expect(response.statusCode, HttpStatus.ok);
       expect(response.body, {'data': 'John 30'});
     });
+
+    test('dynamic (int)', () async {
+      final response = await server.send(
+        method: 'GET',
+        path: '/api/body/dynamic',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: {'data': 123},
+      );
+
+      expect(response.statusCode, HttpStatus.ok);
+      expect(response.body, {'data': '123'});
+    });
+
+    test('dynamic (string)', () async {
+      final response = await server.send(
+        method: 'GET',
+        path: '/api/body/dynamic',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: {'data': 'Hello world!'},
+      );
+
+      expect(response.statusCode, HttpStatus.ok);
+      expect(response.body, {'data': 'Hello world!'});
+    });
   });
 }

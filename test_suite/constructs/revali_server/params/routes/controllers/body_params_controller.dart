@@ -19,4 +19,9 @@ class BodyParamsController {
   String multiple(@Body(['name']) String name, @Body(['age']) int age) {
     return '$name $age';
   }
+
+  @Get('dynamic')
+  String dyno(@Body(['data']) dynamic data) {
+    return data.toString();
+  }
 }
