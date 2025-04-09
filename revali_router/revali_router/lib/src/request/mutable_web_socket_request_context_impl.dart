@@ -27,6 +27,13 @@ class MutableWebSocketRequestImpl extends MutableRequestImpl
   }
 
   @override
+  Future<void> resolvePayload() async {
+    if (_overrideBody != null) return;
+
+    return super.resolvePayload();
+  }
+
+  @override
   Future<void> overrideBody(Object? data) async {
     _hasOverridden = true;
     await (_overrideBody ??= MutableBodyImpl()).replace(data);

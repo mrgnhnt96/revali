@@ -115,7 +115,7 @@ class PayloadImpl implements Payload {
       return await resolve(headers);
     }
 
-    final options = [
+    final options = <Future<BodyData?>? Function()>[
       () => _resolveJson(encoding),
       () => _resolveFormUrl(encoding),
       if (headers.contentType case final MediaType contentType)
@@ -130,14 +130,15 @@ class PayloadImpl implements Payload {
     ];
 
     for (final attempt in options) {
-      try {
-        if (await attempt() case final resolved) {
-          return resolved;
-        }
-      } catch (_) {
-        continue;
+      final resolved = await attempt()?.catchError((_) {
+        return null;
+      });
+
+      if (resolved case final BodyData body) {
+        return body;
       }
     }
+
     return null;
   }
 
@@ -146,7 +147,7 @@ class PayloadImpl implements Payload {
     final encoding = headers.encoding;
 
     try {
-      final bodyData = await switch (headers.mimeType) {
+      final bodyData = switch (headers.mimeType) {
         null => () => coerce(headers),
         'application/json' => () => _resolveJson(encoding),
         'application/x-www-form-urlencoded' => () => _resolveFormUrl(encoding),
@@ -158,9 +159,11 @@ class PayloadImpl implements Payload {
             null => () async => ByteStreamBodyData(read()),
             final parser => () => parser.parse(encoding, read(), headers)
           },
-      }();
+      };
 
-      return MutableBodyImpl(bodyData);
+      final data = await bodyData();
+
+      return MutableBodyImpl(data);
     } catch (e) {
       final data = <String>[];
       await for (final chunk in read()) {

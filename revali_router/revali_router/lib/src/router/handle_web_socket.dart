@@ -127,7 +127,7 @@ class HandleWebSocket {
     ) = helper;
 
     try {
-      final payload = PayloadImpl.encoded(
+      final payload = PayloadImpl(
         event,
         encoding: wsRequest.headers.encoding,
       );
