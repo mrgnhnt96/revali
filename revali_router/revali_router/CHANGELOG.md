@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.1.1 | 04.09.25
+
+### Fixes
+
+- Issue where resolving the payload would hang on a web socket message
+
 ## 2.1.0 | 04.07.25
 
 ### Features

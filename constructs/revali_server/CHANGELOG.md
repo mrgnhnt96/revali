@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.12.1 | 04.09.25
+
+### Enhancements
+
+- Handle `dynamic` types when accessing the data from the request
+
 ## 1.12.0 | 04.07.25
 
 ### Features

@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 1.3.0 | 04.09.25
+
+### Features
+
+- Add `registerLazySingleton` and `registerFactory` methods to `DI` interface
+  - This is to support `factories`, so that dependencies can be re-created each time they are resolved
+
+### Future BREAKING Changes
+
+- `DI.register` will be removed in favor of `registerLazySingleton` and `registerFactory`
+- `DI.registerInstance` will be removed in favor of `registerSingleton`
+
 ## 1.2.0 | 01.18.25
 
 ### Enhancements

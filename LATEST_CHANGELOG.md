@@ -34,37 +34,27 @@
 
 # revali_core
 
-## 1.2.0
+## 1.3.0
 
-### Enhancements
+### Features
 
-- Require `Object` type for `DI` registrations
+- Add `registerLazySingleton` and `registerFactory` methods to `DI` interface
+  - This is to support `factories`, so that dependencies can be re-created each time they are resolved
+
+### Future BREAKING Changes
+
+- `DI.register` will be removed in favor of `registerLazySingleton` and `registerFactory`
+- `DI.registerInstance` will be removed in favor of `registerSingleton`
 
 <!-- REVALI ROUTER -->
 
 # revali_router
 
-## 2.1.0
-
-### Features
-
-- Explicitly check for binary types when resolving body
-- Clean up resources after response has been handled
-- Support sending data asynchronously
-  - As opposed to only on an event received
-
-### Enhancements
-
-- Check for `null` values in addition to `NullBody` body data types
-- Handle exceptions when resolving body
-- Coerce body types when no mime type is provided
-- Improve path parameter extraction
-- Force sequential execution of sent `WebSocket` messages
+## 2.1.1
 
 ### Fixes
 
-- Issue where crash would occur during SSE when connection was closed by client unexpectedly
-- Issue where endpoint path would result in 404 when parent controller's path was empty
+- Issue where resolving the payload would hang on a web socket message
 
 # revali_router_annotations
 
@@ -90,16 +80,11 @@
 
 # revali_server
 
-## 1.12.0
-
-### Features
-
-- Support default arguments for parameters
+## 1.12.1
 
 ### Enhancements
 
-- Clean up argument generation for methods
-- Clean up class parsing from analyzed files
+- Handle `dynamic` types when accessing the data from the request
 
 <!-- REVALI CLIENT -->
 
