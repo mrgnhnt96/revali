@@ -27,7 +27,8 @@ __DEBUG__:
 Error: RouteNotFoundException: GET api
 
 Stack Trace:
-package:revali_router/src/router/router.dart 138:34          Router.handle
+package:revali_router/src/router/router.dart 221:12          Router._handle
+package:revali_router/src/router/router.dart 190:22          Router.handle
 package:revali_router/src/server/handle_requests.dart 23:33  handleRequests
 ```
 

@@ -48,6 +48,7 @@ Stack Trace:
 package:revali_router/src/router/execute.dart 61:24          Execute.run.<fn>
 dart:async                                                   runZonedGuarded
 package:revali_router/src/router/execute.dart 59:13          Execute.run
+package:revali_router/src/router/router.dart 221:12          Router._handle
 package:revali_router/src/router/router.dart 190:22          Router.handle
 package:revali_router/src/server/handle_requests.dart 28:29  handleRequests.<fn>''');
     });
@@ -92,6 +93,7 @@ Stack Trace:
 package:revali_router/src/router/execute.dart 61:24          Execute.run.<fn>
 dart:async                                                   runZonedGuarded
 package:revali_router/src/router/execute.dart 59:13          Execute.run
+package:revali_router/src/router/router.dart 221:12          Router._handle
 package:revali_router/src/router/router.dart 190:22          Router.handle
 package:revali_router/src/server/handle_requests.dart 28:29  handleRequests.<fn>''');
     });

@@ -189,7 +189,8 @@ routes/hello_controller.dart 13:5                            HelloController.hel
 package:revali_router/src/router/execute.dart 56:22          Execute.run.<fn>
 dart:async                                                   runZonedGuarded
 package:revali_router/src/router/execute.dart 54:11          Execute.run
-package:revali_router/src/router/router.dart 159:22          Router.handle
+package:revali_router/src/router/router.dart 221:12          Router._handle
+package:revali_router/src/router/router.dart 190:22          Router.handle
 package:revali_router/src/server/handle_requests.dart 23:20  handleRequests
 ```
 
@@ -203,19 +204,20 @@ body: {
 
 ```json
 {
-    "message": "An error occurred",
-    "__DEBUG__": {
-        "error": "Instance of 'MyException'",
-        "stackTrace": [
-            "routes/hello_controller.dart 13:5                            HelloController.hello",
-            ".revali/server/routes/__hello.dart 15:16                     hello.<fn>",
-            "package:revali_router/src/router/execute.dart 56:22          Execute.run.<fn>",
-            "dart:async                                                   runZonedGuarded",
-            "package:revali_router/src/router/execute.dart 54:11          Execute.run",
-            "package:revali_router/src/router/router.dart 159:22          Router.handle",
-            "package:revali_router/src/server/handle_requests.dart 23:20  handleRequests"
-        ]
-    }
+  "message": "An error occurred",
+  "__DEBUG__": {
+    "error": "Instance of 'MyException'",
+    "stackTrace": [
+      "routes/hello_controller.dart 13:5                            HelloController.hello",
+      ".revali/server/routes/__hello.dart 15:16                     hello.<fn>",
+      "package:revali_router/src/router/execute.dart 56:22          Execute.run.<fn>",
+      "dart:async                                                   runZonedGuarded",
+      "package:revali_router/src/router/execute.dart 54:11          Execute.run",
+      "package:revali_router/src/router/router.dart 221:12          Router._handle",
+      "package:revali_router/src/router/router.dart 190:22          Router.handle",
+      "package:revali_router/src/server/handle_requests.dart 23:20  handleRequests"
+    ]
+  }
 }
 ```
 
@@ -229,21 +231,21 @@ body: [
 
 ```json
 [
-    "An error occurred",
-    {
-        "__DEBUG__": {
-            "error": "Instance of 'MyException'",
-            "stackTrace": [
-                "routes/hello_controller.dart 13:5                            HelloController.hello",
-                ".revali/server/routes/__hello.dart 15:16                     hello.<fn>",
-                "package:revali_router/src/router/execute.dart 56:22          Execute.run.<fn>",
-                "dart:async                                                   runZonedGuarded",
-                "package:revali_router/src/router/execute.dart 54:11          Execute.run",
-                "package:revali_router/src/router/router.dart 159:22          Router.handle",
-                "package:revali_router/src/server/handle_requests.dart 23:20  handleRequests"
-            ]
-        }
+  "An error occurred",
+  {
+    "__DEBUG__": {
+      "error": "Instance of 'MyException'",
+      "stackTrace": [
+        "routes/hello_controller.dart 13:5                            HelloController.hello",
+        ".revali/server/routes/__hello.dart 15:16                     hello.<fn>",
+        "package:revali_router/src/router/execute.dart 56:22          Execute.run.<fn>",
+        "dart:async                                                   runZonedGuarded",
+        "package:revali_router/src/router/execute.dart 54:11          Execute.run",
+        "package:revali_router/src/router/router.dart 159:22          Router.handle",
+        "package:revali_router/src/server/handle_requests.dart 23:20  handleRequests"
+      ]
     }
+  }
 ]
 ```
 
