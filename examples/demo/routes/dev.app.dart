@@ -15,7 +15,7 @@ final class DevApp extends AppConfig {
   @override
   Future<void> configureDependencies(DI di) async {
     di
-      ..register(Repo.new)
-      ..register(Logger.new);
+      ..registerLazySingleton(Repo.new)
+      ..registerLazySingleton(Logger.new);
   }
 }

@@ -10,7 +10,7 @@ final class TestApp extends AppConfig {
 
   @override
   Future<void> configureDependencies(DI di) async {
-    di.register(Logger.new);
+    di.registerLazySingleton(Logger.new);
   }
 
   @override

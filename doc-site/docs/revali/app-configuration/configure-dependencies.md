@@ -17,7 +17,9 @@ class MyApp extends AppConfig {
 
   // highlight-start
   Future<void> configureDependencies(DI di) async {
-    di.register(MyService.new);
+    di.registerLazySingleton(MyService.new);
+    di.registerFactory(OtherServiceImpl.new);
+    di.registerSingleton(MySingleton());
   }
   // highlight-end
 }
@@ -31,7 +33,7 @@ If you need to register a dependency as an abstraction, you can provide a type p
 @App()
 class MyApp extends AppConfig {
   ...
-  
+
   Future<void> configureDependencies(DI di) async {
     // highlight-next-line
     di.register<MyService>(MyServiceImpl.new);
@@ -43,24 +45,30 @@ class MyApp extends AppConfig {
 
 The `DI` object is a dependency injection container that is passed to the `configureDependencies` method. You can use this object to register dependencies. The ["Server Construct"][server-construct] will use this object to resolve dependencies when creating Dart objects.
 
-Everything registered will eventually become a "singleton". Meaning that the dependency will be cached in memory and reused for the lifetime of the application.
-
 After the `configureDependencies` method is resolved, the `DI` object will be "closed" and no more dependencies can be registered.
 
-### `register` Method
+### `registerLazySingleton` Method
 
-This is used to "lazy load" a dependency with the `DI` object. It takes a factory function that returns an instance of the dependency. When a dependency is resolved, the factory function will be called to create an instance of the dependency and store it to be used later.
+This is used to "lazy load" a dependency with the `DI` object. It takes a factory function that returns an instance of the dependency. When a dependency is resolved, the same instance will be returned over and over again.
 
 ```dart
-void register<T>(T Function() factoryFunction);
+void registerLazySingleton<T>(T Function() factoryFunction);
 ```
 
-### `registerInstance` Method
+### `registerSingleton` Method
 
-This is used to register an instance of a dependency with the `DI` object. This is useful when you need to register a dependency that is already instantiated.
+This is used to register an instance of a dependency with the `DI` object. This is useful when you need to register a dependency that is already instantiated. Similar to the `registerLazySingleton` method, the same instance will be returned over and over again.
 
 ```dart
-void registerInstance<T>(T instance);
+void registerSingleton<T>(T instance);
+```
+
+### `registerFactory` Method
+
+This is used to register a factory function with the `DI` object. This is useful when you need to register a dependency needs to be re-created each time it is resolved.
+
+```dart
+void registerFactory<T>(T Function() factoryFunction);
 ```
 
 [server-construct]: ../../constructs/overview.md#server-constructs
