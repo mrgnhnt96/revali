@@ -5,6 +5,7 @@
 // ignore_for_file: directives_ordering
 
 export 'app_config/app_config.dart';
+export 'args/args.dart';
 export 'di/di.dart';
 export 'di/di_handler.dart';
 export 'di/di_impl.dart';
