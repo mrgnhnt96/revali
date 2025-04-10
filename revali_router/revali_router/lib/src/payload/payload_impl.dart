@@ -130,12 +130,12 @@ class PayloadImpl implements Payload {
     ];
 
     for (final attempt in options) {
-      final resolved = await attempt()?.catchError((_) {
-        return null;
-      });
-
-      if (resolved case final BodyData body) {
-        return body;
+      try {
+        if (await attempt() case final BodyData body) {
+          return body;
+        }
+      } catch (_) {
+        // ignore
       }
     }
 

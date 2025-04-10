@@ -258,6 +258,9 @@ class HandleWebSocket {
     final truncated = utf8.decode(bytes.sublist(0, min(125, bytes.length)));
 
     await webSocket.close(code, truncated);
+    if (_closed?.isCompleted case true) {
+      return;
+    }
 
     _closed?.complete(WebSocketResponse(code, body: truncated));
   }
