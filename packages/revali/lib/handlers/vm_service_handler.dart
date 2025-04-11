@@ -188,7 +188,7 @@ class VMServiceHandler {
       final root = '/${route.path}';
       logger.info(darkGray.wrap(root));
       for (final method in route.methods) {
-        logger.detail('method: ${method.path}');
+        logger.detail('method: ${method.name}');
 
         final fullPath = p.join(root, method.path ?? '');
         logger.info(
