@@ -47,11 +47,25 @@ String serverFile(
     (b) => b
       ..name = 'main'
       ..returns = refer('void')
+      ..requiredParameters.add(
+        Parameter(
+          (b) => b
+            ..name = 'args'
+            ..type = refer('List<String>'),
+        ),
+      )
       ..body = Block.of([
         if (server.context.mode.isDebug)
-          refer('hotReload').call([refer('createServer')]).statement
+          refer('hotReload').call([
+            Method(
+              (b) => b
+                ..lambda = true
+                ..body = refer('createServer')
+                    .call([literalNull, refer('args')]).code,
+            ).closure,
+          ]).statement
         else
-          refer('createServer').call([]).statement,
+          refer('createServer').call([literalNull, refer('args')]).statement,
       ]),
   );
 
@@ -66,15 +80,27 @@ String serverFile(
           ),
       )
       ..modifier = MethodModifier.async
-      ..optionalParameters.add(
+      ..optionalParameters.addAll([
         Parameter(
           (e) => e
             ..name = 'providedServer'
             ..named = false
             ..type = refer('${(HttpServer).name}?'),
         ),
-      )
+        Parameter(
+          (e) => e
+            ..name = 'rawArgs'
+            ..named = false
+            ..defaultTo = const Code('const []')
+            ..type = refer('List<String>'),
+        ),
+      ])
       ..body = Block.of([
+        declareFinal('args')
+            .assign(
+              refer((Args).name).newInstanceNamed('parse', [refer('rawArgs')]),
+            )
+            .statement,
         declareFinal('app', type: refer((AppConfig).name))
             .assign(createApp(app))
             .statement,

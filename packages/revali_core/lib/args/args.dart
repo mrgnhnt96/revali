@@ -91,14 +91,24 @@ class Args {
   bool wasParsed(String key) => _args[key] != null;
 
   T get<T>(String key) {
+    if (getOrNull<T>(key) case final T value) {
+      return value;
+    }
+
+    throw ArgumentError('Key $key was not parsed as $T');
+  }
+
+  T? getOrNull<T>(String key) {
     if (!wasParsed(key)) {
-      throw ArgumentError('Key $key was not parsed');
+      return null;
     }
 
     if (_args[key] case final T value) {
       return value;
     }
 
-    throw ArgumentError('Key $key was not parsed as $T');
+    return null;
   }
+
+  dynamic operator [](String key) => getOrNull<dynamic>(key);
 }

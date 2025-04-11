@@ -12,6 +12,9 @@ List<Code> createDependencyInjection(ServerServer server) {
       declareFinal('dependencyInjection')
           .assign(refer('app').property('initializeDI').call([]))
           .statement,
+      refer('dependencyInjection')
+          .property('registerSingleton')
+          .call([refer('args')]).statement,
       refer('app')
           .property('configureDependencies')
           .call([refer('dependencyInjection')])
@@ -33,6 +36,9 @@ List<Code> createDependencyInjection(ServerServer server) {
         declareFinal('dependencyInjection')
             .assign(refer('app').property('initializeDI').call([]))
             .statement,
+        refer('dependencyInjection')
+            .property('registerSingleton')
+            .call([refer('args')]).statement,
         refer('app')
             .property('configureDependencies')
             .call([refer('dependencyInjection')])

@@ -1,9 +1,18 @@
+// ignore_for_file: unnecessary_parenthesis
+
 import 'package:code_builder/code_builder.dart';
+import 'package:revali_core/revali_core.dart';
 import 'package:revali_server/converters/server_app.dart';
 import 'package:revali_server/makers/utils/get_params.dart';
+import 'package:revali_server/makers/utils/type_extensions.dart';
 
 Expression createApp(ServerApp app) {
-  final (:positioned, :named) = getParams(app.params);
+  final (:positioned, :named) = getParams(
+    app.params,
+    inferredParams: {
+      (Args).name: refer('args'),
+    },
+  );
 
   final expression = refer(app.className);
 

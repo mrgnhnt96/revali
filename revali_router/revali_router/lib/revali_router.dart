@@ -5,6 +5,7 @@
 // ignore_for_file: directives_ordering
 
 export 'package:revali_annotations/revali_annotations.dart';
+export 'package:revali_core/revali_core.dart' show Args;
 export 'package:revali_router_annotations/revali_router_annotations.dart';
 export 'package:revali_router_core/revali_router_core.dart'
     hide AppConfig, Data, LifecycleComponents;
