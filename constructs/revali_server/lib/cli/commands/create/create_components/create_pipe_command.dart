@@ -92,20 +92,29 @@ class CreatePipeCommand extends CreateAComponentCommand {
   }
 
   @override
-  String content() => '''
-import 'dart:async';
-
-import 'package:revali_router/revali_router.dart';
-
-// Learn more about Pipes at https://www.revali.dev/constructs/revali_server/core/pipes
-class ${_returnType.toPascalCase()}Pipe implements Pipe<$_inputType, ${_returnType.toPascalCase()}> {
-  const ${_returnType.toPascalCase()}Pipe();
-
+  String content() {
+    final pascal = _returnType.toPascalCase();
+    final returnType = switch (_returnType) {
+      'bool' => 'bool',
+      'int' => 'int',
+      'double' => 'double',
+      _ => pascal.toPascalCase(),
+    };
+    return '''
+  import 'dart:async';
+  
+  import 'package:revali_router/revali_router.dart';
+  
+  // Learn more about Pipes at https://www.revali.dev/constructs/revali_server/core/pipes
+  class ${pascal}Pipe implements Pipe<$_inputType, $returnType> {
+  const ${pascal}Pipe();
+  
   @override
-  FutureOr<${_returnType.toPascalCase()}> transform($_inputType value, PipeContext context) {
+  Future<$returnType> transform($_inputType value, PipeContext context) {
     // TODO: implement transform
     throw UnimplementedError();
   }
-}
-''';
+  }
+  ''';
+  }
 }
