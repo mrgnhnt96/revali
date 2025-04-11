@@ -38,7 +38,7 @@ class RevaliClient {
         return '';
       }
 
-      final buffer = StringBuffer()..write('?');
+      final buffer = StringBuffer();
 
       void write(String key, dynamic value) {
         if (value == null) return;
@@ -62,7 +62,11 @@ class RevaliClient {
         }
       }
 
-      return buffer.toString();
+      if (buffer.isEmpty) {
+        return '';
+      }
+
+      return '?$buffer';
     }
 
     final fullPath = switch ((path[0], baseUrl)) {
