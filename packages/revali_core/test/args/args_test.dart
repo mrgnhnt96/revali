@@ -41,6 +41,18 @@ void main() {
 
         expect(args.rest, ['rest1', 'rest2']);
       });
+
+      test('should remove double quotes from values', () {
+        final args = Args.parse(['--key="value"']);
+
+        expect(args.values, {'key': 'value'});
+      });
+
+      test('should remove single quotes from values', () {
+        final args = Args.parse(["--key='value'"]);
+
+        expect(args.values, {'key': 'value'});
+      });
     });
   });
 }

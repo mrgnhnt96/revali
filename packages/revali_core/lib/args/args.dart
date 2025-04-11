@@ -12,11 +12,19 @@ class Args {
     final mapped = <String, dynamic>{};
     final rest = <String>[];
 
-    void add(String rawKey, dynamic value) {
+    void add(String rawKey, dynamic rawValue) {
       final key = switch (rawKey.split('--')) {
         [final key] => key,
         [_, final key] => key,
         _ => throw ArgumentError('Invalid key: $rawKey'),
+      };
+
+      final value = switch (rawValue) {
+        final String string
+            when string.contains(RegExp(r'^".*"$')) ||
+                string.contains(RegExp(r"^'.*'$")) =>
+          string.substring(1, string.length - 1),
+        final value => value,
       };
 
       if (mapped[key] case null) {
