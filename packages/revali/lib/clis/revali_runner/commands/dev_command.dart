@@ -78,6 +78,17 @@ class DevCommand extends Command<int> with ConstructRunnerArgs {
   String get description => 'Starts the development server';
 
   @override
+  String get usage {
+    // return super.usage;
+    final [description, args] =
+        super.usage.split('\nUsage: revali dev [arguments]');
+    return '''
+$description
+Usage: revali dev [options] [-- <server arguments>]
+$args''';
+  }
+
+  @override
   Future<int> run() async {
     final argResults = this.argResults!;
     final recompile = argResults['recompile'] as bool;

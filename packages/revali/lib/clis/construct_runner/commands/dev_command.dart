@@ -134,6 +134,7 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
       canHotReload: !runInRelease,
       dartDefine: defines,
       dartVmServicePort: dartVmServicePort,
+      serverArgs: argResults?.rest ?? [],
     );
 
     await generator.clean();
