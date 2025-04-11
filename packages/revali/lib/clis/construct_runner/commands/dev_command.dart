@@ -53,7 +53,7 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
       ..addOption(
         'dart-vm-service-port',
         help: 'The port to use for the Dart VM service',
-        defaultsTo: '8079',
+        defaultsTo: '0',
       )
       ..addMultiOption(
         'dart-define',

@@ -31,7 +31,7 @@ class VMServiceHandler {
     required this.logger,
     required this.canHotReload,
     this.dartDefine = const DartDefine(),
-    this.dartVmServicePort = '8079',
+    this.dartVmServicePort = '0',
   }) : assert(
           dartVmServicePort.isNotEmpty,
           'dartVmServicePort cannot be empty',
