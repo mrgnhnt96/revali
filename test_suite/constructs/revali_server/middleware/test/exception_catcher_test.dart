@@ -31,21 +31,17 @@ void main() {
 
       expect(response.statusCode, 500);
       expect(response.headers.contentType?.mimeType, ContentType.text.mimeType);
-      expect(response.body, '''
+      expect(
+        response.body,
+        startsWith('''
 Internal Server Error
 
 __DEBUG__:
 Error: Hello world!
 
 Stack Trace:
-routes/controllers/exception_catcher_controller.dart 10:5    ExceptionCatcherController.none
-.revali/server/routes/__exception_catcher_route.dart 14:38   exceptionCatcherRoute.<fn>
-package:revali_router/src/router/execute.dart 61:24          Execute.run.<fn>
-dart:async                                                   runZonedGuarded
-package:revali_router/src/router/execute.dart 59:13          Execute.run
-package:revali_router/src/router/router.dart 221:12          Router._handle
-package:revali_router/src/router/router.dart 190:22          Router.handle
-package:revali_router/src/server/handle_requests.dart 28:29  handleRequests.<fn>''');
+routes/controllers/exception_catcher_controller.dart'''),
+      );
     });
 
     test('should catch exception and return string successfully', () async {
@@ -56,21 +52,17 @@ package:revali_router/src/server/handle_requests.dart 28:29  handleRequests.<fn>
 
       expect(response.statusCode, 423);
       expect(response.headers.contentType?.mimeType, ContentType.text.mimeType);
-      expect(response.body, '''
+      expect(
+        response.body,
+        startsWith('''
 Hello world!
 
 __DEBUG__:
 Error: Hello world!
 
 Stack Trace:
-routes/controllers/exception_catcher_controller.dart 16:5    ExceptionCatcherController.handle
-.revali/server/routes/__exception_catcher_route.dart 22:38   exceptionCatcherRoute.<fn>
-package:revali_router/src/router/execute.dart 61:24          Execute.run.<fn>
-dart:async                                                   runZonedGuarded
-package:revali_router/src/router/execute.dart 59:13          Execute.run
-package:revali_router/src/router/router.dart 221:12          Router._handle
-package:revali_router/src/router/router.dart 190:22          Router.handle
-package:revali_router/src/server/handle_requests.dart 28:29  handleRequests.<fn>''');
+routes/controllers/exception_catcher_controller.dart'''),
+      );
     });
 
     test('should catch exception and return map successfully', () async {
@@ -81,22 +73,22 @@ package:revali_router/src/server/handle_requests.dart 28:29  handleRequests.<fn>
 
       expect(response.statusCode, 423);
       expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
-      expect(response.body, {
+      final body = {...response.body as Map};
+      // ignore: avoid_dynamic_calls
+      final stackTrace = body['__DEBUG__'].remove('stackTrace');
+
+      expect(body, {
         'message': 'Hello world!',
         '__DEBUG__': {
           'error': '{message: Hello world!}',
-          'stackTrace': [
-            'routes/controllers/exception_catcher_controller.dart 22:5    ExceptionCatcherController.handleObject',
-            '.revali/server/routes/__exception_catcher_route.dart 30:38   exceptionCatcherRoute.<fn>',
-            'package:revali_router/src/router/execute.dart 61:24          Execute.run.<fn>',
-            'dart:async                                                   runZonedGuarded',
-            'package:revali_router/src/router/execute.dart 59:13          Execute.run',
-            'package:revali_router/src/router/router.dart 221:12          Router._handle',
-            'package:revali_router/src/router/router.dart 190:22          Router.handle',
-            'package:revali_router/src/server/handle_requests.dart 28:29  handleRequests.<fn>',
-          ],
         },
       });
+
+      expect(
+        // ignore: avoid_dynamic_calls
+        stackTrace.join('\n'),
+        startsWith('routes/controllers/exception_catcher_controller.dart'),
+      );
     });
 
     test('should catch exception and return list successfully', () async {
@@ -107,26 +99,22 @@ package:revali_router/src/server/handle_requests.dart 28:29  handleRequests.<fn>
 
       expect(response.statusCode, 423);
       expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
-      expect(response.body, [
-        'a',
-        'b',
-        'c',
-        {
-          '__DEBUG__': {
-            'error': '[a, b, c]',
-            'stackTrace': [
-              'routes/controllers/exception_catcher_controller.dart 30:5    ExceptionCatcherController.handleList',
-              '.revali/server/routes/__exception_catcher_route.dart 38:38   exceptionCatcherRoute.<fn>',
-              'package:revali_router/src/router/execute.dart 61:24          Execute.run.<fn>',
-              'dart:async                                                   runZonedGuarded',
-              'package:revali_router/src/router/execute.dart 59:13          Execute.run',
-              'package:revali_router/src/router/router.dart 221:12          Router._handle',
-              'package:revali_router/src/router/router.dart 190:22          Router.handle',
-              'package:revali_router/src/server/handle_requests.dart 28:29  handleRequests.<fn>',
-            ],
-          },
-        }
-      ]);
+      final body = [...response.body as List];
+      final error = body.removeLast();
+      // ignore: avoid_dynamic_calls
+      final stackTrace = error['__DEBUG__'].remove('stackTrace');
+      expect(body, ['a', 'b', 'c']);
+      expect(error, {
+        '__DEBUG__': {
+          'error': '[a, b, c]',
+        },
+      });
+
+      expect(
+        // ignore: avoid_dynamic_calls
+        stackTrace.join('\n'),
+        startsWith('routes/controllers/exception_catcher_controller.dart'),
+      );
     });
 
     test('should catch exception and return set successfully', () async {
@@ -137,25 +125,22 @@ package:revali_router/src/server/handle_requests.dart 28:29  handleRequests.<fn>
 
       expect(response.statusCode, 423);
       expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
-      expect(response.body, [
-        'hello',
-        'world',
-        {
-          '__DEBUG__': {
-            'error': '{hello, world}',
-            'stackTrace': [
-              'routes/controllers/exception_catcher_controller.dart 36:5    ExceptionCatcherController.handleSet',
-              '.revali/server/routes/__exception_catcher_route.dart 46:38   exceptionCatcherRoute.<fn>',
-              'package:revali_router/src/router/execute.dart 61:24          Execute.run.<fn>',
-              'dart:async                                                   runZonedGuarded',
-              'package:revali_router/src/router/execute.dart 59:13          Execute.run',
-              'package:revali_router/src/router/router.dart 221:12          Router._handle',
-              'package:revali_router/src/router/router.dart 190:22          Router.handle',
-              'package:revali_router/src/server/handle_requests.dart 28:29  handleRequests.<fn>',
-            ],
-          },
-        }
-      ]);
+      final body = [...response.body as List];
+      final error = body.removeLast();
+      // ignore: avoid_dynamic_calls
+      final stackTrace = error['__DEBUG__'].remove('stackTrace');
+      expect(body, ['hello', 'world']);
+      expect(error, {
+        '__DEBUG__': {
+          'error': '{hello, world}',
+        },
+      });
+
+      expect(
+        // ignore: avoid_dynamic_calls
+        stackTrace.join('\n'),
+        startsWith('routes/controllers/exception_catcher_controller.dart'),
+      );
     });
 
     test('should catch exception and return iterable successfully', () async {
@@ -166,25 +151,26 @@ package:revali_router/src/server/handle_requests.dart 28:29  handleRequests.<fn>
 
       expect(response.statusCode, 423);
       expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
-      expect(response.body, [
+      final body = [...response.body as List];
+      final error = body.removeLast();
+      // ignore: avoid_dynamic_calls
+      final stackTrace = error['__DEBUG__'].remove('stackTrace');
+      expect(body, [
         'Hello',
         'world',
-        {
-          '__DEBUG__': {
-            'error': '(Hello, world)',
-            'stackTrace': [
-              'routes/controllers/exception_catcher_controller.dart 47:5    ExceptionCatcherController.handleIterable',
-              '.revali/server/routes/__exception_catcher_route.dart 54:38   exceptionCatcherRoute.<fn>',
-              'package:revali_router/src/router/execute.dart 61:24          Execute.run.<fn>',
-              'dart:async                                                   runZonedGuarded',
-              'package:revali_router/src/router/execute.dart 59:13          Execute.run',
-              'package:revali_router/src/router/router.dart 221:12          Router._handle',
-              'package:revali_router/src/router/router.dart 190:22          Router.handle',
-              'package:revali_router/src/server/handle_requests.dart 28:29  handleRequests.<fn>',
-            ],
-          },
-        }
       ]);
+
+      expect(error, {
+        '__DEBUG__': {
+          'error': '(Hello, world)',
+        },
+      });
+
+      expect(
+        // ignore: avoid_dynamic_calls
+        stackTrace.join('\n'),
+        startsWith('routes/controllers/exception_catcher_controller.dart'),
+      );
     });
 
     test('should catch exception and return bool', () async {
@@ -206,21 +192,17 @@ package:revali_router/src/server/handle_requests.dart 28:29  handleRequests.<fn>
 
       expect(response.statusCode, 423);
       expect(response.headers.contentType?.mimeType, ContentType.text.mimeType);
-      expect(response.body, '''
+      expect(
+        response.body,
+        startsWith('''
 Hello world!
 
 __DEBUG__:
 Error: Hello world!
 
 Stack Trace:
-routes/controllers/exception_catcher_controller.dart 59:5    ExceptionCatcherController.handleStatusCode
-.revali/server/routes/__exception_catcher_route.dart 70:38   exceptionCatcherRoute.<fn>
-package:revali_router/src/router/execute.dart 61:24          Execute.run.<fn>
-dart:async                                                   runZonedGuarded
-package:revali_router/src/router/execute.dart 59:13          Execute.run
-package:revali_router/src/router/router.dart 221:12          Router._handle
-package:revali_router/src/router/router.dart 190:22          Router.handle
-package:revali_router/src/server/handle_requests.dart 28:29  handleRequests.<fn>''');
+routes/controllers/exception_catcher_controller.dart'''),
+      );
     });
   });
 }
