@@ -68,4 +68,5 @@ export 'src/web_socket/web_socket_close_impl.dart';
 export 'src/web_socket/web_socket_context_impl.dart';
 export 'src/web_socket/web_socket_handler.dart';
 export 'utils/coerce.dart';
+export 'utils/constants.dart';
 export 'utils/sequential_executor.dart';

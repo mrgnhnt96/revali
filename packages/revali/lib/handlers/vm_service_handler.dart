@@ -31,6 +31,7 @@ class VMServiceHandler {
     required this.logger,
     required this.canHotReload,
     required this.serverArgs,
+    required this.mode,
     this.dartDefine = const DartDefine(),
     this.dartVmServicePort = '0',
   }) : assert(
@@ -46,6 +47,7 @@ class VMServiceHandler {
   final bool canHotReload;
   final DartDefine dartDefine;
   final List<String> serverArgs;
+  final Mode mode;
 
   bool _isReloading = false;
   bool _errorInGeneration = false;
@@ -388,6 +390,9 @@ class VMServiceHandler {
         if (dartDefine.isNotEmpty) ...[
           for (final entry in dartDefine.entries) '-D$entry',
         ],
+        '-D__DEBUG__=${mode.isDebug}',
+        '-D__PROFILE__=${mode.isProfile}',
+        '-D__RELEASE__=${mode.isRelease}',
         serverFile,
         ...serverArgs,
       ],

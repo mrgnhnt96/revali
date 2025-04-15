@@ -93,17 +93,21 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
   Future<int>? run() async {
     final runInRelease = release && !debug;
 
-    final generator = switch ((debug, profile, release)) {
-      (_, true, _) => ConstructGenerator.profile,
-      (_, _, true) => ConstructGenerator.release,
-      _ => ConstructGenerator.debug,
-    }(
+    final mode = switch ((debug, profile, release)) {
+      (true, _, _) => Mode.debug,
+      (_, true, _) => Mode.profile,
+      (_, _, true) => Mode.release,
+      _ => Mode.debug,
+    };
+
+    final generator = ConstructGenerator(
       flavor: flavor,
       routesHandler: routesHandler,
       makers: constructs,
       logger: logger,
       fs: fs,
       rootPath: rootPath,
+      mode: mode,
     );
 
     final root = await generator.root;
@@ -135,6 +139,7 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
       dartDefine: defines,
       dartVmServicePort: dartVmServicePort,
       serverArgs: argResults?.rest ?? [],
+      mode: mode,
     );
 
     await generator.clean();
