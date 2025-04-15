@@ -1,4 +1,5 @@
 import 'package:analyzer/dart/element/element.dart';
+import 'package:revali_annotations/revali_annotations.dart';
 import 'package:revali_construct/models/meta_method.dart';
 import 'package:revali_construct/models/meta_param.dart';
 import 'package:revali_construct/types/annotation_getter.dart';
@@ -13,6 +14,7 @@ class MetaRoute {
     required this.constructorName,
     required this.annotationsFor,
     required this.element,
+    required this.type,
   });
 
   final String path;
@@ -23,4 +25,5 @@ class MetaRoute {
   final List<MetaParam> params;
   final AnnotationMapper annotationsFor;
   final ClassElement element;
+  final InstanceType type;
 }

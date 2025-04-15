@@ -5,7 +5,7 @@ sidebar_position: 0
 
 # Controllers
 
-Controllers are used to define groups of endpoints/requests. Controllers are long lived, meaning that they are created once, and will be reused through the lifetime of the application.
+Controllers are used to define groups of endpoints/requests.
 
 ## Create The Controller
 
@@ -102,11 +102,28 @@ class UsersController {
 ```
 
 :::important
-Since controllers are long lived, they do not have access to the request, so you cannot add any [binding annotations][binding] to any parameters.
+Controllers do not have access to the request, so you cannot add any [binding annotations][binding] to any parameters.
 :::
 
 :::tip
 Learn how to [configure dependencies][configure-dependencies].
+:::
+
+## Lifespan
+
+By default, controllers are created as a singleton, meaning that they will be reused through the lifetime of the application.
+
+If you need to create a new instance of the controller on each request, you can supply the `type` argument to the `@Controller` annotation.
+
+```dart title="routes/users/users_controller.dart"
+@Controller('users', type: InstanceType.factory)
+class UsersController {}
+```
+
+Every time a request comes in, a new instance of the controller will be created.
+
+:::note
+For [WebSocket][web-socket] routes, the controller will be created as factory **for the request**. Each incoming message will re-use the same instance.
 :::
 
 [methods]: ./methods.md
@@ -114,3 +131,4 @@ Learn how to [configure dependencies][configure-dependencies].
 [binding]: ./binding.md
 [instance-variables]: https://dart.dev/language/constructors#instance-variable-initialization
 [create-cli]: ../getting-started/cli.md#create
+[web-socket]: ../response/websockets.md

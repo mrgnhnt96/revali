@@ -1,14 +1,17 @@
+// ignore_for_file: use_late_for_private_fields_and_variables
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:revali/ast/checkers/checkers.dart';
 import 'package:revali/ast/visitors/method_visitor.dart';
+import 'package:revali_annotations/revali_annotations.dart';
 import 'package:revali_construct/revali_construct.dart';
 
 class ControllerVisitor extends RecursiveElementVisitor<void> {
   ClassElement? _controller;
   String? _path;
   ConstructorElement? _constructor;
-
+  InstanceType? _type;
   final _params = <MetaParam>[];
 
   final _methods = <MetaMethod>[];
@@ -22,6 +25,7 @@ class ControllerVisitor extends RecursiveElementVisitor<void> {
     ConstructorElement constructor,
     List<MetaParam> params,
     List<MetaMethod> methods,
+    InstanceType type,
   }) get values {
     return (
       element: _controller!,
@@ -29,6 +33,7 @@ class ControllerVisitor extends RecursiveElementVisitor<void> {
       constructor: _constructor!,
       params: _params,
       methods: _methods,
+      type: _type!,
     );
   }
 
@@ -66,7 +71,7 @@ class ControllerVisitor extends RecursiveElementVisitor<void> {
 
     final controller = ControllerAnnotation.fromAnnotation(annotation.first);
     _path = controller.path;
-
+    _type = controller.type;
     final methodVisitor = MethodVisitor();
     element.accept(methodVisitor);
 

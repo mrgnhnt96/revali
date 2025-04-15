@@ -21,7 +21,9 @@ PartFile routeFileMaker(
         Parameter(
           (b) => b
             ..name = route.className.toCamelCase()
-            ..type = refer(route.className),
+            ..type = FunctionType(
+              (b) => b..returnType = refer(route.className),
+            ),
         ),
         Parameter(
           (b) => b
@@ -36,7 +38,7 @@ PartFile routeFileMaker(
             ], {
               ...createRouteArgs(
                 route: route,
-                classVarName: route.classVarName,
+                classVarName: route.variableName,
               ),
               if (route.routes.isNotEmpty)
                 'routes': literalList([

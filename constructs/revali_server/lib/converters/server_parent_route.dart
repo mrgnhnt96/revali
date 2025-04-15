@@ -1,6 +1,8 @@
 import 'package:change_case/change_case.dart';
+import 'package:revali_annotations/revali_annotations.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_server/converters/server_child_route.dart';
+import 'package:revali_server/converters/server_class.dart';
 import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_param.dart';
 import 'package:revali_server/converters/server_pipe.dart';
@@ -9,7 +11,7 @@ import 'package:revali_server/converters/server_route.dart';
 import 'package:revali_server/converters/server_route_annotations.dart';
 import 'package:revali_server/utils/extract_import.dart';
 
-class ServerParentRoute with ExtractImport implements ServerRoute {
+class ServerParentRoute with ExtractImport implements ServerRoute, ServerClass {
   ServerParentRoute({
     required this.className,
     required this.importPath,
@@ -18,6 +20,7 @@ class ServerParentRoute with ExtractImport implements ServerRoute {
     required this.params,
     required this.annotations,
     required this.index,
+    required this.type,
   });
 
   factory ServerParentRoute.fromMeta(MetaRoute parentRoute, int index) {
@@ -30,10 +33,13 @@ class ServerParentRoute with ExtractImport implements ServerRoute {
       routePath: parentRoute.path,
       annotations: ServerRouteAnnotations.fromParent(parentRoute),
       index: index,
+      type: parentRoute.type,
     );
   }
 
+  @override
   final String className;
+  @override
   final ServerImports importPath;
   final String routePath;
   @override
@@ -41,6 +47,7 @@ class ServerParentRoute with ExtractImport implements ServerRoute {
   final List<ServerChildRoute> routes;
   @override
   final ServerRouteAnnotations annotations;
+  final InstanceType type;
 
   final int index;
 
@@ -57,7 +64,8 @@ class ServerParentRoute with ExtractImport implements ServerRoute {
     return name;
   }
 
-  String get classVarName {
+  @override
+  String get variableName {
     final name = className.toNoCase().toCamelCase();
 
     return name;

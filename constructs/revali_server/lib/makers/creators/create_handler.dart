@@ -18,6 +18,7 @@ Expression createHandler({
   required String classVarName,
   required MetaWebSocketMethod? webSocket,
   bool yieldData = false,
+  bool invokeController = true,
   List<Code> additionalHandlerCode = const [],
   Map<String, Expression> inferredParams = const {},
 }) {
@@ -36,8 +37,12 @@ Expression createHandler({
     route.params,
     inferredParams: inferredParams,
   );
-  handler =
-      refer(classVarName).property(route.handlerName).call(positioned, named);
+  handler = refer(classVarName);
+  if (invokeController) {
+    handler = handler.call([]);
+  }
+
+  handler = handler.property(route.handlerName).call(positioned, named);
 
   if (returnType.isFuture) {
     handler = handler.awaited;

@@ -38,7 +38,7 @@ Spec createChildRoute(ServerChildRoute route, ServerParentRoute parent) {
     ...createRouteArgs(
       route: route,
       returnType: route.returnType,
-      classVarName: parent.classVarName,
+      classVarName: parent.variableName,
       method: (route.isWebSocket || route.isSse) ? null : route.method,
       webSocket: route.webSocket,
       additionalHandlerCode: [

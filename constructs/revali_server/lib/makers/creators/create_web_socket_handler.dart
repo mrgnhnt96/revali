@@ -20,7 +20,8 @@ Expression createWebSocketHandler(
   final handler = createHandler(
     route: route,
     returnType: returnType,
-    classVarName: classVarName,
+    classVarName: 'controller',
+    invokeController: false,
     webSocket: null,
     yieldData: true,
     inferredParams: {
@@ -34,6 +35,10 @@ Expression createWebSocketHandler(
       ..requiredParameters.add(Parameter((b) => b..name = 'context'))
       ..modifier = MethodModifier.async
       ..body = Block.of([
+        declareFinal('controller')
+            .assign(refer(classVarName).call([]))
+            .statement,
+        const Code(''),
         refer((WebSocketHandler).name)
             .newInstance(
               [],

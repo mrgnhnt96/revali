@@ -77,7 +77,7 @@ class ServerClass with ExtractImport {
   String get variableName => className.toCamelCase();
 
   @override
-  List<ExtractImport> get extractors => [...params];
+  List<ExtractImport?> get extractors => [...params];
 
   @override
   List<ServerImports?> get imports => [importPath];
