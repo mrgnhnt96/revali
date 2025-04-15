@@ -1,0 +1,5 @@
+constructs:
+  - name: revali_client
+    options:
+      package_name: can_compile_aot
+      server_name: CanCompileAotServer

@@ -1,0 +1,24 @@
+name: can_compile_aot_test
+publish_to: none
+
+environment:
+  sdk: ">=3.6.0 <4.0.0"
+
+resolution: workspace
+
+dependencies:
+  equatable: ^2.0.7
+  revali_client:
+  can_compile_aot:
+    path: .revali/revali_client
+  revali_router:
+
+dev_dependencies:
+  file: ^7.0.1
+  revali:
+  revali_client_gen:
+  revali_client_test:
+  revali_server:
+  revali_test:
+  test: ^1.25.15
+  yaml: ^3.1.3
