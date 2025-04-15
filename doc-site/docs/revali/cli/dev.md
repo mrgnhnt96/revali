@@ -34,6 +34,10 @@ To run the application in `Debug` mode, use the `--debug` flag.
 dart run revali dev --debug
 ```
 
+:::tip
+Use `kDebugMode` to check if the application is running in `Debug` mode during runtime.
+:::
+
 ### Release Mode
 
 In `Release` mode, the Dart VM service will not be started. In this mode constructs can generate code that is optimized for performance.
@@ -47,7 +51,7 @@ dart run revali dev --release
 Constructs can generate code that is optimized for performance in `Release` mode.
 
 ::::tip
-Use debug mode during development.
+Use `kReleaseMode` to check if the application is running in `Release` mode during runtime.
 :::info
 This is the default mode for `revali build`.
 :::
@@ -62,6 +66,10 @@ To run the application in `Profile` mode, use the `--profile` flag.
 ```bash
 dart run revali dev --profile
 ```
+
+:::tip
+Use `kProfileMode` to check if the application is running in `Profile` mode during runtime.
+:::
 
 ## Arguments
 
