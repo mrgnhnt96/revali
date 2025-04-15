@@ -119,4 +119,16 @@ class Args {
   }
 
   dynamic operator [](String key) => getOrNull<dynamic>(key);
+
+  @override
+  String toString() {
+    final sb = StringBuffer();
+    for (final entry in _args.entries) {
+      sb.write('${entry.key}: ${entry.value}');
+    }
+    if (_rest.isNotEmpty) {
+      sb.write('rest: ${_rest.join(' ')}');
+    }
+    return 'Args($sb)';
+  }
 }
