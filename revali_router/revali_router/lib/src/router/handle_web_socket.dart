@@ -234,6 +234,11 @@ class HandleWebSocket {
             complete();
             return (closeCode, closeReason ?? '');
           }
+          // 1 is open
+          if (webSocket.readyState != 1) {
+            complete();
+            return (1000, 'Normal closure');
+          }
           webSocket.add(chunk);
         }
       } catch (e) {
