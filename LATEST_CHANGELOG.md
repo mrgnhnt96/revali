@@ -6,55 +6,53 @@
 
 # revali
 
-## 1.4.1
+## 1.4.2
 
 ### Enhancements
 
-- Print `GET (SSE)` when using `@SSE` methods
+- Add support for extracting `InstanceType` from `@Controller`
+- Get next available port for `dart-vm-service-port` instead of using a set port
+- Support `kDebugMode`, `kProfileMode`, and `kReleaseMode`
+  - Corresponds to `--debug`, `--profile`, and `--release` flags
+
+### Features
+
+- Support passing arguments to `dart run revali dev`
+  - Example: `dart run revali dev -- --some-flag`
 
 # revali_annotations
 
-## 1.3.0
+## 1.4.0
 
 ### Features
 
-- Create `Inject` class to resolve types at runtime and compile-time
-
-### Enhancements
-
-- Add new constructor `WebSocket.mode`
+- Create `InstanceType` enum to specify the type of instance for a `Controller`
 
 # revali_construct
 
-## 1.5.0
+## 1.6.0
 
 ### Features
 
-- Create `MetaToJson` class to provide details about `toJson` methods
+- Add `InstanceType type` parameter to `@Controller` annotation
 
 # revali_core
 
-## 1.3.0
+## 1.4.0
 
 ### Features
 
-- Add `registerLazySingleton` and `registerFactory` methods to `DI` interface
-  - This is to support `factories`, so that dependencies can be re-created each time they are resolved
-
-### Future BREAKING Changes
-
-- `DI.register` will be removed in favor of `registerLazySingleton` and `registerFactory`
-- `DI.registerInstance` will be removed in favor of `registerSingleton`
+- Create `Args` class to parse arguments from `dart run revali dev`
 
 <!-- REVALI ROUTER -->
 
 # revali_router
 
-## 2.1.1
+## 2.2.0
 
-### Fixes
+### Features
 
-- Issue where resolving the payload would hang on a web socket message
+- Create `kDebugMode`, `kProfileMode`, and `kReleaseMode` constants
 
 # revali_router_annotations
 
@@ -66,35 +64,54 @@
 
 # revali_router_core
 
-## 1.8.0
-
-### Features
-
-- Add `MutableBody` getter to `MutableRequest`
+## 1.8.1
 
 ### Enhancements
 
-- Create `AsyncWebSocketSender` interface to send messages asynchronously
+- Wrap clean up functions in `try/catch` to avoid unhandled exceptions
 
 <!-- CONSTRUCTS -->
 
 # revali_server
 
-## 1.12.1
+## 1.13.0
+
+### Features
+
+- Support changing the `Controller` instance type from `singleton` to `factory
+
+```dart
+@Controller('', type: InstanceType.factory)
+class MyController {}
+```
 
 ### Enhancements
 
-- Handle `dynamic` types when accessing the data from the request
+- Improve type formatting when creating `Pipe` files using `revali_server create pipe` cli
+
+### Breaking (Lil' one tho)
+
+- Change return type from `FutureOr` to `Future` for `Pipe.transform`
 
 <!-- REVALI CLIENT -->
 
 # revali_client
 
-## 1.1.0
+## 1.2.0
 
 ### Features
 
-- Add `ExcludeFromClient` annotation to exclude controllers/methods from being generated in the client
+- Add `server_name` option to `revali.yaml#constructs.revali_client` to set the name of the server class
+
+### Enhancements
+
+- Add check for empty query parameters before appending `?` to the URL
+- Remove `final` keyword from generated server class
+
+### Fixes
+
+- Issue where `@ExcludeFromClient` was being ignored for interface methods
+- Issue where empty controller paths would result in `//<path>` being generated in the client
 
 # revali_client_gen
 

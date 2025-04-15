@@ -1,5 +1,24 @@
 # CHANGELOG
 
+## 1.13.0 | 04.15.25
+
+### Features
+
+- Support changing the `Controller` instance type from `singleton` to `factory
+
+```dart
+@Controller('', type: InstanceType.factory)
+class MyController {}
+```
+
+### Enhancements
+
+- Improve type formatting when creating `Pipe` files using `revali_server create pipe` cli
+
+### Breaking (Lil' one tho)
+
+- Change return type from `FutureOr` to `Future` for `Pipe.transform`
+
 ## 1.12.1 | 04.09.25
 
 ### Enhancements

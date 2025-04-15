@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.6.0 | 04.15.25
+
+### Features
+
+- Add `InstanceType type` parameter to `@Controller` annotation
+
 ## 1.5.0 | 04.07.25
 
 ### Features

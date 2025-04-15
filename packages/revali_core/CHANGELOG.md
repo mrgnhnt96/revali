@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.4.0 | 04.15.25
+
+### Features
+
+- Create `Args` class to parse arguments from `dart run revali dev`
+
 ## 1.3.0 | 04.09.25
 
 ### Features

@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.2.0 | 04.15.25
+
+### Features
+
+- Create `kDebugMode`, `kProfileMode`, and `kReleaseMode` constants
+
 ## 2.1.1 | 04.09.25
 
 ### Fixes

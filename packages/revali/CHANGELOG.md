@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## 1.4.2 | 04.15.25
+
+### Enhancements
+
+- Add support for extracting `InstanceType` from `@Controller`
+- Get next available port for `dart-vm-service-port` instead of using a set port
+- Support `kDebugMode`, `kProfileMode`, and `kReleaseMode`
+  - Corresponds to `--debug`, `--profile`, and `--release` flags
+
+### Features
+
+- Support passing arguments to `dart run revali dev`
+  - Example: `dart run revali dev -- --some-flag`
+
 ## 1.4.1 | 04.07.25
 
 ### Enhancements

@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.4.0 | 04.15.25
+
+### Features
+
+- Create `InstanceType` enum to specify the type of instance for a `Controller`
+
 ## 1.3.0 | 03.24.25
 
 ### Features

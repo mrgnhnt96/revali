@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.8.1 | 04.15.25
+
+### Enhancements
+
+- Wrap clean up functions in `try/catch` to avoid unhandled exceptions
+
 ## 1.8.0 | 04.07.25
 
 ### Features
