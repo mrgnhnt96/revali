@@ -12,7 +12,11 @@ class CleanUpImpl implements CleanUp {
 
   void clean() {
     for (final fn in _fns) {
-      fn();
+      try {
+        fn();
+      } catch (_) {
+        // swallow the error
+      }
     }
   }
 
