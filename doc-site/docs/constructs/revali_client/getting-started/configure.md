@@ -32,6 +32,17 @@ constructs:
       package_name: my_client
 ```
 
+### `server_name`
+
+The class name of the server can be set by setting the `server_name` option. The default value is `Server`.
+
+```yaml title="revali.yaml"
+constructs:
+  - name: revali_client
+    options:
+      server_name: BackendClient # Should follow dart naming conventions
+```
+
 ### `integrations`
 
 The `integrations` option is used to enable or disable integrations. The integrations are:

@@ -20,8 +20,7 @@ Spec createServerContent(ClientServer client, Settings settings) {
 
   return Class(
     (b) => b
-      ..modifier = ClassModifier.final$
-      ..name = 'Server'
+      ..name = settings.serverName
       ..constructors.add(
         Constructor(
           (b) => b
@@ -157,6 +156,9 @@ Spec createServerContent(ClientServer client, Settings settings) {
                 ),
               )
               ..body = Block.of([
+                refer('getIt').property('registerSingleton').call([
+                  refer('this'),
+                ]).statement,
                 for (final controller in client.controllers)
                   refer('getIt').property('registerLazySingleton').call([
                     Method(
