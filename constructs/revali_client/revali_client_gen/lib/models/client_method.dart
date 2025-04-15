@@ -159,8 +159,11 @@ class ClientMethod with ExtractImport {
         ...parameters,
       ];
 
-  String get fullPath =>
-      ['', parentPath, if (path case final String p) p].join('/');
+  String get fullPath => [
+        '',
+        if (parentPath.isNotEmpty) parentPath,
+        if (path case final String p) p,
+      ].join('/');
 
   String get resolvedPath {
     final allParts = paramsFor(fullPath);

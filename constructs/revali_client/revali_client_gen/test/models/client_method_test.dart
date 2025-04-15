@@ -63,6 +63,12 @@ void main() {
     });
 
     group('#fullPath', () {
+      test('should ignore the parent when parent is empty', () {
+        final m = method(parentPath: '', path: 'path');
+
+        expect(m.fullPath, '/path');
+      });
+
       test('should return the path with a starting slash', () {
         final m = method(parentPath: 'parentPath', path: 'path');
 
@@ -78,6 +84,12 @@ void main() {
     });
 
     group('#resolvedPath', () {
+      test('should ignore the parent when parent is empty', () {
+        final m = method(parentPath: '', path: 'path');
+
+        expect(m.resolvedPath, '/path');
+      });
+
       test('should return the path with a starting slash', () {
         final m = method(parentPath: 'parentPath', path: 'path');
 
