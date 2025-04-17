@@ -56,12 +56,29 @@ List<Code> createStreamCall(ClientMethod method) {
           ]),
         false => body
       }
+          .ignoreError
           .yieldedStar
           .statement
     else ...[
       declareFinal('stream').assign(body).statement,
       const Code(''),
-      mapOver(refer('stream')).yieldedStar.statement,
+      mapOver(refer('stream')).ignoreError.yieldedStar.statement,
     ],
   ];
+}
+
+extension _Expression on Expression {
+  Expression get ignoreError {
+    return property('handleError').call(
+      [
+        Method(
+          (b) => b
+            ..requiredParameters.add(
+              Parameter((b) => b..name = '_'),
+            )
+            ..body = const Code('// do nothing\n'),
+        ).closure,
+      ],
+    );
+  }
 }

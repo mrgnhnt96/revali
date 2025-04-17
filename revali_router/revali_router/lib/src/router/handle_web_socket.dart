@@ -239,7 +239,11 @@ class HandleWebSocket {
             complete();
             return (1000, 'Normal closure');
           }
-          webSocket.add(chunk);
+          try {
+            webSocket.add(chunk);
+          } catch (e) {
+            break;
+          }
         }
       } catch (e) {
         complete();
