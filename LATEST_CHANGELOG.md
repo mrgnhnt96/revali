@@ -48,11 +48,11 @@
 
 # revali_router
 
-## 2.2.0
+## 2.2.1
 
-### Features
+### Enhancements
 
-- Create `kDebugMode`, `kProfileMode`, and `kReleaseMode` constants
+- Catch errors when sending data over the web socket
 
 # revali_router_annotations
 
@@ -115,18 +115,8 @@ class MyController {}
 
 # revali_client_gen
 
-## 1.2.0
-
-### Features
-
-- Support `ExcludeFromClient` annotation to exclude controllers/methods from being generated in the client
-- Support explicit types for `toJson` return types
-- Support explicit types for `fromJson` parameters
+## 1.2.1
 
 ### Fixes
 
-- Issue where multiple path parameters would malform the generated endpoint path
-
-### Enhancements
-
-- Mark parameters as optional if there is a default value or if the type is nullable
+- Swallow errors when connection is lost

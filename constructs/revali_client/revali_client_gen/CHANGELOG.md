@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.2.1 | 04.16.25
+
+### Fixes
+
+- Swallow errors when connection is lost
+
 ## 1.2.0 | 04.07.25
 
 ### Features

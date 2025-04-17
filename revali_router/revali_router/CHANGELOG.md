@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.2.1 | 04.16.25
+
+### Enhancements
+
+- Catch errors when sending data over the web socket
+
 ## 2.2.0 | 04.15.25
 
 ### Features
