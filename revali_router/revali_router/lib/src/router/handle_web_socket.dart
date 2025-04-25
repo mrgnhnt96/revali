@@ -62,11 +62,9 @@ class HandleWebSocket {
     }
 
     if (!mode.canReceive) {
-      await close(1000, 'Normal closure');
-
-      return WebSocketResponse(
+      return await close(
         1000,
-        body: 'Normal closure, WebSocket is not open for receiving messages',
+        'Normal closure, WebSocket is not open for receiving messages',
       );
     }
 
@@ -74,17 +72,11 @@ class HandleWebSocket {
       return response.toWebSocketResponse();
     }
 
-    await close(1000, 'Normal closure');
-
-    return WebSocketResponse(1000, body: 'Normal closure');
+    return await close(1000, 'Normal closure');
   }
 
   Future<WebSocketResponse?> listenToMessages() async {
-    final HelperMixin(
-      :debugResponses,
-      :debugErrorResponse,
-      :response,
-    ) = helper;
+    final HelperMixin(:debugResponses, :debugErrorResponse, :response) = helper;
 
     if (await _closed?.future case final response?) {
       return response;
@@ -96,10 +88,10 @@ class HandleWebSocket {
           ? 'Message handler not implemented'
           : 'Internal server error';
 
-      await close(1011, reason);
+      final response = await close(1011, reason);
 
       return debugErrorResponse(
-        WebSocketResponse(1011),
+        response,
         error: 'Message handler not implemented',
         stackTrace: StackTrace.current,
       ).toWebSocketResponse();
@@ -121,16 +113,10 @@ class HandleWebSocket {
   }
 
   Future<WebSocketResponse?> resolvePayload(dynamic event) async {
-    final HelperMixin(
-      :debugResponses,
-      :debugErrorResponse,
-    ) = helper;
+    final HelperMixin(:debugResponses, :debugErrorResponse) = helper;
 
     try {
-      final payload = PayloadImpl(
-        event,
-        encoding: wsRequest.headers.encoding,
-      );
+      final payload = PayloadImpl(event, encoding: wsRequest.headers.encoding);
 
       final resolved = await payload.coerce(wsRequest.headers);
 
@@ -147,28 +133,22 @@ class HandleWebSocket {
       final reason =
           debugResponses ? e.toString() : 'Failed to resolve payload';
 
-      await close(response.webSocketErrorCode, reason);
-
-      return response.toWebSocketResponse();
+      return await close(response.webSocketErrorCode, reason);
     }
   }
 
   Future<WebSocketResponse?> upgradeRequest() async {
-    final HelperMixin(
-      :debugErrorResponse,
-      :request,
-      :response,
-    ) = helper;
+    final HelperMixin(:debugErrorResponse, :request, :response) = helper;
 
     try {
       await request.resolvePayload();
       _webSocket = await request.upgradeToWebSocket(ping: ping);
-      _wsRequest = MutableWebSocketRequestImpl.fromRequest(
-        request,
-        (code, reason) async {
-          await close(code, reason);
-        },
-      );
+      _wsRequest = MutableWebSocketRequestImpl.fromRequest(request, (
+        code,
+        reason,
+      ) async {
+        await close(code, reason);
+      });
       helper
         ..webSocketRequest = wsRequest
         ..webSocketSender = (data) async {
@@ -199,12 +179,7 @@ class HandleWebSocket {
     }
 
     Future<(int, String)?> send() async {
-      final HelperMixin(
-        :response,
-        run: RunMixin(
-          :interceptors,
-        )
-      ) = helper;
+      final HelperMixin(:response, run: RunMixin(:interceptors)) = helper;
 
       sending = Completer<void>();
       void complete() {
@@ -230,7 +205,10 @@ class HandleWebSocket {
       try {
         await for (final chunk in stream) {
           if (webSocket
-              case WebSocket(:final int closeCode, :final closeReason)) {
+              case WebSocket(
+                :final int closeCode,
+                :final closeReason,
+              )) {
             complete();
             return (closeCode, closeReason ?? '');
           }
@@ -258,7 +236,7 @@ class HandleWebSocket {
     return await _sequentialExecutor.add(send);
   }
 
-  Future<void> close(int code, String reason) async {
+  Future<WebSocketResponse> close(int code, String reason) async {
     _closed = Completer<WebSocketResponse>();
     await sending?.future;
 
@@ -268,23 +246,26 @@ class HandleWebSocket {
 
     await webSocket.close(code, truncated);
     if (_closed?.isCompleted case true) {
-      return;
+      if (await _closed?.future case final response?) {
+        return response;
+      } else {
+        throw Exception('Expected to have a websocket response');
+      }
     }
 
-    _closed?.complete(WebSocketResponse(code, body: truncated));
+    final response = WebSocketResponse(code, body: truncated);
+
+    _closed?.complete(response);
+
+    return response;
   }
 
   Future<WebSocketResponse?> runHandler(WebSocketCallBack stream) async {
     final HelperMixin(
-      run: RunMixin(
-        :interceptors,
-        :catchers,
-      ),
+      run: RunMixin(:interceptors, :catchers),
       :debugErrorResponse,
       :debugResponses,
-      context: ContextMixin(
-        :webSocket,
-      )
+      context: ContextMixin(:webSocket),
     ) = helper;
 
     try {
@@ -302,15 +283,13 @@ class HandleWebSocket {
 
       return null;
     } on CloseWebSocketException catch (e, stackTrace) {
-      final response = debugErrorResponse(
-        WebSocketResponse(e.code, body: e.reason),
+      final response = await close(e.code, e.reason);
+
+      return debugErrorResponse(
+        response,
         stackTrace: stackTrace,
         error: e,
-      );
-
-      await close(e.code, e.reason);
-
-      return response.toWebSocketResponse();
+      ).toWebSocketResponse();
     } catch (e, stackTrace) {
       final response = await catchers(
         e,
@@ -341,9 +320,7 @@ extension _ResponseX on ReadOnlyResponse {
     return WebSocketResponse(
       statusCode,
       body: body,
-      headers: headers.map(
-        (key, value) => MapEntry(key, value.join(',')),
-      ),
+      headers: headers.map((key, value) => MapEntry(key, value.join(','))),
     );
   }
 }
