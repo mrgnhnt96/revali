@@ -104,9 +104,14 @@ class HandleWebSocket {
         return response.toWebSocketResponse();
       }
 
-      if (await runHandler(onMessage) case final WebSocketResponse response) {
-        return response;
-      }
+      runHandler(onMessage).then((response) {
+        if (response != null) {
+          return response.toWebSocketResponse();
+        }
+      }).catchError((_) {
+        // ignore
+        return null;
+      }).ignore();
     }
 
     return null;
