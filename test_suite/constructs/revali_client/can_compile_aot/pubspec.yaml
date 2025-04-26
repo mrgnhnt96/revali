@@ -7,10 +7,10 @@ environment:
 resolution: workspace
 
 dependencies:
-  equatable: ^2.0.7
-  revali_client:
   can_compile_aot:
     path: .revali/revali_client
+  equatable: ^2.0.7
+  revali_client:
   revali_router:
 
 dev_dependencies:

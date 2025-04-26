@@ -353,7 +353,7 @@ ${result.stderr}''');
               ..name = 'args'
               ..type = TypeReference(
                 (b) => b
-                  ..symbol = ('List')
+                  ..symbol = 'List'
                   ..types.add(refer('String')),
               ),
           ),

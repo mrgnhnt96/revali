@@ -433,7 +433,7 @@ packages:
       path: "../../revali_router/revali_router"
       relative: true
     source: path
-    version: "2.2.0"
+    version: "2.2.1"
   revali_router_annotations:
     dependency: "direct main"
     description:
