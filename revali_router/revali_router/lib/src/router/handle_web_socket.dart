@@ -242,6 +242,10 @@ class HandleWebSocket {
   }
 
   Future<WebSocketResponse> close(int code, String reason) async {
+    if (_closed case final closed?) {
+      return closed.future;
+    }
+
     _closed = Completer<WebSocketResponse>();
     await sending?.future;
 
