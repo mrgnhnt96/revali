@@ -249,9 +249,19 @@ class HandleWebSocket {
     _closed = Completer<WebSocketResponse>();
     await sending?.future;
 
-    // up to 125 bytes
-    final bytes = utf8.encode(reason);
-    final truncated = utf8.decode(bytes.sublist(0, min(125, bytes.length)));
+    final reasonBytes = utf8.encode(reason);
+
+    // Max payload for close frame is 125 bytes total
+    // (2 bytes for code + 123 for reason)
+    final truncatedReasonBytes =
+        reasonBytes.sublist(0, min(123, reasonBytes.length));
+
+    final payload = BytesBuilder()
+      ..addByte(code >> 8) // high byte
+      ..addByte(code & 0xFF) // low byte
+      ..add(truncatedReasonBytes);
+
+    final truncated = utf8.decode(truncatedReasonBytes);
 
     await webSocket.close(code, truncated);
     if (_closed?.isCompleted case true) {
@@ -262,7 +272,7 @@ class HandleWebSocket {
       }
     }
 
-    final response = WebSocketResponse(code, body: truncated);
+    final response = WebSocketResponse(code, body: payload.toBytes());
 
     _closed?.complete(response);
 
