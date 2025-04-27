@@ -1,6 +1,9 @@
+// ignore_for_file: unnecessary_parenthesis
+
 import 'package:revali_server/converters/server_from_json.dart';
 import 'package:revali_server/converters/server_record_prop.dart';
 import 'package:revali_server/converters/server_type.dart';
+import 'package:revali_server/makers/utils/type_extensions.dart';
 
 String getRawType(ServerType type) {
   String data(ServerType type) {
@@ -43,6 +46,10 @@ String getRawType(ServerType type) {
     final typeArgument = type.typeArguments.first;
 
     return getRawType(typeArgument);
+  }
+
+  if (type.isEnum) {
+    return (String).name;
   }
 
   return data(type);

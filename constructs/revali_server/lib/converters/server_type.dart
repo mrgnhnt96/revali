@@ -33,6 +33,7 @@ class ServerType with ExtractImport {
     List<ServerType> typeArguments = const [],
     this.recordProps,
     this.isRecord = false,
+    this.isEnum = false,
   })  : _typeArguments = List.unmodifiable(typeArguments),
         _isVoid = isVoid;
 
@@ -55,6 +56,7 @@ class ServerType with ExtractImport {
     required List<ServerType> typeArguments,
     required this.recordProps,
     required this.isRecord,
+    required this.isEnum,
   })  : _typeArguments = List.unmodifiable(typeArguments),
         _isVoid = isVoid;
 
@@ -90,6 +92,7 @@ class ServerType with ExtractImport {
       typeArguments: type.typeArguments.map(ServerType.fromMeta).toList(),
       recordProps: type.recordProps?.map(ServerRecordProp.fromMeta).toList(),
       isRecord: type.isRecord,
+      isEnum: type.isEnum,
     );
   }
 
@@ -108,6 +111,7 @@ class ServerType with ExtractImport {
   final bool isNullable;
   final bool isPrimitive;
   final bool isStringContent;
+  final bool isEnum;
   final bool hasToJsonMember;
   final bool isRecord;
   final bool isMap;

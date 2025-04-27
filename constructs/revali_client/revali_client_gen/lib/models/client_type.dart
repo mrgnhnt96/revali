@@ -30,6 +30,7 @@ class ClientType with ExtractImport {
     this.isStringContent = false,
     this.toJson,
     this.method,
+    this.isEnum = false,
   })  : _typeArguments = typeArguments,
         _parent = null,
         _isVoid = isVoid;
@@ -51,7 +52,8 @@ class ClientType with ExtractImport {
     required this.isMap,
     required this.isStringContent,
     required this.toJson,
-    this.method,
+    required this.isEnum,
+    required this.method,
   })  : _typeArguments = typeArguments,
         _isVoid = isVoid;
 
@@ -85,6 +87,8 @@ class ClientType with ExtractImport {
       toJson: ClientToJson.fromMeta(type.toJson),
       isNullable: type.isNullable,
       typeArguments: type.typeArguments.map(ClientType.fromMeta).toList(),
+      isEnum: type.isEnum,
+      method: null,
     );
   }
 
@@ -104,6 +108,7 @@ class ClientType with ExtractImport {
   final bool isPrimitive;
   final bool isMap;
   final bool isDynamic;
+  final bool isEnum;
   final bool isStringContent;
   final List<ClientType> _typeArguments;
   final List<ClientRecordProp>? recordProps;
@@ -259,6 +264,7 @@ class ClientType with ExtractImport {
       isStringContent: isStringContent,
       toJson: toJson,
       method: method,
+      isEnum: isEnum,
     );
   }
 

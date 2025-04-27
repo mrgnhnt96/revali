@@ -15,14 +15,18 @@ class MetaToJson {
       return MetaToJson(returnType: MetaType.fromType(element.returnType));
     }
 
-    if (element is ClassElement) {
-      for (final method in element.methods) {
-        if (method.name != 'toJson') {
-          continue;
-        }
+    final methods = switch (element) {
+      ClassElement(:final methods) => methods,
+      EnumElement(:final methods) => methods,
+      _ => <MethodElement>[],
+    };
 
-        return fromElement(method);
+    for (final method in methods) {
+      if (method.name != 'toJson') {
+        continue;
       }
+
+      return fromElement(method);
     }
 
     return null;

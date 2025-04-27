@@ -1,3 +1,5 @@
+import 'package:revali_client_default_custom_params_test/lib/enums/serialized_user_type.dart';
+import 'package:revali_client_default_custom_params_test/lib/enums/user_type.dart';
 import 'package:revali_client_default_custom_params_test/lib/models/string_user.dart';
 import 'package:revali_router/revali_router.dart';
 
@@ -38,5 +40,17 @@ class QueryParamsController {
     ],
   ]) {
     return users;
+  }
+
+  @Get('user-type')
+  UserType userType([@Query() UserType user = UserType.admin]) {
+    return user;
+  }
+
+  @Get('serialized-user-type')
+  SerializedUserType serializedUserType([
+    @Query() SerializedUserType user = SerializedUserType.admin,
+  ]) {
+    return user;
   }
 }

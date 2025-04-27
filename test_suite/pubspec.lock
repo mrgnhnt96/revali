@@ -381,7 +381,7 @@ packages:
       path: "../constructs/revali_client/revali_client_gen"
       relative: true
     source: path
-    version: "1.2.0"
+    version: "1.2.1"
   revali_client_methods:
     dependency: transitive
     description:
@@ -486,7 +486,7 @@ packages:
       path: "../revali_router/revali_router"
       relative: true
     source: path
-    version: "2.2.0"
+    version: "2.2.1"
   revali_router_annotations:
     dependency: "direct overridden"
     description:

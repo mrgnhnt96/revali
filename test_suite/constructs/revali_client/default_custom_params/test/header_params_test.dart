@@ -1,5 +1,7 @@
 import 'package:revali_client/revali_client.dart';
 import 'package:revali_client_default_custom_params/revali_client_default_custom_params.dart';
+import 'package:revali_client_default_custom_params_test/lib/enums/serialized_user_type.dart';
+import 'package:revali_client_default_custom_params_test/lib/enums/user_type.dart';
 import 'package:revali_client_default_custom_params_test/lib/models/string_user.dart';
 import 'package:revali_client_test/revali_client_test.dart';
 import 'package:revali_test/revali_test.dart';
@@ -68,6 +70,22 @@ void main() {
         const StringUser(name: 'Jane'),
       ]);
       verifyRequest('/api/header/all-optional', method: 'GET');
+      expect(request?.headers['X-User'], isNull);
+    });
+
+    test('user-type', () async {
+      final response = await client.headerParams.userType();
+
+      expect(response, UserType.admin);
+      verifyRequest('/api/header/user-type', method: 'GET');
+      expect(request?.headers['X-User'], isNull);
+    });
+
+    test('serialized-user-type', () async {
+      final response = await client.headerParams.serializedUserType();
+
+      expect(response, SerializedUserType.admin);
+      verifyRequest('/api/header/serialized-user-type', method: 'GET');
       expect(request?.headers['X-User'], isNull);
     });
   });

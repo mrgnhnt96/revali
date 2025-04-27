@@ -21,6 +21,7 @@ String getRawType(ClientType type) {
       ClientType(isRecord: true) => list,
       ClientType(toJson: ClientToJson(returnType: final type)) =>
         getRawType(type),
+      ClientType(isEnum: true) => 'String',
       _ => map,
     };
   }

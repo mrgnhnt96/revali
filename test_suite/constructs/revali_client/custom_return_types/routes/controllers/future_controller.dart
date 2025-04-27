@@ -1,3 +1,5 @@
+import 'package:revali_client_custom_return_types_test/enums/serialized_user_type.dart';
+import 'package:revali_client_custom_return_types_test/enums/user_type.dart';
 import 'package:revali_client_custom_return_types_test/models/user.dart';
 import 'package:revali_router/revali_router.dart';
 
@@ -39,5 +41,15 @@ class FutureController {
   @Get('partial-record-of-users')
   Future<(String name, {User user})> partialRecordOfUsers() async {
     return ('Hello world!', user: const User(name: 'Hello world!'));
+  }
+
+  @Get('user-type')
+  Future<UserType> userType() async {
+    return UserType.admin;
+  }
+
+  @Get('serialized-user-type')
+  Future<SerializedUserType> serializedUserType() async {
+    return SerializedUserType.admin;
   }
 }

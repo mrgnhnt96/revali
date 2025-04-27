@@ -26,6 +26,7 @@ class MetaType {
     required this.isDynamic,
     required this.isMap,
     required this.toJson,
+    required this.isEnum,
   });
 
   factory MetaType.fromType(DartType type) {
@@ -58,6 +59,7 @@ class MetaType {
       },
       isPrimitive: type.isPrimitive,
       isMap: type.isDartCoreMap,
+      isEnum: type.element is EnumElement,
     );
   }
 
@@ -77,6 +79,7 @@ class MetaType {
   final List<MetaType> typeArguments;
   final Element? element;
   final List<MetaRecordProp>? recordProps;
+  final bool isEnum;
 
   @Deprecated('Use `hasFromJson` instead')
   bool get hasFromJsonConstructor => hasFromJson;

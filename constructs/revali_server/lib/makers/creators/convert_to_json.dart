@@ -209,5 +209,9 @@ Expression? convertToJson(
     return result.safeProperty(type, 'value');
   }
 
+  if (type.isEnum) {
+    return result.safeProperty(type, 'name');
+  }
+
   return null;
 }

@@ -1,5 +1,17 @@
 # TODO
 
+## 4.26.25
+
+### Revali Server
+
+- [ ] If binding type is an enum, then update the switch statement to use `String` instead of `Map` and parse the value via `Enum.values.fromName(value)`
+- [ ] If enum has `fromJson` and `toJson` methods, support them
+
+### Revali Client
+
+- [ ] Support enum conversion
+  - [ ] Call `toJson` if available, otherwise call `name`
+
 ## 4.3.25
 
 - [ ] Get default arg from method param and supply to server handler instead of throwing

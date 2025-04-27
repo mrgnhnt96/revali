@@ -1,3 +1,5 @@
+import 'package:revali_client_custom_return_types_test/enums/serialized_user_type.dart';
+import 'package:revali_client_custom_return_types_test/enums/user_type.dart';
 import 'package:revali_client_custom_return_types_test/models/user.dart';
 import 'package:revali_router/revali_router.dart';
 
@@ -39,5 +41,15 @@ class StreamController {
   @Get('partial-record-of-users')
   Stream<(String name, {User user})> partialRecordOfUsers() async* {
     yield ('Hello world!', user: const User(name: 'Hello world!'));
+  }
+
+  @Get('user-type')
+  Stream<UserType> userType() async* {
+    yield UserType.admin;
+  }
+
+  @Get('serialized-user-type')
+  Stream<SerializedUserType> serializedUserType() async* {
+    yield SerializedUserType.admin;
   }
 }

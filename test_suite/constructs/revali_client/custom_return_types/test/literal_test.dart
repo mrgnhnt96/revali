@@ -1,5 +1,7 @@
 import 'package:revali_client/revali_client.dart';
 import 'package:revali_client_custom_return_types/revali_client_custom_return_types.dart';
+import 'package:revali_client_custom_return_types_test/enums/serialized_user_type.dart';
+import 'package:revali_client_custom_return_types_test/enums/user_type.dart';
 import 'package:revali_client_custom_return_types_test/models/user.dart';
 import 'package:revali_client_test/revali_client_test.dart';
 import 'package:revali_test/revali_test.dart';
@@ -87,6 +89,20 @@ void main() {
         ('Hello world!', user: const User(name: 'Hello world!')),
       );
       verifyGetRequest('/api/literal/partial-record-of-users');
+    });
+
+    test('user-type', () async {
+      final response = await client.literal.userType();
+
+      expect(response, UserType.admin);
+      verifyGetRequest('/api/literal/user-type');
+    });
+
+    test('serialized-user-type', () async {
+      final response = await client.literal.serializedUserType();
+
+      expect(response, SerializedUserType.admin);
+      verifyGetRequest('/api/literal/serialized-user-type');
     });
   });
 }

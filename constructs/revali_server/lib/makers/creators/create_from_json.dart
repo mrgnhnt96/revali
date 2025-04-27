@@ -204,5 +204,12 @@ Expression? createFromJson(ServerType type, Expression variable) {
     );
   }
 
+  if (type.isEnum) {
+    return refer(type.name)
+        .property('values')
+        .property('byName')
+        .call([variable]);
+  }
+
   return null;
 }
