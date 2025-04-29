@@ -61,9 +61,14 @@ extension IterableClientParamX on Iterable<ClientParam> {
     }
 
     RecursiveMap? current = roots;
-    for (final segment in param.access) {
+    for (final (index, segment) in param.access.indexed) {
       if (current?[segment] == null) {
-        return false;
+        if (index == 0) {
+          // this root does not exist, so it does not need to be assigned
+          return false;
+        }
+
+        return current?.keys.isNotEmpty ?? false;
       }
 
       current = current?[segment];

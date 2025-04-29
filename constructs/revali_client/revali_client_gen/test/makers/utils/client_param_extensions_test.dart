@@ -144,6 +144,16 @@ void main() {
 
         expect(result, isFalse);
       });
+
+      test('should return true when deragned siblings exist', () {
+        final result = [
+          param(access: ['id']),
+          param(access: ['data', 'path']),
+          param(access: ['data', 'changes']),
+        ].needsAssignment(param(access: ['data', 'changes']));
+
+        expect(result, isTrue);
+      });
     });
   });
 }
