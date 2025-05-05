@@ -66,8 +66,9 @@ Expression createArgForParam(
 
   final rawType = switch (param.annotations.data) {
     true => param.type.name,
-    false => getRawType(param.type).replaceAll('?', ''),
-  };
+    false => getRawType(param.type),
+  }
+      .replaceAll('?', '');
 
   return createSwitchPattern(variable, {
     Block.of([
