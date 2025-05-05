@@ -39,6 +39,16 @@ void main() {
       expect(response.body, {'data': 'loz'});
     });
 
+    test('should add logger to the request', () async {
+      final response = await server.send(
+        method: 'GET',
+        path: '/api/pre/interceptor/logger',
+      );
+
+      expect(response.statusCode, 200);
+      expect(response.body, {'data': 'logged'});
+    });
+
     test('should add custom data to the request', () async {
       final response = await server.send(
         method: 'GET',

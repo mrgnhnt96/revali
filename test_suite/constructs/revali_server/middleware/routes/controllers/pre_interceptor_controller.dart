@@ -19,6 +19,11 @@ class PreInterceptorController {
     return data.value;
   }
 
+  @Get('logger')
+  String logger(@Dep() Logger logger) {
+    return 'logged';
+  }
+
   @AddCustomData({'loz': 'oot'})
   @Get('custom-data')
   Map<String, dynamic> handleCustomData(@Data() Map<String, String> data) {

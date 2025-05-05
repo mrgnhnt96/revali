@@ -6,9 +6,11 @@ class AddData implements LifecycleComponent {
   const AddData();
 
   InterceptorPreResult addData(DataHandler data) {
-    data
-      ..add('loz')
-      ..add(const AuthToken('loz'));
+    data.add('loz');
+  }
+
+  InterceptorPreResult addAuth(DataHandler data) {
+    data.add(const AuthToken('loz'));
   }
 }
 
