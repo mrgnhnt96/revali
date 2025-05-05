@@ -24,4 +24,9 @@ class SessionStorage implements Storage {
   Future<void> saveAll(Map<String, Object?> values) async {
     _storage.addAll(values);
   }
+
+  @override
+  Future<void> clear() async {
+    _storage.clear();
+  }
 }
