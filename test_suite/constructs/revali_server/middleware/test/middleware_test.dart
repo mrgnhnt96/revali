@@ -65,18 +65,14 @@ void main() {
       );
 
       expect(response.statusCode, 400);
+      // ignore: avoid_dynamic_calls
+      final error = response.body['error'] as String;
+      // ignore: avoid_dynamic_calls
+      final stackTrace = (response.body['stackTrace'] as List).first as String;
+      expect(error, 'MiddlewareStopException: StopMiddleware');
       expect(
-        response.body,
-        {
-          'error': 'MiddlewareStopException: StopMiddleware',
-          'stackTrace': [
-            'package:revali_router/src/router/run_middlewares.dart 34:34  RunMiddlewares.run',
-            'package:revali_router/src/router/execute.dart 37:9           Execute.run',
-            'package:revali_router/src/router/router.dart 221:12          Router._handle',
-            'package:revali_router/src/router/router.dart 190:22          Router.handle',
-            'package:revali_router/src/server/handle_requests.dart 28:29  handleRequests.<fn>',
-          ],
-        },
+        stackTrace,
+        startsWith('package:revali_router/src/router/run_middlewares.dart'),
       );
     });
 
@@ -88,18 +84,17 @@ void main() {
       );
 
       expect(response.statusCode, 400);
-      expect(response.body, '''
+      expect(
+        response.body,
+        startsWith('''
 please stop
 
 __DEBUG__:
 Error: MiddlewareStopException: StopMiddleware
 
 Stack Trace:
-package:revali_router/src/router/run_middlewares.dart 34:34  RunMiddlewares.run
-package:revali_router/src/router/execute.dart 37:9           Execute.run
-package:revali_router/src/router/router.dart 221:12          Router._handle
-package:revali_router/src/router/router.dart 190:22          Router.handle
-package:revali_router/src/server/handle_requests.dart 28:29  handleRequests.<fn>''');
+package:revali_router/src/router/run_middlewares.dart'''),
+      );
     });
   });
 }

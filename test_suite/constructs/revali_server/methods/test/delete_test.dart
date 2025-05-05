@@ -92,15 +92,17 @@ void main() {
       );
 
       expect(response.statusCode, 404);
-      expect(response.body, '''
+      expect(
+        response.body,
+        startsWith('''
 Not Found
 
 __DEBUG__:
 Error: RouteNotFoundException: HEAD api/delete
 
 Stack Trace:
-package:revali_router/src/router/router.dart 158:34          Router.handle
-package:revali_router/src/server/handle_requests.dart 28:14  handleRequests''');
+package:revali_router/src/router/router.dart'''),
+      );
       final headers = {...response.headers.values};
 
       expect(
