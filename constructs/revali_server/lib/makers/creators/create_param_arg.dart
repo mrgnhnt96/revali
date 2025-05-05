@@ -65,6 +65,7 @@ Expression createParamArg(
 
   /// When true, the field of the class will be referenced instead of creating a
   /// new argument. This only applies if [ServerParam.argument] exists
+  /// or [ServerParam.hasDefaultValue]
   bool useField = false,
 }) {
   if (impliedArguments[param.type.name] case final expression?) {
@@ -90,6 +91,10 @@ Expression createParamArg(
       !param.hasArgument) {
     if (!param.type.isPrimitive) {
       if (defaultExpression != null) {
+        if (useField) {
+          return refer(param.name);
+        }
+
         return defaultExpression;
       }
     }
@@ -116,10 +121,18 @@ Expression createParamArg(
   }
 
   if (param.defaultValue case final value? when !annotation.hasAnnotation) {
+    if (useField) {
+      return refer(param.name);
+    }
+
     return CodeExpression(Code(value));
   }
 
   if (annotation.dep) {
+    if (useField) {
+      return refer(param.name);
+    }
+
     return createGetFromDi();
   }
 
