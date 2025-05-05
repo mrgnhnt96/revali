@@ -55,7 +55,10 @@ Expression createArgForParam(
     );
   }
 
-  final fromJson = createFromJson(param.type, refer('data'));
+  final fromJson = switch (param.annotations.data) {
+    true => refer('data'),
+    false => createFromJson(param.type, refer('data')),
+  };
 
   if (param.type.isDynamic) {
     return fromJson ?? variable;

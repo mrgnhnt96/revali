@@ -1,5 +1,6 @@
 // ignore_for_file: lines_longer_than_80_chars
 
+import 'package:revali_server_middleware_test/domain/user.dart';
 import 'package:revali_test/revali_test.dart';
 import 'package:test/test.dart';
 
@@ -37,6 +38,16 @@ void main() {
 
       expect(response.statusCode, 200);
       expect(response.body, {'data': 'loz'});
+    });
+
+    test('should add user to the request', () async {
+      final response = await server.send(
+        method: 'GET',
+        path: '/api/pre/interceptor/auth-user',
+      );
+
+      expect(response.statusCode, 200);
+      expect(response.body, {'data': const User(name: 'loz').toJson()});
     });
 
     test('should add logger to the request', () async {

@@ -1,6 +1,7 @@
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_server_middleware_test/components/lifecycle_components/pre_interceptor.dart';
 import 'package:revali_server_middleware_test/domain/auth_token.dart';
+import 'package:revali_server_middleware_test/domain/user.dart';
 
 // Learn more about Controllers at https://www.revali.dev/constructs/revali_server/core/controllers
 @Controller('pre/interceptor')
@@ -17,6 +18,12 @@ class PreInterceptorController {
   @Get('auth')
   String auth(@Data() AuthToken data) {
     return data.value;
+  }
+
+  @AddData()
+  @Get('auth-user')
+  User authUser(@Data() User data) {
+    return data;
   }
 
   @Get('logger')
