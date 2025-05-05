@@ -50,6 +50,16 @@ void main() {
       expect(response.body, {'data': const User(name: 'loz').toJson()});
     });
 
+    test('should add user to the request when optional', () async {
+      final response = await server.send(
+        method: 'GET',
+        path: '/api/pre/interceptor/optional-user',
+      );
+
+      expect(response.statusCode, 200);
+      expect(response.body, {'data': const User(name: 'loz').toJson()});
+    });
+
     test('should throw if user is not added to the request', () async {
       final response = await server.send(
         method: 'GET',

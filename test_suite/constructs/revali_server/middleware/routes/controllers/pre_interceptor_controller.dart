@@ -33,6 +33,12 @@ class PreInterceptorController {
     return data;
   }
 
+  @AddData()
+  @Get('optional-user')
+  User optionalUser(@Data() User? data) {
+    return data!;
+  }
+
   @Get('logger')
   String logger(@Dep() Logger logger) {
     return 'logged';

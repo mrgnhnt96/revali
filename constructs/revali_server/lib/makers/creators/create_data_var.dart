@@ -5,5 +5,5 @@ Expression createDataVar(ServerParam param) {
   return refer('context')
       .property('data')
       .property('get')
-      .call([], {}, [refer(param.type.name)]);
+      .call([], {}, [refer(param.type.nonNullName)]);
 }
