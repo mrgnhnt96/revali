@@ -44,19 +44,18 @@ MapEntry<Object, Code> _createEntry(ClientParam param) {
     _ => param.name,
   };
 
-  return MapEntry(
-    access,
-    refer('_storage')
-        .index(literal(access))
-        .awaited
-        .ifNullThen(
-          refer((Exception).name)
-              .newInstance(
-                [literal('Missing cookie: $access')],
-              )
-              .thrown
-              .parenthesized,
-        )
-        .code,
-  );
+  var cookie = refer('_storage').index(literal(access)).awaited;
+
+  if (!param.type.isNullable) {
+    cookie = cookie.ifNullThen(
+      refer((Exception).name)
+          .newInstance(
+            [literal('Missing cookie: $access')],
+          )
+          .thrown
+          .parenthesized,
+    );
+  }
+
+  return MapEntry(access, cookie.code);
 }

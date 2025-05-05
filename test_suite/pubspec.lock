@@ -354,6 +354,13 @@ packages:
       relative: true
     source: path
     version: "1.2.0"
+  revali_client_cookies:
+    dependency: transitive
+    description:
+      path: "constructs/revali_client/cookies/.revali/revali_client"
+      relative: true
+    source: path
+    version: "0.0.0"
   revali_client_custom_return_types:
     dependency: transitive
     description:

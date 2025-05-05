@@ -248,6 +248,7 @@ test-suite:
     (aliases): client
     (command):
       - (+) {$test-suite:revali_client:can-compile-aot}
+      - (+) {$test-suite:revali_client:cookies}
       - (+) {$test-suite:revali_client:primitive-return-types}
       - (+) {$test-suite:revali_client:null-primitive-return-types}
       - (+) {$test-suite:revali_client:custom-return-types}
@@ -271,6 +272,9 @@ test-suite:
 
     can-compile-aot: |
       DIR=can_compile_aot
+      {$test-suite:revali_client:_package}
+    cookies: |
+      DIR=cookies
       {$test-suite:revali_client:_package}
     primitive-return-types: |
       DIR=primitive_return_types
