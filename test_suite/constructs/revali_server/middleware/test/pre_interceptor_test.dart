@@ -29,6 +29,16 @@ void main() {
       expect(response.body, {'data': 'loz'});
     });
 
+    test('should add auth token to the request', () async {
+      final response = await server.send(
+        method: 'GET',
+        path: '/api/pre/interceptor/auth',
+      );
+
+      expect(response.statusCode, 200);
+      expect(response.body, {'data': 'loz'});
+    });
+
     test('should add custom data to the request', () async {
       final response = await server.send(
         method: 'GET',
