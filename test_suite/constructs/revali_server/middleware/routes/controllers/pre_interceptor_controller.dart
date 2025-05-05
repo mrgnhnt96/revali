@@ -26,6 +26,13 @@ class PreInterceptorController {
     return data;
   }
 
+  @AddData(addAuthToData: false)
+  @Get('auth-user-throws')
+  User authUserThrows(@Data() User data) {
+    // never reached
+    return data;
+  }
+
   @Get('logger')
   String logger(@Dep() Logger logger) {
     return 'logged';

@@ -4,18 +4,24 @@ import 'package:revali_server_middleware_test/domain/user.dart';
 
 // Learn more about Lifecycle Components at https://www.revali.dev/constructs/revali_server/lifecycle-components/components
 class AddData implements LifecycleComponent {
-  const AddData();
+  const AddData({this.addAuthToData = true});
+
+  final bool addAuthToData;
 
   InterceptorPreResult addData(DataHandler data) {
     data.add('loz');
   }
 
   InterceptorPreResult addAuth(DataHandler data) {
-    data.add(const AuthToken('loz'));
+    if (addAuthToData) {
+      data.add(const AuthToken('loz'));
+    }
   }
 
   InterceptorPreResult addUser(DataHandler data) {
-    data.add(const User(name: 'loz'));
+    if (addAuthToData) {
+      data.add(const User(name: 'loz'));
+    }
   }
 }
 

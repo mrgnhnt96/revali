@@ -50,6 +50,24 @@ void main() {
       expect(response.body, {'data': const User(name: 'loz').toJson()});
     });
 
+    test('should throw if user is not added to the request', () async {
+      final response = await server.send(
+        method: 'GET',
+        path: '/api/pre/interceptor/auth-user-throws',
+      );
+
+      expect(response.statusCode, 500);
+      expect(
+        response.body,
+        startsWith('''
+Internal Server Error
+
+__DEBUG__:
+Error: MissingArgumentException: key: data, location: @data
+'''),
+      );
+    });
+
     test('should add logger to the request', () async {
       final response = await server.send(
         method: 'GET',

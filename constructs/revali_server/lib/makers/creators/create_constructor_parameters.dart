@@ -11,7 +11,11 @@ List<Parameter> createConstructorParameters(
           ..name = arg.name
           ..toThis = true
           ..named = true
-          ..required = arg.isRequired,
+          ..required = arg.isRequired
+          ..defaultTo = switch (arg.defaultValue) {
+            final String value => Code(value),
+            _ => null,
+          },
       );
     }
   }
