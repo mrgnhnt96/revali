@@ -295,21 +295,28 @@ class VMServiceHandler {
   }
 
   void watchForInput() {
-    _inputSubscription ??= io.stdin.listen((event) {
-      var key = utf8.decode(event).toLowerCase();
-      if (key.isEmpty && event.length == 1) {
-        key = '${event[0]}';
-      }
-      logger.detail('key: $key');
+    try {
+      _inputSubscription ??= io.stdin.listen((event) {
+        var key = utf8.decode(event).toLowerCase();
+        if (key.isEmpty && event.length == 1) {
+          key = '${event[0]}';
+        }
+        logger.detail('key: $key');
 
-      final _ = switch (key) {
-        'r' => _reload().ignore(),
-        'R' => _reload().ignore(),
-        'q' => stop().ignore(),
-        'Q' => stop().ignore(),
-        _ => null,
-      };
-    });
+        final _ = switch (key) {
+          'r' => _reload().ignore(),
+          'R' => _reload().ignore(),
+          'q' => stop().ignore(),
+          'Q' => stop().ignore(),
+          _ => null,
+        };
+      });
+    } catch (e) {
+      logger
+        ..err('Failed to connect to stdin, cannot watch for input')
+        ..detail('$e');
+      return;
+    }
 
     logger.detail('Watching for kill signal');
 
