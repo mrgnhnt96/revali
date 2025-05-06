@@ -10,7 +10,11 @@ class CookiesController {
   void get(@Cookie('X-Auth') String auth) {}
 
   @Get('optional')
-  void getOptional(@Cookie('X-Auth') String? auth) {}
+  void getOptional(@Cookie('X-Auth') String? auth) {
+    if (auth != null) {
+      throw Exception('auth is not null');
+    }
+  }
 
   @AddCookies()
   @Get('lifecycle')
