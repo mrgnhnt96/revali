@@ -7,7 +7,6 @@ environment:
 resolution: workspace
 
 dependencies:
-  equatable: ^2.0.7
   revali_client:
   revali_client_params:
     path: .revali/revali_client

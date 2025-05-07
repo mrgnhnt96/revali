@@ -1,8 +1,8 @@
 import 'package:revali_client/revali_client.dart';
 import 'package:revali_client_default_custom_params/revali_client_default_custom_params.dart';
-import 'package:revali_client_default_custom_params_test/lib/enums/serialized_user_type.dart';
-import 'package:revali_client_default_custom_params_test/lib/enums/user_type.dart';
-import 'package:revali_client_default_custom_params_test/lib/models/string_user.dart';
+import 'package:revali_client_default_custom_params_test/enums/serialized_user_type.dart';
+import 'package:revali_client_default_custom_params_test/enums/user_type.dart';
+import 'package:revali_client_default_custom_params_test/models/string_user.dart';
 import 'package:revali_client_test/revali_client_test.dart';
 import 'package:revali_test/revali_test.dart';
 import 'package:test/test.dart';
