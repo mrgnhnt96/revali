@@ -49,7 +49,12 @@ class RevaliClient {
             buffer.write('&');
           }
         } else {
-          buffer.write('$key=$value');
+          buffer.write('$key=');
+          try {
+            buffer.write(jsonEncode(value));
+          } catch (_) {
+            buffer.write('$value');
+          }
         }
       }
 

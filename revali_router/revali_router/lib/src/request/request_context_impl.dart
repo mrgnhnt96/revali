@@ -5,6 +5,7 @@ import 'package:equatable/equatable.dart';
 import 'package:revali_router/src/exceptions/unresolved_payload_exception.dart';
 import 'package:revali_router/src/headers/mutable_headers_impl.dart';
 import 'package:revali_router/src/request/underlying_request_impl.dart';
+import 'package:revali_router/utils/coerce.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
 part 'request_context_impl.g.dart';
@@ -67,13 +68,29 @@ class RequestContextImpl with EquatableMixin implements RequestContext {
 
   @override
   @include
-  Map<String, String> get queryParameters =>
-      Map.unmodifiable(request.uri.queryParameters);
+  Map<String, dynamic> get queryParameters {
+    Iterable<MapEntry<String, dynamic>> entries() sync* {
+      for (final MapEntry(:key, :value)
+          in request.uri.queryParameters.entries) {
+        yield MapEntry(key, coerce(value));
+      }
+    }
+
+    return Map.unmodifiable(Map.fromEntries(entries()));
+  }
 
   @override
   @include
-  Map<String, List<String>> get queryParametersAll =>
-      Map.unmodifiable(request.uri.queryParametersAll);
+  Map<String, List<dynamic>> get queryParametersAll {
+    Iterable<MapEntry<String, List<dynamic>>> entries() sync* {
+      for (final MapEntry(:key, :value)
+          in request.uri.queryParametersAll.entries) {
+        yield MapEntry(key, value.map(coerce).toList());
+      }
+    }
+
+    return Map.unmodifiable(Map.fromEntries(entries()));
+  }
 
   @override
   @include

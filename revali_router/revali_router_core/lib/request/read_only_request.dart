@@ -44,7 +44,7 @@ abstract class ReadOnlyRequest {
   /// ```dart
   /// request.queryParameters['name'] // Jane
   /// ```
-  Map<String, String> get queryParameters;
+  Map<String, dynamic> get queryParameters;
 
   /// The query parameters of the request, including multiple values for
   /// the same parameter, if any.
@@ -55,7 +55,7 @@ abstract class ReadOnlyRequest {
   /// ```dart
   /// request.queryParametersAll['name'] // [John, Jane]
   /// ```
-  Map<String, Iterable<String>> get queryParametersAll;
+  Map<String, Iterable<dynamic>> get queryParametersAll;
 
   /// The path parameters of the request.
   ///

@@ -176,6 +176,9 @@ class MyParam implements Bind<String> {
 
   @override
   String bind(BindContext context) {
-    return context.request.queryParameters['name'] ?? '';
+    return switch (context.request.queryParameters['name']) {
+      final String value => value,
+      _ => '',
+    };
   }
 }

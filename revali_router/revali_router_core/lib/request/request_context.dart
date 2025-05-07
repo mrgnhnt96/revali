@@ -11,8 +11,8 @@ abstract interface class RequestContext {
   List<String> get segments;
   String get method;
   ReadOnlyHeaders get headers;
-  Map<String, String> get queryParameters;
-  Map<String, Iterable<String>> get queryParametersAll;
+  Map<String, dynamic> get queryParameters;
+  Map<String, Iterable<dynamic>> get queryParametersAll;
   Uri get uri;
 
   UnderlyingRequest get request;
