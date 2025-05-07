@@ -1,7 +1,7 @@
 import 'package:hooksman/hooksman.dart';
 
 Hook main() {
-  return Hook(
+  return AnyHook(
     tasks: [
       ShellTask.always(
         commands: (files) {

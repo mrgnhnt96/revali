@@ -1,8 +1,7 @@
 import 'package:hooksman/hooksman.dart';
 
 Hook main() {
-  return Hook(
-    diffArgs: const ['@{u}', 'HEAD'],
+  return PrePushHook(
     tasks: [
       ShellTask.always(
         name: 'Barrel',

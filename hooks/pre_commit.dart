@@ -2,7 +2,7 @@ import 'package:hooksman/hooksman.dart';
 import 'package:path/path.dart' as p;
 
 Hook main() {
-  return Hook(
+  return PreCommitHook(
     tasks: [
       ReRegisterHooks(),
       ShellTask(
