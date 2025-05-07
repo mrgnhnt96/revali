@@ -11,12 +11,12 @@ final class BinaryBodyData extends BaseBodyData<Binary> {
 
   @override
   int? get contentLength {
-    return data.fold<int>(0, (length, element) => length + element.length);
+    return data.length;
   }
 
   @override
   Stream<List<int>> read() {
-    return Stream.fromIterable(data);
+    return Stream.fromIterable([data]);
   }
 
   @override

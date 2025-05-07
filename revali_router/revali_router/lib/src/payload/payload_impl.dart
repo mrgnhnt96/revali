@@ -289,7 +289,7 @@ class PayloadImpl implements Payload {
   }
 
   Future<BinaryBodyData> _resolveBinary(Encoding encoding) async {
-    final data = await read().toList();
+    final data = await read().expand((e) => e).toList();
 
     return BinaryBodyData(data);
   }

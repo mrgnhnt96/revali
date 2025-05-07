@@ -53,9 +53,7 @@ void main() {
     });
 
     test('should create BinaryBodyData from Binary', () {
-      final binary = [
-        Uint8List.fromList([1, 2, 3]),
-      ];
+      final binary = Uint8List.fromList([1, 2, 3]);
       final data = BaseBodyData.from(binary);
       expect(data, isA<BinaryBodyData>());
       expect(data.data, binary);
@@ -64,17 +62,13 @@ void main() {
     test('should create BinaryBodyData from List<int>', () {
       final data = BaseBodyData.from([1, 2, 3]);
       expect(data, isA<BinaryBodyData>());
-      expect(data.data, [
-        [1, 2, 3],
-      ]);
+      expect(data.data, [1, 2, 3]);
     });
 
     test('should create BinaryBodyData from Uint8List', () {
       final data = BaseBodyData.from(Uint8List.fromList([1, 2, 3]));
       expect(data, isA<BinaryBodyData>());
-      expect(data.data, [
-        [1, 2, 3],
-      ]);
+      expect(data.data, [1, 2, 3]);
     });
 
     test('should create ListBodyData from Iterable', () {
@@ -126,9 +120,7 @@ void main() {
       });
 
       test('isBinary should be true for BinaryBodyData', () {
-        final binary = [
-          Uint8List.fromList([1, 2, 3]),
-        ];
+        final binary = Uint8List.fromList([1, 2, 3]);
         final data = BaseBodyData.from(binary);
         expect(data.isBinary, isTrue);
       });
@@ -191,9 +183,7 @@ void main() {
       });
 
       test('asBinary should cast to BinaryBodyData', () {
-        final binary = [
-          Uint8List.fromList([1, 2, 3]),
-        ];
+        final binary = Uint8List.fromList([1, 2, 3]);
         final data = BaseBodyData.from(binary);
         expect(data.asBinary, isA<BinaryBodyData>());
       });
