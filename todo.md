@@ -1,25 +1,32 @@
 # TODO
 
+## 5.3.25
+
+- [ ] Consolidate `context` into a single class, no more multiple context types
+- [ ] Figure out a way to handle sending streams from the client to the server
+- [ ] Print out syntax errors preventing a hot reload
+- [ ] Convert query json string from json to Map
+
 ## 4.26.25
 
 ### Revali Server
 
-- [ ] If binding type is an enum, then update the switch statement to use `String` instead of `Map` and parse the value via `Enum.values.fromName(value)`
-- [ ] If enum has `fromJson` and `toJson` methods, support them
+- [x] If binding type is an enum, then update the switch statement to use `String` instead of `Map` and parse the value via `Enum.values.fromName(value)`
+- [x] If enum has `fromJson` and `toJson` methods, support them
 
-### Revali Client
+### Revali Clientg
 
-- [ ] Support enum conversion
-  - [ ] Call `toJson` if available, otherwise call `name`
+- [x] Support enum conversion
+  - [x] Call `toJson` if available, otherwise call `name`
 
 ## 4.3.25
 
-- [ ] Get default arg from method param and supply to server handler instead of throwing
-- [ ] Check for null values before piping
+- [x] Get default arg from method param and supply to server handler instead of throwing
+- [x] Check for null values before piping
   - Unless the pipe can handle nulls
   - If default value is available, and the body is null and the pipe can't handle nulls, provide the default value (without piping)
   - If default value is not available, proceed as normal
-- [ ] Add a switch before piping to determine if body is correct type then throw custom error or proceed as normal
+- [x] Add a switch before piping to determine if body is correct type then throw custom error or proceed as normal
 
 ## 3.29.25
 
@@ -42,17 +49,17 @@
 
 ### CLI
 
-- [ ] Add `create` command to the revali cli to create new
+- [x] Add `create` command to the revali cli to create new
   - [ ] Constructs
   - [ ] Routes
-  - [ ] Controllers
-  - [ ] Guards
-  - [ ] Exception Catchers
-  - [ ] Pipes
-  - [ ] Interceptors
-  - [ ] Middlewares
-  - [ ] Apps
-  - [ ] (etc)
+  - [x] Controllers
+  - [x] Guards
+  - [x] Exception Catchers
+  - [x] Pipes
+  - [x] Interceptors
+  - [x] Middlewares
+  - [x] Apps
+  - [x] (etc)
 
 ## 7.17.2024
 
@@ -66,8 +73,8 @@
 - [x] Change `transform` to a `FutureOr` type to allow for async methods
 - [x] Remove check to force only one app in `*.app.dart`
 - [x] Create general package for revali server that exports all annotations and core functionality
-- [ ] Ensure we can return streams from endpoints
-- [ ] Handle streams in websocket responses
+- [x] Ensure we can return streams from endpoints
+- [x] Handle streams in websocket responses
 
 ## Features
 
