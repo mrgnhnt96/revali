@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## 1.3.0 | 05.08.25
+
+### Features
+
+- Support dart `enum` serialization/deserialization
+  - Uses `toJson`/`fromJson` methods if available
+  - Defaults to `name`
+
+### Fixes
+
+- Issue where null values were being passed as `String` instead of omitted
+- Issue where some body keys were being dropped from the request body
+
 ## 1.2.1 | 04.16.25
 
 ### Fixes

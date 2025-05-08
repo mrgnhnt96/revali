@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## 1.3.0 | 05.08.25
+
+### Features
+
+- Add `server_name` option to `revali.yaml#constructs.revali_client` to set the name of the server class
+
+### Enhancements
+
+- Add `clear` method to `Storage` class
+  - Utility method to clear the cookies cache
+
+### Fixes
+
+- Serialize custom types in query parameters
+
 ## 1.2.0 | 04.15.25
 
 ### Features

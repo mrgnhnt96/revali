@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 1.7.0 | 05.08.25
+
+### Features
+
+- Add `isEnum` field to `MetaType` class
+- Get `fromJson`/`toJson` methods from enum types
+
 ## 1.6.0 | 04.15.25
 
 ### Features

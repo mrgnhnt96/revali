@@ -22,19 +22,20 @@
 
 # revali_annotations
 
-## 1.4.0
+## 1.4.1
 
-### Features
+### Enhancements
 
-- Create `InstanceType` enum to specify the type of instance for a `Controller`
+- Catch errors when listening to `stdin`
 
 # revali_construct
 
-## 1.6.0
+## 1.7.0
 
 ### Features
 
-- Add `InstanceType type` parameter to `@Controller` annotation
+- Add `isEnum` field to `MetaType` class
+- Get `fromJson`/`toJson` methods from enum types
 
 # revali_core
 
@@ -48,56 +49,73 @@
 
 # revali_router
 
-## 2.2.1
+## 2.3.0
 
 ### Enhancements
 
-- Catch errors when sending data over the web socket
+- Binary serialization/deserialization
 
 # revali_router_annotations
 
 ## 1.3.0
 
+### Features
+
+- Coerce dart types from `queryParameters`
+- Don't await response handling in `WebSocket`
+  - This allows for concurrent message handling
+
 ### Enhancements
 
 - Change return type for `Pipe.transform` to `Future<T>`
+- Better error handling within WebSockets
+- Make WebSocket return values more consistent
+
+### Fixes
+
+- Issue where close reason contained too many characters
+- Formats close reason with proper start/end delimiters
 
 # revali_router_core
 
-## 1.8.1
+## 1.9.0
 
-### Enhancements
+### Features
 
-- Wrap clean up functions in `try/catch` to avoid unhandled exceptions
+- Change `queryParameters` & `queryParametersAll` to return `Map<String, dynamic>`
+  - Allows for better type coercion
+- Update `Binary` type to `List<int>`
 
 <!-- CONSTRUCTS -->
 
 # revali_server
 
-## 1.13.0
-
-### Features
-
-- Support changing the `Controller` instance type from `singleton` to `factory
-
-```dart
-@Controller('', type: InstanceType.factory)
-class MyController {}
-```
+## 1.14.0
 
 ### Enhancements
 
-- Improve type formatting when creating `Pipe` files using `revali_server create pipe` cli
+- Clean up `revali_server create pipe` template
 
-### Breaking (Lil' one tho)
+### Features
 
-- Change return type from `FutureOr` to `Future` for `Pipe.transform`
+- Support `enum` serialization/deserialization
+  - Uses `toJson`/`fromJson` methods if available
+  - Defaults to `name`
+
+### Fixes
+
+- Issue where `@Data` annotations were attempting to de-serialize values
+- Issue where `@Data` annotations were lost when type was nullable
+- Issue where constructor default values were not being set
+- Issue where fields were not being utilized within generated lifecycle component classes
+- AOT compilation error when a `Pipe` returns a nullable type when the parameter requires a non-nullable type
+  - Provides the default value defined in the parameter
 
 <!-- REVALI CLIENT -->
 
 # revali_client
 
-## 1.2.0
+## 1.3.0
 
 ### Features
 
@@ -105,18 +123,24 @@ class MyController {}
 
 ### Enhancements
 
-- Add check for empty query parameters before appending `?` to the URL
-- Remove `final` keyword from generated server class
+- Add `clear` method to `Storage` class
+  - Utility method to clear the cookies cache
 
 ### Fixes
 
-- Issue where `@ExcludeFromClient` was being ignored for interface methods
-- Issue where empty controller paths would result in `//<path>` being generated in the client
+- Serialize custom types in query parameters
 
 # revali_client_gen
 
-## 1.2.1
+## 1.3.0
+
+### Features
+
+- Support dart `enum` serialization/deserialization
+  - Uses `toJson`/`fromJson` methods if available
+  - Defaults to `name`
 
 ### Fixes
 
-- Swallow errors when connection is lost
+- Issue where null values were being passed as `String` instead of omitted
+- Issue where some body keys were being dropped from the request body

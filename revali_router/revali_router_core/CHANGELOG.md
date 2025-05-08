@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 1.9.0 | 05.08.25
+
+### Features
+
+- Change `queryParameters` & `queryParametersAll` to return `Map<String, dynamic>`
+  - Allows for better type coercion
+- Update `Binary` type to `List<int>`
+
 ## 1.8.1 | 04.15.25
 
 ### Enhancements

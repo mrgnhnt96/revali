@@ -404,7 +404,7 @@ packages:
       path: "../../packages/revali_annotations"
       relative: true
     source: path
-    version: "1.4.0"
+    version: "1.4.1"
   revali_core:
     dependency: "direct main"
     description:
@@ -425,7 +425,7 @@ packages:
       path: "../revali_router_core"
       relative: true
     source: path
-    version: "1.8.1"
+    version: "1.9.0"
   shelf:
     dependency: transitive
     description:

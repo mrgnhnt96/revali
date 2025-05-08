@@ -316,21 +316,21 @@ packages:
       path: "../../../packages/revali_annotations"
       relative: true
     source: path
-    version: "1.4.0"
+    version: "1.4.1"
   revali_client:
     dependency: "direct main"
     description:
       path: "../revali_client"
       relative: true
     source: path
-    version: "1.2.0"
+    version: "1.3.0"
   revali_construct:
     dependency: "direct main"
     description:
       path: "../../../packages/revali_construct"
       relative: true
     source: path
-    version: "1.6.0"
+    version: "1.7.0"
   revali_core:
     dependency: "direct main"
     description:
@@ -344,7 +344,7 @@ packages:
       path: "../../../revali_router/revali_router"
       relative: true
     source: path
-    version: "2.2.1"
+    version: "2.3.0"
   revali_router_annotations:
     dependency: "direct main"
     description:
@@ -358,7 +358,7 @@ packages:
       path: "../../../revali_router/revali_router_core"
       relative: true
     source: path
-    version: "1.8.1"
+    version: "1.9.0"
   shelf:
     dependency: transitive
     description:

@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.4.1 | 05.08.25
+
+### Enhancements
+
+- Catch errors when listening to `stdin`
+
 ## 1.4.0 | 04.15.25
 
 ### Features

@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.3.0 | 05.08.25
+
+### Enhancements
+
+- Binary serialization/deserialization
+
 ## 2.2.1 | 04.16.25
 
 ### Enhancements

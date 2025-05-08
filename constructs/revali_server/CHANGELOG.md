@@ -1,5 +1,26 @@
 # CHANGELOG
 
+## 1.14.0 | 05.08.25
+
+### Enhancements
+
+- Clean up `revali_server create pipe` template
+
+### Features
+
+- Support `enum` serialization/deserialization
+  - Uses `toJson`/`fromJson` methods if available
+  - Defaults to `name`
+
+### Fixes
+
+- Issue where `@Data` annotations were attempting to de-serialize values
+- Issue where `@Data` annotations were lost when type was nullable
+- Issue where constructor default values were not being set
+- Issue where fields were not being utilized within generated lifecycle component classes
+- AOT compilation error when a `Pipe` returns a nullable type when the parameter requires a non-nullable type
+  - Provides the default value defined in the parameter
+
 ## 1.13.0 | 04.15.25
 
 ### Features
