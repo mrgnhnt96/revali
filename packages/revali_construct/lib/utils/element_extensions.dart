@@ -54,7 +54,7 @@ extension ElementX on Element {
 
   bool get hasFromJsonConstructor => fromJsonElement != null;
 
-  bool get hasToJsonMember {
+  Element? get toJsonElement {
     final element = this;
 
     final methods = switch (element) {
@@ -63,10 +63,14 @@ extension ElementX on Element {
       _ => <MethodElement>[],
     };
 
-    return methods.any((method) {
-      if (method.name != 'toJson') return false;
+    for (final method in methods) {
+      if (method.name != 'toJson') continue;
 
-      return true;
-    });
+      return method;
+    }
+
+    return null;
   }
+
+  bool get hasToJsonMember => toJsonElement != null;
 }
