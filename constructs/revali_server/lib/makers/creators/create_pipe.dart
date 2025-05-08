@@ -65,6 +65,10 @@ Expression createPipe(
               ..body = Code(defaultArgument),
           ).closure,
         ]);
+
+        if (pipe.convertTo.isNullable) {
+          piped = piped.ifNullThen(CodeExpression(Code(defaultArgument)));
+        }
       }
 
       return piped.awaited;
