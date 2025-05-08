@@ -51,7 +51,12 @@ class RevaliClient {
         } else {
           buffer.write('$key=');
           try {
-            buffer.write(jsonEncode(value));
+            switch (value) {
+              case String():
+                buffer.write(value);
+              case _:
+                buffer.write(jsonEncode(value));
+            }
           } catch (_) {
             buffer.write('$value');
           }
