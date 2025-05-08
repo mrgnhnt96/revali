@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:revali_client/revali_client.dart';
 import 'package:revali_client_test/revali_client_test.dart';
 import 'package:revali_client_websocket_primitive_return_types/revali_client_websocket_primitive_return_types.dart';
@@ -169,9 +167,10 @@ void main() {
     });
 
     test('bytes', () async {
-      final response = await client.literals.bytes().toList();
+      final bytes = await client.literals.bytes().single;
+      final decoded = String.fromCharCodes(bytes.toList());
 
-      expect(response, [utf8.encode('Hello world!')]);
+      expect(decoded, 'Hello world!');
       verifyGetRequest('/api/literals/bytes');
     });
   });

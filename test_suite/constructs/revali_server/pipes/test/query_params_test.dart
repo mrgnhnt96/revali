@@ -19,56 +19,56 @@ void main() {
       server.close();
     });
 
-    test('bool', () async {
+    test('user', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/query/bool?data=true',
+        path: '/api/query/user?data=banana',
       );
 
       expect(response.statusCode, HttpStatus.ok);
-      expect(response.body, {'data': true});
+      expect(response.body, {'data': 'banana'});
     });
 
-    test('list-bool', () async {
+    test('list-user', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/query/list-bool?data=true&data=false',
+        path: '/api/query/list-user?data=banana&data=apple',
       );
 
       expect(response.statusCode, HttpStatus.ok);
       expect(response.body, {
-        'data': [true, false],
+        'data': ['banana', 'apple'],
       });
     });
 
-    test('optional-bool', () async {
+    test('optional-user', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/query/optional-bool',
+        path: '/api/query/optional-user',
       );
 
       expect(response.statusCode, HttpStatus.ok);
-      expect(response.body, {'data': true});
+      expect(response.body, {'data': null});
     });
 
-    test('default-bool', () async {
+    test('default-user', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/query/default-bool',
+        path: '/api/query/default-user',
       );
 
       expect(response.statusCode, HttpStatus.ok);
-      expect(response.body, {'data': true});
+      expect(response.body, {'data': 'default'});
     });
 
-    test('default-optional-bool', () async {
+    test('default-optional-user', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/query/default-optional-bool',
+        path: '/api/query/default-optional-user',
       );
 
       expect(response.statusCode, HttpStatus.ok);
-      expect(response.body, {'data': true});
+      expect(response.body, {'data': 'default'});
     });
   });
 }

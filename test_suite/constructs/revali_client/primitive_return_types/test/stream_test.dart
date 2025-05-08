@@ -177,8 +177,9 @@ void main() {
 
     test('bytes', () async {
       final response = await client.stream.bytes().toList();
+      final decoded = response.map(utf8.decode).toList();
 
-      expect(response, [utf8.encode('Hello'), utf8.encode('world')]);
+      expect(decoded, ['Hello', 'world']);
       verifyGetRequest('/api/stream/bytes');
     });
   });

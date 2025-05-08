@@ -186,10 +186,11 @@ void main() {
 
     test('bytes', () async {
       final responses = await client.literals.bytes().toList();
+      final decoded = responses.map(utf8.decode).toList();
 
       verifyRequest('GET', '/api/literals/bytes');
 
-      expect(responses, [utf8.encode('Hello world!')]);
+      expect(decoded, ['Hello world!']);
     });
   });
 }

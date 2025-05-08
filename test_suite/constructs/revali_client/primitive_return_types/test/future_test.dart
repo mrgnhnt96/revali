@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:revali_client/revali_client.dart';
 import 'package:revali_client_primitive_return_types/revali_client_primitive_return_types.dart';
 import 'package:revali_client_test/revali_client_test.dart';
@@ -153,8 +151,9 @@ void main() {
 
     test('bytes', () async {
       final response = await client.future.bytes();
+      final decoded = String.fromCharCodes(response.toList());
 
-      expect(response, [utf8.encode('Hello world!')]);
+      expect(decoded, 'Hello world!');
       verifyGetRequest('/api/future/bytes');
     });
   });

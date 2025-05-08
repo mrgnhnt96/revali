@@ -170,8 +170,9 @@ void main() {
 
     test('bytes', () async {
       final response = await client.future.bytes().toList();
+      final decoded = response.map(utf8.decode).toList();
 
-      expect(response, [utf8.encode('Hello world!')]);
+      expect(decoded, ['Hello world!']);
       verifyGetRequest('/api/future/bytes');
     });
   });

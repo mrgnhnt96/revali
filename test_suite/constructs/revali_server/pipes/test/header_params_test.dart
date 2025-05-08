@@ -19,64 +19,64 @@ void main() {
       server.close();
     });
 
-    test('bool', () async {
+    test('user', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/header/bool',
+        path: '/api/header/user',
         headers: {
           'content-type': 'text/plain',
-          'data': 'true',
+          'data': 'banana',
         },
       );
 
       expect(response.statusCode, HttpStatus.ok);
-      expect(response.body, {'data': true});
+      expect(response.body, {'data': 'banana'});
     });
 
-    test('list-bool', () async {
+    test('list-user', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/header/list-bool',
+        path: '/api/header/list-user',
         headers: {
           'content-type': 'application/json',
-          'data': 'true,false',
+          'data': 'banana,apple',
         },
       );
 
       expect(response.statusCode, HttpStatus.ok);
       expect(response.body, {
-        'data': [true, false],
+        'data': ['banana', 'apple'],
       });
     });
 
-    test('optional-bool', () async {
+    test('optional-user', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/header/optional-bool',
+        path: '/api/header/optional-user',
       );
 
       expect(response.statusCode, HttpStatus.ok);
-      expect(response.body, {'data': true});
+      expect(response.body, {'data': null});
     });
 
-    test('default-bool', () async {
+    test('default-user', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/header/default-bool',
+        path: '/api/header/default-user',
       );
 
       expect(response.statusCode, HttpStatus.ok);
-      expect(response.body, {'data': true});
+      expect(response.body, {'data': 'default'});
     });
 
-    test('default-optional-bool', () async {
+    test('default-optional-user', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/header/default-optional-bool',
+        path: '/api/header/default-optional-user',
       );
 
       expect(response.statusCode, HttpStatus.ok);
-      expect(response.body, {'data': true});
+      expect(response.body, {'data': 'default'});
     });
   });
 }

@@ -88,7 +88,7 @@ class FutureController {
   }
 
   @SSE('bytes')
-  Future<List<List<int>>> bytes() async {
-    return [utf8.encode('Hello world!')];
+  Future<List<int>> bytes() async {
+    return utf8.encode('Hello world!');
   }
 }

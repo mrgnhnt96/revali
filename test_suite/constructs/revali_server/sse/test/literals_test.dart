@@ -278,16 +278,16 @@ void main() {
     });
 
     test('bytes', () async {
-      final stream = server.connect(
-        method: 'GET',
-        path: '/api/literals/bytes',
-      );
+      final result = await server
+          .connect(
+            method: 'GET',
+            path: '/api/literals/bytes',
+          )
+          .single;
 
-      final responses = await stream.toList();
+      final decoded = utf8.decode(result);
 
-      expect(responses, [
-        utf8.encode('Hello world!'),
-      ]);
+      expect(decoded, 'Hello world!');
     });
   });
 }

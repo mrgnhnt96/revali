@@ -117,7 +117,7 @@ class LiteralsController {
   }
 
   @WebSocket('bytes', triggerOnConnect: true, mode: WebSocketMode.sendOnly)
-  List<List<int>> bytes() {
-    return [utf8.encode('Hello world!')];
+  List<int> bytes() {
+    return utf8.encode('Hello world!');
   }
 }

@@ -1,44 +1,45 @@
 import 'package:revali_router/revali_router.dart';
-import 'package:revali_server_pipes_test/components/pipes/bool_pipe.dart';
-import 'package:revali_server_pipes_test/components/pipes/optional_bool_pipe.dart';
+import 'package:revali_server_pipes_test/components/pipes/optional_user_pipe.dart';
+import 'package:revali_server_pipes_test/components/pipes/user_pipe.dart';
+import 'package:revali_server_pipes_test/domain/user.dart';
 
 // Learn more about Controllers at https://www.revali.dev/constructs/revali_server/core/controllers
 @Controller('header')
 class HeaderParamsController {
   const HeaderParamsController();
 
-  @Get('bool')
-  bool boolean({
-    @Header.pipe(BoolPipe) required bool data,
+  @Get('user')
+  String user({
+    @Header.pipe(UserPipe) required User data,
   }) {
-    return data;
+    return data.name;
   }
 
-  @Get('list-bool')
-  List<bool> listBoolean({
-    @Header.allPipe(BoolPipe) required List<bool> data,
+  @Get('list-user')
+  List<String> listUser({
+    @Header.allPipe(UserPipe) required List<User> data,
   }) {
-    return data;
+    return data.map((user) => user.name).toList();
   }
 
-  @Get('optional-bool')
-  bool? optionalBool({
-    @Header.pipe(OptionalBoolPipe) required bool? data,
+  @Get('optional-user')
+  String? optionalUser({
+    @Header.pipe(OptionalUserPipe) required User? data,
   }) {
-    return data;
+    return data?.name;
   }
 
-  @Get('default-bool')
-  bool? defaultBool({
-    @Header.pipe(OptionalBoolPipe) bool data = true,
+  @Get('default-user')
+  String? defaultUser({
+    @Header.pipe(OptionalUserPipe) User data = const User('default'),
   }) {
-    return data;
+    return data.name;
   }
 
-  @Get('default-optional-bool')
-  bool? defaultOptionalBool({
-    @Header.pipe(OptionalBoolPipe) bool? data = true,
+  @Get('default-optional-user')
+  String? defaultOptionalUser({
+    @Header.pipe(OptionalUserPipe) User? data = const User('default'),
   }) {
-    return data;
+    return data?.name;
   }
 }

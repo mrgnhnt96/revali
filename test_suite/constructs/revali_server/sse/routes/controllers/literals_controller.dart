@@ -88,7 +88,7 @@ class LiteralsController {
   }
 
   @SSE('bytes')
-  List<List<int>> bytes() {
-    return [utf8.encode('Hello world!')];
+  List<int> bytes() {
+    return utf8.encode('Hello world!');
   }
 }

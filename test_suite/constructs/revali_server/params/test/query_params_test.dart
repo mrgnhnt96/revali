@@ -22,11 +22,11 @@ void main() {
     test('required should return success when provided', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/query/required?shopId=123',
+        path: '/api/query/required?shopId=abc',
       );
 
       expect(response.statusCode, HttpStatus.ok);
-      expect(response.body, {'data': '123'});
+      expect(response.body, {'data': 'abc'});
     });
 
     test('required should return error when not provided', () async {
@@ -62,11 +62,11 @@ Stack Trace:
     test('all should return success when provided', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/query/all?shopId=123&shopId=456',
+        path: '/api/query/all?shopId=abc&shopId=def',
       );
 
       expect(response.statusCode, HttpStatus.ok);
-      expect(response.body, {'data': '123,456'});
+      expect(response.body, {'data': 'abc,def'});
     });
 
     test('all should return error when not provided', () async {

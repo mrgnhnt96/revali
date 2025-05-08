@@ -200,13 +200,10 @@ void main() {
 
     test('bytes', () async {
       final responses = await client.stream.bytes().toList();
-
+      final decoded = responses.map(utf8.decode).toList();
       verifyRequest('GET', '/api/stream/bytes');
 
-      expect(responses, [
-        utf8.encode('Hello'),
-        utf8.encode('world'),
-      ]);
+      expect(decoded, ['Hello', 'world']);
     });
   });
 }

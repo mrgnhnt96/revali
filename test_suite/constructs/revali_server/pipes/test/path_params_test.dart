@@ -19,17 +19,17 @@ void main() {
       server.close();
     });
 
-    test('bool', () async {
+    test('user', () async {
       final response = await server.send(
         method: 'GET',
-        path: '/api/path/bool/true',
+        path: '/api/path/user/banana',
         headers: {
           'content-type': 'text/plain',
         },
       );
 
       expect(response.statusCode, HttpStatus.ok);
-      expect(response.body, {'data': true});
+      expect(response.body, {'data': 'banana'});
     });
   });
 }
