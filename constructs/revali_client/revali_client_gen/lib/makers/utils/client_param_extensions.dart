@@ -84,7 +84,8 @@ extension IterableClientParamX on Iterable<ClientParam> {
       }
 
       if (items.length > 1) {
-        if (!items.every((e) => e.type == items.first.type)) {
+        if (!items
+            .every((e) => e.type.nonNullName == items.first.type.nonNullName)) {
           throw Exception('Cannot have multiple roots with different types');
         }
 

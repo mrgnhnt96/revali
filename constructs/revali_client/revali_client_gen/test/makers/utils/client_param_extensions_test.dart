@@ -27,6 +27,26 @@ void main() {
     group('#roots', () {
       const deepEquals = DeepCollectionEquality();
 
+      test('should throw exception when types do not match', () {
+        expect(
+          [
+            param(type: 'String'),
+            param(type: 'int'),
+          ].roots,
+          throwsException,
+        );
+      });
+
+      test('should not throw exception when types match', () {
+        expect(
+          [
+            param(type: 'String'),
+            param(type: 'String'),
+          ].roots,
+          returnsNormally,
+        );
+      });
+
       test('should return an empty array when any access is empty', () {
         final result = [
           param(access: ['data', 'email']),
