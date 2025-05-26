@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.3.1 | 05.26.25
+
+### Fixes
+
+- Issue where matching types would not be considered equal
+
 ## 1.3.0 | 05.08.25
 
 ### Features

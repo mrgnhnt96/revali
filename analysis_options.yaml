@@ -18,6 +18,7 @@ analyzer:
 
   exclude:
     - "**/*.g.dart"
+    - "**/.revali/**"
     - "**/example/example.dart"
     - test/.test_coverage.dart
     - lib/generated_plugin_registrant.dart

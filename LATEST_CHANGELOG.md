@@ -115,20 +115,11 @@
 
 # revali_client
 
-## 1.3.0
-
-### Features
-
-- Add `server_name` option to `revali.yaml#constructs.revali_client` to set the name of the server class
-
-### Enhancements
-
-- Add `clear` method to `Storage` class
-  - Utility method to clear the cookies cache
+## 1.3.1
 
 ### Fixes
 
-- Serialize custom types in query parameters
+- Issue where matching types would not be considered equal
 
 # revali_client_gen
 

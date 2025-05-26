@@ -1,0 +1,9 @@
+name: "revali_lint_kit"
+publish_to: none
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  analyzer: ^6.11.0
+  lint_kit: ^0.0.2
