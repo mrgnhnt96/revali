@@ -21,7 +21,11 @@ class DefaultResponseHandler
 
     Future<void> complete() async {
       await http.flush();
-      await http.close();
+      try {
+        await http.close();
+      } catch (_) {
+        // ignore, connection was already closed
+      }
       await context.close();
     }
 
@@ -105,6 +109,12 @@ class DefaultResponseHandler
     responseHeaders.forEach((key, values) {
       http.headers.set(key, values.join(','));
     });
+
+    if (http.connectionInfo == null) {
+      // Connection is closed, so we can't send the response.
+      await complete();
+      return;
+    }
 
     if (body != null) {
       await http.addStream(body);
