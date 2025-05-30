@@ -2,8 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:revali_test/revali_test.dart';
+import 'package:revali_test/src/test_headers.dart';
 import 'package:revali_test/src/test_http_connection_info.dart';
+import 'package:revali_test/src/test_socket.dart';
 
 class TestResponse implements HttpResponse {
   TestResponse({
