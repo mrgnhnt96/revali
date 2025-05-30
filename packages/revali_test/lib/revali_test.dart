@@ -5,6 +5,7 @@
 // ignore_for_file: directives_ordering
 
 export 'src/test_headers.dart';
+export 'src/test_http_connection_info.dart';
 export 'src/test_request.dart';
 export 'src/test_response.dart';
 export 'src/test_server.dart';

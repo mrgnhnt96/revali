@@ -3,12 +3,14 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:revali_test/revali_test.dart';
+import 'package:revali_test/src/test_http_connection_info.dart';
 
 class TestResponse implements HttpResponse {
   TestResponse({
     required this.onClose,
     this.webSocketInput,
     this.onWebSocketMessage,
+    this.connectionInfo = const TestHttpConnectionInfo(),
   });
 
   final void Function(TestResponse response) onClose;
@@ -80,9 +82,6 @@ class TestResponse implements HttpResponse {
   }
 
   @override
-  Never get connectionInfo => throw UnimplementedError();
-
-  @override
   Never get cookies => throw UnimplementedError();
 
   @override
@@ -133,4 +132,7 @@ class TestResponse implements HttpResponse {
   Never writeln([Object? object = '']) {
     throw UnimplementedError('writeln');
   }
+
+  @override
+  final HttpConnectionInfo? connectionInfo;
 }
