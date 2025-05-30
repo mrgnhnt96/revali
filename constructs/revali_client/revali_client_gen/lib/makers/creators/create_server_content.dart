@@ -160,14 +160,15 @@ Spec createServerContent(ClientServer client, Settings settings) {
                   refer('this'),
                 ]).statement,
                 for (final controller in client.controllers)
-                  refer('getIt').property('registerLazySingleton').call([
-                    Method(
-                      (b) => b
-                        ..lambda = true
-                        ..body =
-                            refer(controller.simpleName.toCamelCase()).code,
-                    ).closure,
-                  ]).statement,
+                  if (!controller.isExcluded)
+                    refer('getIt').property('registerLazySingleton').call([
+                      Method(
+                        (b) => b
+                          ..lambda = true
+                          ..body =
+                              refer(controller.simpleName.toCamelCase()).code,
+                      ).closure,
+                    ]).statement,
               ]),
           ),
       ]),

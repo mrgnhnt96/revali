@@ -12,6 +12,7 @@ AnyFile pubspecFile(ClientServer server, Settings settings) {
   ).toString();
 
   final imports = server.controllers
+      .where((e) => !e.isExcluded)
       .expand(
         (e) => e.methods.expand(
           (e) {
