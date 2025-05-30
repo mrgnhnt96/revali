@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 1.3.1 | 05.30.25
+
+### Fixes
+
+- Issue where controllers/methods were not excluded from integrations
+- Issue where controllers/methods were not excluded from dependencies
+
 ## 1.3.0 | 05.08.25
 
 ### Features

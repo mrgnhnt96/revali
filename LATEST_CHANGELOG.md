@@ -49,11 +49,11 @@
 
 # revali_router
 
-## 2.3.0
+## 2.3.1
 
 ### Enhancements
 
-- Binary serialization/deserialization
+- Check for closed connection before sending response
 
 # revali_router_annotations
 
@@ -115,23 +115,18 @@
 
 # revali_client
 
+## 1.4.0
+
+### Features
+
+- Support Http Interceptors
+- Support clearing single keys from `Storage`
+
+# revali_client_gen
+
 ## 1.3.1
 
 ### Fixes
 
-- Issue where matching types would not be considered equal
-
-# revali_client_gen
-
-## 1.3.0
-
-### Features
-
-- Support dart `enum` serialization/deserialization
-  - Uses `toJson`/`fromJson` methods if available
-  - Defaults to `name`
-
-### Fixes
-
-- Issue where null values were being passed as `String` instead of omitted
-- Issue where some body keys were being dropped from the request body
+- Issue where controllers/methods were not excluded from integrations
+- Issue where controllers/methods were not excluded from dependencies

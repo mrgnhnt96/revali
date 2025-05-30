@@ -2,6 +2,7 @@
 
 ## 5.3.25
 
+- [ ] Dep
 - [ ] Consolidate `context` into a single class, no more multiple context types
 - [ ] Figure out a way to handle sending streams from the client to the server
 - [ ] Print out syntax errors preventing a hot reload

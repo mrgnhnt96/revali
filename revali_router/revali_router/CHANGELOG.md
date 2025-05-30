@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.3.1 | 05.30.25
+
+### Enhancements
+
+- Check for closed connection before sending response
+
 ## 2.3.0 | 05.08.25
 
 ### Enhancements

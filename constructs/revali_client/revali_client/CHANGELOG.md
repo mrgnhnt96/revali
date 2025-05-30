@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 1.4.0 | 05.30.25
+
+### Features
+
+- Support Http Interceptors
+- Support clearing single keys from `Storage`
+
 ## 1.3.1 | 05.26.25
 
 ### Fixes
