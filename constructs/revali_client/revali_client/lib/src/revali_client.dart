@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:revali_client/src/cookie_parser.dart';
 import 'package:revali_client/src/http_client.dart';
+import 'package:revali_client/src/http_interceptor.dart';
 import 'package:revali_client/src/http_request.dart';
 import 'package:revali_client/src/http_response.dart';
 import 'package:revali_client/src/integrations/http_package_client.dart';
@@ -18,6 +19,8 @@ class RevaliClient {
   final Storage storage;
   final HttpClient _client;
   final String? baseUrl;
+
+  List<HttpInterceptor> get interceptors => _client.interceptors;
 
   /// [headers] Accepts either a Map<String, List<String>>
   /// or a Map<String, String>.

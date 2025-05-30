@@ -126,4 +126,7 @@ final class TestClient implements HttpClient {
 
     return response;
   }
+
+  @override
+  List<HttpInterceptor> get interceptors => [];
 }

@@ -1,14 +1,20 @@
 import 'package:http/http.dart' as http;
 import 'package:revali_client/src/http_client.dart';
+import 'package:revali_client/src/http_interceptor.dart';
 import 'package:revali_client/src/http_request.dart';
 import 'package:revali_client/src/http_response.dart';
 
 class HttpPackageClient implements HttpClient {
   HttpPackageClient({
     http.Client? client,
-  }) : _client = client ?? http.Client();
+    List<HttpInterceptor>? interceptors,
+  })  : _client = client ?? http.Client(),
+        interceptors = interceptors ?? [];
 
   final http.Client _client;
+
+  @override
+  final List<HttpInterceptor> interceptors;
 
   @override
   Future<HttpResponse> send(HttpRequest request) async {
@@ -33,9 +39,22 @@ class HttpPackageClient implements HttpClient {
       httpRequest.contentLength = contentLength;
     }
 
+    for (final HttpInterceptor(:onRequest) in interceptors) {
+      try {
+        switch (onRequest) {
+          case final Future<void> Function(HttpRequest) fn:
+            await fn(request);
+          case final fn:
+            fn(request);
+        }
+      } catch (e) {
+        // swallow
+      }
+    }
+
     final response = await _client.send(httpRequest);
 
-    return HttpResponse(
+    final httpResponse = HttpResponse(
       request: request,
       statusCode: response.statusCode,
       headers: response.headers,
@@ -44,5 +63,20 @@ class HttpPackageClient implements HttpClient {
       reasonPhrase: response.reasonPhrase,
       contentLength: response.contentLength,
     );
+
+    for (final HttpInterceptor(:onResponse) in interceptors) {
+      try {
+        switch (onResponse) {
+          case final Future<void> Function(HttpResponse) fn:
+            await fn(httpResponse);
+          case final fn:
+            fn(httpResponse);
+        }
+      } catch (e) {
+        // swallow
+      }
+    }
+
+    return httpResponse;
   }
 }

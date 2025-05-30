@@ -29,4 +29,9 @@ class SessionStorage implements Storage {
   Future<void> clear() async {
     _storage.clear();
   }
+
+  @override
+  Future<void> remove(String key) async {
+    _storage.remove(key);
+  }
 }

@@ -5,4 +5,5 @@ abstract interface class Storage {
   Future<void> save(String key, Object? value);
   Future<void> saveAll(Map<String, Object?> values);
   Future<void> clear();
+  Future<void> remove(String key);
 }

@@ -6,6 +6,7 @@
 
 export 'src/annotations/exclude_from_client.dart';
 export 'src/http_client.dart';
+export 'src/http_interceptor.dart';
 export 'src/http_request.dart';
 export 'src/http_response.dart';
 export 'src/integrations/http_package_client.dart';
