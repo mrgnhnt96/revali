@@ -5,37 +5,37 @@ repository: https://github.com/mrgnhnt96/revali/tree/main/constructs/revali_serv
 issue_tracker: https://github.com/mrgnhnt96/revali/issues
 documentation: https://revali.dev
 funding:
-    - https://github.com/sponsors/mrgnhnt96
+  - https://github.com/sponsors/mrgnhnt96
 topics:
-    - revali
-    - construct
-    - backend
-    - api
+  - revali
+  - construct
+  - backend
+  - api
 
 environment:
-    sdk: '>=3.2.6 <4.0.0'
+  sdk: ">=3.2.6 <4.0.0"
 
 dependencies:
-    analyzer: ^6.4.1
-    args: ^2.6.0
-    change_case: ^2.1.0
-    code_builder: ^4.10.0
-    collection: ^1.19.0
-    dart_style: ^3.0.1
-    file: ^7.0.1
-    glob: ^2.1.2
-    json_annotation: ^4.9.0
-    mason_logger: ^0.3.1
-    path: ^1.9.0
-    revali_annotations: ^1.4.1
-    revali_construct: ^1.7.0
-    revali_core: ^1.4.0
-    revali_router: ^2.3.0
-    revali_router_annotations: ^1.3.0
-    revali_router_core: ^1.9.0
-    yaml: ^3.1.2
+  analyzer: ^6.11.0
+  args: ^2.6.0
+  change_case: ^2.1.0
+  code_builder: ^4.10.0
+  collection: ^1.19.0
+  dart_style: ^3.0.1
+  file: ^7.0.1
+  glob: ^2.1.2
+  json_annotation: ^4.9.0
+  mason_logger: ^0.3.1
+  path: ^1.9.0
+  revali_annotations: ^1.4.1
+  revali_construct: ^1.7.0
+  revali_core: ^1.4.0
+  revali_router: ^2.3.0
+  revali_router_annotations: ^1.3.0
+  revali_router_core: ^1.9.0
+  yaml: ^3.1.2
 
 dev_dependencies:
-    build_runner: ^2.4.13
-    json_serializable: ^6.9.0
-    test: ^1.25.15
+  build_runner: ^2.4.13
+  json_serializable: ^6.9.0
+  test: ^1.25.15

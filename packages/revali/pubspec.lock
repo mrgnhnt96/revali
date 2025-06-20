@@ -388,14 +388,14 @@ packages:
       path: "../revali_annotations"
       relative: true
     source: path
-    version: "1.4.0"
+    version: "1.4.1"
   revali_construct:
     dependency: "direct main"
     description:
       path: "../revali_construct"
       relative: true
     source: path
-    version: "1.6.0"
+    version: "1.7.0"
   revali_core:
     dependency: "direct main"
     description:

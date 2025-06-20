@@ -215,7 +215,7 @@ packages:
       path: "../revali_client"
       relative: true
     source: path
-    version: "1.0.1"
+    version: "1.4.0"
   revali_test:
     dependency: "direct main"
     description:
