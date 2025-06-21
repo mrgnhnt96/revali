@@ -1,3 +1,4 @@
+import 'package:analyzer/error/error.dart';
 import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
 import 'package:revali/ast/analyzer/analyzer.dart';
@@ -17,6 +18,19 @@ class RoutesHandler with DirectoriesMixin {
   final FileSystem fs;
   final String rootPath;
   final Analyzer analyzer;
+
+  Future<List<(String, List<AnalysisError>)>> errors() async {
+    await analyzer.initialize(root: rootPath);
+
+    final mapped = <String, List<AnalysisError>>{};
+
+    for (final error in await analyzer.errors(rootPath)) {
+      final path = fs.path.relative(error.source.fullName);
+      mapped.putIfAbsent(path, () => []).add(error);
+    }
+
+    return mapped.entries.map((e) => (e.key, e.value)).toList();
+  }
 
   Future<MetaServer> parse() async {
     final root = await rootOf(rootPath);

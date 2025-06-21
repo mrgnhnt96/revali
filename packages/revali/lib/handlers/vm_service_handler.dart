@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:io';
 
+import 'package:analyzer/error/error.dart';
 import 'package:async/async.dart';
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
@@ -34,6 +35,7 @@ class VMServiceHandler {
     required this.mode,
     required this.onFileChange,
     required this.onFileRemove,
+    required this.errors,
     this.dartDefine = const DartDefine(),
     this.dartVmServicePort = '0',
   }) : assert(
@@ -45,13 +47,14 @@ class VMServiceHandler {
   final String dartVmServicePort;
   final Directory root;
   final String serverFile;
-  final Future<MetaServer?> Function([void Function(String)?]) codeGenerator;
+  final Future<MetaServer> Function([void Function(String)?]) codeGenerator;
   final bool canHotReload;
   final DartDefine dartDefine;
   final List<String> serverArgs;
   final Mode mode;
   final void Function(String) onFileChange;
   final void Function(String) onFileRemove;
+  final Future<List<(String, List<AnalysisError>)>> Function() errors;
 
   bool _isReloading = false;
   bool _errorInGeneration = false;
@@ -89,25 +92,35 @@ class VMServiceHandler {
     }
 
     _isReloading = true;
-    await _cancelWatcherSubscription();
 
     _progress = logger.progress('Reloading');
 
-    final server = await codeGenerator(_progress?.update);
-    if (server == null) {
+    if (await errors() case final errors when errors.isNotEmpty) {
       _errorInGeneration = true;
+      _isReloading = false;
       clearConsole();
       _progress?.fail('Failed to reload');
       logger
         ..write('\n')
-        ..flush();
-    } else {
-      _errorInGeneration = false;
-      _progress?.complete('Reloaded');
-      clearConsole();
-      printVmServiceUri();
-      printParsedRoutes(server.routes);
+        ..write('Found ${errors.length} errors\n');
+      for (final (path, errors) in errors) {
+        logger.write('\n${yellow.wrap(path)}\n');
+        for (final error in errors) {
+          logger.write('${red.wrap('  -')} ${error.message}\n');
+        }
+      }
+
+      return;
     }
+
+    await _cancelWatcherSubscription();
+
+    final server = await codeGenerator(_progress?.update);
+    _errorInGeneration = false;
+    _progress?.complete('Reloaded');
+    clearConsole();
+    printVmServiceUri();
+    printParsedRoutes(server.routes);
 
     logger.flush((message) {
       if (message == null) return;
@@ -269,15 +282,6 @@ class VMServiceHandler {
     final progress = logger.progress('Generating server code');
 
     final server = await codeGenerator(progress.update);
-    if (server == null) {
-      progress.fail('Failed to generate server code');
-      logger
-        ..err('Failed to start up server')
-        ..write('\n')
-        ..flush();
-      await stop(1);
-      return;
-    }
 
     progress.complete('Generated server code');
 

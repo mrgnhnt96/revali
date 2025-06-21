@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:analyzer/error/error.dart';
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:revali/revali.dart';
@@ -111,19 +112,22 @@ class ConstructGenerator with DirectoriesMixin {
     }
   }
 
-  Future<MetaServer?> generate([Log progress]) async {
+  Future<List<(String, List<AnalysisError>)>> getErrors() async {
+    return await routesHandler.errors();
+  }
+
+  Future<MetaServer> generate([Log progress]) async {
     try {
       return await _generate(progress);
     } catch (e) {
       logger
         ..delayed(red.wrap('Error occurred while generating constructs'))
         ..delayed(red.wrap('Error: $e'));
+      rethrow;
     }
-
-    return null;
   }
 
-  Future<MetaServer?> _generate(Log progress) async {
+  Future<MetaServer> _generate(Log progress) async {
     final server = await routesHandler.parse();
 
     final buildMakers = <ConstructMaker>[];
@@ -191,7 +195,10 @@ constructs:
         try {
           if (await _generateConstruct(maker, server) case final success
               when !success) {
-            return null;
+            throw Exception(
+              'Something went wrong when generating '
+              'Build Construct ${maker.name}',
+            );
           }
         } catch (e) {
           logger
@@ -216,7 +223,10 @@ constructs:
 
             if (maker.isServer) {
               logger.delayed('Please check that your code is valid...');
-              return null;
+              throw Exception(
+                'Something went wrong when generating '
+                'Construct ${maker.name}',
+              );
             }
           }
         } catch (e) {
@@ -249,7 +259,7 @@ There are no Server Constructs in the project.
 Check out the documentation for more information on how to add a Server Construct:
 http://revali.dev/constructs#server-constructs
       ''');
-      return null;
+      throw Exception('There are no Server Constructs in the project.');
     }
 
     return server;

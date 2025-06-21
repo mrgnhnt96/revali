@@ -5,6 +5,8 @@ import 'dart:typed_data';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
@@ -271,6 +273,53 @@ class Analyzer implements AnalyzerChanges {
     final results = await Future.wait(futures);
 
     return results.expand((e) => e).toList();
+  }
+
+  Future<List<AnalysisError>> errors(
+    String root, {
+    Severity? severity = Severity.error,
+  }) async {
+    final libFiles = await find.filesInDirectory(
+      'lib',
+      workingDirectory: root,
+      recursive: false,
+    );
+    final routesFiles = await find.filesInDirectory(
+      'routes',
+      workingDirectory: root,
+      recursive: false,
+    );
+
+    final files = [...libFiles, ...routesFiles];
+
+    final futures = <Future<SomeErrorsResult>>[];
+    AnalysisContext context;
+    for (final file in files) {
+      if (fs.path.extension(file) != '.dart') {
+        continue;
+      }
+
+      try {
+        context = analysisCollection.contextFor(file);
+      } catch (_) {
+        continue;
+      }
+      futures.add(context.currentSession.getErrors(file));
+    }
+
+    final errors = <AnalysisError>[];
+    for (final error in await Future.wait(futures)) {
+      if (error case ErrorsResult(errors: final found)) {
+        errors.addAll(
+          switch (severity) {
+            null => found,
+            final sev => found.where((e) => e.severity == sev),
+          },
+        );
+      }
+    }
+
+    return errors;
   }
 }
 

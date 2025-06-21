@@ -121,12 +121,7 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
 
       final progress = logger.progress('Generating server code');
 
-      if (await generator.generate(logger.delayed) case final server
-          when server == null) {
-        progress.fail('Failed to generate server code');
-        logger.flush();
-        return 1;
-      }
+      await generator.generate(logger.delayed);
 
       progress.complete('Generated server code');
 
@@ -146,6 +141,7 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
       mode: mode,
       onFileChange: analyzer.refresh,
       onFileRemove: analyzer.remove,
+      errors: generator.getErrors,
     );
 
     await generator.clean();
