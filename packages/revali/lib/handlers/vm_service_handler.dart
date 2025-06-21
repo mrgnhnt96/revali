@@ -11,7 +11,6 @@ import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart' as p;
 import 'package:revali/dart_define/dart_define.dart';
-import 'package:revali/utils/extensions/directory_extensions.dart';
 import 'package:revali_construct/hot_reload/hot_reload.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:stream_transform/stream_transform.dart';
@@ -68,7 +67,7 @@ class VMServiceHandler {
   }
 
   io.Process? _serverProcess;
-  StreamSubscription<(bool, String)>? _watcherSubscription;
+  StreamSubscription<WatchEvent>? _watcherSubscription;
   StreamSubscription<List<int>>? _inputSubscription;
   StreamSubscription<io.ProcessSignal>? _killSubscription;
 
@@ -362,11 +361,9 @@ class VMServiceHandler {
 
           return event;
         })
-        .asyncMap(shouldReload)
-        .where((event) => event.$1)
         .debounce(Duration.zero)
         .listen((event) {
-          final (_, path) = event;
+          final WatchEvent(:type, :path) = event;
 
           _reload(path);
         });
@@ -536,49 +533,6 @@ class VMServiceHandler {
       await _killServerProcess();
       await stop(1);
     }).ignore();
-  }
-
-  Future<(bool, String)> shouldReload(WatchEvent event) async {
-    logger.detail('File ${event.type}: ${event.path}');
-
-    if (_isReloading) {
-      logger.detail('Skipping reload, hot reload in progress');
-      return (false, event.path);
-    }
-
-    if (_errorInGeneration) {
-      logger.detail('Forcing reload due to error in generation');
-      return (true, event.path);
-    }
-
-    final revali = await root.getServer();
-    if (p.isWithin(revali.path, event.path)) {
-      return (true, event.path);
-    }
-
-    if (p.equals(root.childFile('pubspec.yaml').path, event.path)) {
-      return (true, event.path);
-    }
-
-    final routes = await root.getRoutes();
-    if (routes != null) {
-      if (p.isWithin(routes.path, event.path)) {
-        return (true, event.path);
-      }
-    }
-
-    final public = await root.getPublic();
-    if (p.isWithin(public.path, event.path)) {
-      return (true, event.path);
-    }
-
-    final lib = await root.getComponents();
-    if (p.isWithin(lib.path, event.path)) {
-      return (true, event.path);
-    }
-
-    logger.detail('No construct reload needed');
-    return (false, event.path);
   }
 
   String _formatTime(DateTime time) {
