@@ -57,6 +57,10 @@ class AnnotationArgument with ExtractImport {
         case Expression(staticParameterElement: final param?)) {
       parameterName = param.name;
       isRequired = param.isRequiredNamed;
+    } else if (expression.parent
+        case NamedExpression(name: Label(:final label))) {
+      parameterName = label.name;
+      isRequired = false;
     } else {
       throw ArgumentError('Invalid expression');
     }
