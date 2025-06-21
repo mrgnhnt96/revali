@@ -1,6 +1,7 @@
 import 'package:args/command_runner.dart';
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
+import 'package:revali/ast/analyzer/analyzer.dart';
 import 'package:revali/clis/construct_runner/commands/mixins/dart_defines_mixin.dart';
 import 'package:revali/clis/construct_runner/generator/construct_generator.dart';
 import 'package:revali/handlers/routes_handler.dart';
@@ -14,9 +15,11 @@ class BuildCommand extends Command<int>
     required this.constructs,
     required this.fs,
     required this.logger,
+    required Analyzer analyzer,
     RoutesHandler? routesHandler,
   }) : routesHandler = routesHandler ??
             RoutesHandler(
+              analyzer: analyzer,
               fs: fs,
               rootPath: rootPath,
             ) {

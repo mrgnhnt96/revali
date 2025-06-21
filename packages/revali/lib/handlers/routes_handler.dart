@@ -1,5 +1,6 @@
 import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
+import 'package:revali/ast/analyzer/analyzer.dart';
 import 'package:revali/ast/file_traverser.dart';
 import 'package:revali/utils/extensions/directory_extensions.dart';
 import 'package:revali/utils/mixins/directories_mixin.dart';
@@ -9,14 +10,18 @@ class RoutesHandler with DirectoriesMixin {
   RoutesHandler({
     required this.fs,
     required this.rootPath,
+    required this.analyzer,
   });
 
   @override
   final FileSystem fs;
   final String rootPath;
+  final Analyzer analyzer;
 
   Future<MetaServer> parse() async {
     final root = await rootOf(rootPath);
+
+    await analyzer.initialize(root: rootPath);
 
     final (:routes, :apps) = await _getRoutes(root);
 
@@ -66,39 +71,21 @@ class RoutesHandler with DirectoriesMixin {
       return (routes: <MetaRoute>[], apps: [MetaAppConfig.defaultConfig()]);
     }
 
-    final traverser = FileTraverser(fs);
+    final files = await analyzer.analyze(routesDir.path);
 
-    final entities = await routesDir
-        .list(
-          recursive: true,
-          followLinks: false,
-        )
-        .toList();
+    final traverser = FileTraverser(fs);
 
     final routes = <MetaRoute>[];
     final apps = <MetaAppConfig>[];
 
-    for (final entity in entities) {
-      if (entity is Directory) continue;
-
-      if (!await fs.isFile(entity.path)) {
-        continue;
-      }
-
-      final file = fs.file(entity.path);
-
-      final route = await traverser.parseRoute(file);
-
-      if (route != null) {
+    for (final entity in files) {
+      if (await traverser.parseRoute(entity) case final route?) {
         routes.add(route);
         continue;
       }
 
-      final result = await traverser.parseApps(file).toList();
-
-      if (result.isNotEmpty) {
-        apps.addAll(result);
-        continue;
+      await for (final app in traverser.parseApps(entity)) {
+        apps.add(app);
       }
     }
 

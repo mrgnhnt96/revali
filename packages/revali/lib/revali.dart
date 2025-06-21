@@ -4,12 +4,17 @@
 //
 // ignore_for_file: directives_ordering
 
+export 'ast/analyzer/analyzer.dart';
+export 'ast/analyzer/analyzer_changes.dart';
+export 'ast/analyzer/units.dart';
 export 'ast/checkers/checkers.dart';
 export 'ast/file_system/analyzer_file.dart';
 export 'ast/file_system/analyzer_folder.dart';
 export 'ast/file_system/file_resource_provider.dart';
 export 'ast/file_system/util/watch_event_extension.dart';
 export 'ast/file_traverser.dart';
+export 'ast/find/find_impl.dart';
+export 'ast/find/interfaces/find.dart';
 export 'ast/visitors/app_visitor.dart';
 export 'ast/visitors/controller_visitor.dart';
 export 'ast/visitors/get_params.dart';
@@ -26,3 +31,4 @@ export 'handlers/routes_handler.dart';
 export 'handlers/vm_service_handler.dart';
 export 'utils/extensions/directory_extensions.dart';
 export 'utils/mixins/directories_mixin.dart';
+export 'utils/type_def/start_process.dart';

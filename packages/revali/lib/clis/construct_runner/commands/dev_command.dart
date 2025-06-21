@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:args/command_runner.dart';
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
+import 'package:revali/ast/analyzer/analyzer.dart';
 import 'package:revali/clis/construct_runner/commands/mixins/dart_defines_mixin.dart';
 import 'package:revali/clis/construct_runner/generator/construct_generator.dart';
 import 'package:revali/handlers/routes_handler.dart';
@@ -17,9 +18,11 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
     required this.constructs,
     required this.fs,
     required this.logger,
+    required this.analyzer,
     RoutesHandler? routesHandler,
   }) : routesHandler = routesHandler ??
             RoutesHandler(
+              analyzer: analyzer,
               fs: fs,
               rootPath: rootPath,
             ) {
@@ -75,6 +78,7 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
   @override
   final FileSystem fs;
   final Logger logger;
+  final Analyzer analyzer;
 
   @override
   String get description => 'Starts the development server';
@@ -140,6 +144,8 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
       dartVmServicePort: dartVmServicePort,
       serverArgs: argResults?.rest ?? [],
       mode: mode,
+      onFileChange: analyzer.refresh,
+      onFileRemove: analyzer.remove,
     );
 
     await generator.clean();

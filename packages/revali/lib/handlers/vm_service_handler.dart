@@ -32,6 +32,8 @@ class VMServiceHandler {
     required this.canHotReload,
     required this.serverArgs,
     required this.mode,
+    required this.onFileChange,
+    required this.onFileRemove,
     this.dartDefine = const DartDefine(),
     this.dartVmServicePort = '0',
   }) : assert(
@@ -48,6 +50,8 @@ class VMServiceHandler {
   final DartDefine dartDefine;
   final List<String> serverArgs;
   final Mode mode;
+  final void Function(String) onFileChange;
+  final void Function(String) onFileRemove;
 
   bool _isReloading = false;
   bool _errorInGeneration = false;
@@ -250,22 +254,16 @@ class VMServiceHandler {
     _inputSubscription = null;
   }
 
-  Future<void> start({
-    required bool enableHotReload,
-  }) async {
+  Future<void> start({required bool enableHotReload}) async {
     lockInput();
 
     logger.detail('Starting dev server');
     if (isCompleted) {
-      throw Exception(
-        'Cannot start a dev server after it has been stopped.',
-      );
+      throw Exception('Cannot start a dev server after it has been stopped.');
     }
 
     if (isServerRunning) {
-      throw Exception(
-        'Cannot start a dev server while already running.',
-      );
+      throw Exception('Cannot start a dev server while already running.');
     }
 
     final progress = logger.progress('Generating server code');
@@ -323,12 +321,10 @@ class VMServiceHandler {
     var attemptsToKill = 0;
     final stream = Platform.isWindows
         ? ProcessSignal.sigint.watch()
-        : StreamGroup.merge(
-            [
-              ProcessSignal.sigterm.watch(),
-              ProcessSignal.sigint.watch(),
-            ],
-          );
+        : StreamGroup.merge([
+            ProcessSignal.sigterm.watch(),
+            ProcessSignal.sigint.watch(),
+          ]);
 
     _killSubscription ??= stream.listen((event) {
       logger.detail('Received SIGINT');
@@ -345,12 +341,31 @@ class VMServiceHandler {
   void watchForFileChanges() {
     logger.detail('Watching ${root.path} for changes');
 
-    _watcherSubscription ??= DirectoryWatcher(root.path)
+    if (_watcherSubscription != null) {
+      return;
+    }
+
+    _watcherSubscription = DirectoryWatcher(root.path)
         .events
+        .map((event) {
+          final WatchEvent(:type, :path) = event;
+
+          if (type == ChangeType.REMOVE) {
+            onFileRemove(path);
+          } else {
+            onFileChange(path);
+          }
+
+          return event;
+        })
         .asyncMap(shouldReload)
         .where((event) => event.$1)
         .debounce(Duration.zero)
-        .listen((event) => _reload(event.$2));
+        .listen((event) {
+          final (_, path) = event;
+
+          _reload(path);
+        });
 
     _watcherSubscription?.asFuture<void>().then((_) async {
       await _cancelWatcherSubscription();

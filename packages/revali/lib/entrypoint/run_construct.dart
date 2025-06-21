@@ -1,5 +1,6 @@
 import 'package:file/local.dart';
 import 'package:mason_logger/mason_logger.dart';
+import 'package:platform/platform.dart';
 import 'package:revali/revali.dart';
 import 'package:revali_construct/revali_construct.dart';
 
@@ -26,11 +27,23 @@ Future<int> runConstruct(
             : Level.info,
   );
 
+  const platform = LocalPlatform();
+
   final runner = ConstructRunner(
     fs: fs,
     constructs: constructs,
     rootPath: path,
     logger: logger,
+    analyzer: Analyzer(
+      fs: fs,
+      find: const FindImpl(
+        platform: platform,
+        fs: fs,
+        startProcess: processToDetails,
+      ),
+      platform: platform,
+      logger: logger,
+    ),
   );
 
   final result = await runner.run(args);

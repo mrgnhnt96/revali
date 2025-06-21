@@ -163,7 +163,8 @@ abstract class TypeChecker {
         i,
         throwOnUnresolved: throwOnUnresolved,
       );
-      if (value?.type != null && predicate(value!.type!)) {
+      if ((value, value?.type) case (final value?, final type?)
+          when predicate(type)) {
         yield value;
       }
     }
@@ -190,9 +191,11 @@ abstract class TypeChecker {
 
   /// Returns `true` if [staticType] can be assigned to this type.
   // ignore: avoid_bool_literals_in_conditional_expressions
-  bool isAssignableFromType(DartType staticType) => staticType.element == null
-      ? false
-      : isAssignableFrom(staticType.element!);
+  bool isAssignableFromType(DartType staticType) =>
+      switch (staticType.element) {
+        null => false,
+        final e => isAssignableFrom(e),
+      };
 
   /// Returns `true` if representing the exact same class as [element].
   bool isExactly(Element element);

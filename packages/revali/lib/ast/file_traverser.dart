@@ -1,8 +1,6 @@
-import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:file/file.dart';
 import 'package:path/path.dart' as path;
-import 'package:revali/ast/file_system/file_resource_provider.dart';
+import 'package:revali/ast/analyzer/units.dart';
 import 'package:revali/ast/visitors/app_visitor.dart';
 import 'package:revali/ast/visitors/controller_visitor.dart';
 import 'package:revali_construct/revali_construct.dart';
@@ -12,12 +10,12 @@ class FileTraverser {
 
   final FileSystem fs;
 
-  Stream<MetaAppConfig> parseApps(File file) async* {
-    if (!path.basename(file.path).contains(RegExp(r'[._]app\.dart$'))) {
+  Stream<MetaAppConfig> parseApps(Units units) async* {
+    if (!path.basename(units.parsed.path).contains(RegExp(r'[._]app\.dart$'))) {
       return;
     }
 
-    final resolved = await _resolve(file.path, fs);
+    final resolved = await units.resolved();
 
     final classVisitor = AppVisitor();
     resolved.libraryElement.accept(classVisitor);
@@ -49,27 +47,14 @@ class FileTraverser {
     }
   }
 
-  Future<ResolvedUnitResult> _resolve(String file, FileSystem fs) async {
-    final collection = AnalysisContextCollection(
-      includedPaths: [file],
-      resourceProvider: FileResourceProvider(fs),
-    );
-
-    final context = collection.contexts.first;
-    final result = await context.currentSession.getResolvedUnit(file);
-    if (result is! ResolvedUnitResult) {
-      throw ArgumentError('Could not resolve file: $file');
-    }
-
-    return result;
-  }
-
-  Future<MetaRoute?> parseRoute(File file) async {
-    if (!path.basename(file.path).contains(RegExp(r'[._]controller\.dart$'))) {
+  Future<MetaRoute?> parseRoute(Units units) async {
+    if (!path
+        .basename(units.parsed.path)
+        .contains(RegExp(r'[._]controller\.dart$'))) {
       return null;
     }
 
-    final resolved = await _resolve(file.path, fs);
+    final resolved = await units.resolved();
 
     final classVisitor = ControllerVisitor();
     resolved.libraryElement.accept(classVisitor);
@@ -83,7 +68,7 @@ class FileTraverser {
 
     return MetaRoute(
       path: routePath,
-      filePath: file.path,
+      filePath: units.parsed.path,
       className: element.name,
       params: params,
       element: element,

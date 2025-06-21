@@ -2,6 +2,7 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
+import 'package:revali/ast/analyzer/analyzer.dart';
 import 'package:revali/clis/construct_runner/commands/build_command.dart';
 import 'package:revali/clis/construct_runner/commands/dev_command.dart';
 import 'package:revali_construct/revali_construct.dart';
@@ -12,6 +13,7 @@ class ConstructRunner extends CommandRunner<int> {
     required this.rootPath,
     required this.logger,
     required FileSystem fs,
+    required Analyzer analyzer,
   }) : super('', 'Generates the construct') {
     argParser
       ..addFlag(
@@ -31,6 +33,7 @@ class ConstructRunner extends CommandRunner<int> {
         rootPath: rootPath,
         constructs: constructs,
         logger: logger,
+        analyzer: analyzer,
       ),
     );
     addCommand(
@@ -39,6 +42,7 @@ class ConstructRunner extends CommandRunner<int> {
         rootPath: rootPath,
         constructs: constructs,
         logger: logger,
+        analyzer: analyzer,
       ),
     );
   }
