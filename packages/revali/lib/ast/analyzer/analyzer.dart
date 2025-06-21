@@ -295,7 +295,7 @@ class Analyzer implements AnalyzerChanges {
     final futures = <Future<SomeErrorsResult>>[];
     AnalysisContext context;
     for (final file in files) {
-      if (fs.path.extension(file) != '.dart') {
+      if (!fs.path.basename(file).endsWith('.dart')) {
         continue;
       }
 
