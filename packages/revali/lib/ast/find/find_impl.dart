@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:file/file.dart';
 import 'package:glob/glob.dart';
@@ -65,6 +66,7 @@ class FindImpl implements Find {
     required String workingDirectory,
     required bool file,
     List<String> ignoreDirs = const [],
+    DateTime? lastModified,
   }) async {
     final ignore = <String>[
       for (final (index, dir) in _ignoreDirs.followedBy(ignoreDirs).indexed)
@@ -72,9 +74,14 @@ class FindImpl implements Find {
     ];
 
     final type = file ? 'f' : 'd';
+    final lastModifiedArg = switch (lastModified) {
+      final DateTime date =>
+        '-mmin -${max(date.difference(DateTime.now()).inMinutes, 1)}',
+      null => '',
+    };
 
     final script =
-        "find $workingDirectory \\( ${ignore.join(' ')} \\) -prune -o -name '$name' -type $type -print";
+        "find $workingDirectory \\( ${ignore.join(' ')} \\) -prune -o -name '$name' -type $type -print $lastModifiedArg";
 
     final result = await startProcess('bash', ['-c', script]);
     final stdout = await result.stdout.transform(utf8.decoder).join();
@@ -100,6 +107,7 @@ class FindImpl implements Find {
     required String workingDirectory,
     List<String> ignoreDirs = const [],
     bool recursive = true,
+    DateTime? lastModified,
   }) async {
     final directories = switch (recursive) {
       false => [fs.path.join(workingDirectory, directory)],
@@ -111,11 +119,13 @@ class FindImpl implements Find {
               workingDirectory: workingDirectory,
               file: false,
               ignoreDirs: ignoreDirs,
+              lastModified: lastModified,
             ),
           Platform(isWindows: true) => await _findWindowsDirectory(
               directory,
               workingDirectory: workingDirectory,
               ignoreDirs: ignoreDirs,
+              lastModified: lastModified,
             ),
           _ => throw UnsupportedError(
               'Unsupported platform: ${platform.operatingSystem}',
@@ -138,11 +148,12 @@ class FindImpl implements Find {
     String directory, {
     required String workingDirectory,
     List<String> ignoreDirs = const [],
+    DateTime? lastModified,
   }) async {
     final directories = Glob(
       fs.path.join(workingDirectory, '**', directory),
       recursive: true,
-    ).listFileSystemSync(fs).whereType<Directory>();
+    ).listFileSystemSync(fs, followLinks: false).whereType<Directory>();
 
     return directories.map((e) => e.path).toList();
   }

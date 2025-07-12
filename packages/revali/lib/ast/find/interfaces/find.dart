@@ -10,5 +10,6 @@ abstract interface class Find {
     required String workingDirectory,
     List<String> ignoreDirs,
     bool recursive = true,
+    DateTime? lastModified,
   });
 }
