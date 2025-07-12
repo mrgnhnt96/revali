@@ -3,6 +3,7 @@ abstract interface class Find {
     String name, {
     required String workingDirectory,
     List<String> ignoreDirs,
+    DateTime? lastModified,
   });
 
   Future<List<String>> filesInDirectory(

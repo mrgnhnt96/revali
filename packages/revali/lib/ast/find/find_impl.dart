@@ -38,6 +38,7 @@ class FindImpl implements Find {
     String name, {
     required String workingDirectory,
     List<String> ignoreDirs = const [],
+    DateTime? lastModified,
   }) {
     switch (platform) {
       case Platform(isLinux: true):
@@ -47,12 +48,14 @@ class FindImpl implements Find {
           workingDirectory: workingDirectory,
           file: true,
           ignoreDirs: ignoreDirs,
+          lastModified: lastModified,
         );
       case Platform(isWindows: true):
         return _findWindows(
           name,
           workingDirectory: workingDirectory,
           ignoreDirs: ignoreDirs,
+          lastModified: lastModified,
         );
       default:
         throw UnsupportedError(
@@ -81,7 +84,7 @@ class FindImpl implements Find {
     };
 
     final script =
-        "find $workingDirectory \\( ${ignore.join(' ')} \\) -prune -o -name '$name' -type $type -print $lastModifiedArg";
+        "find $workingDirectory \\( ${ignore.join(' ')} \\) -prune -o -name '$name' -type $type $lastModifiedArg -print";
 
     final result = await startProcess('bash', ['-c', script]);
     final stdout = await result.stdout.transform(utf8.decoder).join();
@@ -92,6 +95,7 @@ class FindImpl implements Find {
     String name, {
     required String workingDirectory,
     List<String> ignoreDirs = const [],
+    DateTime? lastModified,
   }) async {
     final files = Glob(
       fs.path.join(workingDirectory, '**', name),
@@ -112,32 +116,36 @@ class FindImpl implements Find {
     final directories = switch (recursive) {
       false => [fs.path.join(workingDirectory, directory)],
       true => switch (platform) {
-          Platform(isLinux: true) ||
-          Platform(isMacOS: true) =>
-            await _findLinux(
-              directory,
-              workingDirectory: workingDirectory,
-              file: false,
-              ignoreDirs: ignoreDirs,
-              lastModified: lastModified,
-            ),
-          Platform(isWindows: true) => await _findWindowsDirectory(
-              directory,
-              workingDirectory: workingDirectory,
-              ignoreDirs: ignoreDirs,
-              lastModified: lastModified,
-            ),
-          _ => throw UnsupportedError(
-              'Unsupported platform: ${platform.operatingSystem}',
-            ),
-        },
+        Platform(isLinux: true) || Platform(isMacOS: true) => await _findLinux(
+          directory,
+          workingDirectory: workingDirectory,
+          file: false,
+          ignoreDirs: ignoreDirs,
+          lastModified: lastModified,
+        ),
+        Platform(isWindows: true) => await _findWindowsDirectory(
+          directory,
+          workingDirectory: workingDirectory,
+          ignoreDirs: ignoreDirs,
+          lastModified: lastModified,
+        ),
+        _ => throw UnsupportedError(
+          'Unsupported platform: ${platform.operatingSystem}',
+        ),
+      },
     };
 
     final futures = <Future<List<String>>>[];
 
     for (final directory in directories) {
-      futures
-          .add(file('*', workingDirectory: directory, ignoreDirs: ignoreDirs));
+      futures.add(
+        file(
+          '*',
+          workingDirectory: directory,
+          ignoreDirs: ignoreDirs,
+          lastModified: lastModified,
+        ),
+      );
     }
 
     final results = await Future.wait(futures);
