@@ -199,6 +199,7 @@ String serverFile(
                 refer('server'),
                 refer('router').property('handle'),
                 refer('router').property('responseHandler'),
+                refer('router').property('close'),
               ],
             )
             .property('ignore')
