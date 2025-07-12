@@ -66,7 +66,7 @@ part 'run_origin_check.dart';
 part 'run_redirect.dart';
 
 class Router extends Equatable {
-  const Router({
+  Router({
     required this.routes,
     LifecycleComponents? globalComponents,
     Set<Reflect> reflects = const {},
@@ -82,6 +82,8 @@ class Router extends Equatable {
   final LifecycleComponents? _globalComponents;
   final bool debug;
   final DefaultResponses defaultResponses;
+
+  final List<void Function()> _cleanUp = [];
 
   /// Handles an HTTP request.
   ///
@@ -127,6 +129,14 @@ class Router extends Equatable {
     return match?.route.responseHandler ??
         _globalComponents?.responseHandler ??
         const DefaultResponseHandler();
+  }
+
+  void close() {
+    for (final cleanUp in _cleanUp) {
+      try {
+        cleanUp();
+      } catch (_) {}
+    }
   }
 
   Future<ReadOnlyResponse> handle(RequestContext context) async {
@@ -185,6 +195,7 @@ class Router extends Equatable {
     final cleanUp = helper.dataHandler.get<CleanUp>();
     if (cleanUp is CleanUpImpl) {
       context.addCleanUp(cleanUp.clean);
+      _cleanUp.add(cleanUp.clean);
     }
 
     // ignore: argument_type_not_assignable_to_error_handler

@@ -12,6 +12,7 @@ Future<void> handleRequests(
   HttpServer server,
   Future<ReadOnlyResponse> Function(RequestContext context) handler,
   Future<ResponseHandler> Function(RequestContext context) responseHandler,
+  void Function() close,
 ) async {
   try {
     await for (final request in server) {
@@ -44,6 +45,8 @@ Future<void> handleRequests(
         });
       }).ignore();
     }
+
+    close();
   } catch (e) {
     print(e);
   }

@@ -11,8 +11,8 @@ void main() {
   group(Router, () {
     group('#routes', () {
       test('should return a list of routes', () {
-        const router = Router(
-          routes: [],
+        final router = Router(
+          routes: const [],
         );
 
         expect(router.routes, isA<List<BaseRoute>>());

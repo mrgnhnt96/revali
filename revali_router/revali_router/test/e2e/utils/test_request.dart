@@ -55,6 +55,7 @@ Future<void> testRequest(
     server,
     router.handle,
     (_) async => TestResponseHandler(responseCompleter),
+    () {},
   ).then((_) => completer.complete()).ignore();
   await controller.close();
   await completer.future;
