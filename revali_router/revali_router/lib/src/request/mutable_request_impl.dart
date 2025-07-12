@@ -18,6 +18,7 @@ class MutableRequestImpl extends RequestContextImpl implements FullRequest {
   @override
   Map<String, String> get pathParameters =>
       Map.unmodifiable(_pathParameters ?? {});
+
   set pathParameters(Map<String, String> pathParameters) {
     _pathParameters = Map.from(pathParameters);
   }

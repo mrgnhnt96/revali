@@ -107,4 +107,9 @@ class MutableCookiesImpl implements MutableCookies {
 
   @override
   Map<String, String?> get all => Map.unmodifiable(_values);
+
+  @override
+  void add(String key, String? value) {
+    _values[key] = value;
+  }
 }
