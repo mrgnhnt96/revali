@@ -184,6 +184,8 @@ class VMServiceHandler {
       ..write(darkGray.wrap('Press: '))
       ..write(yellow.wrap('r'))
       ..write(darkGray.wrap(' to reload, '))
+      ..write(yellow.wrap('c'))
+      ..write(darkGray.wrap(' to clear, '))
       ..write(yellow.wrap('q'))
       ..write(darkGray.wrap(' to quit'));
 
@@ -295,6 +297,11 @@ class VMServiceHandler {
     }
   }
 
+  void _cleanConsole() {
+    print('\x1B[2J\x1B[0;0H');
+    printVmServiceUri();
+  }
+
   void watchForInput() {
     try {
       _inputSubscription ??= io.stdin.listen((event) {
@@ -305,10 +312,9 @@ class VMServiceHandler {
         logger.detail('key: $key');
 
         final _ = switch (key) {
-          'r' => _reload().ignore(),
-          'R' => _reload().ignore(),
-          'q' => stop().ignore(),
-          'Q' => stop().ignore(),
+          'r' || 'R' => _reload().ignore(),
+          'c' || 'C' => _cleanConsole(),
+          'q' || 'Q' => stop().ignore(),
           _ => null,
         };
       });
