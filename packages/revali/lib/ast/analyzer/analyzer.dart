@@ -28,6 +28,9 @@ class Analyzer implements AnalyzerChanges {
   final Platform platform;
   final Logger logger;
 
+  String? _packageConfig;
+  DateTime? _retrievedDependenciesAt;
+
   MemoryResourceProvider _memoryProvider;
   AnalysisContextCollection? _analysisCollection;
   AnalysisContextCollection get analysisCollection {
@@ -85,8 +88,39 @@ class Analyzer implements AnalyzerChanges {
     final bytes = await fs.file(file).readAsBytes();
 
     _memoryProvider.newFileWithBytes(file, bytes);
-
     context.changeFile(file);
+
+    await refreshDependencies();
+  }
+
+  Future<void> refreshDependencies() async {
+    final packageConfig = _packageConfig;
+
+    if (packageConfig == null) {
+      return;
+    }
+
+    final dependencies = await _getDependencyFiles(
+      packageConfig,
+      lastModified: _retrievedDependenciesAt,
+      pathDependenciesOnly: true,
+    );
+    _retrievedDependenciesAt = DateTime.now();
+
+    AnalysisContext context;
+    for (final file in dependencies) {
+      try {
+        context = analysisCollection.contextFor(file);
+      } catch (e) {
+        // its likely this file does not need to be included within analysis
+        // so we can just return
+        continue;
+      }
+
+      final bytes = await fs.file(file).readAsBytes();
+      _memoryProvider.newFileWithBytes(file, bytes);
+      context.changeFile(file);
+    }
   }
 
   @override
@@ -101,8 +135,9 @@ class Analyzer implements AnalyzerChanges {
     }
 
     _memoryProvider.deleteFile(file);
-
     context.changeFile(file);
+
+    await refreshDependencies();
   }
 
   /// Analyzes the given path and returns the resolved unit results.
@@ -158,13 +193,7 @@ class Analyzer implements AnalyzerChanges {
     return results;
   }
 
-  Future<void> _createVirtualWorkspace(String workspace) async {
-    final dartFiles = await find.file('*.dart', workingDirectory: workspace);
-
-    final dartToolFiles = [
-      ...await find.filesInDirectory('.dart_tool', workingDirectory: workspace),
-    ];
-
+  Future<String?> _getPackageConfig(List<String> dartToolFiles) async {
     String? workspaceRef;
     for (final file in dartToolFiles) {
       if (fs.path.basename(file) == 'workspace_ref.json') {
@@ -200,11 +229,34 @@ class Analyzer implements AnalyzerChanges {
       }
     }
 
+    return packageConfig;
+  }
+
+  Future<void> _createVirtualWorkspace(String workspace) async {
+    // Reset the last retrieved dependencies at to null
+    // so that we can retrieve ALL the dependencies again
+    // if the dependencies have changed
+    _retrievedDependenciesAt = null;
+
+    final dartFiles = await find.file('*.dart', workingDirectory: workspace);
+
+    final dartToolFiles = [
+      ...await find.filesInDirectory('.dart_tool', workingDirectory: workspace),
+    ];
+
+    final packageConfig = _packageConfig ??= await _getPackageConfig(
+      dartToolFiles,
+    );
+
     if (packageConfig == null) {
       throw Exception('No package config found, run `dart pub get` first');
     }
 
-    final dependencies = await _getDependencyFiles(packageConfig);
+    final dependencies = await _getDependencyFiles(
+      packageConfig,
+      lastModified: _retrievedDependenciesAt,
+    );
+    _retrievedDependenciesAt = DateTime.now();
 
     final files = [...dartFiles, ...dartToolFiles, ...dependencies];
 
@@ -230,7 +282,12 @@ class Analyzer implements AnalyzerChanges {
     }
   }
 
-  Future<List<String>> _getDependencyFiles(String packageConfig) async {
+  Future<List<String>> _getDependencyFiles(
+    String packageConfig, {
+    bool directoryOnly = false,
+    bool pathDependenciesOnly = false,
+    DateTime? lastModified,
+  }) async {
     final json = jsonDecode(await fs.file(packageConfig).readAsString());
 
     final dependencies = switch (json) {
@@ -245,6 +302,15 @@ class Analyzer implements AnalyzerChanges {
       final rootUri = Uri.parse(dependency.rootUri);
       final packageUri = Uri.parse(dependency.packageUri);
 
+      if (pathDependenciesOnly) {
+        if (fs.path.split(rootUri.path) case final segments
+            when segments.contains('hosted') ||
+                segments.contains('git') ||
+                segments.contains('pkg')) {
+          continue;
+        }
+      }
+
       final rootPath = switch (rootUri.isAbsolute) {
         true => fs.path.normalize(fs.path.join(rootUri.path, packageUri.path)),
         false => fs.path.normalize(
@@ -257,6 +323,10 @@ class Analyzer implements AnalyzerChanges {
       };
 
       directories.add(rootPath);
+    }
+
+    if (directoryOnly) {
+      return directories;
     }
 
     final futures = <Future<List<String>>>[];
@@ -292,7 +362,16 @@ class Analyzer implements AnalyzerChanges {
 
     final files = [...libFiles, ...routesFiles];
 
-    final futures = <Future<SomeErrorsResult>>[];
+    final errors = await _errorsFor(files);
+
+    return errors;
+  }
+
+  Future<List<AnalysisError>> _errorsFor(
+    List<String> files, {
+    Severity? severity = Severity.error,
+  }) async {
+    final futures = <Future<SomeErrorsResult?>>[];
     AnalysisContext context;
     for (final file in files) {
       if (!fs.path.basename(file).endsWith('.dart')) {
@@ -304,7 +383,13 @@ class Analyzer implements AnalyzerChanges {
       } catch (_) {
         continue;
       }
-      futures.add(context.currentSession.getErrors(file));
+      futures.add(() async {
+        try {
+          return await context.currentSession.getErrors(file);
+        } catch (_) {
+          return null;
+        }
+      }());
     }
 
     final errors = <AnalysisError>[];
