@@ -139,7 +139,7 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
       dartVmServicePort: dartVmServicePort,
       serverArgs: argResults?.rest ?? [],
       mode: mode,
-      onFileChange: analyzer.refresh,
+      onFilesChange: analyzer.refresh,
       onFileRemove: analyzer.remove,
       errors: generator.getErrors,
     );

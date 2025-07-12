@@ -51,13 +51,13 @@ class HotReload {
       runningServer = await create();
     }
 
-    controller.stream.transform(const Debouncer()).listen((msg) {
+    controller.stream.transform(const Debouncer()).listen((msg) async {
       try {
-        stdout.writeln('\x1B[8m${jsonEncode(msg.toJson())}\x1B[0m');
+        stderr.writeln(jsonEncode(msg.toJson()));
       } catch (_) {}
       switch (msg.type) {
         case HotReloadType.filesChanged:
-          obtainNewServer(serverFactory);
+          await obtainNewServer(serverFactory);
         case HotReloadType.revaliStarted:
         case HotReloadType.hotReloadEnabled:
       }

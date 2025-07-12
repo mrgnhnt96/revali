@@ -236,8 +236,10 @@ ${result.stderr}''');
         final trace = Trace.parse(e[1] as String? ?? '').terse;
 
         logger
-          ..err('Error in script:\n$error')
-          ..detail(trace.toString());
+          ..err('Something unexpected happened, please report this issue\n')
+          ..info('--------')
+          ..info('$error')
+          ..info(trace.toString());
         if (scriptExitCode == 0) scriptExitCode = 1;
       });
       try {

@@ -1,4 +1,4 @@
 abstract interface class AnalyzerChanges {
-  Future<void> refresh(String file);
+  Future<void> refresh(List<String> files);
   Future<void> remove(String file);
 }

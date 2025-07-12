@@ -116,23 +116,25 @@ class FindImpl implements Find {
     final directories = switch (recursive) {
       false => [fs.path.join(workingDirectory, directory)],
       true => switch (platform) {
-        Platform(isLinux: true) || Platform(isMacOS: true) => await _findLinux(
-          directory,
-          workingDirectory: workingDirectory,
-          file: false,
-          ignoreDirs: ignoreDirs,
-          lastModified: lastModified,
-        ),
-        Platform(isWindows: true) => await _findWindowsDirectory(
-          directory,
-          workingDirectory: workingDirectory,
-          ignoreDirs: ignoreDirs,
-          lastModified: lastModified,
-        ),
-        _ => throw UnsupportedError(
-          'Unsupported platform: ${platform.operatingSystem}',
-        ),
-      },
+          Platform(isLinux: true) ||
+          Platform(isMacOS: true) =>
+            await _findLinux(
+              directory,
+              workingDirectory: workingDirectory,
+              file: false,
+              ignoreDirs: ignoreDirs,
+              lastModified: lastModified,
+            ),
+          Platform(isWindows: true) => await _findWindowsDirectory(
+              directory,
+              workingDirectory: workingDirectory,
+              ignoreDirs: ignoreDirs,
+              lastModified: lastModified,
+            ),
+          _ => throw UnsupportedError(
+              'Unsupported platform: ${platform.operatingSystem}',
+            ),
+        },
     };
 
     final futures = <Future<List<String>>>[];

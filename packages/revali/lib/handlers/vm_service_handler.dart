@@ -15,13 +15,6 @@ import 'package:revali_construct/revali_construct.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:watcher/watcher.dart';
 
-final _warningRegex = RegExp(r'^.*:\d+:\d+: Warning: .*', multiLine: true);
-
-final _dartVmServiceAlreadyInUseErrorRegex = RegExp(
-  r'DartDevelopmentServiceException: Failed to create server socket \(Address already in use\)',
-  multiLine: true,
-);
-
 class VMServiceHandler {
   VMServiceHandler({
     required this.root,
@@ -31,7 +24,7 @@ class VMServiceHandler {
     required this.canHotReload,
     required this.serverArgs,
     required this.mode,
-    required this.onFileChange,
+    required this.onFilesChange,
     required this.onFileRemove,
     required this.errors,
     this.dartDefine = const DartDefine(),
@@ -50,7 +43,7 @@ class VMServiceHandler {
   final DartDefine dartDefine;
   final List<String> serverArgs;
   final Mode mode;
-  final Future<void> Function(String) onFileChange;
+  final Future<void> Function(List<String>) onFilesChange;
   final Future<void> Function(String) onFileRemove;
   final Future<List<(String, List<AnalysisError>)>> Function() errors;
 
@@ -367,7 +360,7 @@ class VMServiceHandler {
           if (type == ChangeType.REMOVE) {
             await onFileRemove(path);
           } else {
-            await onFileChange(path);
+            await onFilesChange([path]);
           }
 
           return event;
@@ -408,7 +401,6 @@ class VMServiceHandler {
     required bool enableHotReload,
     void Function()? onReady,
   }) async {
-    var isHotReloadingEnabled = false;
     clearConsole();
     logger.detail('Starting server');
 
@@ -445,68 +437,36 @@ class VMServiceHandler {
     }
 
     process.stderr.listen((err) async {
-      if (_isReloading) {
-        return;
-      }
-
       final message = utf8.decode(err).trim();
       if (message.isEmpty) return;
 
-      _progress?.fail('Failed to start server');
-
-      final isDartVMServiceAlreadyInUseError =
-          _dartVmServiceAlreadyInUseErrorRegex.hasMatch(message);
-      final isSDKWarning = _warningRegex.hasMatch(message);
-
-      if (isDartVMServiceAlreadyInUseError) {
-        logger.err(
-          '$message\n'
-          'Try specifying a different port using the '
-          '`--dart-vm-service-port` argument',
-        );
-        _progress?.fail('Failed to start server');
-      } else if (isSDKWarning) {
-        // Do not kill the process if the error is a warning from the SDK.
-        logger.warn(message);
-      } else {
-        logger.err(message);
-      }
-
-      if ((!isHotReloadingEnabled && !isSDKWarning) ||
-          isDartVMServiceAlreadyInUseError) {
-        await _killServerProcess();
-        await stop(1);
-        return;
-      }
-    });
-
-    process.stdout.listen((out) async {
       HotReloadData? data;
 
-      final message = utf8.decode(out).trim();
       try {
-        final cleaned = message.replaceAll(RegExp(r'\x1B\[[0-9;]*m'), '');
         data = HotReloadData.fromJson(
-          jsonDecode(cleaned) as Map<String, dynamic>,
+          jsonDecode(message) as Map<String, dynamic>,
         );
       } catch (e) {
         // ignore
-      }
-
-      if (message.isEmpty && data == null) {
-        return;
       }
 
       switch (data) {
         case null:
           break;
         case HotReloadFilesChanged(:final files):
+          clearConsole();
+          printVmServiceUri();
+          printParsedRoutes(null);
+
+          await onFilesChange(files);
+          logger.detail('Files changed:');
           for (final file in files) {
-            logger.detail('File changed: $file');
-            await onFileChange(file);
+            logger.detail('  - $file');
           }
 
-          await checkForErrors();
+          if (await checkForErrors()) {
+            return;
+          }
 
         case HotReloadData(type: HotReloadType.revaliStarted):
           if (hasStartedServer) {
@@ -519,8 +479,14 @@ class VMServiceHandler {
           return;
 
         case HotReloadData(type: HotReloadType.hotReloadEnabled):
-          isHotReloadingEnabled = true;
           return;
+      }
+    });
+
+    process.stdout.listen((out) async {
+      final message = utf8.decode(out).trim();
+      if (message.isEmpty) {
+        return;
       }
 
       if (message.contains('Dart VM service')) {

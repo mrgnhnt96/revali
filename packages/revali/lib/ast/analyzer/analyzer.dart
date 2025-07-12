@@ -122,24 +122,34 @@ class Analyzer implements AnalyzerChanges {
   }
 
   @override
-  Future<void> refresh(String file) async {
-    final bytes = await fs.file(file).readAsBytes();
-    _memoryProvider.newFileWithBytes(file, bytes);
-
-    final isSource = switch (_root) {
-      final String root => fs.path.isWithin(root, file),
-      null => false,
-    };
+  Future<void> refresh(List<String> files) async {
+    var requiresDependencyRefresh = false;
 
     AnalysisContext? context;
-    try {
-      context = analysisCollection.contextFor(file)..changeFile(file);
-      await context.applyPendingFileChanges();
-    } catch (e) {
-      // its likely this file does not need to be included within analysis
+    for (final file in files) {
+      if (!fs.file(file).existsSync()) {
+        continue;
+      }
+
+      final bytes = await fs.file(file).readAsBytes();
+      _memoryProvider.newFileWithBytes(file, bytes);
+
+      if (requiresDependencyRefresh case false) {
+        requiresDependencyRefresh = switch (_root) {
+          final String root => !fs.path.isWithin(root, file),
+          null => false,
+        };
+      }
+
+      try {
+        context = analysisCollection.contextFor(file)..changeFile(file);
+        await context.applyPendingFileChanges();
+      } catch (e) {
+        // its likely this file does not need to be included within analysis
+      }
     }
 
-    if (!isSource) {
+    if (requiresDependencyRefresh) {
       await reload();
     }
   }
