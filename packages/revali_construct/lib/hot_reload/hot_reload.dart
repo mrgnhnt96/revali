@@ -1,8 +1,13 @@
+// ignore_for_file: avoid_redundant_argument_values
+
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:hotreloader/hotreloader.dart';
 import 'package:logging/logging.dart';
+import 'package:revali_construct/models/hot_reload_data/hot_reload_data.dart';
+import 'package:revali_construct/models/hot_reload_data/hot_reload_files_changed.dart';
 import 'package:revali_construct/utils/debouncer.dart';
 
 void hotReload(Future<HttpServer> Function() callback) {
@@ -10,21 +15,15 @@ void hotReload(Future<HttpServer> Function() callback) {
 }
 
 class HotReload {
-  const HotReload({
-    required this.serverFactory,
-    this.logLevel = Level.OFF,
-  });
-
-  static const reloaded = '__RELOADED__';
-  static const nonRevaliReload = '__NON_REVALI_RELOAD__';
-  static const revaliStarted = '__REVALI_STARTED__';
-  static const hotReloadEnabled = '__HOT_RELOAD_ENABLED__';
+  HotReload({required this.serverFactory, this.logLevel = Level.OFF})
+      : controller = StreamController<HotReloadData>.broadcast();
 
   final Future<HttpServer> Function() serverFactory;
   final Level logLevel;
+  final StreamController<HotReloadData> controller;
 
   void _onHotReloadAvailable() {
-    stdout.writeln(hotReloadEnabled);
+    controller.add(const HotReloadData(type: HotReloadType.hotReloadEnabled));
   }
 
   void _onHotReloadNotAvailable() {
@@ -52,25 +51,34 @@ class HotReload {
       runningServer = await create();
     }
 
-    final controller = StreamController<void>.broadcast();
-
-    controller.stream.transform(const Debouncer()).listen((_) {
-      stdout.writeln(reloaded);
-      obtainNewServer(serverFactory);
+    controller.stream.transform(const Debouncer()).listen((msg) {
+      try {
+        stdout.writeln('\x1B[8m${jsonEncode(msg.toJson())}\x1B[0m');
+      } catch (_) {}
+      switch (msg.type) {
+        case HotReloadType.filesChanged:
+          obtainNewServer(serverFactory);
+        case HotReloadType.revaliStarted:
+        case HotReloadType.hotReloadEnabled:
+      }
     });
 
     try {
       /// Register the server reload mechanism to the generic HotReloader.
       /// It will throw an error if reloading is not available.
       await HotReloader.create(
-        watchDependencies: false,
+        watchDependencies: true,
         onAfterReload: (context) async {
-          controller.add(null);
+          controller.add(
+            HotReloadFilesChanged(
+              files: context.events?.map((e) => e.path).toList() ?? [],
+            ),
+          );
         },
         debounceInterval: Duration.zero,
       );
 
-      stdout.writeln(revaliStarted);
+      controller.add(const HotReloadData(type: HotReloadType.revaliStarted));
 
       /// Hot-reload is available
       _onHotReloadAvailable();

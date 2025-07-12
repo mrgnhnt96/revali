@@ -11,7 +11,6 @@ import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart' as p;
 import 'package:revali/dart_define/dart_define.dart';
-import 'package:revali_construct/hot_reload/hot_reload.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:watcher/watcher.dart';
@@ -51,12 +50,11 @@ class VMServiceHandler {
   final DartDefine dartDefine;
   final List<String> serverArgs;
   final Mode mode;
-  final void Function(String) onFileChange;
-  final void Function(String) onFileRemove;
+  final Future<void> Function(String) onFileChange;
+  final Future<void> Function(String) onFileRemove;
   final Future<List<(String, List<AnalysisError>)>> Function() errors;
 
   bool _isReloading = false;
-  bool _errorInGeneration = false;
 
   Progress? __progress;
   Progress? get _progress => __progress;
@@ -94,28 +92,13 @@ class VMServiceHandler {
 
     _progress = logger.progress('Reloading');
 
-    if (await errors() case final errors when errors.isNotEmpty) {
-      _errorInGeneration = true;
-      _isReloading = false;
-      clearConsole();
-      _progress?.fail('Failed to reload');
-      logger
-        ..write('\n')
-        ..write('Found ${errors.length} errors\n');
-      for (final (path, errors) in errors) {
-        logger.write('\n${yellow.wrap(path)}\n');
-        for (final error in errors) {
-          logger.write('${red.wrap('  -')} ${error.message}\n');
-        }
-      }
-
+    if (await checkForErrors()) {
       return;
     }
 
     await _cancelWatcherSubscription();
 
     final server = await codeGenerator(_progress?.update);
-    _errorInGeneration = false;
     _progress?.complete('Reloaded');
     clearConsole();
     printVmServiceUri();
@@ -137,6 +120,28 @@ class VMServiceHandler {
     watchForFileChanges();
     watchForInput();
     _isReloading = false;
+  }
+
+  Future<bool> checkForErrors() async {
+    final errors = await this.errors();
+    if (errors.isEmpty) {
+      return false;
+    }
+
+    _isReloading = false;
+    clearConsole();
+    _progress?.fail('Failed to reload');
+    logger
+      ..write('\n')
+      ..write('Found ${errors.length} errors\n');
+    for (final (path, errors) in errors) {
+      logger.write('\n${yellow.wrap(path)}\n');
+      for (final error in errors) {
+        logger.write('${red.wrap('  -')} ${error.message}\n');
+      }
+    }
+
+    return true;
   }
 
   void lockInput() {
@@ -356,13 +361,13 @@ class VMServiceHandler {
 
     _watcherSubscription = DirectoryWatcher(root.path)
         .events
-        .map((event) {
+        .asyncMap((event) async {
           final WatchEvent(:type, :path) = event;
 
           if (type == ChangeType.REMOVE) {
-            onFileRemove(path);
+            await onFileRemove(path);
           } else {
-            onFileChange(path);
+            await onFileChange(path);
           }
 
           return event;
@@ -447,18 +452,6 @@ class VMServiceHandler {
       final message = utf8.decode(err).trim();
       if (message.isEmpty) return;
 
-      if (message.contains(HotReload.nonRevaliReload)) {
-        if (_errorInGeneration) {
-          logger.err('Failed to reload');
-          return;
-        }
-
-        clearConsole();
-        printVmServiceUri();
-        printParsedRoutes(null);
-        return;
-      }
-
       _progress?.fail('Failed to start server');
 
       final isDartVMServiceAlreadyInUseError =
@@ -487,37 +480,47 @@ class VMServiceHandler {
       }
     });
 
-    process.stdout.listen((out) {
-      if (_errorInGeneration) {
-        return;
-      }
+    process.stdout.listen((out) async {
+      HotReloadData? data;
 
       final message = utf8.decode(out).trim();
-      if (message.isEmpty) {
+      try {
+        final cleaned = message.replaceAll(RegExp(r'\x1B\[[0-9;]*m'), '');
+        data = HotReloadData.fromJson(
+          jsonDecode(cleaned) as Map<String, dynamic>,
+        );
+      } catch (e) {
+        // ignore
+      }
+
+      if (message.isEmpty && data == null) {
         return;
       }
 
-      if (message.contains(HotReload.reloaded)) {
-        logger.write('');
-        return;
-      }
+      switch (data) {
+        case null:
+          break;
+        case HotReloadFilesChanged(:final files):
+          for (final file in files) {
+            logger.detail('File changed: $file');
+            await onFileChange(file);
+          }
 
-      if (message.contains(HotReload.nonRevaliReload)) {
-        clearConsole();
-        printVmServiceUri();
-        return;
-      }
+          await checkForErrors();
 
-      if (message.contains(HotReload.revaliStarted) && !hasStartedServer) {
-        hasStartedServer = true;
-        _progress?.complete();
-        onReady?.call();
-        return;
-      }
+        case HotReloadData(type: HotReloadType.revaliStarted):
+          if (hasStartedServer) {
+            return;
+          }
 
-      if (message.contains(HotReload.hotReloadEnabled)) {
-        isHotReloadingEnabled = true;
-        return;
+          hasStartedServer = true;
+          _progress?.complete();
+          onReady?.call();
+          return;
+
+        case HotReloadData(type: HotReloadType.hotReloadEnabled):
+          isHotReloadingEnabled = true;
+          return;
       }
 
       if (message.contains('Dart VM service')) {

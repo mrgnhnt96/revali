@@ -30,6 +30,7 @@ class Analyzer implements AnalyzerChanges {
 
   String? _packageConfig;
   DateTime? _retrievedDependenciesAt;
+  String? _root;
 
   MemoryResourceProvider _memoryProvider;
   AnalysisContextCollection? _analysisCollection;
@@ -52,16 +53,61 @@ class Analyzer implements AnalyzerChanges {
 
   bool _isInitialized = false;
 
+  /// Reloads the analyzer.
+  ///
+  /// This is only needed to be called when a dependency has changed. The
+  /// analyzer groups packages into their own contexts. Because of this,
+  /// dependencies are only resolved and cached when the analyzer is
+  /// initialized.
+  ///
+  /// This is relatively expensive, so it should only be called when necessary.
+  Future<void> reload() async {
+    final dependencies = switch (_packageConfig) {
+      final String packageConfig => await _getDependencyFiles(
+          packageConfig,
+          pathDependenciesOnly: true,
+          directoryOnly: true,
+        ),
+      null => <String>[],
+    };
+
+    final root = _root;
+    if (root == null) {
+      throw Exception('No root found');
+    }
+
+    await refreshDependencies();
+
+    await _analysisCollection?.dispose();
+
+    _analysisCollection = AnalysisContextCollection(
+      includedPaths: [root, ...dependencies],
+      resourceProvider: _memoryProvider,
+      sdkPath: await sdkPath,
+    );
+  }
+
   Future<void> initialize({required String root}) async {
     if (_isInitialized) {
       return;
     }
 
+    _root = root;
+
     try {
       await _createVirtualWorkspace(root);
 
+      final dependencies = switch (_packageConfig) {
+        final String packageConfig => await _getDependencyFiles(
+            packageConfig,
+            pathDependenciesOnly: true,
+            directoryOnly: true,
+          ),
+        null => <String>[],
+      };
+
       _analysisCollection = AnalysisContextCollection(
-        includedPaths: [root],
+        includedPaths: [root, ...dependencies],
         resourceProvider: _memoryProvider,
         sdkPath: await sdkPath,
       );
@@ -77,20 +123,25 @@ class Analyzer implements AnalyzerChanges {
 
   @override
   Future<void> refresh(String file) async {
-    AnalysisContext context;
+    final bytes = await fs.file(file).readAsBytes();
+    _memoryProvider.newFileWithBytes(file, bytes);
+
+    final isSource = switch (_root) {
+      final String root => fs.path.isWithin(root, file),
+      null => false,
+    };
+
+    AnalysisContext? context;
     try {
-      context = analysisCollection.contextFor(file);
+      context = analysisCollection.contextFor(file)..changeFile(file);
+      await context.applyPendingFileChanges();
     } catch (e) {
       // its likely this file does not need to be included within analysis
-      // so we can just return
-      return;
     }
-    final bytes = await fs.file(file).readAsBytes();
 
-    _memoryProvider.newFileWithBytes(file, bytes);
-    context.changeFile(file);
-
-    await refreshDependencies();
+    if (!isSource) {
+      await reload();
+    }
   }
 
   Future<void> refreshDependencies() async {
@@ -107,20 +158,23 @@ class Analyzer implements AnalyzerChanges {
     );
     _retrievedDependenciesAt = DateTime.now();
 
-    AnalysisContext context;
-    for (final file in dependencies) {
-      try {
-        context = analysisCollection.contextFor(file);
-      } catch (e) {
-        // its likely this file does not need to be included within analysis
-        // so we can just return
-        continue;
-      }
+    final pendingChanges = <Future<void>>[];
 
+    AnalysisContext? context;
+    for (final file in dependencies) {
       final bytes = await fs.file(file).readAsBytes();
       _memoryProvider.newFileWithBytes(file, bytes);
-      context.changeFile(file);
+
+      try {
+        context = analysisCollection.contextFor(file)..changeFile(file);
+
+        pendingChanges.add(context.applyPendingFileChanges());
+      } catch (e) {
+        continue;
+      }
     }
+
+    await Future.wait(pendingChanges);
   }
 
   @override
@@ -153,9 +207,6 @@ class Analyzer implements AnalyzerChanges {
     }
 
     if (isFile) {
-      final context = analysisCollection.contextFor(path);
-      await context.applyPendingFileChanges();
-
       return [await _analyzeFile(path)];
     }
 
@@ -172,15 +223,9 @@ class Analyzer implements AnalyzerChanges {
     final results = <Units>[];
     final files = await find.file('*.dart', workingDirectory: path);
 
-    var hasAwaited = false;
     AnalysisContext context;
     for (final file in files) {
       context = analysisCollection.contextFor(file);
-
-      if (!hasAwaited) {
-        await context.applyPendingFileChanges();
-        hasAwaited = true;
-      }
 
       final parsedUnit = context.currentSession.getParsedUnit(file);
       if (parsedUnit is! ParsedUnitResult) {
@@ -326,7 +371,7 @@ class Analyzer implements AnalyzerChanges {
     }
 
     if (directoryOnly) {
-      return directories;
+      return directories.map((e) => fs.directory(e).parent.path).toList();
     }
 
     final futures = <Future<List<String>>>[];
