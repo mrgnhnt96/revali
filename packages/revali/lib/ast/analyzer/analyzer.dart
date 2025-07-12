@@ -78,13 +78,15 @@ class Analyzer implements AnalyzerChanges {
 
     await refreshDependencies();
 
-    await _analysisCollection?.dispose();
+    final old = _analysisCollection;
 
     _analysisCollection = AnalysisContextCollection(
       includedPaths: [root, ...dependencies],
       resourceProvider: _memoryProvider,
       sdkPath: await sdkPath,
     );
+
+    await old?.dispose();
   }
 
   Future<void> initialize({required String root}) async {
