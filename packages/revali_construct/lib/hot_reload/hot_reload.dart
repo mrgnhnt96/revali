@@ -68,6 +68,7 @@ class HotReload {
       /// It will throw an error if reloading is not available.
       await HotReloader.create(
         watchDependencies: true,
+        automaticReload: true,
         onAfterReload: (context) async {
           controller.add(
             HotReloadFilesChanged(
