@@ -173,12 +173,21 @@ class Analyzer implements AnalyzerChanges {
     final pendingChanges = <Future<void>>[];
 
     AnalysisContext? context;
-    for (final file in dependencies) {
-      final bytes = await fs.file(file).readAsBytes();
-      _memoryProvider.newFileWithBytes(file, bytes);
+    for (final path in dependencies) {
+      final file = fs.file(path);
+      final bytes = switch (await file.exists()) {
+        true => await file.readAsBytes(),
+        false => null,
+      };
+
+      if (bytes == null) {
+        _memoryProvider.deleteFile(path);
+      } else {
+        _memoryProvider.newFileWithBytes(path, bytes);
+      }
 
       try {
-        context = analysisCollection.contextFor(file)..changeFile(file);
+        context = analysisCollection.contextFor(path)..changeFile(path);
 
         pendingChanges.add(context.applyPendingFileChanges());
       } catch (e) {
