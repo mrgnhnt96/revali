@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2.4.0 | 08.16.25
+
+### Features
+
+- Create new `add` method to `MutableCookies`
+- Add clean up to router close method to prevent memory leaks
+
 ## 2.3.1 | 05.30.25
 
 ### Enhancements

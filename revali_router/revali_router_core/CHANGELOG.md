@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.9.1 | 08.16.25
+
+### Features
+
+- Create `add` method to `MutableCookies`
+
 ## 1.9.0 | 05.08.25
 
 ### Features

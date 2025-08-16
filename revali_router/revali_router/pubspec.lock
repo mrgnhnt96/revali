@@ -425,7 +425,7 @@ packages:
       path: "../revali_router_core"
       relative: true
     source: path
-    version: "1.9.0"
+    version: "1.9.1"
   shelf:
     dependency: transitive
     description:

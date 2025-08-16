@@ -6,19 +6,16 @@
 
 # revali
 
-## 1.4.2
-
-### Enhancements
-
-- Add support for extracting `InstanceType` from `@Controller`
-- Get next available port for `dart-vm-service-port` instead of using a set port
-- Support `kDebugMode`, `kProfileMode`, and `kReleaseMode`
-  - Corresponds to `--debug`, `--profile`, and `--release` flags
+## 1.5.0
 
 ### Features
 
-- Support passing arguments to `dart run revali dev`
-  - Example: `dart run revali dev -- --some-flag`
+- Add `c` keyboard action to clear console during `dart run revali dev`
+
+### Enhancements
+
+- Significantly reduce hot reload time
+- Print out error message during hot reload when compilation fails, without requiring a full restart
 
 # revali_annotations
 
@@ -30,12 +27,13 @@
 
 # revali_construct
 
-## 1.7.0
+## 1.8.0
 
 ### Features
 
-- Add `isEnum` field to `MetaType` class
-- Get `fromJson`/`toJson` methods from enum types
+- Improve hot reload performance
+- Debounce changes to slow hot reload frequency
+- Pass objects instead of strings to `stderr` to improve communication with `revali`
 
 # revali_core
 
@@ -49,11 +47,12 @@
 
 # revali_router
 
-## 2.3.1
+## 2.4.0
 
-### Enhancements
+### Features
 
-- Check for closed connection before sending response
+- Create new `add` method to `MutableCookies`
+- Add clean up to router close method to prevent memory leaks
 
 # revali_router_annotations
 
@@ -78,13 +77,11 @@
 
 # revali_router_core
 
-## 1.9.0
+## 1.9.1
 
 ### Features
 
-- Change `queryParameters` & `queryParametersAll` to return `Map<String, dynamic>`
-  - Allows for better type coercion
-- Update `Binary` type to `List<int>`
+- Create `add` method to `MutableCookies`
 
 <!-- CONSTRUCTS -->
 

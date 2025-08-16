@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 1.5.0 | 08.16.25
+
+### Features
+
+- Add `c` keyboard action to clear console during `dart run revali dev`
+
+### Enhancements
+
+- Significantly reduce hot reload time
+- Print out error message during hot reload when compilation fails, without requiring a full restart
+
 ## 1.4.2 | 04.15.25
 
 ### Enhancements

@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 1.8.0 | 08.16.25
+
+### Features
+
+- Improve hot reload performance
+- Debounce changes to slow hot reload frequency
+- Pass objects instead of strings to `stderr` to improve communication with `revali`
+
 ## 1.7.0 | 05.08.25
 
 ### Features
