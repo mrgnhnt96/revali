@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.15.0 | 08.18.25
+
+### Features
+
+- Pass in `router.close` to `handleRequests` to allow for clean up of resources
+
 ## 1.14.0 | 05.08.25
 
 ### Enhancements
