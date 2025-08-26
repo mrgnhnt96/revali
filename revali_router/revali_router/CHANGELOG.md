@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2.4.1 | 08.26.25
+
+### Fixes
+
+- Issue where allowed headers were not inherited properly
+- Issue where allowed headers could block requests with unknown headers
+
 ## 2.4.0 | 08.16.25
 
 ### Features

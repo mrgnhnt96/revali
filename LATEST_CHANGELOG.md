@@ -47,12 +47,12 @@
 
 # revali_router
 
-## 2.4.0
+## 2.4.1
 
-### Features
+### Fixes
 
-- Create new `add` method to `MutableCookies`
-- Add clean up to router close method to prevent memory leaks
+- Issue where allowed headers were not inherited properly
+- Issue where allowed headers could block requests with unknown headers
 
 # revali_router_annotations
 
