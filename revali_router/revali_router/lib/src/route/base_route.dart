@@ -376,9 +376,12 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
         return;
       }
 
-      if (route.allowedOrigins case final value? when !value.inherit) {
+      if (route.allowedOrigins case final value?) {
         yield* value.origins;
-        return;
+
+        if (!value.inherit) {
+          return;
+        }
       }
 
       yield* traverse(route.parent);
@@ -394,9 +397,12 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
         return;
       }
 
-      if (route.allowedHeaders case final value? when !value.inherit) {
+      if (route.allowedHeaders case final value?) {
         yield* value.headers;
-        return;
+
+        if (!value.inherit) {
+          return;
+        }
       }
 
       yield* traverse(route.parent);

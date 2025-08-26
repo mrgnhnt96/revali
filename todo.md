@@ -2,6 +2,7 @@
 
 - [ ] Consolidate `context` into a single class, no more multiple context types
 - [ ] Figure out a way to handle sending streams from the client to the server
+- [ ] Deprecate `allowed headers`, replace with `prevent headers`, allow all headers by default
 
 # 6.21.25
 

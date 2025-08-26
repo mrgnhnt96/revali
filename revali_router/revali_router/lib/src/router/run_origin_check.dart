@@ -63,32 +63,11 @@ class RunOriginCheck {
     }
 
     // check for allowed headers
-    if (allowedHeaders.isNotEmpty) {
-      final caseSaveExpectedHeaders = CaseInsensitiveMap.from({
-        for (final header in expectedHeaders) header: header,
-      });
+    final allowedHeadersFromRequest = request.headers.getAll(
+      HttpHeaders.accessControlRequestHeadersHeader,
+    );
 
-      final caseSafeHeaders = CaseInsensitiveMap.from(
-        {
-          for (final header in allowedHeaders) header: header,
-          for (final header in const AllowHeaders.simple().headers)
-            header: header,
-        },
-      );
-
-      final headers = request.headers;
-      for (final header in headers.keys) {
-        if (!caseSafeHeaders.containsKey(header)) {
-          if (caseSaveExpectedHeaders.containsKey(header)) continue;
-
-          return debugErrorResponse(
-            defaultResponses.failedCorsHeaders,
-            error: 'Header "$header" is not allowed.',
-            stackTrace: StackTrace.current,
-          );
-        }
-      }
-    }
+    // TODO(mrgnhnt): Blacklist headers
 
     if (expectedHeaders.isNotEmpty) {
       final caseSafeHeaders = CaseInsensitiveMap.from({
@@ -137,11 +116,14 @@ Missing Headers:
       );
     }
 
-    if (allowedHeaders.followedBy(expectedHeaders) case final headers
-        when headers.isNotEmpty) {
+    final headers = allowedHeaders
+        .followedBy(expectedHeaders)
+        .followedBy(allowedHeadersFromRequest ?? []);
+
+    if (headers.isNotEmpty) {
       response.headers.set(
         HttpHeaders.accessControlAllowHeadersHeader,
-        headers.join(', '),
+        headers.toSet().join(', '),
       );
     }
 
