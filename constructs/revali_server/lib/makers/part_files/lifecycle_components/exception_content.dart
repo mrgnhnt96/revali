@@ -125,9 +125,6 @@ String exceptionContent(
                         values,
                         inferredParams: {
                           key: refer('exception'),
-                          (Context).name: refer('context'),
-                          (ExceptionCatcherMeta).name: refer('context.meta'),
-                          (RouteEntry).name: refer('context.meta.route'),
                         },
                       ),
                     ).code,

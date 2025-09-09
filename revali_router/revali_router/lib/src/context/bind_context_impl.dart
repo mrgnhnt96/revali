@@ -1,3 +1,4 @@
+import 'package:revali_router_core/meta/meta_scope.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
 class BindContextImpl implements BindContext {
@@ -25,10 +26,10 @@ class BindContextImpl implements BindContext {
   final RouteEntry route;
 
   @override
-  final DataHandler data;
+  final Data data;
 
   @override
-  final Meta meta;
+  final MetaScope meta;
 
   @override
   final MutableRequest request;

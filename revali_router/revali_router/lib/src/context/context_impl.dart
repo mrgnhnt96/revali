@@ -1,3 +1,4 @@
+import 'package:revali_router_core/meta/meta_scope.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
 class ContextImpl implements Context {
@@ -11,10 +12,10 @@ class ContextImpl implements Context {
   });
 
   @override
-  final DataHandler data;
+  final Data data;
 
   @override
-  final Meta meta;
+  final MetaScope meta;
 
   @override
   final RouteEntry route;

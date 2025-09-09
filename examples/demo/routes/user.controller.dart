@@ -60,7 +60,7 @@ class NamePipe implements Pipe<String, String> {
   }
 }
 
-class Role implements Meta {
+class Role implements MetaData {
   const Role(this.type);
 
   final AuthType type;

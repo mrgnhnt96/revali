@@ -36,7 +36,7 @@ class ServerReflect {
         element: field,
         onMatch: [
           OnMatch(
-            classType: Meta,
+            classType: MetaData,
             package: 'revali_router_annotations',
             convert: (object, annotation) {
               final meta = ServerMimic.fromDartObject(object, annotation);

@@ -18,7 +18,7 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
     List<Guard>? guards,
     // ignore: strict_raw_type
     List<ExceptionCatcher>? catchers,
-    void Function(MetaHandler)? meta,
+    void Function(Meta)? meta,
     Redirect? redirect,
     List<CombineComponents> combine = const [],
     AllowedOrigins? allowedOrigins,
@@ -62,7 +62,7 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
     required this.expectedHeaders,
     // dynamic is needed bc copyWith has a bug
     required dynamic meta,
-  })  : _meta = meta as void Function(MetaHandler)?,
+  })  : _meta = meta as void Function(Meta)?,
         _responseHandler = responseHandler {
     final providedRoutes = routes?.toList();
 
@@ -165,7 +165,7 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
   final Future<dynamic> Function(Context)? handler;
   @override
   final String? method;
-  final void Function(MetaHandler)? _meta;
+  final void Function(Meta)? _meta;
   final Redirect? redirect;
   @override
   final AllowedOrigins? allowedOrigins;
@@ -207,8 +207,8 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
   }
 
   @override
-  MetaHandler getMeta({MetaHandler? handler, bool inherit = false}) {
-    final meta = handler ?? MetaHandler();
+  Meta getMeta({Meta? handler, bool inherit = false}) {
+    final meta = handler ?? Meta();
 
     void traverse(BaseRoute? route) {
       if (route == null) {

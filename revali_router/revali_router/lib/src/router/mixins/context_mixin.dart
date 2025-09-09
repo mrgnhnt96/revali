@@ -2,14 +2,11 @@ part of '../router.dart';
 
 mixin ContextMixin on HelperMixin {
   Context get main => ContextImpl(
-        meta: MetaImpl(
-          direct: directMeta,
-          inherited: inheritedMeta,
-        ),
+        meta: meta,
         route: route,
         reflect: reflectHandler,
         request: request,
-        data: dataHandler,
+        data: data,
         response: response,
       );
 
@@ -18,7 +15,7 @@ mixin ContextMixin on HelperMixin {
         reflect: reflectHandler,
         request: request,
         response: response,
-        data: dataHandler,
+        data: data,
         close: close,
         asyncSender: asyncSender,
         route: route,

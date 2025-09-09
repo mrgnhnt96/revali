@@ -1,8 +1,7 @@
-import 'package:revali_router_core/data/read_only_data.dart';
-import 'package:revali_router_core/data/write_only_data.dart';
+import 'package:revali_router_core/data/data.dart';
 
-class DataHandler implements WriteOnlyData, ReadOnlyData {
-  DataHandler();
+class DataImpl implements Data {
+  DataImpl();
 
   final _registered = <Type, dynamic>{};
 

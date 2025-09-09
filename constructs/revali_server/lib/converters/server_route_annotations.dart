@@ -185,7 +185,7 @@ class ServerRouteAnnotations with ExtractImport {
           },
         ),
         OnMatch(
-          classType: Meta,
+          classType: MetaData,
           package: 'revali_router_annotations',
           convert: (object, annotation) {
             meta.add(ServerMimic.fromDartObject(object, annotation));

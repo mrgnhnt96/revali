@@ -9,7 +9,7 @@ class LifecycleComponentsImpl implements LifecycleComponents {
     List<Guard>? guards,
     // ignore: strict_raw_type
     List<ExceptionCatcher>? catchers,
-    void Function(MetaHandler)? meta,
+    void Function(Meta)? meta,
     List<CombineComponents> combine = const [],
     this.allowedOrigins,
     this.allowedHeaders,
@@ -32,7 +32,7 @@ class LifecycleComponentsImpl implements LifecycleComponents {
   final List<ExceptionCatcher> catchers;
   @override
   final List<Guard> guards;
-  final void Function(MetaHandler)? _meta;
+  final void Function(Meta)? _meta;
   @override
   final AllowOrigins? allowedOrigins;
   @override
@@ -43,8 +43,8 @@ class LifecycleComponentsImpl implements LifecycleComponents {
   final ResponseHandler? responseHandler;
 
   @override
-  MetaHandler getMeta({MetaHandler? handler}) {
-    final meta = handler ?? MetaHandler();
+  Meta getMeta({Meta? handler}) {
+    final meta = handler ?? Meta();
 
     _meta?.call(meta);
 

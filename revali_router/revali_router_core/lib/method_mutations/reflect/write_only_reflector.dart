@@ -1,7 +1,7 @@
-import 'package:revali_router_core/meta/write_only_meta.dart';
+import 'package:revali_router_core/meta/meta.dart';
 
 abstract class WriteOnlyReflector {
   const WriteOnlyReflector();
 
-  WriteOnlyMeta operator [](String key);
+  Meta operator [](String key);
 }

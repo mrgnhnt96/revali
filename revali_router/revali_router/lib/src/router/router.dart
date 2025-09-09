@@ -10,13 +10,14 @@ import 'package:revali_annotations/revali_annotations.dart' hide WebSocket;
 import 'package:revali_router/src/body/mutable_body_impl.dart';
 import 'package:revali_router/src/body/response_body/base_body_data.dart';
 import 'package:revali_router/src/context/context_impl.dart';
+import 'package:revali_router/src/data/data_impl.dart';
 import 'package:revali_router/src/exceptions/close_web_socket_exception.dart';
 import 'package:revali_router/src/exceptions/guard_stop_exception.dart';
 import 'package:revali_router/src/exceptions/invalid_handler_result_exception.dart';
 import 'package:revali_router/src/exceptions/middleware_stop_exception.dart';
 import 'package:revali_router/src/exceptions/missing_handler_exception.dart';
 import 'package:revali_router/src/exceptions/route_not_found_exception.dart';
-import 'package:revali_router/src/meta/meta_impl.dart';
+import 'package:revali_router/src/meta/meta_scope_impl.dart';
 import 'package:revali_router/src/payload/payload_impl.dart';
 import 'package:revali_router/src/request/mutable_request_impl.dart';
 import 'package:revali_router/src/request/mutable_web_socket_request_context_impl.dart';
@@ -36,6 +37,7 @@ import 'package:revali_router/src/web_socket/web_socket_close_impl.dart';
 import 'package:revali_router/src/web_socket/web_socket_context_impl.dart';
 import 'package:revali_router/src/web_socket/web_socket_handler.dart';
 import 'package:revali_router/utils/sequential_executor.dart';
+import 'package:revali_router_core/meta/meta_scope.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 import 'package:stack_trace/stack_trace.dart';
 
@@ -185,7 +187,7 @@ class Router extends Equatable {
       return response;
     }
 
-    final cleanUp = helper.dataHandler.get<CleanUp>();
+    final cleanUp = helper.data.get<CleanUp>();
     if (cleanUp is CleanUpImpl) {
       context.addCleanUp(cleanUp.clean);
       _cleanUp.add(cleanUp.clean);

@@ -85,11 +85,6 @@ String guardContent(
                         [
                           ...createComponentMethods(
                             component.guards,
-                            inferredParams: {
-                              (Context).name: refer('context'),
-                              (GuardMeta).name:
-                                  refer('context').property('meta'),
-                            },
                           ),
                         ],
                         refer('FutureOr<${(GuardResult).name}> Function()'),

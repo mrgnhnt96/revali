@@ -10,7 +10,7 @@ import 'package:revali_server_middleware_test/components/lifecycle_components/pr
 class MultipleController {
   const MultipleController();
 
-  @AddData()
+  @Data()
   @AddHeader()
   @Catch()
   @Allow()

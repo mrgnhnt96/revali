@@ -14,25 +14,24 @@ class Helper with HelperMixin, ContextMixin {
     debugResponses = router.debug;
     defaultResponses = router.defaultResponses;
 
-    dataHandler = DataHandler()..add<CleanUp>(CleanUpImpl());
-    directMeta = route.getMeta();
-    inheritedMeta = route.getMeta(inherit: true);
-    globalComponents.getMeta(handler: inheritedMeta);
+    data = DataImpl()..add<CleanUp>(CleanUpImpl());
+    meta = MetaScopeImpl(
+      direct: route.getMeta(),
+      inherited: route.getMeta(inherit: true),
+    );
+    globalComponents.getMeta(handler: meta);
     response = MutableResponseImpl(requestHeaders: request.headers);
     _request = request;
   }
 
   @override
-  late final DataHandler dataHandler;
+  late final Data data;
 
   @override
-  late final MetaHandler directMeta;
+  late final MetaScope meta;
 
   @override
   late final LifecycleComponents globalComponents;
-
-  @override
-  late final MetaHandler inheritedMeta;
 
   @override
   late final ReflectHandler reflectHandler;

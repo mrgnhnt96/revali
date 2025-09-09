@@ -1,94 +1,95 @@
-import 'package:revali_router_core/data/data_handler.dart';
+import 'package:revali_router/src/data/data_impl.dart';
+import 'package:revali_router_core/data/data.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group(DataHandler, () {
+  group(DataImpl, () {
     group('#add', () {
       test('An item should be stored when it is added', () {
-        final dataHandler = DataHandler();
+        final data = DataImpl();
         const instance = 'TestItem';
 
-        dataHandler.add<String>(instance);
+        data.add<String>(instance);
 
-        expect(dataHandler.get<String>(), equals(instance));
+        expect(data.get<String>(), equals(instance));
       });
     });
 
     group('#get', () {
       test('No item should be found when it has not been added', () {
-        final dataHandler = DataHandler();
+        final data = DataImpl();
 
-        expect(dataHandler.get<int>(), isNull);
+        expect(data.get<int>(), isNull);
       });
 
       test('The correct item should be retrieved when it has been added', () {
         const instance = 42;
-        final dataHandler = DataHandler()..add<int>(instance);
+        final data = const Data()..add<int>(instance);
 
-        expect(dataHandler.get<int>(), equals(instance));
+        expect(data.get<int>(), equals(instance));
       });
     });
 
     group('#has', () {
       test('The system should confirm presence when an item has been added',
           () {
-        final dataHandler = DataHandler()..add<double>(3.14);
+        final data = const Data()..add<double>(3.14);
 
-        expect(dataHandler.has<double>(), isTrue);
+        expect(data.has<double>(), isTrue);
       });
 
       test('The system should confirm absence when an item has not been added',
           () {
-        final dataHandler = DataHandler();
+        final data = DataImpl();
 
-        expect(dataHandler.has<bool>(), isFalse);
+        expect(data.has<bool>(), isFalse);
       });
     });
 
     group('#contains', () {
       test('The system should confirm presence when the exact item exists', () {
         const instance = 'SpecificItem';
-        final dataHandler = DataHandler()..add<String>(instance);
+        final data = const Data()..add<String>(instance);
 
-        expect(dataHandler.contains<String>(instance), isTrue);
+        expect(data.contains<String>(instance), isTrue);
       });
 
       test('The system should confirm absence when the item does not exist',
           () {
-        final dataHandler = DataHandler();
+        final data = DataImpl();
 
-        expect(dataHandler.contains<int>(123), isFalse);
+        expect(data.contains<int>(123), isFalse);
       });
     });
 
     group('#remove', () {
       test('The system should remove an item when it exists', () {
-        final dataHandler = DataHandler()..add<String>('RemovableItem');
+        final data = const Data()..add<String>('RemovableItem');
 
-        final removed = dataHandler.remove<String>();
+        final removed = data.remove<String>();
 
         expect(removed, isTrue);
-        expect(dataHandler.has<String>(), isFalse);
+        expect(data.has<String>(), isFalse);
       });
 
       test('The system should not remove anything when the item does not exist',
           () {
-        final dataHandler = DataHandler();
+        final data = DataImpl();
 
-        final removed = dataHandler.remove<int>();
+        final removed = data.remove<int>();
 
         expect(removed, isFalse);
       });
 
       test('The system should keep other items intact when removing one item',
           () {
-        final dataHandler = DataHandler()
+        final data = const Data()
           ..add<String>('RemovableItem')
           ..add<int>(42)
           ..remove<String>();
 
-        expect(dataHandler.has<String>(), isFalse);
-        expect(dataHandler.has<int>(), isTrue);
+        expect(data.has<String>(), isFalse);
+        expect(data.has<int>(), isTrue);
       });
     });
   });

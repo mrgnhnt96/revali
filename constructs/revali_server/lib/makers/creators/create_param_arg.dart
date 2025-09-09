@@ -2,6 +2,7 @@
 
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_router/revali_router.dart';
+import 'package:revali_router_core/meta/meta_scope.dart';
 import 'package:revali_server/converters/server_param.dart';
 import 'package:revali_server/makers/creators/create_arg_for_param.dart';
 import 'package:revali_server/makers/creators/create_arg_from_custom_param.dart';
@@ -42,16 +43,11 @@ final impliedArguments = <String, Expression>{
       .property('headers')
       .property('cookies'),
   // --- meta ---
-  (Meta).name: refer('context').property('meta'),
-  (ReadOnlyMeta).name: refer('context').property('meta').property('all'),
-  (WriteOnlyMeta).name: refer('context').property('meta').property('all'),
-  (MetaHandler).name: refer('context').property('meta').property('all'),
-  (ReadOnlyMetaDetailed).name:
-      refer('context').property('meta').property('all'),
+  (Meta).name: refer('context').property('meta').property('all'),
+  (MetaScope).name: refer('context').property('meta'),
+  (RouteEntry).name: refer('context').property('route'),
   // --- data ---
-  (DataHandler).name: refer('context').property('data'),
-  (ReadOnlyData).name: refer('context').property('data'),
-  (WriteOnlyData).name: refer('context').property('data'),
+  (Data).name: refer('context').property('data'),
   (CleanUp).name:
       refer('context').property('data').property('get').call([]).ifNullThen(
     createMissingArgumentException(key: 'cleanUp', location: '@data')

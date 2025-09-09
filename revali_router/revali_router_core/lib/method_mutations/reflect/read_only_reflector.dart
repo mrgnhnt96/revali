@@ -1,11 +1,11 @@
-import 'package:revali_router_core/meta/read_only_meta.dart';
+import 'package:revali_router_core/meta/meta.dart';
 
 abstract class ReadOnlyReflector {
   const ReadOnlyReflector();
 
-  Map<String, ReadOnlyMeta> get meta;
+  Map<String, Meta> get meta;
 
-  ReadOnlyMeta operator [](String key);
+  Meta operator [](String key);
 
-  ReadOnlyMeta get(String key);
+  Meta get(String key);
 }

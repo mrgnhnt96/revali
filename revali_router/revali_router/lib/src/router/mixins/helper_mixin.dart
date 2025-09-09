@@ -12,9 +12,8 @@ mixin HelperMixin {
   FullRequest get request;
   MutableResponse get response;
   CloseWebSocket get close;
-  DataHandler get dataHandler;
-  MetaHandler get directMeta;
-  MetaHandler get inheritedMeta;
+  Data get data;
+  MetaScope get meta;
   ReflectHandler get reflectHandler;
   DebugErrorResponse get debugErrorResponse;
   DefaultResponses get defaultResponses;

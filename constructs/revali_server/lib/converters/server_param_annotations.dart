@@ -118,7 +118,7 @@ class ServerParamAnnotations with ExtractImport {
           },
         ),
         OnMatch(
-          classType: Data,
+          classType: AddData,
           package: 'revali_router_annotations',
           convert: (object, annotation) {
             data = true;

@@ -1,3 +1,4 @@
+import 'package:revali_router_core/meta/meta_scope.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
 class PipeContextImpl implements PipeContext {
@@ -23,10 +24,10 @@ class PipeContextImpl implements PipeContext {
   final String nameOfParameter;
 
   @override
-  final DataHandler data;
+  final Data data;
 
   @override
-  final Meta meta;
+  final MetaScope meta;
 
   @override
   final ReflectHandler reflect;

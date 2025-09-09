@@ -98,8 +98,6 @@ Method _pre(
                     ...createComponentMethods(
                       component.interceptors.pre,
                       inferredParams: {
-                        (Context).name: refer('context'),
-                        (InterceptorMeta).name: refer('context.meta'),
                         (ReadOnlyReflectHandler).name: refer('context.reflect'),
                       },
                     ),
@@ -153,8 +151,6 @@ Method _post(
                     ...createComponentMethods(
                       component.interceptors.post,
                       inferredParams: {
-                        (Context).name: refer('context'),
-                        (InterceptorMeta).name: refer('context.meta'),
                         (ReadOnlyReflectHandler).name: refer('context.reflect'),
                         (ReflectHandler).name: refer('context.reflect'),
                       },

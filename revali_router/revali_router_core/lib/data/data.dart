@@ -1,11 +1,43 @@
-import 'package:revali_router_core/data/data_handler.dart';
+abstract class Data {
+  const factory Data() = _DataAnnotation;
 
-final class Data<T> {
-  const Data(this.value);
+  /// Register an instance of [T] to be used later.
+  void add<T>(T instance);
 
-  final T value;
+  T? get<T>();
 
-  void apply(DataHandler data) {
-    data.add<T>(value);
+  bool has<T>();
+
+  bool contains<T>(T value);
+
+  bool remove<T>();
+}
+
+class _DataAnnotation implements Data {
+  const _DataAnnotation();
+
+  @override
+  void add<T>(T instance) {
+    throw StateError('Not intended for runtime usage');
+  }
+
+  @override
+  bool contains<T>(T value) {
+    throw StateError('Not intended for runtime usage');
+  }
+
+  @override
+  T? get<T>() {
+    throw StateError('Not intended for runtime usage');
+  }
+
+  @override
+  bool has<T>() {
+    throw StateError('Not intended for runtime usage');
+  }
+
+  @override
+  bool remove<T>() {
+    throw StateError('Not intended for runtime usage');
   }
 }
