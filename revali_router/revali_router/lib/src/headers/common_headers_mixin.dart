@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http_parser/http_parser.dart';
-import 'package:revali_router_core/headers/read_only_headers.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 
 abstract class CommonHeadersMixin extends ReadOnlyHeaders {
   @override

@@ -11,7 +11,7 @@ class RunGuards {
     final HelperMixin(
       :guards,
       :response,
-      context: ContextMixin(guard: context),
+      context: ContextMixin(main: context),
       :debugErrorResponse,
     ) = helper;
 

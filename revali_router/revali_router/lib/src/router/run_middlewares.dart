@@ -12,7 +12,7 @@ class RunMiddlewares {
       :middlewares,
       :response,
       :debugErrorResponse,
-      context: ContextMixin(middleware: context),
+      context: ContextMixin(main: context),
     ) = helper;
 
     for (final middleware in middlewares) {

@@ -4,7 +4,7 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:collection/collection.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
-import 'package:revali_router_core/pipe/annotation_type.dart';
+import 'package:revali_router_core/types/annotation_type.dart';
 import 'package:revali_server/converters/base_parameter_annotation.dart';
 import 'package:revali_server/converters/server_bind.dart';
 import 'package:revali_server/converters/server_imports.dart';

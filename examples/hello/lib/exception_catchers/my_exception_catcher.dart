@@ -10,7 +10,7 @@ final class MyExceptionCatcher extends DefaultExceptionCatcher {
   @override
   ExceptionCatcherResult<Exception> catchException(
     Exception exception,
-    ExceptionCatcherContext context,
+    Context context,
   ) {
     return const ExceptionCatcherResult.handled(
       statusCode: 500,

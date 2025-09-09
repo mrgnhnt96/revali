@@ -12,7 +12,7 @@ class Execute {
       :response,
       :debugErrorResponse,
       :defaultResponses,
-      context: ContextMixin(endpoint: context),
+      context: ContextMixin(main: context),
       run: RunMixin(
         :interceptors,
         :guards,

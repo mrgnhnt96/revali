@@ -133,7 +133,7 @@ base class _Catcher extends ExceptionCatcher<_TestException> {
   @override
   ExceptionCatcherResult<_TestException> catchException(
     _TestException exception,
-    ExceptionCatcherContext context,
+    Context context,
   ) {
     wasCalled = true;
     return const ExceptionCatcherResult.handled();
@@ -144,7 +144,7 @@ class _ThrowMiddleware implements Middleware {
   bool wasCalled = false;
 
   @override
-  Future<MiddlewareResult> use(MiddlewareContext context) {
+  Future<MiddlewareResult> use(Context context) {
     wasCalled = true;
     throw _TestException();
   }
@@ -154,7 +154,7 @@ class _ThrowGuard implements Guard {
   bool wasCalled = false;
 
   @override
-  Future<GuardResult> protect(GuardContext context) {
+  Future<GuardResult> protect(Context context) {
     wasCalled = true;
     throw _TestException();
   }
@@ -173,7 +173,7 @@ class _ThrowInterceptor implements Interceptor {
   bool postWasCalled = false;
 
   @override
-  Future<void> post(FullInterceptorContext context) async {
+  Future<void> post(Context context) async {
     postWasCalled = true;
     if (inPost) {
       throw _TestException();
@@ -181,7 +181,7 @@ class _ThrowInterceptor implements Interceptor {
   }
 
   @override
-  Future<void> pre(RestrictedInterceptorContext context) async {
+  Future<void> pre(Context context) async {
     preWasCalled = true;
     if (inPre) {
       throw _TestException();

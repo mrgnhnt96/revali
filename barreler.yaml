@@ -54,6 +54,7 @@ dirs:
           - AppConfig
           - Data
           - LifecycleComponents
+          - Meta
       - export: "package:revali_router_annotations/revali_router_annotations.dart"
   - path: revali_router/revali_router_core/lib
     name: revali_router_core

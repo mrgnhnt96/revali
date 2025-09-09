@@ -68,7 +68,7 @@ String middlewareContent(
               Parameter(
                 (p) => p
                   ..name = 'context'
-                  ..type = refer((MiddlewareContext).name),
+                  ..type = refer((Context).name),
               ),
             )
             ..body = Block.of(
@@ -86,7 +86,7 @@ String middlewareContent(
                           ...createComponentMethods(
                             component.middlewares,
                             inferredParams: {
-                              (MiddlewareContext).name: refer('context'),
+                              (Context).name: refer('context'),
                             },
                           ),
                         ],

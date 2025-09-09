@@ -1,8 +1,5 @@
 import 'package:revali_router_core/revali_router_core.dart';
 
-abstract class BaseContext {
+abstract class BaseContext implements Context {
   const BaseContext();
-
-  DataHandler get data;
-  ReadOnlyMeta get meta;
 }

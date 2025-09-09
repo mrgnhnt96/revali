@@ -80,7 +80,7 @@ Method _pre(
         Parameter(
           (p) => p
             ..name = 'context'
-            ..type = refer('RestrictedInterceptorContext'),
+            ..type = refer((Context).name),
         ),
       )
       ..body = Block.of(
@@ -98,8 +98,7 @@ Method _pre(
                     ...createComponentMethods(
                       component.interceptors.pre,
                       inferredParams: {
-                        'RestrictedInterceptorContext': refer('context'),
-                        (InterceptorContext).name: refer('context'),
+                        (Context).name: refer('context'),
                         (InterceptorMeta).name: refer('context.meta'),
                         (ReadOnlyReflectHandler).name: refer('context.reflect'),
                       },
@@ -136,7 +135,7 @@ Method _post(
         Parameter(
           (p) => p
             ..name = 'context'
-            ..type = refer('FullInterceptorContext'),
+            ..type = refer((Context).name),
         ),
       )
       ..body = Block.of(
@@ -154,8 +153,7 @@ Method _post(
                     ...createComponentMethods(
                       component.interceptors.post,
                       inferredParams: {
-                        'FullInterceptorContext': refer('context'),
-                        (InterceptorContext).name: refer('context'),
+                        (Context).name: refer('context'),
                         (InterceptorMeta).name: refer('context.meta'),
                         (ReadOnlyReflectHandler).name: refer('context.reflect'),
                         (ReflectHandler).name: refer('context.reflect'),

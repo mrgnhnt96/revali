@@ -182,11 +182,11 @@ test-suite:
   (aliases): ts
   (command):
     - "{$test-suite:pubspec:comment-out}"
-    - cd test_suite && dart pub get
+    - cd test_suite && dart pub get {--offline}
     - (+) {$test-suite:revali_server}
     - (+) {$test-suite:revali_client}
     - "{$test-suite:pubspec:uncomment}"
-    - cd test_suite && dart pub get
+    - cd test_suite && dart pub get {--offline}
     - |
       if [ "$GEN_ONLY" = "true" ]; then
         exit 0

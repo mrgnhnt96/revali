@@ -42,10 +42,12 @@ final impliedArguments = <String, Expression>{
       .property('headers')
       .property('cookies'),
   // --- meta ---
-  (ReadOnlyMeta).name: refer('context').property('meta'),
-  (WriteOnlyMeta).name: refer('context').property('meta'),
-  (MetaHandler).name: refer('context').property('meta'),
-  (ReadOnlyMetaDetailed).name: refer('context').property('meta'),
+  (Meta).name: refer('context').property('meta'),
+  (ReadOnlyMeta).name: refer('context').property('meta').property('all'),
+  (WriteOnlyMeta).name: refer('context').property('meta').property('all'),
+  (MetaHandler).name: refer('context').property('meta').property('all'),
+  (ReadOnlyMetaDetailed).name:
+      refer('context').property('meta').property('all'),
   // --- data ---
   (DataHandler).name: refer('context').property('data'),
   (ReadOnlyData).name: refer('context').property('data'),

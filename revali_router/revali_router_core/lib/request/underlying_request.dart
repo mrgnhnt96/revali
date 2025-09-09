@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:revali_router_core/headers/read_only_headers.dart';
+import 'package:revali_router_core/method_mutations/headers/read_only_headers.dart';
 import 'package:revali_router_core/payload/payload.dart';
 
 abstract class UnderlyingRequest {

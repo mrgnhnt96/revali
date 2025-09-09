@@ -179,4 +179,4 @@ class TestRoute extends Route {
   final String path;
 }
 
-Future<void> _handler(EndpointContext context) async {}
+Future<void> _handler(Context context) async {}

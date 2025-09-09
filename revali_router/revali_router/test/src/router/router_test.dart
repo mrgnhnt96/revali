@@ -195,7 +195,7 @@ class _TestAuthMiddleware implements Middleware {
   const _TestAuthMiddleware();
 
   @override
-  Future<MiddlewareResult> use(MiddlewareContext context) async {
+  Future<MiddlewareResult> use(Context context) async {
     return const MiddlewareResult.next();
   }
 }

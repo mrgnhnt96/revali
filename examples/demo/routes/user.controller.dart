@@ -98,7 +98,7 @@ class Auth implements Middleware {
   String get hi => 'hi';
 
   @override
-  Future<MiddlewareResult> use(MiddlewareContext context) async {
+  Future<MiddlewareResult> use(Context context) async {
     return const MiddlewareResult.next();
   }
 }
@@ -130,7 +130,7 @@ final class NotAuthCatcher extends ExceptionCatcher<NotAuth> {
   @override
   ExceptionCatcherResult<NotAuth> catchException(
     Exception exception,
-    ExceptionCatcherContext context,
+    Context context,
   ) {
     return const ExceptionCatcherResult.handled();
   }

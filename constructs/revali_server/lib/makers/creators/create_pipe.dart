@@ -17,12 +17,15 @@ Expression createPipe(
 }) {
   final pipeClass = refer(pipe.clazz.variableName);
 
-  final context = refer((PipeContextImpl).name).newInstanceNamed(
-    'from',
-    [
-      refer('context'),
-    ],
+  final context = refer((PipeContextImpl).name).newInstance(
+    [],
     {
+      'data': refer('context').property('data'),
+      'meta': refer('context').property('meta'),
+      'reflect': refer('context').property('reflect'),
+      'request': refer('context').property('request'),
+      'response': refer('context').property('response'),
+      'route': refer('context').property('route'),
       'annotationArgument': literal(annotation.name),
       'nameOfParameter': literalString(param.name),
       'type': refer((AnnotationType).name).property(annotation.type.name),

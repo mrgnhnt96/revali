@@ -68,7 +68,7 @@ String guardContent(
               Parameter(
                 (p) => p
                   ..name = 'context'
-                  ..type = refer((GuardContext).name),
+                  ..type = refer((Context).name),
               ),
             )
             ..body = Block.of(
@@ -86,7 +86,7 @@ String guardContent(
                           ...createComponentMethods(
                             component.guards,
                             inferredParams: {
-                              (GuardContext).name: refer('context'),
+                              (Context).name: refer('context'),
                               (GuardMeta).name:
                                   refer('context').property('meta'),
                             },

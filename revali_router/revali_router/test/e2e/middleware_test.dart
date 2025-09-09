@@ -129,7 +129,7 @@ class _SuccessMiddleware implements Middleware {
   bool wasCalled = false;
 
   @override
-  Future<MiddlewareResult> use(MiddlewareContext context) async {
+  Future<MiddlewareResult> use(Context context) async {
     wasCalled = true;
     return const MiddlewareResult.next();
   }
@@ -142,7 +142,7 @@ class _OrderedMiddleware implements Middleware {
   final StreamController<int> controller;
 
   @override
-  Future<MiddlewareResult> use(MiddlewareContext context) async {
+  Future<MiddlewareResult> use(Context context) async {
     controller.add(index);
     return const MiddlewareResult.next();
   }
@@ -152,7 +152,7 @@ class _ModifyingMiddleware implements Middleware {
   _ModifyingMiddleware();
 
   @override
-  Future<MiddlewareResult> use(MiddlewareContext context) async {
+  Future<MiddlewareResult> use(Context context) async {
     context.data.add('Hello, World!');
     context.response.body = 'Hello, World!';
     context.response.headers['hello'] = 'world';
@@ -169,7 +169,7 @@ class _HaltingMiddleware implements Middleware {
   final bool overrideResponse;
 
   @override
-  Future<MiddlewareResult> use(MiddlewareContext context) async {
+  Future<MiddlewareResult> use(Context context) async {
     if (overrideResponse) {
       return const MiddlewareResult.stop(
         body: 'Overridden',

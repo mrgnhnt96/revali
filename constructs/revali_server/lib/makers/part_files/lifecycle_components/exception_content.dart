@@ -104,7 +104,7 @@ String exceptionContent(
               Parameter(
                 (p) => p
                   ..name = 'context'
-                  ..type = refer((ExceptionCatcherContext).name),
+                  ..type = refer((Context).name),
               ),
             ])
             ..body = Block.of(
@@ -125,7 +125,7 @@ String exceptionContent(
                         values,
                         inferredParams: {
                           key: refer('exception'),
-                          (ExceptionCatcherContext).name: refer('context'),
+                          (Context).name: refer('context'),
                           (ExceptionCatcherMeta).name: refer('context.meta'),
                           (RouteEntry).name: refer('context.meta.route'),
                         },

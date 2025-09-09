@@ -1,10 +1,7 @@
 import 'package:revali_router/src/body/response_body/base_body_data.dart';
 import 'package:revali_router/src/headers/mutable_headers_impl.dart';
 import 'package:revali_router/src/response/mutable_response_impl.dart';
-import 'package:revali_router_core/body/body_data.dart';
-import 'package:revali_router_core/body/read_only_body.dart';
-import 'package:revali_router_core/headers/read_only_headers.dart';
-import 'package:revali_router_core/response/read_only_response.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 
 class SimpleResponse implements ReadOnlyResponse {
   factory SimpleResponse(

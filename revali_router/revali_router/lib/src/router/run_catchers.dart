@@ -46,7 +46,7 @@ class RunCatchers {
       :response,
       :debugErrorResponse,
       :defaultResponses,
-      context: ContextMixin(exceptionCatcher: context),
+      context: ContextMixin(main: context),
     ) = helper;
 
     defaultResponse ??= defaultResponses.internalServerError;
