@@ -1,7 +1,7 @@
-import 'package:revali_router_core/context/base_context.dart';
+import 'package:revali_router_core/context/context.dart';
 import 'package:revali_router_core/types/annotation_type.dart';
 
-abstract class PipeContext implements BaseContext {
+abstract class PipeContext implements Context {
   const PipeContext();
 
   /// Indicates whether argument is a body, query, param, or custom parameter

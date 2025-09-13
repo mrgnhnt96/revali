@@ -2,7 +2,6 @@
 
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_router/revali_router.dart';
-import 'package:revali_router_core/meta/meta_scope.dart';
 import 'package:revali_server/converters/server_param.dart';
 import 'package:revali_server/makers/creators/create_arg_for_param.dart';
 import 'package:revali_server/makers/creators/create_arg_from_custom_param.dart';
@@ -43,9 +42,10 @@ final impliedArguments = <String, Expression>{
       .property('headers')
       .property('cookies'),
   // --- meta ---
-  (Meta).name: refer('context').property('meta').property('all'),
+  (Meta).name: refer('context').property('meta'),
   (MetaScope).name: refer('context').property('meta'),
   (RouteEntry).name: refer('context').property('route'),
+  (Context).name: refer('context'),
   // --- data ---
   (Data).name: refer('context').property('data'),
   (CleanUp).name:

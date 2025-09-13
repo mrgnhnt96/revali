@@ -55,7 +55,7 @@ class NamePipe implements Pipe<String, String> {
   const NamePipe();
 
   @override
-  Future<String> transform(String value, PipeContext context) async {
+  Future<String> transform(String value, Context context) async {
     return 'value: ($value)';
   }
 }
@@ -70,7 +70,7 @@ class StringToIntPipe implements Pipe<String?, int> {
   const StringToIntPipe();
 
   @override
-  Future<int> transform(String? value, PipeContext context) async {
+  Future<int> transform(String? value, Context context) async {
     return int.parse(value ?? '0');
   }
 }

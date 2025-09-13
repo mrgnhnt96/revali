@@ -1,6 +1,6 @@
-import 'package:revali_router_core/context/base_context.dart';
+import 'package:revali_router_core/context/context.dart';
 
-abstract class BindContext extends BaseContext {
+abstract class BindContext implements Context {
   const BindContext();
 
   /// The name of the parameter that corresponds to the annotation.
