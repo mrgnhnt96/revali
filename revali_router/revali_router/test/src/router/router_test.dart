@@ -1,6 +1,6 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:revali_router/src/access_control/expected_headers_impl.dart';
-import 'package:revali_router/src/headers/mutable_headers_impl.dart';
+import 'package:revali_router/src/headers/headers_impl.dart';
 import 'package:revali_router/src/route/base_route.dart';
 import 'package:revali_router/src/route/route.dart';
 import 'package:revali_router/src/router/router.dart';
@@ -142,7 +142,7 @@ void main() {
 
           final response = await router.handle(mockRequestContext);
 
-          expect(response, isA<ReadOnlyResponse>());
+          expect(response, isA<Response>());
         });
       });
     });
@@ -170,7 +170,7 @@ extension _RequestContextX on RequestContext {
     when(() => instance.queryParametersAll).thenReturn(uri.queryParametersAll);
     when(() => instance.uri).thenReturn(uri);
 
-    when(() => headers).thenReturn(MutableHeadersImpl({}));
+    when(() => headers).thenReturn(HeadersImpl({}));
 
     final request = _MockUnderlyingRequest()..stub(uri, method: method);
 
@@ -185,7 +185,7 @@ extension _MockUnderlyingRequestX on UnderlyingRequest {
   }) {
     final instance = this;
 
-    when(() => instance.headers).thenReturn(MutableHeadersImpl({}));
+    when(() => instance.headers).thenReturn(HeadersImpl({}));
     when(() => instance.uri).thenReturn(uri);
     when(() => instance.method).thenReturn(method);
   }

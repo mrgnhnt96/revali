@@ -67,9 +67,9 @@ final class FileBodyData extends BaseBodyData<io.File> {
   }
 
   @override
-  ReadOnlyHeaders headers(ReadOnlyHeaders? requestHeaders) {
+  Headers headers(Headers? requestHeaders) {
     final stat = file.statSync();
-    final headers = MutableHeadersImpl()
+    final headers = HeadersImpl()
       ..lastModified = stat.modified
       ..filename = p.basename(file.path)
       ..mimeType = mimeType

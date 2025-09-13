@@ -15,8 +15,8 @@ final class StringBodyData extends BaseBodyData<String> {
   }
 
   @override
-  ReadOnlyHeaders headers(ReadOnlyHeaders? requestHeaders) {
-    return MutableHeadersImpl()
+  Headers headers(Headers? requestHeaders) {
+    return HeadersImpl()
       ..mimeType = mimeType
       ..contentLength = contentLength;
   }

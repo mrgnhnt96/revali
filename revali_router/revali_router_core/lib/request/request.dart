@@ -1,9 +1,9 @@
-import 'package:revali_router_core/body/read_only_body.dart';
-import 'package:revali_router_core/method_mutations/headers/read_only_headers.dart';
-import 'package:revali_router_core/payload/read_only_payload.dart';
+import 'package:revali_router_core/body/body.dart';
+import 'package:revali_router_core/method_mutations/headers/headers.dart';
+import 'package:revali_router_core/payload/payload.dart';
 
-abstract class ReadOnlyRequest {
-  const ReadOnlyRequest();
+abstract class Request {
+  const Request();
 
   /// Resolves the payload of the request for [body] to be accessible.
   ///
@@ -12,7 +12,7 @@ abstract class ReadOnlyRequest {
   Future<void> resolvePayload();
 
   /// The headers of the request.
-  ReadOnlyHeaders get headers;
+  Headers get headers;
 
   /// The body of the request, resolved from the original payload.
   ///
@@ -20,10 +20,10 @@ abstract class ReadOnlyRequest {
   /// This field can only be accessed after calling [resolvePayload].
   /// If the [body] is not resolved, this field will throw an exception,
   /// `UnresolvedPayloadException`.
-  ReadOnlyBody get body;
+  Body get body;
 
   /// The original payload of the request.
-  ReadOnlyPayload get originalPayload;
+  Payload get originalPayload;
 
   /// The query parameters of the request.
   ///

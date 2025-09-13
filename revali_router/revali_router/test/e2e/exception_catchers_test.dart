@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:revali_router/revali_router.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 import 'package:test/test.dart';
 
 import 'utils/test_request.dart';
@@ -21,7 +21,7 @@ void main() {
           expect(catcher.wasCalled, isTrue);
 
           expect(response.statusCode, HttpStatus.internalServerError);
-          expect(response.body?.data, 'Internal Server Error');
+          expect(response.body.data, 'Internal Server Error');
           final headers = response.joinedHeaders;
 
           expect(headers.keys, hasLength(2));
@@ -45,7 +45,7 @@ void main() {
           expect(middleware.wasCalled, isTrue);
 
           expect(response.statusCode, HttpStatus.internalServerError);
-          expect(response.body?.data, 'Internal Server Error');
+          expect(response.body.data, 'Internal Server Error');
           final headers = response.joinedHeaders;
 
           expect(headers.keys, hasLength(2));
@@ -69,7 +69,7 @@ void main() {
           expect(guard.wasCalled, isTrue);
 
           expect(response.statusCode, HttpStatus.internalServerError);
-          expect(response.body?.data, 'Internal Server Error');
+          expect(response.body.data, 'Internal Server Error');
           final headers = response.joinedHeaders;
 
           expect(headers.keys, hasLength(2));
@@ -91,7 +91,7 @@ void main() {
           expect(interceptor.postWasCalled, isFalse);
 
           expect(response.statusCode, HttpStatus.internalServerError);
-          expect(response.body?.data, 'Internal Server Error');
+          expect(response.body.data, 'Internal Server Error');
           final headers = response.joinedHeaders;
 
           expect(headers.keys, hasLength(2));
@@ -113,7 +113,7 @@ void main() {
           expect(interceptor.postWasCalled, isTrue);
 
           expect(response.statusCode, HttpStatus.internalServerError);
-          expect(response.body?.data, 'Internal Server Error');
+          expect(response.body.data, 'Internal Server Error');
           final headers = response.joinedHeaders;
 
           expect(headers.keys, hasLength(2));

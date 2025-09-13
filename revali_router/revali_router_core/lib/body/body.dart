@@ -1,6 +1,6 @@
 import 'package:revali_router_core/body/body_data.dart';
 
-abstract base class MutableBody extends BodyData {
+abstract base class Body extends BodyData {
   /// Replaces the entire body with the given data.
   Future<void> replace(Object? data);
 

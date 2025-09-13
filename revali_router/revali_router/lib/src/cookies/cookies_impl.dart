@@ -3,12 +3,12 @@ import 'dart:io';
 import 'package:http_parser/http_parser.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
-class MutableCookiesImpl implements MutableCookies {
-  MutableCookiesImpl([Map<String, String?>? values])
+class CookiesImpl implements Cookies {
+  CookiesImpl([Map<String, String?>? values])
       : _values = CaseInsensitiveMap<String?>.from(values ?? {});
-  factory MutableCookiesImpl.fromHeader(String? value) {
+  factory CookiesImpl.fromHeader(String? value) {
     if (value == null) {
-      return MutableCookiesImpl();
+      return CookiesImpl();
     }
 
     final values = <String, String?>{};
@@ -38,7 +38,7 @@ class MutableCookiesImpl implements MutableCookies {
       values[name] = value;
     }
 
-    return MutableCookiesImpl(values);
+    return CookiesImpl(values);
   }
 
   final CaseInsensitiveMap<String?> _values;

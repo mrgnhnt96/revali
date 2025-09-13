@@ -14,30 +14,30 @@ final impliedArguments = <String, Expression>{
   // --- dependency injection ---
   (DI).name: refer('di'),
   // --- response ---
-  (MutableHeaders).name:
-      refer('context').property('response').property('headers'),
-  (MutableCookies).name: refer('context')
+  (Headers).name: refer('context').property('response').property('headers'),
+  (Cookies).name: refer('context')
       .property('response')
       .property('headers')
       .property('cookies'),
-  (MutableSetCookies).name: refer('context')
+  (SetCookies).name: refer('context')
       .property('response')
       .property('headers')
       .property('setCookies'),
-  (ReadOnlySetCookies).name: refer('context')
+  (SetCookies).name: refer('context')
       .property('response')
       .property('headers')
       .property('setCookies'),
-  (MutableBody).name: refer('context').property('response').property('body'),
-  (MutableResponse).name: refer('context').property('response'),
-  (RestrictedMutableResponse).name: refer('context').property('response'),
+  (Body).name: refer('context').property('response').property('body'),
+  (Response).name: refer('context').property('response'),
   // --- request ---
-  (ReadOnlyHeaders).name:
+  (Headers).name: refer('context').property('response').property('headers'),
+  (RequestHeaders).name:
       refer('context').property('request').property('headers'),
-  (ReadOnlyRequest).name: refer('context').property('request'),
-  (MutableRequest).name: refer('context').property('request'),
-  (ReadOnlyBody).name: refer('context').property('request').property('body'),
-  (ReadOnlyCookies).name: refer('context')
+  (ResponseHeaders).name:
+      refer('context').property('response').property('headers'),
+  (Request).name: refer('context').property('request'),
+  (Body).name: refer('context').property('request').property('body'),
+  (Cookies).name: refer('context')
       .property('request')
       .property('headers')
       .property('cookies'),
@@ -54,6 +54,8 @@ final impliedArguments = <String, Expression>{
         .thrown
         .parenthesized,
   ),
+  // --- reflect ---
+  (ReflectHandler).name: refer('context').property('reflect'),
 };
 
 Expression createParamArg(

@@ -97,9 +97,6 @@ Method _pre(
                   [
                     ...createComponentMethods(
                       component.interceptors.pre,
-                      inferredParams: {
-                        (ReadOnlyReflectHandler).name: refer('context.reflect'),
-                      },
                     ),
                   ],
                   refer('FutureOr<void> Function()'),
@@ -150,10 +147,6 @@ Method _post(
                   [
                     ...createComponentMethods(
                       component.interceptors.post,
-                      inferredParams: {
-                        (ReadOnlyReflectHandler).name: refer('context.reflect'),
-                        (ReflectHandler).name: refer('context.reflect'),
-                      },
                     ),
                   ],
                   refer('FutureOr<void> Function()'),

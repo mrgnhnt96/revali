@@ -3,25 +3,25 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:http_parser/http_parser.dart';
-import 'package:revali_router/src/cookies/mutable_cookies_impl.dart';
-import 'package:revali_router/src/cookies/mutable_set_cookies_impl.dart';
+import 'package:revali_router/src/cookies/cookies_impl.dart';
+import 'package:revali_router/src/cookies/set_cookies_impl.dart';
 import 'package:revali_router/src/headers/common_headers_mixin.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
-class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
-  MutableHeadersImpl([Map<String, Iterable<String>>? headers])
+class HeadersImpl extends CommonHeadersMixin implements Headers {
+  HeadersImpl([Map<String, Iterable<String>>? headers])
       : _headers = CaseInsensitiveMap.from(
           headers ?? {},
         ),
-        cookies = MutableCookiesImpl.fromHeader(
+        cookies = CookiesImpl.fromHeader(
           headers?[HttpHeaders.cookieHeader]?.join(';'),
         ),
-        setCookies = MutableSetCookiesImpl.fromHeader(
+        setCookies = SetCookiesImpl.fromHeader(
           headers?[HttpHeaders.setCookieHeader]?.join(';'),
         );
 
-  factory MutableHeadersImpl.from(Object? object) {
-    if (object is MutableHeadersImpl) {
+  factory HeadersImpl.from(Object? object) {
+    if (object is HeadersImpl) {
       return object;
     } else if (object is HttpHeaders) {
       final map = <String, List<String>>{};
@@ -30,7 +30,7 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
         map[key] = values;
       });
 
-      return MutableHeadersImpl(map);
+      return HeadersImpl(map);
     }
 
     final converted = switch (object) {
@@ -41,11 +41,11 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
       null => <String, List<String>>{},
       _ => throw ArgumentError(
           'Unsupported data type for '
-          '$MutableHeadersImpl: ${object.runtimeType}',
+          '$HeadersImpl: ${object.runtimeType}',
         ),
     };
 
-    return MutableHeadersImpl(converted);
+    return HeadersImpl(converted);
   }
 
   final CaseInsensitiveMap<Iterable<String>> _headers;
@@ -126,7 +126,7 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
     }
   }
 
-  void syncWith(ReadOnlyRequest request) {
+  void syncWith(Request request) {
     if (request.headers.encoding case final otherEncoding
         when encoding == otherEncoding) {}
   }
@@ -278,8 +278,8 @@ class MutableHeadersImpl extends CommonHeadersMixin implements MutableHeaders {
   int get length => values.length;
 
   @override
-  final MutableCookies cookies;
+  final Cookies cookies;
 
   @override
-  final MutableSetCookies setCookies;
+  final SetCookies setCookies;
 }

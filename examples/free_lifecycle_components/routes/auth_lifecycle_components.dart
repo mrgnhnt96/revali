@@ -21,7 +21,7 @@ class AuthLifecycleComponent implements LifecycleComponent {
   }
 
   Future<GuardResult> hasRole(
-    Data data,
+    AddData data,
   ) async {
     return const GuardResult.pass();
   }
@@ -55,7 +55,7 @@ class AuthLifecycleComponent implements LifecycleComponent {
   }
 
   ExceptionCatcherResult<OtherException> handleOtherException(
-    Data context,
+    AddData context,
   ) {
     return const ExceptionCatcherResult.handled();
   }

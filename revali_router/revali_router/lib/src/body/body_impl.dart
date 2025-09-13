@@ -1,11 +1,11 @@
 import 'dart:convert';
 
 import 'package:revali_router/src/body/response_body/base_body_data.dart';
-import 'package:revali_router/src/headers/mutable_headers_impl.dart';
+import 'package:revali_router/src/headers/headers_impl.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
-base class MutableBodyImpl extends MutableBody {
-  MutableBodyImpl([this.__data]);
+base class BodyImpl extends Body {
+  BodyImpl([this.__data]);
 
   BodyData? __data;
   BodyData? get _data => __data;
@@ -96,6 +96,6 @@ base class MutableBodyImpl extends MutableBody {
   }
 
   @override
-  ReadOnlyHeaders headers(ReadOnlyHeaders? requestHeaders) =>
-      _data?.headers(requestHeaders) ?? MutableHeadersImpl();
+  Headers headers(Headers? requestHeaders) =>
+      _data?.headers(requestHeaders) ?? HeadersImpl();
 }

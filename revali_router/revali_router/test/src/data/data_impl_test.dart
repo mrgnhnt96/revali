@@ -1,5 +1,4 @@
 import 'package:revali_router/src/data/data_impl.dart';
-import 'package:revali_router_core/data/data.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -24,7 +23,7 @@ void main() {
 
       test('The correct item should be retrieved when it has been added', () {
         const instance = 42;
-        final data = const Data()..add<int>(instance);
+        final data = DataImpl()..add<int>(instance);
 
         expect(data.get<int>(), equals(instance));
       });
@@ -33,7 +32,7 @@ void main() {
     group('#has', () {
       test('The system should confirm presence when an item has been added',
           () {
-        final data = const Data()..add<double>(3.14);
+        final data = DataImpl()..add<double>(3.14);
 
         expect(data.has<double>(), isTrue);
       });
@@ -49,7 +48,7 @@ void main() {
     group('#contains', () {
       test('The system should confirm presence when the exact item exists', () {
         const instance = 'SpecificItem';
-        final data = const Data()..add<String>(instance);
+        final data = DataImpl()..add<String>(instance);
 
         expect(data.contains<String>(instance), isTrue);
       });
@@ -64,7 +63,7 @@ void main() {
 
     group('#remove', () {
       test('The system should remove an item when it exists', () {
-        final data = const Data()..add<String>('RemovableItem');
+        final data = DataImpl()..add<String>('RemovableItem');
 
         final removed = data.remove<String>();
 
@@ -83,7 +82,7 @@ void main() {
 
       test('The system should keep other items intact when removing one item',
           () {
-        final data = const Data()
+        final data = DataImpl()
           ..add<String>('RemovableItem')
           ..add<int>(42)
           ..remove<String>();

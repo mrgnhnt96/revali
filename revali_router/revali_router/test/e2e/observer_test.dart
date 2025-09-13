@@ -27,8 +27,8 @@ class _SuccessObserver implements Observer {
 
   @override
   Future<void> see(
-    ReadOnlyRequest request,
-    Future<ReadOnlyResponse> response,
+    Request request,
+    Future<Response> response,
   ) async {
     beforeWasCalled = true;
 

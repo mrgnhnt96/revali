@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:revali_router/revali_router.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 import 'package:test/test.dart';
 
 import 'utils/test_request.dart';
@@ -45,7 +45,7 @@ void main() {
         },
       ),
       verifyResponse: (response, context) {
-        expect(response.body?.data, 'Hello, World!');
+        expect(response.body.data, 'Hello, World!');
         expect(response.headers['hello'], 'world');
         expect(context.request.headers['hello'], 'world');
       },
@@ -71,7 +71,7 @@ void main() {
         },
       ),
       verifyResponse: (response, context) {
-        expect(response.body?.data, 'Goodbye, World!');
+        expect(response.body.data, 'Goodbye, World!');
 
         expect(response.headers['hello'], isNull);
         expect(context.request.headers['hello'], isNull);
@@ -87,7 +87,7 @@ void main() {
         middlewares: const [_HaltingMiddleware.overrideResponse()],
       ),
       verifyResponse: (response, context) {
-        expect(response.body?.data, 'Overridden');
+        expect(response.body.data, 'Overridden');
         expect(response.headers['overridden'], 'true');
         expect(response.statusCode, -1);
       },
@@ -99,7 +99,7 @@ void main() {
         middlewares: const [_HaltingMiddleware()],
       ),
       verifyResponse: (response, context) {
-        expect(response.body?.data, 'Not overridden');
+        expect(response.body.data, 'Not overridden');
         expect(response.headers['overridden'], 'false');
         expect(response.statusCode, 400);
       },

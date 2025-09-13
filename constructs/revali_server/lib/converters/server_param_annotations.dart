@@ -1,6 +1,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
+import 'package:revali_router_core/revali_router_core.dart' hide Body;
 import 'package:revali_server/converters/base_parameter_annotation.dart';
 import 'package:revali_server/converters/server_binds_annotation.dart';
 import 'package:revali_server/converters/server_body_annotation.dart';
@@ -118,8 +119,8 @@ class ServerParamAnnotations with ExtractImport {
           },
         ),
         OnMatch(
-          classType: AddData,
-          package: 'revali_router_annotations',
+          classType: Data,
+          package: 'revali_router_core',
           convert: (object, annotation) {
             data = true;
           },

@@ -1,29 +1,29 @@
 import 'dart:io';
 
-import 'package:revali_router/src/body/mutable_body_impl.dart';
+import 'package:revali_router/src/body/body_impl.dart';
 import 'package:revali_router/src/body/response_body/base_body_data.dart';
-import 'package:revali_router/src/headers/mutable_headers_impl.dart';
+import 'package:revali_router/src/headers/headers_impl.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
-class MutableResponseImpl implements MutableResponse {
-  MutableResponseImpl({
-    required ReadOnlyHeaders requestHeaders,
-    ReadOnlyHeaders? headers,
+class ResponseImpl implements Response {
+  ResponseImpl({
+    required Headers requestHeaders,
+    Headers? headers,
   })  : _requestHeaders = requestHeaders,
-        _body = MutableBodyImpl(),
+        _body = BodyImpl(),
         headers = headers != null
-            ? MutableHeadersImpl({
+            ? HeadersImpl({
                 for (final key in headers.keys) key: headers.getAll(key) ?? [],
               })
-            : MutableHeadersImpl();
+            : HeadersImpl();
 
-  factory MutableResponseImpl.from(ReadOnlyResponse response) {
-    if (response is MutableResponseImpl) {
+  factory ResponseImpl.from(Response response) {
+    if (response is ResponseImpl) {
       return response;
     }
 
-    final result = MutableResponseImpl(
-      requestHeaders: MutableHeadersImpl(),
+    final result = ResponseImpl(
+      requestHeaders: HeadersImpl(),
       headers: response.headers,
     );
 
@@ -38,7 +38,7 @@ class MutableResponseImpl implements MutableResponse {
     return result;
   }
 
-  final ReadOnlyHeaders _requestHeaders;
+  final Headers _requestHeaders;
 
   int _statusCode = 200;
   @override
@@ -48,9 +48,9 @@ class MutableResponseImpl implements MutableResponse {
     _statusCode = value;
   }
 
-  final MutableBody _body;
+  final Body _body;
   @override
-  MutableBody get body => _body;
+  Body get body => _body;
 
   @override
   set body(Object? newBody) {
@@ -58,8 +58,8 @@ class MutableResponseImpl implements MutableResponse {
       _statusCode = HttpStatus.internalServerError;
     });
 
-    if (_body is FileBodyData) {
-      final file = (_body as FileBodyData).file;
+    if (_body.data case final FileBodyData body) {
+      final file = body.file;
       final stat = file.statSync();
       if (stat.type == FileSystemEntityType.notFound) {
         _statusCode = HttpStatus.notFound;
@@ -77,18 +77,18 @@ class MutableResponseImpl implements MutableResponse {
   }
 
   @override
-  final MutableHeaders headers;
+  final Headers headers;
 
   @override
-  set headers(MutableHeaders newValue) {
+  set headers(Headers newValue) {
     headers
       ..clear()
       ..addEverything(newValue.values);
   }
 
   @override
-  MutableHeaders get joinedHeaders {
-    final headers = MutableHeadersImpl.from(this.headers);
+  Headers get joinedHeaders {
+    final headers = HeadersImpl.from(this.headers);
 
     _body.headers(_requestHeaders).forEach((key, values) {
       headers[key] ??= values.join(',');

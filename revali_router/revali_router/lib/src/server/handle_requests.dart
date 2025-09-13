@@ -8,7 +8,7 @@ import 'package:revali_router_core/revali_router_core.dart';
 
 Future<void> handleRequests(
   HttpServer server,
-  Future<ReadOnlyResponse> Function(RequestContext context) handler,
+  Future<Response> Function(RequestContext context) handler,
   Future<ResponseHandler> Function(RequestContext context) responseHandler,
   void Function() close,
 ) async {

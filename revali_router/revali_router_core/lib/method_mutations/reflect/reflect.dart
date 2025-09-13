@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:revali_router_core/method_mutations/reflect/write_only_reflector.dart';
+import 'package:revali_router_core/method_mutations/reflect/reflector.dart';
 
 part 'reflect.g.dart';
 
@@ -10,7 +10,7 @@ class Reflect extends Equatable {
   });
 
   final Type type;
-  final void Function(WriteOnlyReflector) metas;
+  final void Function(Reflector) metas;
 
   @override
   List<Object?> get props => _$props;

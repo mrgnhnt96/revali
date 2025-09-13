@@ -32,10 +32,10 @@ class PipeContextImpl implements PipeContext {
   final ReflectHandler reflect;
 
   @override
-  final MutableRequest request;
+  final Request request;
 
   @override
-  final MutableResponse response;
+  final Response response;
 
   @override
   final RouteEntry route;

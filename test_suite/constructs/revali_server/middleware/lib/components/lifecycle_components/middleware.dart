@@ -8,7 +8,7 @@ class Continue implements LifecycleComponent {
 
   MiddlewareResult authHandler(
     @Header() String auth,
-    MutableHeaders headers,
+    Headers headers,
     Data data,
   ) {
     switch (type) {
@@ -27,7 +27,7 @@ class ItsFine implements LifecycleComponent {
   const ItsFine();
 
   MiddlewareResult authHandler(
-    MutableHeaders headers,
+    Headers headers,
     Data data,
   ) {
     const string = 'yo yo yo';

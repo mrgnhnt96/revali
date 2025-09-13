@@ -196,7 +196,7 @@ test-suite:
 
       cd test_suite || exit 1
 
-      sip test --test-randomize-ordering-seed random --bail --recursive --concurrent
+      sip test --test-randomize-ordering-seed random --bail --recursive
 
       if [ $? -ne 0 ]; then
         exit 1

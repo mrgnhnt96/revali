@@ -122,9 +122,9 @@ class ServerLifecycleComponent with ExtractImport {
       (e) => e.getDisplayString().startsWith(superTypeWithoutGenerics),
     )) {
       throw ArgumentError.value(
-        type,
-        'type',
-        'Expected a class element that extends $superTypeWithoutGenerics',
+        type.getDisplayString(),
+        'Annotation',
+        'Expected a class that extends $superTypeWithoutGenerics',
       );
     }
 

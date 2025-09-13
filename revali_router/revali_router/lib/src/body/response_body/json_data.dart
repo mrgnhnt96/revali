@@ -19,8 +19,8 @@ abstract base class JsonData<T> extends BaseBodyData<T> {
   int get contentLength => toJson().length;
 
   @override
-  ReadOnlyHeaders headers(ReadOnlyHeaders? requestHeaders) {
-    return MutableHeadersImpl()
+  Headers headers(Headers? requestHeaders) {
+    return HeadersImpl()
       ..mimeType = mimeType
       ..contentLength = contentLength;
   }

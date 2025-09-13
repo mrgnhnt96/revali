@@ -5,10 +5,10 @@ class RunCatchers {
 
   final HelperMixin helper;
 
-  Future<ReadOnlyResponse> call(
+  Future<Response> call(
     Object e,
     StackTrace stackTrace, {
-    ReadOnlyResponse? defaultResponse,
+    Response? defaultResponse,
   }) =>
       run(
         e,
@@ -16,10 +16,10 @@ class RunCatchers {
         defaultResponse: defaultResponse,
       );
 
-  Future<ReadOnlyResponse> run(
+  Future<Response> run(
     Object e,
     StackTrace stackTrace, {
-    ReadOnlyResponse? defaultResponse,
+    Response? defaultResponse,
   }) async {
     try {
       return await _run(e, stackTrace, defaultResponse: defaultResponse);
@@ -36,10 +36,10 @@ class RunCatchers {
     }
   }
 
-  Future<ReadOnlyResponse> _run(
+  Future<Response> _run(
     Object e,
     StackTrace stackTrace, {
-    ReadOnlyResponse? defaultResponse,
+    Response? defaultResponse,
   }) async {
     final HelperMixin(
       :catchers,

@@ -5,9 +5,9 @@ class RunOriginCheck {
 
   final HelperMixin helper;
 
-  ReadOnlyResponse? call() => run();
+  Response? call() => run();
 
-  ReadOnlyResponse? run() {
+  Response? run() {
     final HelperMixin(
       :request,
       :route,

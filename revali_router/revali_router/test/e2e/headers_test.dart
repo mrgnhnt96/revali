@@ -1,12 +1,12 @@
 import 'dart:io';
 
-import 'package:revali_router/revali_router.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 import 'package:test/test.dart';
 
 import 'utils/test_request.dart';
 
 void main() {
-  group('Headers', () {
+  group(Headers, () {
     requestTest(
       'handles $String gracefully',
       TestRoute(
@@ -21,10 +21,7 @@ void main() {
         final body = response.body;
 
         expect(body, isNotNull);
-        expect(body, isA<MutableBody>());
-        if (body is! MutableBody) {
-          return;
-        }
+        expect(body, isA<Body>());
 
         final headers = body.headers(null);
 

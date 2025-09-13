@@ -20,8 +20,8 @@ final class BinaryBodyData extends BaseBodyData<Binary> {
   }
 
   @override
-  ReadOnlyHeaders headers(ReadOnlyHeaders? requestHeaders) {
-    return MutableHeadersImpl()
+  Headers headers(Headers? requestHeaders) {
+    return HeadersImpl()
       ..contentLength = contentLength
       ..mimeType = mimeType;
   }

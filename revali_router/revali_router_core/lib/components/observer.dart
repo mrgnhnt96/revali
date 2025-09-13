@@ -1,11 +1,11 @@
-import 'package:revali_router_core/request/read_only_request.dart';
-import 'package:revali_router_core/response/read_only_response.dart';
+import 'package:revali_router_core/request/request.dart';
+import 'package:revali_router_core/response/response.dart';
 
 abstract interface class Observer {
   const Observer();
 
   Future<void> see(
-    ReadOnlyRequest request,
-    Future<ReadOnlyResponse> response,
+    Request request,
+    Future<Response> response,
   );
 }

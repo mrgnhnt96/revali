@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:revali_router/src/body/response_body/base_body_data.dart';
-import 'package:revali_router/src/response/mutable_response_impl.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
 class DefaultResponseHandler
@@ -13,7 +12,7 @@ class DefaultResponseHandler
 
   @override
   Future<void> handle(
-    ReadOnlyResponse response,
+    Response response,
     RequestContext context,
     HttpResponse httpResponse,
   ) async {
@@ -29,11 +28,7 @@ class DefaultResponseHandler
       await context.close();
     }
 
-    final responseHeaders = switch (response) {
-      MutableResponse() => response.joinedHeaders,
-      _ => MutableResponseImpl.from(response).joinedHeaders,
-    }
-      ..mimeType ??= 'text/plain';
+    final responseHeaders = response.joinedHeaders..mimeType ??= 'text/plain';
 
     http.statusCode = response.statusCode;
 
@@ -64,8 +59,8 @@ class DefaultResponseHandler
       // there's no other way to tell its
       // length, enable `dart:io`'s chunked encoding.
       responseHeaders.transferEncoding = 'chunked';
-    } else if (responseHeaders.contentLength == null) {
-      responseHeaders.contentLength = 0;
+    } else {
+      responseHeaders.contentLength ??= 0;
     }
 
     if (!responseHeaders.keys.contains(HttpHeaders.dateHeader)) {
@@ -92,11 +87,12 @@ class DefaultResponseHandler
     }
 
     Stream<List<int>>? body;
-    if (response.body case final responseBody? when !responseBody.isNull) {
-      if (responseHeaders.range case final range?
+    if (response.body case final responseBody when !responseBody.isNull) {
+      if ((responseHeaders.range, responseBody.data)
+          case (final range?, final FileBodyData data)
           when responseBody is FileBodyData) {
         final (start, end) = range;
-        body = responseBody.range(start, end);
+        body = data.range(start, end);
       } else {
         body = responseBody.read();
       }

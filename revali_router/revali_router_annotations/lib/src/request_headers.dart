@@ -1,0 +1,3 @@
+class RequestHeaders {
+  const RequestHeaders();
+}

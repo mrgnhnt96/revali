@@ -1,4 +1,3 @@
-import 'package:revali_router_core/meta/meta_scope.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
 class MetaScopeImpl implements MetaScope {

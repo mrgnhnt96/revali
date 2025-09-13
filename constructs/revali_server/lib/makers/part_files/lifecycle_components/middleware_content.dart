@@ -85,9 +85,6 @@ String middlewareContent(
                         [
                           ...createComponentMethods(
                             component.middlewares,
-                            inferredParams: {
-                              (Context).name: refer('context'),
-                            },
                           ),
                         ],
                         refer(

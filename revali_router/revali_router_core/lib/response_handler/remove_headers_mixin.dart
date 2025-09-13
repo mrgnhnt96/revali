@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:revali_router_core/revali_router_core.dart';
 
 mixin RemoveHeadersMixin {
-  void removeContentRelated(MutableHeaders headers) {
+  void removeContentRelated(Headers headers) {
     headers
       ..remove(HttpHeaders.contentTypeHeader)
       ..remove(HttpHeaders.contentLengthHeader)
@@ -17,7 +17,7 @@ mixin RemoveHeadersMixin {
       ..remove(HttpHeaders.contentMD5Header);
   }
 
-  void removeAccessControl(MutableHeaders headers) {
+  void removeAccessControl(Headers headers) {
     headers
       ..remove(HttpHeaders.allowHeader)
       ..remove(HttpHeaders.accessControlAllowOriginHeader)

@@ -5,7 +5,7 @@ class Execute {
 
   final HelperMixin helper;
 
-  Future<ReadOnlyResponse> run() async {
+  Future<Response> run() async {
     final HelperMixin(
       :route,
       :request,
@@ -55,7 +55,7 @@ class Execute {
     final isHeadRequest = route.method == 'GET' && request.method == 'HEAD';
 
     if (!isHeadRequest) {
-      final errorResponse = Completer<ReadOnlyResponse?>();
+      final errorResponse = Completer<Response?>();
       await runZonedGuarded(() async {
         try {
           await handler(context);

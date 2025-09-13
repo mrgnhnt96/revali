@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:revali_router/revali_router.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 import 'package:test/test.dart';
 
 import 'utils/test_request.dart';
@@ -60,7 +60,7 @@ void main() {
         },
       ),
       verifyResponse: (response, context) {
-        expect(response.body?.data, 'Goodbye, World!');
+        expect(response.body.data, 'Goodbye, World!');
         expect(response.headers['pre'], 'hello');
         expect(response.headers['post'], 'world');
         expect(context.request.headers['pre'], 'hello');
@@ -88,7 +88,7 @@ void main() {
         },
       ),
       verifyResponse: (response, context) {
-        expect(response.body?.data, 'Goodbye, World!');
+        expect(response.body.data, 'Goodbye, World!');
 
         expect(response.headers['pre'], isNull);
         expect(context.request.headers['pre'], isNull);

@@ -1,4 +1,3 @@
-import 'package:revali_router_core/meta/meta_scope.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
 class ContextImpl implements Context {
@@ -21,10 +20,10 @@ class ContextImpl implements Context {
   final RouteEntry route;
 
   @override
-  final MutableRequest request;
+  final Request request;
 
   @override
-  final MutableResponse response;
+  final Response response;
 
   @override
   final ReflectHandler reflect;

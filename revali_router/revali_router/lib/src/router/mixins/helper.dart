@@ -20,7 +20,7 @@ class Helper with HelperMixin, ContextMixin {
       inherited: route.getMeta(inherit: true),
     );
     globalComponents.getMeta(handler: meta);
-    response = MutableResponseImpl(requestHeaders: request.headers);
+    response = ResponseImpl(requestHeaders: request.headers);
     _request = request;
   }
 
@@ -41,7 +41,7 @@ class Helper with HelperMixin, ContextMixin {
   late final FullRequest _request;
 
   @override
-  late final MutableResponse response;
+  late final Response response;
 
   @override
   final BaseRoute route;
@@ -61,9 +61,9 @@ class Helper with HelperMixin, ContextMixin {
   @override
   RunMixin get run => Run(this);
 
-  MutableWebSocketRequest? _webSocketRequest;
+  WebSocketRequest? _webSocketRequest;
   @override
-  set webSocketRequest(MutableWebSocketRequest request) {
+  set webSocketRequest(WebSocketRequest request) {
     _webSocketRequest = request;
   }
 

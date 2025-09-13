@@ -1,6 +1,6 @@
 part of 'router.dart';
 
-extension OverrideResponse on MutableResponse {
+extension OverrideResponse on Response {
   void _overrideWith({
     required int? statusCode,
     required int backupCode,

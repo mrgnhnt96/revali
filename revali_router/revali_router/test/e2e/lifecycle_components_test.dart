@@ -87,8 +87,8 @@ class _Observer implements Observer {
 
   @override
   Future<void> see(
-    ReadOnlyRequest request,
-    Future<ReadOnlyResponse> response,
+    Request request,
+    Future<Response> response,
   ) async {
     controller.add('Observer-pre');
     await response;

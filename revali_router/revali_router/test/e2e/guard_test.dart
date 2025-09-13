@@ -47,7 +47,7 @@ void main() {
         },
       ),
       verifyResponse: (response, context) {
-        expect(response.body?.data, 'Hello, Guard!');
+        expect(response.body.data, 'Hello, Guard!');
         expect(response.headers['guard'], 'active');
       },
     );
@@ -68,7 +68,7 @@ void main() {
         },
       ),
       verifyResponse: (response, context) {
-        expect(response.body?.data, 'Overridden by handler');
+        expect(response.body.data, 'Overridden by handler');
         expect(response.headers['guard'], isNull);
       },
     );
@@ -79,7 +79,7 @@ void main() {
         guards: const [_HaltingGuard.overrideResponse()],
       ),
       verifyResponse: (response, context) {
-        expect(response.body?.data, 'Guard Overridden');
+        expect(response.body.data, 'Guard Overridden');
         expect(response.headers['overridden'], 'true');
         expect(response.statusCode, -1);
       },
@@ -91,7 +91,7 @@ void main() {
         guards: const [_HaltingGuard()],
       ),
       verifyResponse: (response, context) {
-        expect(response.body?.data, 'Guard Not overridden');
+        expect(response.body.data, 'Guard Not overridden');
         expect(response.headers['overridden'], 'false');
         expect(response.statusCode, 403);
       },

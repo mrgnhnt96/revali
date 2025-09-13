@@ -177,8 +177,8 @@ class ServerRouteAnnotations with ExtractImport {
           },
         ),
         OnMatch(
-          classType: Data,
-          package: 'revali_router_core',
+          classType: AddData,
+          package: 'revali_router_annotations',
           ignoreGenerics: true,
           convert: (object, annotation) {
             data.add(ServerMimic.fromDartObject(object, annotation));

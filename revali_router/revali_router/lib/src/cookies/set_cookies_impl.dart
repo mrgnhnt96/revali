@@ -3,14 +3,13 @@ import 'dart:io';
 import 'package:http_parser/http_parser.dart';
 import 'package:revali_router/revali_router.dart';
 
-class MutableSetCookiesImpl extends MutableCookiesImpl
-    implements MutableSetCookies {
-  MutableSetCookiesImpl([super.values]);
+class SetCookiesImpl extends CookiesImpl implements SetCookies {
+  SetCookiesImpl([super.values]);
 
-  factory MutableSetCookiesImpl.fromHeader(String? value) {
-    final cookies = MutableCookiesImpl.fromHeader(value);
+  factory SetCookiesImpl.fromHeader(String? value) {
+    final cookies = CookiesImpl.fromHeader(value);
 
-    return MutableSetCookiesImpl(cookies.all);
+    return SetCookiesImpl(cookies.all);
   }
 
   @override

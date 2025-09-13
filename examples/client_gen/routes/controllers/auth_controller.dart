@@ -9,7 +9,7 @@ class AuthController {
   void login({
     @Body(['data', 'email']) required String email,
     @Body(['data', 'password']) required String password,
-    required MutableSetCookies cookies,
+    required SetCookies cookies,
   }) {
     cookies['auth'] = '123';
   }

@@ -3,17 +3,17 @@ import 'package:revali_router/revali_router.dart';
 class AddCookies implements LifecycleComponent {
   const AddCookies();
 
-  MiddlewareResult addAuth(MutableSetCookies cookies) {
+  MiddlewareResult addAuth(SetCookies cookies) {
     cookies['X-Auth-Middleware'] = '123';
 
     return const MiddlewareResult.next();
   }
 
-  InterceptorPreResult addAuthPre(MutableSetCookies cookies) {
+  InterceptorPreResult addAuthPre(SetCookies cookies) {
     cookies['X-Auth-Pre'] = '456';
   }
 
-  InterceptorPostResult addAuthPost(MutableSetCookies cookies) {
+  InterceptorPostResult addAuthPost(SetCookies cookies) {
     cookies['X-Auth-Post'] = '789';
   }
 }

@@ -1,7 +1,7 @@
 part of '../router.dart';
 
-typedef DebugErrorResponse = ReadOnlyResponse Function(
-  ReadOnlyResponse response, {
+typedef DebugErrorResponse = Response Function(
+  Response response, {
   required Object error,
   required StackTrace stackTrace,
 });
@@ -10,7 +10,7 @@ mixin HelperMixin {
   BaseRoute get route;
   LifecycleComponents get globalComponents;
   FullRequest get request;
-  MutableResponse get response;
+  Response get response;
   CloseWebSocket get close;
   Data get data;
   MetaScope get meta;
@@ -22,7 +22,7 @@ mixin HelperMixin {
   AsyncWebSocketSender<dynamic> get asyncSender;
   set webSocketSender(void Function(dynamic data) sender);
 
-  set webSocketRequest(MutableWebSocketRequest request);
+  set webSocketRequest(WebSocketRequest request);
 
   ContextMixin get context;
   RunMixin get run;

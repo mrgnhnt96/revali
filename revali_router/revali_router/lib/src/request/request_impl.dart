@@ -1,18 +1,18 @@
-import 'package:revali_router/src/headers/mutable_headers_impl.dart';
+import 'package:revali_router/src/headers/headers_impl.dart';
 import 'package:revali_router/src/request/request_context_impl.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
 // ignore: must_be_immutable
-class MutableRequestImpl extends RequestContextImpl implements FullRequest {
-  MutableRequestImpl.fromRequest(super.request)
-      : headers = MutableHeadersImpl.from(request.headers),
+class RequestImpl extends RequestContextImpl implements FullRequest {
+  RequestImpl.fromRequest(super.request)
+      : headers = HeadersImpl.from(request.headers),
         super.self();
 
   @override
-  final MutableHeaders headers;
+  final Headers headers;
 
   @override
-  MutableBody get body => super.payload;
+  Body get body => super.payload;
 
   Map<String, String>? _pathParameters;
   @override

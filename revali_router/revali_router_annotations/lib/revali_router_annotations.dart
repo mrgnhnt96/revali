@@ -23,5 +23,7 @@ export 'src/observers.dart';
 export 'src/param.dart';
 export 'src/pipe.dart';
 export 'src/query.dart';
+export 'src/request_headers.dart';
+export 'src/response_headers.dart';
 export 'src/set_header.dart';
 export 'src/status_code.dart';

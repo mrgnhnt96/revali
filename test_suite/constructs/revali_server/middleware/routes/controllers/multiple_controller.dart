@@ -10,7 +10,7 @@ import 'package:revali_server_middleware_test/components/lifecycle_components/pr
 class MultipleController {
   const MultipleController();
 
-  @Data()
+  @AddToData()
   @AddHeader()
   @Catch()
   @Allow()
@@ -20,7 +20,7 @@ class MultipleController {
     return auth;
   }
 
-  @LifecycleComponents([SomeLogger, AddData, AddHeader, Catch, Allow])
+  @LifecycleComponents([SomeLogger, AddToData, AddHeader, Catch, Allow])
   @Get('type-reference')
   String typeReference() {
     return 'loz';

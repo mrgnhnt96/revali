@@ -15,8 +15,8 @@ final class PrimitiveNonStringBodyData<T> extends BaseBodyData<T> {
   }
 
   @override
-  ReadOnlyHeaders headers(ReadOnlyHeaders? requestHeaders) {
-    return MutableHeadersImpl()
+  Headers headers(Headers? requestHeaders) {
+    return HeadersImpl()
       ..mimeType = mimeType
       ..contentLength = contentLength;
   }

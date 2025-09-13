@@ -1,13 +1,13 @@
 import 'dart:io';
 
-import 'package:revali_router_core/method_mutations/headers/read_only_headers.dart';
+import 'package:revali_router_core/method_mutations/headers/headers.dart';
 import 'package:revali_router_core/payload/payload.dart';
 
 abstract class UnderlyingRequest {
   const UnderlyingRequest();
 
   Payload get body;
-  ReadOnlyHeaders get headers;
+  Headers get headers;
   Uri get uri;
   String get method;
 

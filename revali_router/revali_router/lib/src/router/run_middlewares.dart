@@ -5,9 +5,9 @@ class RunMiddlewares {
 
   final HelperMixin helper;
 
-  Future<ReadOnlyResponse?> call() => run();
+  Future<Response?> call() => run();
 
-  Future<ReadOnlyResponse?> run() async {
+  Future<Response?> run() async {
     final HelperMixin(
       :middlewares,
       :response,
