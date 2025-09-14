@@ -45,8 +45,15 @@ Hook main() {
               ),
               ShellTask.always(
                 name: 'Format',
-                commands: (files) =>
-                    ['dart format ${files.join(' ')} --set-exit-if-changed'],
+                commands: (files) {
+                  if (files.isEmpty) {
+                    return [];
+                  }
+
+                  return [
+                    'dart format ${files.join(' ')} --set-exit-if-changed',
+                  ];
+                },
               ),
             ],
           ),
