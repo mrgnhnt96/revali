@@ -47,51 +47,49 @@
 
 # revali_router
 
-## 2.4.1
+## 3.0.0-dev
 
-### Fixes
+### Breaking Changes
 
-- Issue where allowed headers were not inherited properly
-- Issue where allowed headers could block requests with unknown headers
+- Drop all custom contexts based on lifecycle component
+- Create a generic `Context` interface to replace all custom contexts
+- Use new types from `revali_router_core`
 
 # revali_router_annotations
 
-## 1.3.0
+## 2.0.0-dev
 
-### Features
+### Breaking Changes
 
-- Coerce dart types from `queryParameters`
-- Don't await response handling in `WebSocket`
-  - This allows for concurrent message handling
-
-### Enhancements
-
-- Change return type for `Pipe.transform` to `Future<T>`
-- Better error handling within WebSockets
-- Make WebSocket return values more consistent
-
-### Fixes
-
-- Issue where close reason contained too many characters
-- Formats close reason with proper start/end delimiters
+- Drop `Data` and `Meta` classes
+  - Replaced with `AddData` and `MetaData`
 
 # revali_router_core
 
-## 1.9.1
+## 2.0.0-dev
 
-### Features
+### Breaking Changes
 
-- Create `add` method to `MutableCookies`
+- Drop `DataHandler` and `MetaHandler` classes
+  - Replaced with `Data` and `Meta`/`MetaScope`
+- Drop `ReadOnly`, `WriteOnly`, and `Mutable` types
+  - Replaced with general types
 
 <!-- CONSTRUCTS -->
 
 # revali_server
 
-## 1.15.0
+## 2.0.0-dev
 
-### Features
+### Breaking Changes
 
-- Pass in `router.close` to `handleRequests` to allow for clean up of resources
+- Support new `AddData` from `revali_router_annotations`
+- Support new `MetaData` from `revali_router_annotations`
+- Support drop of `ReadOnly`, `WriteOnly`, and `Mutable` from type names
+
+### Enhancements
+
+- Improve logging on errors
 
 <!-- REVALI CLIENT -->
 

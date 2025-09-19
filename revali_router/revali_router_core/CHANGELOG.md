@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 2.0.0-dev | 09.19.25
+
+### Breaking Changes
+
+- Drop `DataHandler` and `MetaHandler` classes
+  - Replaced with `Data` and `Meta`/`MetaScope`
+- Drop `ReadOnly`, `WriteOnly`, and `Mutable` types
+  - Replaced with general types
+
 ## 1.9.1 | 08.16.25
 
 ### Features

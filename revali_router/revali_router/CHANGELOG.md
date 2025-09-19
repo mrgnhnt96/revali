@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 3.0.0-dev | 09.19.25
+
+### Breaking Changes
+
+- Drop all custom contexts based on lifecycle component
+- Create a generic `Context` interface to replace all custom contexts
+- Use new types from `revali_router_core`
+
 ## 2.4.1 | 08.26.25
 
 ### Fixes
