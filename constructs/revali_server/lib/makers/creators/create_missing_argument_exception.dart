@@ -8,11 +8,8 @@ Expression createMissingArgumentException({
   required String key,
   required String location,
 }) {
-  return refer((MissingArgumentException).name).constInstance(
-    [],
-    {
-      'key': literalString(key),
-      'location': literalString(location),
-    },
-  );
+  return refer((MissingArgumentException).name).constInstance([], {
+    'key': literalString(key),
+    'location': literalString(location),
+  });
 }

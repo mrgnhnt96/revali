@@ -6,9 +6,7 @@ part 'revali_yaml.g.dart';
 
 @JsonSerializable()
 class RevaliYaml extends Equatable {
-  const RevaliYaml({
-    required this.constructs,
-  });
+  const RevaliYaml({required this.constructs});
   const RevaliYaml.none() : constructs = const [];
 
   factory RevaliYaml.fromJson(Map<String, dynamic> json) =>
@@ -53,7 +51,5 @@ class RevaliYaml extends Equatable {
   }
 
   @override
-  List<Object?> get props => [
-        constructs,
-      ];
+  List<Object?> get props => [constructs];
 }

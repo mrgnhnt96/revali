@@ -76,9 +76,7 @@ void main() {
       );
 
       expect(response.statusCode, 200);
-      expect(response.body, {
-        'data': null,
-      });
+      expect(response.body, {'data': null});
     });
 
     test('named-record', () async {
@@ -88,9 +86,7 @@ void main() {
       );
 
       expect(response.statusCode, 200);
-      expect(response.body, {
-        'data': null,
-      });
+      expect(response.body, {'data': null});
     });
 
     test('partial-record', () async {
@@ -100,9 +96,7 @@ void main() {
       );
 
       expect(response.statusCode, 200);
-      expect(response.body, {
-        'data': null,
-      });
+      expect(response.body, {'data': null});
     });
 
     test('list-of-records', () async {
@@ -193,10 +187,7 @@ void main() {
         path: '/api/future/bytes',
       );
 
-      expect(
-        response.headers.contentType?.mimeType,
-        ContentType.text.mimeType,
-      );
+      expect(response.headers.contentType?.mimeType, ContentType.text.mimeType);
       expect(response.body, null);
     });
   });

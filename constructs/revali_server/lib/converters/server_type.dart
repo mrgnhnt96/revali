@@ -1,6 +1,6 @@
 // ignore_for_file: unnecessary_parenthesis
 
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_core/revali_router_core.dart';
@@ -34,8 +34,8 @@ class ServerType with ExtractImport {
     this.recordProps,
     this.isRecord = false,
     this.isEnum = false,
-  })  : _typeArguments = List.unmodifiable(typeArguments),
-        _isVoid = isVoid;
+  }) : _typeArguments = List.unmodifiable(typeArguments),
+       _isVoid = isVoid;
 
   ServerType._({
     required this.name,
@@ -57,8 +57,8 @@ class ServerType with ExtractImport {
     required this.recordProps,
     required this.isRecord,
     required this.isEnum,
-  })  : _typeArguments = List.unmodifiable(typeArguments),
-        _isVoid = isVoid;
+  }) : _typeArguments = List.unmodifiable(typeArguments),
+       _isVoid = isVoid;
 
   factory ServerType.fromMeta(MetaType type) {
     return ServerType._(
@@ -135,8 +135,8 @@ class ServerType with ExtractImport {
   ServerRoute? route;
 
   List<ServerType> get typeArguments => List.unmodifiable([
-        for (final arg in _typeArguments) arg.._parent = this,
-      ]);
+    for (final arg in _typeArguments) arg.._parent = this,
+  ]);
 
   ServerType? _parent;
   ServerType? get parent => _parent;
@@ -178,10 +178,7 @@ class ServerType with ExtractImport {
   }
 
   @override
-  List<ExtractImport?> get extractors => [
-        ...typeArguments,
-        ...?recordProps,
-      ];
+  List<ExtractImport?> get extractors => [...typeArguments, ...?recordProps];
 
   @override
   List<ServerImports?> get imports => [importPath];

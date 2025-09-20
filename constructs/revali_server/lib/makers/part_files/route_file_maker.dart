@@ -9,10 +9,7 @@ import 'package:revali_server/makers/creators/create_child_route.dart';
 import 'package:revali_server/makers/creators/create_route_args.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
 
-PartFile routeFileMaker(
-  ServerParentRoute route,
-  String Function(Spec) format,
-) {
+PartFile routeFileMaker(ServerParentRoute route, String Function(Spec) format) {
   final closure = Method(
     (p) => p
       ..name = route.handlerName
@@ -33,19 +30,20 @@ PartFile routeFileMaker(
       ])
       ..body = Block.of([
         refer((Route).name)
-            .newInstance([
-              literalString(route.routePath),
-            ], {
-              ...createRouteArgs(
-                route: route,
-                classVarName: route.variableName,
-              ),
-              if (route.routes.isNotEmpty)
-                'routes': literalList([
-                  for (final child in route.routes)
-                    createChildRoute(child, route),
-                ]),
-            })
+            .newInstance(
+              [literalString(route.routePath)],
+              {
+                ...createRouteArgs(
+                  route: route,
+                  classVarName: route.variableName,
+                ),
+                if (route.routes.isNotEmpty)
+                  'routes': literalList([
+                    for (final child in route.routes)
+                      createChildRoute(child, route),
+                  ]),
+              },
+            )
             .returned
             .statement,
       ]),

@@ -15,32 +15,30 @@ final impliedArguments = <String, Expression>{
   (DI).name: refer('di'),
   // --- response ---
   (Headers).name: refer('context').property('response').property('headers'),
-  (Cookies).name: refer('context')
-      .property('response')
-      .property('headers')
-      .property('cookies'),
-  (SetCookies).name: refer('context')
-      .property('response')
-      .property('headers')
-      .property('setCookies'),
-  (SetCookies).name: refer('context')
-      .property('response')
-      .property('headers')
-      .property('setCookies'),
+  (Cookies).name: refer(
+    'context',
+  ).property('response').property('headers').property('cookies'),
+  (SetCookies).name: refer(
+    'context',
+  ).property('response').property('headers').property('setCookies'),
+  (SetCookies).name: refer(
+    'context',
+  ).property('response').property('headers').property('setCookies'),
   (Body).name: refer('context').property('response').property('body'),
   (Response).name: refer('context').property('response'),
   // --- request ---
   (Headers).name: refer('context').property('response').property('headers'),
-  (RequestHeaders).name:
-      refer('context').property('request').property('headers'),
-  (ResponseHeaders).name:
-      refer('context').property('response').property('headers'),
+  (RequestHeaders).name: refer(
+    'context',
+  ).property('request').property('headers'),
+  (ResponseHeaders).name: refer(
+    'context',
+  ).property('response').property('headers'),
   (Request).name: refer('context').property('request'),
   (Body).name: refer('context').property('request').property('body'),
-  (Cookies).name: refer('context')
-      .property('request')
-      .property('headers')
-      .property('cookies'),
+  (Cookies).name: refer(
+    'context',
+  ).property('request').property('headers').property('cookies'),
   // --- meta ---
   (Meta).name: refer('context').property('meta'),
   (MetaScope).name: refer('context').property('meta'),
@@ -48,12 +46,16 @@ final impliedArguments = <String, Expression>{
   (Context).name: refer('context'),
   // --- data ---
   (Data).name: refer('context').property('data'),
-  (CleanUp).name:
-      refer('context').property('data').property('get').call([]).ifNullThen(
-    createMissingArgumentException(key: 'cleanUp', location: '@data')
-        .thrown
-        .parenthesized,
-  ),
+  (CleanUp).name: refer('context')
+      .property('data')
+      .property('get')
+      .call([])
+      .ifNullThen(
+        createMissingArgumentException(
+          key: 'cleanUp',
+          location: '@data',
+        ).thrown.parenthesized,
+      ),
   // --- reflect ---
   (ReflectHandler).name: refer('context').property('reflect'),
 };

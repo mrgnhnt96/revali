@@ -10,11 +10,8 @@ import 'package:revali_client/src/server_exception.dart';
 import 'package:revali_client/src/storage.dart';
 
 class RevaliClient {
-  RevaliClient({
-    required this.storage,
-    HttpClient? client,
-    this.baseUrl,
-  }) : _client = client ?? HttpPackageClient();
+  RevaliClient({required this.storage, HttpClient? client, this.baseUrl})
+    : _client = client ?? HttpPackageClient();
 
   final Storage storage;
   final HttpClient _client;

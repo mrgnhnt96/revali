@@ -1,10 +1,10 @@
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/visitor2.dart';
 import 'package:revali/ast/checkers/checkers.dart';
 import 'package:revali/ast/visitors/get_params.dart';
 import 'package:revali_construct/revali_construct.dart';
 
-class MethodVisitor extends RecursiveElementVisitor<void> {
+class MethodVisitor extends RecursiveElementVisitor2<void> {
   // Method name to method element
   Map<String, List<MetaMethod>> methods = {};
 
@@ -37,7 +37,7 @@ class MethodVisitor extends RecursiveElementVisitor<void> {
 
     (methods[method.name] ??= []).add(
       MetaMethod(
-        name: element.name,
+        name: element.name ?? (throw Exception('Method name is null')),
         method: method.name,
         path: method.path,
         params: params,
@@ -46,15 +46,13 @@ class MethodVisitor extends RecursiveElementVisitor<void> {
         webSocketMethod: method.isWebSocket
             ? MetaWebSocketMethod.fromMeta(method.asWebSocket)
             : null,
-        annotationsFor: ({
-          required List<OnMatch> onMatch,
-          NonMatch? onNonMatch,
-        }) =>
-            getAnnotations(
-          element: element,
-          onNonMatch: onNonMatch,
-          onMatch: onMatch,
-        ),
+        annotationsFor:
+            ({required List<OnMatch> onMatch, NonMatch? onNonMatch}) =>
+                getAnnotations(
+                  element: element,
+                  onNonMatch: onNonMatch,
+                  onMatch: onMatch,
+                ),
       ),
     );
   }

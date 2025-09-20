@@ -6,8 +6,6 @@ import 'package:path/path.dart' as p;
 import 'package:revali/ast/file_system/analyzer_file.dart';
 import 'package:revali/ast/file_system/file_resource_provider.dart';
 import 'package:revali/ast/file_system/util/watch_event_extension.dart';
-// ignore: implementation_imports
-import 'package:watcher/src/watch_event.dart';
 
 class AnalyzerFolder implements Folder {
   AnalyzerFolder(this.fileSystem, this.directory, this.provider);
@@ -19,11 +17,6 @@ class AnalyzerFolder implements Folder {
   @override
   String canonicalizePath(String path) {
     return p.canonicalize(path);
-  }
-
-  @override
-  Stream<WatchEvent> get changes {
-    return directory.watch().toAnalyzerStream();
   }
 
   @override
@@ -101,9 +94,6 @@ class AnalyzerFolder implements Folder {
   bool get isRoot => directory.path == '/';
 
   @override
-  Folder get parent2 => directory.parent.toAnalyzerFolder(fileSystem);
-
-  @override
   final ResourceProvider provider;
 
   @override
@@ -147,9 +137,6 @@ class AnalyzerFolder implements Folder {
 }
 
 extension DirectoryIOX on io.Directory {
-  AnalyzerFolder toAnalyzerFolder(FileSystem fs) => AnalyzerFolder(
-        fs,
-        fs.directory(path),
-        FileResourceProvider(fs),
-      );
+  AnalyzerFolder toAnalyzerFolder(FileSystem fs) =>
+      AnalyzerFolder(fs, fs.directory(path), FileResourceProvider(fs));
 }

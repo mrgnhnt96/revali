@@ -126,12 +126,10 @@ Expression? convertToJson(
 
     final iterates = Method(
       (p) => p
-        ..requiredParameters.addAll(
-          [
-            Parameter((b) => b.name = 'key'),
-            Parameter((b) => b.name = 'value'),
-          ],
-        )
+        ..requiredParameters.addAll([
+          Parameter((b) => b.name = 'key'),
+          Parameter((b) => b.name = 'value'),
+        ])
         ..lambda = true
         ..body = refer((MapEntry).name).call([
           keyMethodBody ?? refer('key'),
@@ -183,7 +181,11 @@ Expression? convertToJson(
         for (final (index, prop) in props.indexed) {
           if (prop.isNamed) continue;
 
-          yield extract(prop, r'$' '${index + 1}');
+          yield extract(
+            prop,
+            r'$'
+            '${index + 1}',
+          );
         }
       }
 

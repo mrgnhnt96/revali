@@ -23,8 +23,8 @@ Future<void> _run(List<String> args) async {
     level: isLoud
         ? Level.verbose
         : isQuiet
-            ? Level.error
-            : Level.info,
+        ? Level.error
+        : Level.info,
   );
 
   final runner = RevaliRunner(

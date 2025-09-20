@@ -14,12 +14,8 @@ import 'package:revali_client_gen/models/client_method.dart';
 import 'package:revali_client_gen/models/client_type.dart';
 
 List<Code> createWebsocketCall(ClientMethod method) {
-  final (
-    body: _,
-    query: queries,
-    headers: _,
-    cookies: _,
-  ) = method.parameters.separate;
+  final (body: _, query: queries, headers: _, cookies: _) =
+      method.parameters.separate;
 
   final body = method.websocketBody;
   final bodyType = switch (body?.type) {
@@ -44,18 +40,15 @@ List<Code> createWebsocketCall(ClientMethod method) {
           createSwitchPattern(
             refer('_storage').index(literal('__BASE_URL__')).awaited,
             {
-              declareFinal('url', type: refer((String).name)):
-                  refer('url').property('replaceAll').call(
-                [
-                  refer((RegExp).name).newInstance([
-                    literal('^https?'),
+              declareFinal('url', type: refer((String).name)): refer('url')
+                  .property('replaceAll')
+                  .call([
+                    refer((RegExp).name).newInstance([literal('^https?')]),
+                    literal('ws'),
                   ]),
-                  literal('ws'),
-                ],
-              ),
-              const Code('_'): refer('Exception').newInstance([
-                literal('Base URL not set'),
-              ]).thrown,
+              const Code('_'): refer(
+                'Exception',
+              ).newInstance([literal('Base URL not set')]).thrown,
             },
           ),
         )
@@ -63,14 +56,14 @@ List<Code> createWebsocketCall(ClientMethod method) {
     const Code(''),
     declareFinal('channel')
         .assign(
-          refer('_websocket').call(
-            [
-              refer((Uri).name).newInstanceNamed(
-                'parse',
-                [refer(r"'$baseUrl" "$path'")],
+          refer('_websocket').call([
+            refer((Uri).name).newInstanceNamed('parse', [
+              refer(
+                r"'$baseUrl"
+                "$path'",
               ),
-            ],
-          ),
+            ]),
+          ]),
         )
         .statement,
     refer('channel').property('ready').awaited.statement,
@@ -111,21 +104,23 @@ Code payloadListener(ClientType type, Expression variable) {
 
   return declareFinal('payloadListener')
       .assign(
-        assignment.property('listen').call([
-          refer('channel').property('sink').property('add'),
-        ], {
-          'onDone': Method(
-            (b) => b
-              ..body = Block.of([
-                refer('hasClosed').assign(literalTrue).statement,
-                refer('channel')
-                    .property('sink')
-                    .property('close')
-                    .call([]).statement,
-              ]),
-          ).closure,
-          'cancelOnError': literalTrue,
-        }),
+        assignment
+            .property('listen')
+            .call(
+              [refer('channel').property('sink').property('add')],
+              {
+                'onDone': Method(
+                  (b) => b
+                    ..body = Block.of([
+                      refer('hasClosed').assign(literalTrue).statement,
+                      refer(
+                        'channel',
+                      ).property('sink').property('close').call([]).statement,
+                    ]),
+                ).closure,
+                'cancelOnError': literalTrue,
+              },
+            ),
       )
       .statement;
 }
@@ -178,9 +173,7 @@ Expression channel(ClientType type, {required bool includeHasClosed}) {
             ).closure,
           ]),
         _ => channel.property('cast').call([]),
-      }
-          .yieldedStar
-          .statement,
+      }.yieldedStar.statement,
     );
   }
 
@@ -190,34 +183,26 @@ Expression channel(ClientType type, {required bool includeHasClosed}) {
     body: switch (type) {
       ClientType(isStringContent: true, :final isNullable) ||
       ClientType(
-        typeArguments: [ClientType(isStringContent: true, :final isNullable)]
-      )
-          when fromJson == null =>
-        switch (isNullable) {
-          true => Block.of([
-              ifStatement(
-                refer('event'),
-                pattern: (cse: literal([]), when: null),
-                body: Block.of([
-                  literalNull.yielded.statement,
-                  refer('continue').statement,
-                ]),
-              ).code,
-              const Code(''),
-              event.yielded.statement,
-              if (includeHasClosed) ...[
-                const Code(''),
-                hasClosed,
-              ],
+        typeArguments: [ClientType(isStringContent: true, :final isNullable)],
+      ) when fromJson == null => switch (isNullable) {
+        true => Block.of([
+          ifStatement(
+            refer('event'),
+            pattern: (cse: literal([]), when: null),
+            body: Block.of([
+              literalNull.yielded.statement,
+              refer('continue').statement,
             ]),
-          false => Block.of([
-              event.yielded.statement,
-              if (includeHasClosed) ...[
-                const Code(''),
-                hasClosed,
-              ],
-            ]),
-        },
+          ).code,
+          const Code(''),
+          event.yielded.statement,
+          if (includeHasClosed) ...[const Code(''), hasClosed],
+        ]),
+        false => Block.of([
+          event.yielded.statement,
+          if (includeHasClosed) ...[const Code(''), hasClosed],
+        ]),
+      },
       _ => fromJson,
     },
   ).awaited;

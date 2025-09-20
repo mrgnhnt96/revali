@@ -1,5 +1,5 @@
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:revali_server/converters/server_imports.dart';
@@ -7,30 +7,26 @@ import 'package:revali_server/utils/annotation_argument.dart';
 import 'package:revali_server/utils/extract_import.dart';
 
 class AnnotationArguments with ExtractImport {
-  AnnotationArguments({
-    required this.positional,
-    required this.named,
-  });
+  AnnotationArguments({required this.positional, required this.named});
 
-  factory AnnotationArguments.fromDartObject(
-    ElementAnnotation annotation,
-  ) {
+  factory AnnotationArguments.fromDartObject(ElementAnnotation annotation) {
     final positionalArguments = <AnnotationArgument>[];
     final namedArguments = <String, AnnotationArgument>{};
 
-    if (annotation
-        case ElementAnnotationImpl(
-          annotationAst: Annotation(
-            arguments: ArgumentList(childEntities: final args)
-          )
-        )) {
+    if (annotation case ElementAnnotationImpl(
+      annotationAst: Annotation(
+        arguments: ArgumentList(childEntities: final args),
+      ),
+    )) {
       for (final param in args) {
         if (param case NamedExpression(:final name, :final expression)) {
-          namedArguments[name.label.name] =
-              AnnotationArgument.fromExpression(expression);
+          namedArguments[name.label.name] = AnnotationArgument.fromExpression(
+            expression,
+          );
         } else if (param case final Expression expression) {
-          positionalArguments
-              .add(AnnotationArgument.fromExpression(expression));
+          positionalArguments.add(
+            AnnotationArgument.fromExpression(expression),
+          );
         }
       }
     }
@@ -43,10 +39,7 @@ class AnnotationArguments with ExtractImport {
   AnnotationArguments.none() : this(positional: [], named: {});
 
   Map<String, AnnotationArgument> get all {
-    return {
-      ...named,
-      for (final e in positional) e.parameterName: e,
-    };
+    return {...named, for (final e in positional) e.parameterName: e};
   }
 
   final List<AnnotationArgument> positional;

@@ -6,35 +6,25 @@ class HeaderParamsController {
   const HeaderParamsController();
 
   @Get('required')
-  String required([
-    @Header('X-Data') String data = 'Hello world',
-  ]) {
+  String required([@Header('X-Data') String data = 'Hello world']) {
     return data;
   }
 
   @Get('optional')
-  String? optional([
-    @Header('X-Data') String? data = 'Hello world',
-  ]) {
+  String? optional([@Header('X-Data') String? data = 'Hello world']) {
     return data;
   }
 
   @Get('all')
   List<String> all([
-    @Header.all('X-Data') List<String> data = const [
-      'Hello',
-      'world',
-    ],
+    @Header.all('X-Data') List<String> data = const ['Hello', 'world'],
   ]) {
     return data;
   }
 
   @Get('all-optional')
   List<String>? allOptional([
-    @Header.all('X-Data') List<String>? data = const [
-      'Hello',
-      'world',
-    ],
+    @Header.all('X-Data') List<String>? data = const ['Hello', 'world'],
   ]) {
     return data;
   }

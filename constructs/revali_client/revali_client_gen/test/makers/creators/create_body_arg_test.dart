@@ -17,10 +17,7 @@ void main() {
       return ClientParam(
         name: name ?? 'FakeName',
         position: position,
-        type: ClientType(
-          name: 'FakeType',
-          import: ClientImports([]),
-        ),
+        type: ClientType(name: 'FakeType', import: ClientImports([])),
         hasDefaultValue: false,
         access: access,
         acceptMultiple: false,
@@ -29,14 +26,8 @@ void main() {
 
     test('creates a json object with both props', () {
       final result = createBodyArg([
-        param(
-          access: ['data', 'email'],
-          name: 'email',
-        ),
-        param(
-          access: ['data', 'password'],
-          name: 'password',
-        ),
+        param(access: ['data', 'email'], name: 'email'),
+        param(access: ['data', 'password'], name: 'password'),
       ]);
 
       final emitter = DartEmitter.scoped(useNullSafetySyntax: true);

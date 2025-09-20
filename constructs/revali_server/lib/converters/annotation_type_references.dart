@@ -18,10 +18,10 @@ class AnnotationTypeReferences implements BaseAnnotations<ServerTypeReference> {
   List<ServerTypeReference> combines = [];
 
   List<ServerTypeReference> get all => [
-        ...catchers,
-        ...guards,
-        ...interceptors,
-        ...middlewares,
-        ...combines,
-      ];
+    ...catchers,
+    ...guards,
+    ...interceptors,
+    ...middlewares,
+    ...combines,
+  ];
 }

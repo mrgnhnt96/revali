@@ -11,10 +11,9 @@ Expression createCookieVar(
     throw ArgumentError('Invalid annotation type: ${annotation.runtimeType}');
   }
 
-  final cookieVar = refer('context')
-      .property('request')
-      .property('headers')
-      .property('cookies');
+  final cookieVar = refer(
+    'context',
+  ).property('request').property('headers').property('cookies');
 
   return cookieVar.index(literalString(annotation.name ?? param.name));
 }

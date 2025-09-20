@@ -11,7 +11,8 @@ extension IterableClientParamX on Iterable<ClientParam> {
     List<ClientParam> query,
     List<ClientParam> headers,
     List<ClientParam> cookies,
-  }) get separate {
+  })
+  get separate {
     final cookieParams = <ClientParam>[];
     final queryParams = <ClientParam>[];
     final bodyParams = <ClientParam>[];
@@ -84,8 +85,9 @@ extension IterableClientParamX on Iterable<ClientParam> {
       }
 
       if (items.length > 1) {
-        if (!items
-            .every((e) => e.type.nonNullName == items.first.type.nonNullName)) {
+        if (!items.every(
+          (e) => e.type.nonNullName == items.first.type.nonNullName,
+        )) {
           throw Exception('Cannot have multiple roots with different types');
         }
 

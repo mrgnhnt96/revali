@@ -36,9 +36,7 @@ void main() {
       );
 
       expect(response.statusCode, HttpStatus.ok);
-      expect(response.body, {
-        'data': '123',
-      });
+      expect(response.body, {'data': '123'});
     });
 
     test('multiple-non-null', () async {

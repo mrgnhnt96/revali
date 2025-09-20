@@ -8,36 +8,34 @@ class DartFile extends AnyFile {
     required super.content,
     super.segments,
     List<PartFile> parts = const [],
-  })  : parts = parts.map((e) {
-          if (e.path.isEmpty) {
-            throw AssertionError('Part file path cannot be empty.');
-          }
+  }) : parts = parts.map((e) {
+         if (e.path.isEmpty) {
+           throw AssertionError('Part file path cannot be empty.');
+         }
 
-          for (final partPath in e.path) {
-            if (partPath.isEmpty) {
-              throw AssertionError(
-                'Part file path cannot contain empty parts.',
-              );
-            }
+         for (final partPath in e.path) {
+           if (partPath.isEmpty) {
+             throw AssertionError('Part file path cannot contain empty parts.');
+           }
 
-            if (partPath.contains(RegExp(r'\\|\/|\.\\|\.{2,}|^\.'))) {
-              throw AssertionError(
-                'Part file path cannot contain relative paths.',
-              );
-            }
-          }
+           if (partPath.contains(RegExp(r'\\|\/|\.\\|\.{2,}|^\.'))) {
+             throw AssertionError(
+               'Part file path cannot contain relative paths.',
+             );
+           }
+         }
 
-          if (e.path.last.endsWith('.dart')) {
-            throw AssertionError('Part file path must not end with .dart.');
-          }
+         if (e.path.last.endsWith('.dart')) {
+           throw AssertionError('Part file path must not end with .dart.');
+         }
 
-          return e;
-        }).toList(),
-        assert(
-          parts.toSet().length == parts.length,
-          'Part files must be unique within a Dart file.',
-        ),
-        super(extension: 'dart') {
+         return e;
+       }).toList(),
+       assert(
+         parts.toSet().length == parts.length,
+         'Part files must be unique within a Dart file.',
+       ),
+       super(extension: 'dart') {
     for (final part in parts) {
       part.parent = this;
     }
@@ -56,8 +54,7 @@ class DartFile extends AnyFile {
       final pathParts = p.split(part.fileName)..remove('lib');
 
       return "part '${p.joinAll(pathParts)}';";
-    }).toList()
-      ..sort();
+    }).toList()..sort();
 
     final partString = partDirectives.join('\n');
 
@@ -76,12 +73,13 @@ class DartFile extends AnyFile {
       contentWithoutDirectives = content.substring(directiveEndIndex + 1);
     }
 
-    final trimmed = '''
+    final trimmed =
+        '''
 $directiveStatements
 
 $partString
 $contentWithoutDirectives'''
-        .trim();
+            .trim();
 
     return '$trimmed\n';
   }

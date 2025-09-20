@@ -12,8 +12,7 @@ List<Code> createFutureCall(ClientMethod method) {
 
   final coreType = switch (returnType) {
     ClientType(isStream: true, typeArguments: [final type]) ||
-    ClientType(isFuture: true, typeArguments: [final type]) =>
-      type,
+    ClientType(isFuture: true, typeArguments: [final type]) => type,
     _ => returnType,
   };
 
@@ -27,20 +26,21 @@ List<Code> createFutureCall(ClientMethod method) {
       .awaited;
 
   final bytes = switch (coreType) {
-    ClientType(typeArguments: [ClientType(name: 'int')]) => refer('response')
-        .property('expand')
-        .call([
-          Method(
-            (b) => b
-              ..lambda = true
-              ..requiredParameters.add(Parameter((b) => b..name = 'e'))
-              ..body = refer('e').code,
-          ).closure,
-        ])
-        .property('toList')
-        .call([])
-        .awaited,
-    _ => refer('response').property('toList').call([]).awaited
+    ClientType(typeArguments: [ClientType(name: 'int')]) =>
+      refer('response')
+          .property('expand')
+          .call([
+            Method(
+              (b) => b
+                ..lambda = true
+                ..requiredParameters.add(Parameter((b) => b..name = 'e'))
+                ..body = refer('e').code,
+            ).closure,
+          ])
+          .property('toList')
+          .call([])
+          .awaited,
+    _ => refer('response').property('toList').call([]).awaited,
   };
 
   return [
@@ -51,20 +51,18 @@ List<Code> createFutureCall(ClientMethod method) {
     else if (coreType.isBytes)
       switch (coreType.isNullable) {
         true => createSwitchPattern(bytes, {
-            literal([]): literalNull,
-            declareFinal('value'): refer('value'),
-          }),
+          literal([]): literalNull,
+          declareFinal('value'): refer('value'),
+        }),
         false => bytes,
-      }
-          .returned
-          .statement
+      }.returned.statement
     else if (fromJson == null)
       switch (coreType.isNullable) {
         true => createSwitchPattern(body, {
-            literalString(''): literalNull,
-            declareFinal('value'): refer('value'),
-          }).returned.statement,
-        false => body.returned.statement
+          literalString(''): literalNull,
+          declareFinal('value'): refer('value'),
+        }).returned.statement,
+        false => body.returned.statement,
       }
     else ...[
       declareFinal('body').assign(body).statement,

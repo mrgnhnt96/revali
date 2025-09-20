@@ -14,13 +14,14 @@ String getRawType(ClientType type) {
       // named records
       ClientType(
         isRecord: true,
-        recordProps: [ClientRecordProp(isNamed: true), ...]
+        recordProps: [ClientRecordProp(isNamed: true), ...],
       ) =>
         map,
       // at least 1 positional record
       ClientType(isRecord: true) => list,
-      ClientType(toJson: ClientToJson(returnType: final type)) =>
-        getRawType(type),
+      ClientType(toJson: ClientToJson(returnType: final type)) => getRawType(
+        type,
+      ),
       ClientType(isEnum: true) => 'String',
       _ => map,
     };

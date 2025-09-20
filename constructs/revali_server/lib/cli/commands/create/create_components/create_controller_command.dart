@@ -3,10 +3,7 @@ import 'package:mason_logger/mason_logger.dart';
 import 'package:revali_server/cli/commands/create/create_components/create_a_component_command.dart';
 
 class CreateControllerCommand extends CreateAComponentCommand {
-  CreateControllerCommand({
-    required super.fs,
-    required super.logger,
-  }) {
+  CreateControllerCommand({required super.fs, required super.logger}) {
     argParser.addOption(
       'name',
       abbr: 'n',
@@ -32,8 +29,9 @@ class CreateControllerCommand extends CreateAComponentCommand {
     var name = argResults?['name'] as String?;
 
     while (name == null || name.isEmpty) {
-      name =
-          logger.prompt("What's the name of the ${green.wrap('controller')}?");
+      name = logger.prompt(
+        "What's the name of the ${green.wrap('controller')}?",
+      );
     }
 
     _name = name.trim();
@@ -45,7 +43,8 @@ class CreateControllerCommand extends CreateAComponentCommand {
   }
 
   @override
-  String content() => '''
+  String content() =>
+      '''
 import 'package:revali_router/revali_router.dart';
 
 // Learn more about Controllers at https://www.revali.dev/constructs/revali_server/core/controllers

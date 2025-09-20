@@ -1,13 +1,13 @@
 // ignore_for_file: use_late_for_private_fields_and_variables
 
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/visitor2.dart';
 import 'package:revali/ast/checkers/checkers.dart';
 import 'package:revali/ast/visitors/method_visitor.dart';
 import 'package:revali_annotations/revali_annotations.dart';
 import 'package:revali_construct/revali_construct.dart';
 
-class ControllerVisitor extends RecursiveElementVisitor<void> {
+class ControllerVisitor extends RecursiveElementVisitor2<void> {
   ClassElement? _controller;
   String? _path;
   ConstructorElement? _constructor;
@@ -26,7 +26,8 @@ class ControllerVisitor extends RecursiveElementVisitor<void> {
     List<MetaParam> params,
     List<MetaMethod> methods,
     InstanceType type,
-  }) get values {
+  })
+  get values {
     return (
       element: _controller!,
       path: _path!,
@@ -65,15 +66,15 @@ class ControllerVisitor extends RecursiveElementVisitor<void> {
 
     _controller = element;
     _constructor = element.constructors.first;
-    if (_constructor case ConstructorElement(:final parameters)) {
-      _params.addAll(parameters.map(MetaParam.fromParam));
+    if (_constructor case ConstructorElement(:final formalParameters)) {
+      _params.addAll(formalParameters.map(MetaParam.fromParam));
     }
 
     final controller = ControllerAnnotation.fromAnnotation(annotation.first);
     _path = controller.path;
     _type = controller.type;
     final methodVisitor = MethodVisitor();
-    element.accept(methodVisitor);
+    element.accept2(methodVisitor);
 
     _methods.addAll(methodVisitor.methods.values.expand((e) => e));
   }

@@ -9,10 +9,7 @@ import 'package:revali_construct/revali_construct.dart';
 import 'package:yaml/yaml.dart';
 
 class ConstructsHandler {
-  ConstructsHandler({
-    required this.fs,
-    required this.logger,
-  });
+  ConstructsHandler({required this.fs, required this.logger});
 
   final FileSystem fs;
   final Logger logger;
@@ -47,11 +44,10 @@ class ConstructsHandler {
     if (packageJson['packages']
         case final List<Map<String, dynamic>> rawPackages) {
       for (final package in rawPackages) {
-        if (package
-            case {
-              'packageUri': final String packageUri,
-              'name': final String name
-            }) {
+        if (package case {
+          'packageUri': final String packageUri,
+          'name': final String name,
+        }) {
           packages[name] = packageUri;
         }
       }

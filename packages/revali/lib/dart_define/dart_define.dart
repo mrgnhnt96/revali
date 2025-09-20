@@ -4,18 +4,14 @@ class DartDefine {
   const DartDefine({
     Map<String, String> defined = const {},
     List<String> files = const [],
-  })  : _files = files,
-        _defined = defined;
+  }) : _files = files,
+       _defined = defined;
 
   factory DartDefine.fromFile(String path, {required FileSystem fs}) {
     final file = fs.file(path);
 
     if (!file.existsSync()) {
-      throw ArgumentError.value(
-        file.path,
-        'file',
-        'File does not exist',
-      );
+      throw ArgumentError.value(file.path, 'file', 'File does not exist');
     }
 
     final lines = file.readAsLinesSync();

@@ -21,10 +21,6 @@ class PathParamsController {
     @Param() required String productId,
     @Param() required String variantId,
   }) {
-    return {
-      'shopId': shopId,
-      'productId': productId,
-      'variantId': variantId,
-    };
+    return {'shopId': shopId, 'productId': productId, 'variantId': variantId};
   }
 }

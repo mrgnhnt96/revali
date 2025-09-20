@@ -29,18 +29,18 @@ class ServerRouteAnnotations with ExtractImport {
   }) : _responseHandler = responseHandler;
 
   ServerRouteAnnotations.none()
-      : this(
-          coreMimics: AnnotationMimics(),
-          coreTypeReferences: AnnotationTypeReferences(),
-          data: [],
-          meta: [],
-          setHeaders: [],
-          allowOrigins: null,
-          allowHeaders: null,
-          expectHeaders: null,
-          responseHandler: null,
-          lifecycleComponents: [],
-        );
+    : this(
+        coreMimics: AnnotationMimics(),
+        coreTypeReferences: AnnotationTypeReferences(),
+        data: [],
+        meta: [],
+        setHeaders: [],
+        allowOrigins: null,
+        allowHeaders: null,
+        expectHeaders: null,
+        responseHandler: null,
+        lifecycleComponents: [],
+      );
 
   factory ServerRouteAnnotations.fromApp(MetaAppConfig app) {
     return ServerRouteAnnotations._fromGetter(app.annotationsFor);
@@ -72,16 +72,18 @@ class ServerRouteAnnotations with ExtractImport {
           classType: Middleware,
           package: 'revali_router_core',
           convert: (object, annotation) {
-            mimics.middlewares
-                .add(ServerMimic.fromDartObject(object, annotation));
+            mimics.middlewares.add(
+              ServerMimic.fromDartObject(object, annotation),
+            );
           },
         ),
         OnMatch(
           classType: Interceptor,
           package: 'revali_router_core',
           convert: (object, annotation) {
-            mimics.interceptors
-                .add(ServerMimic.fromDartObject(object, annotation));
+            mimics.interceptors.add(
+              ServerMimic.fromDartObject(object, annotation),
+            );
           },
         ),
         OnMatch(
@@ -203,8 +205,9 @@ class ServerRouteAnnotations with ExtractImport {
           package: 'revali_annotations',
           convert: (object, annotation) {
             if (allowOrigins case final origins?) {
-              allowOrigins =
-                  origins.merge(ServerAllowOrigins.fromDartObject(object));
+              allowOrigins = origins.merge(
+                ServerAllowOrigins.fromDartObject(object),
+              );
             } else {
               allowOrigins = ServerAllowOrigins.fromDartObject(object);
             }
@@ -215,8 +218,9 @@ class ServerRouteAnnotations with ExtractImport {
           package: 'revali_annotations',
           convert: (object, annotation) {
             if (allowHeaders case final headers?) {
-              allowHeaders =
-                  headers.merge(ServerAllowHeaders.fromDartObject(object));
+              allowHeaders = headers.merge(
+                ServerAllowHeaders.fromDartObject(object),
+              );
             } else {
               allowHeaders = ServerAllowHeaders.fromDartObject(object);
             }
@@ -227,8 +231,9 @@ class ServerRouteAnnotations with ExtractImport {
           package: 'revali_annotations',
           convert: (object, annotation) {
             if (expectHeaders case final headers?) {
-              expectHeaders =
-                  headers.merge(ServerExpectHeaders.fromDartObject(object));
+              expectHeaders = headers.merge(
+                ServerExpectHeaders.fromDartObject(object),
+              );
             } else {
               expectHeaders = ServerExpectHeaders.fromDartObject(object);
             }
@@ -296,13 +301,13 @@ class ServerRouteAnnotations with ExtractImport {
 
   @override
   List<ExtractImport?> get extractors => [
-        ...coreMimics.all,
-        ...coreTypeReferences.all,
-        ...data,
-        ...meta,
-        responseHandler,
-        ...lifecycleComponents,
-      ];
+    ...coreMimics.all,
+    ...coreTypeReferences.all,
+    ...data,
+    ...meta,
+    responseHandler,
+    ...lifecycleComponents,
+  ];
 
   @override
   List<ServerImports?> get imports => const [];

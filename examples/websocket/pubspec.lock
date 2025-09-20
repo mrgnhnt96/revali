@@ -45,10 +45,10 @@ packages:
     dependency: "direct main"
     description:
       name: dio
-      sha256: "253a18bbd4851fecba42f7343a1df3a9a4c1d31a2c1b37e221086b4fa8c8dbc9"
+      sha256: d90ee57923d1828ac14e492ca49440f65477f4bb1263575900be731a3dac66a9
       url: "https://pub.dev"
     source: hosted
-    version: "5.8.0+1"
+    version: "5.9.0"
   dio_web_adapter:
     dependency: transitive
     description:
@@ -85,10 +85,10 @@ packages:
     dependency: transitive
     description:
       name: meta
-      sha256: e3641ec5d63ebf0d9b41bd43201a66e3fc79a65db5f61fc181f04cd27aab950c
+      sha256: "23f08335362185a5ea2ad3a4e597f1375e78bce8a040df5c600c8d3552ef2394"
       url: "https://pub.dev"
     source: hosted
-    version: "1.16.0"
+    version: "1.17.0"
   mime:
     dependency: transitive
     description:
@@ -127,23 +127,23 @@ packages:
       path: "../../revali_router/revali_router"
       relative: true
     source: path
-    version: "2.3.1"
+    version: "3.0.0-dev"
   revali_router_annotations:
     dependency: transitive
     description:
       name: revali_router_annotations
-      sha256: "954f6cf1f2a30eabfa9fac6eac7f9d93034f3e02ffdba1b0182b464c86421de8"
+      sha256: "3b7cdba4ddd3b38c9a0a31c096c9d47fa56479abe6358e133d48a8bbe670b5c5"
       url: "https://pub.dev"
     source: hosted
-    version: "1.3.0"
+    version: "2.0.0-dev"
   revali_router_core:
     dependency: transitive
     description:
       name: revali_router_core
-      sha256: "73d6b6119aacb320b1fa966cbc613fca693801dcb184b06a1c2679c7702314f3"
+      sha256: f88a9b4d37d3366ede2680268654c2029ffbd06989c2297df9d1fdaf7c7975f3
       url: "https://pub.dev"
     source: hosted
-    version: "1.9.0"
+    version: "2.0.0-dev"
   shelf:
     dependency: "direct main"
     description:
@@ -220,17 +220,17 @@ packages:
     dependency: transitive
     description:
       name: web_socket
-      sha256: "3c12d96c0c9a4eec095246debcea7b86c0324f22df69893d538fcc6f1b8cce83"
+      sha256: "34d64019aa8e36bf9842ac014bb5d2f5586ca73df5e4d9bf5c936975cae6982c"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.6"
+    version: "1.0.1"
   web_socket_channel:
     dependency: "direct main"
     description:
       name: web_socket_channel
-      sha256: "0b8e2457400d8a859b7b2030786835a28a8e80836ef64402abef392ff4f1d0e5"
+      sha256: d645757fb0f4773d602444000a8131ff5d48c9e47adfe9772652dd1a4f2d45c8
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.2"
+    version: "3.0.3"
 sdks:
-  dart: ">=3.5.0 <4.0.0"
+  dart: ">=3.8.0 <4.0.0"

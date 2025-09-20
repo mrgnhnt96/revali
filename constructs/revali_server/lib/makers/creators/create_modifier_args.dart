@@ -29,8 +29,9 @@ Map<String, Expression> createModifierArgs({
           createClass(component.exceptionClass),
       ]),
     if (annotations.data.isNotEmpty)
-      'data':
-          literalList([for (final data in annotations.data) createMimic(data)]),
+      'data': literalList([
+        for (final data in annotations.data) createMimic(data),
+      ]),
     if (mimics.guards.isNotEmpty ||
         typeReferences.guards.isNotEmpty ||
         lifecycleComponents.hasGuards)
@@ -63,22 +64,24 @@ Map<String, Expression> createModifierArgs({
       ]),
     if (annotations.allowOrigins case final allow?
         when allow.origins.isNotEmpty)
-      'allowedOrigins': refer((AllowedOriginsImpl).name).constInstance([
-        literalSet([
-          for (final allowOrigin in allow.origins) literalString(allowOrigin),
-        ]),
-      ], {
-        'inherit': literalBool(allow.inherit),
-      }),
+      'allowedOrigins': refer((AllowedOriginsImpl).name).constInstance(
+        [
+          literalSet([
+            for (final allowOrigin in allow.origins) literalString(allowOrigin),
+          ]),
+        ],
+        {'inherit': literalBool(allow.inherit)},
+      ),
     if (annotations.allowHeaders case final allow?
         when allow.headers.isNotEmpty)
-      'allowedHeaders': refer((AllowedHeadersImpl).name).constInstance([
-        literalSet([
-          for (final allowHeader in allow.headers) literalString(allowHeader),
-        ]),
-      ], {
-        'inherit': literalBool(allow.inherit),
-      }),
+      'allowedHeaders': refer((AllowedHeadersImpl).name).constInstance(
+        [
+          literalSet([
+            for (final allowHeader in allow.headers) literalString(allowHeader),
+          ]),
+        ],
+        {'inherit': literalBool(allow.inherit)},
+      ),
     if (annotations.expectHeaders case final expect?
         when expect.headers.isNotEmpty)
       'expectedHeaders': refer((ExpectedHeadersImpl).name).constInstance([
@@ -107,9 +110,7 @@ Map<String, Expression> createModifierArgs({
               ..requiredParameters.add(Parameter((b) => b..name = 'm'))
               ..body = Block.of([
                 for (final meta in annotations.meta)
-                  m.cascade('add').call([
-                    createMimic(meta),
-                  ]).statement,
+                  m.cascade('add').call([createMimic(meta)]).statement,
               ]),
           ).closure,
         };
@@ -125,19 +126,19 @@ extension _IterableServerLifecycleComponentX
   bool get hasMiddlewares => any((e) => e.hasMiddlewares);
 
   List<ServerLifecycleComponent> get guards => [
-        for (final component in this)
-          if (component.hasGuards) component,
-      ];
+    for (final component in this)
+      if (component.hasGuards) component,
+  ];
   List<ServerLifecycleComponent> get interceptors => [
-        for (final component in this)
-          if (component.hasInterceptors) component,
-      ];
+    for (final component in this)
+      if (component.hasInterceptors) component,
+  ];
   List<ServerLifecycleComponent> get middlewares => [
-        for (final component in this)
-          if (component.hasMiddlewares) component,
-      ];
+    for (final component in this)
+      if (component.hasMiddlewares) component,
+  ];
   List<ServerLifecycleComponent> get exceptionCatchers => [
-        for (final component in this)
-          if (component.hasExceptionCatchers) component,
-      ];
+    for (final component in this)
+      if (component.hasExceptionCatchers) component,
+  ];
 }

@@ -106,10 +106,10 @@ packages:
     dependency: transitive
     description:
       name: lint_kit_domain
-      sha256: ac754a54c361157a342c9f61fda7462bddc6804b3642232e12f6070ec1b4621d
+      sha256: "23af41d684657d272f3e6940fbeeb4baf4c73d3386a78ce55c61751bef90392e"
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.2"
+    version: "0.0.7"
   macros:
     dependency: transitive
     description:
@@ -186,10 +186,10 @@ packages:
     dependency: transitive
     description:
       name: watcher
-      sha256: "69da27e49efa56a15f8afe8f4438c4ec02eff0a117df1b22ea4aad194fe1c104"
+      sha256: "5bf046f41320ac97a469d506261797f35254fa61c641741ef32dacda98b7d39c"
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.1"
+    version: "1.1.3"
   yaml:
     dependency: transitive
     description:
@@ -199,4 +199,4 @@ packages:
     source: hosted
     version: "3.1.3"
 sdks:
-  dart: ">=3.5.0 <4.0.0"
+  dart: ">=3.8.0 <4.0.0"

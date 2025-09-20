@@ -86,18 +86,14 @@ void main() {
     test('named-record', () async {
       final response = await client.future.namedRecord().toList();
 
-      expect(response, [
-        (first: 'hello', second: 'world'),
-      ]);
+      expect(response, [(first: 'hello', second: 'world')]);
       verifyGetRequest('/api/future/named-record');
     });
 
     test('partial-record', () async {
       final response = await client.future.partialRecord().toList();
 
-      expect(response, [
-        ('hello', second: 'world'),
-      ]);
+      expect(response, [('hello', second: 'world')]);
       verifyGetRequest('/api/future/partial-record');
     });
 
@@ -105,9 +101,7 @@ void main() {
       final response = await client.future.listOfRecords().toList();
 
       expect(response, [
-        [
-          ('hello', 'world'),
-        ],
+        [('hello', 'world')],
       ]);
       verifyGetRequest('/api/future/list-of-records');
     });

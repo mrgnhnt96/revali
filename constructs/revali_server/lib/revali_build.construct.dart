@@ -21,7 +21,8 @@ base class RevaliBuildConstruct extends BuildConstruct {
     var defineArguments = '';
     if (defines.isNotEmpty) {
       dartDefines = ' -D${defines.join(' \\\n\t-D')}';
-      defineArguments = '''
+      defineArguments =
+          '''
 
 # Define build arguments
 ${args.join('\n')}
@@ -32,7 +33,8 @@ ${args.join('\n')}
       files: [
         AnyFile(
           basename: 'Dockerfile',
-          content: '''
+          content:
+              '''
 FROM dart:stable AS build
 
 WORKDIR /app

@@ -29,7 +29,8 @@ DartFile serverClientFile(
         if (!controller.isExcluded) controllerImplFile(controller, formatter),
       serverFile(server, formatter, settings),
     ],
-    content: '''
+    content:
+        '''
 $imports
 ''',
     segments: ['lib'],

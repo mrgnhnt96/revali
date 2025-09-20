@@ -7,152 +7,147 @@ import 'package:test/test.dart';
 import '../.revali/server/server.dart';
 
 void main() {
-  group(
-    'future',
-    () {
-      late TestServer server;
-      late Server client;
-      HttpRequest? request;
+  group('future', () {
+    late TestServer server;
+    late Server client;
+    HttpRequest? request;
 
-      setUp(() {
-        server = TestServer();
+    setUp(() {
+      server = TestServer();
 
-        client = Server(
-          client: TestClient(server, (req) => request = req),
-        );
+      client = Server(client: TestClient(server, (req) => request = req));
 
-        createServer(server);
-      });
+      createServer(server);
+    });
 
-      tearDown(() {
-        server.close();
-      });
+    tearDown(() {
+      server.close();
+    });
 
-      void verifyGetRequest(String path) {
-        expect(request?.url.path, path);
-        expect(request?.headers, isEmpty);
-        expect(request?.body, isEmpty);
-        expect(request?.method, 'GET');
-      }
+    void verifyGetRequest(String path) {
+      expect(request?.url.path, path);
+      expect(request?.headers, isEmpty);
+      expect(request?.body, isEmpty);
+      expect(request?.method, 'GET');
+    }
 
-      test('data-string', () async {
-        final response = await client.future.dataString();
+    test('data-string', () async {
+      final response = await client.future.dataString();
 
-        expect(response, null);
-        verifyGetRequest('/api/future/data-string');
-      });
+      expect(response, null);
+      verifyGetRequest('/api/future/data-string');
+    });
 
-      test('string', () async {
-        final response = await client.future.string();
+    test('string', () async {
+      final response = await client.future.string();
 
-        expect(response, null);
-        verifyGetRequest('/api/future/string');
-      });
+      expect(response, null);
+      verifyGetRequest('/api/future/string');
+    });
 
-      test('bool', () async {
-        final response = await client.future.boolean();
+    test('bool', () async {
+      final response = await client.future.boolean();
 
-        expect(response, null);
-        verifyGetRequest('/api/future/bool');
-      });
+      expect(response, null);
+      verifyGetRequest('/api/future/bool');
+    });
 
-      test('int', () async {
-        final response = await client.future.integer();
+    test('int', () async {
+      final response = await client.future.integer();
 
-        expect(response, null);
-        verifyGetRequest('/api/future/int');
-      });
+      expect(response, null);
+      verifyGetRequest('/api/future/int');
+    });
 
-      test('double', () async {
-        final response = await client.future.dub();
+    test('double', () async {
+      final response = await client.future.dub();
 
-        expect(response, null);
-        verifyGetRequest('/api/future/double');
-      });
+      expect(response, null);
+      verifyGetRequest('/api/future/double');
+    });
 
-      test('record', () async {
-        final response = await client.future.record();
+    test('record', () async {
+      final response = await client.future.record();
 
-        expect(response, null);
-        verifyGetRequest('/api/future/record');
-      });
+      expect(response, null);
+      verifyGetRequest('/api/future/record');
+    });
 
-      test('named-record', () async {
-        final response = await client.future.namedRecord();
+    test('named-record', () async {
+      final response = await client.future.namedRecord();
 
-        expect(response, null);
-        verifyGetRequest('/api/future/named-record');
-      });
+      expect(response, null);
+      verifyGetRequest('/api/future/named-record');
+    });
 
-      test('partial-record', () async {
-        final response = await client.future.partialRecord();
+    test('partial-record', () async {
+      final response = await client.future.partialRecord();
 
-        expect(response, null);
-        verifyGetRequest('/api/future/partial-record');
-      });
+      expect(response, null);
+      verifyGetRequest('/api/future/partial-record');
+    });
 
-      test('list-of-records', () async {
-        final response = await client.future.listOfRecords();
+    test('list-of-records', () async {
+      final response = await client.future.listOfRecords();
 
-        expect(response, null);
-        verifyGetRequest('/api/future/list-of-records');
-      });
+      expect(response, null);
+      verifyGetRequest('/api/future/list-of-records');
+    });
 
-      test('list-of-strings', () async {
-        final response = await client.future.listOfStrings();
+    test('list-of-strings', () async {
+      final response = await client.future.listOfStrings();
 
-        expect(response, null);
-        verifyGetRequest('/api/future/list-of-strings');
-      });
+      expect(response, null);
+      verifyGetRequest('/api/future/list-of-strings');
+    });
 
-      test('list-of-maps', () async {
-        final response = await client.future.listOfMaps();
+    test('list-of-maps', () async {
+      final response = await client.future.listOfMaps();
 
-        expect(response, null);
-        verifyGetRequest('/api/future/list-of-maps');
-      });
+      expect(response, null);
+      verifyGetRequest('/api/future/list-of-maps');
+    });
 
-      test('map-string-dynamic', () async {
-        final response = await client.future.map();
+    test('map-string-dynamic', () async {
+      final response = await client.future.map();
 
-        expect(response, null);
-        verifyGetRequest('/api/future/map-string-dynamic');
-      });
+      expect(response, null);
+      verifyGetRequest('/api/future/map-string-dynamic');
+    });
 
-      test('map-dynamic-dynamic', () async {
-        final response = await client.future.dynamicMap();
+    test('map-dynamic-dynamic', () async {
+      final response = await client.future.dynamicMap();
 
-        expect(response, null);
-        verifyGetRequest('/api/future/map-dynamic-dynamic');
-      });
+      expect(response, null);
+      verifyGetRequest('/api/future/map-dynamic-dynamic');
+    });
 
-      test('map-dynamic-dynamic-with-null', () async {
-        final response = await client.future.dynamicMapWithNull();
+    test('map-dynamic-dynamic-with-null', () async {
+      final response = await client.future.dynamicMapWithNull();
 
-        expect(response, {'foo': null});
-        verifyGetRequest('/api/future/map-dynamic-dynamic-with-null');
-      });
+      expect(response, {'foo': null});
+      verifyGetRequest('/api/future/map-dynamic-dynamic-with-null');
+    });
 
-      test('set', () async {
-        final response = await client.future.set();
+    test('set', () async {
+      final response = await client.future.set();
 
-        expect(response, null);
-        verifyGetRequest('/api/future/set');
-      });
+      expect(response, null);
+      verifyGetRequest('/api/future/set');
+    });
 
-      test('iterable', () async {
-        final response = await client.future.iterable();
+    test('iterable', () async {
+      final response = await client.future.iterable();
 
-        expect(response, null);
-        verifyGetRequest('/api/future/iterable');
-      });
+      expect(response, null);
+      verifyGetRequest('/api/future/iterable');
+    });
 
-      test('bytes', () async {
-        final response = await client.future.bytes();
+    test('bytes', () async {
+      final response = await client.future.bytes();
 
-        expect(response, null);
-        verifyGetRequest('/api/future/bytes');
-      });
-    },
-  );
+      expect(response, null);
+      verifyGetRequest('/api/future/bytes');
+    });
+  });
 }

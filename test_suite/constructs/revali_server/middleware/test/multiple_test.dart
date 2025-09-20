@@ -23,9 +23,7 @@ void main() {
       final response = await server.send(
         method: 'GET',
         path: '/api/multiple/read',
-        headers: {
-          'auth': 'sup dude',
-        },
+        headers: {'auth': 'sup dude'},
       );
 
       expect(response.statusCode, 200);

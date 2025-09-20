@@ -1,6 +1,6 @@
 // ignore_for_file: unnecessary_parenthesis
 
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -49,16 +49,21 @@ class AnnotationArgument with ExtractImport {
     String parameterName;
     bool isRequired;
 
-    if (expression.parent
-        case Expression(correspondingParameter: final param?)) {
-      parameterName = param.name;
+    if (expression.parent case Expression(
+      correspondingParameter: final param?,
+    )) {
+      parameterName =
+          param.name3 ?? (throw Exception('Parameter name is null'));
       isRequired = param.isRequiredNamed;
-    } else if (expression
-        case Expression(staticParameterElement: final param?)) {
-      parameterName = param.name;
+    } else if (expression case Expression(
+      correspondingParameter: final param?,
+    )) {
+      parameterName =
+          param.name3 ?? (throw Exception('Parameter name is null'));
       isRequired = param.isRequiredNamed;
-    } else if (expression.parent
-        case NamedExpression(name: Label(:final label))) {
+    } else if (expression.parent case NamedExpression(
+      name: Label(:final label),
+    )) {
       parameterName = label.name;
       isRequired = false;
     } else {
@@ -67,8 +72,8 @@ class AnnotationArgument with ExtractImport {
 
     return AnnotationArgument(
       parameterName: parameterName,
-      type: switch (
-          expression.staticParameterElement?.type ?? expression.staticType) {
+      type: switch (expression.correspondingParameter?.type ??
+          expression.staticType) {
         final e? => ServerType.fromType(e),
         _ => throw Exception('Expression has not been resolved yet...'),
       },

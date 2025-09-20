@@ -23,9 +23,7 @@ void main() {
       final response = await server.send(
         method: 'GET',
         path: '/api/body/user',
-        headers: {
-          'content-type': 'text/plain',
-        },
+        headers: {'content-type': 'text/plain'},
         body: 'banana',
       );
 
@@ -37,9 +35,7 @@ void main() {
       final response = await server.send(
         method: 'GET',
         path: '/api/body/list-user',
-        headers: {
-          'content-type': 'application/json',
-        },
+        headers: {'content-type': 'application/json'},
         body: ['banana', 'apple'],
       );
 

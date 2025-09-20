@@ -18,9 +18,7 @@ void main() {
     setUp(() {
       server = TestServer();
 
-      client = Server(
-        client: TestClient(server, (req) => request = req),
-      );
+      client = Server(client: TestClient(server, (req) => request = req));
 
       createServer(server);
     });
@@ -74,20 +72,20 @@ void main() {
     test('record-of-users', () async {
       final response = await client.future.recordOfUsers();
 
-      expect(
-        response,
-        (name: 'Hello world!', user: const User(name: 'Hello world!')),
-      );
+      expect(response, (
+        name: 'Hello world!',
+        user: const User(name: 'Hello world!'),
+      ));
       verifyGetRequest('/api/future/record-of-users');
     });
 
     test('partial-record-of-users', () async {
       final response = await client.future.partialRecordOfUsers();
 
-      expect(
-        response,
-        ('Hello world!', user: const User(name: 'Hello world!')),
-      );
+      expect(response, (
+        'Hello world!',
+        user: const User(name: 'Hello world!'),
+      ));
       verifyGetRequest('/api/future/partial-record-of-users');
     });
 

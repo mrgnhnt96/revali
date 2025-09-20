@@ -24,7 +24,8 @@ class QueryParamsController {
 
   @Get('all')
   List<StringUser> all([
-    @Query.all('user') List<StringUser> users = const [
+    @Query.all('user')
+    List<StringUser> users = const [
       StringUser(name: 'John'),
       StringUser(name: 'Jane'),
     ],
@@ -34,7 +35,8 @@ class QueryParamsController {
 
   @Get('all-optional')
   List<StringUser>? allOptional([
-    @Query.all('user') List<StringUser>? users = const [
+    @Query.all('user')
+    List<StringUser>? users = const [
       StringUser(name: 'John'),
       StringUser(name: 'Jane'),
     ],

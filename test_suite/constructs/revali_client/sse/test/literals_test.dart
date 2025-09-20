@@ -116,9 +116,7 @@ void main() {
       verifyRequest('GET', '/api/literals/list-of-records');
 
       expect(responses, [
-        [
-          ('hello', 'world'),
-        ]
+        [('hello', 'world')],
       ]);
     });
 
@@ -140,7 +138,7 @@ void main() {
       expect(responses, [
         [
           {'hello': 1},
-        ]
+        ],
       ]);
     });
 

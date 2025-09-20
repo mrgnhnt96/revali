@@ -8,9 +8,7 @@ class PathParamsController {
   const PathParamsController();
 
   @Get('user/:first')
-  String user({
-    @Param.pipe(UserPipe) required User first,
-  }) {
+  String user({@Param.pipe(UserPipe) required User first}) {
     return first.name;
   }
 }

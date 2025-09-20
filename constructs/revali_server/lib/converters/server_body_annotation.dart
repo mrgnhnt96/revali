@@ -1,5 +1,5 @@
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 import 'package:revali_server/converters/base_parameter_annotation.dart';
 import 'package:revali_server/converters/has_pipe.dart';
@@ -10,10 +10,7 @@ import 'package:revali_server/utils/extract_import.dart';
 class ServerBodyAnnotation
     with ExtractImport
     implements HasPipe, BaseParameterAnnotation {
-  ServerBodyAnnotation({
-    required this.access,
-    required this.pipe,
-  });
+  ServerBodyAnnotation({required this.access, required this.pipe});
 
   factory ServerBodyAnnotation.fromElement(
     DartObject object,

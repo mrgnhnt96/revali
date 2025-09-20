@@ -6,9 +6,7 @@ part 'hot_reload_files_changed.g.dart';
 
 @JsonSerializable()
 class HotReloadFilesChanged extends Equatable implements HotReloadData {
-  const HotReloadFilesChanged({
-    required this.files,
-  });
+  const HotReloadFilesChanged({required this.files});
 
   factory HotReloadFilesChanged.fromJson(Map<dynamic, dynamic> json) =>
       _$HotReloadFilesChangedFromJson(json);

@@ -14,18 +14,18 @@ Expression createBindsVar(
     throw ArgumentError('Invalid annotation type: ${annotation.runtimeType}');
   }
 
-  return createClass(annotation.bind.bind)
-      .property('bind')
-      .call([createBindContext(param)]).awaited;
+  return createClass(
+    annotation.bind.bind,
+  ).property('bind').call([createBindContext(param)]).awaited;
 }
 
 Expression createArgFromBinds(
   ServerBindsAnnotation annotation,
   ServerParam param,
 ) {
-  var paramsRef = createClass(annotation.bind.bind)
-      .property('bind')
-      .call([createBindContext(param)]).awaited;
+  var paramsRef = createClass(
+    annotation.bind.bind,
+  ).property('bind').call([createBindContext(param)]).awaited;
 
   if (createThrowMissingArgument(annotation, param) case final thrown?) {
     paramsRef = paramsRef.ifNullThen(thrown);

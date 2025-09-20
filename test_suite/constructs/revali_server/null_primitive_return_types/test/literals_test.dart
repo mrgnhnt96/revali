@@ -76,9 +76,7 @@ void main() {
       );
 
       expect(response.statusCode, 200);
-      expect(response.body, {
-        'data': null,
-      });
+      expect(response.body, {'data': null});
     });
 
     test('named-record', () async {
@@ -88,9 +86,7 @@ void main() {
       );
 
       expect(response.statusCode, 200);
-      expect(response.body, {
-        'data': null,
-      });
+      expect(response.body, {'data': null});
     });
 
     test('partial-record', () async {
@@ -100,9 +96,7 @@ void main() {
       );
 
       expect(response.statusCode, 200);
-      expect(response.body, {
-        'data': null,
-      });
+      expect(response.body, {'data': null});
     });
 
     test('list-of-records', () async {
@@ -112,9 +106,7 @@ void main() {
       );
 
       expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
-      expect(response.body, {
-        'data': null,
-      });
+      expect(response.body, {'data': null});
     });
 
     test('list-of-strings', () async {
@@ -124,9 +116,7 @@ void main() {
       );
 
       expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
-      expect(response.body, {
-        'data': null,
-      });
+      expect(response.body, {'data': null});
     });
 
     test('list-of-maps', () async {
@@ -136,9 +126,7 @@ void main() {
       );
 
       expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
-      expect(response.body, {
-        'data': null,
-      });
+      expect(response.body, {'data': null});
     });
 
     test('map-string-dynamic', () async {
@@ -148,9 +136,7 @@ void main() {
       );
 
       expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
-      expect(response.body, {
-        'data': null,
-      });
+      expect(response.body, {'data': null});
     });
 
     test('map-dynamic-dynamic', () async {
@@ -160,9 +146,7 @@ void main() {
       );
 
       expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
-      expect(response.body, {
-        'data': null,
-      });
+      expect(response.body, {'data': null});
     });
 
     test('map-dynamic-dynamic-with-null', () async {
@@ -184,9 +168,7 @@ void main() {
       );
 
       expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
-      expect(response.body, {
-        'data': null,
-      });
+      expect(response.body, {'data': null});
     });
 
     test('iterable', () async {
@@ -196,9 +178,7 @@ void main() {
       );
 
       expect(response.headers.contentType?.mimeType, ContentType.json.mimeType);
-      expect(response.body, {
-        'data': null,
-      });
+      expect(response.body, {'data': null});
     });
 
     test('bytes', () async {
@@ -207,10 +187,7 @@ void main() {
         path: '/api/literals/bytes',
       );
 
-      expect(
-        response.headers.contentType?.mimeType,
-        ContentType.text.mimeType,
-      );
+      expect(response.headers.contentType?.mimeType, ContentType.text.mimeType);
       expect(response.body, null);
     });
   });

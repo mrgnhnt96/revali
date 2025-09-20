@@ -15,9 +15,7 @@ void main() {
 
     setUp(() {
       server = TestServer();
-      client = Server(
-        websocket: TestWebSocket(server).connect,
-      );
+      client = Server(websocket: TestWebSocket(server).connect);
 
       createServer(server);
     });
@@ -27,8 +25,9 @@ void main() {
     });
 
     test('user', () async {
-      final stream =
-          client.literal.user(user: Stream.value(const User(name: 'John')));
+      final stream = client.literal.user(
+        user: Stream.value(const User(name: 'John')),
+      );
 
       final result = await stream.single;
 

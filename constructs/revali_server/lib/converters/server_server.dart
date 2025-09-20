@@ -38,9 +38,7 @@ class ServerServer with ExtractImport {
       return [];
     }
 
-    final all = [
-      ...app.globalRouteAnnotations.lifecycleComponents,
-    ];
+    final all = [...app.globalRouteAnnotations.lifecycleComponents];
 
     for (final route in routes) {
       all.addAll(route.annotations.lifecycleComponents);
@@ -50,9 +48,7 @@ class ServerServer with ExtractImport {
       }
     }
 
-    final uniques = {
-      for (final component in all) component.name: component,
-    };
+    final uniques = {for (final component in all) component.name: component};
 
     return uniques.values.toList();
   }
@@ -111,13 +107,12 @@ class ServerServer with ExtractImport {
       return;
     }
 
-    final configuredFlavors = 'Configured Flavors:'
+    final configuredFlavors =
+        'Configured Flavors:'
         '\n\t- ${apps.map((e) => e.appAnnotation.flavor).join('\n\t- ')}';
 
     if (context.flavor case final flavor? when flavor.isNotEmpty) {
-      throw Exception(
-        'No app found for flavor "$flavor"\n$configuredFlavors',
-      );
+      throw Exception('No app found for flavor "$flavor"\n$configuredFlavors');
     }
 
     if (context.flavor == null) {
@@ -144,10 +139,10 @@ class ServerServer with ExtractImport {
 
   @override
   List<ExtractImport?> get extractors => [
-        ...routes,
-        ...lifecycleComponents,
-        app,
-      ];
+    ...routes,
+    ...lifecycleComponents,
+    app,
+  ];
 
   @override
   List<ServerImports?> get imports => const [];

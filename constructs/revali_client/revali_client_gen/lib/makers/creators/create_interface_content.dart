@@ -8,11 +8,7 @@ Spec createInterfaceContent(ClientController controller) {
       ..abstract = true
       ..modifier = ClassModifier.interface
       ..name = controller.interfaceName
-      ..constructors.add(
-        Constructor(
-          (b) => b..constant = true,
-        ),
-      )
+      ..constructors.add(Constructor((b) => b..constant = true))
       ..methods.addAll(createInterfaceMethods(controller)),
   );
 }

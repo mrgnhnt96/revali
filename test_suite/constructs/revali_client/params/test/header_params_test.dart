@@ -15,9 +15,7 @@ void main() {
     setUp(() {
       server = TestServer();
 
-      client = Server(
-        client: TestClient(server, (req) => request = req),
-      );
+      client = Server(client: TestClient(server, (req) => request = req));
 
       createServer(server);
     });
@@ -57,8 +55,9 @@ void main() {
     });
 
     test('all-optional', () async {
-      final response =
-          await client.headerParams.allOptional(shopIds: ['123', '456']);
+      final response = await client.headerParams.allOptional(
+        shopIds: ['123', '456'],
+      );
 
       expect(response, '123,456');
       verifyRequest('/api/header/all-optional', method: 'GET');

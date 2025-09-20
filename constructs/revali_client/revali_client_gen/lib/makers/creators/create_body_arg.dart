@@ -71,10 +71,7 @@ Expression createBodyArg(Iterable<ClientParam> params) {
   return createMap(entries);
 }
 
-Map<String, dynamic> _createMapWithKeys(
-  List<String> keys,
-  ClientParam param,
-) {
+Map<String, dynamic> _createMapWithKeys(List<String> keys, ClientParam param) {
   if (keys.isEmpty) {
     return {};
   }
@@ -85,7 +82,5 @@ Map<String, dynamic> _createMapWithKeys(
     _ => null,
   };
 
-  return {
-    key: nestedMap ?? refer(param.name).code,
-  };
+  return {key: nestedMap ?? refer(param.name).code};
 }

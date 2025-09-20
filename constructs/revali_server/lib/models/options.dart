@@ -1,7 +1,5 @@
 class Options {
-  const Options({
-    required this.ignoreLints,
-  });
+  const Options({required this.ignoreLints});
 
   // ignore: strict_raw_type
   factory Options.fromJson(Map? json) {

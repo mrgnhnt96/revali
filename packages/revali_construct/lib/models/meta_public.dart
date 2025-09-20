@@ -1,7 +1,5 @@
 class MetaPublic {
-  const MetaPublic({
-    required this.path,
-  });
+  const MetaPublic({required this.path});
 
   final String path;
 }

@@ -17,13 +17,14 @@ String getRawType(ServerType type) {
       // named records
       ServerType(
         isRecord: true,
-        recordProps: [ServerRecordProp(isNamed: true), ...]
+        recordProps: [ServerRecordProp(isNamed: true), ...],
       ) =>
         map,
       // at least 1 positional record
       ServerType(isRecord: true) => list,
-      ServerType(fromJson: ServerFromJson(params: [final type])) =>
-        getRawType(type),
+      ServerType(fromJson: ServerFromJson(params: [final type])) => getRawType(
+        type,
+      ),
       _ => map,
     };
   }

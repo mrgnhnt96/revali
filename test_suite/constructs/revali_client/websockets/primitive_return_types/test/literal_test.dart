@@ -84,18 +84,14 @@ void main() {
     test('named-record', () async {
       final response = await client.literals.namedRecord().toList();
 
-      expect(response, [
-        (first: 'hello', second: 'world'),
-      ]);
+      expect(response, [(first: 'hello', second: 'world')]);
       verifyGetRequest('/api/literals/named-record');
     });
 
     test('partial-record', () async {
       final response = await client.literals.partialRecord().toList();
 
-      expect(response, [
-        ('hello', second: 'world'),
-      ]);
+      expect(response, [('hello', second: 'world')]);
       verifyGetRequest('/api/literals/partial-record');
     });
 
@@ -103,9 +99,7 @@ void main() {
       final response = await client.literals.listOfRecords().toList();
 
       expect(response, [
-        [
-          ('hello', 'world'),
-        ],
+        [('hello', 'world')],
       ]);
       verifyGetRequest('/api/literals/list-of-records');
     });

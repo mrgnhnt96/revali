@@ -1,6 +1,6 @@
 // ignore_for_file: unnecessary_parenthesis
 
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:revali_client_gen/makers/utils/extract_import.dart';
 import 'package:revali_client_gen/makers/utils/type_extensions.dart';
@@ -46,7 +46,7 @@ class ClientLifecycleComponentMethod with ExtractImport {
       return null;
     }
 
-    final params = object.parameters
+    final params = object.formalParameters
         .map(ClientParam.fromElement)
         .whereType<ClientParam>()
         .toList();
@@ -63,15 +63,9 @@ class ClientLifecycleComponentMethod with ExtractImport {
   static const interceptorPre = 'InterceptorPreResult';
   static const interceptorPost = 'InterceptorPostResult';
 
-  static final aliasReturnTypes = {
-    interceptorPre,
-    interceptorPost,
-  };
+  static final aliasReturnTypes = {interceptorPre, interceptorPost};
 
-  static final returnTypes = {
-    ...coreReturnTypes,
-    ...aliasReturnTypes,
-  };
+  static final returnTypes = {...coreReturnTypes, ...aliasReturnTypes};
 
   static final coreReturnTypes = {
     (GuardResult).name,
@@ -85,9 +79,7 @@ class ClientLifecycleComponentMethod with ExtractImport {
   bool get isInterceptorPost => _returnType == interceptorPost;
 
   @override
-  List<ExtractImport?> get extractors => [
-        ...parameters,
-      ];
+  List<ExtractImport?> get extractors => [...parameters];
 
   @override
   List<ClientImports?> get imports => [];

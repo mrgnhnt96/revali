@@ -1,9 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 class StringUser extends Equatable {
-  const StringUser({
-    required this.name,
-  });
+  const StringUser({required this.name});
 
   factory StringUser.fromJson(String json) {
     return StringUser(name: json);

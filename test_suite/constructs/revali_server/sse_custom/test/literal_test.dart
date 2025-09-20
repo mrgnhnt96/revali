@@ -21,10 +21,7 @@ void main() {
 
     test('user', () async {
       final response = await server
-          .connect(
-            method: 'GET',
-            path: '/api/literal/user',
-          )
+          .connect(method: 'GET', path: '/api/literal/user')
           .toList();
 
       expect(response, [
@@ -38,10 +35,7 @@ void main() {
 
     test('list-of-users', () async {
       final response = await server
-          .connect(
-            method: 'GET',
-            path: '/api/literal/list-of-users',
-          )
+          .connect(method: 'GET', path: '/api/literal/list-of-users')
           .toList();
 
       expect(response, [
@@ -57,10 +51,7 @@ void main() {
 
     test('set-of-users', () async {
       final response = await server
-          .connect(
-            method: 'GET',
-            path: '/api/literal/set-of-users',
-          )
+          .connect(method: 'GET', path: '/api/literal/set-of-users')
           .toList();
 
       expect(response, [
@@ -76,10 +67,7 @@ void main() {
 
     test('iterable-of-users', () async {
       final response = await server
-          .connect(
-            method: 'GET',
-            path: '/api/literal/iterable-of-users',
-          )
+          .connect(method: 'GET', path: '/api/literal/iterable-of-users')
           .toList();
 
       expect(response, [
@@ -95,10 +83,7 @@ void main() {
 
     test('map-of-users', () async {
       final response = await server
-          .connect(
-            method: 'GET',
-            path: '/api/literal/map-of-users',
-          )
+          .connect(method: 'GET', path: '/api/literal/map-of-users')
           .toList();
 
       expect(response, [
@@ -114,10 +99,7 @@ void main() {
 
     test('record-of-users', () async {
       final response = await server
-          .connect(
-            method: 'GET',
-            path: '/api/literal/record-of-users',
-          )
+          .connect(method: 'GET', path: '/api/literal/record-of-users')
           .toList();
 
       expect(response, [
@@ -134,10 +116,7 @@ void main() {
 
     test('partial-record-of-users', () async {
       final response = await server
-          .connect(
-            method: 'GET',
-            path: '/api/literal/partial-record-of-users',
-          )
+          .connect(method: 'GET', path: '/api/literal/partial-record-of-users')
           .toList();
 
       expect(response, [

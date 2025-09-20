@@ -1,10 +1,10 @@
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 extension ElementX on Element {
   String? get importPath {
     return switch (library?.isInSdk) {
       null || true => null,
-      false => librarySource?.uri.toString(),
+      false => library?.uri.toString(),
     };
   }
 
@@ -26,7 +26,7 @@ extension ElementX on Element {
   Element? _fromJsonFromClass(ClassElement element) {
     for (final ctor in element.constructors) {
       if (ctor.name != 'fromJson') continue;
-      if (ctor.parameters.length != 1) continue;
+      if (ctor.formalParameters.length != 1) continue;
 
       return ctor;
     }

@@ -17,10 +17,7 @@ void main() {
     });
 
     test('returns a 404', () async {
-      final response = await server.send(
-        method: 'GET',
-        path: '/',
-      );
+      final response = await server.send(method: 'GET', path: '/');
 
       expect(response.statusCode, 404);
       expect(
@@ -55,10 +52,7 @@ package:revali_router/src/router/router.dart'''),
     });
 
     test('returns a successful response when GET request', () async {
-      final response = await server.send(
-        method: 'GET',
-        path: '/api/get',
-      );
+      final response = await server.send(method: 'GET', path: '/api/get');
 
       expect(response.statusCode, 200);
       expect(response.body, {'data': 'Hello world!'});
@@ -90,10 +84,7 @@ package:revali_router/src/router/router.dart'''),
     });
 
     test('returns a successful response when OPTIONS request', () async {
-      final response = await server.send(
-        method: 'OPTIONS',
-        path: '/api/get',
-      );
+      final response = await server.send(method: 'OPTIONS', path: '/api/get');
 
       expect(response.statusCode, 200);
       expect(response.body, isNull);
@@ -124,10 +115,7 @@ package:revali_router/src/router/router.dart'''),
     });
 
     test('returns a successful response when HEAD request', () async {
-      final response = await server.send(
-        method: 'HEAD',
-        path: '/api/get',
-      );
+      final response = await server.send(method: 'HEAD', path: '/api/get');
 
       expect(response.statusCode, 200);
       expect(response.body, isNull);

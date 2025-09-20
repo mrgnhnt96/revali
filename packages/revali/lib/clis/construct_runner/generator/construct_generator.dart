@@ -30,8 +30,8 @@ class ConstructGenerator with DirectoriesMixin {
     required String rootPath,
     this.dartDefines,
     this.generateConstructType = GenerateConstructType.constructs,
-  })  : mode = Mode.release,
-        _rootPath = rootPath;
+  }) : mode = Mode.release,
+       _rootPath = rootPath;
   ConstructGenerator.profile({
     required this.flavor,
     required this.routesHandler,
@@ -41,8 +41,8 @@ class ConstructGenerator with DirectoriesMixin {
     required String rootPath,
     this.dartDefines,
     this.generateConstructType = GenerateConstructType.constructs,
-  })  : mode = Mode.profile,
-        _rootPath = rootPath;
+  }) : mode = Mode.profile,
+       _rootPath = rootPath;
   ConstructGenerator.debug({
     required this.flavor,
     required this.routesHandler,
@@ -52,8 +52,8 @@ class ConstructGenerator with DirectoriesMixin {
     required String rootPath,
     this.dartDefines,
     this.generateConstructType = GenerateConstructType.constructs,
-  })  : mode = Mode.debug,
-        _rootPath = rootPath;
+  }) : mode = Mode.debug,
+       _rootPath = rootPath;
 
   final Mode mode;
   final String? flavor;
@@ -77,16 +77,13 @@ class ConstructGenerator with DirectoriesMixin {
     return __root = root;
   }
 
-  RevaliContext get context => RevaliContext(
-        flavor: flavor,
-        mode: mode,
-      );
+  RevaliContext get context => RevaliContext(flavor: flavor, mode: mode);
 
   RevaliBuildContext get buildContext => RevaliBuildContext(
-        flavor: flavor,
-        mode: mode,
-        defines: dartDefines?.defined ?? const {},
-      );
+    flavor: flavor,
+    mode: mode,
+    defines: dartDefines?.defined ?? const {},
+  );
 
   Future<void> clean({
     GenerateConstructType type = GenerateConstructType.constructs,
@@ -144,9 +141,7 @@ class ConstructGenerator with DirectoriesMixin {
       }
 
       if (maker.optIn && config.enabled == null) {
-        logger.detail(
-          'Skipping ${config.name} | Opt-in construct not enabled',
-        );
+        logger.detail('Skipping ${config.name} | Opt-in construct not enabled');
         continue;
       }
 
@@ -327,9 +322,7 @@ http://revali.dev/constructs#server-constructs
 
       await _generateDirectory(
         'build',
-        RevaliDirectory(
-          files: constructResult.files,
-        ),
+        RevaliDirectory(files: constructResult.files),
         hasNameConflict: false,
         package: null,
       );
@@ -354,9 +347,7 @@ http://revali.dev/constructs#server-constructs
 
       await _generateDirectory(
         maker.name,
-        RevaliDirectory(
-          files: constructResult.files,
-        ),
+        RevaliDirectory(files: constructResult.files),
         hasNameConflict: maker.hasNameConflict,
         package: maker.package,
       );
@@ -381,14 +372,13 @@ http://revali.dev/constructs#server-constructs
 
     final fsDirectory = switch (hasNameConflict) {
       true => revali.childDirectory(
-          package ??
-              (throw Exception(
-                'Package must be provided when there is a name conflict',
-              )),
-        ),
+        package ??
+            (throw Exception(
+              'Package must be provided when there is a name conflict',
+            )),
+      ),
       _ => revali,
-    }
-        .sanitizedChildDirectory(name);
+    }.sanitizedChildDirectory(name);
 
     if (!await fsDirectory.exists()) {
       await fsDirectory.create(recursive: true);
@@ -402,9 +392,7 @@ http://revali.dev/constructs#server-constructs
 
     final revaliFiles = revaliEntities.whereType<File>();
 
-    final paths = {
-      for (final file in revaliFiles) file.path,
-    };
+    final paths = {for (final file in revaliFiles) file.path};
 
     for (final file in revaliDirectory.files) {
       final fileEntity = fsDirectory.sanitizedChildFile(file.fileName);

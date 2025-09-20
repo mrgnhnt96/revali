@@ -1,10 +1,7 @@
 import 'package:analyzer/dart/constant/value.dart';
 
 class ServerAllowOrigins {
-  const ServerAllowOrigins({
-    required this.origins,
-    required this.inherit,
-  });
+  const ServerAllowOrigins({required this.origins, required this.inherit});
 
   factory ServerAllowOrigins.fromDartObject(DartObject object) {
     final raw = object.getField('origins')?.toSetValue() ?? {};

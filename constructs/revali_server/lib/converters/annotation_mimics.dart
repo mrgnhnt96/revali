@@ -18,10 +18,10 @@ class AnnotationMimics implements BaseAnnotations<ServerMimic> {
   List<ServerMimic> combines = [];
 
   List<ServerMimic> get all => [
-        ...catchers,
-        ...guards,
-        ...interceptors,
-        ...middlewares,
-        ...combines,
-      ];
+    ...catchers,
+    ...guards,
+    ...interceptors,
+    ...middlewares,
+    ...combines,
+  ];
 }

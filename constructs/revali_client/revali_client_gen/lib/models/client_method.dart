@@ -31,9 +31,7 @@ class ClientMethod with ExtractImport {
     String parentPath,
     List<ClientLifecycleComponent> parentComponents,
   ) {
-    final lifecycleComponents = <ClientLifecycleComponent>[
-      ...parentComponents,
-    ];
+    final lifecycleComponents = <ClientLifecycleComponent>[...parentComponents];
     var isExcluded = false;
 
     route.annotationsFor(
@@ -42,8 +40,9 @@ class ClientMethod with ExtractImport {
           classType: LifecycleComponent,
           package: 'revali_router_annotations',
           convert: (object, annotation) {
-            final component =
-                ClientLifecycleComponent.fromDartObject(annotation);
+            final component = ClientLifecycleComponent.fromDartObject(
+              annotation,
+            );
 
             lifecycleComponents.add(component);
           },
@@ -104,15 +103,14 @@ class ClientMethod with ExtractImport {
       return switch (part.type) {
         ClientType(isStream: true) => part,
         ClientType(isFuture: true, typeArguments: [final type]) ||
-        final type =>
-          part.changeType(
-            ClientType(
-              name: 'Stream<${type.name}>',
-              isStream: true,
-              typeArguments: [type],
-              method: this,
-            ),
-          )
+        final type => part.changeType(
+          ClientType(
+            name: 'Stream<${type.name}>',
+            isStream: true,
+            typeArguments: [type],
+            method: this,
+          ),
+        ),
       };
     }
 
@@ -155,15 +153,15 @@ class ClientMethod with ExtractImport {
   bool get isWebsocket => websocketType != WebsocketType.none;
 
   List<ClientParam> get allParams => [
-        ...lifecycleComponents.expand((e) => e.allParams),
-        ...parameters,
-      ];
+    ...lifecycleComponents.expand((e) => e.allParams),
+    ...parameters,
+  ];
 
   String get fullPath => [
-        '',
-        if (parentPath.isNotEmpty) parentPath,
-        if (path case final String p) p,
-      ].join('/');
+    '',
+    if (parentPath.isNotEmpty) parentPath,
+    if (path case final String p) p,
+  ].join('/');
 
   String get resolvedPath {
     final allParts = paramsFor(fullPath);
@@ -197,8 +195,7 @@ class ClientMethod with ExtractImport {
           final replacement = switch (count) {
             [final int index, ...] => '$key$index',
             _ => key,
-          }
-              .toCamelCase();
+          }.toCamelCase();
 
           if (count case final List<int> count when count.isNotEmpty) {
             expandedParts[key] = count.sublist(1);
@@ -263,7 +260,8 @@ class ClientMethod with ExtractImport {
     List<ClientParam> query,
     List<ClientParam> headers,
     List<ClientParam> cookies,
-  }) get separateParams {
+  })
+  get separateParams {
     return allParams.separate;
   }
 

@@ -26,8 +26,9 @@ PartFile publicFileMaker(ServerServer server, String Function(Spec) formatter) {
               [literalString(public.path)],
               {
                 'method': literalString('GET'),
-                'allowedOrigins': refer((AllowedOriginsImpl).name)
-                    .constInstanceNamed('all', []),
+                'allowedOrigins': refer(
+                  (AllowedOriginsImpl).name,
+                ).constInstanceNamed('all', []),
                 'ignorePathPattern': literalTrue,
                 'handler': Method(
                   (p) => p
@@ -58,8 +59,5 @@ PartFile publicFileMaker(ServerServer server, String Function(Spec) formatter) {
 
   final content = formatter(publics);
 
-  return PartFile(
-    path: ['definitions', '__public'],
-    content: content,
-  );
+  return PartFile(path: ['definitions', '__public'], content: content);
 }

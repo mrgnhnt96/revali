@@ -23,9 +23,7 @@ void main() {
       final response = await server.send(
         method: 'GET',
         path: '/api/path/user/banana',
-        headers: {
-          'content-type': 'text/plain',
-        },
+        headers: {'content-type': 'text/plain'},
       );
 
       expect(response.statusCode, HttpStatus.ok);

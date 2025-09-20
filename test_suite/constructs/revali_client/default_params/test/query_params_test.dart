@@ -15,9 +15,7 @@ void main() {
     setUp(() {
       server = TestServer();
 
-      client = Server(
-        client: TestClient(server, (req) => request = req),
-      );
+      client = Server(client: TestClient(server, (req) => request = req));
 
       createServer(server);
     });
@@ -51,10 +49,7 @@ void main() {
     test('all', () async {
       final response = await client.queryParams.all();
 
-      expect(response, [
-        'Hello',
-        'world',
-      ]);
+      expect(response, ['Hello', 'world']);
       verifyRequest('/api/query/all', method: 'GET');
       expect(request?.url.queryParametersAll['data'], isNull);
     });
@@ -62,10 +57,7 @@ void main() {
     test('all-optional', () async {
       final response = await client.queryParams.allOptional();
 
-      expect(response, [
-        'Hello',
-        'world',
-      ]);
+      expect(response, ['Hello', 'world']);
       verifyRequest('/api/query/all-optional', method: 'GET');
       expect(request?.url.queryParametersAll['data'], isNull);
     });

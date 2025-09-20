@@ -54,10 +54,8 @@ class TestHeaders implements HttpHeaders {
 
   Map<String, String> get allValues => Map.unmodifiable(_headers);
   Map<String, String> get values => Map.unmodifiable(
-        Map.fromEntries(
-          _headers.entries.map((e) => MapEntry(e.key, e.value)),
-        ),
-      );
+    Map.fromEntries(_headers.entries.map((e) => MapEntry(e.key, e.value))),
+  );
 
   @override
   List<String>? operator [](String name) {
@@ -98,13 +96,10 @@ class TestHeaders implements HttpHeaders {
 
   @override
   void set(String name, Object value, {bool preserveHeaderCase = false}) {
-    add(
-      switch (name) {
-        _ when preserveHeaderCase => name,
-        _ => name.toLowerCase(),
-      },
-      value,
-    );
+    add(switch (name) {
+      _ when preserveHeaderCase => name,
+      _ => name.toLowerCase(),
+    }, value);
   }
 
   @override
@@ -145,9 +140,9 @@ class TestHeaders implements HttpHeaders {
   DateTime? _date;
   @override
   DateTime? get date => _date ??= switch (_headers[HttpHeaders.dateHeader]) {
-        final String value => DateTime.tryParse(value),
-        _ => null,
-      };
+    final String value => DateTime.tryParse(value),
+    _ => null,
+  };
 
   @override
   set date(DateTime? value) {
@@ -174,9 +169,9 @@ class TestHeaders implements HttpHeaders {
   String? _host;
   @override
   String? get host => _host ??= switch (_headers[HttpHeaders.hostHeader]) {
-        final String value => value,
-        _ => null,
-      };
+    final String value => value,
+    _ => null,
+  };
 
   @override
   set host(String? host) {
@@ -188,7 +183,7 @@ class TestHeaders implements HttpHeaders {
   DateTime? _ifModifiedSince;
   @override
   DateTime? get ifModifiedSince => _ifModifiedSince ??=
-          switch (_headers[HttpHeaders.ifModifiedSinceHeader]) {
+      switch (_headers[HttpHeaders.ifModifiedSinceHeader]) {
         final String value => DateTime.tryParse(value),
         _ => null,
       };
@@ -203,9 +198,9 @@ class TestHeaders implements HttpHeaders {
   int? _port;
   @override
   int? get port => _port ??= switch (_headers[HttpHeaders.hostHeader]) {
-        final String value => int.tryParse(value),
-        _ => null,
-      };
+    final String value => int.tryParse(value),
+    _ => null,
+  };
 
   @override
   set port(int? port) {
@@ -233,7 +228,7 @@ class TestHeaders implements HttpHeaders {
   bool? _persistentConnection;
   @override
   bool get persistentConnection => _persistentConnection ??=
-          switch (_headers[HttpHeaders.connectionHeader]) {
+      switch (_headers[HttpHeaders.connectionHeader]) {
         'true' => true,
         _ => false,
       };

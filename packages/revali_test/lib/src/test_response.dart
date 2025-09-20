@@ -44,12 +44,10 @@ class TestResponse implements HttpResponse {
   List<List<int>>? _body;
 
   dynamic get body => switch (_body) {
-        null => null,
-        [final data] => _decode(data),
-        final data => [
-            for (final item in data) _decode(item),
-          ],
-      };
+    null => null,
+    [final data] => _decode(data),
+    final data => [for (final item in data) _decode(item)],
+  };
 
   dynamic _decode(List<int> data) {
     final decoded = encoding.decode(data);
@@ -107,10 +105,7 @@ class TestResponse implements HttpResponse {
   final _headers = TestHeaders({});
 
   @override
-  Never redirect(
-    Uri location, {
-    int status = HttpStatus.movedTemporarily,
-  }) {
+  Never redirect(Uri location, {int status = HttpStatus.movedTemporarily}) {
     throw UnimplementedError();
   }
 

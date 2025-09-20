@@ -12,10 +12,7 @@ class ServerAppObservers with ExtractImport {
   bool get hasObservers => types.isNotEmpty || mimics.isNotEmpty;
 
   @override
-  List<ExtractImport?> get extractors => [
-        ...types,
-        ...mimics,
-      ];
+  List<ExtractImport?> get extractors => [...types, ...mimics];
 
   @override
   List<ServerImports?> get imports => [];

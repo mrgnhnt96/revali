@@ -69,16 +69,18 @@ void main() {
     });
 
     test('int', () async {
-      final response =
-          await client.literals.integer(data: Stream.value(1)).toList();
+      final response = await client.literals
+          .integer(data: Stream.value(1))
+          .toList();
 
       expect(response, [1]);
       verifyGetRequest('/api/literals/int');
     });
 
     test('double', () async {
-      final response =
-          await client.literals.dub(data: Stream.value(1.1)).toList();
+      final response = await client.literals
+          .dub(data: Stream.value(1.1))
+          .toList();
 
       expect(response, [1.1]);
       verifyGetRequest('/api/literals/double');
@@ -98,9 +100,7 @@ void main() {
           .namedRecord(data: Stream.value((first: 'hello', second: 'world')))
           .toList();
 
-      expect(response, [
-        (first: 'hello', second: 'world'),
-      ]);
+      expect(response, [(first: 'hello', second: 'world')]);
       verifyGetRequest('/api/literals/named-record');
     });
 
@@ -109,9 +109,7 @@ void main() {
           .partialRecord(data: Stream.value(('hello', second: 'world')))
           .toList();
 
-      expect(response, [
-        ('hello', second: 'world'),
-      ]);
+      expect(response, [('hello', second: 'world')]);
       verifyGetRequest('/api/literals/partial-record');
     });
 
@@ -121,9 +119,7 @@ void main() {
           .toList();
 
       expect(response, [
-        [
-          ('hello', 'world'),
-        ],
+        [('hello', 'world')],
       ]);
       verifyGetRequest('/api/literals/list-of-records');
     });
@@ -157,8 +153,9 @@ void main() {
     });
 
     test('map-string-dynamic', () async {
-      final response =
-          await client.literals.map(data: Stream.value({'hello': 1})).toList();
+      final response = await client.literals
+          .map(data: Stream.value({'hello': 1}))
+          .toList();
 
       expect(response, [
         {'hello': 1},

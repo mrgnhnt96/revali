@@ -2,7 +2,7 @@ name: revali_client_websocket_null_primitive_return_types_test
 publish_to: none
 
 environment:
-  sdk: ">=3.6.0 <4.0.0"
+  sdk: ">=3.8.0 <4.0.0"
 
 resolution: workspace
 

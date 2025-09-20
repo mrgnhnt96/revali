@@ -6,16 +6,9 @@ import 'package:mason_logger/mason_logger.dart';
 import 'package:revali_server/cli/commands/create/create_command.dart';
 
 class RevaliServerRunner extends CommandRunner<int> {
-  RevaliServerRunner({
-    required FileSystem fs,
-    required this.logger,
-  }) : super('revali_server', 'CLI for revali_server') {
-    addCommand(
-      CreateCommand(
-        fs: fs,
-        logger: logger,
-      ),
-    );
+  RevaliServerRunner({required FileSystem fs, required this.logger})
+    : super('revali_server', 'CLI for revali_server') {
+    addCommand(CreateCommand(fs: fs, logger: logger));
   }
 
   final Logger logger;

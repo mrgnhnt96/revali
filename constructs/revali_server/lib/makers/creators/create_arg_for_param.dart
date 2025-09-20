@@ -25,13 +25,11 @@ Expression createArgForParam(
   var variable = switch (annotation.type) {
     AnnotationType.body => createBodyVar(annotation),
     AnnotationType.query ||
-    AnnotationType.queryAll =>
-      createQueryVar(annotation, param),
+    AnnotationType.queryAll => createQueryVar(annotation, param),
     AnnotationType.cookie => createCookieVar(annotation, param),
     AnnotationType.param => createParamVar(annotation, param),
     AnnotationType.header ||
-    AnnotationType.headerAll =>
-      createHeaderVar(annotation, param),
+    AnnotationType.headerAll => createHeaderVar(annotation, param),
     AnnotationType.binds => createBindsVar(annotation, param),
     AnnotationType.data => createDataVar(param),
   };
@@ -79,14 +77,12 @@ Expression createArgForParam(
     ]): fromJson ??
         switch (param.type) {
           ServerType(:final iterableType?) => switch (iterableType) {
-              IterableType.list => refer('data').property('cast').call([]),
-              IterableType.set => refer('data')
-                  .property('toSet')
-                  .call([])
-                  .property('cast')
-                  .call([]),
-              IterableType.iterable => refer('data'),
-            },
+            IterableType.list => refer('data').property('cast').call([]),
+            IterableType.set => refer(
+              'data',
+            ).property('toSet').call([]).property('cast').call([]),
+            IterableType.iterable => refer('data'),
+          },
           _ => refer('data'),
         },
     if (param.defaultValue case final defaultValue?)

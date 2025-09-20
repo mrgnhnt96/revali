@@ -31,8 +31,9 @@ class ServerApp with ExtractImport {
           classType: Observer,
           package: 'revali_router_core',
           convert: (object, annotation) {
-            observers.mimics
-                .add(ServerMimic.fromDartObject(object, annotation));
+            observers.mimics.add(
+              ServerMimic.fromDartObject(object, annotation),
+            );
           },
         ),
         OnMatch(
@@ -70,10 +71,10 @@ class ServerApp with ExtractImport {
 
   @override
   List<ExtractImport?> get extractors => [
-        ...params,
-        globalRouteAnnotations,
-        observers,
-      ];
+    ...params,
+    globalRouteAnnotations,
+    observers,
+  ];
 
   @override
   List<ServerImports?> get imports => [importPath];

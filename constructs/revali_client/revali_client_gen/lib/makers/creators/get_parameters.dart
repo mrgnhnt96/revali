@@ -7,12 +7,7 @@ Iterable<Parameter> getParameters(
   Iterable<ClientParam> params,
   ClientMethod method,
 ) sync* {
-  final (
-    cookies: _,
-    :body,
-    :query,
-    :headers,
-  ) = params.separate;
+  final (cookies: _, :body, :query, :headers) = params.separate;
 
   if (!method.isWebsocket || method.websocketType.canSendAny) {
     final roots = body.roots();
@@ -31,10 +26,7 @@ Iterable<Parameter> getParameters(
           continue;
         }
 
-        yield _create(
-          param,
-          isStream: method.websocketType.canSendMany,
-        );
+        yield _create(param, isStream: method.websocketType.canSendMany);
       }
     }
   }
@@ -52,10 +44,7 @@ Iterable<Parameter> getParameters(
   }
 }
 
-Parameter _create(
-  ClientParam param, {
-  bool isStream = false,
-}) {
+Parameter _create(ClientParam param, {bool isStream = false}) {
   final makeNull = param.type.isNullable || param.hasDefaultValue;
 
   final typeName = switch (makeNull) {

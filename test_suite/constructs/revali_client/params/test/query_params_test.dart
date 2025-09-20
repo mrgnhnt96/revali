@@ -15,9 +15,7 @@ void main() {
     setUp(() {
       server = TestServer();
 
-      client = Server(
-        client: TestClient(server, (req) => request = req),
-      );
+      client = Server(client: TestClient(server, (req) => request = req));
 
       createServer(server);
     });
@@ -97,8 +95,9 @@ void main() {
     });
 
     test('all/string', () async {
-      final response =
-          await client.queryParams.allString(shopIds: ['abc', 'def']);
+      final response = await client.queryParams.allString(
+        shopIds: ['abc', 'def'],
+      );
 
       expect(response, 'abc,def');
       verifyRequest('/api/query/all/string', method: 'GET');
@@ -123,8 +122,9 @@ void main() {
     });
 
     test('all/double', () async {
-      final response =
-          await client.queryParams.allDouble(shopIds: [123.0, 456.0]);
+      final response = await client.queryParams.allDouble(
+        shopIds: [123.0, 456.0],
+      );
 
       expect(response, [123.0, 456.0]);
       verifyRequest('/api/query/all/double', method: 'GET');
@@ -132,8 +132,9 @@ void main() {
     });
 
     test('all-optional/string', () async {
-      final response =
-          await client.queryParams.allOptionalString(shopIds: ['abc', 'def']);
+      final response = await client.queryParams.allOptionalString(
+        shopIds: ['abc', 'def'],
+      );
 
       expect(response, ['abc', 'def']);
       verifyRequest('/api/query/all-optional/string', method: 'GET');
@@ -141,8 +142,9 @@ void main() {
     });
 
     test('all-optional/int', () async {
-      final response =
-          await client.queryParams.allOptionalInt(shopIds: [123, 456]);
+      final response = await client.queryParams.allOptionalInt(
+        shopIds: [123, 456],
+      );
 
       // hack to bypass bytes response
       expect(response, [123, 456].join(','));
@@ -151,8 +153,9 @@ void main() {
     });
 
     test('all-optional/bool', () async {
-      final response =
-          await client.queryParams.allOptionalBool(shopIds: [true, false]);
+      final response = await client.queryParams.allOptionalBool(
+        shopIds: [true, false],
+      );
 
       expect(response, [true, false]);
       verifyRequest('/api/query/all-optional/bool', method: 'GET');
@@ -160,8 +163,9 @@ void main() {
     });
 
     test('all-optional/double', () async {
-      final response =
-          await client.queryParams.allOptionalDouble(shopIds: [123.0, 456.0]);
+      final response = await client.queryParams.allOptionalDouble(
+        shopIds: [123.0, 456.0],
+      );
 
       expect(response, [123.0, 456.0]);
       verifyRequest('/api/query/all-optional/double', method: 'GET');

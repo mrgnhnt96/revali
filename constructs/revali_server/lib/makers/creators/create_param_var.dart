@@ -11,8 +11,9 @@ Expression createParamVar(
     throw ArgumentError('Invalid annotation type: ${annotation.runtimeType}');
   }
 
-  final paramsRef =
-      refer('context').property('request').property('pathParameters');
+  final paramsRef = refer(
+    'context',
+  ).property('request').property('pathParameters');
 
   return paramsRef.index(literalString(annotation.name ?? param.name));
 }

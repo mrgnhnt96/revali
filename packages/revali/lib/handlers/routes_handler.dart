@@ -41,11 +41,7 @@ class RoutesHandler with DirectoriesMixin {
 
     final publicRoutes = await _getPublic(root);
 
-    return MetaServer(
-      routes: routes,
-      apps: apps,
-      public: publicRoutes,
-    );
+    return MetaServer(routes: routes, apps: apps, public: publicRoutes);
   }
 
   Future<List<MetaPublic>> _getPublic(Directory root) async {
@@ -56,10 +52,7 @@ class RoutesHandler with DirectoriesMixin {
     }
 
     final files = await publicDir
-        .list(
-          recursive: true,
-          followLinks: false,
-        )
+        .list(recursive: true, followLinks: false)
         .toList();
 
     final routes = <MetaPublic>[];

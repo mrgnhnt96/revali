@@ -11,12 +11,7 @@ PartFile controllerImplFile(
   final content = createImplContent(controller);
 
   return PartFile(
-    path: [
-      'lib',
-      'src',
-      'impls',
-      controller.implementationName.toSnakeCase(),
-    ],
+    path: ['lib', 'src', 'impls', controller.implementationName.toSnakeCase()],
     content: formatter(content),
   );
 }

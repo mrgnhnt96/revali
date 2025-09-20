@@ -1,6 +1,1 @@
-enum ParameterPosition {
-  query,
-  header,
-  cookie,
-  body;
-}
+enum ParameterPosition { query, header, cookie, body }

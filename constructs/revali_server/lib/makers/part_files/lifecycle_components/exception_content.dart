@@ -77,18 +77,17 @@ String exceptionContent(
                   ..type = refer('Object'),
               ),
             )
-            ..body = Block.of(
-              [
-                for (final exception in methods)
-                  ifStatement(
-                    refer('exception')
-                        .isA(refer(exception.exceptionType ?? 'void')),
-                    body: literalTrue.returned.statement,
-                  ).code,
-                const Code('\n'),
-                literalFalse.returned.statement,
-              ],
-            ),
+            ..body = Block.of([
+              for (final exception in methods)
+                ifStatement(
+                  refer(
+                    'exception',
+                  ).isA(refer(exception.exceptionType ?? 'void')),
+                  body: literalTrue.returned.statement,
+                ).code,
+              const Code('\n'),
+              literalFalse.returned.statement,
+            ]),
         ),
         Method(
           (p) => p
@@ -107,37 +106,30 @@ String exceptionContent(
                   ..type = refer((Context).name),
               ),
             ])
-            ..body = Block.of(
-              [
-                declareFinal('component')
-                    .assign(
-                      refer(component.name).newInstance(positioned, named),
-                    )
-                    .statement,
-                const Code('\n'),
-                ...[
-                  for (final MapEntry(:key, value: values)
-                      in groupedMethods.entries) ...[
-                    ifStatement(
-                      refer('exception').isA(refer(key)),
-                      body: _createComponentMethods(
-                        key,
-                        values,
-                        inferredParams: {
-                          key: refer('exception'),
-                        },
-                      ),
-                    ).code,
-                    const Code('\n'),
-                  ],
+            ..body = Block.of([
+              declareFinal('component')
+                  .assign(refer(component.name).newInstance(positioned, named))
+                  .statement,
+              const Code('\n'),
+              ...[
+                for (final MapEntry(:key, value: values)
+                    in groupedMethods.entries) ...[
+                  ifStatement(
+                    refer('exception').isA(refer(key)),
+                    body: _createComponentMethods(
+                      key,
+                      values,
+                      inferredParams: {key: refer('exception')},
+                    ),
+                  ).code,
+                  const Code('\n'),
                 ],
-                const Code('\n'),
-                refer('ExceptionCatcherResult')
-                    .constInstanceNamed('unhandled', [])
-                    .returned
-                    .statement,
               ],
-            ),
+              const Code('\n'),
+              refer(
+                'ExceptionCatcherResult',
+              ).constInstanceNamed('unhandled', []).returned.statement,
+            ]),
         ),
       ]),
   );
@@ -161,10 +153,9 @@ Code _createComponentMethods(
         (p) => p
           ..lambda = true
           ..body = Block.of([
-            refer('component')
-                .property(method.name)
-                .call(params.positioned, params.named)
-                .code,
+            refer(
+              'component',
+            ).property(method.name).call(params.positioned, params.named).code,
           ]),
       );
 
@@ -192,7 +183,7 @@ Code _createComponentMethods(
           refer('handler').call([]),
           pattern: (
             cse: declareFinal('result'),
-            when: refer('result').property('isHandled')
+            when: refer('result').property('isHandled'),
           ),
           body: refer('result').returned.statement,
         ).code,

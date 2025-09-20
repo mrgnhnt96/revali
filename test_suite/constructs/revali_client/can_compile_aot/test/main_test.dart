@@ -42,15 +42,13 @@ void main() {
       final dependencies = content['dependencies'] as YamlMap;
 
       expect(dependencies, hasLength(2));
-      expect(
-        dependencies.keys,
-        ['http', 'revali_client'],
-      );
+      expect(dependencies.keys, ['http', 'revali_client']);
     });
 
     test('excluded controller is excluded', () async {
-      final dynamic client =
-          CanCompileAotServer(client: TestClient(TestServer()));
+      final dynamic client = CanCompileAotServer(
+        client: TestClient(TestServer()),
+      );
 
       // ignore: avoid_dynamic_calls
       expect(() => client.excluded, throwsA(isA<NoSuchMethodError>()));

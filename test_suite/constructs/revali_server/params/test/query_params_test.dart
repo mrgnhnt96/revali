@@ -70,10 +70,7 @@ Stack Trace:
     });
 
     test('all should return error when not provided', () async {
-      final response = await server.send(
-        method: 'GET',
-        path: '/api/query/all',
-      );
+      final response = await server.send(method: 'GET', path: '/api/query/all');
 
       expect(response.statusCode, 500);
       expect(

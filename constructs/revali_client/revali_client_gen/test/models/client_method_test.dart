@@ -5,17 +5,12 @@ import 'package:test/test.dart';
 
 void main() {
   group(ClientMethod, () {
-    ClientMethod method({
-      String? parentPath,
-      String? path,
-    }) {
+    ClientMethod method({String? parentPath, String? path}) {
       return ClientMethod(
         name: 'name',
         parameters: [],
         lifecycleComponents: [],
-        returnType: ClientType(
-          name: 'name',
-        ),
+        returnType: ClientType(name: 'name'),
         isSse: false,
         websocketType: WebsocketType.none,
         path: path,
@@ -38,19 +33,20 @@ void main() {
         expect(m.params, ['productId']);
       });
 
-      test('should return list of params when path contains multiple params',
-          () {
-        final m =
-            method(path: 'product/:productId', parentPath: 'shop/:shopId');
+      test(
+        'should return list of params when path contains multiple params',
+        () {
+          final m = method(
+            path: 'product/:productId',
+            parentPath: 'shop/:shopId',
+          );
 
-        expect(m.params, ['shopId', 'productId']);
-      });
+          expect(m.params, ['shopId', 'productId']);
+        },
+      );
 
       test('should index params when multiple params have the same name', () {
-        final m = method(
-          parentPath: 'shop/:id',
-          path: 'product/:id',
-        );
+        final m = method(parentPath: 'shop/:id', path: 'product/:id');
 
         expect(m.params, ['id1', 'id2']);
       });
@@ -76,8 +72,10 @@ void main() {
       });
 
       test('should return the path without modifications', () {
-        final m =
-            method(parentPath: 'shop/:shop-id', path: 'product/:product-id');
+        final m = method(
+          parentPath: 'shop/:shop-id',
+          path: 'product/:product-id',
+        );
 
         expect(m.fullPath, '/shop/:shop-id/product/:product-id');
       });
@@ -115,18 +113,25 @@ void main() {
       });
 
       test('should format the param to comply with dart syntax', () {
-        final m =
-            method(parentPath: 'shop/:shop-id', path: 'product/:product-id');
+        final m = method(
+          parentPath: 'shop/:shop-id',
+          path: 'product/:product-id',
+        );
 
         expect(m.resolvedPath, r'/shop/${shopId}/product/${productId}');
       });
 
-      test('should format the param to comply with dart syntax with repeat ids',
-          () {
-        final m = method(parentPath: 'shop/:some-id', path: 'product/:some-id');
+      test(
+        'should format the param to comply with dart syntax with repeat ids',
+        () {
+          final m = method(
+            parentPath: 'shop/:some-id',
+            path: 'product/:some-id',
+          );
 
-        expect(m.resolvedPath, r'/shop/${someId1}/product/${someId2}');
-      });
+          expect(m.resolvedPath, r'/shop/${someId1}/product/${someId2}');
+        },
+      );
     });
   });
 }

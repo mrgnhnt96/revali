@@ -28,8 +28,7 @@ class ServerParentRoute with ExtractImport implements ServerRoute, ServerClass {
       routes: parentRoute.methods.map(ServerChildRoute.fromMeta).toList(),
       params: parentRoute.params.map(ServerParam.fromMeta).toList(),
       className: parentRoute.className,
-      importPath:
-          ServerImports([parentRoute.element.librarySource.uri.toString()]),
+      importPath: ServerImports([parentRoute.element.library.uri.toString()]),
       routePath: parentRoute.path,
       annotations: ServerRouteAnnotations.fromParent(parentRoute),
       index: index,
@@ -97,11 +96,7 @@ class ServerParentRoute with ExtractImport implements ServerRoute, ServerClass {
   }
 
   @override
-  List<ExtractImport?> get extractors => [
-        ...routes,
-        ...params,
-        annotations,
-      ];
+  List<ExtractImport?> get extractors => [...routes, ...params, annotations];
 
   @override
   List<ServerImports?> get imports => [importPath];

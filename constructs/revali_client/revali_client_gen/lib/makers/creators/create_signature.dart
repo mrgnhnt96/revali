@@ -20,9 +20,7 @@ Method createSignature(ClientMethod method, {Code? body}) {
         _ when body == null => null,
         _ => MethodModifier.async,
       }
-      ..annotations.addAll([
-        if (body != null) refer('override'),
-      ])
+      ..annotations.addAll([if (body != null) refer('override')])
       ..body = body,
   );
 }

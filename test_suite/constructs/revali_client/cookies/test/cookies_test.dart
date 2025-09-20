@@ -15,9 +15,7 @@ void main() {
     setUp(() {
       server = TestServer();
 
-      client = Server(
-        client: TestClient(server, (req) => request = req),
-      );
+      client = Server(client: TestClient(server, (req) => request = req));
 
       createServer(server);
     });
@@ -57,18 +55,9 @@ void main() {
       await client.cookies.lifecycle();
 
       verifyRequest('/api/cookies/lifecycle', method: 'GET');
-      expect(
-        await client.storage['X-Auth-Middleware'],
-        '123',
-      );
-      expect(
-        await client.storage['X-Auth-Pre'],
-        '456',
-      );
-      expect(
-        await client.storage['X-Auth-Post'],
-        '789',
-      );
+      expect(await client.storage['X-Auth-Middleware'], '123');
+      expect(await client.storage['X-Auth-Pre'], '456');
+      expect(await client.storage['X-Auth-Post'], '789');
     });
   });
 }

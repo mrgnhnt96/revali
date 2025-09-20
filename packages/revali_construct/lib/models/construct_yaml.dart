@@ -27,10 +27,10 @@ class ConstructYaml extends Equatable {
 
   @override
   List<Object?> get props => [
-        constructs,
-        packagePath,
-        packageUri,
-        packageName,
-        packageRootUri,
-      ];
+    constructs,
+    packagePath,
+    packageUri,
+    packageName,
+    packageRootUri,
+  ];
 }

@@ -3,10 +3,7 @@ import 'package:revali_client_gen/makers/files/controller_interface_file.dart';
 import 'package:revali_client_gen/models/client_server.dart';
 import 'package:revali_construct/revali_construct.dart';
 
-DartFile interfaceFile(
-  ClientServer server,
-  String Function(Spec) formatter,
-) {
+DartFile interfaceFile(ClientServer server, String Function(Spec) formatter) {
   final imports = server.allImports(
     additionalPackages: [
       'package:revali_client/revali_client.dart',
@@ -26,9 +23,7 @@ DartFile interfaceFile(
               FunctionType(
                 (b) => b
                   ..requiredParameters.addAll([
-                    TypeReference(
-                      (b) => b..symbol = 'Uri',
-                    ),
+                    TypeReference((b) => b..symbol = 'Uri'),
                   ])
                   ..namedParameters.addAll({
                     'protocols': TypeReference(
@@ -46,7 +41,8 @@ DartFile interfaceFile(
 
   return DartFile(
     basename: 'interfaces',
-    content: '''
+    content:
+        '''
 $imports
 export 'package:revali_client/src/storage.dart';
 $typedefs

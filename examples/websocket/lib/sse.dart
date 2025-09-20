@@ -85,10 +85,7 @@ Stream<List<int>> constantSource() async* {
       break;
     }
 
-    final data = {
-      'trigger': string,
-      'time': DateTime.now().toIso8601String(),
-    };
+    final data = {'trigger': string, 'time': DateTime.now().toIso8601String()};
 
     yield utf8.encode(jsonEncode(data));
   }

@@ -34,24 +34,15 @@ void main() {
     });
 
     test('string', () async {
-      final stream = server.connect(
-        method: 'GET',
-        path: '/api/stream/string',
-      );
+      final stream = server.connect(method: 'GET', path: '/api/stream/string');
 
       final responses = await stream.toList();
 
-      expect(responses, [
-        utf8.encode('Hello'),
-        utf8.encode('world'),
-      ]);
+      expect(responses, [utf8.encode('Hello'), utf8.encode('world')]);
     });
 
     test('bool', () async {
-      final stream = server.connect(
-        method: 'GET',
-        path: '/api/stream/bool',
-      );
+      final stream = server.connect(method: 'GET', path: '/api/stream/bool');
 
       final responses = await stream.toList();
 
@@ -62,10 +53,7 @@ void main() {
     });
 
     test('int', () async {
-      final stream = server.connect(
-        method: 'GET',
-        path: '/api/stream/int',
-      );
+      final stream = server.connect(method: 'GET', path: '/api/stream/int');
 
       final responses = await stream.toList();
 
@@ -76,10 +64,7 @@ void main() {
     });
 
     test('double', () async {
-      final stream = server.connect(
-        method: 'GET',
-        path: '/api/stream/double',
-      );
+      final stream = server.connect(method: 'GET', path: '/api/stream/double');
 
       final responses = await stream.toList();
 
@@ -90,10 +75,7 @@ void main() {
     });
 
     test('record', () async {
-      final stream = server.connect(
-        method: 'GET',
-        path: '/api/stream/record',
-      );
+      final stream = server.connect(method: 'GET', path: '/api/stream/record');
 
       final responses = await stream.toList();
 
@@ -122,18 +104,12 @@ void main() {
       expect(responses, [
         utf8.encode(
           jsonEncode({
-            'data': {
-              'first': 'hello',
-              'second': 'world',
-            },
+            'data': {'first': 'hello', 'second': 'world'},
           }),
         ),
         utf8.encode(
           jsonEncode({
-            'data': {
-              'first': 'foo',
-              'second': 'bar',
-            },
+            'data': {'first': 'foo', 'second': 'bar'},
           }),
         ),
       ]);
@@ -152,9 +128,7 @@ void main() {
           jsonEncode({
             'data': [
               'hello',
-              {
-                'second': 'world',
-              },
+              {'second': 'world'},
             ],
           }),
         ),
@@ -162,9 +136,7 @@ void main() {
           jsonEncode({
             'data': [
               'foo',
-              {
-                'second': 'bar',
-              },
+              {'second': 'bar'},
             ],
           }),
         ),
@@ -290,10 +262,7 @@ void main() {
     });
 
     test('set', () async {
-      final stream = server.connect(
-        method: 'GET',
-        path: '/api/stream/set',
-      );
+      final stream = server.connect(method: 'GET', path: '/api/stream/set');
 
       final responses = await stream.toList();
 
@@ -334,17 +303,11 @@ void main() {
     });
 
     test('bytes', () async {
-      final stream = server.connect(
-        method: 'GET',
-        path: '/api/stream/bytes',
-      );
+      final stream = server.connect(method: 'GET', path: '/api/stream/bytes');
 
       final responses = await stream.toList();
 
-      expect(responses, [
-        utf8.encode('Hello'),
-        utf8.encode('world'),
-      ]);
+      expect(responses, [utf8.encode('Hello'), utf8.encode('world')]);
     });
   });
 }

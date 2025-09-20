@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:change_case/change_case.dart';
 import 'package:collection/collection.dart';
@@ -7,11 +7,7 @@ import 'package:revali_server/converters/server_param.dart';
 import 'package:revali_server/utils/extract_import.dart';
 
 class ServerClass with ExtractImport {
-  ServerClass({
-    required this.className,
-    required this.params,
-    this.importPath,
-  });
+  ServerClass({required this.className, required this.params, this.importPath});
 
   ServerClass._({
     required this.className,
@@ -19,18 +15,11 @@ class ServerClass with ExtractImport {
     required this.importPath,
   });
 
-  factory ServerClass.fromType(
-    DartType type, {
-    required Type superType,
-  }) {
+  factory ServerClass.fromType(DartType type, {required Type superType}) {
     final className = type.getDisplayString();
     final element = type.element;
     if (element is! ClassElement) {
-      throw ArgumentError.value(
-        type,
-        'type',
-        'Expected a class element',
-      );
+      throw ArgumentError.value(type, 'type', 'Expected a class element');
     }
 
     final superTypeWithoutGenerics = '$superType'.split('<').first;
@@ -45,8 +34,9 @@ class ServerClass with ExtractImport {
       );
     }
 
-    final constructor =
-        element.constructors.firstWhereOrNull((e) => e.isPublic);
+    final constructor = element.constructors.firstWhereOrNull(
+      (e) => e.isPublic,
+    );
 
     if (constructor == null) {
       throw ArgumentError.value(
@@ -56,11 +46,11 @@ class ServerClass with ExtractImport {
       );
     }
 
-    final params = constructor.parameters.map((param) {
+    final params = constructor.formalParameters.map((param) {
       return ServerParam.fromElement(param);
     });
 
-    final uri = element.librarySource.uri.toString();
+    final uri = element.library.uri.toString();
 
     final imports = ServerImports([uri]);
 

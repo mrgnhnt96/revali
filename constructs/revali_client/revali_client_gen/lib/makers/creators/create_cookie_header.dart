@@ -15,10 +15,7 @@ Code createCookieHeader(Iterable<ClientParam> params) {
 
   return Block.of([
     const Code('{'),
-    for (final entry in params.map(_createEntry)) ...[
-      entry,
-      const Code(','),
-    ],
+    for (final entry in params.map(_createEntry)) ...[entry, const Code(',')],
     refer('}')
         .property('entries')
         .property('map')
@@ -26,11 +23,7 @@ Code createCookieHeader(Iterable<ClientParam> params) {
           Method(
             (b) => b
               ..lambda = true
-              ..requiredParameters.add(
-                Parameter(
-                  (b) => b..name = 'e',
-                ),
-              )
+              ..requiredParameters.add(Parameter((b) => b..name = 'e'))
               ..body = literalString(r'${e.key}=${e.value ?? ""}').code,
           ).closure,
         ])
@@ -53,29 +46,18 @@ Code _createEntry(ClientParam param) {
       cookie,
       pattern: (
         cse: declareFinal('value', type: refer(param.type.nonNullName)),
-        when: null
+        when: null,
       ),
       blockBody: false,
-      body: Block.of([
-        Code("'$access'"),
-        const Code(':'),
-        refer('value').code,
-      ]),
+      body: Block.of([Code("'$access'"), const Code(':'), refer('value').code]),
     ).code;
   } else {
     cookie = cookie.ifNullThen(
-      refer((Exception).name)
-          .newInstance(
-            [literal('Missing cookie: $access')],
-          )
-          .thrown
-          .parenthesized,
+      refer(
+        (Exception).name,
+      ).newInstance([literal('Missing cookie: $access')]).thrown.parenthesized,
     );
   }
 
-  return Block.of([
-    Code("'$access'"),
-    const Code(':'),
-    cookie.code,
-  ]);
+  return Block.of([Code("'$access'"), const Code(':'), cookie.code]);
 }

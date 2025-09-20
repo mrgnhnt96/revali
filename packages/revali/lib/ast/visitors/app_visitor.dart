@@ -1,5 +1,5 @@
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/visitor2.dart';
 import 'package:revali/ast/checkers/checkers.dart';
 import 'package:revali/ast/visitors/get_params.dart';
 import 'package:revali_construct/revali_construct.dart';
@@ -21,13 +21,13 @@ class _AppEntry {
   final bool isSecure;
 }
 
-class AppVisitor extends RecursiveElementVisitor<void> {
+class AppVisitor extends RecursiveElementVisitor2<void> {
   final entries = <_AppEntry>[];
 
   bool get hasApp => entries.isNotEmpty;
 
   @override
-  void visitClassElement(ClassElement element) {
+  void visitClassElement(ClassElement2 element) {
     super.visitClassElement(element);
 
     if (!appChecker.hasAnnotationOf(element)) {

@@ -1,18 +1,13 @@
 // ignore_for_file: overridden_fields
 
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_server/converters/server_mimic.dart';
 
 class ServerReflect {
-  const ServerReflect({
-    required this.className,
-    required this.metas,
-  });
-  const ServerReflect.none()
-      : className = null,
-        metas = null;
+  const ServerReflect({required this.className, required this.metas});
+  const ServerReflect.none() : className = null, metas = null;
 
   factory ServerReflect.fromElement(Element? element) {
     if (element == null) {
@@ -40,17 +35,16 @@ class ServerReflect {
             package: 'revali_router_annotations',
             convert: (object, annotation) {
               final meta = ServerMimic.fromDartObject(object, annotation);
-              (metas[field.name] ??= []).add(meta);
+              if (field.name3 case final String name) {
+                (metas[name] ??= []).add(meta);
+              }
             },
           ),
         ],
       );
     }
 
-    return ServerReflect(
-      className: className,
-      metas: metas,
-    );
+    return ServerReflect(className: className, metas: metas);
   }
 
   final String? className;
@@ -60,10 +54,7 @@ class ServerReflect {
   _ValidServerReflect? get valid {
     if (!isValid) return null;
 
-    return _ValidServerReflect(
-      className: className!,
-      metas: metas!,
-    );
+    return _ValidServerReflect(className: className!, metas: metas!);
   }
 
   bool get hasReflects => metas != null && metas!.isNotEmpty;
@@ -75,9 +66,9 @@ class _ValidServerReflect extends ServerReflect {
     required String super.className,
     required Map<String, Iterable<ServerMimic>> super.metas,
     // ignore: prefer_initializing_formals
-  })  : className = className,
-        // ignore: prefer_initializing_formals
-        metas = metas;
+  }) : className = className,
+       // ignore: prefer_initializing_formals
+       metas = metas;
 
   @override
   final String className;

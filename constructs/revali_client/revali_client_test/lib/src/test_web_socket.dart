@@ -12,8 +12,8 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 class TestWebSocket implements WebSocketChannel {
   TestWebSocket(this.server, [this.onRequest])
-      : _sending = StreamController<List<int>>.broadcast(),
-        _receiving = StreamController<dynamic>.broadcast();
+    : _sending = StreamController<List<int>>.broadcast(),
+      _receiving = StreamController<dynamic>.broadcast();
   final TestServer server;
   final void Function(HttpRequest)? onRequest;
 
@@ -22,8 +22,9 @@ class TestWebSocket implements WebSocketChannel {
   Completer<bool>? _ready;
 
   TestWebSocket connect(Uri uri, {Iterable<String>? protocols}) {
-    _ready
-        ?.completeError('Started new connection before previous one completed');
+    _ready?.completeError(
+      'Started new connection before previous one completed',
+    );
     _ready = Completer<bool>();
 
     _startConnection(uri, protocols: protocols);

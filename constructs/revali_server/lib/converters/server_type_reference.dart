@@ -4,9 +4,7 @@ import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/utils/extract_import.dart';
 
 class ServerTypeReference with ExtractImport {
-  ServerTypeReference({
-    required this.types,
-  });
+  ServerTypeReference({required this.types});
 
   factory ServerTypeReference.fromElement(
     DartObject object, {
@@ -16,9 +14,7 @@ class ServerTypeReference with ExtractImport {
     final typesValue = object.getField(key)?.toListValue();
 
     if (typesValue == null || typesValue.isEmpty) {
-      return ServerTypeReference(
-        types: const [],
-      );
+      return ServerTypeReference(types: const []);
     }
 
     final types = <ServerClass>[];

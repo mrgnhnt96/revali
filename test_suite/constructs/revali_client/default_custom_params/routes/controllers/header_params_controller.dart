@@ -24,7 +24,8 @@ class HeaderParamsController {
 
   @Get('all')
   List<StringUser> all([
-    @Header.all('X-User') List<StringUser> users = const [
+    @Header.all('X-User')
+    List<StringUser> users = const [
       StringUser(name: 'John'),
       StringUser(name: 'Jane'),
     ],
@@ -34,7 +35,8 @@ class HeaderParamsController {
 
   @Get('all-optional')
   List<StringUser>? allOptional([
-    @Header.all('X-User') List<StringUser>? users = const [
+    @Header.all('X-User')
+    List<StringUser>? users = const [
       StringUser(name: 'John'),
       StringUser(name: 'Jane'),
     ],

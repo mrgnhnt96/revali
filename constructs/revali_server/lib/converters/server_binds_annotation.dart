@@ -1,7 +1,7 @@
 // ignore_for_file: unnecessary_parenthesis
 
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:collection/collection.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_router_core/types/annotation_type.dart';
@@ -15,10 +15,7 @@ import 'package:revali_server/utils/extract_import.dart';
 class ServerBindsAnnotation
     with ExtractImport
     implements BaseParameterAnnotation {
-  ServerBindsAnnotation({
-    required this.bind,
-    required this.convertsTo,
-  });
+  ServerBindsAnnotation({required this.bind, required this.convertsTo});
 
   factory ServerBindsAnnotation.fromElement(
     DartObject object,
@@ -30,11 +27,10 @@ class ServerBindsAnnotation
       throw ArgumentError('Invalid type');
     }
 
-    final bindSuper = (bind.element as ClassElement?)
-        ?.allSupertypes
+    final bindSuper = (bind.element as ClassElement?)?.allSupertypes
         .firstWhereOrNull((element) {
-      return element.element.name == (Bind).name;
-    });
+          return element.element.name == (Bind).name;
+        });
 
     if (bindSuper == null) {
       throw ArgumentError('Failed to find superclass of $bind');

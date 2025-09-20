@@ -26,10 +26,7 @@ class AddToData implements LifecycleComponent {
 }
 
 class SomeLogger implements LifecycleComponent {
-  const SomeLogger(
-    this.logger, {
-    this.fallback,
-  });
+  const SomeLogger(this.logger, {this.fallback});
 
   final Logger logger;
   final Logger? fallback;

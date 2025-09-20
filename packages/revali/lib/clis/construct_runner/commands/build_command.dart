@@ -17,12 +17,9 @@ class BuildCommand extends Command<int>
     required this.logger,
     required Analyzer analyzer,
     RoutesHandler? routesHandler,
-  }) : routesHandler = routesHandler ??
-            RoutesHandler(
-              analyzer: analyzer,
-              fs: fs,
-              rootPath: rootPath,
-            ) {
+  }) : routesHandler =
+           routesHandler ??
+           RoutesHandler(analyzer: analyzer, fs: fs, rootPath: rootPath) {
     argParser
       ..addOption(
         'flavor',
@@ -31,13 +28,15 @@ class BuildCommand extends Command<int>
       )
       ..addFlag(
         'release',
-        help: '(Default) Whether to run in release mode. Disabled hot reload, '
+        help:
+            '(Default) Whether to run in release mode. Disabled hot reload, '
             'debugger, and logger',
         negatable: false,
       )
       ..addFlag(
         'profile',
-        help: 'Whether to run in profile mode. Enables logger, '
+        help:
+            'Whether to run in profile mode. Enables logger, '
             'but disables hot reload and debugger',
         negatable: false,
       )
@@ -60,7 +59,8 @@ class BuildCommand extends Command<int>
       )
       ..addMultiOption(
         'dart-define-from-file',
-        help: 'A file containing additional key-value '
+        help:
+            'A file containing additional key-value '
             'pairs that will be available as constants.',
         valueHelp: '.env',
       );
@@ -82,26 +82,28 @@ class BuildCommand extends Command<int>
   late final flavor = argResults?['flavor'] as String?;
   late final release = argResults?['release'] as bool? ?? true;
   late final profile = argResults?['profile'] as bool? ?? false;
-  late final type =
-      GenerateConstructType.values.byName(argResults?['type'] as String);
+  late final type = GenerateConstructType.values.byName(
+    argResults?['type'] as String,
+  );
 
   @override
   Future<int> run() async {
     final root = await rootOf(rootPath);
 
-    final generator = switch ((profile, release)) {
-      (true, _) => ConstructGenerator.profile,
-      _ => ConstructGenerator.release,
-    }(
-      flavor: flavor,
-      routesHandler: routesHandler,
-      makers: constructs,
-      logger: logger,
-      fs: fs,
-      rootPath: root.path,
-      dartDefines: defines,
-      generateConstructType: type,
-    );
+    final generator =
+        switch ((profile, release)) {
+          (true, _) => ConstructGenerator.profile,
+          _ => ConstructGenerator.release,
+        }(
+          flavor: flavor,
+          routesHandler: routesHandler,
+          makers: constructs,
+          logger: logger,
+          fs: fs,
+          rootPath: root.path,
+          dartDefines: defines,
+          generateConstructType: type,
+        );
 
     await generator.clean(type: type);
 

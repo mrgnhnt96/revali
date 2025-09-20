@@ -16,9 +16,7 @@ void main() {
         name: 'name',
         position: position,
         hasDefaultValue: false,
-        type: ClientType(
-          name: type ?? 'FakeType',
-        ),
+        type: ClientType(name: type ?? 'FakeType'),
         access: access,
         acceptMultiple: false,
       );
@@ -29,20 +27,14 @@ void main() {
 
       test('should throw exception when types do not match', () {
         expect(
-          [
-            param(type: 'String'),
-            param(type: 'int'),
-          ].roots,
+          [param(type: 'String'), param(type: 'int')].roots,
           throwsException,
         );
       });
 
       test('should not throw exception when types match', () {
         expect(
-          [
-            param(type: 'String'),
-            param(type: 'String'),
-          ].roots,
+          [param(type: 'String'), param(type: 'String')].roots,
           returnsNormally,
         );
       });
@@ -81,9 +73,7 @@ void main() {
           param(access: ['data']),
         ].roots();
 
-        final expected = RecursiveMap({
-          'data': RecursiveMap(),
-        });
+        final expected = RecursiveMap({'data': RecursiveMap()});
 
         expect(deepEquals.equals(result, expected), isTrue);
       });
@@ -104,22 +94,24 @@ void main() {
         expect(deepEquals.equals(result, expected), isTrue);
       });
 
-      test('should return all access with same roots when last is different',
-          () {
-        final result = [
-          param(access: ['data', 'email']),
-          param(access: ['data', 'password']),
-        ].roots();
+      test(
+        'should return all access with same roots when last is different',
+        () {
+          final result = [
+            param(access: ['data', 'email']),
+            param(access: ['data', 'password']),
+          ].roots();
 
-        final expected = RecursiveMap({
-          'data': RecursiveMap({
-            'email': RecursiveMap(),
-            'password': RecursiveMap(),
-          }),
-        });
+          final expected = RecursiveMap({
+            'data': RecursiveMap({
+              'email': RecursiveMap(),
+              'password': RecursiveMap(),
+            }),
+          });
 
-        expect(deepEquals.equals(result, expected), isTrue);
-      });
+          expect(deepEquals.equals(result, expected), isTrue);
+        },
+      );
     });
 
     group('#needsAssignment', () {
@@ -149,9 +141,7 @@ void main() {
       });
 
       test('should return true when root is empty and access is empty', () {
-        final result = [
-          param(access: []),
-        ].needsAssignment(param(access: []));
+        final result = [param(access: [])].needsAssignment(param(access: []));
 
         expect(result, isTrue);
       });

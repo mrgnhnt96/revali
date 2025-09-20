@@ -9,23 +9,17 @@ class QueryParamsController {
   const QueryParamsController();
 
   @Get('user')
-  String user({
-    @Query.pipe(UserPipe) required User data,
-  }) {
+  String user({@Query.pipe(UserPipe) required User data}) {
     return data.name;
   }
 
   @Get('list-user')
-  List<String> listUser({
-    @Query.allPipe(UserPipe) required List<User> data,
-  }) {
+  List<String> listUser({@Query.allPipe(UserPipe) required List<User> data}) {
     return data.map((user) => user.name).toList();
   }
 
   @Get('optional-user')
-  String? optionalUser({
-    @Query.pipe(OptionalUserPipe) required User? data,
-  }) {
+  String? optionalUser({@Query.pipe(OptionalUserPipe) required User? data}) {
     return data?.name;
   }
 

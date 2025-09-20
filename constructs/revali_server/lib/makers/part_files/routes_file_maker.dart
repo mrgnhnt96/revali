@@ -26,9 +26,9 @@ PartFile routesFileMaker(ServerServer server, String Function(Spec) formatter) {
       ..body = Block.of([
         for (final route in server.routes)
           if (route.type == InstanceType.singleton)
-            declareFinal('_${route.variableName}')
-                .assign(createClass(route))
-                .statement,
+            declareFinal(
+              '_${route.variableName}',
+            ).assign(createClass(route)).statement,
         const Code(''),
         literalList([
           for (final route in server.routes)
@@ -39,8 +39,7 @@ PartFile routesFileMaker(ServerServer server, String Function(Spec) formatter) {
                   ..body = switch (route.type) {
                     InstanceType.singleton => refer('_${route.variableName}'),
                     InstanceType.factory => createClass(route),
-                  }
-                      .code,
+                  }.code,
               ).closure,
               refer('di'),
             ]),
@@ -50,8 +49,5 @@ PartFile routesFileMaker(ServerServer server, String Function(Spec) formatter) {
 
   final content = formatter(routes);
 
-  return PartFile(
-    path: ['definitions', '__routes'],
-    content: content,
-  );
+  return PartFile(path: ['definitions', '__routes'], content: content);
 }

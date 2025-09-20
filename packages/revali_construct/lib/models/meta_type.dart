@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:revali_construct/models/iterable_type.dart';
@@ -37,7 +37,8 @@ class MetaType {
       toJson: MetaToJson.fromElement(type.element),
       importPath: type.element?.importPath,
       element: type.element,
-      isNullable: (type.nullabilitySuffix != NullabilitySuffix.none) ^
+      isNullable:
+          (type.nullabilitySuffix != NullabilitySuffix.none) ^
           (type is DynamicType),
       iterableType: switch (type) {
         final InterfaceType type => IterableType.fromType(type),
@@ -53,8 +54,9 @@ class MetaType {
         _ => [],
       },
       recordProps: switch (type) {
-        final RecordType recordType =>
-          MetaRecordProp.fromRecordType(recordType).toList(),
+        final RecordType recordType => MetaRecordProp.fromRecordType(
+          recordType,
+        ).toList(),
         _ => null,
       },
       isPrimitive: type.isPrimitive,

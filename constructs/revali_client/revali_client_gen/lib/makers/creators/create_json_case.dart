@@ -9,10 +9,7 @@ Expression createJsonCase(ClientType type) {
     final t => t,
   };
 
-  final result = declareFinal(
-    'data',
-    type: refer(rawType),
-  );
+  final result = declareFinal('data', type: refer(rawType));
   final dataNested = literalMap({'data': result});
 
   return switch (type) {

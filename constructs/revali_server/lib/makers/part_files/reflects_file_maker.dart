@@ -30,8 +30,5 @@ PartFile reflectsFileMaker(
 
   final content = formatter(reflects);
 
-  return PartFile(
-    path: ['definitions', '__reflects'],
-    content: content,
-  );
+  return PartFile(path: ['definitions', '__reflects'], content: content);
 }

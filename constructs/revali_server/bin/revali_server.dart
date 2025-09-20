@@ -19,10 +19,7 @@ Future<int> main(List<String> providedArgs) async {
     ..remove('--loud')
     ..remove('--quiet');
 
-  final runner = RevaliServerRunner(
-    fs: fs,
-    logger: logger,
-  );
+  final runner = RevaliServerRunner(fs: fs, logger: logger);
 
   try {
     final exitCode = await runner.run(args);

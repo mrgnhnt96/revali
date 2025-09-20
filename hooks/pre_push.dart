@@ -19,27 +19,22 @@ Hook main() {
             ],
           ),
           ParallelTasks(
-            include: [
-              Glob('**.dart'),
-            ],
-            exclude: [
-              Glob('**/example/**.dart'),
-            ],
+            include: [Glob('**.dart')],
+            exclude: [Glob('**/example/**.dart')],
             tasks: [
               ShellTask.always(
                 name: 'Run All Tests',
                 commands: (files) {
-                  return [
-                    'sip test --recursive --bail --concurrent',
-                  ];
+                  return ['sip test --recursive --bail --concurrent'];
                 },
               ),
               ShellTask.always(
                 name: 'Analyze',
                 commands: (files) {
                   final nonGenGlob = Glob('**.g.dart');
-                  final nonGeneratedFiles =
-                      files.where((e) => !nonGenGlob.matches(e));
+                  final nonGeneratedFiles = files.where(
+                    (e) => !nonGenGlob.matches(e),
+                  );
                   return ['dart analyze ${nonGeneratedFiles.join(' ')}'];
                 },
               ),

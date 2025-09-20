@@ -1,7 +1,7 @@
 // ignore_for_file: unnecessary_parenthesis
 
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:change_case/change_case.dart';
 import 'package:collection/collection.dart';
@@ -32,7 +32,7 @@ class ServerLifecycleComponent with ExtractImport {
   factory ServerLifecycleComponent.fromDartObject(
     ElementAnnotation annotation,
   ) {
-    final element = annotation.element?.enclosingElement3;
+    final element = annotation.element?.enclosingElement;
 
     if (element is! ClassElement) {
       throw Exception('Invalid element type');
@@ -56,7 +56,7 @@ class ServerLifecycleComponent with ExtractImport {
     final middlewares = <ServerLifecycleComponentMethod>[];
     final interceptors = (
       pre: <ServerLifecycleComponentMethod>[],
-      post: <ServerLifecycleComponentMethod>[]
+      post: <ServerLifecycleComponentMethod>[],
     );
     final exceptionCatchers = <ServerLifecycleComponentMethod>[];
 
@@ -71,8 +71,9 @@ class ServerLifecycleComponent with ExtractImport {
       };
     }
 
-    final constructor =
-        element.constructors.firstWhereOrNull((e) => e.isPublic);
+    final constructor = element.constructors.firstWhereOrNull(
+      (e) => e.isPublic,
+    );
 
     if (constructor == null) {
       throw ArgumentError.value(
@@ -82,7 +83,7 @@ class ServerLifecycleComponent with ExtractImport {
       );
     }
 
-    final params = constructor.parameters.map((e) {
+    final params = constructor.formalParameters.map((e) {
       final param = ServerParam.fromElement(e);
 
       if (arguments.all[param.name] case final arg?) {
@@ -92,8 +93,14 @@ class ServerLifecycleComponent with ExtractImport {
       return param;
     }).toList();
 
+    final name = element.name3;
+
+    if (name == null) {
+      throw Exception('Class name is null');
+    }
+
     return ServerLifecycleComponent(
-      name: element.name,
+      name: name,
       guards: guards,
       middlewares: middlewares,
       interceptors: interceptors,
@@ -101,19 +108,16 @@ class ServerLifecycleComponent with ExtractImport {
       params: params,
       import: ServerImports.fromElement(constructor.returnType.element),
       arguments: arguments,
-      genericTypes:
-          element.typeParameters.map(ServerGenericType.fromElement).toList(),
+      genericTypes: element.typeParameters
+          .map(ServerGenericType.fromElement)
+          .toList(),
     );
   }
 
   factory ServerLifecycleComponent.fromType(DartType type) {
     final element = type.element;
     if (element is! ClassElement) {
-      throw ArgumentError.value(
-        type,
-        'type',
-        'Expected a class element',
-      );
+      throw ArgumentError.value(type, 'type', 'Expected a class element');
     }
 
     final superTypeWithoutGenerics = (LifecycleComponent).name;
@@ -163,8 +167,9 @@ class ServerLifecycleComponent with ExtractImport {
   final List<ServerLifecycleComponentMethod> middlewares;
   final ({
     List<ServerLifecycleComponentMethod> pre,
-    List<ServerLifecycleComponentMethod> post
-  }) interceptors;
+    List<ServerLifecycleComponentMethod> post,
+  })
+  interceptors;
   final List<ServerLifecycleComponentMethod> exceptionCatchers;
   final List<ServerParam> params;
   final String name;
@@ -190,9 +195,7 @@ class ServerLifecycleComponent with ExtractImport {
         ServerParam(
           name: 'di',
           isRequired: true,
-          type: ServerType(
-            name: 'DI',
-          ),
+          type: ServerType(name: 'DI'),
         ),
         for (final param in params)
           param.copyWith(
@@ -222,17 +225,15 @@ class ServerLifecycleComponent with ExtractImport {
 
   @override
   List<ExtractImport?> get extractors => [
-        ...guards,
-        ...middlewares,
-        ...interceptors.pre,
-        ...interceptors.post,
-        ...exceptionCatchers,
-        ...params,
-        arguments,
-      ];
+    ...guards,
+    ...middlewares,
+    ...interceptors.pre,
+    ...interceptors.post,
+    ...exceptionCatchers,
+    ...params,
+    arguments,
+  ];
 
   @override
-  List<ServerImports?> get imports => [
-        import,
-      ];
+  List<ServerImports?> get imports => [import];
 }

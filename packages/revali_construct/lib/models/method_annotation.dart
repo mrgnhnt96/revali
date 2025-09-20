@@ -6,10 +6,7 @@ import 'package:revali_construct/models/web_socket_annotation.dart';
 import 'package:revali_construct/utils/get_field_value_from_dart_object.dart';
 
 base class MethodAnnotation extends Method with EquatableMixin {
-  const MethodAnnotation(
-    super.name, {
-    required super.path,
-  });
+  const MethodAnnotation(super.name, {required super.path});
 
   factory MethodAnnotation.fromAnnotation(DartObject annotation) {
     final className = annotation.type?.getDisplayString();
@@ -36,10 +33,7 @@ base class MethodAnnotation extends Method with EquatableMixin {
       );
     }
 
-    return MethodAnnotation(
-      name,
-      path: path,
-    );
+    return MethodAnnotation(name, path: path);
   }
 
   bool get isWebSocket => this is WebSocketAnnotation;

@@ -96,10 +96,7 @@ void main() {
     test('partial-record', () async {
       final response = await client.stream.partialRecord().toList();
 
-      expect(response, [
-        ('hello', second: 'world'),
-        ('foo', second: 'bar'),
-      ]);
+      expect(response, [('hello', second: 'world'), ('foo', second: 'bar')]);
       verifyGetRequest('/api/stream/partial-record');
     });
 
@@ -107,12 +104,8 @@ void main() {
       final response = await client.stream.listOfRecords().toList();
 
       expect(response, [
-        [
-          ('hello', 'world'),
-        ],
-        [
-          ('foo', 'bar'),
-        ]
+        [('hello', 'world')],
+        [('foo', 'bar')],
       ]);
       verifyGetRequest('/api/stream/list-of-records');
     });

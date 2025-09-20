@@ -27,15 +27,11 @@ Spec createReflect(ServerReflect possibleReflect) {
   }
 
   return refer((Reflect).name).newInstance(
-    [
-      refer(reflect.className),
-    ],
+    [refer(reflect.className)],
     {
       'metas': Method(
         (p) => p
-          ..requiredParameters.add(
-            Parameter((p) => p..name = 'm'),
-          )
+          ..requiredParameters.add(Parameter((p) => p..name = 'm'))
           ..body = Block.of([
             for (final meta in reflect.metas.entries) metaExp(meta).statement,
           ]),

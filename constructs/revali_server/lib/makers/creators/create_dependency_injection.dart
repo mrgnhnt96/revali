@@ -9,12 +9,12 @@ import 'package:revali_server/makers/utils/type_extensions.dart';
 List<Code> createDependencyInjection(ServerServer server) {
   if (server.context.mode.isRelease) {
     return [
-      declareFinal('dependencyInjection')
-          .assign(refer('app').property('initializeDI').call([]))
-          .statement,
-      refer('dependencyInjection')
-          .property('registerSingleton')
-          .call([refer('args')]).statement,
+      declareFinal(
+        'dependencyInjection',
+      ).assign(refer('app').property('initializeDI').call([])).statement,
+      refer(
+        'dependencyInjection',
+      ).property('registerSingleton').call([refer('args')]).statement,
       refer('app')
           .property('configureDependencies')
           .call([refer('dependencyInjection')])
@@ -33,12 +33,12 @@ List<Code> createDependencyInjection(ServerServer server) {
     declareFinal('di', type: refer((DIHandler).name)).statement,
     tryCatch(
       Block.of([
-        declareFinal('dependencyInjection')
-            .assign(refer('app').property('initializeDI').call([]))
-            .statement,
-        refer('dependencyInjection')
-            .property('registerSingleton')
-            .call([refer('args')]).statement,
+        declareFinal(
+          'dependencyInjection',
+        ).assign(refer('app').property('initializeDI').call([])).statement,
+        refer(
+          'dependencyInjection',
+        ).property('registerSingleton').call([refer('args')]).statement,
         refer('app')
             .property('configureDependencies')
             .call([refer('dependencyInjection')])
@@ -46,20 +46,19 @@ List<Code> createDependencyInjection(ServerServer server) {
             .statement,
         refer('di')
             .assign(
-              refer((DIHandler).name)
-                  .newInstance([refer('dependencyInjection')]),
+              refer(
+                (DIHandler).name,
+              ).newInstance([refer('dependencyInjection')]),
             )
             .statement,
         refer('di').property('finishRegistration').call([]).statement,
       ]),
-      Block.of(
-        [
-          refer('print').call([
-            literalString(r'Failed to configure dependencies:\n$e'),
-          ]).statement,
-          refer('server').returned.statement,
-        ],
-      ),
+      Block.of([
+        refer('print').call([
+          literalString(r'Failed to configure dependencies:\n$e'),
+        ]).statement,
+        refer('server').returned.statement,
+      ]),
     ),
   ];
 }

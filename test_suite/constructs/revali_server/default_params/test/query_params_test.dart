@@ -40,10 +40,7 @@ void main() {
     });
 
     test('all should return success when not provided', () async {
-      final response = await server.send(
-        method: 'GET',
-        path: '/api/query/all',
-      );
+      final response = await server.send(method: 'GET', path: '/api/query/all');
 
       expect(response.statusCode, HttpStatus.ok);
       expect(response.body, {'data': '123,456'});

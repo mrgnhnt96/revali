@@ -3,10 +3,7 @@ import 'package:mason_logger/mason_logger.dart';
 import 'package:revali_server/cli/commands/create/create_components/create_a_component_command.dart';
 
 class CreateAppCommand extends CreateAComponentCommand {
-  CreateAppCommand({
-    required super.fs,
-    required super.logger,
-  }) {
+  CreateAppCommand({required super.fs, required super.logger}) {
     argParser.addOption(
       'flavor',
       abbr: 'n',
@@ -47,7 +44,8 @@ class CreateAppCommand extends CreateAComponentCommand {
   }
 
   @override
-  String content() => '''
+  String content() =>
+      '''
 import 'package:revali_router/revali_router.dart';
 
 // Learn more about Apps at https://www.revali.dev/revali/app-configuration/overview

@@ -35,19 +35,16 @@ Expression createWebSocketHandler(
       ..requiredParameters.add(Parameter((b) => b..name = 'context'))
       ..modifier = MethodModifier.async
       ..body = Block.of([
-        declareFinal('controller')
-            .assign(refer(classVarName).call([]))
-            .statement,
+        declareFinal(
+          'controller',
+        ).assign(refer(classVarName).call([])).statement,
         const Code(''),
         refer((WebSocketHandler).name)
-            .newInstance(
-              [],
-              {
-                if (webSocket.triggerOnConnect || !webSocket.mode.canReceive)
-                  'onConnect': handler,
-                if (webSocket.mode.canReceive) 'onMessage': handler,
-              },
-            )
+            .newInstance([], {
+              if (webSocket.triggerOnConnect || !webSocket.mode.canReceive)
+                'onConnect': handler,
+              if (webSocket.mode.canReceive) 'onMessage': handler,
+            })
             .returned
             .statement,
       ]),
@@ -57,22 +54,21 @@ Expression createWebSocketHandler(
 Expression _createAsyncWebSocketSender(ServerType returnType) {
   final data =
       convertToJson(returnType.nonAsyncType, refer('data')) ?? refer('data');
-  return refer('${(AsyncWebSocketSender).name}Impl'
-          '<${returnType.nonAsyncType.name}>')
-      .newInstance([
+  return refer(
+    '${(AsyncWebSocketSender).name}Impl'
+    '<${returnType.nonAsyncType.name}>',
+  ).newInstance([
     Method(
       (b) => b
         ..lambda = true
         ..requiredParameters.add(Parameter((b) => b..name = 'data'))
         ..body = Block.of([
-          refer('context').property('asyncSender').property('send').call(
-            [
-              if (shouldNestJsonInData(returnType) && !returnType.isStream)
-                literalMap({'data': data})
-              else
-                data,
-            ],
-          ).code,
+          refer('context').property('asyncSender').property('send').call([
+            if (shouldNestJsonInData(returnType) && !returnType.isStream)
+              literalMap({'data': data})
+            else
+              data,
+          ]).code,
         ]),
     ).closure,
   ]);

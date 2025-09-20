@@ -21,9 +21,7 @@ class BodyParamsController {
   }
 
   @Get('nested-non-null')
-  User nestedNonNull([
-    @Body(['name']) User data = const User(name: 'John'),
-  ]) {
+  User nestedNonNull([@Body(['name']) User data = const User(name: 'John')]) {
     return data;
   }
 

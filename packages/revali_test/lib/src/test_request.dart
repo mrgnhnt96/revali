@@ -20,8 +20,8 @@ class TestRequest extends Stream<Uint8List> implements HttpRequest {
         Stream<Uint8List>() => body,
         Stream<List<int>>() => body.map(Uint8List.fromList),
         _ => throw Exception(
-            'Invalid body type, expected Stream<List<int>>, got $body',
-          ),
+          'Invalid body type, expected Stream<List<int>>, got $body',
+        ),
       };
 
       _body = null;
@@ -87,10 +87,10 @@ class TestRequest extends Stream<Uint8List> implements HttpRequest {
 
   @override
   HttpResponse get response => TestResponse(
-        onClose: onResponse,
-        webSocketInput: _webSocketInput,
-        onWebSocketMessage: onWebSocketMessage,
-      );
+    onClose: onResponse,
+    webSocketInput: _webSocketInput,
+    onWebSocketMessage: onWebSocketMessage,
+  );
 
   @override
   HttpSession get session => throw UnimplementedError();

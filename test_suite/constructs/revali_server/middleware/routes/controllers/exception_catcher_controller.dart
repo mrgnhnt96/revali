@@ -19,9 +19,7 @@ class ExceptionCatcherController {
   @Catch()
   @Get('map')
   void handleObject() {
-    throw const ServerException({
-      'message': 'Hello world!',
-    });
+    throw const ServerException({'message': 'Hello world!'});
   }
 
   @Catch()

@@ -12,21 +12,13 @@ class MetaRecordProp {
     for (final field in type.positionalFields) {
       final type = MetaType.fromType(field.type);
 
-      yield MetaRecordProp(
-        name: null,
-        isNamed: false,
-        type: type,
-      );
+      yield MetaRecordProp(name: null, isNamed: false, type: type);
     }
 
     for (final field in type.namedFields) {
       final type = MetaType.fromType(field.type);
 
-      yield MetaRecordProp(
-        name: field.name,
-        isNamed: true,
-        type: type,
-      );
+      yield MetaRecordProp(name: field.name, isNamed: true, type: type);
     }
   }
 

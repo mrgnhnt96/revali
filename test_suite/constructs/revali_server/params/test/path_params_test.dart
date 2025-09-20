@@ -20,10 +20,7 @@ void main() {
     });
 
     test('shop id', () async {
-      final response = await server.send(
-        method: 'GET',
-        path: '/api/shop/123',
-      );
+      final response = await server.send(method: 'GET', path: '/api/shop/123');
 
       expect(response.statusCode, HttpStatus.ok);
       expect(response.body, {'data': '123'});
@@ -36,9 +33,7 @@ void main() {
       );
 
       expect(response.statusCode, HttpStatus.ok);
-      expect(response.body, {
-        'data': '456',
-      });
+      expect(response.body, {'data': '456'});
     });
 
     test('variant id', () async {
@@ -49,11 +44,7 @@ void main() {
 
       expect(response.statusCode, HttpStatus.ok);
       expect(response.body, {
-        'data': {
-          'shopId': '123',
-          'productId': '456',
-          'variantId': '789',
-        },
+        'data': {'shopId': '123', 'productId': '456', 'variantId': '789'},
       });
     });
   });

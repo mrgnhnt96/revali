@@ -23,9 +23,7 @@ void main() {
       final response = await server.send(
         method: 'GET',
         path: '/api/body/root',
-        headers: {
-          'content-type': 'text/plain',
-        },
+        headers: {'content-type': 'text/plain'},
         body: '123',
       );
 
@@ -37,25 +35,19 @@ void main() {
       final response = await server.send(
         method: 'GET',
         path: '/api/body/nested',
-        headers: {
-          'content-type': 'application/json',
-        },
+        headers: {'content-type': 'application/json'},
         body: {'data': '456'},
       );
 
       expect(response.statusCode, HttpStatus.ok);
-      expect(response.body, {
-        'data': '456',
-      });
+      expect(response.body, {'data': '456'});
     });
 
     test('multiple', () async {
       final response = await server.send(
         method: 'GET',
         path: '/api/body/multiple',
-        headers: {
-          'content-type': 'application/json',
-        },
+        headers: {'content-type': 'application/json'},
         body: {'name': 'John', 'age': 30},
       );
 
@@ -67,9 +59,7 @@ void main() {
       final response = await server.send(
         method: 'GET',
         path: '/api/body/dynamic',
-        headers: {
-          'content-type': 'application/json',
-        },
+        headers: {'content-type': 'application/json'},
         body: {'data': 123},
       );
 
@@ -81,9 +71,7 @@ void main() {
       final response = await server.send(
         method: 'GET',
         path: '/api/body/dynamic',
-        headers: {
-          'content-type': 'application/json',
-        },
+        headers: {'content-type': 'application/json'},
         body: {'data': 'Hello world!'},
       );
 

@@ -1,6 +1,6 @@
 // ignore_for_file: unnecessary_parenthesis
 
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:revali_client_gen/makers/utils/extract_import.dart';
 import 'package:revali_client_gen/makers/utils/type_extensions.dart';
 import 'package:revali_client_gen/models/client_from_json.dart';
@@ -31,9 +31,9 @@ class ClientType with ExtractImport {
     this.toJson,
     this.method,
     this.isEnum = false,
-  })  : _typeArguments = typeArguments,
-        _parent = null,
-        _isVoid = isVoid;
+  }) : _typeArguments = typeArguments,
+       _parent = null,
+       _isVoid = isVoid;
 
   ClientType._required({
     required this.name,
@@ -54,14 +54,14 @@ class ClientType with ExtractImport {
     required this.toJson,
     required this.isEnum,
     required this.method,
-  })  : _typeArguments = typeArguments,
-        _isVoid = isVoid;
+  }) : _typeArguments = typeArguments,
+       _isVoid = isVoid;
 
   factory ClientType.fromMeta(MetaType type) {
     var import = ClientImports.fromElement(type.element);
 
-    final (resolvedName, isStringContent) =
-        switch (type.element?.name ?? type.name) {
+    final (resolvedName, isStringContent) = switch (type.element?.name ??
+        type.name) {
       final e when e == (StringContent).name => ('String', true),
       final e => (e, false),
     };
@@ -92,7 +92,7 @@ class ClientType with ExtractImport {
     );
   }
 
-  factory ClientType.fromElement(ParameterElement element) {
+  factory ClientType.fromElement(FormalParameterElement element) {
     return ClientType.fromMeta(MetaType.fromType(element.type));
   }
 
@@ -126,11 +126,11 @@ class ClientType with ExtractImport {
   }
 
   List<ClientType> get typeArguments => List.unmodifiable([
-        for (final arg in _typeArguments)
-          arg
-            .._parent = this
-            ..method = method,
-      ]);
+    for (final arg in _typeArguments)
+      arg
+        .._parent = this
+        ..method = method,
+  ]);
 
   ClientMethod? method;
 
@@ -209,15 +209,10 @@ class ClientType with ExtractImport {
         _ => this,
       };
 
-      if (type
-          case ClientType(
-            iterableType: IterableType.list,
-            typeArguments: [
-              ClientType(
-                iterableType: IterableType.list,
-              )
-            ]
-          )) {
+      if (type case ClientType(
+        iterableType: IterableType.list,
+        typeArguments: [ClientType(iterableType: IterableType.list)],
+      )) {
         type = type.typeArguments.first;
       }
 

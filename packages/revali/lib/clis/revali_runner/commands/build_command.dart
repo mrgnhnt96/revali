@@ -19,13 +19,15 @@ class BuildCommand extends Command<int> with ConstructRunnerArgs {
       )
       ..addFlag(
         'release',
-        help: '(Default) Whether to run in release mode. Disabled hot reload, '
+        help:
+            '(Default) Whether to run in release mode. Disabled hot reload, '
             'debugger, and logger',
         negatable: false,
       )
       ..addFlag(
         'profile',
-        help: 'Whether to run in profile mode. Enables logger, '
+        help:
+            'Whether to run in profile mode. Enables logger, '
             'but disables hot reload and debugger',
         negatable: false,
       )
@@ -42,7 +44,8 @@ class BuildCommand extends Command<int> with ConstructRunnerArgs {
       )
       ..addFlag(
         'recompile',
-        help: 'Re-compiles the construct kernel. '
+        help:
+            'Re-compiles the construct kernel. '
             'Needed to sync changes for a local construct.',
         negatable: false,
       )
@@ -54,7 +57,8 @@ class BuildCommand extends Command<int> with ConstructRunnerArgs {
       )
       ..addMultiOption(
         'dart-define-from-file',
-        help: 'A file containing additional key-value '
+        help:
+            'A file containing additional key-value '
             'pairs that will be available as constants.',
         valueHelp: '.env',
       );

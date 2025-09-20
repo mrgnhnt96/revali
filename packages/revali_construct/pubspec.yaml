@@ -14,10 +14,10 @@ topics:
   - construct
 
 environment:
-  sdk: ">=3.2.6 <4.0.0"
+  sdk: ">=3.8.0 <4.0.0"
 
 dependencies:
-  analyzer: ^6.11.0
+  analyzer: 8.1.1
   equatable: ^2.0.5
   hotreloader: ^4.2.0
   json_annotation: ^4.9.0

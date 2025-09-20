@@ -42,28 +42,17 @@ class _LiteralExpression extends Expression implements LiteralExpression {
 }
 
 extension ExpressionX on Expression {
-  Expression get yielded => _BinaryExpression._(
-        const _LiteralExpression._('yield'),
-        this,
-        '',
-      );
+  Expression get yielded =>
+      _BinaryExpression._(const _LiteralExpression._('yield'), this, '');
 
-  Expression get yieldedStar => _BinaryExpression._(
-        const _LiteralExpression._('yield*'),
-        this,
-        '',
-      );
+  Expression get yieldedStar =>
+      _BinaryExpression._(const _LiteralExpression._('yield*'), this, '');
 
   Expression nullSafeIndex(Expression index) => _BinaryExpression._(
-        this,
-        CodeExpression(
-          Block.of([
-            const Code('?'),
-            const Code('['),
-            index.code,
-            const Code(']'),
-          ]),
-        ),
-        '',
-      );
+    this,
+    CodeExpression(
+      Block.of([const Code('?'), const Code('['), index.code, const Code(']')]),
+    ),
+    '',
+  );
 }

@@ -1,7 +1,7 @@
 // ignore_for_file: unnecessary_parenthesis
 
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:revali_client_gen/makers/utils/extract_import.dart';
 import 'package:revali_client_gen/makers/utils/type_extensions.dart';
@@ -20,7 +20,7 @@ class ClientLifecycleComponent with ExtractImport {
   factory ClientLifecycleComponent.fromDartObject(
     ElementAnnotation annotation,
   ) {
-    final element = annotation.element?.enclosingElement3;
+    final element = annotation.element?.enclosingElement;
 
     if (element is! ClassElement) {
       throw Exception('Invalid element type');
@@ -39,7 +39,7 @@ class ClientLifecycleComponent with ExtractImport {
     final middlewares = <ClientLifecycleComponentMethod>[];
     final interceptors = (
       pre: <ClientLifecycleComponentMethod>[],
-      post: <ClientLifecycleComponentMethod>[]
+      post: <ClientLifecycleComponentMethod>[],
     );
 
     for (final method in methods) {
@@ -62,11 +62,7 @@ class ClientLifecycleComponent with ExtractImport {
   factory ClientLifecycleComponent.fromType(DartType type) {
     final element = type.element;
     if (element is! ClassElement) {
-      throw ArgumentError.value(
-        type,
-        'type',
-        'Expected a class element',
-      );
+      throw ArgumentError.value(type, 'type', 'Expected a class element');
     }
 
     final superTypeWithoutGenerics = (LifecycleComponent).name;
@@ -113,8 +109,9 @@ class ClientLifecycleComponent with ExtractImport {
   final List<ClientLifecycleComponentMethod> middlewares;
   final ({
     List<ClientLifecycleComponentMethod> pre,
-    List<ClientLifecycleComponentMethod> post
-  }) interceptors;
+    List<ClientLifecycleComponentMethod> post,
+  })
+  interceptors;
 
   bool get hasGuards => guards.isNotEmpty;
   bool get hasMiddlewares => middlewares.isNotEmpty;
@@ -122,19 +119,19 @@ class ClientLifecycleComponent with ExtractImport {
       interceptors.pre.isNotEmpty || interceptors.post.isNotEmpty;
 
   List<ClientParam> get allParams => [
-        ...guards.expand((e) => e.parameters),
-        ...middlewares.expand((e) => e.parameters),
-        ...interceptors.pre.expand((e) => e.parameters),
-        ...interceptors.post.expand((e) => e.parameters),
-      ];
+    ...guards.expand((e) => e.parameters),
+    ...middlewares.expand((e) => e.parameters),
+    ...interceptors.pre.expand((e) => e.parameters),
+    ...interceptors.post.expand((e) => e.parameters),
+  ];
 
   @override
   List<ExtractImport?> get extractors => [
-        ...guards,
-        ...middlewares,
-        ...interceptors.pre,
-        ...interceptors.post,
-      ];
+    ...guards,
+    ...middlewares,
+    ...interceptors.pre,
+    ...interceptors.post,
+  ];
 
   @override
   List<ClientImports?> get imports => [];
