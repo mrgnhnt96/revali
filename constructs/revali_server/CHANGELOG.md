@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 2.0.1-dev | 09.19.25
+
+### Breaking Changes
+
+- Update `analyzer` dependency to `^8.0.0`
+
+### Enhancements
+
+- Improve logging on errors
+
 ## 2.0.0-dev | 09.19.25
 
 ### Breaking Changes

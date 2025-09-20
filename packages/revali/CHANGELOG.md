@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.0.0-dev | 09.19.25
+
+### Breaking Changes
+
+- Update `analyzer` dependency to `^8.0.0`
+
 ## 1.5.0 | 08.16.25
 
 ### Features

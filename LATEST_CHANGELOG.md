@@ -6,16 +6,11 @@
 
 # revali
 
-## 1.5.0
+## 2.0.0-dev
 
-### Features
+### Breaking Changes
 
-- Add `c` keyboard action to clear console during `dart run revali dev`
-
-### Enhancements
-
-- Significantly reduce hot reload time
-- Print out error message during hot reload when compilation fails, without requiring a full restart
+- Update `analyzer` dependency to `^8.0.0`
 
 # revali_annotations
 
@@ -27,13 +22,11 @@
 
 # revali_construct
 
-## 1.8.0
+## 2.0.0-dev
 
-### Features
+### Breaking Changes
 
-- Improve hot reload performance
-- Debounce changes to slow hot reload frequency
-- Pass objects instead of strings to `stderr` to improve communication with `revali`
+- Update `analyzer` dependency to `^8.0.0`
 
 # revali_core
 
@@ -79,13 +72,11 @@
 
 # revali_server
 
-## 2.0.0-dev
+## 2.0.1-dev
 
 ### Breaking Changes
 
-- Support new `AddData` from `revali_router_annotations`
-- Support new `MetaData` from `revali_router_annotations`
-- Support drop of `ReadOnly`, `WriteOnly`, and `Mutable` from type names
+- Update `analyzer` dependency to `^8.0.0`
 
 ### Enhancements
 
@@ -104,9 +95,8 @@
 
 # revali_client_gen
 
-## 1.3.1
+## 2.0.0-dev
 
-### Fixes
+### Breaking Changes
 
-- Issue where controllers/methods were not excluded from integrations
-- Issue where controllers/methods were not excluded from dependencies
+- Update `analyzer` dependency to `^8.0.0`

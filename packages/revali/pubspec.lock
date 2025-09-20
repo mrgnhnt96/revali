@@ -374,7 +374,7 @@ packages:
       path: "../revali_construct"
       relative: true
     source: path
-    version: "1.8.0"
+    version: "2.0.0-dev"
   revali_core:
     dependency: "direct main"
     description:

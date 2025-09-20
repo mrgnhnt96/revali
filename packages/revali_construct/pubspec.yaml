@@ -1,6 +1,6 @@
 name: revali_construct
 description: Foundation for creating constructs for Revali
-version: 1.8.0
+version: 2.0.0-dev
 repository: https://github.com/mrgnhnt96/revali/tree/main/packages/revali_construct
 issue_tracker: https://github.com/mrgnhnt96/revali/issues
 documentation: https://revali.dev
@@ -17,7 +17,7 @@ environment:
   sdk: ">=3.8.0 <4.0.0"
 
 dependencies:
-  analyzer: 8.1.1
+  analyzer: ^8.0.0
   equatable: ^2.0.5
   hotreloader: ^4.2.0
   json_annotation: ^4.9.0
