@@ -53,6 +53,10 @@ Hook main() {
                 include: [Glob('**.dart')],
                 exclude: [Glob('**.g.dart'), Glob('**/example/**.dart')],
                 commands: (allFiles) {
+                  if (allFiles.isEmpty) {
+                    return [];
+                  }
+
                   final files = allFiles.join(' ');
                   return [
                     'dart analyze --fatal-infos --fatal-warnings $files',
