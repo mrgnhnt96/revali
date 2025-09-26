@@ -14,7 +14,7 @@ class WebSocketRoute extends BaseRoute {
     super.path, {
     required this.mode,
     required this.handler,
-    super.allowedHeaders,
+    super.preventedHeaders,
     super.allowedOrigins,
     super.catchers,
     super.combine,

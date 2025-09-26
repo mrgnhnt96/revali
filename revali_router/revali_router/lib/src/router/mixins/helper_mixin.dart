@@ -72,10 +72,10 @@ mixin HelperMixin {
         ...route.allAllowedOrigins,
       };
 
-  Set<String> get allowedHeaders => {
-        if (route.allowedHeaders?.inherit case final inherit? when inherit)
-          ...?globalComponents.allowedHeaders?.headers,
-        ...route.allAllowedHeaders,
+  Set<String> get preventedHeaders => {
+        if (route.preventedHeaders?.inherit case final inherit? when inherit)
+          ...?globalComponents.preventedHeaders?.headers,
+        ...route.allPreventedHeaders,
       };
 
   Set<String> get expectedHeaders => {

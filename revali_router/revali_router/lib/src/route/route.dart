@@ -18,7 +18,7 @@ class Route extends BaseRoute {
     super.redirect,
     super.combine,
     super.allowedOrigins,
-    super.allowedHeaders,
+    super.preventedHeaders,
     super.ignorePathPattern,
     super.responseHandler,
     super.expectedHeaders,

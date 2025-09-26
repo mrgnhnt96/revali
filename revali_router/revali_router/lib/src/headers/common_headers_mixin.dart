@@ -95,7 +95,7 @@ abstract class CommonHeadersMixin extends Headers {
 
   @override
   String? get origin {
-    return get(HttpHeaders.accessControlAllowOriginHeader);
+    return get(HttpHeaders.accessControlAllowOriginHeader) ?? get('origin');
   }
 
   @override

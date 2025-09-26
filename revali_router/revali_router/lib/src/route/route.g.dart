@@ -19,7 +19,7 @@ extension _$RouteAutoequal on Route {
         method,
         redirect,
         allowedOrigins,
-        allowedHeaders,
+        preventedHeaders,
         expectedHeaders,
         hasParent,
       ];

@@ -331,6 +331,7 @@ test-suite:
     (aliases): server
     (command):
       - (+) {$test-suite:revali_server:methods}
+      - (+) {$test-suite:revali_server:access-control}
       - (+) {$test-suite:revali_server:custom-return-types}
       - (+) {$test-suite:revali_server:primitive-return-types}
       - (+) {$test-suite:revali_server:null-primitive-return-types}
@@ -352,6 +353,9 @@ test-suite:
       {$test-suite:_generate}
     methods: |
       DIR=methods
+      {$test-suite:revali_server:_package}
+    access-control: |
+      DIR=access_control
       {$test-suite:revali_server:_package}
     custom-return-types: |
       DIR=custom_return_types

@@ -214,7 +214,7 @@ class ServerRouteAnnotations with ExtractImport {
           },
         ),
         OnMatch(
-          classType: AllowHeaders,
+          classType: PreventHeaders,
           package: 'revali_annotations',
           convert: (object, annotation) {
             if (allowHeaders case final headers?) {

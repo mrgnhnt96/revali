@@ -13,7 +13,7 @@ class RunOriginCheck {
       :route,
       :debugErrorResponse,
       :defaultResponses,
-      :allowedHeaders,
+      :preventedHeaders,
       :expectedHeaders,
       :allowedOrigins,
       :response,
@@ -67,7 +67,15 @@ class RunOriginCheck {
       HttpHeaders.accessControlRequestHeadersHeader,
     );
 
-    // TODO(mrgnhnt): Blacklist headers
+    for (final header in request.headers.keys) {
+      if (preventedHeaders.contains(header)) {
+        return debugErrorResponse(
+          defaultResponses.failedCorsHeaders,
+          error: 'Header is not allowed.',
+          stackTrace: StackTrace.current,
+        );
+      }
+    }
 
     if (expectedHeaders.isNotEmpty) {
       final caseSafeHeaders = CaseInsensitiveMap.from({
@@ -116,9 +124,7 @@ Missing Headers:
       );
     }
 
-    final headers = allowedHeaders
-        .followedBy(expectedHeaders)
-        .followedBy(allowedHeadersFromRequest ?? []);
+    final headers = expectedHeaders.followedBy(allowedHeadersFromRequest ?? []);
 
     if (headers.isNotEmpty) {
       response.headers.set(

@@ -16,7 +16,7 @@ abstract class LifecycleComponents {
   List<Guard> get guards;
   void Function(Meta)? get _meta;
   AllowOrigins? get allowedOrigins;
-  AllowHeaders? get allowedHeaders;
+  PreventHeaders? get preventedHeaders;
   ExpectHeaders? get expectedHeaders;
   ResponseHandler? get responseHandler;
 

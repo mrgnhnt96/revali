@@ -1,5 +1,6 @@
 import 'package:autoequal/autoequal.dart';
 import 'package:equatable/equatable.dart';
+import 'package:revali_annotations/revali_annotations.dart';
 import 'package:revali_router/src/meta/combine_components_applier.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
@@ -21,9 +22,9 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
     void Function(Meta)? meta,
     Redirect? redirect,
     List<CombineComponents> combine = const [],
-    AllowedOrigins? allowedOrigins,
-    AllowedHeaders? allowedHeaders,
-    ExpectedHeaders? expectedHeaders,
+    AllowOrigins? allowedOrigins,
+    PreventHeaders? preventedHeaders,
+    ExpectHeaders? expectedHeaders,
     bool ignorePathPattern = false,
   }) : this._(
           path,
@@ -38,7 +39,7 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
           redirect: redirect,
           combine: combine,
           allowedOrigins: allowedOrigins,
-          allowedHeaders: allowedHeaders,
+          preventedHeaders: preventedHeaders,
           ignorePathPattern: ignorePathPattern,
           responseHandler: responseHandler,
           expectedHeaders: expectedHeaders,
@@ -56,7 +57,7 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
     required this.redirect,
     required List<CombineComponents> combine,
     required this.allowedOrigins,
-    required this.allowedHeaders,
+    required this.preventedHeaders,
     required bool ignorePathPattern,
     required ResponseHandler? responseHandler,
     required this.expectedHeaders,
@@ -168,11 +169,11 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
   final void Function(Meta)? _meta;
   final Redirect? redirect;
   @override
-  final AllowedOrigins? allowedOrigins;
+  final AllowOrigins? allowedOrigins;
   @override
-  final AllowedHeaders? allowedHeaders;
+  final PreventHeaders? preventedHeaders;
   @override
-  final ExpectedHeaders? expectedHeaders;
+  final ExpectHeaders? expectedHeaders;
   final ResponseHandler? _responseHandler;
 
   @override
@@ -378,13 +379,13 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
     yield* traverse(this);
   }
 
-  Iterable<String> get allAllowedHeaders sync* {
+  Iterable<String> get allPreventedHeaders sync* {
     Iterable<String> traverse(BaseRoute? route) sync* {
       if (route == null) {
         return;
       }
 
-      if (route.allowedHeaders case final value?) {
+      if (route.preventedHeaders case final value?) {
         yield* value.headers;
 
         if (!value.inherit) {

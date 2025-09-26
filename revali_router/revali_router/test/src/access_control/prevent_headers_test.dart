@@ -1,11 +1,11 @@
-import 'package:revali_router/src/access_control/allowed_headers_impl.dart';
+import 'package:revali_annotations/revali_annotations.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group(AllowedHeadersImpl, () {
+  group(PreventHeaders, () {
     test('should create an instance with given headers and inherit flag', () {
       final headers = {'Content-Type', 'Authorization'};
-      final allowedHeaders = AllowedHeadersImpl(headers, inherit: false);
+      final allowedHeaders = PreventHeaders(headers, inherit: false);
 
       expect(allowedHeaders.headers, equals(headers));
       expect(allowedHeaders.inherit, isFalse);
@@ -13,7 +13,7 @@ void main() {
 
     test('should create an instance with default inherit flag as true', () {
       final headers = {'Content-Type', 'Authorization'};
-      final allowedHeaders = AllowedHeadersImpl(headers);
+      final allowedHeaders = PreventHeaders(headers);
 
       expect(allowedHeaders.headers, equals(headers));
       expect(allowedHeaders.inherit, isTrue);
@@ -21,7 +21,7 @@ void main() {
 
     test('should allow empty headers set', () {
       final headers = <String>{};
-      final allowedHeaders = AllowedHeadersImpl(headers);
+      final allowedHeaders = PreventHeaders(headers);
 
       expect(allowedHeaders.headers, isEmpty);
       expect(allowedHeaders.inherit, isTrue);

@@ -1,5 +1,5 @@
 import 'package:mocktail/mocktail.dart';
-import 'package:revali_router/src/access_control/expected_headers_impl.dart';
+import 'package:revali_annotations/revali_annotations.dart';
 import 'package:revali_router/src/headers/headers_impl.dart';
 import 'package:revali_router/src/route/base_route.dart';
 import 'package:revali_router/src/route/route.dart';
@@ -102,14 +102,14 @@ void main() {
           final me = Route(
             'me',
             method: 'GET',
-            expectedHeaders: const ExpectedHeadersImpl({'authorization'}),
+            expectedHeaders: const ExpectHeaders({'authorization'}),
             middlewares: const [_TestAuthMiddleware()],
             handler: (_) async {},
           );
           final permissions = Route(
             'permissions',
             method: 'GET',
-            expectedHeaders: const ExpectedHeadersImpl({'authorization'}),
+            expectedHeaders: const ExpectHeaders({'authorization'}),
             handler: (_) async {},
           );
 

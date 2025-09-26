@@ -27,7 +27,7 @@ PartFile publicFileMaker(ServerServer server, String Function(Spec) formatter) {
               {
                 'method': literalString('GET'),
                 'allowedOrigins': refer(
-                  (AllowedOriginsImpl).name,
+                  (AllowOrigins).name,
                 ).constInstanceNamed('all', []),
                 'ignorePathPattern': literalTrue,
                 'handler': Method(

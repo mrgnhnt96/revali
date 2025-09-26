@@ -18,7 +18,7 @@ extension _$SseRouteAutoequal on SseRoute {
         method,
         redirect,
         allowedOrigins,
-        allowedHeaders,
+        preventedHeaders,
         expectedHeaders,
         hasParent,
       ];
