@@ -25,7 +25,7 @@ Hook main() {
               ShellTask.always(
                 name: 'Run All Tests',
                 commands: (files) {
-                  return ['sip test --recursive --bail --concurrent'];
+                  return ['sip test --recursive --bail'];
                 },
               ),
               ShellTask.always(
