@@ -92,7 +92,7 @@ class CookiesImpl implements Cookies {
 
     for (final MapEntry(key: name, :value) in _values.entries) {
       final entry = switch (value) {
-        String() when value.isNotEmpty => '$name=$value; ',
+        String() => '$name=$value; ',
         _ => '$name; ',
       };
 

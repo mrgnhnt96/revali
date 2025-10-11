@@ -11,11 +11,18 @@ void main() {
     late TestServer server;
     late Server client;
     HttpRequest? request;
+    HttpResponse? response;
 
     setUp(() {
       server = TestServer();
 
-      client = Server(client: TestClient(server, (req) => request = req));
+      client = Server(
+        client: TestClient(
+          server,
+          (req) => request = req,
+          (resp) => response = resp,
+        ),
+      );
 
       createServer(server);
     });
@@ -58,6 +65,14 @@ void main() {
       expect(await client.storage['X-Auth-Middleware'], '123');
       expect(await client.storage['X-Auth-Pre'], '456');
       expect(await client.storage['X-Auth-Post'], '789');
+    });
+
+    test('cookie should be assigned to empty string when provided', () async {
+      await client.cookies.empty();
+
+      verifyRequest('/api/cookies/empty', method: 'GET');
+      final resp = response!;
+      expect(resp.headers['set-cookie'], 'X-Auth=; ');
     });
   });
 }
