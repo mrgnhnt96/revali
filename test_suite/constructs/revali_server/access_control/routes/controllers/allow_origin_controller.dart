@@ -28,4 +28,9 @@ class AllowOriginController {
   String combined() {
     return 'Hello world!';
   }
+
+  @Get('fail')
+  String fail() {
+    throw Exception('Hello world!');
+  }
 }

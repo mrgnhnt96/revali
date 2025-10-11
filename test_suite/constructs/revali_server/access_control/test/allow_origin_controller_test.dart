@@ -27,6 +27,7 @@ void main() {
           );
 
           expect(response.statusCode, 200);
+          expect(response.headers['access-control-allow-origin'], ['*']);
         },
       );
 
@@ -38,6 +39,22 @@ void main() {
         );
 
         expect(response.statusCode, 200);
+        expect(response.headers['access-control-allow-origin'], [
+          'https://zelda.com',
+        ]);
+      });
+
+      test('should maintain origin when error occurs', () async {
+        final response = await server.send(
+          method: 'GET',
+          path: '/api/allow-origin/fail',
+          headers: {'Origin': 'https://zelda.com'},
+        );
+
+        expect(response.statusCode, 500);
+        expect(response.headers['access-control-allow-origin'], [
+          'https://zelda.com',
+        ]);
       });
     });
 
@@ -50,6 +67,9 @@ void main() {
         );
 
         expect(response.statusCode, 200);
+        expect(response.headers['access-control-allow-origin'], [
+          'https://zelda.com',
+        ]);
       });
 
       test('returns an error response when origin is not present', () async {
@@ -59,6 +79,7 @@ void main() {
         );
 
         expect(response.statusCode, 403);
+        expect(response.headers['access-control-allow-origin'], isNull);
       });
 
       test('returns a successful response when OPTIONS request', () async {
@@ -69,7 +90,6 @@ void main() {
         );
 
         expect(response.statusCode, 200);
-
         final headers = {...response.headers.values};
 
         expect(
