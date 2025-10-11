@@ -60,8 +60,11 @@ class Execute {
         try {
           await handler(context);
         } catch (e, stackTrace) {
-          final response = await catchers(e, stackTrace);
-          errorResponse.complete(response);
+          final responseForError = await catchers(e, stackTrace);
+          responseForError.headers.addEverything(
+            response.headers.values,
+          );
+          errorResponse.complete(responseForError);
         }
 
         if (!errorResponse.isCompleted) {
