@@ -16,17 +16,4 @@ mixin RemoveHeadersMixin {
       ..remove(HttpHeaders.contentLocationHeader)
       ..remove(HttpHeaders.contentMD5Header);
   }
-
-  void removeAccessControl(Headers headers) {
-    headers
-      ..remove(HttpHeaders.allowHeader)
-      ..remove(HttpHeaders.accessControlAllowOriginHeader)
-      ..remove(HttpHeaders.accessControlAllowCredentialsHeader)
-      ..remove(HttpHeaders.accessControlExposeHeadersHeader)
-      ..remove(HttpHeaders.accessControlMaxAgeHeader)
-      ..remove(HttpHeaders.accessControlAllowMethodsHeader)
-      ..remove(HttpHeaders.accessControlAllowHeadersHeader)
-      ..remove(HttpHeaders.accessControlRequestHeadersHeader)
-      ..remove(HttpHeaders.accessControlRequestMethodHeader);
-  }
 }

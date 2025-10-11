@@ -36,8 +36,6 @@ class DefaultResponseHandler
       case HttpStatus.notModified:
       case HttpStatus.noContent:
         removeContentRelated(responseHeaders);
-      case HttpStatus.notFound:
-        removeAccessControl(responseHeaders);
       default:
         break;
     }

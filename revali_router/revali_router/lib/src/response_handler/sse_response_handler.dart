@@ -24,8 +24,6 @@ class SseResponseHandler with RemoveHeadersMixin implements ResponseHandler {
       case HttpStatus.notModified:
       case HttpStatus.noContent:
         removeContentRelated(responseHeaders);
-      case HttpStatus.notFound:
-        removeAccessControl(responseHeaders);
       default:
         break;
     }
