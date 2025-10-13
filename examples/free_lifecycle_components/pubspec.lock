@@ -271,7 +271,7 @@ packages:
       path: "../../packages/revali"
       relative: true
     source: path
-    version: "1.5.0"
+    version: "2.0.0-dev"
   revali_annotations:
     dependency: "direct overridden"
     description:
@@ -285,7 +285,7 @@ packages:
       path: "../../packages/revali_construct"
       relative: true
     source: path
-    version: "1.8.0"
+    version: "2.0.0-dev"
   revali_core:
     dependency: "direct overridden"
     description:
@@ -320,7 +320,7 @@ packages:
       path: "../../constructs/revali_server"
       relative: true
     source: path
-    version: "2.0.0-dev"
+    version: "2.0.1-dev"
   source_span:
     dependency: transitive
     description:

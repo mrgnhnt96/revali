@@ -6,7 +6,7 @@ import 'package:revali_router/revali_router.dart';
   'http://localhost:8080',
   'http://localhost:8081',
 })
-@AllowHeaders({'X-UR-AWESOME'})
+@ExpectHeaders({'X-UR-AWESOME'})
 @Auth(AuthType.user)
 @Controller('user')
 class ThisController {
