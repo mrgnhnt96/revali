@@ -16,7 +16,7 @@ abstract base class JsonData<T> extends BaseBodyData<T> {
   String get mimeType => 'application/json';
 
   @override
-  int get contentLength => toJson().length;
+  int get contentLength => encoding.encode(toJson()).length;
 
   @override
   Headers headers(Headers? requestHeaders) {

@@ -7,7 +7,7 @@ final class StringBodyData extends BaseBodyData<String> {
   String get mimeType => 'text/plain';
 
   @override
-  int get contentLength => data.length;
+  int get contentLength => encoding.encode(data).length;
 
   @override
   Stream<List<int>> read() {

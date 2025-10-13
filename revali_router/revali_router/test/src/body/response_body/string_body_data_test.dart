@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:revali_router/src/body/response_body/base_body_data.dart';
 import 'package:test/test.dart';
 
@@ -32,6 +34,13 @@ void main() {
 
       expect(headers.mimeType, 'text/plain');
       expect(headers.contentLength, data.length);
+    });
+
+    test('should return correct contentLength with emojis', () {
+      const data = 'Hello, World! ð§';
+      final stringBodyData = StringBodyData(data);
+
+      expect(stringBodyData.contentLength, utf8.encode(data).length);
     });
   });
 }
