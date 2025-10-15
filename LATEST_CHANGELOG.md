@@ -14,11 +14,12 @@
 
 # revali_annotations
 
-## 1.4.1
+## 2.0.0-dev
 
-### Enhancements
+### Breaking Changes
 
-- Catch errors when listening to `stdin`
+- Remove `ExpectHeaders`
+- Add `PreventHeaders`
 
 # revali_construct
 

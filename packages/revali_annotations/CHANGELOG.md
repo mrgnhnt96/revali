@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2.0.0-dev | 10.15.25
+
+### Breaking Changes
+
+- Remove `ExpectHeaders`
+- Add `PreventHeaders`
+
 ## 1.4.1 | 05.08.25
 
 ### Enhancements
