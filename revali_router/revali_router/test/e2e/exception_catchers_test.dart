@@ -24,9 +24,13 @@ void main() {
           expect(response.body.data, 'Internal Server Error');
           final headers = response.joinedHeaders;
 
-          expect(headers.keys, hasLength(2));
+          expect(headers.keys, hasLength(6));
           expect(headers['content-type'], 'text/plain');
           expect(headers['content-length'], '21');
+          expect(headers['access-control-allow-origin'], '*');
+          expect(headers['access-control-allow-credentials'], 'true');
+          expect(headers['access-control-allow-methods'], 'OPTIONS, GET, HEAD');
+          expect(headers['allow'], 'OPTIONS, GET, HEAD');
         },
       );
     });
