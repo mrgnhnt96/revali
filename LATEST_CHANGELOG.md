@@ -40,13 +40,11 @@
 
 # revali_router
 
-## 3.0.0-dev
+## 3.0.0+1-dev
 
-### Breaking Changes
+### Fix
 
-- Drop all custom contexts based on lifecycle component
-- Create a generic `Context` interface to replace all custom contexts
-- Use new types from `revali_router_core`
+- Payload byte length calculation
 
 # revali_router_annotations
 
