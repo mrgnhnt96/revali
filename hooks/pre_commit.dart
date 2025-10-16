@@ -13,7 +13,7 @@ Hook main() {
       ),
       SequentialTasks(
         tasks: [
-          ParallelTasks.always(
+          ParallelTasks(
             tasks: [
               ShellTask(
                 include: [
@@ -47,7 +47,7 @@ Hook main() {
               ),
             ],
           ),
-          ParallelTasks.always(
+          ParallelTasks(
             tasks: [
               ShellTask(
                 include: [Glob('**.dart')],

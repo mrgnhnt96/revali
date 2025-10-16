@@ -4,7 +4,7 @@ environment:
   sdk: ">=3.8.0 <4.0.0"
 
 dependencies:
-  hooksman: ^2.0.1
+  hooksman: ^3.0.0
   path: ^1.9.1
 
 dev_dependencies:

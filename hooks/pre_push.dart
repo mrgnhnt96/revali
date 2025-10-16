@@ -7,7 +7,7 @@ Hook main() {
         name: 'Barrel',
         commands: (files) => ['sip run barrel --set-exit-if-changed'],
       ),
-      SequentialTasks.always(
+      SequentialTasks(
         name: 'Test Suite',
         tasks: [
           ShellTask.always(
@@ -19,7 +19,6 @@ Hook main() {
             ],
           ),
           ParallelTasks(
-            include: [Glob('**.dart')],
             exclude: [Glob('**/example/**.dart')],
             tasks: [
               ShellTask.always(
