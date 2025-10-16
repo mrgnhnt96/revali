@@ -6,28 +6,27 @@
 
 # revali
 
-## 2.0.0-dev
+## 2.0.2-dev
 
-### Breaking Changes
+### Fix
 
-- Update `analyzer` dependency to `^8.0.0`
+- Dependencies
 
 # revali_annotations
 
-## 2.0.0-dev
+## 2.0.2-dev
 
-### Breaking Changes
+### Fix
 
-- Remove `ExpectHeaders`
-- Add `PreventHeaders`
+- Dependencies
 
 # revali_construct
 
-## 2.0.0-dev
+## 2.0.2-dev
 
-### Breaking Changes
+### Fix
 
-- Update `analyzer` dependency to `^8.0.0`
+- Dependencies
 
 # revali_core
 
@@ -41,7 +40,7 @@
 
 # revali_router
 
-## 3.0.0+2-dev
+## 3.0.2-dev
 
 ### Fix
 
@@ -49,7 +48,7 @@
 
 # revali_router_annotations
 
-## 2.0.0+1-dev
+## 2.0.2-dev
 
 ### Fix
 
@@ -57,18 +56,17 @@
 
 # revali_router_core
 
-## 2.0.0+1-dev
+## 2.0.2-dev
 
-### Breaking Changes
+### Fix
 
-- Drop usage of `ExpectHeaders`
-- Use `PreventHeaders` instead
+- Dependencies
 
 <!-- CONSTRUCTS -->
 
 # revali_server
 
-## 2.0.1+1-dev
+## 2.0.2-dev
 
 ### Fix
 
@@ -87,7 +85,7 @@
 
 # revali_client_gen
 
-## 2.0.0+1-dev
+## 2.0.2-dev
 
 ### Fix
 
