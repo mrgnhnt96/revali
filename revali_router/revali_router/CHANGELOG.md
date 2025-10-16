@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 3.0.0+2-dev | 10.15.25
+
+### Fix
+
+- Dependencies
+
 ## 3.0.0+1-dev | 10.15.25
 
 ### Fix

@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.0.1+1-dev | 10.15.25
+
+### Fix
+
+- Dependencies
+
 ## 2.0.1-dev | 09.19.25
 
 ### Breaking Changes

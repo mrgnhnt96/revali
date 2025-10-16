@@ -1,6 +1,6 @@
 name: revali_router_annotations
 description: Annotations for Revali Router
-version: 2.0.0-dev
+version: 2.0.0+1-dev
 repository: https://github.com/mrgnhnt96/revali/tree/main/revali_router/revali_router_annotations
 issue_tracker: https://github.com/mrgnhnt96/revali/issues
 documentation: https://revali.dev

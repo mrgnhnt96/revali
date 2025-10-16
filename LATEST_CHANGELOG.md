@@ -41,20 +41,19 @@
 
 # revali_router
 
-## 3.0.0+1-dev
+## 3.0.0+2-dev
 
 ### Fix
 
-- Payload byte length calculation
+- Dependencies
 
 # revali_router_annotations
 
-## 2.0.0-dev
+## 2.0.0+1-dev
 
-### Breaking Changes
+### Fix
 
-- Drop `Data` and `Meta` classes
-  - Replaced with `AddData` and `MetaData`
+- Dependencies
 
 # revali_router_core
 
@@ -69,15 +68,11 @@
 
 # revali_server
 
-## 2.0.1-dev
+## 2.0.1+1-dev
 
-### Breaking Changes
+### Fix
 
-- Update `analyzer` dependency to `^8.0.0`
-
-### Enhancements
-
-- Improve logging on errors
+- Dependencies
 
 <!-- REVALI CLIENT -->
 
@@ -92,8 +87,8 @@
 
 # revali_client_gen
 
-## 2.0.0-dev
+## 2.0.0+1-dev
 
-### Breaking Changes
+### Fix
 
-- Update `analyzer` dependency to `^8.0.0`
+- Dependencies

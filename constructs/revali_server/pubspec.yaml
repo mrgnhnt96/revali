@@ -1,5 +1,5 @@
 name: revali_server
-version: 2.0.1-dev
+version: 2.0.1+1-dev
 description: A Revali Server Construct to generate server code using `revali_router`
 repository: https://github.com/mrgnhnt96/revali/tree/main/constructs/revali_server
 issue_tracker: https://github.com/mrgnhnt96/revali/issues
@@ -27,11 +27,11 @@ dependencies:
   json_annotation: ^4.9.0
   mason_logger: ^0.3.1
   path: ^1.9.0
-  revali_annotations: ^1.4.1
+  revali_annotations: ^2.0.0-dev
   revali_construct: ^2.0.0-dev
   revali_core: ^1.4.0
-  revali_router: ^3.0.0+1-dev
-  revali_router_annotations: ^2.0.0-dev
+  revali_router: ^3.0.0+2-dev
+  revali_router_annotations: ^2.0.0+1-dev
   revali_router_core: ^2.0.0+1-dev
   yaml: ^3.1.2
 
