@@ -58,14 +58,12 @@
 
 # revali_router_core
 
-## 2.0.0-dev
+## 2.0.0+1-dev
 
 ### Breaking Changes
 
-- Drop `DataHandler` and `MetaHandler` classes
-  - Replaced with `Data` and `Meta`/`MetaScope`
-- Drop `ReadOnly`, `WriteOnly`, and `Mutable` types
-  - Replaced with general types
+- Drop usage of `ExpectHeaders`
+- Use `PreventHeaders` instead
 
 <!-- CONSTRUCTS -->
 

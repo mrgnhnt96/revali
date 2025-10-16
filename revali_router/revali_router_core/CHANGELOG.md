@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2.0.0+1-dev | 10.15.25
+
+### Breaking Changes
+
+- Drop usage of `ExpectHeaders`
+- Use `PreventHeaders` instead
+
 ## 2.0.0-dev | 09.19.25
 
 ### Breaking Changes
