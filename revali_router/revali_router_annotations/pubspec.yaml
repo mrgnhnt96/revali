@@ -5,17 +5,17 @@ repository: https://github.com/mrgnhnt96/revali/tree/main/revali_router/revali_r
 issue_tracker: https://github.com/mrgnhnt96/revali/issues
 documentation: https://revali.dev
 funding:
-    - https://github.com/sponsors/mrgnhnt96
+  - https://github.com/sponsors/mrgnhnt96
 topics:
-    - revali
-    - api
-    - backend
-    - annotations
-    - router
+  - revali
+  - api
+  - backend
+  - annotations
+  - router
 
 environment:
-    sdk: '>=3.2.6 <4.0.0'
+  sdk: ">=3.2.6 <4.0.0"
 
 dependencies:
-    meta: ^1.16.0
-    revali_router_core: ^2.0.0-dev
+  meta: ^1.16.0
+  revali_router_core: ^2.0.0+1-dev

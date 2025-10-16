@@ -30,9 +30,9 @@ dependencies:
   revali_annotations: ^1.4.1
   revali_construct: ^2.0.0-dev
   revali_core: ^1.4.0
-  revali_router: ^3.0.0-dev
+  revali_router: ^3.0.0+1-dev
   revali_router_annotations: ^2.0.0-dev
-  revali_router_core: ^2.0.0-dev
+  revali_router_core: ^2.0.0+1-dev
   yaml: ^3.1.2
 
 dev_dependencies:
