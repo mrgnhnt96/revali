@@ -1,122 +1,87 @@
 ---
 title: Installation
-description: Learn how to install Revali Server and its dependencies
+description: Get up and running with Revali Server in minutes
 sidebar_position: 0
 ---
 
 # Installation
 
-## Dependencies
+Welcome to Revali Server! This guide will help you set up everything you need to start building powerful Dart web servers.
 
-### Revali
+## Quick Start
 
-Revali Server is a part of the Revali framework. To use Revali Server, you will need to add Revali as a dev dependency to your project. This can be done by adding the following to the `dev_dependencies` section of your `pubspec.yaml` file.
+The fastest way to get started is to add all required dependencies at once:
 
-Run the following command to add `revali` to your project.
+```bash
+# Add runtime dependencies
+dart pub add revali_router
+
+# Add development dependencies
+dart pub add revali revali_server --dev
+
+# Get all dependencies
+dart pub get
+```
+
+That's it! You're ready to start building your server.
+
+## Understanding the Dependencies
+
+Revali Server is built on a foundation of three key packages, each serving a specific purpose:
+
+### 🚀 Revali (Development Tool)
+
+The core framework that orchestrates your entire development experience.
 
 ```bash
 dart pub add revali --dev
 ```
 
-Or manually add the following to your `pubspec.yaml` file.
+**Why it's needed:** Revali provides the build system, CLI tools, and development server that make everything work together seamlessly.
 
-```yaml title="pubspec.yaml"
-dev_dependencies:
-  revali: <latest-version>
-```
+### 🛣️ Revali Router (Runtime)
 
-:::note
-Make sure to replace `<latest-version>` with the latest version of [Revali][revali-pub].
-:::
-
-### Revali Router
-
-Under the hood, Revali Server uses [Revali Router][revali-router-pub] to handle the request routing.
-
-```dart
-import 'package:revali_router/revali_router.dart';
-```
-
-Revali Router will be used during runtime, so it will need to be added under the `dependencies` section of your `pubspec.yaml` file.
-
-Run the following command to add `revali_router` to your project.
+The routing engine that handles all HTTP requests and responses.
 
 ```bash
 dart pub add revali_router
 ```
 
-Or manually add the following to your `pubspec.yaml` file.
+**Why it's needed:** This is the heart of your server - it processes incoming requests, matches them to your controllers, and sends back responses.
 
-```yaml title="pubspec.yaml"
-dependencies:
-  revali_router: <latest-version>
-```
+### ⚙️ Revali Server (Code Generator)
 
-:::note
-Make sure to replace `<latest-version>` with the latest version of [Revali Router][revali-router-pub].
-:::
-
-### Revali Server
-
-Revali Server is used by Revali to generate your server code and is not needed at runtime. So add `revali_server` to the `dev_dependencies` section of your `pubspec.yaml` file.
-
-Run the following command to add `revali_server` to your project.
+The code generator that creates your server implementation.
 
 ```bash
 dart pub add revali_server --dev
 ```
 
-Or manually add the following to your `pubspec.yaml` file.
+**Why it's needed:** This package analyzes your code and generates the actual server files that Revali Router uses at runtime.
+
+## Manual Installation
+
+If you prefer to add dependencies manually, here's what your `pubspec.yaml` should look like:
 
 ```yaml title="pubspec.yaml"
+dependencies:
+  revali_router: ^1.0.0 # Runtime routing
+
 dev_dependencies:
-  revali_server: <latest-version>
+  revali: ^1.0.0 # Development framework
+  revali_server: ^1.0.0 # Code generator
 ```
 
-:::note
-Make sure to replace `<latest-version>` with the latest version of [Revali Server][revali-server-pub].
+:::tip
+Always use the latest versions! Check [pub.dev](https://pub.dev) for the most recent releases.
 :::
 
-### Get Dependencies
+## What's Next?
 
-After adding the dependencies to your `pubspec.yaml` file, get the dependencies for your project.
+Now that you have Revali Server installed, you're ready to:
 
-```bash
-dart pub get
-```
+1. **[Use the CLI](./cli.md)** - Learn about the powerful command-line tools
+2. **[Create your first endpoint](./create-your-first-endpoint.md)** - Build your first API endpoint
+3. **[Run your server](./run-the-server.md)** - Start developing and see your changes live
 
-## Revali Server Dependencies
-
-Revali Server is comprised of many packages, each serving a different purpose. Here are the runtime packages that make up Revali Server:
-
-### `revali_router`
-
-Handles the request routing for your application during runtime.
-
-### `revali_router_annotations`
-
-The annotations used by `revali_router`, such as `LifecycleComponent` and `Body`
-
-### `revali_router_core`
-
-Contains the fundamental classes used by `revali_router`. Some classes can also be used as annotations.
-
-### `revali_core`
-
-Contains fundamental classes used by `revali`.
-
-### `revali_annotations`
-
-The annotations used by `revali` to define controllers and endpoints.
-
-## Generalized Imports
-
-The `revali_router` package depends on the packages needed for you to create any annotations or classes that you will need to define in your application. So instead of having to import many different packages, you can import the `revali_router` package, which will import all the necessary packages for you.
-
-```dart
-import 'package:revali_router/revali_router.dart';
-```
-
-[revali-pub]: https://pub.dev/packages/revali
-[revali-server-pub]: https://pub.dev/packages/revali_server
-[revali-router-pub]: https://pub.dev/packages/revali_router
+Ready to dive in? Let's start with the CLI tools!

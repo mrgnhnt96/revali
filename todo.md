@@ -1,5 +1,12 @@
 # TODO
 
+- [ ] Add tutorials for the following features:
+
+  - [ ] **Middleware** - Add request/response processing
+  - [ ] **Error handling** - Create custom error responses
+  - [ ] **Authentication** - Secure your endpoints
+  - [ ] **Database integration** - Connect to your data layer
+
 - [ ] Consolidate `context` into a single class, no more multiple context types
 - [ ] Get feedback from Jonah about "ReadOnly" and "Mutable" classes
   - Should we remove them and just have a single class?
