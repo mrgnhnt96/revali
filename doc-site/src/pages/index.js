@@ -136,7 +136,7 @@ function CodeExampleSection() {
             </p>
             <Link
               className={`button button--primary ${styles.codeButton}`}
-              to="/revali/getting-started"
+              to="/revali/getting-started/installation"
             >
               Learn More
             </Link>
