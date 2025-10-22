@@ -24,6 +24,8 @@
 - [ ] Deprecate `allowed headers`, replace with `prevent headers`, allow all headers by default
 - [ ] Figure out a way to handle sending streams from the client to the server
 
+- [ ] Think of ways to better support micro services
+
 # 6.21.25
 
 - [x] Print out syntax errors preventing a hot reload

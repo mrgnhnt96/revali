@@ -1,4 +1,4 @@
-// ignore_for_file: unnecessary_parenthesis
+// ignore_for_file: unnecessary_parenthesis, lines_longer_than_80_chars
 
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_router/revali_router.dart';
@@ -11,34 +11,20 @@ import 'package:revali_server/makers/utils/type_extensions.dart';
 import 'package:revali_server/utils/data_annotation.dart';
 
 final impliedArguments = <String, Expression>{
+  // dart format off
   // --- dependency injection ---
   (DI).name: refer('di'),
   // --- response ---
   (Headers).name: refer('context').property('response').property('headers'),
-  (Cookies).name: refer(
-    'context',
-  ).property('response').property('headers').property('cookies'),
-  (SetCookies).name: refer(
-    'context',
-  ).property('response').property('headers').property('setCookies'),
-  (SetCookies).name: refer(
-    'context',
-  ).property('response').property('headers').property('setCookies'),
-  (Body).name: refer('context').property('response').property('body'),
+  (ResponseHeaders).name: refer('context').property('response').property('headers'),
+  (Cookies).name: refer('context').property('response').property('headers').property('cookies'),
+  (ResponseCookies).name: refer('context').property('response').property('headers').property('cookies'),
+  (SetCookies).name: refer('context').property('response').property('headers').property('setCookies'),
   (Response).name: refer('context').property('response'),
   // --- request ---
-  (Headers).name: refer('context').property('response').property('headers'),
-  (RequestHeaders).name: refer(
-    'context',
-  ).property('request').property('headers'),
-  (ResponseHeaders).name: refer(
-    'context',
-  ).property('response').property('headers'),
+  (RequestHeaders).name: refer('context').property('request').property('headers'),
+  (RequestCookies).name: refer('context').property('request').property('headers').property('cookies'),
   (Request).name: refer('context').property('request'),
-  (Body).name: refer('context').property('request').property('body'),
-  (Cookies).name: refer(
-    'context',
-  ).property('request').property('headers').property('cookies'),
   // --- meta ---
   (Meta).name: refer('context').property('meta'),
   (MetaScope).name: refer('context').property('meta'),
@@ -46,19 +32,11 @@ final impliedArguments = <String, Expression>{
   (Context).name: refer('context'),
   // --- data ---
   (Data).name: refer('context').property('data'),
-  (CleanUp).name: refer('context')
-      .property('data')
-      .property('get')
-      .call([])
-      .ifNullThen(
-        createMissingArgumentException(
-          key: 'cleanUp',
-          location: '@data',
-        ).thrown.parenthesized,
-      ),
+  (CleanUp).name: refer('context').property('data').property('get').call([]).ifNullThen(createMissingArgumentException(key: 'cleanUp', location: '@data').thrown.parenthesized),
   // --- reflect ---
   (ReflectHandler).name: refer('context').property('reflect'),
 };
+// dart format on
 
 Expression createParamArg(
   ServerParam param, {

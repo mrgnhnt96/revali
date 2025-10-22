@@ -53,8 +53,12 @@ The `@Controller('users')` annotation means:
 
 - All endpoints in this controller start with `/users`
 - `@Get()` becomes `GET /users`
-- `@Get(':id')` becomes `GET /users/:id`
+- `@Get(':id')` becomes `GET /users/:id` (with path parameter)
 - `@Post()` becomes `POST /users`
+
+:::info
+Path parameters like `:id` create dynamic routes. Learn more about [path parameters in HTTP methods](./methods.md#path-parameters) and [extracting them with binding](./binding.md#param---path-parameters).
+:::
 
 ## Adding Endpoints
 

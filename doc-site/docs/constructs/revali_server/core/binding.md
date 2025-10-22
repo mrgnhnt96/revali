@@ -1,459 +1,613 @@
 ---
 title: Binding
-description: Associate request data with method parameters
+description: Extract data from requests and inject dependencies
 sidebar_position: 2
 ---
 
-# Binding Annotations
+# Data Binding
 
-Binding annotations are a set of annotations tailored to extract the provided arguments from their corresponding locations.
+Binding is how you extract data from HTTP requests and inject dependencies into your endpoint methods. Instead of manually parsing request objects, Revali's binding system automatically extracts and converts data for you.
 
-| Annotation  | Description                         | Requests | Controllers |
-| ----------- | ----------------------------------- | :------: | :---------: |
-| `@Param()`  | Binds a path parameter              |    ✅    |     ❌      |
-| `@Query()`  | Binds a query parameter             |    ✅    |     ❌      |
-| `@Header()` | Binds a header                      |    ✅    |     ❌      |
-| `@Body()`   | Binds the body                      |    ✅    |     ❌      |
-| `@Dep()`    | Binds a dependency                  |    ✅    |     ✅      |
-| `@Data()`   | Binds a value from the Data Handler |    ✅    |     ✅      |
-| `Bind`      | Binds a custom value                |    ✅    |     ✅      |
+## What Is Data Binding?
+
+Think of binding as **automatic data extraction**:
+
+- **Path parameters** (`/users/:id`) → `@Param() String id`
+- **Query strings** (`?name=john&age=25`) → `@Query() String name`
+- **Request headers** (`Authorization: Bearer token`) → `@Header('Authorization') String auth`
+- **Request body** (`{"name": "John"}`) → `@Body() User user`
+- **Dependencies** (services, repositories) → `@Dep() UserService service`
+
+## Available Binding Annotations
+
+| Annotation  | Purpose                   | Where to Use            | Example                         |
+| ----------- | ------------------------- | ----------------------- | ------------------------------- |
+| `@Param()`  | Extract path parameters   | Endpoints only          | `@Param() String id`            |
+| `@Query()`  | Extract query parameters  | Endpoints only          | `@Query() String? search`       |
+| `@Header()` | Extract headers           | Endpoints only          | `@Header() String auth`         |
+| `@Body()`   | Extract request body      | Endpoints only          | `@Body() User user`             |
+| `@Dep()`    | Inject dependencies       | Endpoints & Controllers | `@Dep() UserService service`    |
+| `@Data()`   | Extract from Data Handler | Endpoints & Controllers | `@Data() User currentUser`      |
+| `@Bind`     | Custom binding            | Endpoints & Controllers | `@CustomBind() CustomType data` |
 
 :::important
-You can only use one parameter annotation per parameter.
+You can only use **one binding annotation per parameter**.
 :::
 
 :::info
-There are [some classes][implied-binding] that can be implied by the parameter's type and do not require binding annotations
+Some types don't need binding annotations - they're [automatically detected](./implied_binding.md).
 :::
 
-## `@Param()`
+## `@Param()` - Path Parameters
 
-The `Param` annotation is used to bind a path parameter from a request to a method parameter.
+Extract values from URL path segments like `/users/:id` or `/shops/:shopId/products/:productId`.
 
-In the example below, the `name` parameter is bound to the `:name` path parameter.
+:::info
+Path parameters are defined in your route paths using `:parameterName` syntax. Learn more about [creating path parameters in HTTP methods](./methods.md#path-parameters).
+:::
 
-```dart showLineNumbers title="say_hello"
-@Get(':name')
-String sayHello(
-  @Param() String name,
-) {
-  return 'Hello, $name!';
+### Basic Usage
+
+```dart
+@Controller('users')
+class UsersController {
+  @Get(':id')
+  String getUser(@Param() String id) {
+    return 'User ID: $id';
+  }
 }
 ```
 
-You are not limited to a single path parameter. You can define as many as you need.
+**Request:** `GET /users/123`  
+**Result:** `id = "123"`
+
+### Multiple Path Parameters
 
 ```dart
-import 'package:revali_router/revali_router.dart';
-
-@Controller('shop/:shopId')
-class ShopController {
-  const ShopController();
-
-  @Get(':productId')
+@Controller('shops')
+class ShopsController {
+  @Get(':shopId/products/:productId')
   String getProduct(
     @Param() String shopId,
     @Param() String productId,
   ) {
-    return 'Shop ID: $shopId, Product ID: $productId';
+    return 'Shop: $shopId, Product: $productId';
   }
 }
 ```
 
-:::caution
-Path parameters are always returned as a `String`. If you need to convert the value to another type, you can use a [param-pipe].
-:::
+**Request:** `GET /shops/abc/products/xyz`  
+**Result:** `shopId = "abc"`, `productId = "xyz"`
 
-## `@Query()`
+### Controller-Level Parameters
 
-The `Query` annotation is used to bind a query parameter from a request to a method parameter.
+```dart
+@Controller('shops/:shopId')
+class ShopController {
+  @Get('products')
+  String getProducts(@Param() String shopId) {
+    return 'Products for shop: $shopId';
+  }
+}
+```
 
-In the example below, the `id` method parameter (line 3) is bound to the `id` query parameter (not shown).
+**Request:** `GET /shops/abc/products`  
+**Result:** `shopId = "abc"`
 
-```dart showLineNumbers
-@Get()
-String getUser(
-  // highlight-next-line
-  @Query() String id,
-) {
+### Custom Parameter Names
+
+When the parameter name doesn't match the path segment:
+
+```dart
+@Get(':userId')
+String getUser(@Param('userId') String id) {
   return 'User ID: $id';
 }
 ```
 
-If the query parameter is optional, the method parameter should be nullable.
+### Path Parameter Characteristics
 
-```dart
-@Get()
-String getUser(
-  // highlight-next-line
-  @Query() String? id, // The query parameter may not exist
-) {
-  return 'User ID: $id';
-}
-```
+- **Always strings**: Path parameters are always `String` type
+- **Required**: Missing path parameters cause 404 errors
+- **URL decoded**: Values are automatically URL decoded
+- **Case sensitive**: Parameter names are case sensitive
 
 :::caution
-Query parameters are always returned as `String`s. If you need to convert the value to another type, you can use a [param-pipe][query-pipe].
+Path parameters are always `String` type. Use [pipes](./pipes.md) to convert to other types.
 :::
 
-### All Values
+## `@Query()` - Query Parameters
 
-Query parameters can have multiple values. If you're expecting multiple values, you can use the `@Query.all()` annotation.
+Extract values from URL query strings like `?name=john&age=25&tags=dart,flutter`.
+
+### Basic Query Usage
+
+```dart
+@Controller('users')
+class UsersController {
+  @Get()
+  String searchUsers(@Query() String? search) {
+    return search != null ? 'Searching for: $search' : 'No search term';
+  }
+}
+```
+
+**Request:** `GET /users?search=john`  
+**Result:** `search = "john"`
+
+**Request:** `GET /users`  
+**Result:** `search = null`
+
+### Multiple Query Parameters
+
+```dart
+@Controller('products')
+class ProductsController {
+  @Get()
+  String getProducts(
+    @Query() String? category,
+    @Query() int? minPrice,
+    @Query() int? maxPrice,
+  ) {
+    return 'Category: $category, Price: $minPrice-$maxPrice';
+  }
+}
+```
+
+**Request:** `GET /products?category=electronics&minPrice=100&maxPrice=500`  
+**Result:** `category = "electronics"`, `minPrice = "100"`, `maxPrice = "500"`
+
+### Multiple Values
+
+When a query parameter appears multiple times:
+
+```dart
+@Controller('products')
+class ProductsController {
+  @Get()
+  String getProducts(@Query.all() List<String> tags) {
+    return 'Tags: ${tags.join(", ")}';
+  }
+}
+```
+
+**Request:** `GET /products?tags=dart&tags=flutter&tags=web`  
+**Result:** `tags = ["dart", "flutter", "web"]`
+
+:::warning
+With `@Query()` (without `.all()`), if multiple values exist for the same key, only the last value is used:
+
+`?tags=dart&tags=flutter` → `tags = "flutter"`
+:::
+
+### Custom Query Names
 
 ```dart
 @Get()
-String getUser(
-  // highlight-next-line
-  @Query.all() List<String> ids,
-) {
-  return 'User IDs: $ids';
+String search(@Query('q') String? query) {
+  return 'Query: $query';
 }
 ```
 
-::::info Example
-If the query parameter is `?ids=1&ids=2`, the response will be `User IDs: [1, 2]`.
-
-:::warning
-If you don't use the `@Query.all()` annotation, only the last value will be bound. `?ids=1&ids=2` will result in `User IDs: 2`.
-:::
-::::
-
-## `@Header()`
-
-The `Header` annotation is used to bind a header entry from a request to a method parameter.
-
-```dart showLineNumbers
-@Get()
-String getUser(
-  // highlight-next-line
-  @Header(HttpHeaders.acceptHeader) String accept,
-) {
-  return 'Content Type: $accept';
-}
-```
+**Request:** `GET /search?q=revali`  
+**Result:** `query = "revali"`
 
 :::caution
-Header values are always returned as `String`s. If you need to convert the value to another type, you can use a [pipe][header-pipe].
+Query parameters are always `String` type. Use [pipes](./pipes.md) to convert to other types.
 :::
 
-### All Values
+## `@Header()` - Request Headers
 
-Headers can have multiple values. If you're expecting multiple values, you can use the `@Header.all()` annotation.
+Extract values from HTTP request headers like `Authorization: Bearer token` or `Content-Type: application/json`.
+
+### Basic Header Usage
 
 ```dart
-@Get()
-String getUser(
-  // highlight-next-line
-  @Header.all(HttpHeaders.acceptHeader) List<String> accept,
-) {
-  return "User IDs: ${accept.join(', ')}";
+@Controller('auth')
+class AuthController {
+  @Get('profile')
+  String getProfile(@Header('Authorization') String? auth) {
+    return auth != null ? 'Token: $auth' : 'No authorization';
+  }
 }
 ```
+
+**Request:** `GET /auth/profile` with `Authorization: Bearer abc123`  
+**Result:** `auth = "Bearer abc123"`
+
+### Common Headers
+
+```dart
+@Controller('api')
+class ApiController {
+  @Post('data')
+  String processData(
+    @Header('Content-Type') String? contentType,
+    @Header('User-Agent') String? userAgent,
+  ) {
+    return 'Content-Type: $contentType, User-Agent: $userAgent';
+  }
+}
+```
+
+### Multiple Header Values
+
+When a header appears multiple times:
+
+```dart
+@Controller('api')
+class ApiController {
+  @Get()
+  String getHeaders(@Header.all('Accept') List<String> accept) {
+    return 'Accept headers: ${accept.join(", ")}';
+  }
+}
+```
+
+**Request:** `GET /api` with `Accept: application/json` and `Accept: text/html`  
+**Result:** `accept = ["application/json", "text/html"]`
 
 :::warning
-If you don't use the `@Header.all()` annotation and there are multiple values, the values will be joined using commas (`,`).
+Without `@Header.all()`, multiple values are joined with commas: `Accept: json, html` → `accept = "json, html"`
 :::
 
-## `@Body()`
+:::caution
+Header values are always `String` type. Use [pipes](./pipes.md) to convert to other types.
+:::
 
-The `Body` annotation is used to bind the request body, or part of it, to a method parameter.
+## `@Body()` - Request Body
 
-```dart showLineNumbers
-@Post()
-String createUser(
-  // highlight-next-line
-  @Body() Map<String, dynamic> body,
-) {
-  return 'User: $user';
-}
-```
+Extract data from the HTTP request body, typically JSON data from POST/PUT requests.
 
-::::note
-The `@Body` type can be used with any [built-in][built-in-types] type, not just `Map<String, dynamic>`, it should be whatever you expect the body to be.
-
-If you need to convert the value to another type, you can use a [pipe][body-pipe].
-::::
-
-### Specific Values
-
-If you only need a specific value from the body, you can pass a list of keys to the `@Body` annotation.
+### Basic Body Usage
 
 ```dart
-@Post()
-String createUser(
-  // highlight-next-line
-  @Body(['data', 'email']) String email,
-) {
-  return 'Email: $email';
+@Controller('users')
+class UsersController {
+  @Post()
+  String createUser(@Body() Map<String, dynamic> body) {
+    return 'Received: $body';
+  }
 }
 ```
 
-If the request body is:
+**Request:** `POST /users` with `{"name": "John", "email": "john@example.com"}`  
+**Result:** `body = {"name": "John", "email": "john@example.com"}`
+
+### Typed Objects
+
+```dart
+class CreateUserRequest {
+  final String name;
+  final String email;
+
+  CreateUserRequest({required this.name, required this.email});
+
+  factory CreateUserRequest.fromJson(Map<String, dynamic> json) {
+    return CreateUserRequest(
+      name: json['name'],
+      email: json['email'],
+    );
+  }
+}
+
+@Controller('users')
+class UsersController {
+  @Post()
+  String createUser(@Body() CreateUserRequest request) {
+    return 'Creating user: ${request.name} (${request.email})';
+  }
+}
+```
+
+**Request:** `POST /users` with `{"name": "John", "email": "john@example.com"}`  
+**Result:** `request = CreateUserRequest(name: "John", email: "john@example.com")`
+
+### Specific Fields
+
+Extract only specific fields from the request body:
+
+```dart
+@Controller('users')
+class UsersController {
+  @Post()
+  String createUser(@Body(['data', 'email']) String email) {
+    return 'Email: $email';
+  }
+}
+```
+
+**Request:** `POST /users` with:
 
 ```json
 {
-    "data": {
-        "email": "revali@email.com",
-        "password": "123456"
-    }
+  "data": {
+    "email": "john@example.com",
+    "password": "secret123"
+  }
 }
 ```
 
-The value that will be bound will be `revali@email.com` and the `password` value will be ignored.
+**Result:** `email = "john@example.com"` (password is ignored)
 
 :::warning
-If the body doesn't contain the specified keys, the method will throw a runtime error. Unless the type is nullable, in which case it will be `null`.
+If the specified keys don't exist in the body, a runtime error occurs unless the parameter is nullable.
 :::
-
-## `@Dep()`
-
-The `Dep` annotation is used to bind a dependency from the [DI object][di-object] to a parameter.
 
 :::tip
-Learn how to [configure dependencies][configure-dependencies].
+Revali automatically detects `fromJson` constructors for type conversion!
 :::
 
-While you can bind a dependency to a parameter in a request, it is recommended to use the parameters of the controller's constructor instead.
+## `@Dep()` - Dependency Injection
 
-```dart showLineNumbers
-@Controller()
-class UserController {
-  const UserController(
-    // highlight-next-line
+Inject services, repositories, and other dependencies into your endpoints and controllers.
+
+### Controller Constructor (Recommended)
+
+```dart
+@Controller('users')
+class UsersController {
+  const UsersController(
     @Dep() this._userService,
+    @Dep() this._logger,
   );
 
   final UserService _userService;
+  final Logger _logger;
 
   @Get()
-  String getUser() {
-    return 'User: ${_userService.getUser()}';
+  String getUsers() {
+    _logger.info('Fetching users');
+    return _userService.getAllUsers().toString();
+  }
+}
+```
+
+### Endpoint Parameters
+
+```dart
+@Controller('users')
+class UsersController {
+  @Get(':id')
+  String getUser(
+    @Param() String id,
+    @Dep() UserService userService,
+  ) {
+    return userService.getUserById(id).toString();
+  }
+}
+```
+
+:::tip
+Learn how to [configure dependencies](../../../revali/app-configuration/configure-dependencies.md).
+:::
+
+:::warning
+Missing dependencies cause runtime errors. Controllers are validated at startup, so issues are caught early.
+:::
+
+## `@Data()` - Data Handler
+
+Extract values from the Data Handler, which stores data shared between components during a request.
+
+### Basic Data Usage
+
+```dart
+@Controller('users')
+class UsersController {
+  @Get('profile')
+  String getProfile(@Data() User currentUser) {
+    return 'Profile for: ${currentUser.name}';
+  }
+}
+```
+
+### Optional Data
+
+```dart
+@Controller('users')
+class UsersController {
+  @Get('settings')
+  String getSettings(@Data() UserSettings? settings) {
+    return settings != null
+      ? 'Settings: $settings'
+      : 'No settings found';
   }
 }
 ```
 
 :::warning
-If the dependency doesn't exist, the method will throw a runtime error. Controllers are resolved as soon as the application starts, so any missing dependencies will be caught early.
+Missing data causes runtime errors unless the parameter is nullable.
 :::
-
-## `@Data()`
-
-The `Data` annotation is used to bind a value from the [Data Handler][data-handler] to a parameter.
-
-```dart showLineNumbers
-@Get()
-String getUser(
-  // highlight-next-line
-  @Data() User user,
-) {
-  return 'User: $user';
-}
-```
-
-::::warning
-If the value doesn't exist within the Data Handler, the method will throw a runtime error.
 
 :::tip
-If the value is optional, you can make the parameter nullable. This will prevent the method from throwing an error if the value doesn't exist.
-
-```dart
-@Data() User? user,
-```
-
+The [Data Handler](../context/core/data_handler.md) is useful for sharing data between middleware, guards, and endpoints.
 :::
-::::
 
-## `Bind`
+## Custom Binding
 
-Occasionally, you may need a custom parameter annotation. Whether you need access to the entire request object or you need to bind a value in a specific way, you can create a custom parameter annotation.
+Create custom binding annotations for special cases like accessing the full request object or implementing complex data extraction logic.
 
-### Create
+### Creating Custom Bindings
 
-To create a custom parameter annotation, you need to implement the class `Bind` and override the `bind` method.
-
-```dart title="lib/components/custom_params/bind_user.dart"
+```dart title="lib/bindings/current_user_binding.dart"
 import 'package:revali_router/revali_router.dart';
 
-class GetUser extends Bind<User> {
-  const GetUser();
+class CurrentUserBinding extends Bind<User> {
+  const CurrentUserBinding();
 
   @override
   User bind(BindContext context) {
-    ...
+    // Extract user from JWT token in Authorization header
+    final authHeader = context.request.headers['Authorization'];
+    final token = authHeader?.replaceFirst('Bearer ', '');
+
+    if (token == null) {
+      throw UnauthorizedException('No token provided');
+    }
+
+    return _decodeJwtToken(token);
+  }
+
+  User _decodeJwtToken(String token) {
+    // JWT decoding logic here
+    return User(id: '123', name: 'John Doe');
+  }
+}
+```
+
+### Using Custom Bindings
+
+```dart
+@Controller('users')
+class UsersController {
+  @Get('profile')
+  String getProfile(@CurrentUserBinding() User currentUser) {
+    return 'Hello, ${currentUser.name}!';
+  }
+}
+```
+
+### Dynamic Bindings
+
+For bindings that need runtime arguments (e.g. `CurrentUserBinding(service: UserService())`):
+
+```dart
+@Controller('users')
+class UsersController {
+  @Get('profile')
+  String getProfile(@Binds(CurrentUserBinding) User currentUser) {
+    return 'Hello, ${currentUser.name}!';
   }
 }
 ```
 
 :::important
-In order to use the `GetUser` class as an annotation, you need to ensure that the constructor is `const`.
+Custom binding constructors must be `const` to work as annotations.
 :::
 
-### Use
+## Automatic Type Conversion
 
-#### Via Annotation
+Revali automatically converts data types when possible, making your code cleaner and more type-safe.
 
-To use the `GetUser` class, annotate the method parameter with it.
+### `fromJson` Detection
 
-```dart showLineNumbers
-@Get()
-String getUser(
-  // highlight-next-line
-  @GetUser() User user,
-) {
-  return 'User: $user';
-}
-```
-
-#### Via `Binds`
-
-If you have an argument within your custom parameter that you can't provide at compile-time, you can use the `Binds` annotation and use the `GetUser` class as a type reference.
-
-```dart showLineNumbers
-@Get()
-String getUser(
-  // highlight-next-line
-  @Binds(GetUser) User user,
-) {
-  return 'User: $user';
-}
-```
-
-:::tip
-Read more about why `GetUser` is being used as a [Type Reference][using-types-in-references]
-:::
-
-## Name References
-
-By default, `revali_router` will use the name of the method's parameter as the key to retrieve the respective value from the request. This works well when the name of the parameter and the key of the data you're attempting to bind match, however, there will be times where the names don't match and will need to be bound manually.
-
-In the example below, the `firstName` method parameter (line 3) is bound to the `firstName` path parameter (line 1). This means that the path parameter will be properly bound to the method parameter.
-
-```dart showLineNumbers
-@Get(':firstName')
-String sayHello(
-  // highlight-next-line
-  @Param() String firstName,
-) {
-  return 'Hello, $firstName!';
-}
-```
-
-:::info Example
-If the request path is `/john`, the response will be `Hello, john!`.
-:::
-
-Below the path parameter is named `:firstName` (line 1) and the method parameter is named `name` (line 3). What happens here is the `@Param` annotation would try to bind a `:name` path parameter which doesn't exist. This would result in a compile-time error.
-
-```dart showLineNumbers
-@Get(':firstName')
-String sayHello(
-  // highlight-next-line
-  @Param() String name,
-) {
-  return 'Hello, $name!';
-}
-```
-
-To remedy this, you will need to pass the name of the path parameter (`:firstName`) to the `@Param` annotation.
-
-```dart showLineNumbers
-@Get(':firstName')
-String sayHello(
-  // highlight-next-line
-  @Param('firstName') String name,
-) {
-  return 'Hello, $name!';
-}
-```
-
-:::warning
-Names are case sensitive. `user-id` is not the same as `userId`.
-:::
-
-:::note
-In the examples above, we used the `@Param` annotation, but the principles apply to all binding annotations.
-:::
-
-## Auto `fromJson`
-
-In most cases, the value you bind from the request will need to be transformed or converted to a custom type before using it. If your custom type has a `fromJson` constructor (or factory), it will be automatically detected and used to convert the value.
-
-:::important
-the `fromJson` constructor must accept only a single parameter. If it doesn't, you will need to use a [pipe][param-pipe].
-:::
+When your class has a `fromJson` constructor, Revali uses it automatically:
 
 ```dart
 class User {
   final String name;
   final int age;
 
-  User(this.name, this.age);
+  User({required this.name, required this.age});
 
-  User.fromJson(Map<String, dynamic> json)
-      : name = json['name'],
-        age = json['age'];
+  factory User.fromJson(Map<String, dynamic> json) {
+    return User(
+      name: json['name'] as String,
+      age: json['age'] as int,
+    );
+  }
 }
 
+@Controller('users')
+class UsersController {
+  @Post()
+  String createUser(@Body() User user) {
+    return 'Created user: ${user.name} (age: ${user.age})';
+  }
+}
+```
+
+**Request:** `POST /users` with `{"name": "John", "age": 25}`  
+**Result:** `user = User(name: "John", age: 25)`
+
+:::important
+The `fromJson` constructor must accept exactly one parameter.
+:::
+
+### Using Pipes for Complex Conversion
+
+For more complex transformations, use [pipes](./pipes.md):
+
+```dart
+@Controller('users')
+class UsersController {
+  @Get(':id')
+  User getUser(@Param.pipe(UserPipe) User user) {
+    return user;
+  }
+}
+```
+
+## Best Practices
+
+### Use the Right Binding
+
+```dart
+// ✅ Good - path parameter
+@Get(':id')
+String getUser(@Param() String id) => userService.getUser(id);
+
+// ✅ Good - query parameter
+@Get()
+String searchUsers(@Query() String? search) => userService.search(search);
+
+// ✅ Good - request body
 @Post()
-Future<void> saveUser(
-  @Body(['data']) User user,
+String createUser(@Body() CreateUserRequest request) => userService.create(request);
+
+// ✅ Good - dependency injection
+@Get()
+String getUsers(@Dep() UserService userService) => userService.getAll();
+```
+
+### Keep Parameters Focused
+
+```dart
+// ✅ Good - focused parameters
+@Post()
+String createUser(
+  @Body() CreateUserRequest request,
+  @Dep() UserService userService,
 ) {
-  return 'User: $user';
+  return userService.create(request);
+}
+
+// ❌ Avoid - too many parameters
+@Post()
+String createUser(
+  @Body() CreateUserRequest request,
+  @Dep() UserService userService,
+  @Dep() EmailService emailService,
+  @Dep() NotificationService notificationService,
+  @Dep() AuditService auditService,
+  @Dep() CacheService cacheService,
+) {
+  // Too many dependencies in endpoint
 }
 ```
 
-Behind the scenes, `User.fromJson` will be called with the value of the `data` key from the request body.
-
-## Pipe Transform
-
-Another way you can convert a value from the request is by using a `Pipe`. This is useful when you need to convert a value in a specific way, when you need to perform some validation, or some asynchronous operation.
-
-:::tip
-Check out the [Pipe][pipes] documentation on how to create pipes.
-:::
-
-:::tip
-Read more about why the pipe being used as a [Type Reference][using-types-in-references] is important
-:::
-
-### Param
+### Handle Optional Data
 
 ```dart
-@Param(':user', GetUserPipe) User user,
-@Param.pipe(GetUserPipe) User user,
+// ✅ Good - nullable for optional data
+@Get()
+String searchUsers(
+  @Query() String? search,
+  @Query() int? limit,
+  @Query() int? offset,
+) {
+  return userService.search(search, limit: limit, offset: offset);
+}
 ```
 
-### Query
+## What's Next?
 
-```dart
-@Query(':user', GetUserPipe) User user,
-@Query.all(':user', GetUserPipe) User user,
-@Query.pipe(GetUserPipe) User user,
-@Query.allPipe(GetUserPipe) User user,
-```
+Now that you understand data binding, explore these related topics:
 
-### Header
+1. **[Pipes](./pipes.md)** - Transform and validate bound data
+2. **[Implied Binding](./implied_binding.md)** - Types that don't need annotations
+3. **[HTTP Methods](./methods.md)** - Define endpoint behavior
+4. **[Controllers](./controllers.md)** - Organize your endpoints
 
-```dart
-@Header(':user', GetUserPipe) User user,
-@Header.pipe(GetUserPipe) User user,
-```
-
-### Body
-
-```dart
-@Body(['data'], GetUserPipe) User user,
-@Body.pipe(GetUserPipe) User user,
-```
-
-[pipes]: ../core/pipes.md
-[built-in-types]: https://dart.dev/language/built-in-types
-[implied-binding]: ./implied_binding.md
-[di-object]: ../../../revali/app-configuration/configure-dependencies.md#the-di-object
-[configure-dependencies]: ../../../revali/app-configuration/configure-dependencies.md#registering-dependencies
-[data-handler]: ../../../constructs/revali_server/context/core/data_handler.md
-[using-types-in-references]: ../../../constructs/revali_server/tidbits.md#using-types-in-annotations
-[param-pipe]: #param-1
-[query-pipe]: #query-1
-[body-pipe]: #body-1
-[header-pipe]: #header-1
+Ready to learn about data transformation? Let's explore pipes!
