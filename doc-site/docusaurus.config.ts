@@ -50,12 +50,21 @@ const config: Config = {
         ],
     ],
 
+    markdown: {
+        mermaid: true,
+    },
+
+    themes: ['@docusaurus/theme-mermaid'],
+
     themeConfig: {
         image: 'img/social-card.png',
         docs: {
             sidebar: {
                 autoCollapseCategories: true
             }
+        },
+        mermaid: {
+            theme: { light: 'neutral', dark: 'dark' },
         },
         algolia: {
             // The application ID provided by Algolia

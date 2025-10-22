@@ -1,28 +1,93 @@
 ---
+sidebar_position: 4
 description: Hot reload your server to see your changes in real-time
 ---
 
 # Hot Reload
 
-As you make changes to your server-side code, Revali will automatically reload the server for you. This allows you to see your changes in real-time without having to restart the server manually. You can add new routes, modify existing routes, or even remove routes, and Revali will handle the rest.
+Hot reload is one of Revali's most powerful development features. It automatically detects changes to your code and instantly applies them to your running server, allowing you to see changes in real-time without manual restarts.
 
-## Server Regeneration
+## How Hot Reload Works
 
-All files within the `routes` directory will trigger Revali to re-analyze and generate the server code. This includes the `routes` directory and all subdirectories within it. If you add a new file or modify an existing file, Revali will regenerate the server code.
+When you make changes to your server-side code, Revali automatically:
 
-Revali tries to be as efficient as possible when regenerating the server code. It will only regenerate when necessary, meaning that if you make a change to a file that doesn't affect the server code, Revali will not regenerate the server code. Revali determines this by the file's location.
+1. **Detects Changes**: Monitors files in watched directories
+2. **Re-analyzes Code**: Processes your controllers and routes
+3. **Regenerates Server**: Updates the server implementation
+4. **Reloads Server**: Applies changes without losing state
+5. **Preserves Connections**: Maintains active client connections
 
-All files and subdirectories within the following directories will trigger a regeneration:
+## Watched Directories
 
-- ./routes/\*\*
-- ./lib/components/\*\*
+Revali monitors these directories for changes:
 
-All other files and directories will not trigger a regeneration.
+- **`./routes/**`\*\* - All controller files and subdirectories
+- **`./lib/components/**`\*\* - Lifecycle components (middleware, guards, etc.)
 
-:::tip
-Whether Revali regenerates the server code or not, it will always hot reload the server.
-:::
+### What Triggers Hot Reload
 
-### Manual Regeneration
+✅ **These changes trigger hot reload:**
 
-If you need to manually regenerate the server code, you can press `r` in the terminal where the server is running. This will force Revali to re-analyze and generate the server code.
+- Adding new controller files
+- Modifying existing controllers
+- Adding new endpoints
+- Changing route annotations
+- Updating middleware or guards
+- Modifying component files
+
+❌ **These changes don't trigger hot reload:**
+
+- Files outside watched directories
+- Configuration files (unless they affect routes)
+- Static assets
+- Documentation files
+
+## Hot Reload Benefits
+
+### ⚡ **Instant Feedback**
+
+- See changes immediately without restarting
+- Maintain development flow and momentum
+- Test API changes in real-time
+
+### 🛠️ **Development Efficiency**
+
+- No manual server restarts
+- Faster iteration cycles
+- Reduced context switching
+
+## Hot Reload Limitations
+
+### ⚠️ **State Management**
+
+- Database connections may need to be re-established
+- WebSocket connections will be terminated
+
+## Manual Regeneration
+
+Sometimes you need to force a complete regeneration:
+
+### Using the Terminal
+
+Press `r` in the terminal where Revali is running:
+
+```console
+$ dart run revali dev
+[INFO] Starting the development server...
+[INFO] Server running on http://localhost:8080
+
+# Press 'r' to force regeneration
+r
+[INFO] Regenerating server code...
+[INFO] Server reloaded successfully
+```
+
+### Using the CLI
+
+You can also restart the entire development process:
+
+```bash
+# Stop the current server (q or Ctrl+C)
+# Then restart
+dart run revali dev
+```

@@ -5,77 +5,55 @@ description: Create a new controller and endpoint
 
 # Create Your First Endpoint
 
+This guide will walk you through creating your first API endpoint using Revali's approach.
+
 :::tip
-This guide represents the core concepts of Revali. For a more detailed guide on how to create a Revali Server application, check out the [Revali Server][revali-server-getting-started] construct guide.
+This guide covers the core concepts of Revali. For a complete server implementation, check out the [Revali Server](/constructs/revali_server/overview) construct guide.
 :::
 
-## Create a New Controller
+## Project Structure
 
-Controllers are to define the endpoints that your application will expose.
-
-To create a new controller, create a Dart file in your project's `routes` directory. We'll create one called `hello_controller.dart`:
+First, let's set up the basic project structure. Create a `routes` directory in your project root:
 
 ```tree
 .
-├── lib
-│   └── <non-revali-files>
-└── routes
-    └── hello_controller.dart
+├── lib/
+│   └── main.dart
+├── routes/
+│   └── (your controllers will go here)
+└── pubspec.yaml
 ```
 
-::::important
-The controller file name must end in either `_controller.dart` or `.controller.dart`.
-:::note
-The controller file needs to be within the `routes` directory, but can be nested within subdirectories.
-:::
-::::
+## Create a Controller
 
-### Define the Controller
-
-The controller file should contain a class annotated with the `Controller` annotation from the `revali_annotations` package.
-
-```dart title="routes/hello_controller.dart"
-import 'package:revali_annotations/revali_annotations.dart';
-
-@Controller('hello')
-class HelloController {}
-```
-
-:::note
-Typically, the `revali_annotations` package is imported with the server construct you're using.
-:::
-
-## Create a New Endpoint
-
-### Define the Endpoint
-
-Endpoints are methods within a controller that define the logic for a specific route. To create a new endpoint, add a new method to your controller class.
+Controllers define the endpoints that your application will expose. Create a new file called `hello_controller.dart` in the `routes` directory:
 
 ```dart title="routes/hello_controller.dart"
 import 'package:revali_annotations/revali_annotations.dart';
 
 @Controller('hello')
 class HelloController {
-
-  // highlight-start
-  String hello() {
-    return 'Hello, World!';
-  }
-  // highlight-end
+  // Your endpoints will go here
 }
 ```
 
-### Expose the Endpoint
+:::important
+**File Naming Requirements:**
 
-To expose this method as an endpoint, annotate it with a `Method` annotation. There are some out-of-the-box methods that you can use to define the HTTP method for the endpoint. For example, to define a `GET` endpoint, use the `Get` annotation:
+- Controller files must end with `_controller.dart` or `.controller.dart`
+
+- Files must be placed in the `routes` directory (can be nested in subdirectories)
+  :::
+
+## Add Your First Endpoint
+
+Now let's add a simple endpoint that returns "Hello, World!":
 
 ```dart title="routes/hello_controller.dart"
 import 'package:revali_annotations/revali_annotations.dart';
 
 @Controller('hello')
 class HelloController {
-
-  // highlight-next-line
   @Get()
   String hello() {
     return 'Hello, World!';
@@ -83,4 +61,73 @@ class HelloController {
 }
 ```
 
-[revali-server-getting-started]: ../../constructs/revali_server/getting-started/create-your-first-endpoint.md
+## Understanding the Code
+
+Let's break down what we just created:
+
+- **`@Controller('hello')`**: Defines a controller with the base path `/hello`
+- **`@Get()`**: Marks the method as a GET endpoint
+- **`String hello()`**: The method that handles the request and returns a response
+
+## Endpoint URL
+
+With this setup, your endpoint will be available at:
+
+```text
+GET http://localhost:8080/api/hello
+```
+
+The URL structure is: `{host}:{port}{prefix}/{controller}/{method}`
+
+- **Host**: `localhost` (default)
+- **Port**: `8080` (default)
+- **Prefix**: `/api` (default)
+- **Controller**: `/hello` (from `@Controller('hello')`)
+- **Method**: `/hello` (method name)
+
+## Add More Endpoints
+
+You can add multiple endpoints to the same controller:
+
+```dart title="routes/hello_controller.dart"
+import 'package:revali_annotations/revali_annotations.dart';
+
+@Controller('hello')
+class HelloController {
+  @Get()
+  String hello() {
+    return 'Hello, World!';
+  }
+
+  @Get('greet')
+  String greet() {
+    return 'Greetings!';
+  }
+
+  @Post('echo')
+  String echo(String message) {
+    return 'Echo: $message';
+  }
+}
+```
+
+This creates three endpoints:
+
+- `GET /api/hello/hello`
+- `GET /api/hello/greet`
+- `POST /api/hello/echo`
+
+## Next Steps
+
+:::tip
+Ready to see your API in action? Check out the [Run the Server](/revali/getting-started/run-the-server) guide to start your development server.
+:::
+
+For more advanced features like:
+
+- Request/response handling
+- Middleware and guards
+- Error handling
+- Database integration
+
+Check out the [Revali Server](/constructs/revali_server/overview) construct documentation.

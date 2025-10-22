@@ -1,138 +1,243 @@
 ---
+sidebar_position: 4
 description: Customize the default responses returned by the server
 ---
 
 # Default Responses
 
-The default responses are the responses that are returned during certain events in the request flow. To customize the responses, you can override the `defaultResponses` method in your `AppConfig` class.
+Default responses are the standardized responses that Revali returns during specific events in the request lifecycle. These responses provide consistent error handling and user experience across your application.
 
-```dart title"routes/apps/my_app.dart"
+## What are Default Responses?
+
+Default responses handle common scenarios that occur during request processing:
+
+- **Error Handling**: Standardized error responses for different failure scenarios
+- **User Experience**: Consistent messaging across your API
+- **Security**: Controlled information disclosure in error responses
+- **Debugging**: Appropriate detail levels for different environments
+
+## Configuring Default Responses
+
+Override the `defaultResponses` getter in your `AppConfig` class:
+
+```dart title="routes/main_app.dart"
 import 'package:revali_router/revali_router.dart';
 
 @App()
-class MyApp extends AppConfig {
-    @override
-    // highlight-start
-    DefaultResponses get defaultResponses => DefaultResponses();
+class MainApp extends AppConfig {
+  const MainApp() : super(host: 'localhost', port: 8080);
+
+  @override
+  DefaultResponses get defaultResponses => DefaultResponses(
+    internalServerError: SimpleResponse(
+      statusCode: 500,
+      body: 'An unexpected error occurred. Please try again later.',
+    ),
+    notFound: SimpleResponse(
+      statusCode: 404,
+      body: 'The requested resource was not found.',
+    ),
+    failedCorsOrigin: SimpleResponse(
+      statusCode: 403,
+      body: 'Access denied: Origin not allowed.',
+    ),
+    failedCorsHeaders: SimpleResponse(
+      statusCode: 403,
+      body: 'Access denied: Headers not allowed.',
+    ),
+  );
 }
 ```
 
-## Internal Server Error
+## Response Types
 
-The internal server error response is returned when an exception is thrown and the status code is set to 500 or higher.
+### Internal Server Error (500)
 
-```dart title"routes/apps/my_app.dart"
-import 'package:revali_router/revali_router.dart';
+Returned when an unhandled exception occurs:
 
+```dart title="routes/main_app.dart"
 @App()
-class MyApp extends AppConfig {
-    @override
-    DefaultResponses get defaultResponses => DefaultResponses(
-        // highlight-start
-        internalServerError: SimpleResponse(
-            statusCode: 500,
-            body: 'Uh oh! Something went wrong!',
-        ),
-        // highlight-end
-    );
+class MainApp extends AppConfig {
+  @override
+  DefaultResponses get defaultResponses => DefaultResponses(
+    internalServerError: SimpleResponse(
+      statusCode: 500,
+      body: 'Something went wrong on our end. We\'re working to fix it!',
+    ),
+  );
 }
 ```
 
-The default internal server error response is
+**Default Response:**
 
 ```dart
 SimpleResponse(
-    statusCode: 500,
-    body: 'Internal Server Error',
-);
-```
-
-## Not Found
-
-The not found response is returned when no route is found for the request.
-
-```dart title"routes/apps/my_app.dart"
-import 'package:revali_router/revali_router.dart';
-
-@App()
-class MyApp extends AppConfig {
-    @override
-    DefaultResponses get defaultResponses => DefaultResponses(
-        // highlight-start
-        notFound: SimpleResponse(
-            statusCode: 404,
-            body: 'Page not found',
-        ),
-        // highlight-end
-    );
-}
-```
-
-The default not found response is
-
-```dart
-SimpleResponse(
-    404,
-    body: 'Not Found',
+  statusCode: 500,
+  body: 'Internal Server Error',
 )
 ```
 
-## Failed CORs Origin
+### Not Found (404)
 
-When a request is made from an origin that is not allowed by the CORS policy, the failed CORS origin response is returned.
+Returned when no route matches the request:
 
-```dart title"routes/apps/my_app.dart"
-import 'package:revali_router/revali_router.dart';
-
+```dart title="routes/main_app.dart"
 @App()
-class MyApp extends AppConfig {
-    @override
-    DefaultResponses get defaultResponses => DefaultResponses(
-        // highlight-start
-        failedCorsOrigin: SimpleResponse(
-            statusCode: 403,
-            body: 'Failed CORs due to origin',
-        ),
-        // highlight-end
-    );
+class MainApp extends AppConfig {
+  @override
+  DefaultResponses get defaultResponses => DefaultResponses(
+    notFound: SimpleResponse(
+      statusCode: 404,
+      body: 'The page you\'re looking for doesn\'t exist.',
+    ),
+  );
 }
 ```
 
-The default failed response is
+**Default Response:**
 
 ```dart
 SimpleResponse(
-    403,
-    body: 'CORS policy does not allow access from this origin.',
+  statusCode: 404,
+  body: 'Not Found',
 )
 ```
 
-## Failed CORs Headers
+### CORS Origin Failure (403)
 
-When a request is made with headers that are not allowed by the CORS policy, the failed CORS headers response is returned.
+Returned when a request comes from an unauthorized origin:
 
-```dart title"routes/apps/my_app.dart"
-import 'package:revali_router/revali_router.dart';
-
+```dart title="routes/main_app.dart"
 @App()
-class MyApp extends AppConfig {
-    @override
-    DefaultResponses get defaultResponses => DefaultResponses(
-        // highlight-start
-        failedCorsHeaders: SimpleResponse(
-            statusCode: 403,
-            body: 'Failed CORs due to headers',
-        ),
-        // highlight-end
-    );
+class MainApp extends AppConfig {
+  @override
+  DefaultResponses get defaultResponses => DefaultResponses(
+    failedCorsOrigin: SimpleResponse(
+      statusCode: 403,
+      body: 'Access denied: Your origin is not authorized to access this resource.',
+    ),
+  );
 }
 ```
 
-The default failed response is
+**Default Response:**
 
 ```dart
 SimpleResponse(
-    403,
-    body: 'CORS policy does not allow access with these headers.',
+  statusCode: 403,
+  body: 'CORS policy does not allow access from this origin.',
 )
 ```
+
+### CORS Headers Failure (403)
+
+Returned when a request contains unauthorized headers:
+
+```dart title="routes/main_app.dart"
+@App()
+class MainApp extends AppConfig {
+  @override
+  DefaultResponses get defaultResponses => DefaultResponses(
+    failedCorsHeaders: SimpleResponse(
+      statusCode: 403,
+      body: 'Access denied: The request contains unauthorized headers.',
+    ),
+  );
+}
+```
+
+**Default Response:**
+
+```dart
+SimpleResponse(
+  statusCode: 403,
+  body: 'CORS policy does not allow access with these headers.',
+)
+```
+
+## Response Best Practices
+
+### 🎯 **User Experience**
+
+- **Clear Messages**: Use clear, actionable error messages
+- **Consistent Format**: Maintain consistent response structure
+- **Appropriate Detail**: Provide appropriate detail for the environment
+- **Helpful Guidance**: Include guidance on how to resolve issues
+
+### 🔒 **Security**
+
+- **Information Disclosure**: Avoid exposing sensitive information in error responses
+- **Error Details**: Limit error details in production environments
+- **Logging**: Log detailed errors server-side for debugging
+
+### 🌐 **API Design**
+
+- **HTTP Status Codes**: Use appropriate HTTP status codes
+- **Response Format**: Maintain consistent response format across all endpoints
+- **Error Codes**: Include error codes for programmatic handling
+
+### 🛠️ **Development**
+
+- **Debug Information**: Include helpful debug information in development
+- **Request Tracking**: Include request IDs for tracking
+- **Environment Awareness**: Adapt responses based on environment
+
+## Common Response Patterns
+
+### Standard API Error Format
+
+```dart
+SimpleResponse(
+  statusCode: 500,
+  body: {
+    'success': false,
+    'error': {
+      'code': 'INTERNAL_SERVER_ERROR',
+      'message': 'An unexpected error occurred',
+      'details': isDevelopment ? exception.toString() : null,
+    },
+    'timestamp': DateTime.now().toIso8601String(),
+    'requestId': requestId,
+  },
+)
+```
+
+### Validation Error Format
+
+```dart
+SimpleResponse(
+  statusCode: 400,
+  body: {
+    'success': false,
+    'error': {
+      'code': 'VALIDATION_ERROR',
+      'message': 'Request validation failed',
+      'details': validationErrors,
+    },
+    'timestamp': DateTime.now().toIso8601String(),
+  },
+)
+```
+
+### Rate Limiting Error Format
+
+```dart
+SimpleResponse(
+  statusCode: 429,
+  body: {
+    'success': false,
+    'error': {
+      'code': 'RATE_LIMIT_EXCEEDED',
+      'message': 'Too many requests. Please try again later.',
+      'retryAfter': retryAfterSeconds,
+    },
+    'timestamp': DateTime.now().toIso8601String(),
+  },
+)
+```
+
+## Next Steps
+
+- **[Environment Variables](/revali/app-configuration/env-vars)**: Learn about environment variable configuration
+- **[Flavors](/revali/app-configuration/flavors)**: Create environment-specific configurations
+- **[Error Handling](/constructs/revali_server/lifecycle-components/advanced/exception-catchers)**: Advanced error handling techniques

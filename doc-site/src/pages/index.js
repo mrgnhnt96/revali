@@ -145,16 +145,16 @@ function CodeExampleSection() {
             <pre className={styles.codePre}>
               <code className={styles.codeCode}>
                 {`// Create a simple API endpoint
-@Route('/api/users')
+@Controller('users')
 class UserController {
-  @Get('/')
-  Future<List<User>> getUsers() async {
+  @Get()
+  Future<List<User>> getAll() async {
     return await userService.getAllUsers();
   }
-  
-  @Post('/')
-  Future<User> createUser(@Body() User user) async {
-    return await userService.createUser(user);
+
+  @Post()
+  Future<User> create(@Body() UserInput input) async {
+    return await userService.createUser(input);
   }
 }`}
               </code>
