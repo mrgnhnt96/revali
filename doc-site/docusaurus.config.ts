@@ -56,6 +56,17 @@ const config: Config = {
 
     themes: ['@docusaurus/theme-mermaid'],
 
+    plugins: [
+        [
+            '@docusaurus/plugin-client-redirects',
+            {
+                redirects: [
+                    // Add any specific redirects here if needed
+                ],
+            },
+        ],
+    ],
+
     themeConfig: {
         image: 'img/social-card.png',
         docs: {
