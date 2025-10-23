@@ -1,6 +1,7 @@
 ---
 sidebar_position: 2
 ---
+
 # Components
 
 Similar to creating a controller and endpoints using a class and methods, you can create lifecycle components. By using a class, you can group related lifecycle components together and reuse them across different controllers/endpoints.
@@ -51,20 +52,20 @@ The `@Dep` annotation (used to retrieve data from your [dependencies][di]) is as
 :::
 
 :::tip
-Learn more about the [data handler][data-handler]
+Learn more about the [data handler][data-sharing]
 :::
 
 ## Define a Lifecycle Component
 
 Now that you have a class to group your lifecycle components, you can create a lifecycle component by adding methods to the class. The method's return type is what determines which lifecycle component it associated with.
 
-| Return Type                        | Lifecycle Type                          | `Future` Support |
-| ---------------------------------- | --------------------------------------- | ---------------- |
-| `GuardResult`                      | [Guard][guard]                          | ✅               |
-| `MiddlewareResult`                 | [Middleware][middleware]                | ✅               |
-| `InterceptorPreResult`             | [Interceptor (pre)][interceptor-pre]    | ✅               |
-| `InterceptorPostResult`            | [Interceptor (post)][interceptor-post]  | ✅               |
-| `ExceptionCatcherResult<Exception>`| [Exception Catcher][exception-catcher]  | ❌               |
+| Return Type                         | Lifecycle Type                         | `Future` Support |
+| ----------------------------------- | -------------------------------------- | ---------------- |
+| `GuardResult`                       | [Guard][guard]                         | ✅               |
+| `MiddlewareResult`                  | [Middleware][middleware]               | ✅               |
+| `InterceptorPreResult`              | [Interceptor (pre)][interceptor-pre]   | ✅               |
+| `InterceptorPostResult`             | [Interceptor (post)][interceptor-post] | ✅               |
+| `ExceptionCatcherResult<Exception>` | [Exception Catcher][exception-catcher] | ❌               |
 
 ```dart title="lib/components/my_component.dart"
 class MyComponent implements LifecycleComponent {
@@ -110,13 +111,13 @@ class MyComponent implements LifecycleComponent {
 
 Each Lifecycle Component has certain access to the request & response context. Review the following context objects that are available to each Lifecycle Component:
 
-| Lifecycle Type                          | Context                   |
-| --------------------------------------- | ------------------------- |
-| [Guard][guard]                          | [Guard Context][guard-context]     |
-| [Middleware][middleware]                | [Middleware Context][middleware-context]     |
-| [Interceptor (pre)][interceptor-pre]    | [Interceptor Pre Context][interceptor-pre-context]     |
-| [Interceptor (post)][interceptor-post]  | [Interceptor Post Context][interceptor-post-context]     |
-| [Exception Catcher][exception-catcher]  | [Exception Catcher Context][exception-catcher-context]     |
+| Lifecycle Type                         | Context                                                |
+| -------------------------------------- | ------------------------------------------------------ |
+| [Guard][guard]                         | [Guard Context][guard-context]                         |
+| [Middleware][middleware]               | [Middleware Context][middleware-context]               |
+| [Interceptor (pre)][interceptor-pre]   | [Interceptor Pre Context][interceptor-pre-context]     |
+| [Interceptor (post)][interceptor-post] | [Interceptor Post Context][interceptor-post-context]   |
+| [Exception Catcher][exception-catcher] | [Exception Catcher Context][exception-catcher-context] |
 
 Each field within the context objects can be [bound implicitly][implied-binding], so you don't need to add an annotation to bind the value to the parameter.
 
@@ -138,19 +139,19 @@ class MyComponent implements LifecycleComponent {
 
 In addition to the [base implied bindings][binding], here's a comprehensive list of the implicit bindings available:
 
-| Implicit Binding                  | Lifecycle Type                |
-| --------------------------------- | ----------------------------- |
-| RestrictedInterceptorContext      | Interceptor                   |
-| FullInterceptorContext            | Interceptor (post only)       |
-| InterceptorMeta                   | Interceptor                   |
-| ReadOnlyReflectHandler            | Interceptor                   |
-| ReflectHandler                    | Interceptor                   |
-| MiddlewareContext                 | Middleware                    |
-| GuardMeta                         | Guard                         |
-| GuardContext                      | Guard                         |
-| ExceptionCatcherContext           | Exception Catcher             |
-| ExceptionCatcherMeta              | Exception Catcher             |
-| RouteEntry                        | Exception Catcher             |
+| Implicit Binding             | Lifecycle Type          |
+| ---------------------------- | ----------------------- |
+| RestrictedInterceptorContext | Interceptor             |
+| FullInterceptorContext       | Interceptor (post only) |
+| InterceptorMeta              | Interceptor             |
+| ReadOnlyReflectHandler       | Interceptor             |
+| ReflectHandler               | Interceptor             |
+| MiddlewareContext            | Middleware              |
+| GuardMeta                    | Guard                   |
+| GuardContext                 | Guard                   |
+| ExceptionCatcherContext      | Exception Catcher       |
+| ExceptionCatcherMeta         | Exception Catcher       |
+| RouteEntry                   | Exception Catcher       |
 
 :::important
 While you can bind the context object itself, it is recommended to scope your needs as much as possible. This can help declare your intent and make your code more readable. Consequently, it can also help you test your code more effectively.
@@ -186,7 +187,7 @@ Future<void> myEndpoint() {
 
 [di]: ../../../revali/app-configuration/configure-dependencies.md
 [binding]: ../core/binding.md
-[data-handler]: ././../context/core/data_handler.md
+[data-sharing]: ././../context/core/data_handler.md
 [guard]: ./advanced/guards.md
 [middleware]: ./advanced/middleware.md
 [interceptor-pre]: ./advanced/interceptors.md#pre

@@ -70,7 +70,7 @@ abstract interface class Context {
 The `data` property provides a way to share data between different lifecycle components during a single request. It uses type-based storage where the type is the key.
 
 :::tip
-Learn more about the [Data Handler](./data_handler.md) for detailed usage and examples.
+Learn more about [Data Sharing](./data-sharing.md) for detailed usage and examples.
 :::
 
 ```dart
@@ -278,4 +278,4 @@ class MyComponent implements LifecycleComponent {
 - **[Lifecycle Components](../lifecycle-components/overview.md)** - Learn about different lifecycle components
 - **[Request](../request/overview.md)** - Detailed request object documentation
 - **[Response](../response/overview.md)** - Detailed response object documentation
-- **[Data Sharing](../data-handler.md)** - Learn about data sharing patterns
+- **[Data Sharing](../data-sharing.md)** - Learn about data sharing patterns

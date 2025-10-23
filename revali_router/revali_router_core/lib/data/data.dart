@@ -4,12 +4,42 @@ abstract class Data {
   /// Register an instance of [T] to be used later.
   void add<T>(T instance);
 
+  /// Get the data of a specific type.
+  ///
+  /// ```dart
+  /// {String, 'Hello, World!'}
+  ///
+  /// data.get<String>(); // 'Hello, World!'
+  /// data.get<User>(); // null
+  /// ```
   T? get<T>();
 
+  /// Check if the data contains a specific type.
+  ///
+  /// ```dart
+  /// {String, 'Hello, World!'}
+  ///
+  /// data.has<String>(); // true
+  /// ```
   bool has<T>();
 
+  /// Check if the data contains a specific value.
+  ///
+  /// ```dart
+  /// {String, 'Hello, World!'}
+  ///
+  /// data.contains<String>('Hello, World!'); // true
+  /// ```
   bool contains<T>(T value);
 
+  /// Remove the data of a specific type.
+  ///
+  /// ```dart
+  /// {String, 'Hello, World!'}
+  ///
+  /// data.remove<String>(); // true
+  /// data.remove<User>(); // false
+  /// ```
   bool remove<T>();
 }
 
