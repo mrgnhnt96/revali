@@ -7,6 +7,7 @@
   - [ ] **Authentication** - Secure your endpoints
   - [ ] **Database integration** - Connect to your data layer
 
+- [ ] Remove websocket 1 way modes
 - [ ] Consolidate `context` into a single class, no more multiple context types
 - [ ] Get feedback from Jonah about "ReadOnly" and "Mutable" classes
   - Should we remove them and just have a single class?
