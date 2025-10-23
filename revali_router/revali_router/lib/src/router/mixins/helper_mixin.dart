@@ -14,7 +14,7 @@ mixin HelperMixin {
   CloseWebSocket get close;
   Data get data;
   MetaScope get meta;
-  ReflectHandler get reflectHandler;
+  Reflect get reflectHandler;
   DebugErrorResponse get debugErrorResponse;
   DefaultResponses get defaultResponses;
   bool get debugResponses;

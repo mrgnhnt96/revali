@@ -257,7 +257,7 @@ class ServerParamAnnotations with ExtractImport {
     header,
     param,
     bind,
-    bind,
+    binds,
   ];
 
   @override

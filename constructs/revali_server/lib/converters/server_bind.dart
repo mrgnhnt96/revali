@@ -37,7 +37,7 @@ class ServerBind with ExtractImport {
   final ServerReflect? reflect;
 
   @override
-  List<ExtractImport> get extractors => [bind];
+  List<ExtractImport?> get extractors => [bind, reflect];
 
   @override
   List<ServerImports> get imports => const [];

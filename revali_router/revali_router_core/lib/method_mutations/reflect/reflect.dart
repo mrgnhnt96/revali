@@ -1,17 +1,30 @@
-import 'package:equatable/equatable.dart';
+import 'package:revali_router_core/method_mutations/reflect/reflect_data.dart';
 import 'package:revali_router_core/method_mutations/reflect/reflector.dart';
 
-part 'reflect.g.dart';
+class Reflect {
+  Reflect(Set<ReflectData> reflects) {
+    for (final reflect in reflects) {
+      final reflector = Reflector();
 
-class Reflect extends Equatable {
-  const Reflect(
-    this.type, {
-    required this.metas,
-  });
+      reflect.metas(reflector);
 
-  final Type type;
-  final void Function(Reflector) metas;
+      _reflects[reflect.type] = reflector;
+    }
+  }
 
-  @override
-  List<Object?> get props => _$props;
+  final Map<Type, Reflector> _reflects = {};
+
+  Reflector? get<T>() {
+    return _reflects[T];
+  }
+
+  Reflector? byType(Type type) {
+    for (final reflect in _reflects.entries) {
+      if (reflect.key.runtimeType == type) {
+        return reflect.value;
+      }
+    }
+
+    return null;
+  }
 }

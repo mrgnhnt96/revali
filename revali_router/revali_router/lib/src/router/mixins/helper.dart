@@ -9,7 +9,7 @@ class Helper with HelperMixin, ContextMixin {
     required Router router,
   }) {
     globalComponents = router._globalComponents ?? LifecycleComponentsImpl();
-    reflectHandler = ReflectHandler(router._reflects);
+    reflectHandler = Reflect(router._reflects);
     debugErrorResponse = router._debugResponse;
     debugResponses = router.debug;
     defaultResponses = router.defaultResponses;
@@ -34,7 +34,7 @@ class Helper with HelperMixin, ContextMixin {
   late final LifecycleComponents globalComponents;
 
   @override
-  late final ReflectHandler reflectHandler;
+  late final Reflect reflectHandler;
 
   @override
   FullRequest get request => _webSocketRequest ?? _request;

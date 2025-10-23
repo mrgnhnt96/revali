@@ -178,7 +178,11 @@ class ServerType with ExtractImport {
   }
 
   @override
-  List<ExtractImport?> get extractors => [...typeArguments, ...?recordProps];
+  List<ExtractImport?> get extractors => [
+    ...typeArguments,
+    ...?recordProps,
+    reflect,
+  ];
 
   @override
   List<ServerImports?> get imports => [importPath];

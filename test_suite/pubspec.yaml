@@ -35,3 +35,4 @@ workspace:
   - constructs/revali_server/primitive_return_types
   - constructs/revali_server/sse
   - constructs/revali_server/sse_custom
+  - constructs/revali_server/meta_reflect

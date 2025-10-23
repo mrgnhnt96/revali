@@ -96,7 +96,13 @@ class ServerParentRoute with ExtractImport implements ServerRoute, ServerClass {
   }
 
   @override
-  List<ExtractImport?> get extractors => [...routes, ...params, annotations];
+  List<ExtractImport?> get extractors => [
+    ...routes,
+    ...params,
+    annotations,
+    ...reflects,
+    ...pipes,
+  ];
 
   @override
   List<ServerImports?> get imports => [importPath];

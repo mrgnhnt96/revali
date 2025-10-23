@@ -26,5 +26,5 @@ class ContextImpl implements Context {
   final Response response;
 
   @override
-  final ReflectHandler reflect;
+  final Reflect reflect;
 }

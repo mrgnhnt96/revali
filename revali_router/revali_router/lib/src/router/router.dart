@@ -63,7 +63,7 @@ class Router extends Equatable {
   Router({
     required this.routes,
     LifecycleComponents? globalComponents,
-    Set<Reflect> reflects = const {},
+    Set<ReflectData> reflects = const {},
     this.observers = const [],
     this.debug = false,
     this.defaultResponses = const DefaultResponses(),
@@ -72,7 +72,7 @@ class Router extends Equatable {
 
   final List<Observer> observers;
   final List<BaseRoute> routes;
-  final Set<Reflect> _reflects;
+  final Set<ReflectData> _reflects;
   final LifecycleComponents? _globalComponents;
   final bool debug;
   final DefaultResponses defaultResponses;

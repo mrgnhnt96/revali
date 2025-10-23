@@ -19,7 +19,7 @@ class BindContextImpl implements BindContext {
   final Type parameterType;
 
   @override
-  final ReflectHandler reflect;
+  final Reflect reflect;
 
   @override
   final RouteEntry route;

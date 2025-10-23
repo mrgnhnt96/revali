@@ -34,7 +34,7 @@ final impliedArguments = <String, Expression>{
   (Data).name: refer('context').property('data'),
   (CleanUp).name: refer('context').property('data').property('get').call([]).ifNullThen(createMissingArgumentException(key: 'cleanUp', location: '@data').thrown.parenthesized),
   // --- reflect ---
-  (ReflectHandler).name: refer('context').property('reflect'),
+  (Reflect).name: refer('context').property('reflect'),
 };
 // dart format on
 

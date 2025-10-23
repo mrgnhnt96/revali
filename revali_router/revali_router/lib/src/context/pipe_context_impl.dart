@@ -29,7 +29,7 @@ class PipeContextImpl implements PipeContext {
   final MetaScope meta;
 
   @override
-  final ReflectHandler reflect;
+  final Reflect reflect;
 
   @override
   final Request request;

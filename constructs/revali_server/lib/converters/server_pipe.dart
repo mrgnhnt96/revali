@@ -51,12 +51,17 @@ class ServerPipe with ExtractImport {
   }
 
   final ServerClass clazz;
-  final ServerReflect reflect;
+  final ServerReflect? reflect;
   final ServerType convertFrom;
   final ServerType convertTo;
 
   @override
-  List<ExtractImport> get extractors => [clazz, convertFrom, convertTo];
+  List<ExtractImport?> get extractors => [
+    clazz,
+    convertFrom,
+    convertTo,
+    reflect,
+  ];
 
   @override
   List<ServerImports> get imports => const [];

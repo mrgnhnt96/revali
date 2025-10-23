@@ -7,13 +7,15 @@ class Meta {
   ///
   /// The key for the instance is the type of the instance.
   void add<T>(T instance) {
-    (_registered[T] ??= []).add(instance);
+    (_registered[T] ??= <T>[]).add(instance);
   }
 
   List<T>? get<T>() {
-    final result = _registered[T];
+    if (_registered[T] case final result?) {
+      return List<T>.from(result, growable: false);
+    }
 
-    return List<T>.from(result! as List<T>, growable: false);
+    return null;
   }
 
   bool has<T>() {
