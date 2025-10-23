@@ -1,6 +1,6 @@
 ---
-title: Structure
-description: Learn about the structure of the generated code
+title: Generated Code
+description: The structure of the generated client code
 sidebar_position: 1
 ---
 
