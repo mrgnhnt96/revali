@@ -1,131 +1,283 @@
 ---
-description: Specify which origins are allowed to request resources
+description: Control which origins can access your API resources
 sidebar_position: 0
 ---
 
 # Allow Origins
 
-## Explanation
+Allow Origins is a CORS (Cross-Origin Resource Sharing) security mechanism that controls which domains can access your API resources. It helps protect your API by only allowing requests from trusted origins.
 
-### What Are Allow Origins?
+## What Are Allow Origins?
 
-Allow Origins are part of Cross-Origin Resource Sharing (CORS) and specify which origins (domains) are permitted to access a server's resources. The `Access-Control-Allow-Origin` header in the server's response determines whether a client from a different domain can make a request and receive a response. This is crucial in maintaining secure interactions between different web applications.
+Allow Origins specify which domains (origins) are permitted to make requests to your API. This is essential for web security because browsers block cross-origin requests by default to prevent malicious websites from accessing sensitive data.
 
 ### Why Are Allow Origins Important?
 
-Allow Origins are important for enforcing security in web applications. When a web page requests resources from a different domain, browsers enforce the same-origin policy to protect user data and prevent attacks, such as Cross-Site Request Forgery (CSRF). By using Allow Origins, servers explicitly list which external domains are trusted, enabling controlled resource sharing while minimizing security risks.
+Allow Origins provide security by:
 
-If the origin of the request is not allowed, the browser will block the request, ensuring that only authorized domains can access the resources.
+- **Preventing unauthorized access** - Only trusted domains can access your API
+- **Protecting against CSRF attacks** - Malicious sites can't make requests on behalf of users
+- **Controlling resource sharing** - You decide which applications can use your API
+- **Enforcing same-origin policy** - Browsers respect your origin restrictions
 
-### How Are Allow Origins Used?
+### How Allow Origins Work
 
-The server sets the `Access-Control-Allow-Origin` header to control which domains can make cross-origin requests. For example:
+When a browser makes a cross-origin request, it checks if the origin is allowed. If not, the browser blocks the request before it reaches your server.
 
-```http
-Access-Control-Allow-Origin: https://example.com
-```
+:::info
+**Default Behavior:** By default, Revali allows all origins to access your API. You only need to configure `@AllowOrigins` when you want to restrict access to specific domains.
 
-In this case, only `https://example.com` is allowed to access the server's resources. Alternatively, setting the value to `*` allows any domain to access the resource, which can be useful for public APIs but is typically avoided for sensitive data due to security concerns.
+**Recommendation:** We recommend explicitly configuring `@AllowOrigins` with specific domains for better security, even if you want to allow multiple origins.
+:::
 
-Properly configuring Allow Origins helps maintain a balance between accessibility and security, ensuring that only trusted clients are able to interact with server resources.
+## Using Allow Origins
 
-## Registering Allow Origins
+### Basic Usage
 
-To register Allow Origins in Revali, use the `@AllowOrigins` annotation. This annotation specifies the origins that are allowed to access the server's resources. If you don't specify any origins, the server will allow all origins by default.
-
-Here's an example of how to register Allow Origins in Revali:
+Use the `@AllowOrigins` annotation to specify allowed domains:
 
 ```dart
 import 'package:revali_router/revali_router.dart';
 
-@AllowOrigins({'https://example.com'})
+@AllowOrigins({'https://myapp.com', 'https://admin.myapp.com'})
+@Controller('api')
+class ApiController {
+  @Get('data')
+  String getData() {
+    return 'Data for allowed origins';
+  }
+}
+```
+
+### Scoping
+
+Allow Origins can be applied at different levels:
+
+- **App level** - Applies to all controllers and endpoints
+- **Controller level** - Applies to all endpoints in the controller
+- **Endpoint level** - Applies only to specific endpoints
+
+```dart
+@AllowOrigins({'https://myapp.com'})
 @App()
-class MyApp ...
+class MyApp {
+  // All controllers allow https://myapp.com
+}
+
+@AllowOrigins({'https://admin.myapp.com'})
+@Controller('admin')
+class AdminController {
+  // Allows both https://myapp.com (inherited) and https://admin.myapp.com (local)
+
+  @AllowOrigins({'https://internal.myapp.com'})
+  @Get('sensitive')
+  String getSensitive() {
+    // Allows https://myapp.com, https://admin.myapp.com, and https://internal.myapp.com
+  }
+}
 ```
 
 :::tip
-Similar to Lifecycle Components, `@AllowOrigins` can be scoped to apps, controllers, and requests. Learn about [scoping]
-:::
-
-:::caution
-`@AllowOrigins` is all inclusive. If you specify any origins, only those origins will be allowed. If a request originates from a domain that is not specified in `@AllowOrigins`, the server will reject the request.
+Learn more about [scoping in lifecycle components](../lifecycle-components/overview.md#scoping).
 :::
 
 ### Wildcard Origins
 
-Wildcard origins are used to allow any domain to access the server's resources. To enable wildcard origins, set the value to `*`:
+Use `@AllowOrigins.all()` to allow any origin (use with caution):
 
 ```dart
-@AllowOrigins.all() // or @AllowOrigins({'*'})
-@App()
-class MyApp ...
+@AllowOrigins.all()
+@Controller('public')
+class PublicController {
+  @Get('data')
+  String getData() {
+    return 'Public data accessible from any origin';
+  }
+}
 ```
 
 :::caution
-Using wildcard origins can be useful for public APIs but should be used with caution due to security implications. Always consider the sensitivity of the data being shared and the potential risks associated with allowing unrestricted access.
+Using wildcard origins (`*`) allows any website to access your API. Only use this for truly public APIs that don't handle sensitive data.
 :::
 
 ### Inheritance
 
-By default, `@AllowOrigins` is inherited by child controllers and requests. This means that if you specify `@AllowOrigins` in an app, all controllers and requests within that app will inherit the allowed origins. Additionally, `@AllowOrigins` compound, meaning that if you specify `@AllowOrigins` for an app and a controller, the server will allow origins from both annotations.
+By default, `@AllowOrigins` is inherited by child controllers and endpoints. This means that origins allowed at the app level will also be allowed in all controllers and endpoints within that app.
 
-```dart title="routes/my_app.dart"
-// highlight-next-line
-@AllowOrigins({'My-Origin'})
-@App()
-class MyApp ...
-```
-
-```dart title="routes/my_controller.dart"
-// highlight-next-line
-@AllowOrigins({'Another-Origin'})
-@Controller('my-controller')
-class MyController {
-
-// highlight-next-line
-    @AllowOrigins({'Yet-Another-Origin'})
-    @Get('my-request')
-    Future<Response> myRequest() {
-        return Response.ok('Hello, World!');
-    }
+```dart
+@AllowOrigins({'https://myapp.com'})
+@Controller('api')
+class ApiController {
+  @Get('public')
+  String getPublic() {
+    // This endpoint allows https://myapp.com (inherited)
+    return 'Public data';
+  }
 }
 ```
 
-#### Allowed Origins
-
-- App: `My-Origin`
-- Controller: `My-Origin`, `Another-Origin`
-- Request: `My-Origin`, `Another-Origin`, `Yet-Another-Origin`
-
 ### Disabling Inheritance
 
-If you don’t want a child controller or request to inherit the allowed origins, you can disable inheritance by setting `inherit` to `false`.
+Use `@AllowOrigins.noInherit()` to prevent inheritance of parent-level allowed origins:
 
 ```dart
-@AllowOrigins({'My-Origin'}, inherit: false)
-// or
-@AllowOrigins.noInherit({'My-Origin'})
+@AllowOrigins({'https://myapp.com'})
+@Controller('api')
+class ApiController {
+  @AllowOrigins.noInherit({'https://admin.myapp.com'})
+  @Get('admin')
+  String getAdmin() {
+    // This endpoint only allows https://admin.myapp.com
+    // https://myapp.com is NOT allowed (inheritance disabled)
+    return 'Admin data';
+  }
+}
 ```
 
-This configuration will only allow the specified origins in the controller or request, ignoring any origins specified in the parent app or controller.
+### Combining Origins
 
-## Preflight Requests
+You can combine inherited and local allowed origins:
 
-A preflight request is a CORS mechanism that checks if a client is allowed to make a request to a server. This request is sent before the actual request and includes the `OPTIONS` method. The server responds with the allowed headers, methods, and origins.
+```dart
+@AllowOrigins({'https://myapp.com'})
+@Controller('api')
+class ApiController {
+  @AllowOrigins({'https://admin.myapp.com'})
+  @Get('protected')
+  String getProtected() {
+    // This endpoint allows both https://myapp.com (inherited) and https://admin.myapp.com (local)
+    return 'Protected data';
+  }
+}
+```
 
-Revali automatically handles preflight requests.
+## Common Use Cases
 
-### Failed CORs Requests
+### Single Domain API
 
-If a client sends a request with headers that are not allowed, the server will respond with a `403 Forbidden` status code with limited information.
+```dart
+@AllowOrigins({'https://myapp.com'})
+@Controller('api')
+class ApiController {
+  @Get('data')
+  String getData() {
+    return 'Data for myapp.com only';
+  }
+}
+```
+
+### Multi-Domain API
+
+```dart
+@AllowOrigins({
+  'https://myapp.com',
+  'https://admin.myapp.com',
+  'https://mobile.myapp.com'
+})
+@Controller('api')
+class ApiController {
+  @Get('data')
+  String getData() {
+    return 'Data for multiple domains';
+  }
+}
+```
+
+### Environment-Specific Origins
+
+```dart
+@AllowOrigins({
+  'https://myapp.com',           // Production
+  'https://staging.myapp.com',   // Staging
+  'http://localhost:3000'        // Development
+})
+@Controller('api')
+class ApiController {
+  @Get('data')
+  String getData() {
+    return 'Data for all environments';
+  }
+}
+```
+
+### Public API
+
+```dart
+@AllowOrigins.all()
+@Controller('public')
+class PublicController {
+  @Get('status')
+  String getStatus() {
+    return 'Public API status';
+  }
+}
+```
+
+## Error Handling
+
+When a client sends a request from a disallowed origin, the browser will:
+
+1. **Block the request** before it reaches your server
+2. **Show a CORS error** in the browser console
+3. **Prevent the response** from being processed by the client
 
 :::tip
-Learn how to configure the default response for [failed CORs requests][failed-cors-requests]
+Configure custom error responses for CORS failures in your [app configuration](../../../revali/app-configuration/default-responses.md).
 :::
 
-### Success CORs Requests
+## Best Practices
 
-If a client sends a request with allowed headers, the server will respond with a `200 OK` status code, along with the allowed headers.
+### Use Specific Origins
 
-[scoping]: ../lifecycle-components/overview.md#scoping
-[failed-cors-requests]: ../../../revali/app-configuration/default-responses.md#failed-cors-origin
+```dart
+// ✅ Good - Specific origins
+@AllowOrigins({'https://myapp.com', 'https://admin.myapp.com'})
+
+// ❌ Avoid - Too permissive
+@AllowOrigins.all()
+```
+
+### Include All Environments
+
+```dart
+@AllowOrigins({
+  'https://myapp.com',           // Production
+  'https://staging.myapp.com',   // Staging
+  'http://localhost:3000',       // Development
+  'http://localhost:8080'        // Local development
+})
+@Controller('api')
+class ApiController {
+  // Controller implementation
+}
+```
+
+### Document Origin Requirements
+
+```dart
+/// Allows access from production and staging environments
+@AllowOrigins({
+  'https://myapp.com',           // Production domain
+  'https://staging.myapp.com'    // Staging domain
+})
+@Controller('api')
+class ApiController {
+  // Controller implementation
+}
+```
+
+### Use HTTPS in Production
+
+```dart
+// ✅ Good - Secure origins
+@AllowOrigins({'https://myapp.com'})
+
+// ❌ Avoid - Insecure origins in production
+@AllowOrigins({'http://myapp.com'})
+```
+
+## Related Topics
+
+- **[Expect Headers](./expect-headers.md)** - Require specific headers in requests
+- **[Prevent Headers](./prevent-headers.md)** - Block specific headers from requests
+- **[Lifecycle Components](../lifecycle-components/overview.md)** - Learn about scoping and inheritance
