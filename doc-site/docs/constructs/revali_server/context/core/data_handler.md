@@ -144,4 +144,19 @@ class RoleGuard implements Guard {
 While in this example we are returning a `500` status code, you could retrieve the user from the database in the `RoleGuard` if you wanted to.
 :::
 
+## Best Practices
+
+### Use Data Sharing Wisely
+
+```dart
+// ✅ Good - Clear type-based data sharing
+data.add<User>(user);
+data.add<String>(generateId());
+
+// ❌ Avoid - Unclear or conflicting data
+data.add<Object>(someObject); // Too generic
+data.add<User>(user);
+data.add<User>(anotherUser); // Overwrites previous
+```
+
 [extension-types]: https://dart.dev/language/extension-types
