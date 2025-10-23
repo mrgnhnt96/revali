@@ -24,22 +24,18 @@ An alternative way to retrieve the you can use the `byType` method.
 
 ## Reflector
 
-The `Reflector` class provides a way to analyze [`Meta`][meta-handler] data on properties of a specific type.
+The `Reflector` class provides a way to analyze [`Meta`](./meta-handler.md) data on properties of a specific type.
 
 :::tip
-Learn how to create meta data using the [`Meta`][meta] object
+Learn how to create meta data using the [`Meta`](./meta.md) object
 :::
 
-### `get`
+### `get` (Reflector)
 
 Getting a `Meta` instance for a specific property of a type.
 
 ```dart
 ReadOnlyMetaHandler meta = context.reflect.get<T>().get('email');
-```
-
-```dart
-Reflector reflector = context.reflect.byType(User);
 ```
 
 ### `meta`
@@ -51,8 +47,5 @@ Map<String, ReadOnlyMeta> final meta = context.reflect.get<T>().meta;
 ```
 
 :::tip
-Learn more about [`Meta`][meta]
+Learn more about [`Meta`](./meta.md)
 :::
-
-[meta-handler]: ./meta_handler.md
-[meta]: ../../context/core/meta.md

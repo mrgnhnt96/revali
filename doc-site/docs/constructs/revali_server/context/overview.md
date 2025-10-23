@@ -70,7 +70,7 @@ abstract interface class Context {
 The `data` property provides a way to share data between different lifecycle components during a single request. It uses type-based storage where the type is the key.
 
 :::tip
-Learn more about the [Data Handler](./core/data_handler.md) for detailed usage and examples.
+Learn more about the [Data Handler](./data_handler.md) for detailed usage and examples.
 :::
 
 ```dart
@@ -102,7 +102,7 @@ class MyComponent implements LifecycleComponent {
 The `meta` property provides access to request metadata and configuration. It uses type-based storage and supports both direct and inherited metadata.
 
 :::tip
-Learn more about the [Meta Handler](./core/meta_handler.md) and [Meta](./core/meta.md) for detailed usage and examples.
+Learn more about the [Meta Handler](./meta_handler.md) and [Meta](./meta.md) for detailed usage and examples.
 :::
 
 ```dart
@@ -199,7 +199,7 @@ class MyComponent implements LifecycleComponent {
 The `reflect` property provides runtime reflection capabilities for accessing metadata on properties of Return Types or Request Parameters.
 
 :::tip
-Learn more about the [Reflect Handler](./core/reflect_handler.md) for detailed usage and examples.
+Learn more about the [Reflect Handler](./reflect_handler.md) for detailed usage and examples.
 :::
 
 ```dart
@@ -278,4 +278,4 @@ class MyComponent implements LifecycleComponent {
 - **[Lifecycle Components](../lifecycle-components/overview.md)** - Learn about different lifecycle components
 - **[Request](../request/overview.md)** - Detailed request object documentation
 - **[Response](../response/overview.md)** - Detailed response object documentation
-- **[Data Sharing](../data-sharing/overview.md)** - Learn about data sharing patterns
+- **[Data Sharing](../data-handler.md)** - Learn about data sharing patterns

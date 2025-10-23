@@ -9,7 +9,7 @@ description: Read & write metadata associated with the endpoint & request
 The `MetaHandler` object is used to store meta data in the context. Meta data is used to store additional information about the endpoint. The meta data is stored and retrieved by type.
 
 :::tip
-Learn how to create meta data using the [`Meta`][meta] object
+Learn how to create meta data using the [`Meta`](./meta.md) object
 :::
 
 ## Properties
@@ -149,5 +149,4 @@ class AuthGuard implements Guard {
 }
 ```
 
-[meta]: ./meta.md
 [extension-types]: https://dart.dev/language/extension-types
