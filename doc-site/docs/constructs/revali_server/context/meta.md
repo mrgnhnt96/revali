@@ -126,52 +126,7 @@ class AuthGuard implements Guard {
 }
 ```
 
-### 2. Data Sanitization
-
-Use metadata to control which fields are exposed in responses:
-
-```dart
-class Access implements MetaData {
-  const Access(this.type);
-  final AccessType type;
-}
-
-enum AccessType { public, private }
-
-class User {
-  const User({required this.name, required this.password});
-
-  final String name;
-
-  @Access(AccessType.private)
-  final String password;
-}
-
-// In your interceptor
-class UserSanitizer implements LifecycleComponent {
-  InterceptorPostResult sanitize(Response response, Reflect reflect) {
-    final reflector = reflect.get<User>();
-    final body = response.body.data;
-
-    if (body case {'data': final Map<String, dynamic> data}) {
-      final json = {...data};
-
-      for (final key in data.keys) {
-        final meta = reflector?.get(key);
-        final access = meta?.get<Access>();
-
-        if (access?.any((e) => e.type == AccessType.private) ?? false) {
-          json.remove(key); // Remove private fields
-        }
-      }
-
-      response.body = {'data': json};
-    }
-  }
-}
-```
-
-### 3. Route Configuration
+### 2. Route Configuration
 
 Store route-specific configuration:
 
