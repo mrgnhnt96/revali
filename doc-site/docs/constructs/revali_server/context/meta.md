@@ -1,139 +1,201 @@
 ---
-description: Register metadata about anything to anything
+description: Store and retrieve metadata associated with endpoints and requests
 ---
 
 # Meta
 
-The `Meta` object is a class that is used to associate metadata to an object. There are no limitations on where the `Meta` object can be used. It can be used on your App, Controller, Methods, and even on your custom return types.
+> Access via: `context.meta`
 
-## Examples
+Metadata allows you to attach custom information to endpoints and access it during request processing. This is useful for storing configuration, annotations, or any data that needs to be shared between different parts of your application.
 
-### Creating a Public Endpoint
+## Creating Metadata Classes
 
-A common use case for the `Meta` object is to create a public endpoint that does not require authentication. When you have a controller that requires an `Authorization` header to be present in the request, but you want to allow unauthenticated requests to a specific route.
+To create metadata, implement the `MetaData` interface:
 
-```dart title="routes/controllers/user_controller.dart"
-import 'package:revali_router/revali_router.dart';
+```dart
+import 'package:revali_router_annotations/revali_router_annotations.dart';
 
-@Auth()
-@Controller('user')
-class UserController {
+class Public implements MetaData {
+  const Public();
+}
 
-    @Get()
-    Future<PublicUser> publicUser() async {
-        return PublicUser(...);
+class Role implements MetaData {
+  const Role(this.name);
+
+  final String name;
+}
+```
+
+## Basic Operations
+
+### Annotating with Metadata
+
+Metadata is stored by annotating controllers and methods:
+
+```dart
+@Controller('api')
+class ApiController {
+  @Public()
+  @Get('health')
+  String healthCheck() {
+    return 'OK';
+  }
+
+  @Role('admin')
+  @Get('admin-data')
+  String adminData() {
+    return 'Admin only data';
+  }
+}
+```
+
+### Retrieving Metadata
+
+Get metadata using `get()` - returns a list of all instances:
+
+```dart
+// Get all instances of a type
+List<Role> roles = context.meta.get<Role>();
+// Returns: [Role('admin')] for the admin-data endpoint
+```
+
+### Checking for Metadata
+
+Check if metadata exists using `has()`:
+
+```dart
+if (context.meta.has<Public>()) {
+  // This endpoint is public
+}
+
+if (context.meta.has<Role>()) {
+  // This endpoint has role metadata
+}
+```
+
+## Direct vs Inherited Metadata
+
+The `MetaScope` provides access to both direct and inherited metadata:
+
+```dart
+@Controller('api')
+class ApiController {
+  @Role('admin')  // This will be inherited by all methods
+  @Get('users')
+  String getUsers() {
+    // Direct metadata - attached to this specific method
+    List<Role> directRoles = context.meta.direct.get<Role>();
+
+    // Inherited metadata - from parent controller
+    List<Role> inheritedRoles = context.meta.inherited.get<Role>();
+
+    return 'Users data';
+  }
+}
+```
+
+## Real-World Examples
+
+### 1. Public Endpoint Marking
+
+Mark endpoints as public to bypass authentication:
+
+```dart
+class Public implements MetaData {
+  const Public();
+}
+
+@Controller('api')
+class ApiController {
+  @Public()
+  @Get('health')
+  String healthCheck() {
+    return 'OK';
+  }
+}
+
+// In your auth guard
+class AuthGuard implements Guard {
+  Future<GuardResult> protect(GuardContext context) async {
+    if (context.meta.has<Public>()) {
+      return const GuardResult.pass();
     }
+
+    // Check authentication...
+  }
 }
 ```
 
-At the moment, the `publicUser` method requires an `Authorization` header to be present in the request. To allow unauthenticated requests to the `publicUser` method, you can create a `Public` meta class that you can register to the endpoint.
+### 2. Data Sanitization
 
-```dart title="lib/components/meta/public.dart"
-import 'package:revali_router/revali_router.dart';
+Use metadata to control which fields are exposed in responses:
 
-class Public implements Meta {
-    const Public();
+```dart
+class Access implements MetaData {
+  const Access(this.type);
+  final AccessType type;
 }
-```
 
-Now that we have the `Public` meta class, we can register it to the endpoint.
+enum AccessType { public, private }
 
-```dart title="routes/controllers/user_controller.dart"
-...
-    // highlight-next-line
-    @Public()
-    @Get()
-    Future<PublicUser> publicUser() async {
-        return PublicUser(...);
-    }
-...
-```
-
-The final piece to this puzzle is to handle the `Public` meta class in the `Auth` guard.
-
-```dart title="lib/components/guards/auth_guard.dart"
-import 'package:revali_router/revali_router.dart';
-
-class Auth implements Guard {
-    const Auth();
-
-    @override
-    Future<GuardResult> protect(GuardContext context) async {
-        // highlight-start
-        if (context.meta.has<Public>()) {
-            return const GuardResult.pass();
-        }
-        // highlight-end
-
-        ... // Check for Authorization header
-    }
-}
-```
-
-Now, when a request is made to the `publicUser` method, the `Auth` guard will check if the `Public` meta is present in the context and allow the request to continue.
-
-### Removing Sensitive Data from Return Type
-
-When you have a return type that you are returning to the client and contains sensitive data, you can add a `Meta` object to the field of the return type. Leveraging the [`ReflectHandler`](./reflect_handler.md), you can analyze the meta data of the return type's properties and remove the sensitive data before sending it to the client.
-
-```dart title="lib/components/meta/no_return.dart"
-import 'package:revali_router/revali_router.dart';
-
-class AdminEyesOnly extends Meta {
-    const AdminEyesOnly();
-}
-```
-
-Now that we have the `AdminEyesOnly` meta class, we can register it to the field of the endpoint's return type.
-
-```dart title="lib/models/user.dart"
 class User {
-    const User(
-        this.email, {
-        required this.isSuperUser,
-    });
+  const User({required this.name, required this.password});
 
-    final String email;
+  final String name;
 
-    // highlight-next-line
-    @AdminEyesOnly()
-    final bool isSuperUser;
+  @Access(AccessType.private)
+  final String password;
 }
-```
 
-With the `AdminEyesOnly` meta class registered to the `isSuperUser` field, we can now create an interceptor that will remove the `isSuperUser` field from the response body before sending it to the client.
+// In your interceptor
+class UserSanitizer implements LifecycleComponent {
+  InterceptorPostResult sanitize(Response response, Reflect reflect) {
+    final reflector = reflect.get<User>();
+    final body = response.body.data;
 
-```dart title="lib/components/interceptor/user_interceptor.dart"
-import 'package:revali_router/revali_router.dart';
+    if (body case {'data': final Map<String, dynamic> data}) {
+      final json = {...data};
 
+      for (final key in data.keys) {
+        final meta = reflector?.get(key);
+        final access = meta?.get<Access>();
 
-class UserInterceptor implements Interceptor {
-    const UserInterceptor();
-
-    @override
-    Future<void> pre(InterceptorContext context) async {}
-
-    @override
-    Future<void> post(InterceptorContext context) async {
-        if (context.response.body
-            case {'data': final Map<String, dynamic> userJson}) {
-        final reflector = context.reflect.get<User>();
-
-        final keys = [...userJson.keys];
-
-        for (final key in keys) {
-            if (reflector?.get(key) case final ReadOnlyMeta meta) {
-                // highlight-start
-                if (meta.has<AdminEyesOnly>()) {
-                    userJson.remove(key);
-                }
-                // highlight-end
-            }
+        if (access?.any((e) => e.type == AccessType.private) ?? false) {
+          json.remove(key); // Remove private fields
         }
+      }
 
-        context.response.body = {'data': userJson};
-        }
+      response.body = {'data': json};
     }
+  }
+}
+```
+
+### 3. Route Configuration
+
+Store route-specific configuration:
+
+```dart
+class CodeName implements MetaData {
+  const CodeName(this.name);
+
+  final String name;
 }
 
+@Controller('api')
+class ApiController {
+
+  @CodeName('API-1234')
+  @Get('data')
+  String getData(Meta meta) {
+    final codeName = meta.get<CodeName>()?.single;
+    return codeName?.name ?? 'No code name';
+  }
+}
 ```
+
+## What's Next?
+
+- Learn about [data sharing](./data-sharing.md) for storing runtime data
+- Explore [reflection](./reflect-handler.md) for accessing metadata on types
+- See [lifecycle components](../lifecycle-components/components.md) for using metadata in guards and interceptors

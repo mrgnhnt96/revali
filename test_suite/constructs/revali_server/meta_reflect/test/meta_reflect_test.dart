@@ -39,5 +39,15 @@ void main() {
         });
       },
     );
+
+    test('should return the routes silly name', () async {
+      final response = await server.send(
+        method: 'GET',
+        path: '/api/meta-reflect/route-data',
+      );
+
+      expect(response.statusCode, 200);
+      expect(response.body, {'data': 'Happy Mask'});
+    });
   });
 }
