@@ -4,37 +4,42 @@ description: Extra details to help you understand stuff
 
 # Tid Bits
 
+This page collects the small-but-important details that help you reason about how Revali turns annotations into runtime behavior. If an annotation is behaving in a surprising way, there is a good chance the answer lives in one of the sections below.
+
 ## Using Types in Annotations
+
+When you decorate controllers, handlers, or bindings, you are authoring normal Dart annotations. That means every expression inside the annotation has to be evaluated at compile time so the compiler can capture it inside the library metadata that Revali inspects later.
 
 ### Compile-Time Constants
 
-Dart requires annotations to be compile-time constants. This means that if you don't already know what the value is going to be, it's not compile-time constant and can't be used in an annotation.
+Dart enforces that annotation expressions are compile-time constants. If the value cannot be evaluated without running your program, it cannot appear in an annotation.
 
-Primitive types like `String`, `int`, `double`, and `bool` can be compile-time constants and can be used in annotations.
+The following patterns are safe to use:
+
+- Literal values such as strings, numbers, booleans, and `null`
+- Invocations of `const` constructors whose arguments are also constant
+- Top-level `const` variables or `static const` fields
+- `const` collections (`List`, `Set`, `Map`) whose contents are themselves constant
 
 ```dart
 @Post('hello')
+
+const dataPath = ['data', 'user', 'id'];
+
+@Body(dataPath)
 ```
 
-Iterable types like `List`, `Set`, and `Map` can be compile-time constants and as long as the values they contain are constants.
-
-```dart
-@Body(['data', 'user', 'id'])
-```
+The `const` keyword is optional inside annotations because Dart automatically treats annotation expressions as `const`; however, the expression still needs to be something the compiler can reduce to a constant value. Any attempt to instantiate a class with a non-constant constructor (for example, `Service()` where `Service` is not `const`) will fail immediately.
 
 :::tip
-Check out the dart docs on [Constants][dart-constants] to learn more.
+If you are unsure whether something qualifies, the Dart docs on [constants][dart-constants] outline every rule in detail.
 :::
 
 ### Type Referencing
 
-Behind the scenes, revali analyzes the code and retrieves AST (Abstract Syntax Tree) nodes to extract the information it needs.
+Revali performs static analysis by walking the Dart Abstract Syntax Tree (AST). In most cases it does not need an actual instance of the type you mention in an annotation; it just needs the type reference so it can look up constructors, parameters, and metadata. As long as the type is reachable at compile time, Revali can wire it up at runtime.
 
-When using types in annotations, even though we are not providing the actual value, we are providing a reference to the type. This is enough for revali to understand the class, it's constructor, and it's parameters.
-
-To understand this on a deeper level, let's take a look at how [pipes] are used in [bindings].
-
-Let's say we have a `UserPipe` class that will fetch a user from the database based on the `id` provided in the request. Our classes might look like this:
+Consider the interaction between [pipes] and [bindings]. Suppose you have a `UserPipe` that ultimately depends on a `Connection` object that in turn needs runtime configuration:
 
 ```dart title="lib/components/pipes/user_pipe.dart"
 class UserPipe implements Pipe<String, User> {
@@ -69,35 +74,29 @@ class Database {
 }
 ```
 
-We can see that the `UserPipe` requires a `UserService` which requires a `Database` which requires a `Connection`. For the sake of this example, let's assume that the `Connection` class requires some run-time configuration that cannot be provide at compile-time. This means that we can't use the `Connection` class in an annotation, which implies that any class that requires it can't be used in an annotation either.
-
-Luckily, we don't need to provide an actual instance of the `UserPipe` class, we just need to provide a reference to it.
+We can see that `UserPipe` depends on `UserService`, which depends on `Database`, which depends on `Connection`. Because `Connection` needs runtime configuration, you cannot include an instance of it inside an annotation. Fortunately, Revali does not require that; you only have to reference the `UserPipe` symbol:
 
 ```dart
 @Body.pipe(UserPipe)
 ```
 
-This is enough for revali to resolve the `UserPipe` type and use it in during runtime.
-
-The generated code could look something like this:
+That single reference gives Revali enough information to build the entire dependency chain when the generated server boots. Conceptually, the generated code might resemble:
 
 ```dart
-// some where in the generated code
 final connection = Connection();
 await connection.connect();
 
 final database = Database(connection: connection);
 final userService = UserService(database: database);
 
-// some where else in the generated code
 final user = await UserPipe(userService: userService).transform(...);
 ```
 
+The important takeaway: annotations pass _type information_, not instances. Revali inspects the referenced type, determines its constructor signature, and asks the dependency-injection container to provide everything it needs.
+
 ### Injecting Types
 
-Occasionally, you'll come across a situation where you need to supply 2 or more arguments to an annotation. One of which can't be resolved at compile-time and the other that can't be resolved using dependency injection.
-
-For example, let's say that we have a [`LifecycleComponent`][lifecycle-component]:
+Sometimes you must give an annotation both a compile-time value (like a status code) and a dependency that can only be created at runtime. A common example is a [`LifecycleComponent`][lifecycle-component] that mixes primitive configuration with a service dependency:
 
 ```dart
 class MyComponent implements LifecycleComponent {
@@ -108,7 +107,7 @@ class MyComponent implements LifecycleComponent {
 }
 ```
 
-We can see that the `MyComponent` class requires a `statusCode` and a `service`. The `statusCode` can be resolved at compile-time and (for sake of the example) the `service` doesn't have a constant constructor. This puts us in a bit of a pickle, because we can't do the following:
+The `statusCode` argument is trivially constant, but `service` is not. That means these two naive attempts fail for different reasons:
 
 ```dart
 class MyController {
@@ -122,7 +121,7 @@ class MyController {
 }
 ```
 
-To solve this, we can leverage the `Inject` class to "fake" the `Service` class to acheive a compile-time constant.
+To bridge that gap, Revali ships the `Inject` base class. By extending it, you create a marker type that is constant (because it has a `const` constructor) but still tells Revali which dependency to resolve at runtime.
 
 ```dart
 import 'package:revali/revali.dart';
@@ -132,7 +131,7 @@ final class InjectService extends Inject implements Service {
 }
 ```
 
-Now, we can use the `InjectService` class in our annotation and it will be resolved at compile-time.
+Now you can pass both pieces of information in a single annotation:
 
 ```dart
 @MyComponent(200, InjectService())
@@ -140,7 +139,13 @@ Now, we can use the `InjectService` class in our annotation and it will be resol
 User getUser() ...
 ```
 
-When Revali encounters an `Inject` class in an annotation, it will inspect the class and resolve the actual implementation at runtime using dependency injection. In this case, Revali will see that `InjectService` implements `Service` and will resolve a `Service` instance from the dependency injection.
+Behind the scenes Revali does three things when it sees `InjectService`:
+
+1. Confirms the class extends `Inject` (so it is safe to treat as a marker).
+2. Looks at the interfaces or base classes it implements (`Service` in this case).
+3. Asks the dependency-injection container for the real implementation of that interface.
+
+This pattern lets you mix literal configuration with runtime dependencies in a single annotation without sacrificing compile-time safety.
 
 [dart-constants]: https://dart.dev/language/variables#final-and-const
 [pipes]: ./core/pipes.md
