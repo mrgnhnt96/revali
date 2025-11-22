@@ -65,11 +65,11 @@ If you prefer to add dependencies manually, here's what your `pubspec.yaml` shou
 
 ```yaml title="pubspec.yaml"
 dependencies:
-  revali_router: ^1.0.0 # Runtime routing
+  revali_router: <latest> # Runtime routing
 
 dev_dependencies:
-  revali: ^1.0.0 # Development framework
-  revali_server: ^1.0.0 # Code generator
+  revali: <latest> # Development framework
+  revali_server: <latest> # Code generator
 ```
 
 :::tip
