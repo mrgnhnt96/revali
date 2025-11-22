@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 2.0.2 | 11.22.25
+
+### Features
+
+- Remove `ReflectHandler`, replace with `Reflect`
+
+### Chore
+
+- Sync package versions
+
 ## 2.0.2-dev | 10.15.25
 
 ### Fix

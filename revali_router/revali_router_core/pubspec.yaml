@@ -1,6 +1,6 @@
 name: revali_router_core
 description: Shared classes between revali_router and revali_router_annotations
-version: 2.0.2-dev
+version: 2.0.2
 repository: https://github.com/mrgnhnt96/revali/tree/main/revali_router/revali_router_core
 issue_tracker: https://github.com/mrgnhnt96/revali/issues
 documentation: https://revali.dev
@@ -21,7 +21,7 @@ dependencies:
   http_parser: ^4.1.0
   meta: ^1.16.0
   mime: ^1.0.5
-  revali_annotations: ^2.0.2-dev
+  revali_annotations: ^2.0.2
   revali_core: ^1.4.0
 
 dev_dependencies:

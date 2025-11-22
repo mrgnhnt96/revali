@@ -6,27 +6,27 @@
 
 # revali
 
-## 2.0.2-dev
+## 2.0.2
 
-### Fix
+### Chore
 
-- Dependencies
+- Sync package versions
 
 # revali_annotations
 
-## 2.0.2-dev
+## 2.0.2
 
-### Fix
+### Chore
 
-- Dependencies
+- Sync package versions
 
 # revali_construct
 
-## 2.0.2-dev
+## 2.0.2
 
-### Fix
+### Chore
 
-- Dependencies
+- Sync package versions
 
 # revali_core
 
@@ -40,15 +40,19 @@
 
 # revali_router
 
-## 3.0.2-dev
+## 3.0.2
 
-### Fix
+### Features
 
-- Dependencies
+- Add `Reflect` class to replace `ReflectHandler`
+
+### Chore
+
+- Sync package versions
 
 # revali_router_annotations
 
-## 2.0.2-dev
+## 2.0.2
 
 ### Fix
 
@@ -56,37 +60,48 @@
 
 # revali_router_core
 
-## 2.0.2-dev
+## 2.0.2
 
-### Fix
+### Features
 
-- Dependencies
+- Remove `ReflectHandler`, replace with `Reflect`
+
+### Chore
+
+- Sync package versions
 
 <!-- CONSTRUCTS -->
 
 # revali_server
 
-## 2.0.2-dev
+## 2.0.2
 
 ### Fix
 
-- Dependencies
+- Issue where reflect and pipe imports were not being generated correctly
+
+### Enhancements
+
+- Infer `ReflectHandler` to `Reflect`
+
+### Chore
+
+- Sync package versions
 
 <!-- REVALI CLIENT -->
 
 # revali_client
 
-## 1.4.0
+## 2.0.2
 
-### Features
+### Chore
 
-- Support Http Interceptors
-- Support clearing single keys from `Storage`
+- Sync package versions
 
 # revali_client_gen
 
-## 2.0.2-dev
+## 2.0.2
 
-### Fix
+### Chore
 
-- Dependencies
+- Sync package versions

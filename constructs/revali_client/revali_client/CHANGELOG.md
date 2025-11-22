@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.0.2 | 11.22.25
+
+### Chore
+
+- Sync package versions
+
 ## 1.4.0 | 05.30.25
 
 ### Features

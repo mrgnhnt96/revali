@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 3.0.2 | 11.22.25
+
+### Features
+
+- Add `Reflect` class to replace `ReflectHandler`
+
+### Chore
+
+- Sync package versions
+
 ## 3.0.2-dev | 10.15.25
 
 ### Fix

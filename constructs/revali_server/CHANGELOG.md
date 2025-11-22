@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## 2.0.2 | 11.22.25
+
+### Fix
+
+- Issue where reflect and pipe imports were not being generated correctly
+
+### Enhancements
+
+- Infer `ReflectHandler` to `Reflect`
+
+### Chore
+
+- Sync package versions
+
 ## 2.0.2-dev | 10.15.25
 
 ### Fix

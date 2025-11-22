@@ -1,6 +1,6 @@
 name: revali_annotations
 description: The base annotations for API generation using Revali
-version: 2.0.2-dev
+version: 2.0.2
 repository: https://github.com/mrgnhnt96/revali/tree/main/packages/revali_annotations
 issue_tracker: https://github.com/mrgnhnt96/revali/issues
 documentation: https://revali.dev
