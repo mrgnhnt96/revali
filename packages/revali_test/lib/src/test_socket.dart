@@ -4,11 +4,8 @@ import 'dart:io';
 import 'dart:typed_data';
 
 class TestSocket extends Stream<Uint8List> implements Socket {
-  TestSocket({
-    this.onWebSocketMessage,
-    Stream<Uint8List>? input,
-    this.onClose,
-  }) : _input = input;
+  TestSocket({this.onWebSocketMessage, Stream<Uint8List>? input, this.onClose})
+    : _input = input;
 
   final void Function(List<int>)? onWebSocketMessage;
   final Stream<Uint8List>? _input;

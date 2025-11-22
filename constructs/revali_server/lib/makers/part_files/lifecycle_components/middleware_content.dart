@@ -68,72 +68,57 @@ String middlewareContent(
               Parameter(
                 (p) => p
                   ..name = 'context'
-                  ..type = refer((MiddlewareContext).name),
+                  ..type = refer((Context).name),
               ),
             )
-            ..body = Block.of(
-              [
-                declareFinal('component')
-                    .assign(
-                      refer(component.name).newInstance(positioned, named),
-                    )
-                    .statement,
-                const Code('\n'),
-                declareFinal('middlewares')
-                    .assign(
-                      literalList(
-                        [
-                          ...createComponentMethods(
-                            component.middlewares,
-                            inferredParams: {
-                              (MiddlewareContext).name: refer('context'),
-                            },
+            ..body = Block.of([
+              declareFinal('component')
+                  .assign(refer(component.name).newInstance(positioned, named))
+                  .statement,
+              const Code('\n'),
+              declareFinal('middlewares')
+                  .assign(
+                    literalList(
+                      [...createComponentMethods(component.middlewares)],
+                      refer('FutureOr<${(MiddlewareResult).name}> Function()'),
+                    ),
+                  )
+                  .statement,
+              const Code('\n'),
+              forInLoop(
+                declaration: declareFinal('middleware'),
+                iterable: refer('middlewares'),
+                body: Block.of([
+                  declareFinal('result')
+                      .assign(
+                        createSwitchPattern(refer('middleware').call([]), {
+                          declareFinal(
+                            'future',
+                            type: refer('Future<${(MiddlewareResult).name}>'),
+                          ): refer(
+                            'future',
                           ),
-                        ],
-                        refer(
-                          'FutureOr<${(MiddlewareResult).name}> Function()',
-                        ),
-                      ),
-                    )
-                    .statement,
-                const Code('\n'),
-                forInLoop(
-                  declaration: declareFinal('middleware'),
-                  iterable: refer('middlewares'),
-                  body: Block.of([
-                    declareFinal('result')
-                        .assign(
-                          createSwitchPattern(refer('middleware').call([]), {
-                            declareFinal(
-                              'future',
-                              type: refer(
-                                'Future<${(MiddlewareResult).name}>',
-                              ),
-                            ): refer('future'),
-                            declareFinal(
-                              'result',
-                              type: refer((MiddlewareResult).name),
-                            ): refer('Future')
-                                .property('value')
-                                .call([refer('result')]),
-                          }).awaited,
-                        )
-                        .statement,
-                    const Code('\n'),
-                    ifStatement(
-                      refer('result').property('isStop'),
-                      body: refer('result').returned.statement,
-                    ).code,
-                  ]),
-                ).code,
-                const Code('\n'),
-                declareConst((MiddlewareResult).name)
-                    .property('next')
-                    .call([])
-                    .returned
-                    .statement,
-              ],
-            ),
+                          declareFinal(
+                            'result',
+                            type: refer((MiddlewareResult).name),
+                          ): refer(
+                            'Future',
+                          ).property('value').call([refer('result')]),
+                        }).awaited,
+                      )
+                      .statement,
+                  const Code('\n'),
+                  ifStatement(
+                    refer('result').property('isStop'),
+                    body: refer('result').returned.statement,
+                  ).code,
+                ]),
+              ).code,
+              const Code('\n'),
+              declareConst(
+                (MiddlewareResult).name,
+              ).property('next').call([]).returned.statement,
+            ]),
         ),
       ),
   );

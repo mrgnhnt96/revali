@@ -3,7 +3,7 @@ import 'package:examples/utils/logger.dart';
 import 'package:revali_router/revali_router.dart';
 
 @AllowOrigins.all()
-@AllowHeaders({'X-IM-AWESOME'})
+@ExpectHeaders({'X-IM-AWESOME'})
 @App(flavor: 'dev')
 final class DevApp extends AppConfig {
   DevApp()

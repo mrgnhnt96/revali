@@ -1,10 +1,8 @@
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
-typedef AnnotationMapper = void Function({
-  required List<OnMatch> onMatch,
-  NonMatch? onNonMatch,
-});
+typedef AnnotationMapper =
+    void Function({required List<OnMatch> onMatch, NonMatch? onNonMatch});
 
 class OnMatch implements Matcher {
   const OnMatch({
@@ -30,10 +28,8 @@ class Matcher {
     this.ignoreGenerics = false,
   }) : classType = '$classType';
 
-  const Matcher.any(
-    this.classType, {
-    this.ignoreGenerics = false,
-  }) : package = null;
+  const Matcher.any(this.classType, {this.ignoreGenerics = false})
+    : package = null;
 
   final String classType;
   final String? package;
@@ -41,10 +37,7 @@ class Matcher {
 }
 
 class NonMatch {
-  const NonMatch({
-    required this.convert,
-    this.ignore = const [],
-  });
+  const NonMatch({required this.convert, this.ignore = const []});
 
   final Iterable<Matcher> ignore;
 

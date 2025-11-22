@@ -8,7 +8,7 @@ class RunInterceptors {
   Future<void> pre() async {
     final HelperMixin(
       :interceptors,
-      context: ContextMixin(interceptor: context),
+      context: ContextMixin(main: context),
     ) = helper;
 
     for (final interceptor in interceptors) {
@@ -19,7 +19,7 @@ class RunInterceptors {
   Future<void> post() async {
     final HelperMixin(
       :interceptors,
-      context: ContextMixin(interceptor: context),
+      context: ContextMixin(main: context),
     ) = helper;
 
     for (final interceptor in interceptors.toList().reversed) {

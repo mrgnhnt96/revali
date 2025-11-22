@@ -33,10 +33,5 @@ class RevaliConstructConfig extends Equatable {
   Map<String, dynamic> toJson() => _$RevaliConstructConfigToJson(this);
 
   @override
-  List<Object?> get props => [
-        name,
-        package,
-        enabled,
-        options,
-      ];
+  List<Object?> get props => [name, package, enabled, options];
 }

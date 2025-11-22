@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_param_annotations.dart';
@@ -17,8 +17,8 @@ class ServerParam with ExtractImport {
     this.importPath,
     ServerParamAnnotations? annotations,
     AnnotationArgument? argument,
-  })  : _argument = argument,
-        annotations = annotations ?? ServerParamAnnotations.none();
+  }) : _argument = argument,
+       annotations = annotations ?? ServerParamAnnotations.none();
 
   ServerParam._({
     required this.name,
@@ -50,13 +50,18 @@ class ServerParam with ExtractImport {
     );
   }
 
-  factory ServerParam.fromElement(ParameterElement element) {
+  factory ServerParam.fromElement(FormalParameterElement element) {
     final importPath = ServerImports.fromElement(element);
 
     final paramAnnotations = ServerParamAnnotations.fromElement(element);
 
+    final name = element.name3;
+    if (name == null) {
+      throw Exception('Parameter name is null');
+    }
+
     return ServerParam(
-      name: element.name,
+      name: name,
       type: ServerType.fromType(element.type),
       isRequired: element.isRequiredNamed || element.isRequiredPositional,
       isNamed: element.isNamed,

@@ -7,10 +7,7 @@ import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
 
 class ClientServer with ExtractImport {
-  ClientServer({
-    required this.controllers,
-    required this.app,
-  });
+  ClientServer({required this.controllers, required this.app});
 
   factory ClientServer.fromMeta(RevaliContext context, MetaServer server) {
     MetaAppConfig? metaApp;
@@ -39,8 +36,9 @@ class ClientServer with ExtractImport {
           classType: LifecycleComponent,
           package: 'revali_router_annotations',
           convert: (object, annotation) {
-            final component =
-                ClientLifecycleComponent.fromDartObject(annotation);
+            final component = ClientLifecycleComponent.fromDartObject(
+              annotation,
+            );
 
             lifecycleComponents.add(component);
           },
@@ -61,8 +59,8 @@ class ClientServer with ExtractImport {
 
   @override
   List<ExtractImport?> get extractors => [
-        ...controllers.where((e) => !e.isExcluded),
-      ];
+    ...controllers.where((e) => !e.isExcluded),
+  ];
 
   @override
   List<ClientImports?> get imports => [];

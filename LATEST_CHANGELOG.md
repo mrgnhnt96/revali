@@ -6,34 +6,27 @@
 
 # revali
 
-## 1.5.0
+## 2.0.2
 
-### Features
+### Chore
 
-- Add `c` keyboard action to clear console during `dart run revali dev`
-
-### Enhancements
-
-- Significantly reduce hot reload time
-- Print out error message during hot reload when compilation fails, without requiring a full restart
+- Sync package versions
 
 # revali_annotations
 
-## 1.4.1
+## 2.0.2
 
-### Enhancements
+### Chore
 
-- Catch errors when listening to `stdin`
+- Sync package versions
 
 # revali_construct
 
-## 1.8.0
+## 2.0.2
 
-### Features
+### Chore
 
-- Improve hot reload performance
-- Debounce changes to slow hot reload frequency
-- Pass objects instead of strings to `stderr` to improve communication with `revali`
+- Sync package versions
 
 # revali_core
 
@@ -47,68 +40,68 @@
 
 # revali_router
 
-## 2.4.1
+## 3.0.2
 
-### Fixes
+### Features
 
-- Issue where allowed headers were not inherited properly
-- Issue where allowed headers could block requests with unknown headers
+- Add `Reflect` class to replace `ReflectHandler`
+
+### Chore
+
+- Sync package versions
 
 # revali_router_annotations
 
-## 1.3.0
+## 2.0.2
 
-### Features
+### Fix
 
-- Coerce dart types from `queryParameters`
-- Don't await response handling in `WebSocket`
-  - This allows for concurrent message handling
-
-### Enhancements
-
-- Change return type for `Pipe.transform` to `Future<T>`
-- Better error handling within WebSockets
-- Make WebSocket return values more consistent
-
-### Fixes
-
-- Issue where close reason contained too many characters
-- Formats close reason with proper start/end delimiters
+- Dependencies
 
 # revali_router_core
 
-## 1.9.1
+## 2.0.2
 
 ### Features
 
-- Create `add` method to `MutableCookies`
+- Remove `ReflectHandler`, replace with `Reflect`
+
+### Chore
+
+- Sync package versions
 
 <!-- CONSTRUCTS -->
 
 # revali_server
 
-## 1.15.0
+## 2.0.2
 
-### Features
+### Fix
 
-- Pass in `router.close` to `handleRequests` to allow for clean up of resources
+- Issue where reflect and pipe imports were not being generated correctly
+
+### Enhancements
+
+- Infer `ReflectHandler` to `Reflect`
+
+### Chore
+
+- Sync package versions
 
 <!-- REVALI CLIENT -->
 
 # revali_client
 
-## 1.4.0
+## 2.0.2
 
-### Features
+### Chore
 
-- Support Http Interceptors
-- Support clearing single keys from `Storage`
+- Sync package versions
 
 # revali_client_gen
 
-## 1.3.1
+## 2.0.2
 
-### Fixes
+### Chore
 
-- Issue where controllers/methods were not excluded from integrations
-- Issue where controllers/methods were not excluded from dependencies
+- Sync package versions

@@ -8,7 +8,7 @@ class SseRoute extends BaseRoute {
   SseRoute(
     super.path, {
     required super.handler,
-    super.allowedHeaders,
+    super.preventedHeaders,
     super.allowedOrigins,
     super.catchers,
     super.combine,

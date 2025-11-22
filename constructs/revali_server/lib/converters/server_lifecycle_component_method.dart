@@ -1,6 +1,6 @@
 // ignore_for_file: unnecessary_parenthesis
 
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_server/converters/server_imports.dart';
@@ -53,7 +53,7 @@ class ServerLifecycleComponentMethod with ExtractImport {
         returnType = (ExceptionCatcherResult).name;
         final exceptionElement = type.typeArguments.single;
         exceptionType = exceptionElement.getDisplayString();
-        if (exceptionElement.element?.librarySource?.uri case final Uri uri) {
+        if (exceptionElement.element?.library?.uri case final Uri uri) {
           importPaths.add(uri.toString());
         }
       }
@@ -63,7 +63,13 @@ class ServerLifecycleComponentMethod with ExtractImport {
       return null;
     }
 
-    final params = object.parameters.map(ServerParam.fromElement).toList();
+    final params = object.formalParameters
+        .map(ServerParam.fromElement)
+        .toList();
+
+    if (name == null) {
+      throw Exception('Method name is null');
+    }
 
     return ServerLifecycleComponentMethod(
       name: name,
@@ -88,15 +94,9 @@ class ServerLifecycleComponentMethod with ExtractImport {
   static const interceptorPre = 'InterceptorPreResult';
   static const interceptorPost = 'InterceptorPostResult';
 
-  static final aliasReturnTypes = {
-    interceptorPre,
-    interceptorPost,
-  };
+  static final aliasReturnTypes = {interceptorPre, interceptorPost};
 
-  static final returnTypes = {
-    ...coreReturnTypes,
-    ...aliasReturnTypes,
-  };
+  static final returnTypes = {...coreReturnTypes, ...aliasReturnTypes};
 
   static final coreReturnTypes = {
     (GuardResult).name,
@@ -111,14 +111,10 @@ class ServerLifecycleComponentMethod with ExtractImport {
   bool get isExceptionCatcher => returnType == (ExceptionCatcherResult).name;
 
   @override
-  List<ExtractImport?> get extractors => [
-        ...parameters,
-      ];
+  List<ExtractImport?> get extractors => [...parameters];
 
   @override
-  List<ServerImports?> get imports => [
-        import,
-      ];
+  List<ServerImports?> get imports => [import];
 }
 
 extension _DartTypeX on DartType {

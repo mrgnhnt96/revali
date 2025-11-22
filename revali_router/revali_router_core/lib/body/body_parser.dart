@@ -10,6 +10,6 @@ abstract base class BodyParser {
   Future<BodyData> parse(
     Encoding encoding,
     Stream<List<int>> data,
-    ReadOnlyHeaders headers,
+    Headers headers,
   );
 }

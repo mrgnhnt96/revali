@@ -4,7 +4,7 @@ import 'dart:io';
 
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
-import 'package:revali_router/src/body/mutable_body_impl.dart';
+import 'package:revali_router/src/body/body_impl.dart';
 import 'package:revali_router/src/body/response_body/base_body_data.dart';
 import 'package:revali_router/src/exceptions/payload_resolve_exception.dart';
 import 'package:revali_router/utils/coerce.dart' as type;
@@ -108,7 +108,7 @@ class PayloadImpl implements Payload {
     }
   }
 
-  Future<BodyData?> coerce(ReadOnlyHeaders headers) async {
+  Future<BodyData?> coerce(Headers headers) async {
     final encoding = headers.encoding;
 
     if (headers.mimeType case String()) {
@@ -143,7 +143,7 @@ class PayloadImpl implements Payload {
   }
 
   @override
-  Future<MutableBody> resolve(ReadOnlyHeaders headers) async {
+  Future<Body> resolve(Headers headers) async {
     final encoding = headers.encoding;
 
     try {
@@ -163,7 +163,7 @@ class PayloadImpl implements Payload {
 
       final data = await bodyData();
 
-      return MutableBodyImpl(data);
+      return BodyImpl(data);
     } catch (e) {
       final data = <String>[];
       await for (final chunk in read()) {

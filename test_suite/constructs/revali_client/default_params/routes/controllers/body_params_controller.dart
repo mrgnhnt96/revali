@@ -18,16 +18,12 @@ class BodyParamsController {
   }
 
   @Get('nested-non-null')
-  String nestedNonNull([
-    @Body(['name']) String data = 'Hello world',
-  ]) {
+  String nestedNonNull([@Body(['name']) String data = 'Hello world']) {
     return data;
   }
 
   @Get('nested-nullable')
-  String? nestedNullable([
-    @Body(['name']) String? data = 'Hello world',
-  ]) {
+  String? nestedNullable([@Body(['name']) String? data = 'Hello world']) {
     return data;
   }
 }

@@ -5,41 +5,129 @@ description: Run your server to see your API in action
 
 # Run the Server
 
-On it's own, revali doesn't do anything except analyze your routes and prepare it for constructs to generate code. In order to see your server in action, you'll need to use a "Server Construct" to generate the server code.
+Now that you've created your first endpoint, let's start the development server and see your API in action.
 
-:::tip
-Check out the [Revali Server][revali-server] construct for more information on how to generate a server.
-:::
+## Start the Development Server
 
-## Revali CLI
-
-Revali provides a CLI tool to run your server. To start the server, run the following command in your terminal from the root of your project:
+Revali provides a CLI tool to run your server. From your project root, run:
 
 ```bash
 dart run revali dev
 ```
 
-## Server Started
+This command will:
 
-Out of the box, Revali configures your server to
+1. Analyze your routes and controllers
+2. Generate the necessary server code
+3. Start the development server
+4. Enable hot reload for instant development feedback
 
-- Listen on port `8080`
-- Serve the API at `/api`
+## Server Configuration
 
-To access the server, open your browser and navigate to `http://localhost:8080/api`.
+By default, Revali configures your server with these settings:
+
+- **Host**: `localhost`
+- **Port**: `8080`
+- **API Prefix**: `/api`
+
+## Access Your API
+
+Once the server is running, you can access your API at:
+
+```text
+http://localhost:8080/api
+```
+
+For your hello endpoint created in the previous guide:
+
+```text
+GET http://localhost:8080/api/hello
+```
 
 ## Generated Files
 
-When revali starts up, it will generate files in your project:
+When Revali starts, it generates files in your project:
 
 ```tree
 .
-└── .revali
-    └── server
+└── .revali/
+    └── server/
         ├── <generated-files>
         └── server.dart
 ```
 
-These files are your server's definitions and routes. These files should **NOT** be modified manually, Revali will manage them for you.
+:::warning
+**Important**: Never modify files in the `.revali` directory manually. Revali manages these files automatically and will overwrite any changes you make.
+:::
 
-[revali-server]: ../../constructs/revali_server/overview.md
+## Hot Reload
+
+One of Revali's best features is hot reload support. When you make changes to your controllers:
+
+1. Save your file
+2. Revali automatically detects the changes
+3. Regenerates the necessary code
+4. Restarts the server
+5. Your changes are live instantly!
+
+## Testing Your API
+
+You can test your API using various tools:
+
+### Using curl
+
+```bash
+curl http://localhost:8080/api/hello
+```
+
+### Using a REST Client
+
+Tools like [Postman](https://www.postman.com/), [Insomnia](https://insomnia.rest/), or [Thunder Client](https://www.thunderclient.com/) work great for testing APIs.
+
+## Development Tips
+
+- **Keep the terminal open**: The development server shows logs and error messages
+- **Check the console**: Revali provides helpful feedback about route generation
+- **Use hot reload**: Make changes and see them instantly without restarting
+
+## Next Steps
+
+:::tip
+Ready to add more features? Check out these guides:
+
+- [Debug the Server](/revali/getting-started/debug-server) - Debug your server-side code
+
+- [Hot Reload](/revali/getting-started/hot-reload) - Learn about hot reload features
+
+- [Revali Server](/constructs/revali_server/overview) - Advanced server features
+
+  :::
+
+## Troubleshooting
+
+### Port Already in Use
+
+If port 8080 is already in use, you can change it in your app configuration:
+
+```dart title="lib/main.dart"
+import 'package:revali_core/revali_core.dart';
+
+void main() {
+  AppConfig(
+    port: 3000, // Use a different port
+  );
+}
+```
+
+### Server Crashes or Other Issues
+
+If you encounter other issues:
+
+1. Check the error messages in the terminal for clues
+2. Verify your code matches the examples in the documentation
+3. Try running `dart pub get` to refresh dependencies
+4. If the problem persists, [create an issue](https://github.com/mrgnhnt96/revali/issues/new) with:
+   - A description of the problem
+   - Steps to reproduce
+   - Error messages/logs
+   - Your environment details (Dart version, OS, etc.)

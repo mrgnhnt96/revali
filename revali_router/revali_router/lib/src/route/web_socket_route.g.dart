@@ -21,7 +21,7 @@ extension _$WebSocketRouteAutoequal on WebSocketRoute {
         method,
         redirect,
         allowedOrigins,
-        allowedHeaders,
+        preventedHeaders,
         expectedHeaders,
         hasParent,
       ];

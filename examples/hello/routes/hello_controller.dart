@@ -34,7 +34,7 @@ class MyResponseHandler implements ResponseHandler {
 
   @override
   Future<void> handle(
-    ReadOnlyResponse response,
+    Response response,
     RequestContext context,
     HttpResponse httpResponse,
   ) async {}

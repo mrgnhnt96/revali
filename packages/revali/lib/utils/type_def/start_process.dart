@@ -1,14 +1,15 @@
 import 'dart:io';
 
-typedef StartProcess = Future<ProcessDetails> Function(
-  String executable,
-  List<String> arguments, {
-  String? workingDirectory,
-  Map<String, String>? environment,
-  bool includeParentEnvironment,
-  bool runInShell,
-  ProcessStartMode mode,
-});
+typedef StartProcess =
+    Future<ProcessDetails> Function(
+      String executable,
+      List<String> arguments, {
+      String? workingDirectory,
+      Map<String, String>? environment,
+      bool includeParentEnvironment,
+      bool runInShell,
+      ProcessStartMode mode,
+    });
 
 Future<ProcessDetails> processToDetails(
   String executable,

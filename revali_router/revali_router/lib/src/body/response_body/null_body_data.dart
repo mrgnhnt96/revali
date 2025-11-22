@@ -16,7 +16,7 @@ base class NullBodyData extends BaseBodyData<Null> {
   Stream<List<int>> read() async* {}
 
   @override
-  ReadOnlyHeaders headers(ReadOnlyHeaders? requestHeaders) {
-    return MutableHeadersImpl();
+  Headers headers(Headers? requestHeaders) {
+    return HeadersImpl();
   }
 }

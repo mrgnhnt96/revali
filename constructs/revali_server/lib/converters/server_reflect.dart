@@ -1,33 +1,35 @@
 // ignore_for_file: overridden_fields
 
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
+import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_mimic.dart';
+import 'package:revali_server/utils/extract_import.dart';
 
-class ServerReflect {
-  const ServerReflect({
+class ServerReflect with ExtractImport {
+  ServerReflect({
     required this.className,
+    required this.importPath,
     required this.metas,
   });
-  const ServerReflect.none()
-      : className = null,
-        metas = null;
 
-  factory ServerReflect.fromElement(Element? element) {
+  static ServerReflect? fromElement(Element? element) {
     if (element == null) {
-      return const ServerReflect.none();
+      return null;
     }
 
     if (element is! ClassElement) {
-      return const ServerReflect.none();
+      return null;
     }
 
     if (element.library.isInSdk) {
-      return const ServerReflect.none();
+      return null;
     }
 
     final className = element.displayName;
+
+    final importPath = element.importPath;
 
     final metas = <String, List<ServerMimic>>{};
 
@@ -36,11 +38,13 @@ class ServerReflect {
         element: field,
         onMatch: [
           OnMatch(
-            classType: Meta,
+            classType: MetaData,
             package: 'revali_router_annotations',
             convert: (object, annotation) {
               final meta = ServerMimic.fromDartObject(object, annotation);
-              (metas[field.name] ??= []).add(meta);
+              if (field.name3 case final String name) {
+                (metas[name] ??= []).add(meta);
+              }
             },
           ),
         ],
@@ -49,45 +53,21 @@ class ServerReflect {
 
     return ServerReflect(
       className: className,
+      importPath: ServerImports([if (importPath != null) importPath]),
       metas: metas,
     );
   }
 
-  final String? className;
-  final Map<String, Iterable<ServerMimic>>? metas;
-
-  // ignore: library_private_types_in_public_api
-  _ValidServerReflect? get valid {
-    if (!isValid) return null;
-
-    return _ValidServerReflect(
-      className: className!,
-      metas: metas!,
-    );
-  }
-
-  bool get hasReflects => metas != null && metas!.isNotEmpty;
-  bool get isValid => className != null && hasReflects;
-}
-
-class _ValidServerReflect extends ServerReflect {
-  const _ValidServerReflect({
-    required String super.className,
-    required Map<String, Iterable<ServerMimic>> super.metas,
-    // ignore: prefer_initializing_formals
-  })  : className = className,
-        // ignore: prefer_initializing_formals
-        metas = metas;
-
-  @override
   final String className;
+  final ServerImports? importPath;
+  final Map<String, List<ServerMimic>> metas;
+
+  bool get hasReflects => metas.isNotEmpty;
+  bool get isValid => hasReflects;
 
   @override
-  bool get hasReflects => true;
+  List<ExtractImport?> get extractors => [...metas.values.expand((e) => e)];
 
   @override
-  bool get isValid => true;
-
-  @override
-  final Map<String, Iterable<ServerMimic>> metas;
+  List<ServerImports?> get imports => [importPath];
 }

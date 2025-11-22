@@ -104,12 +104,8 @@ void main() {
 
       expect(response.statusCode, 200);
       expect(response.body, [
-        {
-          'data': null,
-        },
-        {
-          'data': null,
-        },
+        {'data': null},
+        {'data': null},
       ]);
     });
 
@@ -121,12 +117,8 @@ void main() {
 
       expect(response.statusCode, 200);
       expect(response.body, [
-        {
-          'data': null,
-        },
-        {
-          'data': null,
-        },
+        {'data': null},
+        {'data': null},
       ]);
     });
 
@@ -138,12 +130,8 @@ void main() {
 
       expect(response.statusCode, 200);
       expect(response.body, [
-        {
-          'data': null,
-        },
-        {
-          'data': null,
-        },
+        {'data': null},
+        {'data': null},
       ]);
     });
 
@@ -158,12 +146,8 @@ void main() {
         ContentType.parse('application/octet-stream').mimeType,
       );
       expect(response.body, [
-        {
-          'data': null,
-        },
-        {
-          'data': null,
-        },
+        {'data': null},
+        {'data': null},
       ]);
     });
 
@@ -178,12 +162,8 @@ void main() {
         ContentType.parse('application/octet-stream').mimeType,
       );
       expect(response.body, [
-        {
-          'data': null,
-        },
-        {
-          'data': null,
-        },
+        {'data': null},
+        {'data': null},
       ]);
     });
 
@@ -198,12 +178,8 @@ void main() {
         ContentType.parse('application/octet-stream').mimeType,
       );
       expect(response.body, [
-        {
-          'data': null,
-        },
-        {
-          'data': null,
-        },
+        {'data': null},
+        {'data': null},
       ]);
     });
 
@@ -218,12 +194,8 @@ void main() {
         ContentType.parse('application/octet-stream').mimeType,
       );
       expect(response.body, [
-        {
-          'data': null,
-        },
-        {
-          'data': null,
-        },
+        {'data': null},
+        {'data': null},
       ]);
     });
 
@@ -238,12 +210,8 @@ void main() {
         ContentType.parse('application/octet-stream').mimeType,
       );
       expect(response.body, [
-        {
-          'data': null,
-        },
-        {
-          'data': null,
-        },
+        {'data': null},
+        {'data': null},
       ]);
     });
 
@@ -278,12 +246,8 @@ void main() {
         ContentType.parse('application/octet-stream').mimeType,
       );
       expect(response.body, [
-        {
-          'data': null,
-        },
-        {
-          'data': null,
-        },
+        {'data': null},
+        {'data': null},
       ]);
     });
 
@@ -298,12 +262,8 @@ void main() {
         ContentType.parse('application/octet-stream').mimeType,
       );
       expect(response.body, [
-        {
-          'data': null,
-        },
-        {
-          'data': null,
-        },
+        {'data': null},
+        {'data': null},
       ]);
     });
 

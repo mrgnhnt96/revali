@@ -7,7 +7,7 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
@@ -83,11 +83,13 @@ abstract class TypeChecker {
     Element element, {
     bool throwOnUnresolved = true,
   }) {
-    if (element.metadata.isEmpty) {
+    if (element.metadata.annotations.isEmpty) {
       return null;
     }
-    final results =
-        annotationsOf(element, throwOnUnresolved: throwOnUnresolved);
+    final results = annotationsOf(
+      element,
+      throwOnUnresolved: throwOnUnresolved,
+    );
     try {
       return results.isEmpty ? null : results.first;
     } catch (_) {
@@ -109,11 +111,13 @@ abstract class TypeChecker {
     Element element, {
     bool throwOnUnresolved = true,
   }) {
-    if (element.metadata.isEmpty) {
+    if (element.metadata.annotations.isEmpty) {
       return null;
     }
-    final results =
-        annotationsOfExact(element, throwOnUnresolved: throwOnUnresolved);
+    final results = annotationsOfExact(
+      element,
+      throwOnUnresolved: throwOnUnresolved,
+    );
     return results.isEmpty ? null : results.first;
   }
 
@@ -130,7 +134,7 @@ abstract class TypeChecker {
     int annotationIndex, {
     bool throwOnUnresolved = true,
   }) {
-    final annotation = element.metadata[annotationIndex];
+    final annotation = element.metadata.annotations[annotationIndex];
     final result = annotation.computeConstantValue();
     if (result == null && throwOnUnresolved) {
       throw UnresolvedAnnotationException._from(element, annotationIndex);
@@ -145,26 +149,27 @@ abstract class TypeChecker {
   Iterable<DartObject> annotationsOf(
     Element element, {
     bool throwOnUnresolved = true,
-  }) =>
-      _annotationsWhere(
-        element,
-        isAssignableFromType,
-        throwOnUnresolved: throwOnUnresolved,
-      );
+  }) => _annotationsWhere(
+    element,
+    isAssignableFromType,
+    throwOnUnresolved: throwOnUnresolved,
+  );
 
   Iterable<DartObject> _annotationsWhere(
     Element element,
     bool Function(DartType) predicate, {
     bool throwOnUnresolved = true,
   }) sync* {
-    for (var i = 0; i < element.metadata.length; i++) {
+    for (var i = 0; i < element.metadata.annotations.length; i++) {
       final value = _computeConstantValue(
         element,
         i,
         throwOnUnresolved: throwOnUnresolved,
       );
-      if ((value, value?.type) case (final value?, final type?)
-          when predicate(type)) {
+      if ((value, value?.type) case (
+        final value?,
+        final type?,
+      ) when predicate(type)) {
         yield value;
       }
     }
@@ -177,12 +182,11 @@ abstract class TypeChecker {
   Iterable<DartObject> annotationsOfExact(
     Element element, {
     bool throwOnUnresolved = true,
-  }) =>
-      _annotationsWhere(
-        element,
-        isExactlyType,
-        throwOnUnresolved: throwOnUnresolved,
-      );
+  }) => _annotationsWhere(
+    element,
+    isExactlyType,
+    throwOnUnresolved: throwOnUnresolved,
+  );
 
   /// Returns `true` if the type of [element] can be assigned to this type.
   bool isAssignableFrom(Element element) =>
@@ -323,9 +327,7 @@ class _NamedChecker extends TypeChecker {
 // Checks a runtime type against an Uri and Symbol.
 @immutable
 class _UriTypeChecker extends TypeChecker {
-  const _UriTypeChecker(dynamic url)
-      : _url = '$url',
-        super._();
+  const _UriTypeChecker(dynamic url) : _url = '$url', super._();
 
   // Precomputed cache of String --> Uri.
   static final _cache = Expando<Uri>();
@@ -395,14 +397,15 @@ class UnresolvedAnnotationException implements Exception {
     this.annotationSource,
   );
 
-  static SourceSpan? _findSpan(
-    Element annotatedElement,
-    int annotationIndex,
-  ) {
-    final parsedLibrary = annotatedElement.session!
-            .getParsedLibraryByElement(annotatedElement.library!)
-        as ParsedLibraryResult;
-    final declaration = parsedLibrary.getElementDeclaration(annotatedElement);
+  static SourceSpan? _findSpan(Element annotatedElement, int annotationIndex) {
+    final parsedLibrary =
+        annotatedElement.session!.getParsedLibraryByElement(
+              annotatedElement.library!,
+            )
+            as ParsedLibraryResult;
+    final declaration = parsedLibrary.getElementDeclaration2(
+      annotatedElement.firstFragment,
+    );
     if (declaration == null) {
       return null;
     }
@@ -420,11 +423,11 @@ class UnresolvedAnnotationException implements Exception {
     final annotation = metadata[annotationIndex];
     final start = annotation.offset;
     final end = start + annotation.length;
-    final parsedUnit = declaration.parsedUnit!;
+    final parsedUnit = declaration.parsedUnit;
     return SourceSpan(
-      SourceLocation(start, sourceUrl: parsedUnit.uri),
-      SourceLocation(end, sourceUrl: parsedUnit.uri),
-      parsedUnit.content.substring(start, end),
+      SourceLocation(start, sourceUrl: parsedUnit?.uri),
+      SourceLocation(end, sourceUrl: parsedUnit?.uri),
+      parsedUnit?.content.substring(start, end) ?? '',
     );
   }
 
@@ -450,11 +453,11 @@ class UnresolvedAnnotationException implements Exception {
 String _urlOfElement(Element element) => element.kind == ElementKind.DYNAMIC
     ? 'dart:core#dynamic'
     : element.kind == ElementKind.NEVER
-        ? 'dart:core#Never'
-        // using librarySource.uri – in case the element is in a part
-        : _normalizeUrl(element.librarySource!.uri)
-            .replace(fragment: element.name)
-            .toString();
+    ? 'dart:core#Never'
+    // using library.uri – in case the element is in a part
+    : _normalizeUrl(
+        element.library!.uri,
+      ).replace(fragment: element.name).toString();
 
 Uri _normalizeUrl(Uri url) {
   switch (url.scheme) {
@@ -482,10 +485,7 @@ Uri _normalizeDartUrl(Uri url) => url.pathSegments.isNotEmpty
 Uri _fileToAssetUrl(Uri url) {
   if (!p.isWithin(p.url.current, url.path)) return url;
 
-  return Uri(
-    scheme: 'asset',
-    path: p.join('', p.relative(url.path)),
-  );
+  return Uri(scheme: 'asset', path: p.join('', p.relative(url.path)));
 }
 
 /// Returns a `package:` URL converted to a `asset:` URL.

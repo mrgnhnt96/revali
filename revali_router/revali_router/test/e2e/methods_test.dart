@@ -2,7 +2,8 @@
 
 import 'dart:io';
 
-import 'package:revali_router/revali_router.dart';
+import 'package:revali_annotations/revali_annotations.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 import 'package:test/test.dart';
 
 import 'utils/test_request.dart';
@@ -11,12 +12,12 @@ void main() {
   group(Method, () {
     void verifyResponse(
       Iterable<String> allowMethods,
-      ReadOnlyResponse response,
+      Response response,
       RequestContext context,
     ) {
       expect(response.statusCode, HttpStatus.ok);
-      expect(response.body, isA<MutableBody>());
-      expect(response.body?.isNull, isTrue);
+      expect(response.body, isA<Body>());
+      expect(response.body.isNull, isTrue);
 
       final headers = response.joinedHeaders;
       expect(headers, hasLength(4));

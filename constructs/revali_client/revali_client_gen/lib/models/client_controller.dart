@@ -19,9 +19,7 @@ class ClientController with ExtractImport {
     MetaRoute route,
     List<ClientLifecycleComponent> parentComponents,
   ) {
-    final lifecycleComponents = <ClientLifecycleComponent>[
-      ...parentComponents,
-    ];
+    final lifecycleComponents = <ClientLifecycleComponent>[...parentComponents];
     var isExcluded = false;
 
     route.annotationsFor(
@@ -30,8 +28,9 @@ class ClientController with ExtractImport {
           classType: LifecycleComponent,
           package: 'revali_router_annotations',
           convert: (object, annotation) {
-            final component =
-                ClientLifecycleComponent.fromDartObject(annotation);
+            final component = ClientLifecycleComponent.fromDartObject(
+              annotation,
+            );
 
             lifecycleComponents.add(component);
           },
@@ -66,17 +65,17 @@ class ClientController with ExtractImport {
 
   @override
   List<ExtractImport?> get extractors => [
-        ...methods.where((e) => !e.isExcluded),
-      ];
+    ...methods.where((e) => !e.isExcluded),
+  ];
 
   @override
   List<ClientImports?> get imports => [];
 
   bool get hasWebsockets => methods.any((e) {
-        if (e.isExcluded) {
-          return false;
-        }
+    if (e.isExcluded) {
+      return false;
+    }
 
-        return e.websocketType != WebsocketType.none;
-      });
+    return e.websocketType != WebsocketType.none;
+  });
 }

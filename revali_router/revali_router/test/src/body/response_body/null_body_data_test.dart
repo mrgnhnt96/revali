@@ -1,5 +1,5 @@
 import 'package:revali_router/src/body/response_body/base_body_data.dart';
-import 'package:revali_router/src/headers/mutable_headers_impl.dart';
+import 'package:revali_router/src/headers/headers_impl.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -27,9 +27,9 @@ void main() {
       expect(await stream.isEmpty, isTrue);
     });
 
-    test('headers should return an instance of $MutableHeadersImpl', () {
+    test('headers should return an instance of $HeadersImpl', () {
       final headers = nullBodyData.headers(null);
-      expect(headers, isA<MutableHeadersImpl>());
+      expect(headers, isA<HeadersImpl>());
     });
   });
 }

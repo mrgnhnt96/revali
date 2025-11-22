@@ -9,9 +9,7 @@ import 'package:revali_server/makers/utils/type_extensions.dart';
 Expression createApp(ServerApp app) {
   final (:positioned, :named) = getParams(
     app.params,
-    inferredParams: {
-      (Args).name: refer('args'),
-    },
+    inferredParams: {(Args).name: refer('args')},
   );
 
   final expression = refer(app.className);

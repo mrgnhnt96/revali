@@ -58,8 +58,9 @@ extension DirectoryX on Directory {
       return packageConfig;
     }
 
-    final workspaceRef =
-        dartTool.childFile(p.join('pub', 'workspace_ref.json'));
+    final workspaceRef = dartTool.childFile(
+      p.join('pub', 'workspace_ref.json'),
+    );
 
     if (!await workspaceRef.exists()) {
       throw Exception('Failed to find package config or workspace_ref');
@@ -68,15 +69,21 @@ extension DirectoryX on Directory {
     final workspaceRefJson =
         jsonDecode(await workspaceRef.readAsString()) as Map;
     final workspaceRoot = switch (workspaceRefJson['workspaceRoot']) {
-      final String workspaceRoot =>
-        workspaceRoot.replaceAll(RegExp('${p.separator}..' r'$'), ''),
+      final String workspaceRoot => workspaceRoot.replaceAll(
+        RegExp(
+          '${p.separator}..'
+          r'$',
+        ),
+        '',
+      ),
       final other => throw Exception('Invalid workspace root: $other'),
     };
 
     // clean up path, the workspaceRoot is usually a path relative and is '../../../'
 
-    final workspace =
-        fileSystem.directory(p.normalize(p.join(dartTool.path, workspaceRoot)));
+    final workspace = fileSystem.directory(
+      p.normalize(p.join(dartTool.path, workspaceRoot)),
+    );
 
     return workspace
         .childDirectory('.dart_tool')
@@ -189,8 +196,10 @@ extension DirectoryX on Directory {
     final segments = p.absolute(path, p.normalize(basename)).split(p.separator)
       ..removeWhere((element) => element == '..');
 
-    final relative =
-        p.relative('${p.separator}${p.joinAll(segments)}', from: path);
+    final relative = p.relative(
+      '${p.separator}${p.joinAll(segments)}',
+      from: path,
+    );
 
     return childFile(relative);
   }
@@ -199,8 +208,10 @@ extension DirectoryX on Directory {
     final segments = p.absolute(path, p.normalize(basename)).split(p.separator)
       ..removeWhere((element) => element == '..');
 
-    final relative =
-        p.relative('${p.separator}${p.joinAll(segments)}', from: path);
+    final relative = p.relative(
+      '${p.separator}${p.joinAll(segments)}',
+      from: path,
+    );
 
     return childDirectory(relative);
   }

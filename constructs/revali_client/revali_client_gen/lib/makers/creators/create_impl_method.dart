@@ -9,17 +9,15 @@ import 'package:revali_client_gen/models/client_type.dart';
 Method createImplMethod(ClientMethod method) {
   return createSignature(
     method,
-    body: Block.of(
-      switch (method) {
-        ClientMethod(isSse: true, returnType: [ClientType(isVoid: false)]) =>
-          createStreamCall(method),
-        ClientMethod(isWebsocket: true) => createWebsocketCall(method),
-        ClientMethod(
-          returnType: ClientType(typeForClient: ClientType(isStream: true))
-        ) =>
-          createStreamCall(method),
-        _ => createFutureCall(method),
-      },
-    ),
+    body: Block.of(switch (method) {
+      ClientMethod(isSse: true, returnType: [ClientType(isVoid: false)]) =>
+        createStreamCall(method),
+      ClientMethod(isWebsocket: true) => createWebsocketCall(method),
+      ClientMethod(
+        returnType: ClientType(typeForClient: ClientType(isStream: true)),
+      ) =>
+        createStreamCall(method),
+      _ => createFutureCall(method),
+    }),
   );
 }

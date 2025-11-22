@@ -55,10 +55,7 @@ String interceptorContent(
         ),
       )
       ..fields.addAll(fields)
-      ..methods.addAll([
-        _pre(component, params),
-        _post(component, params),
-      ]),
+      ..methods.addAll([_pre(component, params), _post(component, params)]),
   );
 
   return formatter(clazz);
@@ -80,43 +77,28 @@ Method _pre(
         Parameter(
           (p) => p
             ..name = 'context'
-            ..type = refer('RestrictedInterceptorContext'),
+            ..type = refer((Context).name),
         ),
       )
-      ..body = Block.of(
-        [
-          declareFinal('component')
-              .assign(
-                refer(component.name).newInstance(positioned, named),
-              )
-              .statement,
-          const Code('\n'),
-          declareFinal('pres')
-              .assign(
-                literalList(
-                  [
-                    ...createComponentMethods(
-                      component.interceptors.pre,
-                      inferredParams: {
-                        'RestrictedInterceptorContext': refer('context'),
-                        (InterceptorContext).name: refer('context'),
-                        (InterceptorMeta).name: refer('context.meta'),
-                        (ReadOnlyReflectHandler).name: refer('context.reflect'),
-                      },
-                    ),
-                  ],
-                  refer('FutureOr<void> Function()'),
-                ),
-              )
-              .statement,
-          const Code('\n'),
-          forInLoop(
-            declaration: declareFinal('pre'),
-            iterable: refer('pres'),
-            body: refer('pre').call([]).awaited.statement,
-          ).code,
-        ],
-      ),
+      ..body = Block.of([
+        declareFinal('component')
+            .assign(refer(component.name).newInstance(positioned, named))
+            .statement,
+        const Code('\n'),
+        declareFinal('pres')
+            .assign(
+              literalList([
+                ...createComponentMethods(component.interceptors.pre),
+              ], refer('FutureOr<void> Function()')),
+            )
+            .statement,
+        const Code('\n'),
+        forInLoop(
+          declaration: declareFinal('pre'),
+          iterable: refer('pres'),
+          body: refer('pre').call([]).awaited.statement,
+        ).code,
+      ]),
   );
 }
 
@@ -136,43 +118,27 @@ Method _post(
         Parameter(
           (p) => p
             ..name = 'context'
-            ..type = refer('FullInterceptorContext'),
+            ..type = refer((Context).name),
         ),
       )
-      ..body = Block.of(
-        [
-          declareFinal('component')
-              .assign(
-                refer(component.name).newInstance(positioned, named),
-              )
-              .statement,
-          const Code('\n'),
-          declareFinal('posts')
-              .assign(
-                literalList(
-                  [
-                    ...createComponentMethods(
-                      component.interceptors.post,
-                      inferredParams: {
-                        'FullInterceptorContext': refer('context'),
-                        (InterceptorContext).name: refer('context'),
-                        (InterceptorMeta).name: refer('context.meta'),
-                        (ReadOnlyReflectHandler).name: refer('context.reflect'),
-                        (ReflectHandler).name: refer('context.reflect'),
-                      },
-                    ),
-                  ],
-                  refer('FutureOr<void> Function()'),
-                ),
-              )
-              .statement,
-          const Code('\n'),
-          forInLoop(
-            declaration: declareFinal('post'),
-            iterable: refer('posts'),
-            body: refer('post').call([]).awaited.statement,
-          ).code,
-        ],
-      ),
+      ..body = Block.of([
+        declareFinal('component')
+            .assign(refer(component.name).newInstance(positioned, named))
+            .statement,
+        const Code('\n'),
+        declareFinal('posts')
+            .assign(
+              literalList([
+                ...createComponentMethods(component.interceptors.post),
+              ], refer('FutureOr<void> Function()')),
+            )
+            .statement,
+        const Code('\n'),
+        forInLoop(
+          declaration: declareFinal('post'),
+          iterable: refer('posts'),
+          body: refer('post').call([]).awaited.statement,
+        ).code,
+      ]),
   );
 }

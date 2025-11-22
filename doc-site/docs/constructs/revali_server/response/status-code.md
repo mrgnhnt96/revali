@@ -1,91 +1,280 @@
 ---
 title: Status Code
-description: Status code to indicate the status of the HTTP response
+description: Set HTTP status codes to indicate the response status
 ---
 
 # Response Status Code
 
-The status code is a number that represents the status of the HTTP response. It is used to indicate whether a specific HTTP request has been successfully completed or not.
+> Access via: `context.response.statusCode`
 
-## Status Codes
+HTTP status codes indicate whether a request was successful or not. Revali automatically sets appropriate status codes, but you can customize them as needed.
 
-The status codes are divided into five categories:
+## Status Code Categories
 
-- **1xx** - Informational
-- **2xx** - Success
-- **3xx** - Redirection
-- **4xx** - Client Error
-- **5xx** - Server Error
+HTTP status codes are divided into five categories:
 
-### Common Status Codes
+- **1xx** - Informational (100-199)
+- **2xx** - Success (200-299)
+- **3xx** - Redirection (300-399)
+- **4xx** - Client Error (400-499)
+- **5xx** - Server Error (500-599)
 
-Here are some of the most common status codes:
+## Common Status Codes
 
-- **200** - OK
-- **201** - Created
-- **204** - No Content
-- **400** - Bad Request
-- **401** - Unauthorized
-- **403** - Forbidden
-- **404** - Not Found
-- **405** - Method Not Allowed
-- **500** - Internal Server Error
-- **501** - Not Implemented
-- **503** - Service Unavailable
-- **504** - Gateway Timeout
+### Success (2xx)
+
+| Code | Name       | Description          | When to Use                         |
+| ---- | ---------- | -------------------- | ----------------------------------- |
+| 200  | OK         | Request successful   | Default for successful GET requests |
+| 201  | Created    | Resource created     | After successful POST requests      |
+| 204  | No Content | Success with no body | When no response data is needed     |
+
+### Client Error (4xx)
+
+| Code | Name                 | Description             | When to Use                         |
+| ---- | -------------------- | ----------------------- | ----------------------------------- |
+| 400  | Bad Request          | Invalid request         | Malformed request data              |
+| 401  | Unauthorized         | Authentication required | Missing or invalid credentials      |
+| 403  | Forbidden            | Access denied           | Valid credentials but no permission |
+| 404  | Not Found            | Resource not found      | Requested resource doesn't exist    |
+| 405  | Method Not Allowed   | HTTP method not allowed | Wrong HTTP method for endpoint      |
+| 422  | Unprocessable Entity | Validation failed       | Request data validation errors      |
+
+### Server Error (5xx)
+
+| Code | Name                  | Description                     | When to Use                      |
+| ---- | --------------------- | ------------------------------- | -------------------------------- |
+| 500  | Internal Server Error | Server error                    | Unexpected server errors         |
+| 501  | Not Implemented       | Feature not implemented         | Endpoint not yet implemented     |
+| 503  | Service Unavailable   | Service temporarily unavailable | Server overloaded or maintenance |
 
 ## Default Status Codes
 
-Revali Server will set the status code whenever the status code is not set. Here are the default status codes:
+Revali automatically sets these status codes:
 
 - **200** - Endpoint executed successfully
 - **400** - Middleware halted the request
-- **403** - Guard halted the request
+- **403** - Guard blocked the request
 - **404** - Endpoint not found
-- **405** - Method not allowed
-- **500** - An exception was thrown
+- **405** - HTTP method not allowed
+- **500** - Exception was thrown
 
-## Setting the Status Code
+## Setting Status Codes
 
-The status code can be set using the `Response.statusCode` property. This property is mutable, but it is restricted in most lifecycle components. The status code can only be modified _after_ the endpoint has been executed (via the [Interceptor.post][interceptor-post] method).
+### Via Annotations (Recommended)
 
-### Via Context
-
-The `Response` object can be accessed through the `response` property in the context of the Lifecycle Components.
+Set status codes statically using the `@StatusCode` annotation:
 
 ```dart
-context.response.statusCode = 200;
-```
+@Controller('api')
+class ApiController {
+  @Post('users')
+  @StatusCode(201)
+  User createUser(@Body() CreateUserRequest request) {
+    return userService.createUser(request);
+  }
 
-### Via Annotation
-
-If you know the status code at compile time, you can set the status code using the `@StatusCode` annotation.
-
-```dart
-@Get()
-@StatusCode(201)
-Future<void> saveData() async {
-    ...
+  @Delete('users/:id')
+  @StatusCode(204)
+  void deleteUser(@Param() String id) {
+    userService.deleteUser(id);
+  }
 }
 ```
 
-### Via Binding
+### Via Lifecycle Components
 
-You can access the `statusCode` from the `Response` object which can be accessed via the controller's endpoint by adding the `MutableResponse` parameter to the endpoint method.
+Set status codes dynamically in interceptors:
 
 ```dart
-@Get()
-Future<void> helloWorld(
-    MutableResponse response,
-) async {
+class StatusCodeProcessor implements LifecycleComponent {
+  InterceptorPostResult processResponse(Response response) {
+    final data = response.body.data;
+
+    // Set different status codes based on response data
+    if (data == null) {
+      response.statusCode = 404;
+    } else if (data is Map && data.containsKey('error')) {
+      response.statusCode = 400;
+    } else {
+      response.statusCode = 200;
+    }
+
+    return const InterceptorPostResult.next();
+  }
+}
+```
+
+### Via Binding (Not Recommended)
+
+```dart
+@Controller('api')
+class ApiController {
+  @Get('data')
+  void getData(Response response) {
     response.statusCode = 200;
+    response.body = {'message': 'Success'};
+  }
 }
 ```
 
 :::warning
-Using the `MutableResponse` parameter in the endpoint method is not recommended. Use the `context` from Lifecycle Components to access the response.
-
-By avoiding the `MutableResponse` parameter, you can keep your endpoint methods clean, focused, and testable.
+**Avoid using `Response` in endpoint methods.** Use annotations or lifecycle components instead to keep endpoints clean and focused.
 :::
 
-[interceptor-post]: ../lifecycle-components/advanced/interceptors.md#post
+## Common Patterns
+
+### Success Responses
+
+```dart
+@Controller('api')
+class ApiController {
+  @Get('users')
+  @StatusCode(200)
+  List<User> getUsers() {
+    return userService.getAllUsers();
+  }
+
+  @Post('users')
+  @StatusCode(201)
+  User createUser(@Body() CreateUserRequest request) {
+    return userService.createUser(request);
+  }
+
+  @Put('users/:id')
+  @StatusCode(200)
+  User updateUser(@Param() String id, @Body() UpdateUserRequest request) {
+    return userService.updateUser(id, request);
+  }
+
+  @Delete('users/:id')
+  @StatusCode(204)
+  void deleteUser(@Param() String id) {
+    userService.deleteUser(id);
+  }
+}
+```
+
+### Error Responses
+
+```dart
+@Controller('api')
+class ApiController {
+  @Get('users/:id')
+  User getUser(@Param() String id) {
+    final user = userService.findById(id);
+    if (user == null) {
+      throw ServerException(
+        statusCode: 404,
+        body: 'User not found',
+      );
+    }
+    return user;
+  }
+
+  @Post('users')
+  User createUser(@Body() CreateUserRequest request) {
+    try {
+      return userService.createUser(request);
+    } catch (e) {
+      throw ServerException(
+        statusCode: 422,
+        body: 'Validation failed ${e.toString()}',
+      );
+    }
+  }
+}
+```
+
+### Conditional Status Codes
+
+```dart
+class ConditionalStatusCodes implements LifecycleComponent {
+  InterceptorPostResult processResponse(Response response) {
+    final data = response.body.data;
+
+    if (data is Map) {
+      if (data.containsKey('created')) {
+        response.statusCode = 201;
+      } else if (data.containsKey('updated')) {
+        response.statusCode = 200;
+      } else if (data.containsKey('deleted')) {
+        response.statusCode = 204;
+      }
+    }
+
+    return const InterceptorPostResult.next();
+  }
+}
+```
+
+## Best Practices
+
+### Use Annotations for Static Status Codes
+
+```dart
+// ✅ Good - Clear and static
+@Post('users')
+@StatusCode(201)
+User createUser(@Body() CreateUserRequest request) {
+  return userService.createUser(request);
+}
+
+// ❌ Avoid - Unnecessary complexity for static values
+@Post('users')
+User createUser(@Body() CreateUserRequest request, Response response) {
+  response.statusCode = 201;
+  return userService.createUser(request);
+}
+```
+
+### Use Exceptions for Error Status Codes
+
+```dart
+// ✅ Good - Clear error handling
+@Get('users/:id')
+User getUser(@Param() String id) {
+  final user = userService.findById(id);
+  if (user == null) {
+    throw ServerException(statusCode: 404, body: 'User not found');
+  }
+  return user;
+}
+
+// ❌ Avoid - Manual status code setting
+@Get('users/:id')
+void getUser(@Param() String id, Response response) {
+  final user = userService.findById(id);
+  if (user == null) {
+    response.statusCode = 404;
+    response.body = {'error': 'User not found'};
+  } else {
+    response.statusCode = 200;
+    response.body = user;
+  }
+}
+```
+
+### Use Lifecycle Components for Dynamic Status Codes
+
+```dart
+// ✅ Good - Dynamic based on response data
+class StatusCodeProcessor implements LifecycleComponent {
+  InterceptorPostResult processResponse(Response response) {
+    final data = response.body.data;
+
+    if (data is Map && data.containsKey('error')) {
+      response.statusCode = 400;
+    }
+
+    return const InterceptorPostResult.next();
+  }
+}
+```
+
+## What's Next?
+
+- Learn about [response body](./body.md) for setting response data
+- Explore [response headers](./headers.md) for HTTP headers
+- See [cookies](./cookies.md) for session management
+- Check out [WebSockets](./websockets.md) for real-time communication

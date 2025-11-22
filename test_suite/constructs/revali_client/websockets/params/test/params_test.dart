@@ -8,59 +8,48 @@ import 'package:test/test.dart';
 import '../.revali/server/server.dart';
 
 void main() {
-  group(
-    'params',
-    () {
-      late TestServer server;
-      late Server client;
+  group('params', () {
+    late TestServer server;
+    late Server client;
 
-      setUp(() {
-        server = TestServer();
-        client = Server(
-          websocket: TestWebSocket(server).connect,
-        );
+    setUp(() {
+      server = TestServer();
+      client = Server(websocket: TestWebSocket(server).connect);
 
-        createServer(server);
-      });
+      createServer(server);
+    });
 
-      tearDown(() {
-        server.close();
-      });
+    tearDown(() {
+      server.close();
+    });
 
-      test('future-string', () async {
-        final controller = StreamController<String>();
-        final stream = client.params.futureString(
-          message: controller.stream,
-        );
+    test('future-string', () async {
+      final controller = StreamController<String>();
+      final stream = client.params.futureString(message: controller.stream);
 
-        controller
-          ..add('Hello')
-          ..add('world');
+      controller
+        ..add('Hello')
+        ..add('world');
 
-        await expectLater(stream, emitsInOrder(['Hello', 'world']));
+      await expectLater(stream, emitsInOrder(['Hello', 'world']));
 
-        await controller.close();
-      });
+      await controller.close();
+    });
 
-      test('string', () async {
-        final stream = client.params.string(
-          message: Stream.value('Hello'),
-        );
+    test('string', () async {
+      final stream = client.params.string(message: Stream.value('Hello'));
 
-        final result = await stream.single;
+      final result = await stream.single;
 
-        expect(result, 'Hello');
-      });
+      expect(result, 'Hello');
+    });
 
-      test('stream-string', () async {
-        final stream = client.params.streamString(
-          message: Stream.value('Hello'),
-        );
+    test('stream-string', () async {
+      final stream = client.params.streamString(message: Stream.value('Hello'));
 
-        final result = await stream.single;
+      final result = await stream.single;
 
-        expect(result, 'Hello');
-      });
-    },
-  );
+      expect(result, 'Hello');
+    });
+  });
 }

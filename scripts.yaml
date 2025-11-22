@@ -1,8 +1,8 @@
 barrel: dart run barreler build {--set-exit-if-changed}
 
 docs:
-  local: cd doc-site && pnpm start
-  build: cd doc-site && pnpm i && pnpm build
+  (command): cd doc-site && npm start
+  build: cd doc-site && npm i && npm run build
 
 hooks: dart run hooksman
 
@@ -182,11 +182,11 @@ test-suite:
   (aliases): ts
   (command):
     - "{$test-suite:pubspec:comment-out}"
-    - cd test_suite && dart pub get
+    - cd test_suite && dart pub get {--offline}
     - (+) {$test-suite:revali_server}
     - (+) {$test-suite:revali_client}
     - "{$test-suite:pubspec:uncomment}"
-    - cd test_suite && dart pub get
+    - cd test_suite && dart pub get {--offline}
     - |
       if [ "$GEN_ONLY" = "true" ]; then
         exit 0
@@ -196,7 +196,7 @@ test-suite:
 
       cd test_suite || exit 1
 
-      sip test --test-randomize-ordering-seed random --bail --recursive --concurrent
+      sip test --test-randomize-ordering-seed random --bail --recursive
 
       if [ $? -ne 0 ]; then
         exit 1
@@ -331,6 +331,7 @@ test-suite:
     (aliases): server
     (command):
       - (+) {$test-suite:revali_server:methods}
+      - (+) {$test-suite:revali_server:access-control}
       - (+) {$test-suite:revali_server:custom-return-types}
       - (+) {$test-suite:revali_server:primitive-return-types}
       - (+) {$test-suite:revali_server:null-primitive-return-types}
@@ -341,6 +342,7 @@ test-suite:
       - (+) {$test-suite:revali_server:custom-params}
       - (+) {$test-suite:revali_server:sse}
       - (+) {$test-suite:revali_server:sse_custom}
+      - (+) {$test-suite:revali_server:meta-reflect}
     _package: |
       TEST_DIR=test_suite/constructs/revali_server/$DIR
       if [ -n "{--test}" ]; then
@@ -352,6 +354,9 @@ test-suite:
       {$test-suite:_generate}
     methods: |
       DIR=methods
+      {$test-suite:revali_server:_package}
+    access-control: |
+      DIR=access_control
       {$test-suite:revali_server:_package}
     custom-return-types: |
       DIR=custom_return_types
@@ -382,4 +387,7 @@ test-suite:
       {$test-suite:revali_server:_package}
     sse_custom: |
       DIR=sse_custom
+      {$test-suite:revali_server:_package}
+    meta-reflect: |
+      DIR=meta_reflect
       {$test-suite:revali_server:_package}

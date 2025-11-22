@@ -12,11 +12,11 @@ HotReloadFilesChanged _$HotReloadFilesChangedFromJson(Map json) =>
     );
 
 Map<String, dynamic> _$HotReloadFilesChangedToJson(
-        HotReloadFilesChanged instance) =>
-    <String, dynamic>{
-      'files': instance.files,
-      'type': _$HotReloadTypeEnumMap[instance.type]!,
-    };
+  HotReloadFilesChanged instance,
+) => <String, dynamic>{
+  'files': instance.files,
+  'type': _$HotReloadTypeEnumMap[instance.type]!,
+};
 
 const _$HotReloadTypeEnumMap = {
   HotReloadType.filesChanged: 'filesChanged',

@@ -1,25 +1,44 @@
 ---
 title: Overview
 sidebar_position: 0
-description: Deploy a Revali Docker container
+description: Deploy your Revali Docker container to production
 ---
 
-# Deploy
+# Deployment Overview
 
-There are many ways to deploy a Docker container. Here are some common platforms that make it easy to deploy Docker containers with minimal configuration:
+Once you've generated a Dockerfile with Revali Docker, you're ready to deploy your application to production. This guide covers deployment strategies, platform choices, and best practices for running Revali applications in containers.
 
-1. [**Fly.io**][fly-io] is a developer-friendly platform that makes deploying Docker containers to global servers easy. It abstracts away much of the complexity.
+## Deployment Process
 
-2. [**DigitalOcean App Platform**][digital-ocean-app-platform] supports container-based deployments, offering simplicity with the flexibility to deploy and manage Docker containers.
+Deploying a Revali Docker application typically follows these steps:
 
-3. [**Heroku**][heroku] allows you to deploy Docker containers using its container registry. It’s known for simplicity and provides built-in CI/CD, making it beginner-friendly.
+1. **Generate the Dockerfile** - Run `revali build` to create your Dockerfile
+2. **Build the Docker Image** - Compile your application into a container image
+3. **Test Locally** - Verify the container works on your machine
+4. **Push to Registry** - Upload your image to a container registry
+5. **Deploy to Platform** - Deploy the image to your hosting provider
+6. **Configure & Monitor** - Set up environment variables, scaling, and monitoring
 
-4. [**Railway**][railway] is another easy-to-use platform for deploying Docker containers. It automates much of the deployment process and offers simple scaling options.
+---
 
-5. [**Render**][render] is a cloud platform designed to be easy to use for developers, offering simple container-based deployments with automated builds.
+## Choosing a Deployment Platform
 
-[fly-io]: https://fly.io/
-[digital-ocean-app-platform]: https://www.digitalocean.com/products/app-platform/
-[heroku]: https://www.heroku.com/
-[railway]: https://railway.app/
-[render]: https://render.com/
+Different platforms offer different trade-offs between simplicity, control, and cost. Here's a comparison:
+
+| Platform                                                                         | Best For                         | Ease of Use | Pricing       | Free Tier |
+| -------------------------------------------------------------------------------- | -------------------------------- | ----------- | ------------- | --------- |
+| [Fly.io](/constructs/revali_docker/deploy/fly.io)                                | Global deployment, low latency   | ⭐⭐⭐⭐⭐  | Pay-as-you-go | Yes       |
+| [Railway](https://railway.app/)                                                  | Quick deployment, hobby projects | ⭐⭐⭐⭐⭐  | Usage-based   | Yes       |
+| [Render](https://render.com/)                                                    | Simple setup, managed services   | ⭐⭐⭐⭐    | Fixed pricing | Yes       |
+| [DigitalOcean App Platform](https://www.digitalocean.com/products/app-platform/) | Balanced control & simplicity    | ⭐⭐⭐⭐    | Fixed pricing | No        |
+| [Heroku](https://www.heroku.com/)                                                | Beginner-friendly, add-ons       | ⭐⭐⭐⭐    | Dyno-based    | No        |
+
+---
+
+## What's Next?
+
+- **[Fly.io Deployment Guide](/constructs/revali_docker/deploy/fly.io)** - Detailed Fly.io setup
+- **[Revali Docker Overview](/constructs/revali_docker/overview)** - Learn more about Docker generation
+- **[Configuration](/constructs/revali_docker/configuration)** - Customize Docker settings
+
+Ready to deploy? Choose a platform above and follow their quick start guide!

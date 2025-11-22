@@ -41,17 +41,14 @@ Spec createChildRoute(ServerChildRoute route, ServerParentRoute parent) {
       classVarName: parent.variableName,
       method: (route.isWebSocket || route.isSse) ? null : route.method,
       webSocket: route.webSocket,
-      additionalHandlerCode: [
-        if (response != null) response.statement,
-      ],
+      additionalHandlerCode: [if (response != null) response.statement],
     ),
     if (route.webSocket?.mode case final mode?)
       'mode': refer((WebSocketMode).name).property(mode.name),
     if (route.webSocket?.ping case final ping?)
-      'ping': refer('Duration').newInstance(
-        [],
-        {'microseconds': literalNum(ping.inMicroseconds)},
-      ),
+      'ping': refer(
+        'Duration',
+      ).newInstance([], {'microseconds': literalNum(ping.inMicroseconds)}),
     if (route.redirect case final redirect?)
       'redirect': literal(createMimic(redirect)),
   };

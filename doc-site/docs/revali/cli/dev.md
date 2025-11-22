@@ -6,106 +6,242 @@ description: Start the server and develop your Revali application
 
 # The Dev Command
 
-The `revali dev` command is used to start the server for your Revali application. This command will analyze your routes and generate the server code for your application.
+The `revali dev` command is the primary development tool for Revali applications. It starts your development server with hot reload, debugging support, and automatic code generation.
 
-By default, the server will be started on port `8080` and will serve the API at `/api`.
+## What Does `revali dev` Do?
 
-:::info
-To configure the port and the API path, check out [App Configuration][app-config].
-:::
+When you run `revali dev`, Revali:
 
-## Usage
+1. **Analyzes Your Code**: Scans your `routes/` directory for controllers and app configurations
+2. **Generates Server Code**: Creates the necessary server implementation using constructs
+3. **Starts the Server**: Launches your API server with the configured host and port
+4. **Enables Hot Reload**: Monitors file changes and automatically reloads the server
+5. **Provides Debugging**: Starts a Dart VM service for debugging and profiling
+
+## Basic Usage
 
 ```bash
-dart run revali dev --help
+dart run revali dev
 ```
+
+This starts your server with default settings:
+
+- **Host**: `localhost`
+- **Port**: `8080`
+- **API Prefix**: `/api`
+- **Mode**: Debug (with VM service)
 
 ## Run Modes
 
-You can develop your application in either `Release` or `Debug` mode. By default, the application will run in `Debug` mode.
+Revali supports three different run modes, each optimized for different scenarios:
 
-### Debug Mode
+### Debug Mode (Default)
 
-In `Debug` mode, a Dart VM service (hot reload + debugger) will be started for your application. This allows you to connect to your application using the Dart DevTools or other debugging tools.
-
-To run the application in `Debug` mode, use the `--debug` flag.
+Debug mode provides the best development experience with full debugging capabilities:
 
 ```bash
 dart run revali dev --debug
 ```
 
-:::tip
-Use `kDebugMode` to check if the application is running in `Debug` mode during runtime.
-:::
+**Features:**
+
+- ✅ Dart VM service enabled
+- ✅ Hot reload support
+- ✅ Debugger attachment
+- ✅ Stack traces in responses
+- ✅ Development optimizations
+
+**When to use:**
+
+- Local development
+- Debugging issues
+- Testing new features
 
 ### Release Mode
 
-In `Release` mode, the Dart VM service will not be started. In this mode constructs can generate code that is optimized for performance.
-
-To run the application in `Release` mode, use the `--release` flag.
+Release mode optimizes for performance and production-like behavior:
 
 ```bash
 dart run revali dev --release
 ```
 
-Constructs can generate code that is optimized for performance in `Release` mode.
+**Features:**
 
-::::tip
-Use `kReleaseMode` to check if the application is running in `Release` mode during runtime.
-:::info
-This is the default mode for `revali build`.
-:::
-::::
+- ❌ No Dart VM service
+- ✅ Performance optimizations
+- ✅ Production-like behavior
+- ❌ No debugging support
+- ✅ Optimized code generation
+
+**When to use:**
+
+- Performance testing
+- Production simulation
+- Load testing
 
 ### Profile Mode
 
-Similar to `Release` mode, `Profile` mode will not start the Dart VM service. The main difference between `Release` and `Profile` mode is that `Profile` mode will continue to provide debug information during runtime. (Such as returning the stack trace in a response when an [error occurs][error-responses].)
-
-To run the application in `Profile` mode, use the `--profile` flag.
+Profile mode balances performance with debugging information:
 
 ```bash
 dart run revali dev --profile
 ```
 
-:::tip
-Use `kProfileMode` to check if the application is running in `Profile` mode during runtime.
-:::
+**Features:**
 
-## Arguments
+- ❌ No Dart VM service
+- ✅ Performance optimizations
+- ✅ Stack traces in responses
+- ✅ Debug information available
+- ✅ Profiling capabilities
 
-You can pass additional arguments to the server by using the `--` separator in the command.
+**When to use:**
 
-```bash
-dart run revali dev -- --port 8081 --host="0.0.0.0" --debug loz
+- Performance profiling
+- Production debugging
+- Performance optimization
+
+## Runtime Mode Detection
+
+You can detect the current run mode in your application:
+
+```dart
+class MyService {
+  void logMessage(String message) {
+    if (kDebugMode) {
+      print('DEBUG: $message');
+    } else if (kProfileMode) {
+      print('PROFILE: $message');
+    } else if (kReleaseMode) {
+      // Log to file or external service
+      _logToExternalService(message);
+    }
+  }
+}
 ```
 
-These would be the arguments parsed by the `Args` class.
+## Command Arguments
+
+You can pass additional arguments to your application using the `--` separator:
+
+```bash
+dart run revali dev -- --port 8081 --host="0.0.0.0" --verbose
+```
+
+### Accessing Arguments in Your App
+
+Arguments are automatically parsed and available in your `AppConfig`:
+
+```dart title="routes/main_app.dart"
+import 'package:revali_annotations/revali_annotations.dart';
+
+@App()
+class MainApp extends AppConfig {
+  MainApp(Args args) : super(
+    host: args['host'] ?? 'localhost',
+    port: int.parse(args['port'] ?? '8080'),
+  );
+
+  @override
+  Future<void> configureDependencies(DI di) async {
+    // Access verbose flag
+    final verbose = args['verbose'] == 'true';
+    di.registerSingleton<Logger>(Logger(verbose: verbose));
+  }
+}
+```
+
+### Args Object Structure
+
+The `Args` object provides structured access to command-line arguments:
 
 ```dart
 Args {
-    values: {
-        'port': '8081',
-        'host': '0.0.0.0',
-        'debug': true,
-    },
-    flags: {
-        'debug': true,
-    },
-    rest: ['loz'],
+  values: {
+    'port': '8081',
+    'host': '0.0.0.0',
+    'verbose': 'true',
+  },
+  flags: {
+    'verbose': true,
+    'debug': false,
+  },
+  rest: ['additional', 'arguments'],
 }
 ```
 
-:::tip
-The arguments can be accessed in your application by [binding] the `Args` class.
+## Development Workflow
 
-```dart
-class MyApp extends AppConfig {
-    MyApp(Args args) : super(host: args['host'], port: args['port']);
+### 1. Start Development Server
+
+```bash
+dart run revali dev
+```
+
+### 2. Make Changes
+
+Edit your controller files in the `routes/` directory:
+
+```dart title="routes/user_controller.dart"
+@Controller('/users')
+class UserController {
+  @Get('/')
+  Future<List<User>> getUsers() async {
+    return await userService.getAllUsers();
+  }
+
+  @Post('/')
+  Future<User> createUser(@Body() CreateUserRequest request) async {
+    return await userService.createUser(request);
+  }
 }
 ```
 
-:::
+### 3. Hot Reload
 
-[app-config]: ../app-configuration/overview.md
-[error-responses]: ../../constructs/revali_server/lifecycle-components/overview.md#error-responses
-[binding]: ../../constructs/revali_server/core/binding.md
+Changes are automatically detected and applied:
+
+- Save your file
+- Hot reload triggers automatically
+- Test your changes immediately
+
+### 4. Debug Issues
+
+Connect your IDE debugger:
+
+- VS Code: `Ctrl+Shift+P` → `Dart: Attach to Process`
+- IntelliJ: `Run` → `Edit Configurations` → `Dart Remote Debug`
+
+## Troubleshooting
+
+### Common Issues
+
+**Port Already in Use:**
+
+```bash
+# Find process using port
+lsof -i :8080
+
+# Kill process
+kill -9 <PID>
+
+# Or use different port
+dart run revali dev -- --port 8081
+```
+
+**Hot Reload Not Working:**
+
+- Ensure files are in `routes/` directory
+- Check file naming conventions
+- Verify no syntax errors
+
+**Debugger Not Connecting:**
+
+- Check VM service URL format
+- Verify IDE extensions are installed
+
+## Next Steps
+
+- **[Hot Reload](/revali/getting-started/hot-reload)**: Learn about automatic code reloading
+- **[Debug Server](/revali/getting-started/debug-server)**: Debug your server code
+- **[App Configuration](/revali/app-configuration/overview)**: Configure your application settings

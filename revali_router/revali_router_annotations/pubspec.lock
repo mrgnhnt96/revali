@@ -29,10 +29,10 @@ packages:
     dependency: "direct main"
     description:
       name: meta
-      sha256: e3641ec5d63ebf0d9b41bd43201a66e3fc79a65db5f61fc181f04cd27aab950c
+      sha256: "23f08335362185a5ea2ad3a4e597f1375e78bce8a040df5c600c8d3552ef2394"
       url: "https://pub.dev"
     source: hosted
-    version: "1.16.0"
+    version: "1.17.0"
   mime:
     dependency: transitive
     description:
@@ -53,10 +53,10 @@ packages:
     dependency: transitive
     description:
       name: revali_annotations
-      sha256: "4ecf97ac0c41eda5658a21e03a13775f2f5f454563b64f8f4613aa7b58fd1091"
+      sha256: "3c48a313f752164641725a0864ddbbf58d0a1a787580de60f63e5e93541ebb99"
       url: "https://pub.dev"
     source: hosted
-    version: "1.4.1"
+    version: "2.0.2"
   revali_core:
     dependency: transitive
     description:
@@ -71,7 +71,7 @@ packages:
       path: "../revali_router_core"
       relative: true
     source: path
-    version: "1.9.0"
+    version: "2.0.2"
   source_span:
     dependency: transitive
     description:

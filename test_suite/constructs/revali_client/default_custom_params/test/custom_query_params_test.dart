@@ -18,9 +18,7 @@ void main() {
     setUp(() {
       server = TestServer();
 
-      client = Server(
-        client: TestClient(server, (req) => request = req),
-      );
+      client = Server(client: TestClient(server, (req) => request = req));
 
       createServer(server);
     });
@@ -54,10 +52,7 @@ void main() {
     });
 
     test('all', () async {
-      const users = [
-        User(name: 'John'),
-        User(name: 'Jane'),
-      ];
+      const users = [User(name: 'John'), User(name: 'Jane')];
       final response = await client.customQueryParams.all(users: users);
 
       expect(response, users);
@@ -69,10 +64,7 @@ void main() {
     });
 
     test('all-optional', () async {
-      const users = [
-        User(name: 'John'),
-        User(name: 'Jane'),
-      ];
+      const users = [User(name: 'John'), User(name: 'Jane')];
       final response = await client.customQueryParams.allOptional(users: users);
 
       expect(response, users);

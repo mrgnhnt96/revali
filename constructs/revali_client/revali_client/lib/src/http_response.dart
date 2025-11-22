@@ -11,8 +11,8 @@ class HttpResponse extends StreamView<List<int>> {
     required this.contentLength,
     required this.stream,
     Map<String, String>? headers,
-  })  : headers = {...?headers},
-        super(stream);
+  }) : headers = {...?headers},
+       super(stream);
 
   final HttpRequest request;
 

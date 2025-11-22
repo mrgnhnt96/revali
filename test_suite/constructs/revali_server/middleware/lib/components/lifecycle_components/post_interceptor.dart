@@ -4,7 +4,7 @@ import 'package:revali_router/revali_router.dart';
 class AddHeader implements LifecycleComponent {
   const AddHeader();
 
-  InterceptorPostResult postInterceptor(MutableHeaders headers) {
+  InterceptorPostResult postInterceptor(Headers headers) {
     headers.add('X-Middleware', 'loz');
   }
 }
@@ -15,7 +15,7 @@ class AddCustomHeader implements LifecycleComponent {
   final String key;
   final String value;
 
-  InterceptorPostResult postInterceptor(MutableHeaders headers) {
+  InterceptorPostResult postInterceptor(Headers headers) {
     headers.add(key, value);
   }
 }

@@ -67,10 +67,7 @@ Expression? convertToJson(ClientType type, Expression result) {
     return switch (type.isNullable) {
       true => result.nullSafeProperty('map'),
       false => result.property('map'),
-    }
-        .call([iterates])
-        .property('toList')
-        .call([]);
+    }.call([iterates]).property('toList').call([]);
   }
 
   if (type.isMap) {
@@ -93,12 +90,10 @@ Expression? convertToJson(ClientType type, Expression result) {
 
     final iterates = Method(
       (p) => p
-        ..requiredParameters.addAll(
-          [
-            Parameter((b) => b.name = 'key'),
-            Parameter((b) => b.name = 'value'),
-          ],
-        )
+        ..requiredParameters.addAll([
+          Parameter((b) => b.name = 'key'),
+          Parameter((b) => b.name = 'value'),
+        ])
         ..lambda = true
         ..body = refer((MapEntry).name).call([
           keyMethodBody ?? refer('key'),
@@ -154,7 +149,11 @@ Expression? convertToJson(ClientType type, Expression result) {
         for (final (index, prop) in props.indexed) {
           if (prop.isNamed) continue;
 
-          yield extract(prop, r'$' '${index + 1}');
+          yield extract(
+            prop,
+            r'$'
+            '${index + 1}',
+          );
         }
       }
 

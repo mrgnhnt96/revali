@@ -2,7 +2,7 @@ name: example_construct_app
 publish_to: none
 
 environment:
-  sdk: ">=3.4.0 <4.0.0"
+  sdk: ">=3.8.0 <4.0.0"
 
 dependencies:
   revali_annotations:

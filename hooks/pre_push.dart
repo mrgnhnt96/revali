@@ -7,7 +7,7 @@ Hook main() {
         name: 'Barrel',
         commands: (files) => ['sip run barrel --set-exit-if-changed'],
       ),
-      SequentialTasks.always(
+      SequentialTasks(
         name: 'Test Suite',
         tasks: [
           ShellTask.always(
@@ -19,34 +19,35 @@ Hook main() {
             ],
           ),
           ParallelTasks(
-            include: [
-              Glob('**.dart'),
-            ],
-            exclude: [
-              Glob('**/example/**.dart'),
-            ],
+            exclude: [Glob('**/example/**.dart')],
             tasks: [
               ShellTask.always(
                 name: 'Run All Tests',
                 commands: (files) {
-                  return [
-                    'sip test --recursive --bail --concurrent',
-                  ];
+                  return ['sip test --recursive --bail'];
                 },
               ),
               ShellTask.always(
                 name: 'Analyze',
                 commands: (files) {
                   final nonGenGlob = Glob('**.g.dart');
-                  final nonGeneratedFiles =
-                      files.where((e) => !nonGenGlob.matches(e));
+                  final nonGeneratedFiles = files.where(
+                    (e) => !nonGenGlob.matches(e),
+                  );
                   return ['dart analyze ${nonGeneratedFiles.join(' ')}'];
                 },
               ),
               ShellTask.always(
                 name: 'Format',
-                commands: (files) =>
-                    ['dart format ${files.join(' ')} --set-exit-if-changed'],
+                commands: (files) {
+                  if (files.isEmpty) {
+                    return [];
+                  }
+
+                  return [
+                    'dart format ${files.join(' ')} --set-exit-if-changed',
+                  ];
+                },
               ),
             ],
           ),

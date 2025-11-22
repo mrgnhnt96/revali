@@ -6,9 +6,7 @@ part 'hot_reload_data.g.dart';
 
 @JsonSerializable()
 class HotReloadData extends Equatable {
-  const HotReloadData({
-    required this.type,
-  });
+  const HotReloadData({required this.type});
 
   factory HotReloadData.fromJson(Map<dynamic, dynamic> json) {
     final base = _$HotReloadDataFromJson(json);

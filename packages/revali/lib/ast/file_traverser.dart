@@ -18,7 +18,7 @@ class FileTraverser {
     final resolved = await units.resolved();
 
     final classVisitor = AppVisitor();
-    resolved.libraryElement.accept(classVisitor);
+    resolved.libraryElement.accept2(classVisitor);
 
     if (!classVisitor.hasApp) {
       return;
@@ -28,21 +28,21 @@ class FileTraverser {
       final element = entry.element;
       yield MetaAppConfig(
         className: element.displayName,
-        importPath: element.librarySource.uri.toString(),
+        importPath: element.library.uri.toString(),
         element: element,
-        constructor: entry.constructor.name,
+        constructor:
+            entry.constructor.name3 ??
+            (throw Exception('Constructor name is null')),
         params: entry.params,
         appAnnotation: entry.annotation,
         isSecure: entry.isSecure,
-        annotationsFor: ({
-          required List<OnMatch> onMatch,
-          NonMatch? onNonMatch,
-        }) =>
-            getAnnotations(
-          element: element,
-          onMatch: onMatch,
-          onNonMatch: onNonMatch,
-        ),
+        annotationsFor:
+            ({required List<OnMatch> onMatch, NonMatch? onNonMatch}) =>
+                getAnnotations(
+                  element: element,
+                  onMatch: onMatch,
+                  onNonMatch: onNonMatch,
+                ),
       );
     }
   }
@@ -69,21 +69,20 @@ class FileTraverser {
     return MetaRoute(
       path: routePath,
       filePath: units.parsed.path,
-      className: element.name,
+      className: element.name ?? (throw Exception('Class name is null')),
       params: params,
       element: element,
-      constructorName: constructor.name,
+      constructorName:
+          constructor.name ?? (throw Exception('Constructor name is null')),
       methods: methods,
       type: type,
-      annotationsFor: ({
-        required List<OnMatch> onMatch,
-        NonMatch? onNonMatch,
-      }) =>
-          getAnnotations(
-        element: element,
-        onMatch: onMatch,
-        onNonMatch: onNonMatch,
-      ),
+      annotationsFor:
+          ({required List<OnMatch> onMatch, NonMatch? onNonMatch}) =>
+              getAnnotations(
+                element: element,
+                onMatch: onMatch,
+                onNonMatch: onNonMatch,
+              ),
     );
   }
 }

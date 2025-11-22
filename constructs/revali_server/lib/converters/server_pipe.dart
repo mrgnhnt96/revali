@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:collection/collection.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
@@ -24,11 +24,7 @@ class ServerPipe with ExtractImport {
 
     final element = type.element;
     if (element is! ClassElement) {
-      throw ArgumentError.value(
-        type,
-        'type',
-        'Expected a class element',
-      );
+      throw ArgumentError.value(type, 'type', 'Expected a class element');
     }
     final superPipe = element.allSupertypes.firstWhereOrNull((element) {
       // ignore: unnecessary_parenthesis
@@ -55,12 +51,17 @@ class ServerPipe with ExtractImport {
   }
 
   final ServerClass clazz;
-  final ServerReflect reflect;
+  final ServerReflect? reflect;
   final ServerType convertFrom;
   final ServerType convertTo;
 
   @override
-  List<ExtractImport> get extractors => [clazz, convertFrom, convertTo];
+  List<ExtractImport?> get extractors => [
+    clazz,
+    convertFrom,
+    convertTo,
+    reflect,
+  ];
 
   @override
   List<ServerImports> get imports => const [];

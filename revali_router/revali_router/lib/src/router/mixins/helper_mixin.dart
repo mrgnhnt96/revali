@@ -1,7 +1,7 @@
 part of '../router.dart';
 
-typedef DebugErrorResponse = ReadOnlyResponse Function(
-  ReadOnlyResponse response, {
+typedef DebugErrorResponse = Response Function(
+  Response response, {
   required Object error,
   required StackTrace stackTrace,
 });
@@ -10,12 +10,11 @@ mixin HelperMixin {
   BaseRoute get route;
   LifecycleComponents get globalComponents;
   FullRequest get request;
-  MutableResponse get response;
+  Response get response;
   CloseWebSocket get close;
-  DataHandler get dataHandler;
-  MetaHandler get directMeta;
-  MetaHandler get inheritedMeta;
-  ReflectHandler get reflectHandler;
+  Data get data;
+  MetaScope get meta;
+  Reflect get reflectHandler;
   DebugErrorResponse get debugErrorResponse;
   DefaultResponses get defaultResponses;
   bool get debugResponses;
@@ -23,7 +22,7 @@ mixin HelperMixin {
   AsyncWebSocketSender<dynamic> get asyncSender;
   set webSocketSender(void Function(dynamic data) sender);
 
-  set webSocketRequest(MutableWebSocketRequest request);
+  set webSocketRequest(WebSocketRequest request);
 
   ContextMixin get context;
   RunMixin get run;
@@ -73,10 +72,10 @@ mixin HelperMixin {
         ...route.allAllowedOrigins,
       };
 
-  Set<String> get allowedHeaders => {
-        if (route.allowedHeaders?.inherit case final inherit? when inherit)
-          ...?globalComponents.allowedHeaders?.headers,
-        ...route.allAllowedHeaders,
+  Set<String> get preventedHeaders => {
+        if (route.preventedHeaders?.inherit case final inherit? when inherit)
+          ...?globalComponents.preventedHeaders?.headers,
+        ...route.allPreventedHeaders,
       };
 
   Set<String> get expectedHeaders => {

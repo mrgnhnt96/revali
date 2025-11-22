@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:revali_router/revali_router.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 import 'package:test/test.dart';
 
 import 'utils/test_request.dart';
@@ -21,12 +21,16 @@ void main() {
           expect(catcher.wasCalled, isTrue);
 
           expect(response.statusCode, HttpStatus.internalServerError);
-          expect(response.body?.data, 'Internal Server Error');
+          expect(response.body.data, 'Internal Server Error');
           final headers = response.joinedHeaders;
 
-          expect(headers.keys, hasLength(2));
+          expect(headers.keys, hasLength(6));
           expect(headers['content-type'], 'text/plain');
           expect(headers['content-length'], '21');
+          expect(headers['access-control-allow-origin'], '*');
+          expect(headers['access-control-allow-credentials'], 'true');
+          expect(headers['access-control-allow-methods'], 'OPTIONS, GET, HEAD');
+          expect(headers['allow'], 'OPTIONS, GET, HEAD');
         },
       );
     });
@@ -45,7 +49,7 @@ void main() {
           expect(middleware.wasCalled, isTrue);
 
           expect(response.statusCode, HttpStatus.internalServerError);
-          expect(response.body?.data, 'Internal Server Error');
+          expect(response.body.data, 'Internal Server Error');
           final headers = response.joinedHeaders;
 
           expect(headers.keys, hasLength(2));
@@ -69,7 +73,7 @@ void main() {
           expect(guard.wasCalled, isTrue);
 
           expect(response.statusCode, HttpStatus.internalServerError);
-          expect(response.body?.data, 'Internal Server Error');
+          expect(response.body.data, 'Internal Server Error');
           final headers = response.joinedHeaders;
 
           expect(headers.keys, hasLength(2));
@@ -91,7 +95,7 @@ void main() {
           expect(interceptor.postWasCalled, isFalse);
 
           expect(response.statusCode, HttpStatus.internalServerError);
-          expect(response.body?.data, 'Internal Server Error');
+          expect(response.body.data, 'Internal Server Error');
           final headers = response.joinedHeaders;
 
           expect(headers.keys, hasLength(2));
@@ -113,7 +117,7 @@ void main() {
           expect(interceptor.postWasCalled, isTrue);
 
           expect(response.statusCode, HttpStatus.internalServerError);
-          expect(response.body?.data, 'Internal Server Error');
+          expect(response.body.data, 'Internal Server Error');
           final headers = response.joinedHeaders;
 
           expect(headers.keys, hasLength(2));
@@ -133,7 +137,7 @@ base class _Catcher extends ExceptionCatcher<_TestException> {
   @override
   ExceptionCatcherResult<_TestException> catchException(
     _TestException exception,
-    ExceptionCatcherContext context,
+    Context context,
   ) {
     wasCalled = true;
     return const ExceptionCatcherResult.handled();
@@ -144,7 +148,7 @@ class _ThrowMiddleware implements Middleware {
   bool wasCalled = false;
 
   @override
-  Future<MiddlewareResult> use(MiddlewareContext context) {
+  Future<MiddlewareResult> use(Context context) {
     wasCalled = true;
     throw _TestException();
   }
@@ -154,7 +158,7 @@ class _ThrowGuard implements Guard {
   bool wasCalled = false;
 
   @override
-  Future<GuardResult> protect(GuardContext context) {
+  Future<GuardResult> protect(Context context) {
     wasCalled = true;
     throw _TestException();
   }
@@ -173,7 +177,7 @@ class _ThrowInterceptor implements Interceptor {
   bool postWasCalled = false;
 
   @override
-  Future<void> post(FullInterceptorContext context) async {
+  Future<void> post(Context context) async {
     postWasCalled = true;
     if (inPost) {
       throw _TestException();
@@ -181,7 +185,7 @@ class _ThrowInterceptor implements Interceptor {
   }
 
   @override
-  Future<void> pre(RestrictedInterceptorContext context) async {
+  Future<void> pre(Context context) async {
     preWasCalled = true;
     if (inPre) {
       throw _TestException();

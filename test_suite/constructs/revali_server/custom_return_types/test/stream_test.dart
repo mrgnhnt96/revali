@@ -30,7 +30,7 @@ void main() {
         },
         {
           'data': {'name': 'Hello world!'},
-        }
+        },
       ]);
     });
 
@@ -164,7 +164,7 @@ void main() {
               'user': {'name': 'Hello world!'},
             },
           ],
-        }
+        },
       ]);
     });
   });

@@ -17,17 +17,17 @@ Expression createPipe(
 }) {
   final pipeClass = refer(pipe.clazz.variableName);
 
-  final context = refer((PipeContextImpl).name).newInstanceNamed(
-    'from',
-    [
-      refer('context'),
-    ],
-    {
-      'annotationArgument': literal(annotation.name),
-      'nameOfParameter': literalString(param.name),
-      'type': refer((AnnotationType).name).property(annotation.type.name),
-    },
-  );
+  final context = refer((PipeContextImpl).name).newInstance([], {
+    'data': refer('context').property('data'),
+    'meta': refer('context').property('meta'),
+    'reflect': refer('context').property('reflect'),
+    'request': refer('context').property('request'),
+    'response': refer('context').property('response'),
+    'route': refer('context').property('route'),
+    'annotationArgument': literal(annotation.name),
+    'nameOfParameter': literalString(param.name),
+    'type': refer((AnnotationType).name).property(annotation.type.name),
+  });
 
   Expression transform(Expression access) {
     Expression piped(Expression access) {
@@ -43,8 +43,9 @@ Expression createPipe(
               const Code('||'),
               const Code('List()'),
             ]): literalNull,
-          declareFinal('value'):
-              refer((ArgumentError).name).newInstanceNamed('value', [
+          declareFinal(
+            'value',
+          ): refer((ArgumentError).name).newInstanceNamed('value', [
             refer('value'),
             literalString('[${pipe.clazz.className}] Unexpected type'),
             literalString(
@@ -76,17 +77,17 @@ Expression createPipe(
 
     return switch (param.type.isIterable) {
       true => CodeExpression(
-          Block.of([
-            const Code('['),
-            forInLoop(
-              declaration: declareFinal('data'),
-              iterable: access.ifNullThen(literalList([])),
-              body: piped(refer('data')).code,
-              blockBody: false,
-            ).code,
-            const Code(']'),
-          ]),
-        ),
+        Block.of([
+          const Code('['),
+          forInLoop(
+            declaration: declareFinal('data'),
+            iterable: access.ifNullThen(literalList([])),
+            body: piped(refer('data')).code,
+            blockBody: false,
+          ).code,
+          const Code(']'),
+        ]),
+      ),
       false => piped(access),
     };
   }

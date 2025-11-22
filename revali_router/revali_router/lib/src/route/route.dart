@@ -18,7 +18,7 @@ class Route extends BaseRoute {
     super.redirect,
     super.combine,
     super.allowedOrigins,
-    super.allowedHeaders,
+    super.preventedHeaders,
     super.ignorePathPattern,
     super.responseHandler,
     super.expectedHeaders,
@@ -26,7 +26,7 @@ class Route extends BaseRoute {
 
   @override
   // ignore: overridden_fields
-  final Future<void> Function(EndpointContext)? handler;
+  final Future<void> Function(Context)? handler;
 
   @override
   List<Object?> get props => _$props;

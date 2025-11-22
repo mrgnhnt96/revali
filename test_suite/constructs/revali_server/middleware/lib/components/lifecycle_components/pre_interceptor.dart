@@ -3,22 +3,22 @@ import 'package:revali_server_middleware_test/domain/auth_token.dart';
 import 'package:revali_server_middleware_test/domain/user.dart';
 
 // Learn more about Lifecycle Components at https://www.revali.dev/constructs/revali_server/lifecycle-components/components
-class AddData implements LifecycleComponent {
-  const AddData({this.addAuthToData = true});
+class AddToData implements LifecycleComponent {
+  const AddToData({this.addAuthToData = true});
 
   final bool addAuthToData;
 
-  InterceptorPreResult addData(DataHandler data) {
+  InterceptorPreResult addData(Data data) {
     data.add('loz');
   }
 
-  InterceptorPreResult addAuth(DataHandler data) {
+  InterceptorPreResult addAuth(Data data) {
     if (addAuthToData) {
       data.add(const AuthToken('loz'));
     }
   }
 
-  InterceptorPreResult addUser(DataHandler data) {
+  InterceptorPreResult addUser(Data data) {
     if (addAuthToData) {
       data.add(const User(name: 'loz'));
     }
@@ -26,15 +26,12 @@ class AddData implements LifecycleComponent {
 }
 
 class SomeLogger implements LifecycleComponent {
-  const SomeLogger(
-    this.logger, {
-    this.fallback,
-  });
+  const SomeLogger(this.logger, {this.fallback});
 
   final Logger logger;
   final Logger? fallback;
 
-  InterceptorPreResult addData(DataHandler data) {
+  InterceptorPreResult addData(Data data) {
     data.add('loz');
   }
 }
@@ -48,7 +45,7 @@ class AddCustomData<T extends Object> implements LifecycleComponent {
 
   final T data;
 
-  InterceptorPreResult addData(DataHandler data) {
+  InterceptorPreResult addData(Data data) {
     data.add(this.data);
   }
 }

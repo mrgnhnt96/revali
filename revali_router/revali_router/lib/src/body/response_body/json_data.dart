@@ -16,11 +16,11 @@ abstract base class JsonData<T> extends BaseBodyData<T> {
   String get mimeType => 'application/json';
 
   @override
-  int get contentLength => toJson().length;
+  int get contentLength => encoding.encode(toJson()).length;
 
   @override
-  ReadOnlyHeaders headers(ReadOnlyHeaders? requestHeaders) {
-    return MutableHeadersImpl()
+  Headers headers(Headers? requestHeaders) {
+    return HeadersImpl()
       ..mimeType = mimeType
       ..contentLength = contentLength;
   }

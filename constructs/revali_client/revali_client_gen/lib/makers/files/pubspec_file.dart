@@ -14,14 +14,12 @@ AnyFile pubspecFile(ClientServer server, Settings settings) {
   final imports = server.controllers
       .where((e) => !e.isExcluded)
       .expand(
-        (e) => e.methods.expand(
-          (e) {
-            return [
-              ...e.returnType.imports,
-              ...e.allParams.expand((e) => e.type.imports),
-            ];
-          },
-        ),
+        (e) => e.methods.expand((e) {
+          return [
+            ...e.returnType.imports,
+            ...e.allParams.expand((e) => e.type.imports),
+          ];
+        }),
       )
       .expand((e) => e?.packages ?? <String>[])
       .toSet();
@@ -90,7 +88,8 @@ AnyFile pubspecFile(ClientServer server, Settings settings) {
   return AnyFile(
     basename: 'pubspec',
     extension: 'yaml',
-    content: '''
+    content:
+        '''
 name: ${settings.packageName}
 
 environment:
@@ -104,9 +103,7 @@ $dependencies
 }
 
 String? _getIntegration(String name) {
-  final result = Isolate.resolvePackageUriSync(
-    Uri.parse('package:$name/'),
-  );
+  final result = Isolate.resolvePackageUriSync(Uri.parse('package:$name/'));
 
   if (result == null) return null;
 

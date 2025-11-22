@@ -11,8 +11,5 @@ PartFile serverFile(
 ) {
   final content = createServerContent(client, settings);
 
-  return PartFile(
-    content: formatter(content),
-    path: ['lib', 'src', 'server'],
-  );
+  return PartFile(content: formatter(content), path: ['lib', 'src', 'server']);
 }

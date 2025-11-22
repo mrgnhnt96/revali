@@ -19,8 +19,8 @@ final class MemoryFileBodyData extends BaseBodyData<MemoryFile> {
   }
 
   @override
-  ReadOnlyHeaders headers(ReadOnlyHeaders? requestHeaders) {
-    return MutableHeadersImpl()
+  Headers headers(Headers? requestHeaders) {
+    return HeadersImpl()
       ..mimeType = mimeType
       ..contentLength = contentLength
       ..filename = data.filename;

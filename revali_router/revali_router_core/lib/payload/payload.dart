@@ -1,11 +1,14 @@
-import 'package:revali_router_core/body/mutable_body.dart';
-import 'package:revali_router_core/headers/read_only_headers.dart';
-import 'package:revali_router_core/payload/read_only_payload.dart';
+import 'dart:convert';
 
-abstract class Payload implements ReadOnlyPayload {
+import 'package:revali_router_core/body/body.dart';
+import 'package:revali_router_core/method_mutations/headers/headers.dart';
+
+abstract class Payload {
   const Payload();
 
-  Future<MutableBody> resolve(ReadOnlyHeaders headers);
-
+  Future<Body> resolve(Headers headers);
   Future<void> close();
+  int? get contentLength;
+  Stream<List<int>> read();
+  String readAsString({Encoding encoding = utf8});
 }

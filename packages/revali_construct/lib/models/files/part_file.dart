@@ -2,14 +2,10 @@ import 'package:path/path.dart' as p;
 import 'package:revali_construct/models/files/dart_file.dart';
 
 final class PartFile extends DartFile {
-  PartFile({
-    required this.path,
-    required super.content,
-  })  : assert(path.isNotEmpty, 'Path cannot be empty.'),
-        assert(!path.last.endsWith('.dart'), 'Path must not end with .dart.'),
-        super(
-          basename: p.joinAll(path),
-        );
+  PartFile({required this.path, required super.content})
+    : assert(path.isNotEmpty, 'Path cannot be empty.'),
+      assert(!path.last.endsWith('.dart'), 'Path must not end with .dart.'),
+      super(basename: p.joinAll(path));
 
   final List<String> path;
 

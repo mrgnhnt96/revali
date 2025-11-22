@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:path/path.dart' as p;
 import 'package:revali_construct/revali_construct.dart';
 
@@ -13,8 +13,9 @@ class ServerImports {
       }
 
       if (import.startsWith('file:')) {
-        final cleanedImport =
-            p.relative(import.replaceFirst(RegExp('^file:'), ''));
+        final cleanedImport = p.relative(
+          import.replaceFirst(RegExp('^file:'), ''),
+        );
 
         paths.add(cleanedImport);
         continue;

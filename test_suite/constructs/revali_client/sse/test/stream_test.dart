@@ -85,10 +85,7 @@ void main() {
 
       verifyRequest('GET', '/api/stream/record');
 
-      expect(responses, [
-        ('hello', 'world'),
-        ('foo', 'bar'),
-      ]);
+      expect(responses, [('hello', 'world'), ('foo', 'bar')]);
     });
 
     test('named-record', () async {
@@ -107,10 +104,7 @@ void main() {
 
       verifyRequest('GET', '/api/stream/partial-record');
 
-      expect(responses, [
-        ('hello', second: 'world'),
-        ('foo', second: 'bar'),
-      ]);
+      expect(responses, [('hello', second: 'world'), ('foo', second: 'bar')]);
     });
 
     test('list-of-records', () async {
@@ -119,12 +113,8 @@ void main() {
       verifyRequest('GET', '/api/stream/list-of-records');
 
       expect(responses, [
-        [
-          ('hello', 'world'),
-        ],
-        [
-          ('foo', 'bar'),
-        ]
+        [('hello', 'world')],
+        [('foo', 'bar')],
       ]);
     });
 

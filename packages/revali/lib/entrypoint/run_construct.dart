@@ -23,8 +23,8 @@ Future<int> runConstruct(
     level: isLoud
         ? Level.verbose
         : isQuiet
-            ? Level.error
-            : Level.info,
+        ? Level.error
+        : Level.info,
   );
 
   const platform = LocalPlatform();

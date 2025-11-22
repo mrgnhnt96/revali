@@ -16,11 +16,7 @@ class ConstructRunner extends CommandRunner<int> {
     required Analyzer analyzer,
   }) : super('', 'Generates the construct') {
     argParser
-      ..addFlag(
-        'loud',
-        help: 'Prints detailed output',
-        hide: true,
-      )
+      ..addFlag('loud', help: 'Prints detailed output', hide: true)
       ..addFlag(
         'quiet',
         help: 'Limits output to important information only',

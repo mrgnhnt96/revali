@@ -5,9 +5,9 @@ class RunRedirect {
 
   final HelperMixin helper;
 
-  ReadOnlyResponse? call() => run();
+  Response? call() => run();
 
-  ReadOnlyResponse? run() {
+  Response? run() {
     final HelperMixin(
       :route,
     ) = helper;

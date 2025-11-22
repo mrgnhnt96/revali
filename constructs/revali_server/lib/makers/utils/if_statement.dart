@@ -13,10 +13,7 @@ Expression ifStatement(
         Block.of([
           const Code(' case '),
           pattern.cse.code,
-          if (pattern.when case final whn?) ...[
-            const Code(' when '),
-            whn.code,
-          ],
+          if (pattern.when case final whn?) ...[const Code(' when '), whn.code],
         ]),
       const Code(') {'),
       if (body case final body?) body,

@@ -20,12 +20,9 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
     required this.logger,
     required this.analyzer,
     RoutesHandler? routesHandler,
-  }) : routesHandler = routesHandler ??
-            RoutesHandler(
-              analyzer: analyzer,
-              fs: fs,
-              rootPath: rootPath,
-            ) {
+  }) : routesHandler =
+           routesHandler ??
+           RoutesHandler(analyzer: analyzer, fs: fs, rootPath: rootPath) {
     argParser
       ..addOption(
         'flavor',
@@ -34,17 +31,20 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
       )
       ..addFlag(
         'release',
-        help: 'Whether to run in release mode. Disabled hot reload, '
+        help:
+            'Whether to run in release mode. Disabled hot reload, '
             'debugger, and logger',
       )
       ..addFlag(
         'profile',
-        help: 'Whether to run in profile mode. Enables logger, '
+        help:
+            'Whether to run in profile mode. Enables logger, '
             'but disables hot reload and debugger',
       )
       ..addFlag(
         'debug',
-        help: '(Default) Whether to run in debug mode. Enables hot reload, '
+        help:
+            '(Default) Whether to run in debug mode. Enables hot reload, '
             'debugger, and logger',
       )
       ..addFlag(
@@ -66,7 +66,8 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
       )
       ..addMultiOption(
         'dart-define-from-file',
-        help: 'A file containing additional key-value '
+        help:
+            'A file containing additional key-value '
             'pairs that will be available as constants.',
         valueHelp: '.env',
       );
@@ -130,8 +131,9 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
 
     final serverHandler = VMServiceHandler(
       root: root,
-      serverFile:
-          (await root.getServer()).childFile(ServerFile.nameWithExtension).path,
+      serverFile: (await root.getServer())
+          .childFile(ServerFile.nameWithExtension)
+          .path,
       codeGenerator: generator.generate,
       logger: logger,
       canHotReload: !runInRelease,

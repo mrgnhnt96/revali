@@ -1,5 +1,30 @@
 # CHANGELOG
 
+## 2.0.2 | 11.22.25
+
+### Fix
+
+- Dependencies
+
+## 2.0.2-dev | 10.15.25
+
+### Fix
+
+- Dependencies
+
+## 2.0.0+1-dev | 10.15.25
+
+### Fix
+
+- Dependencies
+
+## 2.0.0-dev | 09.19.25
+
+### Breaking Changes
+
+- Drop `Data` and `Meta` classes
+  - Replaced with `AddData` and `MetaData`
+
 ## 1.3.0 | 04.07.25
 
 ### Enhancements

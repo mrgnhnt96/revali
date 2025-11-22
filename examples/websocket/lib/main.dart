@@ -53,8 +53,8 @@ Future<void> _websocket() async {
           String() => message,
           List<int>() => utf8.decode(List<int>.from(message)),
           _ => throw UnsupportedError(
-              'Unsupported message type: ${message.runtimeType}',
-            ),
+            'Unsupported message type: ${message.runtimeType}',
+          ),
         };
 
         print('SERVER: $decoded');
@@ -74,11 +74,7 @@ Future<void> _websocket() async {
     final input = stdin.transform(utf8.decoder).transform(const LineSplitter());
 
     await for (final line in input) {
-      final data = utf8.encode(
-        jsonEncode({
-          'message': line,
-        }),
-      );
+      final data = utf8.encode(jsonEncode({'message': line}));
       channel.sink.add(data);
     }
   } catch (e) {
@@ -97,19 +93,13 @@ Future<void> _json() async {
     print(response.data);
 
     await for (final line in input) {
-      final data = utf8.encode(
-        jsonEncode({
-          'name': line,
-        }),
-      );
+      final data = utf8.encode(jsonEncode({'name': line}));
 
       final response = await dio.get(
         uri.toString(),
         data: data,
         options: Options(
-          headers: {
-            HttpHeaders.contentTypeHeader: 'application/_json',
-          },
+          headers: {HttpHeaders.contentTypeHeader: 'application/_json'},
         ),
       );
 
@@ -129,9 +119,7 @@ Future<void> _list() async {
       '/user/123',
       data: ['John', 'Doe'],
       options: Options(
-        headers: {
-          HttpHeaders.contentTypeHeader: 'application/json',
-        },
+        headers: {HttpHeaders.contentTypeHeader: 'application/json'},
       ),
     );
 
@@ -153,15 +141,10 @@ Future<void> _multiPartForm() async {
         'file': await MultipartFile.fromFile(file.path),
         'is_awesome': true,
         'count': 1,
-        'meta': jsonEncode({
-          'name': 'John',
-          'age': 25,
-        }),
+        'meta': jsonEncode({'name': 'John', 'age': 25}),
       }),
       options: Options(
-        headers: {
-          HttpHeaders.contentTypeHeader: 'multipart/form-data',
-        },
+        headers: {HttpHeaders.contentTypeHeader: 'multipart/form-data'},
       ),
     );
 
@@ -178,10 +161,7 @@ Future<void> _form() async {
   try {
     final response = await dio.post(
       '/user/123',
-      data: {
-        'name': 'John',
-        'age': 25,
-      },
+      data: {'name': 'John', 'age': 25},
       options: Options(
         headers: {
           HttpHeaders.contentTypeHeader: 'application/x-www-form-urlencoded',
@@ -203,11 +183,7 @@ Future<void> _text() async {
     final response = await dio.post(
       '/user/123',
       data: 'whats up dude?',
-      options: Options(
-        headers: {
-          HttpHeaders.contentTypeHeader: 'text/plain',
-        },
-      ),
+      options: Options(headers: {HttpHeaders.contentTypeHeader: 'text/plain'}),
     );
 
     print(response.data);
@@ -223,10 +199,7 @@ Future<void> _stream() async {
   try {
     final response = await dio.post(
       '/user/123',
-      data: Stream.fromIterable([
-        utf8.encode('Hello'),
-        utf8.encode('World'),
-      ]),
+      data: Stream.fromIterable([utf8.encode('Hello'), utf8.encode('World')]),
       options: Options(
         headers: {
           HttpHeaders.contentTypeHeader: 'application/octet-stream',
@@ -268,9 +241,7 @@ Future<void> _getFavicon() async {
   try {
     final response = await dio.get(
       '/file',
-      options: Options(
-        responseType: ResponseType.bytes,
-      ),
+      options: Options(responseType: ResponseType.bytes),
     );
     // save to file
     final file = File('file.text');

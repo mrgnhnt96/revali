@@ -7,7 +7,7 @@ import 'package:file/local.dart';
 import 'package:meta/meta.dart';
 import 'package:mime/mime.dart';
 import 'package:path/path.dart' as p;
-import 'package:revali_router/src/headers/mutable_headers_impl.dart';
+import 'package:revali_router/src/headers/headers_impl.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
 part 'binary_body_data.dart';
@@ -43,7 +43,7 @@ sealed class BaseBodyData<T> extends BodyData {
       Null() => NullBodyData(),
       Stream<List<int>>() => ByteStreamBodyData(data),
       Stream<dynamic>() => StreamBodyData(data),
-      ReadOnlyBody() => BaseBodyData<dynamic>.from(data.data),
+      Body() => BaseBodyData<dynamic>.from(data.data),
       StringContent() => StringBodyData(data.value),
       bool() => PrimitiveNonStringBodyData(data),
       int() => PrimitiveNonStringBodyData(data),

@@ -4,7 +4,7 @@ Revali Router is designed to integrate with [Revali](https://pub.dev/packages/re
 
 ## Documentation
 
-The documentation for the [Revali Server construct](https://www.revali.dev/constructs/revali_server) provides a comprehensive guide on the classes used within this package. The difference being that the you'd be manually creating the server instance instead of using Revali to generate it for you.
+The documentation for the [Revali Server construct](https://www.revali.dev/constructs/revali_server/overview) provides a comprehensive guide on the classes used within this package. The difference being that the you'd be manually creating the server instance instead of using Revali to generate it for you.
 
 ## Example
 

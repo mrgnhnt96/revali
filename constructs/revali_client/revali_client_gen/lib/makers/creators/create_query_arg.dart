@@ -10,13 +10,13 @@ Expression createQueryArg(Iterable<ClientParam> params) {
     'Not all params are query params',
   );
 
-  return createMap(
-    {
-      for (final param in params)
-        switch (param.access) {
-          [final String access] => access,
-          _ => param.name
-        }: refer(param.name).code,
-    },
-  );
+  return createMap({
+    for (final param in params)
+      switch (param.access) {
+        [final String access] => access,
+        _ => param.name,
+      }: refer(
+        param.name,
+      ).code,
+  });
 }

@@ -1,12 +1,9 @@
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:revali_construct/models/meta_type.dart';
 import 'package:revali_construct/utils/element_extensions.dart';
 
 class MetaFromJson {
-  const MetaFromJson({
-    required this.params,
-    required this.element,
-  });
+  const MetaFromJson({required this.params, required this.element});
 
   final List<MetaType> params;
   final Element element;
@@ -26,11 +23,11 @@ class MetaFromJson {
     }
 
     final params = switch (fromJson) {
-      MethodElement(:final parameters) ||
-      ConstructorElement(:final parameters) =>
-        [
-          for (final parameter in parameters) MetaType.fromType(parameter.type),
-        ],
+      MethodElement(:final formalParameters) ||
+      ConstructorElement(:final formalParameters) => [
+        for (final parameter in formalParameters)
+          MetaType.fromType(parameter.type),
+      ],
       _ => null,
     };
 
@@ -38,9 +35,6 @@ class MetaFromJson {
       return null;
     }
 
-    return MetaFromJson(
-      params: params,
-      element: fromJson,
-    );
+    return MetaFromJson(params: params, element: fromJson);
   }
 }

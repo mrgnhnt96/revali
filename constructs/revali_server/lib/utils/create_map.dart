@@ -11,8 +11,10 @@ Expression createMap(
         literal(key).code,
         const Code(':'),
         switch (value) {
-          final Map<Object, dynamic> nestedMap =>
-            createMap(nestedMap, ref: ref).code,
+          final Map<Object, dynamic> nestedMap => createMap(
+            nestedMap,
+            ref: ref,
+          ).code,
           Code() => value,
           Reference() => value.code,
           CodeExpression() => value.code,

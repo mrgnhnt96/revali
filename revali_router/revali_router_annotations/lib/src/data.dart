@@ -1,3 +1,0 @@
-class Data {
-  const Data();
-}

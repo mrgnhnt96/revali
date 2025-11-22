@@ -17,10 +17,7 @@ void main() {
     });
 
     test('returns a successful response when PUT request', () async {
-      final response = await server.send(
-        method: 'PUT',
-        path: '/api/put',
-      );
+      final response = await server.send(method: 'PUT', path: '/api/put');
 
       expect(response.statusCode, 200);
       expect(response.body, {'data': 'Hello world!'});
@@ -40,10 +37,7 @@ void main() {
 
       expect(headers.remove('access-control-allow-credentials'), 'true');
       expect(headers.remove('access-control-allow-origin'), '*');
-      expect(
-        headers.remove('access-control-allow-methods'),
-        'OPTIONS, PUT',
-      );
+      expect(headers.remove('access-control-allow-methods'), 'OPTIONS, PUT');
       expect(headers.remove('allow'), 'OPTIONS, PUT');
       expect(headers.remove('content-type'), 'application/json');
       expect(headers.remove('content-length'), '23');
@@ -52,10 +46,7 @@ void main() {
     });
 
     test('returns a successful response when OPTIONS request', () async {
-      final response = await server.send(
-        method: 'OPTIONS',
-        path: '/api/put',
-      );
+      final response = await server.send(method: 'OPTIONS', path: '/api/put');
 
       expect(response.statusCode, 200);
       expect(response.body, isNull);
@@ -74,10 +65,7 @@ void main() {
 
       expect(headers.remove('access-control-allow-credentials'), 'true');
       expect(headers.remove('access-control-allow-origin'), '*');
-      expect(
-        headers.remove('access-control-allow-methods'),
-        'OPTIONS, PUT',
-      );
+      expect(headers.remove('access-control-allow-methods'), 'OPTIONS, PUT');
       expect(headers.remove('allow'), 'OPTIONS, PUT');
       expect(headers.remove('content-type'), 'text/plain');
       expect(headers.remove('transfer-encoding'), 'chunked');
@@ -86,10 +74,7 @@ void main() {
     });
 
     test('returns a 404 response when HEAD request', () async {
-      final response = await server.send(
-        method: 'HEAD',
-        path: '/api/put',
-      );
+      final response = await server.send(method: 'HEAD', path: '/api/put');
 
       expect(response.statusCode, 404);
       expect(

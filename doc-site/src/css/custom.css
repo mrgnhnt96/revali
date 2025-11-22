@@ -4,27 +4,372 @@
  * work well for content-centric websites.
  */
 
-/* You can override the default Infima variables here. */
+/* Revali Theme Colors - Based on Landing Page Design */
 :root {
-    --ifm-color-primary: #E05523;
-    --ifm-color-primary-dark: #cc4d20;
-    --ifm-color-primary-darker: #b3441c;
-    --ifm-color-primary-darkest: #993b19;
-    --ifm-color-primary-light: #e5663f;
-    --ifm-color-primary-lighter: #ea775b;
-    --ifm-color-primary-lightest: #f08a78;
-    --ifm-code-font-size: 95%;
-    --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  /* Primary Colors - Purple/Blue Gradient Theme */
+  --ifm-color-primary: #667eea;
+  --ifm-color-primary-dark: #5a6fd8;
+  --ifm-color-primary-darker: #4e5fc6;
+  --ifm-color-primary-darkest: #424fb4;
+  --ifm-color-primary-light: #7a8df0;
+  --ifm-color-primary-lighter: #8e9cf6;
+  --ifm-color-primary-lightest: #a2abfc;
+
+  /* Secondary Colors */
+  --ifm-color-secondary: #fbbf24;
+  --ifm-color-secondary-dark: #f59e0b;
+  --ifm-color-secondary-darker: #d97706;
+  --ifm-color-secondary-darkest: #b45309;
+  --ifm-color-secondary-light: #fcd34d;
+  --ifm-color-secondary-lighter: #fde68a;
+  --ifm-color-secondary-lightest: #fef3c7;
+
+  /* Accent Colors */
+  --ifm-color-accent: #3b82f6;
+  --ifm-color-accent-dark: #1d4ed8;
+  --ifm-color-accent-darker: #1e40af;
+  --ifm-color-accent-darkest: #1e3a8a;
+  --ifm-color-accent-light: #60a5fa;
+  --ifm-color-accent-lighter: #93c5fd;
+  --ifm-color-accent-lightest: #dbeafe;
+
+  /* Background Colors */
+  --ifm-background-color: #ffffff;
+  --ifm-background-surface-color: #f8fafc;
+  --ifm-color-gray-100: #f1f5f9;
+  --ifm-color-gray-200: #e2e8f0;
+  --ifm-color-gray-300: #cbd5e1;
+  --ifm-color-gray-400: #94a3b8;
+  --ifm-color-gray-500: #64748b;
+  --ifm-color-gray-600: #475569;
+  --ifm-color-gray-700: #334155;
+  --ifm-color-gray-800: #1e293b;
+  --ifm-color-gray-900: #0f172a;
+
+  /* Text Colors */
+  --ifm-font-color-base: #1f2937;
+  --ifm-font-color-secondary: #6b7280;
+  --ifm-heading-color: #1f2937;
+
+  /* Code Colors */
+  --ifm-code-font-size: 95%;
+  --ifm-code-background: #f1f5f9;
+  --ifm-code-color: #e11d48;
+  --docusaurus-highlighted-code-line-bg: rgba(102, 126, 234, 0.1);
+
+  /* Link Colors */
+  --ifm-link-color: #667eea;
+  --ifm-link-hover-color: #5a6fd8;
+
+  /* Border Colors */
+  --ifm-border-color: #e5e7eb;
+
+  /* Navbar Colors */
+  --ifm-navbar-background-color: #ffffff;
+  --ifm-navbar-link-color: #374151;
+  --ifm-navbar-link-hover-color: #667eea;
+
+  /* Footer Colors */
+  --ifm-footer-background-color: #1f2937;
+  --ifm-footer-color: #d1d5db;
+  --ifm-footer-link-color: #d1d5db;
+  --ifm-footer-link-hover-color: #ffffff;
+
+  /* Button Colors */
+  --ifm-button-border-radius: 0.5rem;
+  --ifm-button-font-weight: 600;
+
+  /* Card Colors */
+  --ifm-card-background-color: #ffffff;
+  --ifm-card-border-radius: 1rem;
+
+  /* Table Colors */
+  --ifm-table-border-color: #e5e7eb;
+  --ifm-table-head-background: #f8fafc;
+  --ifm-table-stripe-background: #f8fafc;
 }
 
-/* For readability concerns, you should choose a lighter palette in dark mode. */
-[data-theme='dark'] {
-    --ifm-color-primary: #E05523;
-    --ifm-color-primary-dark: #cc4d20;
-    --ifm-color-primary-darker: #b3441c;
-    --ifm-color-primary-darkest: #993b19;
-    --ifm-color-primary-light: #e5663f;
-    --ifm-color-primary-lighter: #ea775b;
-    --ifm-color-primary-lightest: #f08a78;
-    --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+/* Dark Mode Theme */
+[data-theme="dark"] {
+  /* Primary Colors - Adjusted for dark mode */
+  --ifm-color-primary: #7a8df0;
+  --ifm-color-primary-dark: #667eea;
+  --ifm-color-primary-darker: #5a6fd8;
+  --ifm-color-primary-darkest: #4e5fc6;
+  --ifm-color-primary-light: #8e9cf6;
+  --ifm-color-primary-lighter: #a2abfc;
+  --ifm-color-primary-lightest: #b6bfff;
+
+  /* Secondary Colors */
+  --ifm-color-secondary: #fbbf24;
+  --ifm-color-secondary-dark: #f59e0b;
+  --ifm-color-secondary-darker: #d97706;
+  --ifm-color-secondary-darkest: #b45309;
+  --ifm-color-secondary-light: #fcd34d;
+  --ifm-color-secondary-lighter: #fde68a;
+  --ifm-color-secondary-lightest: #fef3c7;
+
+  /* Accent Colors */
+  --ifm-color-accent: #60a5fa;
+  --ifm-color-accent-dark: #3b82f6;
+  --ifm-color-accent-darker: #1d4ed8;
+  --ifm-color-accent-darkest: #1e40af;
+  --ifm-color-accent-light: #93c5fd;
+  --ifm-color-accent-lighter: #dbeafe;
+  --ifm-color-accent-lightest: #eff6ff;
+
+  /* Background Colors */
+  --ifm-background-color: #0f172a;
+  --ifm-background-surface-color: #1e293b;
+  --ifm-color-gray-100: #1e293b;
+  --ifm-color-gray-200: #334155;
+  --ifm-color-gray-300: #475569;
+  --ifm-color-gray-400: #64748b;
+  --ifm-color-gray-500: #94a3b8;
+  --ifm-color-gray-600: #cbd5e1;
+  --ifm-color-gray-700: #e2e8f0;
+  --ifm-color-gray-800: #f1f5f9;
+  --ifm-color-gray-900: #ffffff;
+
+  /* Text Colors */
+  --ifm-font-color-base: #f1f5f9;
+  --ifm-font-color-secondary: #e2e8f0;
+  --ifm-heading-color: #ffffff;
+
+  /* Code Colors */
+  --ifm-code-background: #1e293b;
+  --ifm-code-color: #f472b6;
+  --docusaurus-highlighted-code-line-bg: rgba(122, 141, 240, 0.2);
+
+  /* Link Colors */
+  --ifm-link-color: #7a8df0;
+  --ifm-link-hover-color: #8e9cf6;
+
+  /* Border Colors */
+  --ifm-border-color: #334155;
+
+  /* Navbar Colors */
+  --ifm-navbar-background-color: #0f172a;
+  --ifm-navbar-link-color: #cbd5e1;
+  --ifm-navbar-link-hover-color: #7a8df0;
+
+  /* Footer Colors */
+  --ifm-footer-background-color: #0f172a;
+  --ifm-footer-color: #94a3b8;
+  --ifm-footer-link-color: #94a3b8;
+  --ifm-footer-link-hover-color: #cbd5e1;
+
+  /* Card Colors */
+  --ifm-card-background-color: #1e293b;
+
+  /* Table Colors */
+  --ifm-table-border-color: #334155;
+  --ifm-table-head-background: #1e293b;
+  --ifm-table-stripe-background: #1e293b;
+}
+
+/* Custom Component Styling */
+.navbar {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid var(--ifm-border-color);
+}
+
+.navbar__brand {
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+.navbar__link {
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.navbar__link:hover {
+  color: var(--ifm-color-primary);
+}
+
+.navbar__link--active {
+  color: var(--ifm-color-primary);
+  font-weight: 600;
+}
+
+/* Button Enhancements */
+.button--primary {
+  background: linear-gradient(
+    45deg,
+    var(--ifm-color-primary),
+    var(--ifm-color-primary-dark)
+  );
+  border: none;
+  box-shadow: 0 4px 14px 0 rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease;
+}
+
+.button--primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px 0 rgba(102, 126, 234, 0.4);
+}
+
+.button--secondary {
+  background: var(--ifm-color-secondary);
+  color: #1f2937;
+  border: none;
+  box-shadow: 0 4px 14px 0 rgba(251, 191, 36, 0.3);
+  transition: all 0.3s ease;
+}
+
+.button--secondary:hover {
+  background: var(--ifm-color-secondary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px 0 rgba(251, 191, 36, 0.4);
+}
+
+/* Card Enhancements */
+.card {
+  border: 1px solid var(--ifm-border-color);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Card Text Contrast Fixes */
+.card p {
+  color: #e2e8f0 !important;
+}
+
+.card h3 {
+  color: #ffffff !important;
+}
+
+.card h4 {
+  color: #ffffff !important;
+}
+
+/* Code Block Enhancements */
+.prism-code {
+  border-radius: 0.75rem;
+  border: 1px solid var(--ifm-border-color);
+}
+
+/* Footer Enhancements */
+.footer {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: white;
+}
+
+.footer__title {
+  color: white;
+  font-weight: 600;
+}
+
+.footer__link-item {
+  color: rgba(255, 255, 255, 0.8);
+  transition: color 0.3s ease;
+}
+
+.footer__link-item:hover {
+  color: white;
+}
+
+.footer__copyright {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Sidebar Enhancements */
+.theme-doc-sidebar-container {
+  background: var(--ifm-background-surface-color);
+  border-right: 1px solid var(--ifm-border-color);
+}
+
+.menu__link {
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.menu__link:hover {
+  background: rgba(102, 126, 234, 0.1);
+  color: var(--ifm-color-primary);
+}
+
+.menu__link--active {
+  background: rgba(102, 126, 234, 0.15);
+  color: var(--ifm-color-primary);
+  font-weight: 600;
+}
+
+/* Breadcrumb Enhancements */
+.breadcrumbs__link {
+  color: var(--ifm-color-primary);
+  font-weight: 500;
+}
+
+.breadcrumbs__link:hover {
+  color: var(--ifm-color-primary-dark);
+}
+
+/* Table Enhancements */
+table {
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+thead th {
+  background: var(--ifm-table-head-background);
+  font-weight: 600;
+  color: var(--ifm-heading-color);
+}
+
+/* Search Enhancements */
+.DocSearch-Button {
+  background: var(--ifm-background-surface-color);
+  border: 1px solid var(--ifm-border-color);
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.DocSearch-Button:hover {
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Additional Dark Mode Contrast Fixes */
+[data-theme="dark"] .markdown p {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .markdown h1,
+[data-theme="dark"] .markdown h2,
+[data-theme="dark"] .markdown h3,
+[data-theme="dark"] .markdown h4,
+[data-theme="dark"] .markdown h5,
+[data-theme="dark"] .markdown h6 {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .markdown li {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .markdown blockquote {
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .markdown code {
+  color: #f472b6;
+  background: rgba(30, 41, 59, 0.8);
+}
+
+/* Responsive Design */
+@media (max-width: 996px) {
+  .navbar__brand {
+    font-size: 1.125rem;
+  }
+
+  .navbar__link {
+    font-size: 0.875rem;
+  }
 }

@@ -1,5 +1,4 @@
-import 'package:revali_router_core/request/request_context.dart';
-import 'package:revali_router_core/response_handler/response_handler.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 
 class WebsocketResponseHandler implements ResponseHandler {
   const WebsocketResponseHandler();

@@ -1,122 +1,201 @@
 ---
 title: Headers
-description: Headers to send additional information to the client
+description: Set HTTP headers to send additional information to the client
 ---
 
 # Response Headers
 
-Headers are used to send additional information to the client. Headers can be used to send information about the response, the server, and more. Headers are sent with the response and are used by the client to determine how to handle the response.
+> Access via: `context.response.headers`
 
-## Default Headers
+HTTP headers provide additional information about the response. Revali automatically sets many headers for you, but you can customize them as needed.
 
-Revali Server does a lot of the heavy lifting for you when it comes to headers.
+## Automatic Headers
+
+Revali automatically sets these headers based on your response:
 
 ### Content-Type
 
-This value is based on the type of the response body. For example, if the body is a `String`, the `Content-Type` will be `text/plain`.
+- **JSON objects/arrays**: `application/json`
+- **Strings**: `text/plain`
+- **Files**: Based on file extension
+- **Streams**: `application/octet-stream`
 
 ### Content-Length
 
-Dart will automatically set the `Content-Length` header for you, so you don't need to set it unless you want to _always_ ensure that the content is the length you specify.
+- Automatically calculated for most response types
+- Set manually only when needed
 
-:::caution
-When the `Content-Length` header is set and the actual content length is different, the server could throw an exception and the client would receive an error response.
-:::
+### Other Headers
+
+- **Date**: Current timestamp
+- **Server**: Revali server information
+- **Transfer-Encoding**: For streaming responses
 
 ## Setting Headers
 
-### Via Context
+### Via Annotations (Recommended)
 
-The `Response` object can be accessed through the `response` property in the context of the Lifecycle Components.
-
-```dart
-context.response.headers['Cache-Control'] = 'no-cache';
-```
-
-:::tip
-Read more about the [Lifecycle Component's context][lifecycle-context].
-:::
-
-### Via Annotations
-
-You can statically set headers using the `@SetHeader` annotation.
+Set headers statically using annotations:
 
 ```dart
-@Get()
-@SetHeader('Cache-Control', 'no-cache')
-Future<String> helloWorld() async {
-    ...
+@Controller('api')
+class ApiController {
+  @Get('data')
+  @SetHeader('Cache-Control', 'max-age=3600')
+  @SetHeader('X-Custom-Header', 'value')
+  String getData() {
+    return 'Cached data';
+  }
 }
 ```
 
-:::tip
-Use [`HttpHeaders`][http-headers] from the dart sdk to avoid using magic strings.
-:::
+### Via Lifecycle Components
+
+Set headers dynamically in middleware, guards, or interceptors:
+
+```dart
+class SecurityHeaders implements LifecycleComponent {
+  MiddlewareResult processRequest(Response response) {
+    response.headers.set('X-Content-Type-Options', 'nosniff');
+    response.headers.set('X-Frame-Options', 'DENY');
+    response.headers.set('X-XSS-Protection', '1; mode=block');
+
+    return const MiddlewareResult.next();
+  }
+}
+```
 
 ### Via Binding
 
-The `Response` object can be accessed via the controller's endpoint by adding the `Response` parameter to the endpoint method.
+Access headers directly in endpoint methods:
 
 ```dart
-@Get()
-Future<void> helloWorld(
-    MutableHeaders headers,
-) async {
-    headers['Cache-Control'] = 'no-cache';
+@Controller('api')
+class ApiController {
+  @Get('data')
+  String getData(ResponseHeaders headers) {
+    headers.set('Cache-Control', 'no-cache');
+    headers.set('X-Response-Time', DateTime.now().toIso8601String());
+
+    return 'Data';
+  }
 }
 ```
 
-## Header Annotations
+## Common Headers
 
-Revali Server provides a few annotations to quickly set headers.
-
-### `@StatusCode`
-
-The `@StatusCode` annotation is used to set the status code of the response.
+### Caching
 
 ```dart
-@Get()
-@StatusCode(201)
-Future<void> saveData() async {
-    ...
+// Cache for 1 hour
+@SetHeader('Cache-Control', 'max-age=3600')
+
+// No cache
+@SetHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
+
+// Cache with validation
+@SetHeader('Cache-Control', 'max-age=3600, must-revalidate')
+@SetHeader('ETag', '"abc123"')
+```
+
+### CORS
+
+These are automatically handled by revali's [allow origins](../access-control/allow-origins.md) feature.
+
+```dart
+@SetHeader('Access-Control-Allow-Origin', '*')
+@SetHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE')
+@SetHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+```
+
+### Security
+
+```dart
+@SetHeader('X-Content-Type-Options', 'nosniff')
+@SetHeader('X-Frame-Options', 'DENY')
+@SetHeader('X-XSS-Protection', '1; mode=block')
+@SetHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
+```
+
+### Content Type
+
+These are automatically handled by revali's [body](./body.md) feature.
+
+```dart
+// Override automatic content type
+@SetHeader('Content-Type', 'application/xml')
+
+// For file downloads
+@SetHeader('Content-Disposition', 'attachment; filename="file.pdf"')
+```
+
+## File Headers
+
+When returning files, Revali automatically sets appropriate headers:
+
+```dart
+@Controller('files')
+class FileController {
+  @Get('download')
+  File downloadFile(Headers headers) {
+    return File('path/to/document.pdf');
+  }
 }
 ```
 
-## Headers Types
+**Automatic headers for files:**
 
-In Revali Server, the headers are divided into two types:
+- `Content-Type`: Based on file extension
+- `Content-Disposition`: `attachment; filename="my-document.pdf"`
+- `Content-Length`: File size
 
-- Body Headers
-- Response Headers
+## Best Practices
 
-To get both the body headers and the response headers, you can access the `joinedHeaders` property of the response object.
-
-```dart
-final headers = response.joinedHeaders;
-```
-
-### Headers from Body
-
-There are certain headers that are derived from the response body. Each body type has its own set of headers that will be joined with the response headers before sending the response to the client. Some examples of body headers are:
-
-- `Content-Type`
-- `Content-Length`
-- `Transfer-Encoding`
-- `Content-Encoding`
-
-To get the body headers, you can access the `headers` property of the response's body object.
+### Use Annotations for Static Headers
 
 ```dart
-final headers = response.body.headers;
+// ✅ Good - Clear and static
+@Get('data')
+@SetHeader('Cache-Control', 'max-age=3600')
+String getData() {
+  return 'Data';
+}
+
+// ❌ Avoid - Unnecessary complexity for static values
+@Get('data')
+String getData(Headers headers) {
+  headers.set('Cache-Control', 'max-age=3600');
+  return 'Data';
+}
 ```
 
-### Headers from Response
+### Use Lifecycle Components for Dynamic Headers
 
-The response headers are generally set throughout the lifecycle of the request. These headers are set by the server and can be modified by the user. Some examples of response headers are:
+```dart
+// ✅ Good - Dynamic based on conditions
+class SecurityHeaders implements LifecycleComponent {
+  MiddlewareResult processRequest(Response response) {
+    response.headers.set('X-Content-Type-Options', 'nosniff');
+    return const MiddlewareResult.next();
+  }
+}
+```
 
-- `Date`
-- `Cache-Control`
-- `Cookie`
+### Avoid Magic Strings
 
-[lifecycle-context]: ../context/overview.md
-[http-headers]: https://api.dart.dev/dart-io/HttpHeaders-class.html
+```dart
+// ✅ Good - Use constants
+import 'dart:io';
+
+@SetHeader(HttpHeaders.cacheControlHeader, 'max-age=3600')
+
+// ❌ Avoid - Magic strings
+@SetHeader('Cache-Control', 'max-age=3600')
+```
+
+## What's Next?
+
+- Learn about [response body](./body.md) for setting response data
+- Explore [status codes](./status-code.md) for HTTP status codes
+- See [cookies](./cookies.md) for session management
+- Check out [WebSockets](./websockets.md) for real-time communication

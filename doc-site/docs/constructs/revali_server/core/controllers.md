@@ -1,134 +1,208 @@
 ---
-description: Groups of endpoints
+description: Organize your API endpoints with controllers
 sidebar_position: 0
 ---
 
 # Controllers
 
-Controllers are used to define groups of endpoints/requests.
+Controllers are the foundation of your API architecture. They organize related endpoints, handle business logic, and provide a clean way to structure your server-side code.
 
-## Create The Controller
+## What Are Controllers?
 
-To create a controller, we need to create a class within the `routes` directory
+Think of controllers as **traffic directors** for your API. They:
 
-```dart title="routes/users/users_controller.dart"
-class UsersController {}
-```
+- **Group related endpoints** together (like all user-related operations)
+- **Handle business logic** for those endpoints
+- **Manage dependencies** and services
+- **Provide a clean separation** between routing and logic
 
-:::tip
-Try using the [`create` cli][create-cli] to generate the controller for you!
+## Creating Your First Controller
+
+### Method 1: Using the CLI (Recommended)
+
+The fastest way to create a controller is using the CLI:
 
 ```bash
 dart run revali_server create controller
 ```
 
-:::
+When prompted, enter a name like `users` or `products`. This generates a complete controller with examples.
 
-In order for Revali to know of this new controller, we need to add the `@Controller` annotation. The `Controller` annotation accepts 1 argument, which is the server path.
+### Method 2: Manual Creation
 
-```dart title="routes/users/users_controller.dart"
-// highlight-next-line
-@Controller('users')
-class UsersController {}
-```
+Create a new file in your `routes` directory:
 
-This means that all requests that come through the server that start with `/users` will be routed to this controller.
+```dart title="routes/controllers/users_controller.dart"
+import 'package:revali_router/revali_router.dart';
 
-## Create Endpoints
-
-The endpoints are defined within the newly created controller as methods.
-
-```dart title="routes/users/users_controller.dart"
 @Controller('users')
 class UsersController {
-
-    // highlight-start
-    @Get() // GET /users
-    Future<List<User>> getUsers() {
-        ...
-    }
-    // highlight-end
-
-    // highlight-start
-    @Get(':id') // GET /users/:id
-    Future<User> getUser() {
-        ...
-    }
-    // highlight-end
-
-    // highlight-start
-    @Post(':id') // POST /users/:id
-    Future<void> saveUser() {
-        ...
-    }
-    // highlight-end
+  // Your endpoints will go here
 }
 ```
 
-:::tip
-Learn more about [methods]
+**Key points:**
+
+- File must end with `_controller.dart` or `.controller.dart`
+- Must be in the `routes` directory
+- Use the `@Controller('path')` annotation to define the base route
+
+## Understanding Routes
+
+The `@Controller('users')` annotation means:
+
+- All endpoints in this controller start with `/users`
+- `@Get()` becomes `GET /users`
+- `@Get(':id')` becomes `GET /users/:id` (with path parameter)
+- `@Post()` becomes `POST /users`
+
+:::info
+Path parameters like `:id` create dynamic routes. Learn more about [path parameters in HTTP methods](./methods.md#path-parameters) and [extracting them with binding](./binding.md#param---path-parameters).
 :::
 
-## Constructors
+## Adding Endpoints
 
-Revali will pick up the first public constructor within the class and use it to create an instance of the controller.
+Endpoints are methods within your controller:
 
-```dart title="routes/users/users_controller.dart"
+```dart title="routes/controllers/users_controller.dart"
+import 'package:revali_router/revali_router.dart';
+
+@Controller('users')
 class UsersController {
-    const UsersController();
-    const UsersController._(); // ignored
-    const UsersController.test(); // ignored
+
+  @Get()
+  Future<List<User>> getUsers() async {
+    // Return all users
+    return await userService.getAllUsers();
+  }
+
+  @Get(':id')
+  Future<User> getUser(@Param() String id) async {
+    // Return specific user
+    return await userService.getUserById(id);
+  }
+
+  @Post()
+  Future<User> createUser(@Body() CreateUserRequest request) async {
+    // Create new user
+    return await userService.createUser(request);
+  }
+
+  @Put(':id')
+  Future<User> updateUser(
+    @Param() String id,
+    @Body() UpdateUserRequest request,
+  ) async {
+    // Update existing user
+    return await userService.updateUser(id, request);
+  }
+
+  @Delete(':id')
+  Future<void> deleteUser(@Param() String id) async {
+    // Delete user
+    await userService.deleteUser(id);
+  }
 }
 ```
 
-:::note
-Revali will ignore any private constructors
-:::
+**Available routes:**
 
-## Dependencies
+- `GET /users` → Get all users
+- `GET /users/:id` → Get specific user
+- `POST /users` → Create new user
+- `PUT /users/:id` → Update user
+- `DELETE /users/:id` → Delete user
 
-Eventually, you will need to use a dependency you've configured. You can add [instance variables][instance-variables] for these dependencies within the constructor and revali_server will supply the appropriate values based on your dependency configuration.
+## Constructor and Dependencies
 
-```dart title="routes/users/users_controller.dart"
+Controllers can have dependencies injected through their constructor:
+
+```dart title="routes/controllers/users_controller.dart"
+import 'package:revali_router/revali_router.dart';
+
+@Controller('users')
 class UsersController {
-    const UsersController(
-        this._usersService, {
-        required Logger logger,
-    }) : _logger = logger;
+  const UsersController(
+    this._userService,
+    this._logger,
+  );
 
-    final UsersService _usersService;
-    final Logger _logger;
+  final UserService _userService;
+  final Logger _logger;
+
+  @Get()
+  Future<List<User>> getUsers() async {
+    _logger.info('Fetching all users');
+    return await _userService.getAllUsers();
+  }
 }
 ```
 
-:::important
-Controllers do not have access to the request, so you cannot add any [binding annotations][binding] to any parameters.
-:::
+**Important notes:**
 
-:::tip
-Learn how to [configure dependencies][configure-dependencies].
-:::
+- Revali uses the **first public constructor**
+- Private constructors are ignored
+- Dependencies are automatically injected based on your configuration
+- Controllers don't have access to request objects directly
 
-## Lifespan
+## Controller Lifespan
 
-By default, controllers are created as a singleton, meaning that they will be reused through the lifetime of the application.
+### Singleton (Default)
 
-If you need to create a new instance of the controller on each request, you can supply the `type` argument to the `@Controller` annotation.
+By default, controllers are created once and reused:
 
-```dart title="routes/users/users_controller.dart"
+```dart
+@Controller('users')
+class UsersController {
+  // Created once, reused for all requests
+}
+```
+
+### Factory (Per Request)
+
+Create a new instance for each request:
+
+```dart
 @Controller('users', type: InstanceType.factory)
-class UsersController {}
+class UsersController {
+  // New instance created for each request
+}
 ```
 
-Every time a request comes in, a new instance of the controller will be created.
+## Best Practices
 
-:::note
-For [WebSocket][web-socket] routes, the controller will be created as factory **for the request**. Each incoming message will re-use the same instance.
-:::
+### Keep Controllers Focused
 
-[methods]: ./methods.md
-[configure-dependencies]: ../../../revali/app-configuration/configure-dependencies.md#registering-dependencies
-[binding]: ./binding.md
-[instance-variables]: https://dart.dev/language/constructors#instance-variable-initialization
-[create-cli]: ../getting-started/cli.md#create
-[web-socket]: ../response/websockets.md
+```dart
+// ✅ Good - focused on user operations
+@Controller('users')
+class UsersController {
+  @Get()
+  Future<List<User>> getUsers() => _userService.getAllUsers();
+
+  @Post()
+  Future<User> createUser(@Body() CreateUserRequest request) =>
+    _userService.createUser(request);
+}
+
+// ❌ Avoid - mixing unrelated operations
+@Controller('users')
+class UsersController {
+  @Get()
+  Future<List<User>> getUsers() => _userService.getAllUsers();
+
+  @Get()
+  Future<List<Product>> getProducts() => _productService.getAllProducts(); // Wrong!
+}
+```
+
+## What's Next?
+
+Now that you understand controllers, explore these related topics:
+
+1. **[HTTP Methods](./methods.md)** - Learn about different HTTP methods and how to use them
+2. **[Binding](./binding.md)** - Understand how to extract data from requests
+3. **[Pipes](./pipes.md)** - Transform and validate request data
+4. **[Dependency Injection](../../../revali/app-configuration/configure-dependencies.md)** - Configure your services and dependencies
+
+Ready to dive deeper? Let's explore HTTP methods!

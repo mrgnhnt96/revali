@@ -13,11 +13,7 @@ class RevaliRunner extends CommandRunner<int> {
     required FileSystem fs,
   }) : super('revali', 'revali code generator') {
     argParser
-      ..addFlag(
-        'loud',
-        help: 'Prints detailed output',
-        hide: true,
-      )
+      ..addFlag('loud', help: 'Prints detailed output', hide: true)
       ..addFlag(
         'quiet',
         help: 'Limits output to important information only',
@@ -31,18 +27,10 @@ class RevaliRunner extends CommandRunner<int> {
     );
 
     addCommand(
-      DevCommand(
-        fs: fs,
-        logger: logger,
-        generator: entrypointHandler,
-      ),
+      DevCommand(fs: fs, logger: logger, generator: entrypointHandler),
     );
     addCommand(
-      BuildCommand(
-        fs: fs,
-        logger: logger,
-        generator: entrypointHandler,
-      ),
+      BuildCommand(fs: fs, logger: logger, generator: entrypointHandler),
     );
   }
 

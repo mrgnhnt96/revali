@@ -5,7 +5,7 @@ class AuthGuard implements Guard {
   const AuthGuard();
 
   @override
-  Future<GuardResult> protect(GuardContext context) async {
+  Future<GuardResult> protect(Context context) async {
     print('Auth guard');
     return const GuardResult.pass();
   }
@@ -29,7 +29,7 @@ final class AuthComponents implements CombineComponents {
 
 class AuthMiddleware implements Middleware {
   @override
-  Future<MiddlewareResult> use(MiddlewareContext context) async {
+  Future<MiddlewareResult> use(Context context) async {
     context.data.add(const User());
 
     return const MiddlewareResult.next();

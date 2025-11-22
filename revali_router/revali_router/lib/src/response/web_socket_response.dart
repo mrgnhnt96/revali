@@ -1,12 +1,15 @@
-import 'package:revali_router/revali_router.dart';
+import 'package:revali_router/src/body/response_body/base_body_data.dart';
+import 'package:revali_router/src/headers/headers_impl.dart';
+import 'package:revali_router/src/response/response_impl.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 
-class WebSocketResponse implements ReadOnlyResponse {
+class WebSocketResponse implements Response {
   factory WebSocketResponse(
     int statusCode, {
     Map<String, String> headers = const {},
     Object? body,
   }) {
-    final response = MutableResponseImpl(requestHeaders: MutableHeadersImpl())
+    final response = ResponseImpl(requestHeaders: HeadersImpl())
       ..statusCode = statusCode;
     response.headers.addAll(headers);
     if (body != null) {
@@ -33,13 +36,28 @@ class WebSocketResponse implements ReadOnlyResponse {
   final int statusCode;
 
   @override
-  final ReadOnlyHeaders headers;
+  final Headers headers;
 
   @override
-  ReadOnlyHeaders get joinedHeaders => headers;
+  Headers get joinedHeaders => headers;
 
   final Map<String, String> rawHeaders;
 
   @override
-  final ReadOnlyBody body;
+  final Body body;
+
+  @override
+  set body(Object? data) {
+    throw StateError('WebSocketResponse is immutable');
+  }
+
+  @override
+  set headers(Headers value) {
+    throw StateError('WebSocketResponse is immutable');
+  }
+
+  @override
+  set statusCode(int value) {
+    throw StateError('WebSocketResponse is immutable');
+  }
 }

@@ -37,9 +37,7 @@ void main() {
       );
 
       expect(response.statusCode, 200);
-      expect(response.body, {
-        'data': 'sup dude',
-      });
+      expect(response.body, {'data': 'sup dude'});
       expect(response.headers['x-loz'], ['oot']);
     });
   });

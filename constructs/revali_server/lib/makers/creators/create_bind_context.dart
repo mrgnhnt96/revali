@@ -6,14 +6,14 @@ import 'package:revali_server/converters/server_param.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
 
 Expression createBindContext(ServerParam param) {
-  return refer((BindContextImpl).name).newInstanceNamed(
-    'from',
-    [
-      refer('context'),
-    ],
-    {
-      'nameOfParameter': literalString(param.name),
-      'parameterType': refer(param.type.name),
-    },
-  );
+  return refer((BindContextImpl).name).newInstance([], {
+    'data': refer('context').property('data'),
+    'meta': refer('context').property('meta'),
+    'reflect': refer('context').property('reflect'),
+    'request': refer('context').property('request'),
+    'response': refer('context').property('response'),
+    'route': refer('context').property('route'),
+    'nameOfParameter': literalString(param.name),
+    'parameterType': refer(param.type.name),
+  });
 }

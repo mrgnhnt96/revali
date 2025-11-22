@@ -5,8 +5,8 @@ class MyObserver implements Observer {
 
   @override
   Future<void> see(
-    ReadOnlyRequest request,
-    Future<ReadOnlyResponse> response,
+    Request request,
+    Future<Response> response,
   ) async {
     print('before');
 

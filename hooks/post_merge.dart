@@ -5,9 +5,7 @@ Hook main() {
     tasks: [
       ShellTask.always(
         commands: (files) {
-          return [
-            'sip pub get --recursive --no-version-check --precompile',
-          ];
+          return ['sip pub get --recursive --no-version-check --precompile'];
         },
       ),
     ],

@@ -7,14 +7,14 @@ part of 'construct_yaml.dart';
 // **************************************************************************
 
 ConstructYaml _$ConstructYamlFromJson(Map json) => ConstructYaml(
-      constructs: (json['constructs'] as List<dynamic>)
-          .map((e) => ConstructConfig.fromJson(e as Map))
-          .toList(),
-      packagePath: json['package_path'] as String,
-      packageUri: json['package_uri'] as String,
-      packageName: json['package_name'] as String,
-      packageRootUri: json['package_root_uri'] as String?,
-    );
+  constructs: (json['constructs'] as List<dynamic>)
+      .map((e) => ConstructConfig.fromJson(e as Map))
+      .toList(),
+  packagePath: json['package_path'] as String,
+  packageUri: json['package_uri'] as String,
+  packageName: json['package_name'] as String,
+  packageRootUri: json['package_root_uri'] as String?,
+);
 
 Map<String, dynamic> _$ConstructYamlToJson(ConstructYaml instance) =>
     <String, dynamic>{

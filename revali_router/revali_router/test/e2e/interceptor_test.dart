@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:revali_router/revali_router.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 import 'package:test/test.dart';
 
 import 'utils/test_request.dart';
@@ -60,7 +60,7 @@ void main() {
         },
       ),
       verifyResponse: (response, context) {
-        expect(response.body?.data, 'Goodbye, World!');
+        expect(response.body.data, 'Goodbye, World!');
         expect(response.headers['pre'], 'hello');
         expect(response.headers['post'], 'world');
         expect(context.request.headers['pre'], 'hello');
@@ -88,7 +88,7 @@ void main() {
         },
       ),
       verifyResponse: (response, context) {
-        expect(response.body?.data, 'Goodbye, World!');
+        expect(response.body.data, 'Goodbye, World!');
 
         expect(response.headers['pre'], isNull);
         expect(context.request.headers['pre'], isNull);
@@ -105,12 +105,12 @@ class _SuccessInterceptor implements Interceptor {
   bool preWasCalled = false;
 
   @override
-  Future<void> post(FullInterceptorContext context) async {
+  Future<void> post(Context context) async {
     postWasCalled = true;
   }
 
   @override
-  Future<void> pre(RestrictedInterceptorContext context) async {
+  Future<void> pre(Context context) async {
     preWasCalled = true;
   }
 }
@@ -122,26 +122,26 @@ class _OrderedInterceptor implements Interceptor {
   final StreamController<String> controller;
 
   @override
-  Future<void> post(FullInterceptorContext context) async {
+  Future<void> post(Context context) async {
     controller.add('post-$index');
   }
 
   @override
-  Future<void> pre(RestrictedInterceptorContext context) async {
+  Future<void> pre(Context context) async {
     controller.add('pre-$index');
   }
 }
 
 class _ModifyingInterceptor implements Interceptor {
   @override
-  Future<void> post(FullInterceptorContext context) async {
+  Future<void> post(Context context) async {
     context.response.body = 'Goodbye, World!';
     context.response.headers['post'] = 'world';
     context.request.headers['post'] = 'world';
   }
 
   @override
-  Future<void> pre(RestrictedInterceptorContext context) async {
+  Future<void> pre(Context context) async {
     context.data.add('Hello, World!');
     context.response.headers['pre'] = 'hello';
     context.request.headers['pre'] = 'hello';

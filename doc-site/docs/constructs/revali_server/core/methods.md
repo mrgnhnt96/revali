@@ -1,273 +1,321 @@
 ---
-description: Methods define the behavior of an endpoint
+description: HTTP methods define how your endpoints respond to requests
 sidebar_position: 1
 ---
 
-# Methods
+# HTTP Methods
 
-A method (or verb) is a http method used to define the behavior of an endpoint. Revali provides a set of annotations to define the http methods for your endpoints.
+HTTP methods (also called verbs) define the behavior and purpose of your API endpoints. They tell clients what action they can perform and what to expect in return.
 
-## Annotations
+## What Are HTTP Methods?
 
-Revali Router provides the following annotations to define the http methods for your endpoints:
+Think of HTTP methods as **instructions** for your API:
 
-| Annotation | Description                |
-|------------|----------------------------|
-| `Get`      | Defines a `GET` endpoint.  |
-| `Post`     | Defines a `POST` endpoint. |
-| `Put`      | Defines a `PUT` endpoint.  |
-| `Patch`    | Defines a `PATCH` endpoint.|
-| `Delete`   | Defines a `DELETE` endpoint.|
-| `SSE`      | Defines a [`Server-Sent Event`][server-sent-events] endpoint.|
-| `WebSocket`| Defines an endpoint for a websocket.|
+- **GET** - "Show me something" (retrieve data)
+- **POST** - "Create something new" (submit data)
+- **PUT** - "Replace this entirely" (update all data)
+- **PATCH** - "Update just this part" (partial update)
+- **DELETE** - "Remove this" (delete data)
+- **SSE** - "Stream data to me" (real-time updates)
+- **WebSocket** - "Let's chat" (bidirectional communication)
+
+## Available Methods
+
+Revali provides these method annotations:
+
+| Annotation     | HTTP Method        | Purpose                     | When to Use                          |
+| -------------- | ------------------ | --------------------------- | ------------------------------------ |
+| `@Get()`       | GET                | Retrieve data               | Reading resources, fetching lists    |
+| `@Post()`      | POST               | Create new data             | Creating resources, form submissions |
+| `@Put()`       | PUT                | Replace entire resource     | Complete updates                     |
+| `@Patch()`     | PATCH              | Partial updates             | Modifying specific fields            |
+| `@Delete()`    | DELETE             | Remove data                 | Deleting resources                   |
+| `@SSE()`       | Server-Sent Events | Real-time streaming         | Live updates, notifications          |
+| `@WebSocket()` | WebSocket          | Bidirectional communication | Chat, real-time collaboration        |
 
 :::important
-You can only use one method annotation per endpoint.
+You can only use **one method annotation per endpoint**.
 :::
 
-### Registering Endpoints
+## Basic Usage
 
-Each annotation accepts an optional argument to define the path of the endpoint. If no argument is provided, the path will be inferred from the controller's path.
+### Simple Endpoint
 
 ```dart
-@Get()
-// or
-@Get('path')
+@Controller('api')
+class ApiController {
+  @Get()
+  String getInfo() {
+    return 'API is running';
+  }
+}
 ```
 
-<!-- TODO(mrgnhnt): Reference how to create -->
+**Result:** `Controller('api')` + `Get('')` = `GET /api`
 
-## Custom Methods
+### Custom Path
 
-If you need to define a custom http method, you can extend `Method` class:
+```dart
+@Controller('api')
+class ApiController {
+  @Get('status')
+  String getStatus() {
+    return 'All systems operational';
+  }
+}
+```
+
+**Result:** `Controller('api')` + `Get('status')` = `GET /api/status`
+
+:::tip
+Path arguments don't need a leading `/` - Revali adds it automatically.
+:::
+
+## Path Parameters
+
+Path parameters let you create dynamic routes that accept variable values. They're defined using `:parameterName` syntax in your route paths.
+
+### How Path Parameters Work
+
+Path parameters create **dynamic segments** in your URLs:
+
+- `:id` matches any single segment (e.g., `/users/123`, `/users/abc`)
+- `:userId` matches any single segment (e.g., `/users/john-doe`)
+- Multiple parameters can be used in the same route
+
+### Basic Path Parameters
+
+```dart
+@Controller('users')
+class UsersController {
+  @Get(':id')
+  String getUser(@Param() String id) {
+    return 'User ID: $id';
+  }
+}
+```
+
+**Route:** `GET /users/:id`  
+**Examples:**
+
+- `/users/123` → `id = "123"`
+- `/users/abc` → `id = "abc"`
+- `/users/john-doe` → `id = "john-doe"`
+
+### Multiple Path Parameters
+
+```dart
+@Controller('shops')
+class ShopsController {
+  @Get(':shopId/products/:productId')
+  String getProduct(
+    @Param() String shopId,
+    @Param() String productId,
+  ) {
+    return 'Shop: $shopId, Product: $productId';
+  }
+}
+```
+
+**Route:** `GET /shops/:shopId/products/:productId`  
+**Example:** `/shops/abc/products/xyz` → `shopId = "abc"`, `productId = "xyz"`
+
+### Controller-Level Parameters
+
+You can define path parameters at the controller level to share them across all endpoints:
+
+```dart
+@Controller('shops/:shopId')
+class ShopController {
+  @Get('products')
+  String getProducts(@Param() String shopId) {
+    return 'Products for shop: $shopId';
+  }
+
+  @Get('orders')
+  String getOrders(@Param() String shopId) {
+    return 'Orders for shop: $shopId';
+  }
+}
+```
+
+**Routes:**
+
+- `GET /shops/:shopId/products`
+- `GET /shops/:shopId/orders`
+
+### Path Parameter Rules
+
+- **Always strings**: Path parameters are always `String` type
+- **Required**: Path parameters are required - missing values cause 404 errors
+- **URL encoded**: Values are automatically URL decoded
+- **Case sensitive**: `:userId` ≠ `:UserId`
+
+:::tip
+Learn more about extracting and converting path parameters in the [Binding documentation](./binding.md#param---path-parameters).
+:::
+
+## Custom HTTP Methods
+
+For special cases, you can create custom HTTP methods:
 
 ```dart
 import 'package:revali_router/revali_router.dart';
 
 final class CustomMethod extends Method {
-    const CustomMethod([String? path]) : super('CUSTOM', path: path);
+  const CustomMethod([String? path]) : super('CUSTOM', path: path);
 }
-```
 
-## Paths
-
-When defining an endpoint, the path of the endpoint will be prefixed with the path of the controller. Meaning if the controller is annotated with `@Controller('hello')`, all endpoints within the controller will be prefixed with `/hello`.
-
-## Path Parameters
-
-Path parameters can be defined in the path of the endpoint by using a `:` followed by the parameter name.
-
-```dart
-import 'package:revali_router/revali_router.dart';
-
-@Controller('hello')
-class HelloController {
-
-  // highlight-next-line
-  @Get(':name')
-  String sayHello(
-    @Param() String name,
-  ) {
-    return 'Hello, $name!';
+// Usage
+@Controller('api')
+class ApiController {
+  @CustomMethod('special')
+  String specialEndpoint() {
+    return 'Custom method response';
   }
 }
 ```
 
-Notice that the `name` parameter is annotated with `@Param()`. This annotation is used to bind the path parameter to the method's parameter.
+**Endpoint:** `CUSTOM /api/special`
 
-:::tip
-Check out [Binding][binding] to learn more about annotating parameters.
-:::
+### Testing with curl
 
-### Controller Parameters
-
-Path parameters are not limited to endpoints, you can also define them in the controller's path.
-
-```dart
-import 'package:revali_router/revali_router.dart';
-
-// highlight-next-line
-@Controller('shop/:shopId')
-class ShopController ...
+```bash
+curl -X CUSTOM http://localhost:8080/api/special
 ```
 
-## Basic Usage
+**Response:**
 
-In the example below, we'll define a `GET` endpoint using the `Get` annotation.
+```text
+Custom method response
+```
+
+## Complete Examples
+
+Here are practical examples for each HTTP method:
+
+### GET - Retrieve Data
 
 ```dart
-import 'package:revali_router/revali_router.dart';
-
-// highlight-next-line
-@Controller('hello')
-class HelloController {
-
-  // highlight-next-line
+@Controller('users')
+class UsersController {
   @Get()
-  String sayHello() {
-    return 'Hello, World!';
+  Future<List<User>> getUsers() async {
+    return await userService.getAllUsers();
+  }
+
+  @Get(':id')
+  Future<User> getUser(@Param() String id) async {
+    return await userService.getUserById(id);
   }
 }
 ```
 
-The `sayHello` method has the `Get` annotation, exposing it as a `GET` endpoint. Since `Get` isn't provided an argument, the endpoint's path is inferred from the `Controller`'s path, resulting in a `GET` endpoint at `/hello`.
+**Endpoints:**
 
----
+- `GET /users` - Get all users
+- `GET /users/:id` - Get specific user
 
-If you want to define a path for the endpoint, you can pass a path parameter to the `Get` annotation:
+### POST - Create Data
 
 ```dart
-import 'package:revali_router/revali_router.dart';
-
-// highlight-next-line
-@Controller('hello')
-class HelloController {
-
-  // highlight-next-line
-  @Get('world')
-  String sayHello() {
-    return 'Hello, World!';
+@Controller('users')
+class UsersController {
+  @Post()
+  Future<User> createUser(@Body() CreateUserRequest request) async {
+    return await userService.createUser(request);
   }
 }
 ```
 
-In the example above, the `sayHello` method is annotated with the `Get` annotation with a path parameter of `/world`, resulting in a `GET` endpoint at `/hello/world`.
+**Endpoint:** `POST /users` - Create new user
 
-:::tip
-Notice that the path argument does not start with `/`, this will be automatically added.
-:::
-
-## Examples
-
-### Get
+### PUT - Replace Entire Resource
 
 ```dart
-import 'package:revali_router/revali_router.dart';
-
-@Controller('hello')
-class HelloController {
-
-  @Get()
-  String sayHello() {
-    return 'Hello, World!';
-  }
-}
-```
-
-### Post
-
-```dart
-import 'package:revali_router/revali_router.dart';
-
-@Controller('hello')
-class HelloController {
-
-  @Post(':id')
-  User createHello(
-    @Param() String id,
-  ) {
-    return User(id);
-  }
-}
-```
-
-:::tip
-Check out [Binding][binding] to learn more about annotating parameters.
-:::
-
-### Put
-
-```dart
-import 'package:revali_router/revali_router.dart';
-
-@Controller('hello')
-class HelloController {
-
+@Controller('users')
+class UsersController {
   @Put(':id')
-  User updateHello(
-    @Param('id', UserPipe) User user,
-    @Body.pipe(PutUserInputPipe) PutUserInput user,
-  ) {
-    // update user...
-    return user;
+  Future<User> updateUser(
+    @Param() String id,
+    @Body() UpdateUserRequest request,
+  ) async {
+    return await userService.replaceUser(id, request);
   }
 }
 ```
 
-:::tip
-Learn more:
+**Endpoint:** `PUT /users/:id` - Replace entire user
 
-- [Binding][binding] to learn more about annotating parameters.
-- [Pipes][pipes] to learn more about transforming parameters from the request.
-
-:::
-
-### Patch
+### PATCH - Partial Update
 
 ```dart
-import 'package:revali_router/revali_router.dart';
-
-@Controller('hello')
-class HelloController {
-
+@Controller('users')
+class UsersController {
   @Patch(':id')
-  User patchHello(
+  Future<User> patchUser(
     @Param() String id,
-    @Body.pipe(PatchUserInputPipe) PatchUserInput user,
-  ) {
-    return user;
+    @Body() PatchUserRequest request,
+  ) async {
+    return await userService.partialUpdateUser(id, request);
   }
 }
 ```
 
-:::tip
-Learn more:
+**Endpoint:** `PATCH /users/:id` - Update specific fields
 
-- [Binding][binding] to learn more about annotating parameters.
-- [Pipes][pipes] to learn more about transforming parameters from the request.
-
-:::
-
-### Delete
+### DELETE - Remove Data
 
 ```dart
-import 'package:revali_router/revali_router.dart';
-
-@Controller('hello')
-class HelloController {
-
+@Controller('users')
+class UsersController {
   @Delete(':id')
-  void deleteHello(
-    @Param() String id,
-  ) {
-    // delete user...
+  Future<void> deleteUser(@Param() String id) async {
+    await userService.deleteUser(id);
   }
 }
 ```
 
-:::tip
-Check out [Binding][binding] to learn more about annotating parameters.
-:::
+**Endpoint:** `DELETE /users/:id` - Delete user
 
-### SSE
+### SSE - Server-Sent Events
 
 ```dart
-import 'package:revali_router/revali_router.dart';
-
-@Controller('hello')
-class HelloController {
-
-  @SSE('events')
-  Stream<String> events() async* {
-    yield 'Hello, World!';
+@Controller('notifications')
+class NotificationsController {
+  @SSE('live')
+  Stream<String> liveNotifications() async* {
+    while (true) {
+      yield 'Notification: ${DateTime.now()}';
+      await Future.delayed(Duration(seconds: 1));
+    }
   }
 }
 ```
 
-:::tip
-Learn more about [Server-Sent Events][server-sent-events].
-:::
+**Endpoint:** `GET /notifications/live` - Stream live notifications
 
-[binding]: ./binding.md
-[pipes]: ./pipes.md
-[server-sent-events]: ../response/server-sent-events.md
+### WebSocket - Bidirectional Communication
+
+```dart
+@Controller('chat')
+class ChatController {
+  @WebSocket('room/:roomId')
+  Stream<String> chatRoom(@Param() String roomId) async* {
+    // Handle WebSocket connection
+    yield 'Connected to room: $roomId';
+  }
+}
+```
+
+**Endpoint:** `WebSocket /chat/room/:roomId` - Real-time chat
+
+## What's Next?
+
+Now that you understand HTTP methods, explore these related topics:
+
+1. **[Binding](./binding.md)** - Learn how to extract data from requests
+2. **[Pipes](./pipes.md)** - Transform and validate request data
+3. **[Controllers](./controllers.md)** - Organize your endpoints effectively
+
+Ready to learn about data binding? Let's explore how to extract data from requests!

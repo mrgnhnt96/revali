@@ -11,10 +11,7 @@ import 'package:revali_server/cli/commands/create/create_components/create_obser
 import 'package:revali_server/cli/commands/create/create_components/create_pipe_command.dart';
 
 class CreateCommand extends Command<int> {
-  CreateCommand({
-    required FileSystem fs,
-    required this.logger,
-  }) {
+  CreateCommand({required FileSystem fs, required this.logger}) {
     final subCommands = [
       CreateAppCommand.new,
       CreateControllerCommand.new,
@@ -24,12 +21,7 @@ class CreateCommand extends Command<int> {
     ];
 
     for (final sub in subCommands) {
-      addSubcommand(
-        sub(
-          fs: fs,
-          logger: logger,
-        ),
-      );
+      addSubcommand(sub(fs: fs, logger: logger));
     }
   }
 

@@ -60,8 +60,9 @@ String serverFile(
             Method(
               (b) => b
                 ..lambda = true
-                ..body = refer('createServer')
-                    .call([literalNull, refer('args')]).code,
+                ..body = refer(
+                  'createServer',
+                ).call([literalNull, refer('args')]).code,
             ).closure,
           ]).statement
         else
@@ -75,9 +76,7 @@ String serverFile(
       ..returns = TypeReference(
         (p) => p
           ..symbol = (Future).name
-          ..types.add(
-            refer((HttpServer).name),
-          ),
+          ..types.add(refer((HttpServer).name)),
       )
       ..modifier = MethodModifier.async
       ..optionalParameters.addAll([
@@ -101,9 +100,10 @@ String serverFile(
               refer((Args).name).newInstanceNamed('parse', [refer('rawArgs')]),
             )
             .statement,
-        declareFinal('app', type: refer((AppConfig).name))
-            .assign(createApp(app))
-            .statement,
+        declareFinal(
+          'app',
+          type: refer((AppConfig).name),
+        ).assign(createApp(app)).statement,
         declareFinal('server', late: true, type: refer('HttpServer')).statement,
         tryCatch(
           refer('server')
@@ -111,24 +111,32 @@ String serverFile(
                 refer('providedServer').ifNullThen(
                   refer((HttpServer).name)
                       .property(app.isSecure ? 'bindSecure' : 'bind')
-                      .call([
-                    refer('app').property('host'),
-                    refer('app').property('port'),
-                    if (app.isSecure)
-                      refer('app').property('securityContext').nullChecked,
-                  ], {
-                    if (app.isSecure)
-                      'requestClientCertificate':
-                          refer('app').property('requestClientCertificate'),
-                    if (server.context.mode.isDebug) 'shared': literalTrue,
-                  }).awaited,
+                      .call(
+                        [
+                          refer('app').property('host'),
+                          refer('app').property('port'),
+                          if (app.isSecure)
+                            refer(
+                              'app',
+                            ).property('securityContext').nullChecked,
+                        ],
+                        {
+                          if (app.isSecure)
+                            'requestClientCertificate': refer(
+                              'app',
+                            ).property('requestClientCertificate'),
+                          if (server.context.mode.isDebug)
+                            'shared': literalTrue,
+                        },
+                      )
+                      .awaited,
                 ),
               )
               .statement,
           Block.of([
-            refer('print').call(
-              [literalString(r'Failed to bind server:\n$e')],
-            ).statement,
+            refer(
+              'print',
+            ).call([literalString(r'Failed to bind server:\n$e')]).statement,
             refer('exit').call([literalNum(1)]).statement,
           ]),
         ),
@@ -148,11 +156,10 @@ String serverFile(
           refer('_routes')
               .assign(
                 literalList([
-                  refer((Route).name).newInstance([
-                    refer('prefix'),
-                  ], {
-                    'routes': refer('_routes'),
-                  }),
+                  refer((Route).name).newInstance(
+                    [refer('prefix')],
+                    {'routes': refer('_routes')},
+                  ),
                 ]),
               )
               .statement,
@@ -161,63 +168,55 @@ String serverFile(
         const Code('\n'),
         declareFinal('router')
             .assign(
-              refer((Router).name).newInstance(
-                [],
-                {
-                  if (server.context.mode.isNotRelease) 'debug': literalTrue,
-                  'routes': literalList([
-                    refer('_routes').spread,
-                    refer('public').spread,
+              refer((Router).name).newInstance([], {
+                if (server.context.mode.isNotRelease) 'debug': literalTrue,
+                'routes': literalList([
+                  refer('_routes').spread,
+                  refer('public').spread,
+                ]),
+                if (app.observers.hasObservers)
+                  'observers': literalList([
+                    if (app.observers.types.expand((e) => e.types)
+                        case final observers when observers.isNotEmpty)
+                      for (final observer in observers) createClass(observer),
+                    if (app.observers.mimics case final mimics
+                        when mimics.isNotEmpty)
+                      for (final type in mimics) createMimic(type),
                   ]),
-                  if (app.observers.hasObservers)
-                    'observers': literalList([
-                      if (app.observers.types.expand((e) => e.types)
-                          case final observers when observers.isNotEmpty)
-                        for (final observer in observers) createClass(observer),
-                      if (app.observers.mimics case final mimics
-                          when mimics.isNotEmpty)
-                        for (final type in mimics) createMimic(type),
-                    ]),
-                  'reflects': refer('reflects'),
-                  'defaultResponses': refer('app').property('defaultResponses'),
-                  if (server.app case final app?
-                      when app.globalRouteAnnotations.hasAnnotations)
-                    'globalComponents':
-                        refer((LifecycleComponentsImpl).name).newInstance([], {
-                      ...createModifierArgs(
-                        annotations: app.globalRouteAnnotations,
-                      ),
-                    }),
-                },
-              ),
+                'reflects': refer('reflects'),
+                'defaultResponses': refer('app').property('defaultResponses'),
+                if (server.app case final app?
+                    when app.globalRouteAnnotations.hasAnnotations)
+                  'globalComponents': refer((LifecycleComponentsImpl).name)
+                      .newInstance([], {
+                        ...createModifierArgs(
+                          annotations: app.globalRouteAnnotations,
+                        ),
+                      }),
+              }),
             )
             .statement,
         const Code('\n'),
         refer('handleRequests')
-            .call(
-              [
-                refer('server'),
-                refer('router').property('handle'),
-                refer('router').property('responseHandler'),
-                refer('router').property('close'),
-              ],
-            )
+            .call([
+              refer('server'),
+              refer('router').property('handle'),
+              refer('router').property('responseHandler'),
+              refer('router').property('close'),
+            ])
             .property('ignore')
             .call([])
             .statement,
         const Code('\n'),
-        refer('app').property('onServerStarted').call(
-          [refer('server')],
-        ).statement,
+        refer(
+          'app',
+        ).property('onServerStarted').call([refer('server')]).statement,
         const Code('\n'),
         refer('server').returned.statement,
       ]),
   );
 
-  final parts = <Spec>[
-    main,
-    createServer,
-  ];
+  final parts = <Spec>[main, createServer];
 
   final content = parts.map(formatter).join('\n');
 

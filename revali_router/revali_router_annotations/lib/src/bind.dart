@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:revali_router_core/bind/bind_context.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 
 /// A custom parameter that can be used in routes.
 ///

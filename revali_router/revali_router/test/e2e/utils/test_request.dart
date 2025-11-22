@@ -9,14 +9,13 @@ import 'package:revali_router/revali_router.dart';
 import 'package:test/test.dart' as test;
 
 typedef ResponseCompleter
-    = Completer<(ReadOnlyResponse response, RequestContext context)>;
+    = Completer<(Response response, RequestContext context)>;
 
 @isTest
 void requestTest(
   String description,
   TestRoute route, {
-  required FutureOr<void> Function(ReadOnlyResponse, RequestContext)
-      verifyResponse,
+  required FutureOr<void> Function(Response, RequestContext) verifyResponse,
   dynamic tags,
 }) =>
     test.test(
@@ -29,8 +28,7 @@ void requestTest(
 
 Future<void> testRequest(
   TestRoute route, {
-  required FutureOr<void> Function(ReadOnlyResponse, RequestContext)
-      verifyResponse,
+  required FutureOr<void> Function(Response, RequestContext) verifyResponse,
 }) async {
   final responseCompleter = ResponseCompleter();
 
@@ -72,7 +70,7 @@ class TestResponseHandler implements ResponseHandler {
 
   @override
   Future<void> handle(
-    ReadOnlyResponse response,
+    Response response,
     RequestContext context,
     HttpResponse httpResponse,
   ) async {
@@ -154,7 +152,7 @@ class TestRoute extends Route {
     super.redirect,
     super.combine,
     super.allowedOrigins,
-    super.allowedHeaders,
+    super.preventedHeaders,
     super.ignorePathPattern,
     super.responseHandler,
     super.expectedHeaders,
@@ -179,4 +177,4 @@ class TestRoute extends Route {
   final String path;
 }
 
-Future<void> _handler(EndpointContext context) async {}
+Future<void> _handler(Context context) async {}

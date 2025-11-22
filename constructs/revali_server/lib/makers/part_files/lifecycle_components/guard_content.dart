@@ -68,70 +68,56 @@ String guardContent(
               Parameter(
                 (p) => p
                   ..name = 'context'
-                  ..type = refer((GuardContext).name),
+                  ..type = refer((Context).name),
               ),
             )
-            ..body = Block.of(
-              [
-                declareFinal('component')
-                    .assign(
-                      refer(component.name).newInstance(positioned, named),
-                    )
-                    .statement,
-                const Code('\n'),
-                declareFinal('guards')
-                    .assign(
-                      literalList(
-                        [
-                          ...createComponentMethods(
-                            component.guards,
-                            inferredParams: {
-                              (GuardContext).name: refer('context'),
-                              (GuardMeta).name:
-                                  refer('context').property('meta'),
-                            },
+            ..body = Block.of([
+              declareFinal('component')
+                  .assign(refer(component.name).newInstance(positioned, named))
+                  .statement,
+              const Code('\n'),
+              declareFinal('guards')
+                  .assign(
+                    literalList([
+                      ...createComponentMethods(component.guards),
+                    ], refer('FutureOr<${(GuardResult).name}> Function()')),
+                  )
+                  .statement,
+              const Code('\n'),
+              forInLoop(
+                declaration: declareFinal('guard'),
+                iterable: refer('guards'),
+                body: Block.of([
+                  declareFinal('result')
+                      .assign(
+                        createSwitchPattern(refer('guard').call([]), {
+                          declareFinal(
+                            'future',
+                            type: refer('Future<${(GuardResult).name}>'),
+                          ): refer(
+                            'future',
                           ),
-                        ],
-                        refer('FutureOr<${(GuardResult).name}> Function()'),
-                      ),
-                    )
-                    .statement,
-                const Code('\n'),
-                forInLoop(
-                  declaration: declareFinal('guard'),
-                  iterable: refer('guards'),
-                  body: Block.of([
-                    declareFinal('result')
-                        .assign(
-                          createSwitchPattern(refer('guard').call([]), {
-                            declareFinal(
-                              'future',
-                              type: refer('Future<${(GuardResult).name}>'),
-                            ): refer('future'),
-                            declareFinal(
-                              'result',
-                              type: refer((GuardResult).name),
-                            ): refer('Future')
-                                .property('value')
-                                .call([refer('result')]),
-                          }).awaited,
-                        )
-                        .statement,
-                    const Code('\n'),
-                    ifStatement(
-                      refer('result').property('isBlock'),
-                      body: refer('result').returned.statement,
-                    ).code,
-                  ]),
-                ).code,
-                const Code('\n'),
-                declareConst((GuardResult).name)
-                    .property('pass')
-                    .call([])
-                    .returned
-                    .statement,
-              ],
-            ),
+                          declareFinal(
+                            'result',
+                            type: refer((GuardResult).name),
+                          ): refer(
+                            'Future',
+                          ).property('value').call([refer('result')]),
+                        }).awaited,
+                      )
+                      .statement,
+                  const Code('\n'),
+                  ifStatement(
+                    refer('result').property('isBlock'),
+                    body: refer('result').returned.statement,
+                  ).code,
+                ]),
+              ).code,
+              const Code('\n'),
+              declareConst(
+                (GuardResult).name,
+              ).property('pass').call([]).returned.statement,
+            ]),
         ),
       ),
   );

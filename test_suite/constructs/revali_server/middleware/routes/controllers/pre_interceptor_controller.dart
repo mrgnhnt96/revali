@@ -8,32 +8,32 @@ import 'package:revali_server_middleware_test/domain/user.dart';
 class PreInterceptorController {
   const PreInterceptorController();
 
-  @AddData()
+  @AddToData()
   @Get()
   String handle(@Data() String data) {
     return data;
   }
 
-  @AddData()
+  @AddToData()
   @Get('auth')
   String auth(@Data() AuthToken data) {
     return data.value;
   }
 
-  @AddData()
+  @AddToData()
   @Get('auth-user')
   User authUser(@Data() User data) {
     return data;
   }
 
-  @AddData(addAuthToData: false)
+  @AddToData(addAuthToData: false)
   @Get('auth-user-throws')
   User authUserThrows(@Data() User data) {
     // never reached
     return data;
   }
 
-  @AddData()
+  @AddToData()
   @Get('optional-user')
   User optionalUser(@Data() User? data) {
     return data!;

@@ -7,10 +7,7 @@ Iterable<Code> createComponentMethods(
   Map<String, Expression> inferredParams = const {},
 }) sync* {
   for (final method in methods) {
-    final params = getParams(
-      method.parameters,
-      inferredParams: inferredParams,
-    );
+    final params = getParams(method.parameters, inferredParams: inferredParams);
 
     final usesBody = method.parameters.any((e) => e.annotations.body != null);
 

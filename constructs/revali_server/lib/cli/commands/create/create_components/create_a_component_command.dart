@@ -9,10 +9,7 @@ import 'package:revali_server/cli/commands/create/mixins/create_command_mixin.da
 
 abstract class CreateAComponentCommand extends Command<int>
     with CreateCommandMixin {
-  CreateAComponentCommand({
-    required this.fs,
-    required this.logger,
-  }) {
+  CreateAComponentCommand({required this.fs, required this.logger}) {
     argParser.addFlag(
       'force',
       abbr: 'f',

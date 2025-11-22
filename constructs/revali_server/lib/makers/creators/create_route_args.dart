@@ -16,15 +16,17 @@ Map<String, Expression> createRouteArgs({
   return {
     ...createModifierArgs(annotations: route.annotations),
     if (method != null) 'method': literalString(method),
-    if ((returnType, classVarName)
-        case (final returnType?, final classVarName?))
+    if ((returnType, classVarName) case (
+      final returnType?,
+      final classVarName?,
+    ))
       if (createHandler(
-        route: route,
-        returnType: returnType,
-        classVarName: classVarName,
-        webSocket: webSocket,
-        additionalHandlerCode: additionalHandlerCode,
-      )
+            route: route,
+            returnType: returnType,
+            classVarName: classVarName,
+            webSocket: webSocket,
+            additionalHandlerCode: additionalHandlerCode,
+          )
           case final handler)
         'handler': handler,
   };

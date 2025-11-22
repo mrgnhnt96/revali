@@ -15,6 +15,7 @@ analyzer:
     prefer_void_to_null: ignore
     one_member_abstracts: ignore
     unnecessary_await_in_return: ignore
+    deprecated_member_use: ignore
 
   exclude:
     - "**/*.g.dart"
@@ -34,7 +35,6 @@ linter:
     - avoid_double_and_int_checks
     - avoid_dynamic_calls
     - avoid_empty_else
-    - avoid_equals_and_hash_code_on_mutable_classes
     - avoid_escaping_inner_quotes
     - avoid_field_initializers_in_const_classes
     - avoid_final_parameters

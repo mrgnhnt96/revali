@@ -30,9 +30,9 @@ class VMServiceHandler {
     this.dartDefine = const DartDefine(),
     this.dartVmServicePort = '0',
   }) : assert(
-          dartVmServicePort.isNotEmpty,
-          'dartVmServicePort cannot be empty',
-        );
+         dartVmServicePort.isNotEmpty,
+         'dartVmServicePort cannot be empty',
+       );
 
   final Logger logger;
   final String dartVmServicePort;
@@ -352,8 +352,7 @@ class VMServiceHandler {
       return;
     }
 
-    _watcherSubscription = DirectoryWatcher(root.path)
-        .events
+    _watcherSubscription = DirectoryWatcher(root.path).events
         .asyncMap((event) async {
           final WatchEvent(:type, :path) = event;
 
@@ -372,13 +371,17 @@ class VMServiceHandler {
           _reload(path);
         });
 
-    _watcherSubscription?.asFuture<void>().then((_) async {
-      await _cancelWatcherSubscription();
-      await stop();
-    }).catchError((_) async {
-      await _cancelWatcherSubscription();
-      await stop(1);
-    }).ignore();
+    _watcherSubscription
+        ?.asFuture<void>()
+        .then((_) async {
+          await _cancelWatcherSubscription();
+          await stop();
+        })
+        .catchError((_) async {
+          await _cancelWatcherSubscription();
+          await stop(1);
+        })
+        .ignore();
   }
 
   Future<void> stop([int exitCode = 0]) async {
@@ -406,24 +409,20 @@ class VMServiceHandler {
 
     var hasStartedServer = false;
 
-    final process = _serverProcess = await io.Process.start(
-      'dart',
-      [
-        if (enableHotReload) ...[
-          '--enable-vm-service=$dartVmServicePort',
-          '--enable-asserts',
-        ],
-        if (dartDefine.isNotEmpty) ...[
-          for (final entry in dartDefine.entries) '-D$entry',
-        ],
-        '-D__DEBUG__=${mode.isDebug}',
-        '-D__PROFILE__=${mode.isProfile}',
-        '-D__RELEASE__=${mode.isRelease}',
-        serverFile,
-        ...serverArgs,
+    final process = _serverProcess = await io.Process.start('dart', [
+      if (enableHotReload) ...[
+        '--enable-vm-service=$dartVmServicePort',
+        '--enable-asserts',
       ],
-      runInShell: true,
-    );
+      if (dartDefine.isNotEmpty) ...[
+        for (final entry in dartDefine.entries) '-D$entry',
+      ],
+      '-D__DEBUG__=${mode.isDebug}',
+      '-D__PROFILE__=${mode.isProfile}',
+      '-D__RELEASE__=${mode.isRelease}',
+      serverFile,
+      ...serverArgs,
+    ], runInShell: true);
 
     // On Windows listen for CTRL-C and use taskkill to kill
     // the spawned process along with any child processes.
@@ -538,8 +537,7 @@ extension _MethodX on MetaMethod {
     final padded = switch (this) {
       MetaMethod(:final method, isSse: true) => '$method (SSE)',
       MetaMethod(:final method) => method,
-    }
-        .padRight(10);
+    }.padRight(10);
 
     switch (method) {
       case 'GET' when isSse:

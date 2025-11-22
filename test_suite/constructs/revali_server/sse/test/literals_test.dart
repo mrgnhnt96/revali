@@ -20,10 +20,7 @@ void main() {
     });
 
     test('void', () async {
-      final stream = server.connect(
-        method: 'GET',
-        path: '/api/literals/void',
-      );
+      final stream = server.connect(method: 'GET', path: '/api/literals/void');
 
       final responses = await stream.toList();
 
@@ -51,16 +48,11 @@ void main() {
 
       final responses = await stream.toList();
 
-      expect(responses, [
-        utf8.encode('Hello world!'),
-      ]);
+      expect(responses, [utf8.encode('Hello world!')]);
     });
 
     test('bool', () async {
-      final stream = server.connect(
-        method: 'GET',
-        path: '/api/literals/bool',
-      );
+      final stream = server.connect(method: 'GET', path: '/api/literals/bool');
 
       final responses = await stream.toList();
 
@@ -70,10 +62,7 @@ void main() {
     });
 
     test('int', () async {
-      final stream = server.connect(
-        method: 'GET',
-        path: '/api/literals/int',
-      );
+      final stream = server.connect(method: 'GET', path: '/api/literals/int');
 
       final responses = await stream.toList();
 
@@ -123,10 +112,7 @@ void main() {
       expect(responses, [
         utf8.encode(
           jsonEncode({
-            'data': {
-              'first': 'hello',
-              'second': 'world',
-            },
+            'data': {'first': 'hello', 'second': 'world'},
           }),
         ),
       ]);
@@ -145,9 +131,7 @@ void main() {
           jsonEncode({
             'data': [
               'hello',
-              {
-                'second': 'world',
-              },
+              {'second': 'world'},
             ],
           }),
         ),
@@ -244,10 +228,7 @@ void main() {
     });
 
     test('set', () async {
-      final stream = server.connect(
-        method: 'GET',
-        path: '/api/literals/set',
-      );
+      final stream = server.connect(method: 'GET', path: '/api/literals/set');
 
       final responses = await stream.toList();
 
@@ -279,10 +260,7 @@ void main() {
 
     test('bytes', () async {
       final result = await server
-          .connect(
-            method: 'GET',
-            path: '/api/literals/bytes',
-          )
+          .connect(method: 'GET', path: '/api/literals/bytes')
           .single;
 
       final decoded = utf8.decode(result);

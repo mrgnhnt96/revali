@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http_parser/http_parser.dart';
-import 'package:revali_router_core/headers/read_only_headers.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 
-abstract class CommonHeadersMixin extends ReadOnlyHeaders {
+abstract class CommonHeadersMixin extends Headers {
   @override
   MediaType? get contentType {
     if (get(HttpHeaders.contentTypeHeader) case final value?) {
@@ -95,7 +95,7 @@ abstract class CommonHeadersMixin extends ReadOnlyHeaders {
 
   @override
   String? get origin {
-    return get(HttpHeaders.accessControlAllowOriginHeader);
+    return get(HttpHeaders.accessControlAllowOriginHeader) ?? get('origin');
   }
 
   @override

@@ -21,20 +21,18 @@ class Settings {
       serverName: serverName,
       integrations: switch (json['integrations']) {
         final Map<String, bool> map => map,
-        final Map<String, bool?> map =>
-          map.map((key, value) => MapEntry(key, value ?? true)),
+        final Map<String, bool?> map => map.map(
+          (key, value) => MapEntry(key, value ?? true),
+        ),
         final Map<String, dynamic> map => map.map(
-            (key, value) => MapEntry(
-              key,
-              switch (value) {
-                'true' => true,
-                'false' => false,
-                true => true,
-                false => false,
-                _ => true,
-              },
-            ),
-          ),
+          (key, value) => MapEntry(key, switch (value) {
+            'true' => true,
+            'false' => false,
+            true => true,
+            false => false,
+            _ => true,
+          }),
+        ),
         _ => const {},
       },
       scheme: json['scheme'] as String? ?? 'http',

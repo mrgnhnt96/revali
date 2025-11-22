@@ -10,16 +10,13 @@ class SseResponseHandler with RemoveHeadersMixin implements ResponseHandler {
 
   @override
   Future<void> handle(
-    ReadOnlyResponse response,
+    Response response,
     RequestContext context,
     HttpResponse httpResponse,
   ) async {
     final http = httpResponse;
 
-    final responseHeaders = switch (response) {
-      MutableResponse() => response.joinedHeaders,
-      _ => MutableResponseImpl.from(response).joinedHeaders,
-    };
+    final responseHeaders = response.joinedHeaders;
 
     http.statusCode = response.statusCode;
 
@@ -27,8 +24,6 @@ class SseResponseHandler with RemoveHeadersMixin implements ResponseHandler {
       case HttpStatus.notModified:
       case HttpStatus.noContent:
         removeContentRelated(responseHeaders);
-      case HttpStatus.notFound:
-        removeAccessControl(responseHeaders);
       default:
         break;
     }
@@ -38,7 +33,7 @@ class SseResponseHandler with RemoveHeadersMixin implements ResponseHandler {
     });
 
     final streamBody = switch (response) {
-      ReadOnlyResponse(:final body?) when !body.isNull => body.read(),
+      Response(:final body) when !body.isNull => body.read(),
       _ => null,
     };
 

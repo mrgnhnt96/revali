@@ -45,19 +45,21 @@ void main() {
       );
     });
 
-    test('should throw an exception for part file path with relative paths',
-        () {
-      expect(
-        () => DartFile(
-          basename: 'main',
-          content: 'void main() {}',
-          parts: [
-            PartFile(path: ['lib', '..', 'src'], content: '//'),
-          ],
-        ),
-        throwsAssertionError,
-      );
-    });
+    test(
+      'should throw an exception for part file path with relative paths',
+      () {
+        expect(
+          () => DartFile(
+            basename: 'main',
+            content: 'void main() {}',
+            parts: [
+              PartFile(path: ['lib', '..', 'src'], content: '//'),
+            ],
+          ),
+          throwsAssertionError,
+        );
+      },
+    );
 
     test('should throw an exception for part file path ending with .dart', () {
       expect(

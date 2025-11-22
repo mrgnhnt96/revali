@@ -13,13 +13,13 @@ base class MyBodyData extends BodyData {
 
   final Stream<List<int>> _bytes;
   final Encoding _encoding;
-  final ReadOnlyHeaders _headers;
+  final Headers _headers;
 
   @override
   Stream<List<int>> get data => _bytes;
 
   @override
-  ReadOnlyHeaders headers(ReadOnlyHeaders? requestHeaders) {
+  Headers headers(Headers? requestHeaders) {
     return requestHeaders ?? EmptyHeaders();
   }
 

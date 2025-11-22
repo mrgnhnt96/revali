@@ -5,11 +5,9 @@ import 'package:revali_client/src/http_request.dart';
 import 'package:revali_client/src/http_response.dart';
 
 class HttpPackageClient implements HttpClient {
-  HttpPackageClient({
-    http.Client? client,
-    List<HttpInterceptor>? interceptors,
-  })  : _client = client ?? http.Client(),
-        interceptors = interceptors ?? [];
+  HttpPackageClient({http.Client? client, List<HttpInterceptor>? interceptors})
+    : _client = client ?? http.Client(),
+      interceptors = interceptors ?? [];
 
   final http.Client _client;
 

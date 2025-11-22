@@ -43,8 +43,8 @@ final class StreamBodyData<T> extends BaseBodyData<Stream<T>> {
   }
 
   @override
-  ReadOnlyHeaders headers(ReadOnlyHeaders? requestHeaders) {
-    return MutableHeadersImpl()
+  Headers headers(Headers? requestHeaders) {
+    return HeadersImpl()
       ..mimeType = mimeType
       ..filename = filename
       ..contentLength = contentLength;

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:revali_router/src/body/response_body/base_body_data.dart';
 import 'package:test/test.dart';
 
@@ -38,6 +40,23 @@ void main() {
       expect(
         result,
         equals(jsonBodyData.encoding.encode(jsonBodyData.toJson())),
+      );
+    });
+
+    test('should return correct contentLength', () {
+      final data = {'key': 'value'};
+      final jsonBodyData = JsonBodyData(data);
+
+      expect(jsonBodyData.contentLength, utf8.encode('{"key":"value"}').length);
+    });
+
+    test('should return correct contentLength with emojis', () {
+      final data = {'key': 'value with emoji ð§'};
+      final jsonBodyData = JsonBodyData(data);
+
+      expect(
+        jsonBodyData.contentLength,
+        utf8.encode('{"key":"value with emoji ð§"}').length,
       );
     });
   });

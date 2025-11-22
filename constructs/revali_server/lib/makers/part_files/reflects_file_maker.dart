@@ -19,7 +19,7 @@ PartFile reflectsFileMaker(
       ..returns = TypeReference(
         (b) => b
           ..symbol = 'Set'
-          ..types.add(refer((Reflect).name)),
+          ..types.add(refer((ReflectData).name)),
       )
       ..body = Block.of([
         literalSet([
@@ -30,8 +30,5 @@ PartFile reflectsFileMaker(
 
   final content = formatter(reflects);
 
-  return PartFile(
-    path: ['definitions', '__reflects'],
-    content: content,
-  );
+  return PartFile(path: ['definitions', '__reflects'], content: content);
 }

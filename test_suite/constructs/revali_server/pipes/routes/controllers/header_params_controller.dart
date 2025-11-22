@@ -9,23 +9,17 @@ class HeaderParamsController {
   const HeaderParamsController();
 
   @Get('user')
-  String user({
-    @Header.pipe(UserPipe) required User data,
-  }) {
+  String user({@Header.pipe(UserPipe) required User data}) {
     return data.name;
   }
 
   @Get('list-user')
-  List<String> listUser({
-    @Header.allPipe(UserPipe) required List<User> data,
-  }) {
+  List<String> listUser({@Header.allPipe(UserPipe) required List<User> data}) {
     return data.map((user) => user.name).toList();
   }
 
   @Get('optional-user')
-  String? optionalUser({
-    @Header.pipe(OptionalUserPipe) required User? data,
-  }) {
+  String? optionalUser({@Header.pipe(OptionalUserPipe) required User? data}) {
     return data?.name;
   }
 

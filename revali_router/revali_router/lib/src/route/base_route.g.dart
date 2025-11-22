@@ -19,7 +19,7 @@ extension _$BaseRouteAutoequal on BaseRoute {
         _meta,
         redirect,
         allowedOrigins,
-        allowedHeaders,
+        preventedHeaders,
         expectedHeaders,
         _responseHandler,
         hasParent,

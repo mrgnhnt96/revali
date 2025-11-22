@@ -1,5 +1,53 @@
 # CHANGELOG
 
+## 2.0.2 | 11.22.25
+
+### Fix
+
+- Issue where reflect and pipe imports were not being generated correctly
+
+### Enhancements
+
+- Infer `ReflectHandler` to `Reflect`
+
+### Chore
+
+- Sync package versions
+
+## 2.0.2-dev | 10.15.25
+
+### Fix
+
+- Dependencies
+
+## 2.0.1+1-dev | 10.15.25
+
+### Fix
+
+- Dependencies
+
+## 2.0.1-dev | 09.19.25
+
+### Breaking Changes
+
+- Update `analyzer` dependency to `^8.0.0`
+
+### Enhancements
+
+- Improve logging on errors
+
+## 2.0.0-dev | 09.19.25
+
+### Breaking Changes
+
+- Support new `AddData` from `revali_router_annotations`
+- Support new `MetaData` from `revali_router_annotations`
+- Support drop of `ReadOnly`, `WriteOnly`, and `Mutable` from type names
+
+### Enhancements
+
+- Improve logging on errors
+
 ## 1.15.0 | 08.18.25
 
 ### Features

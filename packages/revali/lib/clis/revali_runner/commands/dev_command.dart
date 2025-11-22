@@ -13,7 +13,8 @@ class DevCommand extends Command<int> with ConstructRunnerArgs {
     argParser
       ..addFlag(
         'recompile',
-        help: 'Re-compiles the construct kernel. '
+        help:
+            'Re-compiles the construct kernel. '
             'Needed to sync changes for a local construct.',
         negatable: false,
       )
@@ -30,13 +31,15 @@ class DevCommand extends Command<int> with ConstructRunnerArgs {
       )
       ..addFlag(
         'profile',
-        help: 'Whether to run in profile mode. Enables logger, '
+        help:
+            'Whether to run in profile mode. Enables logger, '
             'but disables hot reload and debugger',
         negatable: false,
       )
       ..addFlag(
         'debug',
-        help: '(Default) Whether to run in debug mode. '
+        help:
+            '(Default) Whether to run in debug mode. '
             'Enables hot reload and debugger',
         negatable: false,
       )
@@ -48,7 +51,8 @@ class DevCommand extends Command<int> with ConstructRunnerArgs {
       )
       ..addOption(
         'dart-vm-service-port',
-        help: 'The port to use for the Dart VM service. '
+        help:
+            'The port to use for the Dart VM service. '
             'Use 0 to automatically assign a port.',
         defaultsTo: '0',
       )
@@ -60,7 +64,8 @@ class DevCommand extends Command<int> with ConstructRunnerArgs {
       )
       ..addMultiOption(
         'dart-define-from-file',
-        help: 'A file containing additional key-value '
+        help:
+            'A file containing additional key-value '
             'pairs that will be available as constants.',
         valueHelp: '.env',
       );
@@ -80,8 +85,9 @@ class DevCommand extends Command<int> with ConstructRunnerArgs {
   @override
   String get usage {
     // return super.usage;
-    final [description, args] =
-        super.usage.split('\nUsage: revali dev [arguments]');
+    final [description, args] = super.usage.split(
+      '\nUsage: revali dev [arguments]',
+    );
     return '''
 $description
 Usage: revali dev [options] [-- <server arguments>]

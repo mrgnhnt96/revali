@@ -1,7 +1,7 @@
 part of 'router.dart';
 
-ReadOnlyBody? bodyForError(
-  ReadOnlyBody? body, {
+BodyData? bodyForError(
+  Body? body, {
   required Object error,
   required StackTrace stackTrace,
 }) {

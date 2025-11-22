@@ -64,10 +64,10 @@ class Analyzer implements AnalyzerChanges {
   Future<void> reload() async {
     final dependencies = switch (_packageConfig) {
       final String packageConfig => await _getDependencyFiles(
-          packageConfig,
-          pathDependenciesOnly: true,
-          directoryOnly: true,
-        ),
+        packageConfig,
+        pathDependenciesOnly: true,
+        directoryOnly: true,
+      ),
       null => <String>[],
     };
 
@@ -101,10 +101,10 @@ class Analyzer implements AnalyzerChanges {
 
       final dependencies = switch (_packageConfig) {
         final String packageConfig => await _getDependencyFiles(
-            packageConfig,
-            pathDependenciesOnly: true,
-            directoryOnly: true,
-          ),
+          packageConfig,
+          pathDependenciesOnly: true,
+          directoryOnly: true,
+        ),
         null => <String>[],
       };
 
@@ -269,10 +269,9 @@ class Analyzer implements AnalyzerChanges {
     }
 
     if (workspaceRef case final String file) {
-      if (jsonDecode(await fs.file(file).readAsString())
-          case {
-            'workspaceRoot': final String root,
-          }) {
+      if (jsonDecode(await fs.file(file).readAsString()) case {
+        'workspaceRoot': final String root,
+      }) {
         final rootPath = fs.path.normalize(
           fs.path.join(fs.file(file).parent.path, root),
         );
@@ -357,9 +356,10 @@ class Analyzer implements AnalyzerChanges {
     final json = jsonDecode(await fs.file(packageConfig).readAsString());
 
     final dependencies = switch (json) {
-      {'packages': final List<dynamic> packages} => packages
-          .map((e) => Dependency.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      {'packages': final List<dynamic> packages} =>
+        packages
+            .map((e) => Dependency.fromJson(e as Map<String, dynamic>))
+            .toList(),
       _ => throw Exception('Invalid package config: $packageConfig'),
     };
 
@@ -380,12 +380,12 @@ class Analyzer implements AnalyzerChanges {
       final rootPath = switch (rootUri.isAbsolute) {
         true => fs.path.normalize(fs.path.join(rootUri.path, packageUri.path)),
         false => fs.path.normalize(
-            fs.path.join(
-              fs.file(packageConfig).parent.path,
-              rootUri.path,
-              packageUri.path,
-            ),
+          fs.path.join(
+            fs.file(packageConfig).parent.path,
+            rootUri.path,
+            packageUri.path,
           ),
+        ),
       };
 
       directories.add(rootPath);
@@ -461,12 +461,10 @@ class Analyzer implements AnalyzerChanges {
     final errors = <AnalysisError>[];
     for (final error in await Future.wait(futures)) {
       if (error case ErrorsResult(errors: final found)) {
-        errors.addAll(
-          switch (severity) {
-            null => found,
-            final sev => found.where((e) => e.severity == sev),
-          },
-        );
+        errors.addAll(switch (severity) {
+          null => found,
+          final sev => found.where((e) => e.severity == sev),
+        });
       }
     }
 

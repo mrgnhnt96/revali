@@ -53,23 +53,24 @@ Expression? createFromJson(ServerType type, Expression variable) {
     final reference = switch (typeArgument) {
       ServerType(isMap: true) => refer('e').asA(refer((Map).name)),
       ServerType(isIterable: true) => refer('e').asA(refer((List).name)),
-      _ => refer('e')
+      _ => refer('e'),
     };
 
     return switch (createFromJson(typeArgument, reference)) {
-      null => callToType(variable, includeList: false)
-          .safeProperty(type, 'cast<${typeArgument.name}>')
-          .call([]),
+      null => callToType(
+        variable,
+        includeList: false,
+      ).safeProperty(type, 'cast<${typeArgument.name}>').call([]),
       final e => callToType(
-          variable.safeProperty(type, 'map').call([
-            Method(
-              (b) => b
-                ..lambda = true
-                ..requiredParameters.add(Parameter((b) => b..name = 'e'))
-                ..body = e.code,
-            ).closure,
-          ]),
-        ),
+        variable.safeProperty(type, 'map').call([
+          Method(
+            (b) => b
+              ..lambda = true
+              ..requiredParameters.add(Parameter((b) => b..name = 'e'))
+              ..body = e.code,
+          ).closure,
+        ]),
+      ),
     };
   }
 
@@ -103,9 +104,7 @@ Expression? createFromJson(ServerType type, Expression variable) {
       }
 
       return CodeExpression(
-        Block.of([
-          for (final prop in props) ...params(prop),
-        ]),
+        Block.of([for (final prop in props) ...params(prop)]),
       );
     }
 
@@ -113,9 +112,9 @@ Expression? createFromJson(ServerType type, Expression variable) {
       // all are named
       return switch (type.isNullable) {
         true => createSwitchPattern(variable, {
-            literalNull: literalNull,
-            const Code('_'): namedParams().parenthesized,
-          }),
+          literalNull: literalNull,
+          const Code('_'): namedParams().parenthesized,
+        }),
         false => namedParams().parenthesized,
       };
     }
@@ -144,9 +143,9 @@ Expression? createFromJson(ServerType type, Expression variable) {
 
     return switch (type.isNullable) {
       true => createSwitchPattern(variable, {
-          literalNull: literalNull,
-          const Code('_'): record,
-        }),
+        literalNull: literalNull,
+        const Code('_'): record,
+      }),
       false => record,
     };
   }
@@ -164,8 +163,9 @@ Expression? createFromJson(ServerType type, Expression variable) {
     };
 
     final valueJson = switch (valueType) {
-      ServerType(isPrimitive: true) =>
-        refer('value').asA(refer(valueType.name)),
+      ServerType(isPrimitive: true) => refer(
+        'value',
+      ).asA(refer(valueType.name)),
       _ => createFromJson(valueType, refer('value')),
     };
 
@@ -181,34 +181,31 @@ Expression? createFromJson(ServerType type, Expression variable) {
             Parameter((b) => b..name = 'key'),
             Parameter((b) => b..name = 'value'),
           ])
-          ..body = refer((MapEntry).name).newInstance(
-            [keyJson ?? refer('key'), valueJson ?? refer('value')],
-          ).code,
+          ..body = refer((MapEntry).name).newInstance([
+            keyJson ?? refer('key'),
+            valueJson ?? refer('value'),
+          ]).code,
       ).closure,
     ]);
   }
 
   if (type.fromJson case final fromJson?) {
-    return refer(type.nonNullName).newInstanceNamed(
-      'fromJson',
-      [
-        if (fromJson case ServerFromJson(params: [ServerType(isMap: true)]))
-          refer((Map).name).newInstanceNamed('from', [
-            variable.asA(refer((Map).name)),
-          ])
-        else if (fromJson case ServerFromJson(params: [final type]))
-          variable.asA(refer(type.name))
-        else
-          variable,
-      ],
-    );
+    return refer(type.nonNullName).newInstanceNamed('fromJson', [
+      if (fromJson case ServerFromJson(params: [ServerType(isMap: true)]))
+        refer(
+          (Map).name,
+        ).newInstanceNamed('from', [variable.asA(refer((Map).name))])
+      else if (fromJson case ServerFromJson(params: [final type]))
+        variable.asA(refer(type.name))
+      else
+        variable,
+    ]);
   }
 
   if (type.isEnum) {
-    return refer(type.name)
-        .property('values')
-        .property('byName')
-        .call([variable]);
+    return refer(
+      type.name,
+    ).property('values').property('byName').call([variable]);
   }
 
   return null;

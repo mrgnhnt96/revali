@@ -122,10 +122,12 @@ class ServerChildRoute with ExtractImport implements ServerRoute {
 
   @override
   List<ExtractImport?> get extractors => [
-        redirect,
-        ...params,
-        annotations,
-      ];
+    redirect,
+    ...params,
+    annotations,
+    ...reflects,
+    ...pipes,
+  ];
 
   @override
   List<ServerImports?> get imports => const [];

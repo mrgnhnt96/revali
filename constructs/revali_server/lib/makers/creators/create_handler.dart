@@ -81,9 +81,9 @@ Expression createHandler({
         const Code('\n'),
         if (route.pipes case final pipes when pipes.isNotEmpty) ...[
           for (final pipe in pipes)
-            declareFinal(pipe.clazz.variableName)
-                .assign(createClass(pipe.clazz))
-                .statement,
+            declareFinal(
+              pipe.clazz.variableName,
+            ).assign(createClass(pipe.clazz)).statement,
           const Code('\n'),
         ],
         ...additionalHandlerCode,

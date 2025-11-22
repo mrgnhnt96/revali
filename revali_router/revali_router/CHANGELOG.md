@@ -1,5 +1,41 @@
 # CHANGELOG
 
+## 3.0.2 | 11.22.25
+
+### Features
+
+- Add `Reflect` class to replace `ReflectHandler`
+
+### Chore
+
+- Sync package versions
+
+## 3.0.2-dev | 10.15.25
+
+### Fix
+
+- Dependencies
+
+## 3.0.0+2-dev | 10.15.25
+
+### Fix
+
+- Dependencies
+
+## 3.0.0+1-dev | 10.15.25
+
+### Fix
+
+- Payload byte length calculation
+
+## 3.0.0-dev | 09.19.25
+
+### Breaking Changes
+
+- Drop all custom contexts based on lifecycle component
+- Create a generic `Context` interface to replace all custom contexts
+- Use new types from `revali_router_core`
+
 ## 2.4.1 | 08.26.25
 
 ### Fixes

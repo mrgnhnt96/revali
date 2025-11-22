@@ -1,61 +1,121 @@
 ---
 title: Overview
 sidebar_position: 0
-description: A representation of the outgoing HTTP response
+description: Control the outgoing HTTP response
 ---
 
 # Response
 
-The `Response` is the object that represents the outgoing HTTP response. It contains all the information about the response, such as the headers, the body, and the status code. Other than the body, it is encouraged to use the Lifecycle Components to modify the response.
+> Access via: `context.response`
 
-## Read-Only
+The `Response` object represents the outgoing HTTP response. It contains all the information about the response, including headers, body, status code, and cookies. You can access and modify the response through the context in lifecycle components.
 
-The response is only occasionally read-only, like in the [Bind Context][bind-context] and [Observer][observer] Lifecycle Component. This is by design, as the response should be modified by the dedicated Lifecycle Components.
+## Key Properties
 
-:::tip
-Read more about [Lifecycle Components][lifecycle-components].
-:::
-
-## Restricted Mutability
-
-In most lifecycle components, the response mutability is restricted. The only property that is restricted in the response, is the `statusCode`, which can only be modified _after_ the endpoint has been executed (via the [Interceptor.post][interceptor-post] method).
+- **`body`** - The response payload (data sent to client)
+- **`headers`** - HTTP headers sent with the response
+- **`statusCode`** - HTTP status code (200, 404, 500, etc.)
 
 ## Accessing the Response
 
-### Via Context
-
-The `Response` object can be accessed through the `response` property in the context of the Lifecycle Components.
-
-```dart
-final response = context.response;
-```
-
-:::tip
-Read more about the [Lifecycle Component's context][lifecycle-context].
-:::
-
 ### Via Binding
 
-The `Response` object can be accessed via the controller's endpoint by adding the `ReadOnlyResponse` parameter to the endpoint method.
+Access the response from the context in lifecycle components by using the `Response` parameter.
 
 ```dart
-@Get()
-Future<void> helloWorld(
-    MutableResponse response,
-) async {
-    ...
+class MyMiddleware implements LifecycleComponent {
+  MiddlewareResult processRequest(Response response) {
+    response.statusCode = 200;
+    response.headers.set('Cache-Control', 'no-cache');
+
+    return const MiddlewareResult.next();
+  }
+}
+```
+
+You can also access response properties directly in endpoint methods:
+
+```dart
+@Controller('api')
+class ApiController {
+  @Get('data')
+  String getData(Headers headers) {
+    headers.set('X-Custom-Header', 'value');
+
+    return 'Data';
+  }
 }
 ```
 
 :::warning
-Using the `MutableResponse` parameter in the endpoint method is not recommended. Use a specific type (such as [`MutableHeaders`][headers]) instead, or use the `context` from Lifecycle Components to access the response.
-
-By avoiding the `MutableResponse` parameter, you can keep your endpoint methods clean, focused, and testable.
+**Avoid using `Response` in endpoint methods.** Instead, use specific types like `Headers` or access the response through lifecycle components. This keeps your endpoints clean and focused.
 :::
 
-[bind-context]: ../context/bind.md
-[observer]: ../lifecycle-components/observer.md
-[lifecycle-components]: ../lifecycle-components/overview.md
-[interceptor-post]: ../lifecycle-components/advanced/interceptors.md#post
-[lifecycle-context]: ../context/overview.md
-[headers]: ./headers.md
+## Common Patterns
+
+### Setting Response Data
+
+```dart
+// Return data from endpoint (recommended)
+@Get('users')
+List<User> getUsers() {
+  return userService.getAllUsers();
+}
+
+// Set data in lifecycle component
+class ResponseProcessor implements LifecycleComponent {
+  InterceptorPostResult processResponse(Response response) {
+    response.body['timestamp'] = DateTime.now().toIso8601String();
+  }
+}
+```
+
+### Setting Headers
+
+```dart
+// Via annotation
+@Get('data')
+@SetHeader('Cache-Control', 'max-age=3600')
+String getData() {
+  return 'Cached data';
+}
+
+// Via lifecycle component
+class SecurityHeaders implements LifecycleComponent {
+  MiddlewareResult processRequest(Response response) {
+    response.headers.set('X-Content-Type-Options', 'nosniff');
+    response.headers.set('X-Frame-Options', 'DENY');
+
+    return const MiddlewareResult.next();
+  }
+}
+```
+
+### Setting Status Codes
+
+```dart
+// Via annotation
+@Post('job')
+@StatusCode(201)
+void startJob() {
+   service.startAsyncOperation();
+}
+
+// Via interceptor (post)
+class StatusCodeProcessor implements LifecycleComponent {
+  InterceptorPostResult processResponse(Response response) {
+    if (response.body.data == null) {
+      response.statusCode = 201;
+    }
+  }
+}
+```
+
+## What's Next?
+
+- Learn about [response body](./body.md) for setting response data
+- Explore [response headers](./headers.md) for HTTP headers
+- See [status codes](./status-code.md) for HTTP status codes
+- Check out [cookies](./cookies.md) for session management
+- Discover [WebSockets](./websockets.md) for real-time communication
+- Learn about [Server-Sent Events](./server-sent-events.md) for streaming updates

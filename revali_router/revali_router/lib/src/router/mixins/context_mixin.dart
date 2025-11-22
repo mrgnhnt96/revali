@@ -1,64 +1,23 @@
 part of '../router.dart';
 
 mixin ContextMixin on HelperMixin {
-  EndpointContext get endpoint => EndpointContextImpl(
-        meta: directMeta,
+  Context get main => ContextImpl(
+        meta: meta,
+        route: route,
         reflect: reflectHandler,
         request: request,
-        data: dataHandler,
+        data: data,
         response: response,
       );
 
   WebSocketContext get webSocket => WebSocketContextImpl(
-        meta: directMeta,
+        meta: main.meta,
         reflect: reflectHandler,
         request: request,
         response: response,
-        data: dataHandler,
+        data: data,
         close: close,
         asyncSender: asyncSender,
-      );
-
-  ExceptionCatcherContext get exceptionCatcher => ExceptionCatcherContextImpl(
-        data: dataHandler,
-        meta: ExceptionCatcherMetaImpl(
-          direct: directMeta,
-          inherited: inheritedMeta,
-          route: route,
-        ),
-        request: request,
-        response: response,
-      );
-
-  GuardContext get guard => GuardContextImpl(
-        meta: GuardMetaImpl(
-          direct: directMeta,
-          inherited: inheritedMeta,
-          route: route,
-        ),
-        response: response,
-        request: request,
-        data: dataHandler,
-      );
-
-  InterceptorContext<MutableResponse> get interceptor => InterceptorContextImpl(
-        meta: InterceptorMetaImpl(
-          direct: directMeta,
-          inherited: inheritedMeta,
-        ),
-        reflect: reflectHandler,
-        request: request,
-        response: response,
-        data: dataHandler,
-      );
-
-  MiddlewareContext get middleware => MiddlewareContextImpl(
-        meta: MetaDetailedImpl(
-          direct: directMeta,
-          inherited: inheritedMeta,
-        ),
-        request: request,
-        response: response,
-        data: dataHandler,
+        route: route,
       );
 }

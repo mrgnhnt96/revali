@@ -9,40 +9,39 @@ class Helper with HelperMixin, ContextMixin {
     required Router router,
   }) {
     globalComponents = router._globalComponents ?? LifecycleComponentsImpl();
-    reflectHandler = ReflectHandler(router._reflects);
+    reflectHandler = Reflect(router._reflects);
     debugErrorResponse = router._debugResponse;
     debugResponses = router.debug;
     defaultResponses = router.defaultResponses;
 
-    dataHandler = DataHandler()..add<CleanUp>(CleanUpImpl());
-    directMeta = route.getMeta();
-    inheritedMeta = route.getMeta(inherit: true);
-    globalComponents.getMeta(handler: inheritedMeta);
-    response = MutableResponseImpl(requestHeaders: request.headers);
+    data = DataImpl()..add<CleanUp>(CleanUpImpl());
+    meta = MetaScopeImpl(
+      direct: route.getMeta(),
+      inherited: route.getMeta(inherit: true),
+    );
+    globalComponents.getMeta(handler: meta);
+    response = ResponseImpl(requestHeaders: request.headers);
     _request = request;
   }
 
   @override
-  late final DataHandler dataHandler;
+  late final Data data;
 
   @override
-  late final MetaHandler directMeta;
+  late final MetaScope meta;
 
   @override
   late final LifecycleComponents globalComponents;
 
   @override
-  late final MetaHandler inheritedMeta;
-
-  @override
-  late final ReflectHandler reflectHandler;
+  late final Reflect reflectHandler;
 
   @override
   FullRequest get request => _webSocketRequest ?? _request;
   late final FullRequest _request;
 
   @override
-  late final MutableResponse response;
+  late final Response response;
 
   @override
   final BaseRoute route;
@@ -62,9 +61,9 @@ class Helper with HelperMixin, ContextMixin {
   @override
   RunMixin get run => Run(this);
 
-  MutableWebSocketRequest? _webSocketRequest;
+  WebSocketRequest? _webSocketRequest;
   @override
-  set webSocketRequest(MutableWebSocketRequest request) {
+  set webSocketRequest(WebSocketRequest request) {
     _webSocketRequest = request;
   }
 

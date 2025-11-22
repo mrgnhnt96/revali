@@ -15,9 +15,9 @@ class ConstructConfig extends Equatable {
     this.isBuild = false,
     this.optIn = false,
   }) : assert(
-          !(isBuild & isServer),
-          'Construct cannot be both a build and server construct',
-        );
+         !(isBuild & isServer),
+         'Construct cannot be both a build and server construct',
+       );
 
   // ignore: strict_raw_type
   static ConstructConfig fromJson(Map json) => _$ConstructConfigFromJson(json);
@@ -33,12 +33,5 @@ class ConstructConfig extends Equatable {
   Map<String, dynamic> toJson() => _$ConstructConfigToJson(this);
 
   @override
-  List<Object?> get props => [
-        name,
-        path,
-        method,
-        options,
-        isServer,
-        isBuild,
-      ];
+  List<Object?> get props => [name, path, method, options, isServer, isBuild];
 }

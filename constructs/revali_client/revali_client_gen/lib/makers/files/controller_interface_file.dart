@@ -12,11 +12,6 @@ PartFile controllerInterfaceFile(
 
   return PartFile(
     content: formatter(content),
-    path: [
-      'lib',
-      'src',
-      'interfaces',
-      controller.interfaceName.toSnakeCase(),
-    ],
+    path: ['lib', 'src', 'interfaces', controller.interfaceName.toSnakeCase()],
   );
 }

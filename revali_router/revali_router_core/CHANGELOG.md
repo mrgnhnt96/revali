@@ -1,5 +1,37 @@
 # CHANGELOG
 
+## 2.0.2 | 11.22.25
+
+### Features
+
+- Remove `ReflectHandler`, replace with `Reflect`
+
+### Chore
+
+- Sync package versions
+
+## 2.0.2-dev | 10.15.25
+
+### Fix
+
+- Dependencies
+
+## 2.0.0+1-dev | 10.15.25
+
+### Breaking Changes
+
+- Drop usage of `ExpectHeaders`
+- Use `PreventHeaders` instead
+
+## 2.0.0-dev | 09.19.25
+
+### Breaking Changes
+
+- Drop `DataHandler` and `MetaHandler` classes
+  - Replaced with `Data` and `Meta`/`MetaScope`
+- Drop `ReadOnly`, `WriteOnly`, and `Mutable` types
+  - Replaced with general types
+
 ## 1.9.1 | 08.16.25
 
 ### Features

@@ -48,54 +48,43 @@ Code? parseJson(
 
   final body = switch (createReturnTypeFromJson(type, data)) {
     final e? => e,
-    _ => data
+    _ => data,
   };
 
   return CodeExpression(
-    Block.of(
-      [
-        ifStatement(
-          switch (type) {
-            ClientType(
-              isStream: true,
-              typeArguments: [ClientType(isStringContent: true)]
-            ) =>
-              variable,
-            _ => refer('jsonDecode').call([variable]),
-          },
-          pattern: (
-            cse: createJsonCase(type),
-            when: null,
-          ),
-          body: switch (yield) {
-            true => Block.of([
-                body.yielded.statement,
-                if (postYieldCode.isNotEmpty) ...[
-                  const Code(''),
-                  ...postYieldCode,
-                ],
-                const Code(''),
-                refer('continue').statement,
-              ]),
-            false => Block.of([
-                if (type.isNullable && !type.isIterable)
-                  createSwitchPattern(refer('data'), {
-                    literalNull: literalNull,
-                    declareFinal('data'): body,
-                  }).returned.statement
-                else
-                  body.returned.statement,
-              ]),
-          },
-        ).code,
-        const Code(''),
-        refer((Exception).name)
-            .newInstance([
-              literalString('Invalid response'),
-            ])
-            .thrown
-            .statement,
-      ],
-    ),
+    Block.of([
+      ifStatement(
+        switch (type) {
+          ClientType(
+            isStream: true,
+            typeArguments: [ClientType(isStringContent: true)],
+          ) =>
+            variable,
+          _ => refer('jsonDecode').call([variable]),
+        },
+        pattern: (cse: createJsonCase(type), when: null),
+        body: switch (yield) {
+          true => Block.of([
+            body.yielded.statement,
+            if (postYieldCode.isNotEmpty) ...[const Code(''), ...postYieldCode],
+            const Code(''),
+            refer('continue').statement,
+          ]),
+          false => Block.of([
+            if (type.isNullable && !type.isIterable)
+              createSwitchPattern(refer('data'), {
+                literalNull: literalNull,
+                declareFinal('data'): body,
+              }).returned.statement
+            else
+              body.returned.statement,
+          ]),
+        },
+      ).code,
+      const Code(''),
+      refer(
+        (Exception).name,
+      ).newInstance([literalString('Invalid response')]).thrown.statement,
+    ]),
   ).code;
 }

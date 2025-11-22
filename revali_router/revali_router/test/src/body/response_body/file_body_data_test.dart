@@ -116,7 +116,7 @@ void main() {
         ..createSync(recursive: true)
         ..writeAsBytesSync(Uint8List(100));
 
-      final requestHeaders = MutableHeadersImpl({
+      final requestHeaders = HeadersImpl({
         'range': ['bytes=2-5'],
       });
 

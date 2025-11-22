@@ -7,7 +7,7 @@ final class PrimitiveNonStringBodyData<T> extends BaseBodyData<T> {
   String get mimeType => 'text/plain';
 
   @override
-  int get contentLength => jsonEncode(data).length;
+  int get contentLength => encoding.encode(jsonEncode(data)).length;
 
   @override
   Stream<List<int>> read() {
@@ -15,8 +15,8 @@ final class PrimitiveNonStringBodyData<T> extends BaseBodyData<T> {
   }
 
   @override
-  ReadOnlyHeaders headers(ReadOnlyHeaders? requestHeaders) {
-    return MutableHeadersImpl()
+  Headers headers(Headers? requestHeaders) {
+    return HeadersImpl()
       ..mimeType = mimeType
       ..contentLength = contentLength;
   }

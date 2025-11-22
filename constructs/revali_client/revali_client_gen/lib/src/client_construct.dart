@@ -13,10 +13,7 @@ class ServerClient extends Construct {
   final Settings settings;
 
   @override
-  RevaliDirectory generate(
-    covariant RevaliContext context,
-    MetaServer server,
-  ) {
+  RevaliDirectory generate(covariant RevaliContext context, MetaServer server) {
     final client = ClientServer.fromMeta(context, server);
 
     final formatter = DartFormatter(

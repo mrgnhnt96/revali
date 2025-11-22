@@ -1,5 +1,24 @@
 # CHANGELOG
 
+## 2.0.2 | 11.22.25
+
+### Chore
+
+- Sync package versions
+
+## 2.0.2-dev | 10.15.25
+
+### Fix
+
+- Dependencies
+
+## 2.0.0-dev | 10.15.25
+
+### Breaking Changes
+
+- Remove `ExpectHeaders`
+- Add `PreventHeaders`
+
 ## 1.4.1 | 05.08.25
 
 ### Enhancements

@@ -1,5 +1,23 @@
 # CHANGELOG
 
+## 2.0.2 | 11.22.25
+
+### Chore
+
+- Sync package versions
+
+## 2.0.2-dev | 10.15.25
+
+### Fix
+
+- Dependencies
+
+## 2.0.0-dev | 09.19.25
+
+### Breaking Changes
+
+- Update `analyzer` dependency to `^8.0.0`
+
 ## 1.8.0 | 08.16.25
 
 ### Features

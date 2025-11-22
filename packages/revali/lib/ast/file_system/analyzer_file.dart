@@ -2,33 +2,21 @@ import 'dart:io' as io;
 import 'dart:typed_data';
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/source/file_source.dart';
-import 'package:analyzer/source/source.dart';
 import 'package:file/file.dart' as f;
 import 'package:file/file.dart' show FileSystem;
 import 'package:path/path.dart' as p;
 import 'package:revali/ast/file_system/analyzer_folder.dart';
 import 'package:revali/ast/file_system/file_resource_provider.dart';
 import 'package:revali/ast/file_system/util/watch_event_extension.dart';
-// ignore: implementation_imports
-import 'package:watcher/src/watch_event.dart';
 
 class AnalyzerFile implements File {
-  AnalyzerFile(
-    this.file,
-    this.provider,
-  );
+  AnalyzerFile(this.file, this.provider);
 
   @override
   final ResourceProvider provider;
   final f.File file;
 
   FileSystem get fileSystem => file.fileSystem;
-
-  @override
-  Stream<WatchEvent> get changes {
-    return file.watch().toAnalyzerStream();
-  }
 
   @override
   File copyTo(Folder parentFolder) {
@@ -41,20 +29,12 @@ class AnalyzerFile implements File {
   }
 
   @override
-  Source createSource([Uri? uri]) {
-    return FileSource(this, uri ?? p.context.toUri(path));
-  }
-
-  @override
   bool isOrContains(String path) {
     return p.isWithin(file.path, path);
   }
 
   @override
   int get modificationStamp => file.statSync().modified.millisecondsSinceEpoch;
-
-  @override
-  Folder get parent2 => file.parent.toAnalyzerFolder(fileSystem);
 
   @override
   String get shortName => p.basename(file.path);
@@ -128,15 +108,11 @@ class AnalyzerFile implements File {
 }
 
 extension FileX on f.File {
-  AnalyzerFile toAnalyzerFile() => AnalyzerFile(
-        this,
-        FileResourceProvider(fileSystem),
-      );
+  AnalyzerFile toAnalyzerFile() =>
+      AnalyzerFile(this, FileResourceProvider(fileSystem));
 }
 
 extension FileIOX on io.File {
-  AnalyzerFile toAnalyzerFile(FileSystem fs) => AnalyzerFile(
-        fs.file(path),
-        FileResourceProvider(fs),
-      );
+  AnalyzerFile toAnalyzerFile(FileSystem fs) =>
+      AnalyzerFile(fs.file(path), FileResourceProvider(fs));
 }

@@ -3,10 +3,7 @@ import 'package:mason_logger/mason_logger.dart';
 import 'package:revali_server/cli/commands/create/create_components/create_a_component_command.dart';
 
 class CreatePipeCommand extends CreateAComponentCommand {
-  CreatePipeCommand({
-    required super.fs,
-    required super.logger,
-  }) {
+  CreatePipeCommand({required super.fs, required super.logger}) {
     argParser
       ..addOption(
         'return-type',
@@ -53,11 +50,7 @@ class CreatePipeCommand extends CreateAComponentCommand {
     var inputType = argResults?['input-type'] as String?;
 
     const other = 'Other';
-    const defaultInputs = [
-      'String',
-      'Map<String, dynamic>',
-      other,
-    ];
+    const defaultInputs = ['String', 'Map<String, dynamic>', other];
 
     while (inputType == null || inputType.isEmpty) {
       final result = logger.chooseOne(

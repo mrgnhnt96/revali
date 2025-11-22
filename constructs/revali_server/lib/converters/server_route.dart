@@ -25,10 +25,7 @@ class ServerRoute with ExtractImport {
   final ServerRouteAnnotations annotations;
 
   @override
-  List<ExtractImport?> get extractors => [
-        ...params,
-        annotations,
-      ];
+  List<ExtractImport?> get extractors => [...params, annotations];
 
   @override
   List<ServerImports?> get imports => [];

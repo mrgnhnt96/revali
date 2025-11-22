@@ -1,79 +1,132 @@
 ---
 title: CLI
-description: Learn how to use the Revali CLI to create components for your Revali application.
+description: Use the Revali Server CLI to accelerate your development workflow
 sidebar_position: 1
 ---
 
 # Revali Server CLI
 
-The Revali Server CLI is a tool that can be used to enhance the development of your Revali application. The CLI is installed when you add `revali_server` as a dev dependency during the [installation][installation] process.
+The Revali Server CLI is your development companion, providing powerful code generation tools that help you build faster and more consistently. It's automatically available once you've completed the [installation](./installation.md).
 
-## Commands
+## Getting Started
 
-### Create
+The CLI is accessed through the `dart run revali_server` command. To see all available options:
 
-The `create` command is used to generate components for your Revali application. The following components can be generated using the `create` command:
+```bash
+dart run revali_server --help
+```
 
-- [App]
+## Code Generation Made Easy
 
-    ```bash
-    dart run revali_server create app
-    ```
+The `create` command is your gateway to rapid development. It generates boilerplate code for all major Revali Server components, following best practices and naming conventions.
 
-- [Controller]
+### Interactive Mode
 
-    ```bash
-    dart run revali_server create controller
-    ```
-
-- [Lifecycle Component]
-
-    ```bash
-    dart run revali_server create lifecycle-component
-    ```
-
-- [Observer]
-
-    ```bash
-    dart run revali_server create observer
-    ```
-
-- [Pipe]
-
-    ```bash
-    dart run revali_server create pipe
-    ```
-
-:::tip
-You can choose from a list of available options by running the `create` command without any arguments.
+The easiest way to get started is with interactive mode:
 
 ```bash
 dart run revali_server create
 ```
 
-:::
+This will present you with a menu of available components to generate, making it perfect for beginners or when you're unsure what you need.
 
-## Configuration
+### Direct Component Creation
 
-Each of the components using the `create` command are generated into specific folders within your Revali application. If you would like to change the default configuration, you can do so by creating a `revali.yaml` file in the root of your project.
+For faster development, you can create components directly:
 
-The following is an example of a `revali.yaml` file containing the default configuration:
+#### 🎯 Controllers
+
+Generate API endpoint controllers with proper routing setup.
+
+```bash
+dart run revali_server create controller
+```
+
+**What you get:** A fully configured controller class with the `@Controller` annotation and example methods.
+
+#### 🏗️ Apps
+
+Create application configuration files for complex setups.
+
+```bash
+dart run revali_server create app
+```
+
+**What you get:** A complete app configuration with middleware, routing, and lifecycle management.
+
+#### 🔄 Lifecycle Components
+
+Generate components that hook into the application lifecycle.
+
+```bash
+dart run revali_server create lifecycle-component # or lc for short
+```
+
+**What you get:** A component class with lifecycle method stubs and proper annotations.
+
+#### 👀 Observers
+
+Create event observers for monitoring and logging.
+
+```bash
+dart run revali_server create observer
+```
+
+**What you get:** An observer class with event handling methods and proper registration.
+
+#### 🔧 Pipes
+
+Generate data transformation and validation pipes.
+
+```bash
+dart run revali_server create pipe
+```
+
+**What you get:** A pipe class with transformation logic and proper error handling.
+
+## Customizing Your Project Structure
+
+By default, the CLI generates components in standard locations, but you can customize this to match your project's organization.
+
+### Default Structure
+
+```
+routes/
+  ├── controllers/                  # Controllers go here
+  └── app/                          # App configs go here
+lib/
+  └── components/
+      ├── lifecycle_components/     # Lifecycle components
+      ├── observers/                # Event observers
+      └── pipes/                    # Data pipes
+
+```
+
+### Custom Configuration
+
+Create a `revali.yaml` file in your project root to customize paths:
 
 ```yaml title="revali.yaml"
 revali_server:
-    create_path:
-        app: [ "routes", "app" ]
-        controller: [ "routes", "controllers" ]
-        lifecycle_component: [ "components", "lifecycle_components" ]
-        observer: [ "components", "observers" ]
-        pipe: [ "components", "pipes" ]
+  create_path:
+    # Use arrays for nested directories
+    controller: ["routes", "controllers"]
+    app: ["routes", "apps"]
+    lifecycle_component: ["lib", "components", "lifecycle_components"]
+    observer: ["lib", "components", "observers"]
+    pipe: ["lib", "components", "pipes"]
 ```
 
-The `create_path` configuration allows you to specify the folder structure for each component type. The value of each component type can be either a string or a list of strings.
+### Path Configuration Options
 
-[installation]: ./installation.md
-[controller]: ../core/controllers.md
-[app]: ../../../revali/app-configuration/create-an-app.md
-[lifecycle component]: ../lifecycle-components/components.md
-[observer]: ../lifecycle-components/observer.md
-[pipe]: ../core/pipes.md
+- **Array format**: `["folder1", "folder2", "folder3"]` creates nested directories (`./folder1/folder2/folder3`)
+- **String format**: `"folder"` creates a single directory (`./folder`)
+
+## What's Next?
+
+Now that you know how to use the CLI, you're ready to:
+
+1. **[Create your first endpoint](./create-your-first-endpoint.md)** - Use the CLI to generate a controller and build your first API
+2. **[Run your server](./run-the-server.md)** - Start the development server and see your code in action
+
+Ready to build something amazing? Let's create your first endpoint!

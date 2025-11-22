@@ -21,8 +21,7 @@ void main() {
       server.close();
     });
 
-    test(
-        'should catch exception and return successfully '
+    test('should catch exception and return successfully '
         'when no catcher is present', () async {
       final response = await server.send(
         method: 'GET',
@@ -79,9 +78,7 @@ routes/controllers/exception_catcher_controller.dart'''),
 
       expect(body, {
         'message': 'Hello world!',
-        '__DEBUG__': {
-          'error': '{message: Hello world!}',
-        },
+        '__DEBUG__': {'error': '{message: Hello world!}'},
       });
 
       expect(
@@ -105,9 +102,7 @@ routes/controllers/exception_catcher_controller.dart'''),
       final stackTrace = error['__DEBUG__'].remove('stackTrace');
       expect(body, ['a', 'b', 'c']);
       expect(error, {
-        '__DEBUG__': {
-          'error': '[a, b, c]',
-        },
+        '__DEBUG__': {'error': '[a, b, c]'},
       });
 
       expect(
@@ -131,9 +126,7 @@ routes/controllers/exception_catcher_controller.dart'''),
       final stackTrace = error['__DEBUG__'].remove('stackTrace');
       expect(body, ['hello', 'world']);
       expect(error, {
-        '__DEBUG__': {
-          'error': '{hello, world}',
-        },
+        '__DEBUG__': {'error': '{hello, world}'},
       });
 
       expect(
@@ -155,15 +148,10 @@ routes/controllers/exception_catcher_controller.dart'''),
       final error = body.removeLast();
       // ignore: avoid_dynamic_calls
       final stackTrace = error['__DEBUG__'].remove('stackTrace');
-      expect(body, [
-        'Hello',
-        'world',
-      ]);
+      expect(body, ['Hello', 'world']);
 
       expect(error, {
-        '__DEBUG__': {
-          'error': '(Hello, world)',
-        },
+        '__DEBUG__': {'error': '(Hello, world)'},
       });
 
       expect(

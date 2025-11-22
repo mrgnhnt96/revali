@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:collection/collection.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
@@ -9,10 +9,7 @@ import 'package:revali_server/makers/utils/type_extensions.dart';
 import 'package:revali_server/utils/extract_import.dart';
 
 class ServerBind with ExtractImport {
-  ServerBind({
-    required this.bind,
-    required this.reflect,
-  });
+  ServerBind({required this.bind, required this.reflect});
 
   factory ServerBind.fromType(DartType type) {
     ServerReflect? reflect;
@@ -40,7 +37,7 @@ class ServerBind with ExtractImport {
   final ServerReflect? reflect;
 
   @override
-  List<ExtractImport> get extractors => [bind];
+  List<ExtractImport?> get extractors => [bind, reflect];
 
   @override
   List<ServerImports> get imports => const [];

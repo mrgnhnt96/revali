@@ -19,4 +19,9 @@ class CookiesController {
   @AddCookies()
   @Get('lifecycle')
   void lifecycle() {}
+
+  @Get('empty')
+  void empty(SetCookies cookies) {
+    cookies['X-Auth'] = '';
+  }
 }

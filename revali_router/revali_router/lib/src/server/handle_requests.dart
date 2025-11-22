@@ -4,13 +4,11 @@ import 'dart:io';
 
 import 'package:revali_router/src/request/request_context_impl.dart';
 import 'package:revali_router/src/response/simple_response.dart';
-import 'package:revali_router_core/request/request_context.dart';
-import 'package:revali_router_core/response/read_only_response.dart';
-import 'package:revali_router_core/response_handler/response_handler.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 
 Future<void> handleRequests(
   HttpServer server,
-  Future<ReadOnlyResponse> Function(RequestContext context) handler,
+  Future<Response> Function(RequestContext context) handler,
   Future<ResponseHandler> Function(RequestContext context) responseHandler,
   void Function() close,
 ) async {

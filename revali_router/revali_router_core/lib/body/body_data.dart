@@ -1,9 +1,8 @@
 import 'dart:convert';
 
-import 'package:revali_router_core/body/read_only_body.dart';
-import 'package:revali_router_core/headers/read_only_headers.dart';
+import 'package:revali_router_core/method_mutations/headers/headers.dart';
 
-abstract base class BodyData extends ReadOnlyBody {
+abstract base class BodyData {
   BodyData();
 
   /// The mime type of the body.
@@ -24,7 +23,6 @@ abstract base class BodyData extends ReadOnlyBody {
   /// Reads the body as a stream of bytes.
   ///
   /// If the body has already been read, this will return the same data.
-  @override
   Stream<List<int>>? read();
 
   /// Resolves the headers based on the body.
@@ -33,5 +31,12 @@ abstract base class BodyData extends ReadOnlyBody {
   /// - `Content-Type`
   /// - `Content-Length`
   /// - `Content-Encoding`
-  ReadOnlyHeaders headers(ReadOnlyHeaders? requestHeaders);
+  Headers headers(Headers? requestHeaders);
+
+  dynamic get data;
+
+  bool get isNull;
+
+  @override
+  String toString() => '$data';
 }

@@ -5,14 +5,14 @@ class Execute {
 
   final HelperMixin helper;
 
-  Future<ReadOnlyResponse> run() async {
+  Future<Response> run() async {
     final HelperMixin(
       :route,
       :request,
       :response,
       :debugErrorResponse,
       :defaultResponses,
-      context: ContextMixin(endpoint: context),
+      context: ContextMixin(main: context),
       run: RunMixin(
         :interceptors,
         :guards,
@@ -55,13 +55,16 @@ class Execute {
     final isHeadRequest = route.method == 'GET' && request.method == 'HEAD';
 
     if (!isHeadRequest) {
-      final errorResponse = Completer<ReadOnlyResponse?>();
+      final errorResponse = Completer<Response?>();
       await runZonedGuarded(() async {
         try {
           await handler(context);
         } catch (e, stackTrace) {
-          final response = await catchers(e, stackTrace);
-          errorResponse.complete(response);
+          final responseForError = await catchers(e, stackTrace);
+          responseForError.headers.addEverything(
+            response.headers.values,
+          );
+          errorResponse.complete(responseForError);
         }
 
         if (!errorResponse.isCompleted) {

@@ -14,7 +14,7 @@ class WebSocketRoute extends BaseRoute {
     super.path, {
     required this.mode,
     required this.handler,
-    super.allowedHeaders,
+    super.preventedHeaders,
     super.allowedOrigins,
     super.catchers,
     super.combine,
@@ -36,7 +36,7 @@ class WebSocketRoute extends BaseRoute {
 
   @override
   // ignore: overridden_fields
-  final Future<WebSocketHandler> Function(EndpointContext) handler;
+  final Future<WebSocketHandler> Function(Context) handler;
 
   @override
   List<Object?> get props => _$props;

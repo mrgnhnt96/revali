@@ -7,30 +7,24 @@ import 'dart:typed_data';
 import 'package:equatable/equatable.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:revali_annotations/revali_annotations.dart' hide WebSocket;
-import 'package:revali_router/src/body/mutable_body_impl.dart';
+import 'package:revali_router/src/body/body_impl.dart';
 import 'package:revali_router/src/body/response_body/base_body_data.dart';
-import 'package:revali_router/src/endpoint/endpoint_context_impl.dart';
-import 'package:revali_router/src/exception_catcher/exception_catcher_context_impl.dart';
-import 'package:revali_router/src/exception_catcher/exception_catcher_meta_impl.dart';
+import 'package:revali_router/src/context/context_impl.dart';
+import 'package:revali_router/src/data/data_impl.dart';
 import 'package:revali_router/src/exceptions/close_web_socket_exception.dart';
 import 'package:revali_router/src/exceptions/guard_stop_exception.dart';
 import 'package:revali_router/src/exceptions/invalid_handler_result_exception.dart';
 import 'package:revali_router/src/exceptions/middleware_stop_exception.dart';
 import 'package:revali_router/src/exceptions/missing_handler_exception.dart';
 import 'package:revali_router/src/exceptions/route_not_found_exception.dart';
-import 'package:revali_router/src/guard/guard_context_impl.dart';
-import 'package:revali_router/src/guard/guard_meta_impl.dart';
-import 'package:revali_router/src/interceptor/interceptor_context_impl.dart';
-import 'package:revali_router/src/interceptor/interceptor_meta_impl.dart';
-import 'package:revali_router/src/meta/meta_detailed_impl.dart';
-import 'package:revali_router/src/middleware/middleware_context_impl.dart';
+import 'package:revali_router/src/meta/meta_scope_impl.dart';
 import 'package:revali_router/src/payload/payload_impl.dart';
-import 'package:revali_router/src/request/mutable_request_impl.dart';
-import 'package:revali_router/src/request/mutable_web_socket_request_context_impl.dart';
 import 'package:revali_router/src/request/request_context_impl.dart';
+import 'package:revali_router/src/request/request_impl.dart';
+import 'package:revali_router/src/request/web_socket_request_context_impl.dart';
 import 'package:revali_router/src/response/canned_response.dart';
 import 'package:revali_router/src/response/default_responses.dart';
-import 'package:revali_router/src/response/mutable_response_impl.dart';
+import 'package:revali_router/src/response/response_impl.dart';
 import 'package:revali_router/src/response/simple_response.dart';
 import 'package:revali_router/src/response/web_socket_response.dart';
 import 'package:revali_router/src/response_handler/default_response_handler.dart';
@@ -69,7 +63,7 @@ class Router extends Equatable {
   Router({
     required this.routes,
     LifecycleComponents? globalComponents,
-    Set<Reflect> reflects = const {},
+    Set<ReflectData> reflects = const {},
     this.observers = const [],
     this.debug = false,
     this.defaultResponses = const DefaultResponses(),
@@ -78,7 +72,7 @@ class Router extends Equatable {
 
   final List<Observer> observers;
   final List<BaseRoute> routes;
-  final Set<Reflect> _reflects;
+  final Set<ReflectData> _reflects;
   final LifecycleComponents? _globalComponents;
   final bool debug;
   final DefaultResponses defaultResponses;
@@ -88,13 +82,13 @@ class Router extends Equatable {
   /// Handles an HTTP request.
   ///
   /// Passes the request to the [handle] method.
-  Future<ReadOnlyResponse> handleHttpRequest(HttpRequest request) async {
+  Future<Response> handleHttpRequest(HttpRequest request) async {
     final context = RequestContextImpl.fromRequest(request);
     return await handle(context);
   }
 
-  ReadOnlyResponse _debugResponse(
-    ReadOnlyResponse response, {
+  Response _debugResponse(
+    Response response, {
     required Object error,
     required StackTrace stackTrace,
   }) {
@@ -106,7 +100,7 @@ class Router extends Equatable {
       return response;
     }
 
-    final ReadOnlyResponse(:body, :headers, :statusCode) = response;
+    final Response(:body, :headers, :statusCode) = response;
 
     return SimpleResponse(
       statusCode,
@@ -139,13 +133,13 @@ class Router extends Equatable {
     }
   }
 
-  Future<ReadOnlyResponse> handle(RequestContext context) async {
-    final responseCompleter = Completer<ReadOnlyResponse>();
+  Future<Response> handle(RequestContext context) async {
+    final responseCompleter = Completer<Response>();
 
     HelperMixin helper;
 
     try {
-      final request = MutableRequestImpl.fromRequest(context);
+      final request = RequestImpl.fromRequest(context);
 
       for (final observer in observers) {
         observer.see(request, responseCompleter.future).ignore();
@@ -192,7 +186,7 @@ class Router extends Equatable {
       return response;
     }
 
-    final cleanUp = helper.dataHandler.get<CleanUp>();
+    final cleanUp = helper.data.get<CleanUp>();
     if (cleanUp is CleanUpImpl) {
       context.addCleanUp(cleanUp.clean);
       _cleanUp.add(cleanUp.clean);
@@ -206,7 +200,7 @@ class Router extends Equatable {
     return response;
   }
 
-  Future<ReadOnlyResponse> _handle(HelperMixin helper) async {
+  Future<Response> _handle(HelperMixin helper) async {
     final HelperMixin(
       run: RunMixin(
         :options,
@@ -233,7 +227,7 @@ class Router extends Equatable {
     return await execute.run().catchError(catchers.call);
   }
 
-  HelperMixin _createHelper(BaseRoute route, MutableRequestImpl request) {
+  HelperMixin _createHelper(BaseRoute route, RequestImpl request) {
     return Helper(
       route: route,
       request: request,

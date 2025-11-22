@@ -45,7 +45,7 @@ class _Middleware implements Middleware {
   final StreamController<String> controller;
 
   @override
-  Future<MiddlewareResult> use(MiddlewareContext context) async {
+  Future<MiddlewareResult> use(Context context) async {
     controller.add('Middleware');
     return const MiddlewareResult.next();
   }
@@ -57,7 +57,7 @@ class _Guard implements Guard {
   final StreamController<String> controller;
 
   @override
-  Future<GuardResult> protect(GuardContext context) async {
+  Future<GuardResult> protect(Context context) async {
     controller.add('Guard');
 
     return const GuardResult.pass();
@@ -70,12 +70,12 @@ class _Interceptor implements Interceptor {
   final StreamController<String> controller;
 
   @override
-  Future<void> post(FullInterceptorContext context) async {
+  Future<void> post(Context context) async {
     controller.add('Interceptor-post');
   }
 
   @override
-  Future<void> pre(RestrictedInterceptorContext context) async {
+  Future<void> pre(Context context) async {
     controller.add('Interceptor-pre');
   }
 }
@@ -87,8 +87,8 @@ class _Observer implements Observer {
 
   @override
   Future<void> see(
-    ReadOnlyRequest request,
-    Future<ReadOnlyResponse> response,
+    Request request,
+    Future<Response> response,
   ) async {
     controller.add('Observer-pre');
     await response;

@@ -42,14 +42,14 @@ final class TestClient implements HttpClient {
       null => const Stream<List<int>>.empty(),
       final String e => Stream.value(utf8.encode(e)),
       final List<dynamic> e => Stream.fromIterable(
-          e.map((e) {
-            if (e is String) {
-              return utf8.encode(e);
-            }
+        e.map((e) {
+          if (e is String) {
+            return utf8.encode(e);
+          }
 
-            return utf8.encode(jsonEncode(e));
-          }),
-        ),
+          return utf8.encode(jsonEncode(e));
+        }),
+      ),
       _ => Stream.value(utf8.encode(jsonEncode(response.body))),
     };
 
@@ -92,33 +92,34 @@ final class TestClient implements HttpClient {
 
     server
         .connect(
-      method: request.method,
-      path: request.url.path,
-      headers: request.headers,
-      body: Stream.value(utf8.encode(request.body)),
-      onResponse: (resp) async {
-        resp.headers.forEach((key, values) {
-          response.headers[key] = values.join(', ');
-        });
-        response
-          ..statusCode = resp.statusCode
-          ..contentLength = resp.contentLength
-          ..persistentConnection = resp.persistentConnection
-          ..reasonPhrase = resp.reasonPhrase;
+          method: request.method,
+          path: request.url.path,
+          headers: request.headers,
+          body: Stream.value(utf8.encode(request.body)),
+          onResponse: (resp) async {
+            resp.headers.forEach((key, values) {
+              response.headers[key] = values.join(', ');
+            });
+            response
+              ..statusCode = resp.statusCode
+              ..contentLength = resp.contentLength
+              ..persistentConnection = resp.persistentConnection
+              ..reasonPhrase = resp.reasonPhrase;
 
-        onResponse?.call(response);
-      },
-    )
+            onResponse?.call(response);
+          },
+        )
         .asyncMap((e) async {
-      await canSend.future;
+          await canSend.future;
 
-      return e;
-    }).listen(
-      body.add,
-      onDone: body.close,
-      onError: body.addError,
-      cancelOnError: true,
-    );
+          return e;
+        })
+        .listen(
+          body.add,
+          onDone: body.close,
+          onError: body.addError,
+          cancelOnError: true,
+        );
 
     await Future<void>.delayed(Duration.zero);
 

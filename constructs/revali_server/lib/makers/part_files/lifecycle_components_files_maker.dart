@@ -12,10 +12,10 @@ Iterable<PartFile> lifecycleComponentFilesMaker(
   String Function(Spec) formatter,
 ) sync* {
   List<String> path(String file) => [
-        'lifecycle_components',
-        component.name.toSnakeCase(),
-        file.toNoCase().trim().toSnakeCase(),
-      ];
+    'lifecycle_components',
+    component.name.toSnakeCase(),
+    file.toNoCase().trim().toSnakeCase(),
+  ];
 
   if (component.hasExceptionCatchers) {
     yield PartFile(

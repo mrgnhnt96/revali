@@ -8,8 +8,8 @@ class Continue implements LifecycleComponent {
 
   MiddlewareResult authHandler(
     @Header() String auth,
-    MutableHeaders headers,
-    DataHandler data,
+    Headers headers,
+    Data data,
   ) {
     switch (type) {
       case MiddlewareType.read:
@@ -26,10 +26,7 @@ class Continue implements LifecycleComponent {
 class ItsFine implements LifecycleComponent {
   const ItsFine();
 
-  MiddlewareResult authHandler(
-    MutableHeaders headers,
-    DataHandler data,
-  ) {
+  MiddlewareResult authHandler(Headers headers, Data data) {
     const string = 'yo yo yo';
     headers.set('X-Auth', string);
     data.add(string);
@@ -44,13 +41,8 @@ class Stop implements LifecycleComponent {
   final String? message;
 
   MiddlewareResult authHandler() {
-    return MiddlewareResult.stop(
-      body: message,
-    );
+    return MiddlewareResult.stop(body: message);
   }
 }
 
-enum MiddlewareType {
-  read,
-  write,
-}
+enum MiddlewareType { read, write }

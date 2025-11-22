@@ -1,6 +1,7 @@
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
+import 'package:revali_router_core/revali_router_core.dart' hide Body;
 import 'package:revali_server/converters/base_parameter_annotation.dart';
 import 'package:revali_server/converters/server_binds_annotation.dart';
 import 'package:revali_server/converters/server_body_annotation.dart';
@@ -27,21 +28,21 @@ class ServerParamAnnotations with ExtractImport {
     required this.bind,
   });
   ServerParamAnnotations.none()
-      : body = null,
-        query = null,
-        header = null,
-        cookie = null,
-        param = null,
-        dep = false,
-        data = false,
-        binds = null,
-        bind = null;
+    : body = null,
+      query = null,
+      header = null,
+      cookie = null,
+      param = null,
+      dep = false,
+      data = false,
+      binds = null,
+      bind = null;
 
   factory ServerParamAnnotations.fromMeta(MetaParam metaParam) {
     return ServerParamAnnotations._getter(metaParam.annotationsFor);
   }
 
-  factory ServerParamAnnotations.fromElement(ParameterElement element) {
+  factory ServerParamAnnotations.fromElement(FormalParameterElement element) {
     return ServerParamAnnotations._getter(({
       required List<OnMatch> onMatch,
       NonMatch? onNonMatch,
@@ -119,7 +120,7 @@ class ServerParamAnnotations with ExtractImport {
         ),
         OnMatch(
           classType: Data,
-          package: 'revali_router_annotations',
+          package: 'revali_router_core',
           convert: (object, annotation) {
             data = true;
           },
@@ -250,14 +251,14 @@ class ServerParamAnnotations with ExtractImport {
 
   @override
   List<ExtractImport?> get extractors => [
-        body,
-        query,
-        cookie,
-        header,
-        param,
-        bind,
-        bind,
-      ];
+    body,
+    query,
+    cookie,
+    header,
+    param,
+    bind,
+    binds,
+  ];
 
   @override
   List<ServerImports?> get imports => const [];

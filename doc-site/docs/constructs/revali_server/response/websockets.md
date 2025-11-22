@@ -1,10 +1,12 @@
 ---
-description: Two-way communication between a client and a server
+description: Real-time bidirectional communication between client and server
 ---
 
 # WebSockets
 
-WebSockets allow two-way communication between a client and a server, enabling both to send messages at any time. Unlike HTTP, which is request-response based, support real-time data exchange.
+> Annotation: `@WebSocket`
+
+WebSockets enable real-time, bidirectional communication between client and server. Unlike HTTP's request-response pattern, WebSockets allow both sides to send messages at any time.
 
 ## Creating a WebSocket Handler
 
@@ -13,232 +15,411 @@ Create a WebSocket handler by annotating a method with `@WebSocket`:
 ```dart
 import 'package:revali_router/revali_router.dart';
 
-@Controller('example')
-class MyController {
-    const MyController();
+@Controller('chat')
+class ChatController {
+  const ChatController();
 
-    // highlight-next-line
-    @WebSocket('websocket')
-    String echoMessage(@Body() String message) {
-        return 'Echo: $message';
-    }
+  @WebSocket('messages')
+  String handleMessage(@Body() String message) {
+    return 'Echo: $message';
+  }
 }
 ```
 
 :::note
-If you're running the server locally, you can connect to the WebSocket via `ws://localhost:8080/example/websocket`.
+**Connection URL:** If running locally, connect via `ws://localhost:8080/chat/messages`
 :::
 
-Every time a message is sent to the WebSocket, the handler (`echoMessage`) will be called. If you're expecting data from the client, you can bind the message using the `@Body` annotation. The headers sent by the client to connect to the WebSocket will remain the same throughout the connection.
+## WebSocket Modes
 
-:::tip
-Learn more about [binding] parameters.
-:::
+### Two-Way Communication (Default)
 
-If you need to send data to the client _without_ waiting for a message from the client, you can use the `AsyncWebSocketSender` parameter.
+Both client and server can send messages:
 
 ```dart
-@WebSocket('websocket')
-String sendMessage(AsyncWebSocketSender<String> sender) {
-    someAsyncOperation().then((value) {
-        sender.send(value);
-    });
+@WebSocket('messages', mode: WebSocketMode.twoWay)
+String handleMessage(@Body() String message) {
+  return 'Echo: $message';
+}
+```
 
-    ...
+### Receive-Only
+
+Server only receives messages from client:
+
+```dart
+@WebSocket('messages', mode: WebSocketMode.receiveOnly)
+void handleMessage(@Body() String message) {
+  // Process message without sending response
+  print('Received: $message');
+}
+```
+
+### Send-Only
+
+Server only sends messages to client:
+
+```dart
+@WebSocket('notifications', mode: WebSocketMode.sendOnly)
+String sendNotification() {
+  return 'Server notification';
+}
+```
+
+## Handling Messages
+
+### Basic Message Handling
+
+```dart
+@WebSocket('chat')
+String handleChatMessage(@Body() String message) {
+  // Process the message
+  final processedMessage = processMessage(message);
+
+  // Return response to client
+  return 'Server: $processedMessage';
+}
+```
+
+### JSON Messages
+
+```dart
+class ChatMessage {
+  const ChatMessage({required this.user, required this.text});
+
+  final String user;
+  final String text;
+
+  factory ChatMessage.fromJson(Map<String, dynamic> json) {
+    return ChatMessage(
+      user: json['user'] as String,
+      text: json['text'] as String,
+    );
+  }
+}
+
+@WebSocket('chat')
+String handleChatMessage(@Body() ChatMessage message) {
+  return '${message.user}: ${message.text}';
+}
+```
+
+### Async Message Handling
+
+```dart
+@WebSocket('async')
+Future<String> handleAsyncMessage(@Body() String message) async {
+  // Simulate async processing
+  await Future.delayed(const Duration(seconds: 1));
+
+  return 'Processed: $message';
+}
+```
+
+## Sending Messages Without Client Input
+
+Use `AsyncWebSocketSender` to send messages without waiting for client input:
+
+```dart
+@WebSocket('notifications')
+String sendNotifications(AsyncWebSocketSender<String> sender) {
+  // Send periodic notifications
+  Timer.periodic(const Duration(seconds: 5), (timer) {
+    sender.send('Notification ${DateTime.now()}');
+  });
+
+  return 'Notifications started';
 }
 ```
 
 :::important
-The `AsyncWebSocketSender` **must** contain the same type parameter as the return type of the handler. However, you must drop the `Future` type (if applicable).
+**Type Matching:** The `AsyncWebSocketSender` type parameter must match the return type of your handler:
 
 ```dart
-Future<String> => AsyncWebSocketSender<String>
-Stream<String> => AsyncWebSocketSender<<Stream<String>>>
 String => AsyncWebSocketSender<String>
+Future<String> => AsyncWebSocketSender<String>
+Stream<String> => AsyncWebSocketSender<Stream<String>>
 ```
 
 :::
 
-### Two-Way Communication
+## Connection Management
 
-By default, the WebSocket connection is two-way. This means that the client can send messages to the server and the server can send messages to the client.
+### Closing Connections
 
-```dart
-@WebSocket('websocket', mode: WebSocketMode.twoWay)
-```
+#### Send-Only Mode
 
-### Receive-Only Communication
-
-If you only want the server to receive messages from the client, you can set the mode to `WebSocketMode.receiveOnly`.
+Connections close automatically when the handler returns:
 
 ```dart
-@WebSocket('websocket', mode: WebSocketMode.receiveOnly)
-```
-
-### Send-Only Communication
-
-If you only want the server to send messages to the client, you can set the mode to `WebSocketMode.sendOnly`.
-
-```dart
-@WebSocket('websocket', mode: WebSocketMode.sendOnly)
-```
-
-## Closing the Connection
-
-Closing a connection to the WebSocket can be done in a few ways. It depends on type of Web Socket you are using.
-
-### Send Only
-
-As soon as your handler is resolved, the connection will be closed.
-
-```dart
-@WebSocket('websocket', mode: WebSocketMode.sendOnly)
-String sendOnly() {
-    return 'Hello World'; // Returning a value will close the connection
+@WebSocket('send-only', mode: WebSocketMode.sendOnly)
+String sendData() {
+  return 'Final message'; // Connection closes after this
 }
 ```
 
-### Two Way or Receive Only
+#### Two-Way and Receive-Only Modes
 
-Since we are receiving messages from the client, the connection will stay open until the client closes the connection or until you manually close the connection.
+Connections stay open until manually closed:
 
 ```dart
-@WebSocket('websocket', mode: WebSocketMode.twoWay)
-String twoWay() {
-    return 'Hello World'; // Does not close the connection
+@WebSocket('persistent', mode: WebSocketMode.twoWay)
+String handleMessage(CloseWebSocket closer) {
+  // Check if connection should close
+  if (shouldCloseConnection()) {
+    closer.close(1000, 'Normal closure');
+    return '';
+  }
+
+  return 'Message processed';
 }
 ```
 
-The example above will not close the connection, because the handler is going to be called again when a new message is received from the client. To close the connection, you will need to add a `CloseWebSocket` parameter to your handler.
+### Close Codes
+
+WebSocket close codes follow HTTP status code principles but use the range 1000-4999:
 
 ```dart
-@WebSocket('websocket', mode: WebSocketMode.twoWay)
-String twoWay(CloseWebSocket closer) {
-    if (...) {
-        closer.close(1000, 'Normal Closure');
-        return;
-    }
+// Normal closure
+closer.close(1000, 'Normal closure');
 
-    return 'Hello World'; // Does not close the connection
-}
+// Going away
+closer.close(1001, 'Going away');
+
+// Protocol error
+closer.close(1002, 'Protocol error');
+
+// Unsupported data
+closer.close(1003, 'Unsupported data');
+
+// Custom application codes (4000-4999)
+closer.close(4000, 'Custom application error');
 ```
-
-Once the `CloseWebSocket.close` is called, any remaining messages will be processed and sent to the client. After the messages are sent, the connection will be closed.
-
----
-
-The `CloseWebSocket.close` method accepts a `code` and a `reason` argument. The `code` is the status code of the close event, and carries the same principles as a normal `HTTP` status code. The difference is that the codes are in the range of `1000` to `4999`. The `reason` is the reason for closing the connection, and is a string that is limited to 125 bytes (Which is 125 characters in UTF-8).
-
-:::tip
-Learn more about [websocket error codes][web-socket-error-codes].
-:::
 
 :::danger
-The `reason` will be truncated if it is longer than 125 bytes.
+**Reason Length:** The close reason is limited to 125 bytes (125 characters in UTF-8). Longer reasons will be truncated.
 :::
 
-## Connecting to the WebSocket
+## Advanced Features
 
-There are packages that will help you connect to Web Sockets. For example, you can use the `web_socket_channel` package to connect to a WebSocket.
+### Ping/Pong
+
+Enable automatic ping/pong to keep connections alive:
 
 ```dart
-import 'dart:convert';
-
-import 'package:web_socket_channel/io.dart';
-
-void main() {
-    final uri = Uri.parse('ws://localhost:8080/example/websocket');
-
-    // Connect to the remote WebSocket endpoint.
-    final channel = IOWebSocketChannel.connect(
-        uri.toString(),
-        headers: {
-            Headers.contentEncodingHeader: 'utf-8',
-            Headers.contentTypeHeader: 'application/json',
-        },
-    );
-
-    // Subscribe to messages from the server.
-    channel.stream.listen(
-        (message) {
-            final decoded = switch (message) {
-            String() => message,
-            List<int>() => utf8.decode(List<int>.from(message)),
-            _ => throw UnsupportedError(
-                'Unsupported message type: ${message.runtimeType}',
-                ),
-            };
-
-            print('SERVER: $decoded');
-        },
-        onError: (dynamic e) {
-            print('Error $e');
-        },
-        onDone: () async {
-            print('Connection closed');
-            print('  code: ${channel.closeCode}');
-            print('  reason: ${channel.closeReason}');
-        },
-    );
-
-    final message = utf8.encode(jsonEncode({'message': 'Hello World'}));
-    channel.sink.add(message);
+@WebSocket.ping('heartbeat', ping: Duration(seconds: 30))
+String handleHeartbeat(@Body() String? message) {
+  return 'Pong: ${DateTime.now()}';
 }
 ```
 
-## Ping
+### On Connect Trigger
 
-The server can send a ping message to the client to check if the connection is still alive. The client will respond with a pong message. If the client does not respond with a pong message, the server will close the connection.
-
-```dart
-@WebSocket.ping('websocket', ping: Duration(seconds: 5))
-```
-
-## On Connect
-
-Optionally, you can tell the server to run your handler when the connection is established. This is useful for any setup that needs to be done when the connection is first established.
+Run handler when connection is established:
 
 ```dart
-@WebSocket('websocket', triggerOnConnect: true)
+@WebSocket('connection', triggerOnConnect: true)
+String onConnect(@Body() String? message) {
+  if (message == null) {
+    return 'Connected to WebSocket';
+  }
+
+  return 'Message: $message';
+}
 ```
 
 :::caution
-When the connection is established, there is no message sent from the client. If you have a `Body` binding on a parameter in your handler, be sure to allow `null` types.
+**Null Message Handling:** When `triggerOnConnect: true`, the `@Body()` parameter may be null since no message is sent during connection.
+:::
+
+## Real-World Examples
+
+### Chat Application
 
 ```dart
-@WebSocket('websocket', triggerOnConnect: true)
-String onConnect(@Body() String? message) {
-    return 'Hello World';
+@Controller('chat')
+class ChatController {
+  final List<String> _messages = [];
+
+  @WebSocket('messages')
+  String handleMessage(@Body() String message) {
+    _messages.add('${DateTime.now()}: $message');
+
+    // Broadcast to all connected clients
+    broadcastMessage(message);
+
+    return 'Message received';
+  }
+
+  void broadcastMessage(String message) {
+    // Implementation depends on your broadcasting strategy
+  }
 }
 ```
 
-:::
+### Real-Time Notifications
+
+```dart
+@Controller('notifications')
+class NotificationController {
+  @WebSocket('stream', mode: WebSocketMode.sendOnly)
+  String streamNotifications(AsyncWebSocketSender<String> sender) {
+    // Stream notifications from a service
+    notificationService.stream.listen((notification) {
+      sender.send(notification.toJson());
+    });
+
+    return 'Notification stream started';
+  }
+}
+```
+
+### File Upload Progress
+
+```dart
+@Controller('upload')
+class UploadController {
+  @WebSocket('progress')
+  String handleUpload(@Body() Map<String, dynamic> data) {
+    final progress = data['progress'] as int;
+    final filename = data['filename'] as String;
+
+    if (progress == 100) {
+      return 'Upload complete: $filename';
+    }
+
+    return 'Upload progress: $progress%';
+  }
+}
+```
+
+## Client Connection
+
+### Using web_socket_channel
+
+```dart
+import 'dart:convert';
+import 'package:web_socket_channel/io.dart';
+
+void main() {
+  final channel = IOWebSocketChannel.connect('ws://localhost:8080/chat/messages');
+
+  // Listen for messages
+  channel.stream.listen(
+    (message) {
+      print('Received: $message');
+    },
+    onError: (error) {
+      print('Error: $error');
+    },
+    onDone: () {
+      print('Connection closed');
+    },
+  );
+
+  // Send message
+  channel.sink.add('Hello WebSocket!');
+}
+```
+
+### Using dart:io WebSocket
+
+```dart
+import 'dart:io';
+
+void main() async {
+  final socket = await WebSocket.connect('ws://localhost:8080/chat/messages');
+
+  socket.listen(
+    (message) {
+      print('Received: $message');
+    },
+    onError: (error) {
+      print('Error: $error');
+    },
+    onDone: () {
+      print('Connection closed');
+    },
+  );
+
+  socket.add('Hello WebSocket!');
+}
+```
 
 ## WebSocket Lifecycle
 
-The WebSocket lifecycle is similar to the [HTTP lifecycle][lifecycle-order], however, there are some differences. The WebSocket lifecycle is as follows:
+The WebSocket lifecycle follows this pattern:
 
-1. Open Connection
-1. Observer
-1. Middleware
-1. Guard\
-   -- On Connect --\
-   -- Message Loop --
-1. Observer
-1. Close Connection
+1. **Open Connection** - Client connects
+2. **Observer** - Pre-connection observers run
+3. **Middleware** - Middleware components run
+4. **Guard** - Guard components run
+5. **On Connect** - Handler runs if `triggerOnConnect: true`
+6. **Message Loop** - For each message:
+   - Interceptor (Pre)
+   - Endpoint Handler
+   - Interceptor (Post)
+7. **Observer** - Post-connection observers run
+8. **Close Connection** - Connection closes
 
-### Message Loop
+## Best Practices
 
-The message loop is the part of the lifecycle where the server listens for messages from the client. The server will call the handler method when a message is received.
+### Use Appropriate Modes
 
-1. Interceptor (Pre)
-1. Endpoint
-1. Interceptor (Post)
+```dart
+// ✅ Good - Use send-only for notifications
+@WebSocket('notifications', mode: WebSocketMode.sendOnly)
+String sendNotification() {
+  return 'Notification';
+}
 
-:::note
-On Connect is the same as the message loop, but is only run once, when the connection is established.
-:::
+// ✅ Good - Use receive-only for logging
+@WebSocket('logs', mode: WebSocketMode.receiveOnly)
+void logMessage(@Body() String message) {
+  logger.info(message);
+}
+```
 
-[binding]: ../core/binding.md
-[web-socket-error-codes]: https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent/code
-[lifecycle-order]: ../lifecycle-components/overview.md#lifecycle-order
+### Handle Connection Cleanup
+
+```dart
+// ✅ Good - Proper cleanup
+@WebSocket('data')
+String handleData(CloseWebSocket closer, CleanUp cleanUp) {
+  cleanUp.add(() {
+    // Cleanup resources when connection closes
+    resourceService.dispose();
+  });
+
+  return 'Data processed';
+}
+```
+
+### Use Type-Safe Messages
+
+```dart
+// ✅ Good - Type-safe message handling
+class ChatMessage {
+  const ChatMessage({required this.user, required this.text});
+  final String user;
+  final String text;
+
+  factory ChatMessage.fromJson(Map<String, dynamic> json) {
+    return ChatMessage(
+      user: json['user'] as String,
+      text: json['text'] as String,
+    );
+  }
+}
+
+@WebSocket('chat')
+String handleChat(@Body() ChatMessage message) {
+  return '${message.user}: ${message.text}';
+}
+```
+
+## What's Next?
+
+- Learn about [Server-Sent Events](./server-sent-events.md) for one-way streaming
+- Explore [response body](./body.md) for HTTP responses
+- See [response headers](./headers.md) for HTTP headers

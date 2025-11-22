@@ -16,7 +16,7 @@ void hotReload(Future<HttpServer> Function() callback) {
 
 class HotReload {
   HotReload({required this.serverFactory, this.logLevel = Level.OFF})
-      : controller = StreamController<HotReloadData>.broadcast();
+    : controller = StreamController<HotReloadData>.broadcast();
 
   final Future<HttpServer> Function() serverFactory;
   final Level logLevel;

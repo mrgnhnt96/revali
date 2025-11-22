@@ -1,10 +1,7 @@
 import 'package:analyzer/dart/constant/value.dart';
 
 class ServerAllowHeaders {
-  const ServerAllowHeaders({
-    required this.headers,
-    required this.inherit,
-  });
+  const ServerAllowHeaders({required this.headers, required this.inherit});
 
   factory ServerAllowHeaders.fromDartObject(DartObject object) {
     final raw = object.getField('headers')?.toSetValue() ?? {};

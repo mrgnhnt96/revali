@@ -6,8 +6,8 @@ import 'package:revali_test/src/test_response.dart';
 
 class TestServer extends Stream<HttpRequest> implements HttpServer {
   TestServer()
-      : _controller = StreamController.broadcast(),
-        _webSocketResponses = StreamController.broadcast();
+    : _controller = StreamController.broadcast(),
+      _webSocketResponses = StreamController.broadcast();
 
   final StreamController<HttpRequest> _controller;
   final StreamController<List<int>> _webSocketResponses;
@@ -22,8 +22,9 @@ class TestServer extends Stream<HttpRequest> implements HttpServer {
   }) {
     headers ??= {};
     if (cookies.isNotEmpty) {
-      headers[HttpHeaders.cookieHeader] =
-          cookies.entries.map((e) => '${e.key}=${e.value};').join();
+      headers[HttpHeaders.cookieHeader] = cookies.entries
+          .map((e) => '${e.key}=${e.value};')
+          .join();
     }
 
     final request = TestRequest(
@@ -62,8 +63,9 @@ class TestServer extends Stream<HttpRequest> implements HttpServer {
   }) {
     headers ??= {};
     if (cookies.isNotEmpty) {
-      headers[HttpHeaders.cookieHeader] =
-          cookies.entries.map((e) => '${e.key}=${e.value};').join();
+      headers[HttpHeaders.cookieHeader] = cookies.entries
+          .map((e) => '${e.key}=${e.value};')
+          .join();
     }
 
     final request = TestRequest(

@@ -23,9 +23,7 @@ void main() {
       final response = await server.send(
         method: 'GET',
         path: '/api/middleware/read',
-        headers: {
-          'auth': 'sup dude',
-        },
+        headers: {'auth': 'sup dude'},
       );
 
       expect(response.statusCode, 200);
@@ -37,9 +35,7 @@ void main() {
       final response = await server.send(
         method: 'GET',
         path: '/api/middleware/write',
-        headers: {
-          'auth': 'sup dude',
-        },
+        headers: {'auth': 'sup dude'},
       );
 
       expect(response.statusCode, 200);
@@ -76,17 +72,18 @@ void main() {
       );
     });
 
-    test('should stop request when stop middleware is present with message',
-        () async {
-      final response = await server.send(
-        method: 'GET',
-        path: '/api/middleware/please-stop',
-      );
+    test(
+      'should stop request when stop middleware is present with message',
+      () async {
+        final response = await server.send(
+          method: 'GET',
+          path: '/api/middleware/please-stop',
+        );
 
-      expect(response.statusCode, 400);
-      expect(
-        response.body,
-        startsWith('''
+        expect(response.statusCode, 400);
+        expect(
+          response.body,
+          startsWith('''
 please stop
 
 __DEBUG__:
@@ -94,7 +91,8 @@ Error: MiddlewareStopException: StopMiddleware
 
 Stack Trace:
 package:revali_router/src/router/run_middlewares.dart'''),
-      );
-    });
+        );
+      },
+    );
   });
 }

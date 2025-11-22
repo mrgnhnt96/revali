@@ -4,9 +4,9 @@
 //
 // ignore_for_file: directives_ordering
 
-export 'src/access_control/allow_headers.dart';
 export 'src/access_control/allow_origins.dart';
 export 'src/access_control/expect_headers.dart';
+export 'src/access_control/prevent_headers.dart';
 export 'src/app.dart';
 export 'src/controller.dart';
 export 'src/di/inject.dart';

@@ -23,9 +23,7 @@ void main() {
       final response = await server.send(
         method: 'GET',
         path: '/api/literal/root',
-        headers: {
-          'content-type': 'application/json',
-        },
+        headers: {'content-type': 'application/json'},
         body: {'name': 'John'},
       );
 
@@ -39,9 +37,7 @@ void main() {
       final response = await server.send(
         method: 'GET',
         path: '/api/literal/nested',
-        headers: {
-          'content-type': 'application/json',
-        },
+        headers: {'content-type': 'application/json'},
         body: {
           'data': {'name': 'John'},
         },
@@ -57,9 +53,7 @@ void main() {
       final response = await server.send(
         method: 'GET',
         path: '/api/literal/multiple',
-        headers: {
-          'content-type': 'application/json',
-        },
+        headers: {'content-type': 'application/json'},
         body: {
           'one': {'name': 'John'},
           'two': {'name': 'Jane'},

@@ -6,7 +6,7 @@ import 'package:revali_router/revali_router.dart';
   'http://localhost:8080',
   'http://localhost:8081',
 })
-@AllowHeaders({'X-UR-AWESOME'})
+@ExpectHeaders({'X-UR-AWESOME'})
 @Auth(AuthType.user)
 @Controller('user')
 class ThisController {
@@ -55,12 +55,12 @@ class NamePipe implements Pipe<String, String> {
   const NamePipe();
 
   @override
-  Future<String> transform(String value, PipeContext context) async {
+  Future<String> transform(String value, Context context) async {
     return 'value: ($value)';
   }
 }
 
-class Role implements Meta {
+class Role implements MetaData {
   const Role(this.type);
 
   final AuthType type;
@@ -70,7 +70,7 @@ class StringToIntPipe implements Pipe<String?, int> {
   const StringToIntPipe();
 
   @override
-  Future<int> transform(String? value, PipeContext context) async {
+  Future<int> transform(String? value, Context context) async {
     return int.parse(value ?? '0');
   }
 }
@@ -98,7 +98,7 @@ class Auth implements Middleware {
   String get hi => 'hi';
 
   @override
-  Future<MiddlewareResult> use(MiddlewareContext context) async {
+  Future<MiddlewareResult> use(Context context) async {
     return const MiddlewareResult.next();
   }
 }
@@ -130,7 +130,7 @@ final class NotAuthCatcher extends ExceptionCatcher<NotAuth> {
   @override
   ExceptionCatcherResult<NotAuth> catchException(
     Exception exception,
-    ExceptionCatcherContext context,
+    Context context,
   ) {
     return const ExceptionCatcherResult.handled();
   }

@@ -99,10 +99,7 @@ void main() {
 
       expect(response.statusCode, 200);
       expect(response.body, {
-        'data': {
-          'first': 'hello',
-          'second': 'world',
-        },
+        'data': {'first': 'hello', 'second': 'world'},
       });
     });
 
@@ -116,9 +113,7 @@ void main() {
       expect(response.body, {
         'data': [
           'hello',
-          {
-            'second': 'world',
-          },
+          {'second': 'world'},
         ],
       });
     });

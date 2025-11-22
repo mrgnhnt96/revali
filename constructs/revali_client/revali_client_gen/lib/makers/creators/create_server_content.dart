@@ -24,35 +24,33 @@ Spec createServerContent(ClientServer client, Settings settings) {
       ..constructors.add(
         Constructor(
           (b) => b
-            ..optionalParameters.addAll(
-              [
+            ..optionalParameters.addAll([
+              Parameter(
+                (b) => b
+                  ..named = true
+                  ..type = refer('HttpClient?')
+                  ..name = 'client',
+              ),
+              Parameter(
+                (b) => b
+                  ..named = true
+                  ..type = refer('${(Storage).name}?')
+                  ..name = 'storage',
+              ),
+              Parameter(
+                (b) => b
+                  ..named = true
+                  ..type = refer('${(Uri).name}?')
+                  ..name = 'baseUrl',
+              ),
+              if (client.hasWebsockets)
                 Parameter(
                   (b) => b
                     ..named = true
-                    ..type = refer('HttpClient?')
-                    ..name = 'client',
+                    ..type = refer('WebSocketConnect?')
+                    ..name = 'websocket',
                 ),
-                Parameter(
-                  (b) => b
-                    ..named = true
-                    ..type = refer('${(Storage).name}?')
-                    ..name = 'storage',
-                ),
-                Parameter(
-                  (b) => b
-                    ..named = true
-                    ..type = refer('${(Uri).name}?')
-                    ..name = 'baseUrl',
-                ),
-                if (client.hasWebsockets)
-                  Parameter(
-                    (b) => b
-                      ..named = true
-                      ..type = refer('WebSocketConnect?')
-                      ..name = 'websocket',
-                  ),
-              ],
-            )
+            ])
             ..initializers.add(
               refer('storage')
                   .assign(refer('storage'))
@@ -70,22 +68,20 @@ Spec createServerContent(ClientServer client, Settings settings) {
               refer('this')
                   .property('client')
                   .assign(
-                    refer((RevaliClient).name).newInstance(
-                      [],
-                      {
-                        'client': refer('client').ifNullThen(
-                          refer('HttpPackageClient').newInstance([]),
-                        ),
-                        'baseUrl': refer('url'),
-                        'storage': refer('this').property('storage'),
-                      },
-                    ),
+                    refer((RevaliClient).name).newInstance([], {
+                      'client': refer(
+                        'client',
+                      ).ifNullThen(refer('HttpPackageClient').newInstance([])),
+                      'baseUrl': refer('url'),
+                      'storage': refer('this').property('storage'),
+                    }),
                   )
                   .statement,
               const Code(''),
-              refer('this').property('storage').property('save').call(
-                [literal('__BASE_URL__'), refer('url')],
-              ).statement,
+              refer('this').property('storage').property('save').call([
+                literal('__BASE_URL__'),
+                refer('url'),
+              ]).statement,
               if (client.hasWebsockets) ...[
                 const Code(''),
                 refer('this')
@@ -136,10 +132,11 @@ Spec createServerContent(ClientServer client, Settings settings) {
                 ..name = controller.simpleName.toCamelCase()
                 ..assignment =
                     refer(controller.implementationName).newInstance([], {
-                  'client': refer('client'),
-                  'storage': refer('storage'),
-                  if (controller.hasWebsockets) 'websocket': refer('websocket'),
-                }).code,
+                      'client': refer('client'),
+                      'storage': refer('storage'),
+                      if (controller.hasWebsockets)
+                        'websocket': refer('websocket'),
+                    }).code,
             ),
       ])
       ..methods.addAll([
@@ -156,17 +153,18 @@ Spec createServerContent(ClientServer client, Settings settings) {
                 ),
               )
               ..body = Block.of([
-                refer('getIt').property('registerSingleton').call([
-                  refer('this'),
-                ]).statement,
+                refer(
+                  'getIt',
+                ).property('registerSingleton').call([refer('this')]).statement,
                 for (final controller in client.controllers)
                   if (!controller.isExcluded)
                     refer('getIt').property('registerLazySingleton').call([
                       Method(
                         (b) => b
                           ..lambda = true
-                          ..body =
-                              refer(controller.simpleName.toCamelCase()).code,
+                          ..body = refer(
+                            controller.simpleName.toCamelCase(),
+                          ).code,
                       ).closure,
                     ]).statement,
               ]),

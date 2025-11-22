@@ -2,9 +2,7 @@ import 'package:revali_client_gen/models/client_type.dart';
 import 'package:revali_construct/revali_construct.dart';
 
 class ClientFromJson {
-  const ClientFromJson({
-    required this.params,
-  });
+  const ClientFromJson({required this.params});
 
   static ClientFromJson? fromMeta(MetaFromJson? meta) {
     if (meta == null) {

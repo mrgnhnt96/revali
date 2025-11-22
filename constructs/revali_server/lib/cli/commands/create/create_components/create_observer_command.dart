@@ -3,10 +3,7 @@ import 'package:mason_logger/mason_logger.dart';
 import 'package:revali_server/cli/commands/create/create_components/create_a_component_command.dart';
 
 class CreateObserverCommand extends CreateAComponentCommand {
-  CreateObserverCommand({
-    required super.fs,
-    required super.logger,
-  }) {
+  CreateObserverCommand({required super.fs, required super.logger}) {
     argParser.addOption(
       'name',
       abbr: 'n',
@@ -46,7 +43,8 @@ class CreateObserverCommand extends CreateAComponentCommand {
   }
 
   @override
-  String content() => '''
+  String content() =>
+      '''
 import 'package:revali_router/revali_router.dart';
 
 // Learn more about Observers at https://www.revali.dev/constructs/revali_server/lifecycle-components/observer

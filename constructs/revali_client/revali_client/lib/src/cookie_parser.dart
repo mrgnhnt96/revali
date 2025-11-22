@@ -14,7 +14,7 @@ class CookieParser {
       final parts = cookie.split('=');
       final result = switch (parts) {
         [final String key, final String value] => (key.trim(), value.trim()),
-        _ => null
+        _ => null,
       };
 
       if (result == null) continue;

@@ -20,11 +20,8 @@ class ConstructEntrypointHandler with DirectoriesMixin {
     required this.fs,
     required this.logger,
     ConstructsHandler? constructHandler,
-  }) : constructHandler = constructHandler ??
-            ConstructsHandler(
-              fs: fs,
-              logger: logger,
-            );
+  }) : constructHandler =
+           constructHandler ?? ConstructsHandler(fs: fs, logger: logger);
 
   final String initialDirectory;
   final ConstructsHandler constructHandler;
@@ -71,13 +68,11 @@ class ConstructEntrypointHandler with DirectoriesMixin {
       logger.detail('Forcing entrypoint recompile');
     }
 
-    final entrypointProgress =
-        logger.progress('Generating constructs entrypoint');
-
-    await createEntrypoint(
-      root,
-      constructs: constructs,
+    final entrypointProgress = logger.progress(
+      'Generating constructs entrypoint',
     );
+
+    await createEntrypoint(root, constructs: constructs);
     entrypointProgress.complete('Generated constructs entrypoint');
 
     final compileProgress = logger.progress('Compiling constructs entrypoint');
@@ -89,8 +84,9 @@ class ConstructEntrypointHandler with DirectoriesMixin {
     List<ConstructYaml> constructs,
     Directory root,
   ) async {
-    final assetsFile =
-        await root.getInternalRevaliFile(ConstructEntrypointHandler.assetsFile);
+    final assetsFile = await root.getInternalRevaliFile(
+      ConstructEntrypointHandler.assetsFile,
+    );
 
     Future<void> saveAssets() async {
       logger.detail('Saving assets file');
@@ -113,8 +109,9 @@ class ConstructEntrypointHandler with DirectoriesMixin {
       final existingAssets =
           jsonDecode(await assetsFile.readAsString()) as List;
 
-      existingConstructs =
-          existingAssets.map((e) => ConstructYaml.fromJson(e as Map)).toList();
+      existingConstructs = existingAssets
+          .map((e) => ConstructYaml.fromJson(e as Map))
+          .toList();
     } catch (e) {
       await saveAssets();
       return true;
@@ -138,8 +135,9 @@ class ConstructEntrypointHandler with DirectoriesMixin {
     final revaliDir = await root.getInternalRevali();
     await revaliDir.create(recursive: true);
 
-    final entrypointFile =
-        revaliDir.childFile(ConstructEntrypointHandler.entrypointFile);
+    final entrypointFile = revaliDir.childFile(
+      ConstructEntrypointHandler.entrypointFile,
+    );
 
     if (await entrypointFile.exists()) {
       await entrypointFile.delete();
@@ -147,16 +145,11 @@ class ConstructEntrypointHandler with DirectoriesMixin {
 
     await entrypointFile.create();
 
-    final content = entrypointContent(
-      constructs,
-      root: root,
-    );
+    final content = entrypointContent(constructs, root: root);
     await entrypointFile.writeAsString(content);
   }
 
-  Future<File> compile({
-    required Directory root,
-  }) async {
+  Future<File> compile({required Directory root}) async {
     final kernel = await root.getInternalRevaliFile(kernelFile);
 
     final toCompile = await root.getInternalRevaliFile(entrypointFile);
@@ -166,15 +159,11 @@ class ConstructEntrypointHandler with DirectoriesMixin {
 
     if (!await packageJson.exists()) {
       final progress = logger.progress('Running pub get');
-      final result = await Process.run(
-        'dart',
-        [
-          'pub',
-          'get',
-          '--no-precompile',
-        ],
-        workingDirectory: root.path,
-      );
+      final result = await Process.run('dart', [
+        'pub',
+        'get',
+        '--no-precompile',
+      ], workingDirectory: root.path);
       progress.complete('Got dependencies');
 
       if (result.exitCode != 0) {
@@ -182,17 +171,13 @@ class ConstructEntrypointHandler with DirectoriesMixin {
       }
     }
 
-    final result = await Process.run(
-      'dart',
-      [
-        'compile',
-        'kernel',
-        toCompile.path,
-        '-o',
-        kernel.path,
-      ],
-      runInShell: true,
-    );
+    final result = await Process.run('dart', [
+      'compile',
+      'kernel',
+      toCompile.path,
+      '-o',
+      kernel.path,
+    ], runInShell: true);
 
     if (result.exitCode != 0) {
       throw Exception('''
@@ -285,8 +270,9 @@ ${result.stderr}''');
         scriptExitCode = isolateExitCode;
       } else {
         throw StateError(
-            'Bad response from isolate, expected an exit code but got '
-            '$isolateExitCode');
+          'Bad response from isolate, expected an exit code but got '
+          '$isolateExitCode',
+        );
       }
       exitCodeListener!.cancel();
       exitCodeListener = null;
@@ -314,22 +300,20 @@ ${result.stderr}''');
     final constructItems = [
       for (final yaml in constructs)
         for (final construct in yaml.constructs)
-          refer('$ConstructMaker', revaliConstruct).newInstance(
-            [],
-            {
-              'package': literalString(yaml.packageName),
-              'isServer': refer('${construct.isServer}'),
-              'isBuild': refer('${construct.isBuild}'),
-              'optIn': refer('${construct.optIn}'),
-              'name': literalString(construct.name),
-              'hasNameConflict':
-                  literalBool((conflicts[construct.name] ?? []).length > 1),
-              'maker': refer(
-                construct.method,
-                '${yaml.packageUri}${construct.path}',
-              ),
-            },
-          ),
+          refer('$ConstructMaker', revaliConstruct).newInstance([], {
+            'package': literalString(yaml.packageName),
+            'isServer': refer('${construct.isServer}'),
+            'isBuild': refer('${construct.isBuild}'),
+            'optIn': refer('${construct.optIn}'),
+            'name': literalString(construct.name),
+            'hasNameConflict': literalBool(
+              (conflicts[construct.name] ?? []).length > 1,
+            ),
+            'maker': refer(
+              construct.method,
+              '${yaml.packageUri}${construct.path}',
+            ),
+          }),
     ];
 
     final constructs0 = declareConst('_constructs')
@@ -341,8 +325,9 @@ ${result.stderr}''');
         )
         .statement;
 
-    final path =
-        declareConst('_root').assign(literalString(root.path)).statement;
+    final path = declareConst(
+      '_root',
+    ).assign(literalString(root.path)).statement;
 
     final main = Method(
       (b) => b
@@ -375,32 +360,27 @@ ${result.stderr}''');
         ..body = Block.of([
           declareFinal('result')
               .assign(
-                refer('runConstruct', revali).call([
-                  refer('args'),
-                ], {
-                  'constructs': refer('_constructs'),
-                  'path': refer('_root'),
-                }).awaited,
+                refer('runConstruct', revali)
+                    .call(
+                      [refer('args')],
+                      {
+                        'constructs': refer('_constructs'),
+                        'path': refer('_root'),
+                      },
+                    )
+                    .awaited,
               )
               .statement,
           const Code('\n'),
-          refer('sendPort')
-              .nullSafeProperty('send')
-              .call([refer('result')]).statement,
+          refer(
+            'sendPort',
+          ).nullSafeProperty('send').call([refer('result')]).statement,
           const Code('\n'),
           refer('exitCode', 'dart:io').assign(refer('result')).statement,
         ]),
     );
 
-    final library = Library(
-      (b) => b.body.addAll(
-        [
-          constructs0,
-          path,
-          main,
-        ],
-      ),
-    );
+    final library = Library((b) => b.body.addAll([constructs0, path, main]));
 
     final emitter = DartEmitter(
       allocator: Allocator.simplePrefixing(),
@@ -417,8 +397,10 @@ ${result.stderr}''');
 
       return clean;
     } on FormatterException {
-      logger.err('Generated build script could not be parsed.\n'
-          'This is likely caused by a misconfigured builder definition.');
+      logger.err(
+        'Generated build script could not be parsed.\n'
+        'This is likely caused by a misconfigured builder definition.',
+      );
       // TODO(mrgnhnt): throw custom exception
       throw Exception('Failed to generate build script');
     }

@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:revali_router/src/headers/mutable_headers_impl.dart';
+import 'package:revali_router/src/headers/headers_impl.dart';
 import 'package:revali_router/src/payload/payload_impl.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
@@ -15,7 +15,7 @@ class UnderlyingRequestImpl implements UnderlyingRequest {
   }) : _request = request;
 
   factory UnderlyingRequestImpl.fromRequest(HttpRequest request) {
-    final headers = MutableHeadersImpl.from(request.headers);
+    final headers = HeadersImpl.from(request.headers);
 
     return UnderlyingRequestImpl(
       body: PayloadImpl(
@@ -33,7 +33,7 @@ class UnderlyingRequestImpl implements UnderlyingRequest {
   @override
   final Payload body;
   @override
-  final ReadOnlyHeaders headers;
+  final Headers headers;
   @override
   final Uri uri;
   @override

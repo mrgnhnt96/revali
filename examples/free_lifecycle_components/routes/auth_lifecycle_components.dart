@@ -21,7 +21,7 @@ class AuthLifecycleComponent implements LifecycleComponent {
   }
 
   Future<GuardResult> hasRole(
-    ReadOnlyData data,
+    AddData data,
   ) async {
     return const GuardResult.pass();
   }
@@ -55,7 +55,7 @@ class AuthLifecycleComponent implements LifecycleComponent {
   }
 
   ExceptionCatcherResult<OtherException> handleOtherException(
-    ReadOnlyData context,
+    AddData context,
   ) {
     return const ExceptionCatcherResult.handled();
   }
@@ -102,7 +102,7 @@ class Auth implements LifecycleComponent {
 
   Future<MiddlewareResult> getUser({
     @Header() required String authorization,
-    required DataHandler dataHandler,
+    required Data data,
   }) async {
     final userService = UsersService();
 
@@ -117,11 +117,11 @@ class Auth implements LifecycleComponent {
 
     final token = parts[1];
 
-    dataHandler.add(AuthToken(token));
+    data.add(AuthToken(token));
 
     final user = await userService.getByToken(token);
 
-    dataHandler.add(user);
+    data.add(user);
 
     return const MiddlewareResult.next();
   }

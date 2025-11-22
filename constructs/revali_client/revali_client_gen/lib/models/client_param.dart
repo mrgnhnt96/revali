@@ -1,5 +1,5 @@
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:revali_client_gen/enums/parameter_position.dart';
 import 'package:revali_client_gen/makers/utils/extract_import.dart';
 import 'package:revali_client_gen/models/client_imports.dart';
@@ -17,23 +17,29 @@ class ClientParam with ExtractImport {
     required this.hasDefaultValue,
   });
 
-  static ClientParam? fromElement(ParameterElement element) {
+  static ClientParam? fromElement(FormalParameterElement element) {
     final (:acceptMultiple, :access, :position) = _getPosition(
-      element.name,
+      element.name3,
       ({required List<OnMatch> onMatch, NonMatch? onNonMatch}) =>
           getAnnotations(
-        element: element,
-        onMatch: onMatch,
-        onNonMatch: onNonMatch,
-      ),
+            element: element,
+            onMatch: onMatch,
+            onNonMatch: onNonMatch,
+          ),
     );
 
     if (position == null) {
       return null;
     }
 
+    final name = element.name3;
+
+    if (name == null) {
+      return null;
+    }
+
     return ClientParam(
-      name: element.name,
+      name: name,
       type: ClientType.fromElement(element),
       position: position,
       access: access,
@@ -64,20 +70,16 @@ class ClientParam with ExtractImport {
   static ({
     bool acceptMultiple,
     List<String> access,
-    ParameterPosition? position
-  }) _getPosition(
-    String name,
-    AnnotationMapper annotationsFor,
-  ) {
+    ParameterPosition? position,
+  })
+  _getPosition(String? name, AnnotationMapper annotationsFor) {
     var acceptMultiple = false;
     ParameterPosition? position;
     final access = <String>[];
 
     void set(ParameterPosition value) {
       if (position != null) {
-        throw Exception(
-          'Found multiple annotations on parameter $name',
-        );
+        throw Exception('Found multiple annotations on parameter $name');
       }
 
       position = value;
@@ -85,9 +87,7 @@ class ClientParam with ExtractImport {
 
     void getAccess(DartObject object) {
       if (access.isNotEmpty) {
-        throw Exception(
-          'Found multiple access points on parameter $name',
-        );
+        throw Exception('Found multiple access points on parameter $name');
       }
 
       if (object.getField('name')?.toStringValue() case final String name) {
@@ -151,11 +151,7 @@ class ClientParam with ExtractImport {
       ],
     );
 
-    return (
-      acceptMultiple: acceptMultiple,
-      access: access,
-      position: position,
-    );
+    return (acceptMultiple: acceptMultiple, access: access, position: position);
   }
 
   static List<ClientParam> fromMetas(Iterable<MetaParam> params) {

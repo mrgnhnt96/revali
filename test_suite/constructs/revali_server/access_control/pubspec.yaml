@@ -1,0 +1,16 @@
+name: revali_server_access_control_test
+publish_to: none
+
+environment:
+  sdk: ">=3.8.0 <4.0.0"
+
+resolution: workspace
+
+dependencies:
+  revali_router:
+
+dev_dependencies:
+  revali:
+  revali_server:
+  revali_test:
+  test: ^1.25.15

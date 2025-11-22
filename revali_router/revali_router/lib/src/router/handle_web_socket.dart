@@ -28,8 +28,8 @@ class HandleWebSocket {
 
   Completer<void>? sending;
 
-  MutableWebSocketRequest? _wsRequest;
-  MutableWebSocketRequest get wsRequest {
+  WebSocketRequest? _wsRequest;
+  WebSocketRequest get wsRequest {
     final wsRequest = _wsRequest;
 
     if (wsRequest == null) {
@@ -148,7 +148,7 @@ class HandleWebSocket {
     try {
       await request.resolvePayload();
       _webSocket = await request.upgradeToWebSocket(ping: ping);
-      _wsRequest = MutableWebSocketRequestImpl.fromRequest(request, (
+      _wsRequest = WebSocketRequestImpl.fromRequest(request, (
         code,
         reason,
       ) async {
@@ -160,7 +160,7 @@ class HandleWebSocket {
           if (_closed case Object()) {
             return;
           }
-          final body = MutableBodyImpl();
+          final body = BodyImpl();
           await body.replace(data);
 
           if (await sendResponse(body) case (final code, final reason)) {
@@ -291,7 +291,7 @@ class HandleWebSocket {
       await interceptors.pre();
 
       await for (final data in stream(webSocket)) {
-        final body = MutableBodyImpl();
+        final body = BodyImpl();
         await body.replace(data);
 
         if (await sendResponse(body) case (final code, final reason)) {
@@ -326,7 +326,7 @@ class HandleWebSocket {
   }
 }
 
-extension _ResponseX on ReadOnlyResponse {
+extension _ResponseX on Response {
   int get webSocketErrorCode {
     if (statusCode < 1000) {
       return 1007;

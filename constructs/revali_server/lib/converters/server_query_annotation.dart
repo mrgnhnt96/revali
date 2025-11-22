@@ -1,5 +1,5 @@
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 import 'package:revali_server/converters/base_parameter_annotation.dart';
 import 'package:revali_server/converters/has_pipe.dart';
@@ -40,9 +40,9 @@ class ServerQueryAnnotation
 
   @override
   AnnotationType get type => switch (all) {
-        true => AnnotationType.queryAll,
-        false => AnnotationType.query,
-      };
+    true => AnnotationType.queryAll,
+    false => AnnotationType.query,
+  };
 
   @override
   List<ExtractImport?> get extractors => [pipe];

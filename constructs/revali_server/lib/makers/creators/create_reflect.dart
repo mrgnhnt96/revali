@@ -7,9 +7,8 @@ import 'package:revali_server/converters/server_reflect.dart';
 import 'package:revali_server/makers/creators/create_mimic.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
 
-Spec createReflect(ServerReflect possibleReflect) {
-  final reflect = possibleReflect.valid;
-
+Spec createReflect(ServerReflect? value) {
+  final reflect = value;
   if (reflect == null) {
     return const Code('');
   }
@@ -26,16 +25,12 @@ Spec createReflect(ServerReflect possibleReflect) {
     return m;
   }
 
-  return refer((Reflect).name).newInstance(
-    [
-      refer(reflect.className),
-    ],
+  return refer((ReflectData).name).newInstance(
+    [refer(reflect.className)],
     {
       'metas': Method(
         (p) => p
-          ..requiredParameters.add(
-            Parameter((p) => p..name = 'm'),
-          )
+          ..requiredParameters.add(Parameter((p) => p..name = 'm'))
           ..body = Block.of([
             for (final meta in reflect.metas.entries) metaExp(meta).statement,
           ]),

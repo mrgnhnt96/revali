@@ -1,74 +1,294 @@
 ---
+sidebar_position: 2
 description: Register and resolve dependencies for your controllers
 ---
 
 # Configure Dependencies
 
-Your controllers will likely need to interact with other parts of your application. This could be a service, a repository, or even another controller. In most cases, you'll want to inject these dependencies into your controller. Revali makes this easy by providing a way to register and resolve dependencies.
+Dependency injection is a powerful pattern that makes your code more modular, testable, and maintainable. Revali provides a built-in dependency injection system that allows you to register and resolve dependencies throughout your application.
+
+## What is Dependency Injection?
+
+Dependency injection (DI) is a design pattern where dependencies are provided to a class rather than the class creating them itself. This promotes:
+
+- **Loose Coupling**: Classes depend on abstractions, not concrete implementations
+- **Testability**: Easy to mock dependencies for unit testing
+- **Flexibility**: Can swap implementations without changing dependent code
+- **Maintainability**: Centralized dependency management
+
+## How Revali DI Works
+
+```mermaid
+graph TD
+    A[AppConfig] --> B[configureDependencies]
+    B --> C[DI Container]
+    C --> D[Resolve Services]
+    C --> E[Resolve Repositories]
+    C --> F[Resolve Controllers]
+
+    G[Controller] --> H[Constructor Injection]
+    H --> I[DI Container]
+    I --> J[Resolve Dependencies]
+    J --> K[Create Instance]
+```
 
 ## Registering Dependencies
 
-To register a dependency, you'll need to use the `configureDependencies` method within your `AppConfig` class.
+Use the `configureDependencies` method in your `AppConfig` class to register dependencies:
 
-```dart title="routes/my_app.dart"
+```dart title="routes/main_app.dart"
+import 'package:revali_annotations/revali_annotations.dart';
+
 @App()
-class MyApp extends AppConfig {
-  ...
+class MainApp extends AppConfig {
+  const MainApp() : super(host: 'localhost', port: 8080);
 
-  // highlight-start
+  @override
   Future<void> configureDependencies(DI di) async {
-    di.registerLazySingleton(MyService.new);
-    di.registerFactory(OtherServiceImpl.new);
-    di.registerSingleton(MySingleton());
-  }
-  // highlight-end
-}
-```
-
-### Using Abstractions
-
-If you need to register a dependency as an abstraction, you can provide a type parameter to the `register` method.
-
-```dart title="routes/my_app.dart"
-@App()
-class MyApp extends AppConfig {
-  ...
-
-  Future<void> configureDependencies(DI di) async {
-    // highlight-next-line
-    di.register<MyService>(MyServiceImpl.new);
+    // Register your dependencies here
+    di.registerLazySingleton<UserService>(UserServiceImpl.new);
+    di.registerFactory<EmailService>(EmailServiceImpl.new);
+    di.registerSingleton<DatabaseConnection>(DatabaseConnection());
   }
 }
 ```
 
-## The DI Object
+## Registration Methods
 
-The `DI` object is a dependency injection container that is passed to the `configureDependencies` method. You can use this object to register dependencies. The ["Server Construct"][server-construct] will use this object to resolve dependencies when creating Dart objects.
+### `registerLazySingleton<T>`
 
-After the `configureDependencies` method is resolved, the `DI` object will be "closed" and no more dependencies can be registered.
-
-### `registerLazySingleton` Method
-
-This is used to "lazy load" a dependency with the `DI` object. It takes a factory function that returns an instance of the dependency. When a dependency is resolved, the same instance will be returned over and over again.
+Creates a single instance that's created only when first requested:
 
 ```dart
-void registerLazySingleton<T>(T Function() factoryFunction);
+// Register a service as lazy singleton
+di.registerLazySingleton<UserService>(UserServiceImpl.new);
+
+// Usage in controller
+class UserController {
+  final UserService _userService;
+
+  UserController(this._userService); // Injected automatically
+}
 ```
 
-### `registerSingleton` Method
+**When to use:**
 
-This is used to register an instance of a dependency with the `DI` object. This is useful when you need to register a dependency that is already instantiated. Similar to the `registerLazySingleton` method, the same instance will be returned over and over again.
+- Expensive to create (database connections, HTTP clients)
+- Stateless services
+- Shared resources across the application
+
+### `registerSingleton<T>`
+
+Registers an already instantiated object:
 
 ```dart
-void registerSingleton<T>(T instance);
+// Register a pre-created instance
+final config = AppConfig(host: 'localhost', port: 8080);
+di.registerSingleton<AppConfig>(config);
+
+// Register environment-specific instances
+di.registerSingleton<DatabaseConfig>(DatabaseConfig.fromEnv());
 ```
 
-### `registerFactory` Method
+**When to use:**
 
-This is used to register a factory function with the `DI` object. This is useful when you need to register a dependency needs to be re-created each time it is resolved.
+- Configuration objects
+- Pre-initialized resources
+- Environment-specific instances
+
+### `registerFactory<T>`
+
+Creates a new instance every time it's requested:
 
 ```dart
-void registerFactory<T>(T Function() factoryFunction);
+// Register a factory for transient objects
+di.registerFactory<Logger>(() => Logger.withTimestamp());
+
+// Register with parameters
+di.registerFactory<HttpClient>(() => HttpClient(timeout: Duration(seconds: 30)));
 ```
 
-[server-construct]: ../../constructs/overview.md#server-constructs
+**When to use:**
+
+- Stateful objects that shouldn't be shared
+- Objects that need fresh state each time
+- Temporary or request-scoped objects
+
+## Using Abstractions
+
+Register implementations against interfaces for better testability:
+
+```dart title="routes/main_app.dart"
+@override
+Future<void> configureDependencies(DI di) async {
+  // Register implementation against interface
+  di.registerLazySingleton<IUserRepository>(UserRepository.new);
+  di.registerLazySingleton<IEmailService>(EmailService.new);
+  di.registerLazySingleton<IPaymentService>(StripePaymentService.new);
+}
+```
+
+```dart title="lib/services/user_service.dart"
+class UserService {
+  final IUserRepository _userRepository;
+  final IEmailService _emailService;
+
+  UserService(this._userRepository, this._emailService);
+
+  Future<User> createUser(CreateUserRequest request) async {
+    final user = await _userRepository.create(request);
+    await _emailService.sendWelcomeEmail(user.email);
+    return user;
+  }
+}
+```
+
+## Complete Example
+
+Here's a complete dependency configuration for a typical application:
+
+```dart title="routes/main_app.dart"
+import 'package:revali_annotations/revali_annotations.dart';
+
+@App()
+class MainApp extends AppConfig {
+  const MainApp() : super(host: 'localhost', port: 8080);
+
+  @override
+  Future<void> configureDependencies(DI di) async {
+    // Database
+    di.registerLazySingleton<DatabaseConnection>(() => DatabaseConnection.fromEnv());
+
+    // Repositories
+    di.registerLazySingleton<IUserRepository>(UserRepository.new);
+    di.registerLazySingleton<IProductRepository>(ProductRepository.new);
+
+    // Services
+    di.registerLazySingleton<IUserService>(UserService.new);
+    di.registerLazySingleton<IProductService>(ProductService.new);
+    di.registerLazySingleton<IEmailService>(EmailService.new);
+
+    // External APIs
+    di.registerLazySingleton<IPaymentService>(StripePaymentService.new);
+    di.registerLazySingleton<IAnalyticsService>(GoogleAnalyticsService.new);
+
+    // Utilities
+    di.registerFactory<Logger>(() => Logger.withTimestamp());
+    di.registerSingleton<AppConfig>(this);
+  }
+}
+```
+
+## Dependency Resolution
+
+Dependencies are automatically resolved when controllers are created:
+
+```dart title="routes/user_controller.dart"
+import 'package:revali_annotations/revali_annotations.dart';
+
+@Controller('/users')
+class UserController {
+  final IUserService _userService;
+  final IEmailService _emailService;
+
+  // Dependencies are injected automatically
+  UserController(this._userService, this._emailService);
+
+  @Get('/')
+  Future<List<User>> getUsers() async {
+    return await _userService.getAllUsers();
+  }
+
+  @Post('/')
+  Future<User> createUser(@Body() CreateUserRequest request) async {
+    final user = await _userService.createUser(request);
+    await _emailService.sendWelcomeEmail(user.email);
+    return user;
+  }
+}
+```
+
+## Best Practices
+
+### 🏗️ **Architecture**
+
+- **Register by Interface**: Use interfaces for better testability
+- **Group Related Dependencies**: Organize registrations logically
+- **Use Appropriate Lifetimes**: Choose the right registration method for each dependency
+
+### 🧪 **Testing**
+
+- **Mock Dependencies**: Easy to replace implementations with mocks
+- **Test Configuration**: Create separate DI configurations for testing
+- **Isolate Dependencies**: Each test should have its own dependency instances
+
+### 🚀 **Performance**
+
+- **Lazy Singletons**: Use for expensive resources
+- **Factory for Transients**: Use for objects that need fresh state
+- **Avoid Over-Registration**: Only register what you actually need
+
+### 🔒 **Security**
+
+- **Environment Variables**: Use for sensitive configuration
+- **Scoped Dependencies**: Limit dependency scope when possible
+- **Validation**: Validate configuration values at startup
+
+## Common Patterns
+
+### Service Layer Pattern
+
+```dart
+// Repository (Data Access)
+abstract class IUserRepository {
+  Future<User?> findById(String id);
+  Future<User> create(CreateUserRequest request);
+}
+
+// Service (Business Logic)
+abstract class IUserService {
+  Future<User> createUser(CreateUserRequest request);
+  Future<User> getUserById(String id);
+}
+
+// Controller (API Layer)
+@Controller('/users')
+class UserController {
+  final IUserService _userService;
+  UserController(this._userService);
+}
+```
+
+### Configuration Pattern
+
+```dart
+class DatabaseConfig {
+  final String host;
+  final int port;
+  final String database;
+
+  DatabaseConfig.fromEnv()
+    : host = Platform.environment['DB_HOST'] ?? 'localhost',
+      port = int.parse(Platform.environment['DB_PORT'] ?? '5432'),
+      database = Platform.environment['DB_NAME'] ?? 'myapp';
+}
+```
+
+## Troubleshooting
+
+### Common Issues
+
+**Dependency Not Found:**
+
+- Ensure the dependency is registered in `configureDependencies`
+- Check that the type matches exactly
+- Verify the dependency is registered before it's needed
+
+**Singleton State Issues:**
+
+- Use factories for stateful objects
+
+## Next Steps
+
+- **[Environment Variables](/revali/app-configuration/env-vars)**: Handle configuration across environments
+- **[Flavors](/revali/app-configuration/flavors)**: Create environment-specific configurations

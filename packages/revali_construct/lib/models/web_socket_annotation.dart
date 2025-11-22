@@ -32,9 +32,11 @@ final class WebSocketAnnotation extends MethodAnnotation {
     }
 
     final triggerOnConnect =
-        getFieldObjectFromDartObject(annotation, 'triggerOnConnect')
-                ?.toBoolValue() ??
-            false;
+        getFieldObjectFromDartObject(
+          annotation,
+          'triggerOnConnect',
+        )?.toBoolValue() ??
+        false;
 
     return WebSocketAnnotation(
       name,
@@ -50,11 +52,5 @@ final class WebSocketAnnotation extends MethodAnnotation {
   final bool triggerOnConnect;
 
   @override
-  List<Object?> get props => [
-        name,
-        path,
-        mode,
-        ping,
-        triggerOnConnect,
-      ];
+  List<Object?> get props => [name, path, mode, ping, triggerOnConnect];
 }

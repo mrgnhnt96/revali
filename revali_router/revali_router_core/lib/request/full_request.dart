@@ -1,6 +1,6 @@
-import 'package:revali_router_core/revali_router_core.dart';
+import 'package:revali_router_core/context/request_context.dart';
+import 'package:revali_router_core/request/request.dart';
 
-abstract class FullRequest
-    implements MutableRequest, RequestContext, ReadOnlyRequest {
+abstract class FullRequest implements Request, RequestContext {
   const FullRequest();
 }

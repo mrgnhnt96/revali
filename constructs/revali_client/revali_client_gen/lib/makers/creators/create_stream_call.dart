@@ -30,9 +30,7 @@ List<Code> createStreamCall(ClientMethod method) {
     return variable.property('map').call([
       Method(
         (b) => b
-          ..requiredParameters.add(
-            Parameter((b) => b..name = 'event'),
-          )
+          ..requiredParameters.add(Parameter((b) => b..name = 'event'))
           ..body = fromJson,
       ).closure,
     ]);
@@ -44,21 +42,18 @@ List<Code> createStreamCall(ClientMethod method) {
     if (fromJson == null)
       switch (typeArgument.isNullable && typeArgument.isBytes) {
         true => body.property('map').call([
-            Method(
-              (b) => b
-                ..lambda = true
-                ..requiredParameters.add(Parameter((e) => e..name = 'e'))
-                ..body = createSwitchPattern(refer('e'), {
-                  literal([]): literalNull,
-                  declareFinal('value'): refer('value'),
-                }).code,
-            ).closure,
-          ]),
-        false => body
-      }
-          .ignoreError
-          .yieldedStar
-          .statement
+          Method(
+            (b) => b
+              ..lambda = true
+              ..requiredParameters.add(Parameter((e) => e..name = 'e'))
+              ..body = createSwitchPattern(refer('e'), {
+                literal([]): literalNull,
+                declareFinal('value'): refer('value'),
+              }).code,
+          ).closure,
+        ]),
+        false => body,
+      }.ignoreError.yieldedStar.statement
     else ...[
       declareFinal('stream').assign(body).statement,
       const Code(''),
@@ -69,16 +64,12 @@ List<Code> createStreamCall(ClientMethod method) {
 
 extension _Expression on Expression {
   Expression get ignoreError {
-    return property('handleError').call(
-      [
-        Method(
-          (b) => b
-            ..requiredParameters.add(
-              Parameter((b) => b..name = '_'),
-            )
-            ..body = const Code('// do nothing\n'),
-        ).closure,
-      ],
-    );
+    return property('handleError').call([
+      Method(
+        (b) => b
+          ..requiredParameters.add(Parameter((b) => b..name = '_'))
+          ..body = const Code('// do nothing\n'),
+      ).closure,
+    ]);
   }
 }

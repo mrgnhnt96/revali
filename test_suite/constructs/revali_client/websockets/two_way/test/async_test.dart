@@ -53,24 +53,27 @@ void main() {
     }
 
     test('data-string', () async {
-      final response =
-          await client.async.dataString(data: stringStream()).toList();
+      final response = await client.async
+          .dataString(data: stringStream())
+          .toList();
 
       expect(response, ['Hello from the server', 'Hello world!']);
       verifyGetRequest('/api/async/data-string');
     });
 
     test('stream-string', () async {
-      final response =
-          await client.async.streamString(data: stringStream()).toList();
+      final response = await client.async
+          .streamString(data: stringStream())
+          .toList();
 
       expect(response, ['Hello from the server', 'Hello world!']);
       verifyGetRequest('/api/async/stream-string');
     });
 
     test('future-string', () async {
-      final response =
-          await client.async.futureString(data: stringStream()).toList();
+      final response = await client.async
+          .futureString(data: stringStream())
+          .toList();
 
       expect(response, ['Hello from the server', 'Hello world!']);
       verifyGetRequest('/api/async/future-string');
@@ -84,16 +87,18 @@ void main() {
     });
 
     test('stream-user', () async {
-      final response =
-          await client.async.streamUser(data: userStream()).toList();
+      final response = await client.async
+          .streamUser(data: userStream())
+          .toList();
 
       expect(response, [const User(name: 'Jane'), const User(name: 'John')]);
       verifyGetRequest('/api/async/stream-user');
     });
 
     test('future-user', () async {
-      final response =
-          await client.async.futureUser(data: userStream()).toList();
+      final response = await client.async
+          .futureUser(data: userStream())
+          .toList();
 
       expect(response, [const User(name: 'Jane'), const User(name: 'John')]);
       verifyGetRequest('/api/async/future-user');

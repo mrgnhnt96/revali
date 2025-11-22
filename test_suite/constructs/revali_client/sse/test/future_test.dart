@@ -118,9 +118,7 @@ void main() {
       verifyRequest('GET', '/api/future/list-of-records');
 
       expect(responses, [
-        [
-          ('hello', 'world'),
-        ]
+        [('hello', 'world')],
       ]);
     });
 
@@ -142,7 +140,7 @@ void main() {
       expect(responses, [
         [
           {'hello': 1},
-        ]
+        ],
       ]);
     });
 

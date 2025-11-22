@@ -1,18 +1,15 @@
 import 'package:revali_router/src/body/response_body/base_body_data.dart';
-import 'package:revali_router/src/headers/mutable_headers_impl.dart';
-import 'package:revali_router/src/response/mutable_response_impl.dart';
-import 'package:revali_router_core/body/body_data.dart';
-import 'package:revali_router_core/body/read_only_body.dart';
-import 'package:revali_router_core/headers/read_only_headers.dart';
-import 'package:revali_router_core/response/read_only_response.dart';
+import 'package:revali_router/src/headers/headers_impl.dart';
+import 'package:revali_router/src/response/response_impl.dart';
+import 'package:revali_router_core/revali_router_core.dart';
 
-class SimpleResponse implements ReadOnlyResponse {
+class SimpleResponse implements Response {
   factory SimpleResponse(
     int statusCode, {
     Map<String, String> headers = const {},
     Object? body,
   }) {
-    final response = MutableResponseImpl(requestHeaders: MutableHeadersImpl())
+    final response = ResponseImpl(requestHeaders: HeadersImpl())
       ..statusCode = statusCode;
     response.headers.addAll(headers);
     if (body != null) {
@@ -23,7 +20,7 @@ class SimpleResponse implements ReadOnlyResponse {
     }
 
     response.headers.addAll(
-      response.body.headers(MutableHeadersImpl()).map(
+      response.body.headers(HeadersImpl()).map(
             (key, value) => MapEntry(key, value.join(',')),
           ),
     );
@@ -46,12 +43,27 @@ class SimpleResponse implements ReadOnlyResponse {
   final int statusCode;
 
   @override
-  final ReadOnlyHeaders headers;
+  final Headers headers;
   @override
-  ReadOnlyHeaders get joinedHeaders => headers;
+  Headers get joinedHeaders => headers;
 
   final Map<String, String> rawHeaders;
 
   @override
-  final ReadOnlyBody body;
+  final Body body;
+
+  @override
+  set body(Object? data) {
+    throw StateError('SimpleResponse is immutable');
+  }
+
+  @override
+  set headers(Headers value) {
+    throw StateError('SimpleResponse is immutable');
+  }
+
+  @override
+  set statusCode(int value) {
+    throw StateError('SimpleResponse is immutable');
+  }
 }
