@@ -1,4 +1,5 @@
 import Link from "@docusaurus/Link";
+import CodeBlock from "@theme/CodeBlock";
 import Heading from "@theme/Heading";
 import Layout from "@theme/Layout";
 import styles from "./index.module.css";
@@ -142,9 +143,8 @@ function CodeExampleSection() {
             </Link>
           </div>
           <div className={styles.codeBlock}>
-            <pre className={styles.codePre}>
-              <code className={styles.codeCode}>
-                {`// Create a simple API endpoint
+            <CodeBlock language="dart">
+              {`// Create a simple API endpoint
 @Controller('users')
 class UserController {
   @Get()
@@ -157,8 +157,7 @@ class UserController {
     return await userService.createUser(input);
   }
 }`}
-              </code>
-            </pre>
+            </CodeBlock>
           </div>
         </div>
       </div>
