@@ -187,16 +187,16 @@ Future<void> myEndpoint() {
 
 [di]: ../../../revali/app-configuration/configure-dependencies.md
 [binding]: ../core/binding.md
-[data-sharing]: ././../context/core/data_handler.md
+[data-sharing]: ../context/data-sharing.md
 [guard]: ./advanced/guards.md
 [middleware]: ./advanced/middleware.md
 [interceptor-pre]: ./advanced/interceptors.md#pre
 [interceptor-post]: ./advanced/interceptors.md#post
 [exception-catcher]: ./advanced/exception-catchers.md
-[guard-context]: ../context/guard.md
-[middleware-context]: ../context/middleware.md
-[interceptor-pre-context]: ../context/interceptor.md#pre
-[interceptor-post-context]: ../context/interceptor.md#post
-[exception-catcher-context]: ../context/exception-catcher.md
+[guard-context]: ./advanced/guards.md
+[middleware-context]: ./advanced/middleware.md
+[interceptor-pre-context]: ./advanced/interceptors.md#pre
+[interceptor-post-context]: ./advanced/interceptors.md#post
+[exception-catcher-context]: ./advanced/exception-catchers.md
 [implied-binding]: ../core/implied_binding.md
 [create-cli]: ../getting-started/cli.md#create

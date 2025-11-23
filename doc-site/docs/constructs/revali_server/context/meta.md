@@ -152,5 +152,5 @@ class ApiController {
 ## What's Next?
 
 - Learn about [data sharing](./data-sharing.md) for storing runtime data
-- Explore [reflection](./reflect-handler.md) for accessing metadata on types
+- Explore [reflection](./reflect.md) for accessing metadata on types
 - See [lifecycle components](../lifecycle-components/components.md) for using metadata in guards and interceptors

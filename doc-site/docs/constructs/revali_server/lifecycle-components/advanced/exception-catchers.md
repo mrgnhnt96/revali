@@ -170,13 +170,6 @@ Learn how you can customize the internal server error message in the [docs][defa
 Learn more about [type referencing][type-referencing].
 :::
 
-## Exception Catcher Context
-
-:::tip
-Learn more about the Exception Catcher Context [here][exception-catcher-context].
-:::
-
 [type-referencing]: ../../tidbits.md#using-types-in-annotations
 [error-responses]: ../../lifecycle-components/overview.md#error-responses
 [default-responses]: ../../../../revali/app-configuration/default-responses.md
-[exception-catcher-context]: ../../context/exception-catcher.md

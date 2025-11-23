@@ -138,13 +138,6 @@ class RoleGuard implements Guard {
 }
 ```
 
-## Guard Context
-
-:::tip
-Learn more about the Guard Context [here][guard-context].
-:::
-
 [exception-catchers]: ./exception-catchers.md
 [type-referencing]: ../../tidbits.md#using-types-in-annotations
 [error-responses]: ../overview.md#error-responses
-[guard-context]: ../../context/guard.md

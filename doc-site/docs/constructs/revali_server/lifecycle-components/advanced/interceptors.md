@@ -87,11 +87,4 @@ Future<void> myEndpoint() {
 Learn more about [type referencing][type-referencing].
 :::
 
-## Interceptor Context
-
-:::tip
-Learn more about the Interceptor Context [here][interceptor-context].
-:::
-
 [type-referencing]: ../../tidbits.md#using-types-in-annotations
-[interceptor-context]: ../../context/interceptor.md
