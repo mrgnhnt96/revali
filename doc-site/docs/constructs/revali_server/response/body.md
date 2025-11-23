@@ -230,7 +230,7 @@ class FileController {
 ## Error Responses
 
 :::tip
-**Global Error Handling:** For application-wide error handling, use the [exception catcher](../lifecycle-components/exception-catcher.md) to centralize error processing and response formatting.
+**Global Error Handling:** For application-wide error handling, use the [exception catcher](../lifecycle-components/advanced/exception-catchers.md) to centralize error processing and response formatting.
 :::
 
 ### Using Exceptions

@@ -665,7 +665,6 @@ Fly.io's free tier includes:
 ## What's Next?
 
 - **[Deployment Overview](/constructs/revali_docker/deploy/overview)** - Explore other platforms
-- **[Docker Configuration](/constructs/revali_docker/configuration)** - Customize your Dockerfile
 - **[Revali Build Command](/revali/cli/build)** - Learn about build options
 
 ---

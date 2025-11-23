@@ -383,6 +383,5 @@ See the [deployment guides](/constructs/revali_docker/deploy/overview) for platf
 ## What's Next?
 
 - **[Installation](/constructs/revali_docker/installation)** - Set up Revali Docker
-- **[Configuration](/constructs/revali_docker/configuration)** - Customize Docker generation
 - **[Deploy to Fly.io](/constructs/revali_docker/deploy/fly.io)** - Deploy your container
 - **[Deployment Overview](/constructs/revali_docker/deploy/overview)** - Explore deployment options

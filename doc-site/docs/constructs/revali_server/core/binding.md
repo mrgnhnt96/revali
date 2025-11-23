@@ -421,7 +421,7 @@ Missing data causes runtime errors unless the parameter is nullable.
 :::
 
 :::tip
-The [Data Handler](../context/core/data_handler.md) is useful for sharing data between middleware, guards, and endpoints.
+The [Data Handler](../context/data-sharing.md) is useful for sharing data between middleware, guards, and endpoints.
 :::
 
 ## Custom Binding

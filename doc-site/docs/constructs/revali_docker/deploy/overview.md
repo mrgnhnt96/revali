@@ -39,6 +39,5 @@ Different platforms offer different trade-offs between simplicity, control, and 
 
 - **[Fly.io Deployment Guide](/constructs/revali_docker/deploy/fly.io)** - Detailed Fly.io setup
 - **[Revali Docker Overview](/constructs/revali_docker/overview)** - Learn more about Docker generation
-- **[Configuration](/constructs/revali_docker/configuration)** - Customize Docker settings
 
 Ready to deploy? Choose a platform above and follow their quick start guide!

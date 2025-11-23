@@ -66,13 +66,13 @@ These types provide access to request context and metadata:
 | Type                                                     | Purpose                         | Use Case                                      |
 | -------------------------------------------------------- | ------------------------------- | --------------------------------------------- |
 | [`DI`](/revali/app-configuration/configure-dependencies) | Dependency Injection container  | Access all registered dependencies            |
-| [`Meta`](../context/core/meta)                           | Request metadata                | Read/write request metadata                   |
-| [`MetaScope`](../context/core/meta)                      | Request metadata scope          | Access metadata with scope context            |
+| [`Meta`](../context/meta)                                | Request metadata                | Read/write request metadata                   |
+| [`MetaScope`](../context/meta)                           | Request metadata scope          | Access metadata with scope context            |
 | [`RouteEntry`](../context/overview)                      | Route information               | Access current route details                  |
 | [`Context`](../context/overview)                         | Full request context            | Access complete request context               |
 | [`Data`](../context/overview)                            | Data sharing between components | Share data across middleware/guards/endpoints |
 | [`CleanUp`](../context/overview)                         | Resource cleanup                | Register cleanup functions                    |
-| [`ReflectHandler`](../context/core/reflect_handler)      | Reflection utilities            | Access reflection capabilities                |
+| [`ReflectHandler`](../context/reflect)                   | Reflection utilities            | Access reflection capabilities                |
 
 ## Best Practices
 

@@ -163,7 +163,7 @@ class CustomPipe implements Pipe<String, String> {
 ```
 
 :::tip
-Learn more about [Context](../context/pipe.md) for advanced usage.
+Learn more about [Context](../context/overview.md) for advanced usage.
 :::
 
 ## When to Use Pipes vs `fromJson`
