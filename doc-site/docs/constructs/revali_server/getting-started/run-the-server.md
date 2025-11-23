@@ -128,7 +128,7 @@ Your server is now running! Here are some next steps to explore:
 ### Immediate Next Steps
 
 1. **Add more endpoints** - Try different HTTP [methods](/constructs/revali_server/core/methods) and routes
-2. **Add parameters** - Learn how to handle [query](/constructs/revali_server/core/binding#query) parameters and [path](/constructs/revali_server/core/methods#path-parameters) variables
+2. **Add parameters** - Learn how to handle [query](../core/binding#query---query-parameters) parameters and [path](/constructs/revali_server/core/methods#path-parameters) variables
 3. **Return complex data** - Try returning objects and lists
 4. **Access Control** - Learn how to [control access](/constructs/revali_server/access-control/allow-origins) to your endpoints
 

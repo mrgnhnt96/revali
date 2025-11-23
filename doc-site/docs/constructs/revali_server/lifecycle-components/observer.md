@@ -74,4 +74,4 @@ class MyApp ...
 ```
 
 [interceptors]: ./advanced/interceptors.md
-[create-cli]: ../getting-started/cli.md#create
+[create-cli]: ../getting-started/cli.md#code-generation-made-easy

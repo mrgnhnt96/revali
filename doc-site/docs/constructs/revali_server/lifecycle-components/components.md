@@ -199,4 +199,4 @@ Future<void> myEndpoint() {
 [interceptor-post-context]: ./advanced/interceptors.md#post
 [exception-catcher-context]: ./advanced/exception-catchers.md
 [implied-binding]: ../core/implied_binding.md
-[create-cli]: ../getting-started/cli.md#create
+[create-cli]: ../getting-started/cli.md#code-generation-made-easy
