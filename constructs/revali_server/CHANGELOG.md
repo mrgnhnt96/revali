@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 2.0.3 | 12.18.25
+
+### Features
+
+- Add `Body` and `PayloadBody` to inferred types
+
+### Enhancements
+
+- Improve error message when inferred type fails to resolve
+- Print stack trace when resolving routes throws
+
 ## 2.0.2 | 11.22.25
 
 ### Fix

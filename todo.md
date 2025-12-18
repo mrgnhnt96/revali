@@ -8,24 +8,43 @@
   - [ ] **Database integration** - Connect to your data layer
 
 - [ ] Remove websocket 1 way modes
-- [ ] Consolidate `context` into a single class, no more multiple context types
-- [ ] Get feedback from Jonah about "ReadOnly" and "Mutable" classes
-  - Should we remove them and just have a single class?
-  - Pros:
-    - Cleaner/Simpler API
-    - Less code to maintain
-    - Less confusion for users (don't have to remember which type to use)
-  - Cons:
-    - Less control over what the user can do with the context
-    - More potential for bugs if the user modifies the context in an unexpected way
 - [ ] Improve "Deleting precompiled script and retrying..." failure
   - Compile a revali app on using an older version of the dart sdk
   - Upgrade the dart sdk
   - Restart the revali app without recompiling
-- [ ] Deprecate `allowed headers`, replace with `prevent headers`, allow all headers by default
 - [ ] Figure out a way to handle sending streams from the client to the server
+- [ ] Fix issue where revali client is add multiple same cookies
+
+  - The following code should only add the cookie once, but it is adding it multiple times
+
+  ```dart
+    class Auth implements LifecycleComponent {
+      const Auth();
+
+      GuardResult guard(Data data, @Cookie('Auth') String? auth, Meta meta) {
+        if (meta.has<Public>()) return const GuardResult.pass();
+        if (auth == null) return const GuardResult.block();
+
+        return const GuardResult.pass();
+      }
+
+      MiddlewareResult middleware(Data data, @Cookie('Auth') String? auth) {
+        if (auth case final token?) {
+          data.add(AuthToken(token));
+        }
+
+        return const MiddlewareResult.next();
+      }
+    }
+  ```
 
 - [ ] Think of ways to better support micro services
+
+# 12.17.25
+
+- [x] Consolidate `context` into a single class, no more multiple context types
+- [x] Remove `ReadOnly` and `Mutable` classes
+- [x] Deprecate `allowed headers`, replace with `prevent headers`, allow all headers by default
 
 # 6.21.25
 

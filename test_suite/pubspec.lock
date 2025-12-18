@@ -65,13 +65,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "8.12.0"
-  can_compile_aot:
-    dependency: transitive
-    description:
-      path: "constructs/revali_client/can_compile_aot/.revali/revali_client"
-      relative: true
-    source: path
-    version: "0.0.0"
   change_case:
     dependency: transitive
     description:
@@ -342,137 +335,32 @@ packages:
       path: "../packages/revali"
       relative: true
     source: path
-    version: "2.0.2-dev"
+    version: "2.0.2"
   revali_annotations:
     dependency: "direct overridden"
     description:
       path: "../packages/revali_annotations"
       relative: true
     source: path
-    version: "2.0.2-dev"
+    version: "2.0.2"
   revali_client:
     dependency: "direct overridden"
     description:
       path: "../constructs/revali_client/revali_client"
       relative: true
     source: path
-    version: "1.4.0"
-  revali_client_cookies:
-    dependency: transitive
-    description:
-      path: "constructs/revali_client/cookies/.revali/revali_client"
-      relative: true
-    source: path
-    version: "0.0.0"
-  revali_client_custom_return_types:
-    dependency: transitive
-    description:
-      path: "constructs/revali_client/custom_return_types/.revali/revali_client"
-      relative: true
-    source: path
-    version: "0.0.0"
-  revali_client_default_custom_params:
-    dependency: transitive
-    description:
-      path: "constructs/revali_client/default_custom_params/.revali/revali_client"
-      relative: true
-    source: path
-    version: "0.0.0"
-  revali_client_default_params:
-    dependency: transitive
-    description:
-      path: "constructs/revali_client/default_params/.revali/revali_client"
-      relative: true
-    source: path
-    version: "0.0.0"
+    version: "2.0.2"
   revali_client_gen:
     dependency: "direct overridden"
     description:
       path: "../constructs/revali_client/revali_client_gen"
       relative: true
     source: path
-    version: "2.0.2-dev"
-  revali_client_methods:
-    dependency: transitive
-    description:
-      path: "constructs/revali_client/methods/.revali/revali_client"
-      relative: true
-    source: path
-    version: "0.0.0"
-  revali_client_null_primitive_return_types:
-    dependency: transitive
-    description:
-      path: "constructs/revali_client/null_primitive_return_types/.revali/revali_client"
-      relative: true
-    source: path
-    version: "0.0.0"
-  revali_client_params:
-    dependency: transitive
-    description:
-      path: "constructs/revali_client/params/.revali/revali_client"
-      relative: true
-    source: path
-    version: "0.0.0"
-  revali_client_primitive_return_types:
-    dependency: transitive
-    description:
-      path: "constructs/revali_client/primitive_return_types/.revali/revali_client"
-      relative: true
-    source: path
-    version: "0.0.0"
-  revali_client_sse:
-    dependency: transitive
-    description:
-      path: "constructs/revali_client/sse/.revali/revali_client"
-      relative: true
-    source: path
-    version: "0.0.0"
-  revali_client_sse_custom:
-    dependency: transitive
-    description:
-      path: "constructs/revali_client/sse_custom/.revali/revali_client"
-      relative: true
-    source: path
-    version: "0.0.0"
+    version: "2.0.2"
   revali_client_test:
     dependency: "direct overridden"
     description:
       path: "../constructs/revali_client/revali_client_test"
-      relative: true
-    source: path
-    version: "0.0.0"
-  revali_client_websocket_custom_return_types:
-    dependency: transitive
-    description:
-      path: "constructs/revali_client/websockets/custom_return_types/.revali/revali_client"
-      relative: true
-    source: path
-    version: "0.0.0"
-  revali_client_websocket_null_primitive_return_types:
-    dependency: transitive
-    description:
-      path: "constructs/revali_client/websockets/null_primitive_return_types/.revali/revali_client"
-      relative: true
-    source: path
-    version: "0.0.0"
-  revali_client_websocket_params:
-    dependency: transitive
-    description:
-      path: "constructs/revali_client/websockets/params/.revali/revali_client"
-      relative: true
-    source: path
-    version: "0.0.0"
-  revali_client_websocket_primitive_return_types:
-    dependency: transitive
-    description:
-      path: "constructs/revali_client/websockets/primitive_return_types/.revali/revali_client"
-      relative: true
-    source: path
-    version: "0.0.0"
-  revali_client_websocket_two_way:
-    dependency: transitive
-    description:
-      path: "constructs/revali_client/websockets/two_way/.revali/revali_client"
       relative: true
     source: path
     version: "0.0.0"
@@ -482,7 +370,7 @@ packages:
       path: "../packages/revali_construct"
       relative: true
     source: path
-    version: "2.0.2-dev"
+    version: "2.0.2"
   revali_core:
     dependency: "direct overridden"
     description:
@@ -496,28 +384,28 @@ packages:
       path: "../revali_router/revali_router"
       relative: true
     source: path
-    version: "3.0.2-dev"
+    version: "3.0.2"
   revali_router_annotations:
     dependency: "direct overridden"
     description:
       path: "../revali_router/revali_router_annotations"
       relative: true
     source: path
-    version: "2.0.2-dev"
+    version: "2.0.2"
   revali_router_core:
     dependency: "direct overridden"
     description:
       path: "../revali_router/revali_router_core"
       relative: true
     source: path
-    version: "2.0.2-dev"
+    version: "2.0.2"
   revali_server:
     dependency: "direct overridden"
     description:
       path: "../constructs/revali_server"
       relative: true
     source: path
-    version: "2.0.2-dev"
+    version: "2.0.2"
   revali_test:
     dependency: "direct overridden"
     description:

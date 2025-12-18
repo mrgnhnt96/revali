@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.0.3 | 12.18.25
+
+### Fixes
+
+- Issue where parsing dart define a base64 encoded string would fail
+
 ## 2.0.2 | 11.22.25
 
 ### Chore

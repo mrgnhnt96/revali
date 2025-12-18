@@ -6,11 +6,11 @@
 
 # revali
 
-## 2.0.2
+## 2.0.3
 
-### Chore
+### Fixes
 
-- Sync package versions
+- Issue where parsing dart define a base64 encoded string would fail
 
 # revali_annotations
 
@@ -74,19 +74,16 @@
 
 # revali_server
 
-## 2.0.2
+## 2.0.3
 
-### Fix
+### Features
 
-- Issue where reflect and pipe imports were not being generated correctly
+- Add `Body` and `PayloadBody` to inferred types
 
 ### Enhancements
 
-- Infer `ReflectHandler` to `Reflect`
-
-### Chore
-
-- Sync package versions
+- Improve error message when inferred type fails to resolve
+- Print stack trace when resolving routes throws
 
 <!-- REVALI CLIENT -->
 
