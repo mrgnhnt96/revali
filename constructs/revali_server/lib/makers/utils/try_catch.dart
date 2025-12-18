@@ -1,10 +1,13 @@
 import 'package:code_builder/code_builder.dart';
 
-Block tryCatch(Code tryBlock, Code catchBlock) {
+Block tryCatch(Code tryBlock, Code catchBlock, {bool stack = false}) {
   return Block.of([
     const Code('try {'),
     tryBlock,
-    const Code('} catch (e) {'),
+    if (stack)
+      const Code('} catch (e, stack) {')
+    else
+      const Code('} catch (e) {'),
     catchBlock,
     const Code('}'),
   ]);

@@ -21,6 +21,8 @@ final impliedArguments = <String, Expression>{
   (ResponseCookies).name: refer('context').property('response').property('headers').property('cookies'),
   (SetCookies).name: refer('context').property('response').property('headers').property('setCookies'),
   (Response).name: refer('context').property('response'),
+  (Body).name: refer('context').property('response').property('body'),
+  (PayloadBody).name: refer('context').property('response').property('body'),
   // --- request ---
   (RequestHeaders).name: refer('context').property('request').property('headers'),
   (RequestCookies).name: refer('context').property('request').property('headers').property('cookies'),
@@ -84,7 +86,7 @@ Expression createParamArg(
     }
 
     throw ArgumentError(
-      'No annotation or default value for param "${param.name}"',
+      'No annotation or default value for param `${param.type.name} ${param.name}`',
     );
   }
 

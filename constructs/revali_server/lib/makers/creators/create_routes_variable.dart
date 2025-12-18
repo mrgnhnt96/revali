@@ -28,8 +28,10 @@ List<Code> createRoutesVariable(ServerServer server) {
         refer(
           'print',
         ).call([literalString(r'Failed to create routes:\n$e')]).statement,
+        refer('print').call([literalString(r'Stack:\n$stack')]).statement,
         refer('server').returned.statement,
       ]),
+      stack: true,
     ),
   ];
 }
