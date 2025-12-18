@@ -96,9 +96,10 @@ class DartDefine {
   }
 
   static ({String key, String value}) _parseEntry(String entry) {
-    final parts = entry.split('=');
+    final match = RegExp('=(.*)').firstMatch(entry);
+    final index = match?.start;
 
-    if (parts.length != 2) {
+    if (index == null) {
       throw ArgumentError.value(
         entry,
         'entry',
@@ -106,7 +107,12 @@ class DartDefine {
       );
     }
 
-    return (key: _sanitized(parts[0]), value: _sanitized(parts[1]));
+    final [key, value] = [
+      entry.substring(0, index),
+      entry.substring(index + 1),
+    ];
+
+    return (key: _sanitized(key), value: _sanitized(value));
   }
 
   bool get isEmpty => _defined.isEmpty;
