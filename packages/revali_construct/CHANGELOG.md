@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.0.3 | 01.28.26
+
+### Enhancements
+
+- Prints error messages when exceptions are thrown during server creation
+
 ## 2.0.2 | 11.22.25
 
 ### Chore

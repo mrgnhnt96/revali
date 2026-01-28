@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2.0.4 | 01.28.26
+
+### Fixes
+
+- Issue where stdin would error when trying to listen for input during hot reload
+- Issue where if exception were thrown on the first server creation, revali would exit
+- Prints error messages when exceptions are thrown during server creation
+
 ## 2.0.3 | 12.18.25
 
 ### Fixes

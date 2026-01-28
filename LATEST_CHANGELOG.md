@@ -6,11 +6,13 @@
 
 # revali
 
-## 2.0.3
+## 2.0.4
 
 ### Fixes
 
-- Issue where parsing dart define a base64 encoded string would fail
+- Issue where stdin would error when trying to listen for input during hot reload
+- Issue where if exception were thrown on the first server creation, revali would exit
+- Prints error messages when exceptions are thrown during server creation
 
 # revali_annotations
 
@@ -22,11 +24,11 @@
 
 # revali_construct
 
-## 2.0.2
+## 2.0.3
 
-### Chore
+### Enhancements
 
-- Sync package versions
+- Prints error messages when exceptions are thrown during server creation
 
 # revali_core
 
