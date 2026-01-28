@@ -62,6 +62,10 @@ class VMServiceHandler {
   StreamSubscription<List<int>>? _inputSubscription;
   StreamSubscription<io.ProcessSignal>? _killSubscription;
 
+  // Broadcast stream controller for stdin to allow multiple subscriptions
+  StreamController<List<int>>? _stdinController;
+  StreamSubscription<List<int>>? _stdinSourceSubscription;
+
   bool get isServerRunning => _serverProcess != null;
 
   bool get isWatching => _watcherSubscription != null;
@@ -266,6 +270,15 @@ class VMServiceHandler {
     _inputSubscription = null;
   }
 
+  Future<void> _closeBroadcastStream() async {
+    // Close the stream controller and cancel the source subscription
+    logger.detail('Closing stdin broadcast stream');
+    await _stdinSourceSubscription?.cancel();
+    await _stdinController?.close();
+    _stdinSourceSubscription = null;
+    _stdinController = null;
+  }
+
   Future<void> start({required bool enableHotReload}) async {
     lockInput();
 
@@ -302,8 +315,23 @@ class VMServiceHandler {
 
   void watchForInput() {
     try {
-      _inputSubscription ??= io.stdin.listen((event) {
-        var key = utf8.decode(event).toLowerCase();
+      // Create broadcast stream controller once from stdin
+      if (_stdinController == null) {
+        _stdinController = StreamController<List<int>>.broadcast();
+        _stdinSourceSubscription = io.stdin.listen(
+          (event) => _stdinController?.add(event),
+          onDone: () => _stdinController?.close(),
+        );
+      }
+
+      // Cancel existing subscription if any
+      _inputSubscription?.cancel();
+
+      // Re-lock input to ensure single-key mode is maintained
+      lockInput();
+
+      _inputSubscription = _stdinController?.stream.listen((event) {
+        var key = utf8.decode(event).toLowerCase().trim();
         if (key.isEmpty && event.length == 1) {
           key = '${event[0]}';
         }
@@ -388,6 +416,7 @@ class VMServiceHandler {
     unlockInput();
 
     if (isCompleted) {
+      logger.detail('Stop called but already completed');
       return;
     }
 
@@ -398,6 +427,15 @@ class VMServiceHandler {
     await _killServerProcess();
     await _cancelInputSubscription();
     await _killSubscription?.cancel();
+    await _closeBroadcastStream();
+
+    // Complete the exit code completer to signal the process can exit
+    if (!_exitCodeCompleter.isCompleted) {
+      logger.detail('Completing exit code completer with code: $exitCode');
+      _exitCodeCompleter.complete(exitCode);
+    } else {
+      logger.detail('Exit code completer was already completed');
+    }
   }
 
   Future<void> serve({
@@ -501,12 +539,6 @@ class VMServiceHandler {
         logger.write('$message\n');
       }
     });
-
-    process.exitCode.then((_) async {
-      if (isCompleted) return;
-      await _killServerProcess();
-      await stop(1);
-    }).ignore();
   }
 
   String _formatTime(DateTime time) {
