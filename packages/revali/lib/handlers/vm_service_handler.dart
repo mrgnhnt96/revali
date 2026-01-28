@@ -482,13 +482,12 @@ class VMServiceHandler {
         data = HotReloadData.fromJson(
           jsonDecode(message) as Map<String, dynamic>,
         );
-      } catch (e) {
-        // ignore
+      } catch (_) {
+        logger.err(message);
+        return;
       }
 
       switch (data) {
-        case null:
-          break;
         case HotReloadFilesChanged(:final files):
           clearConsole();
           printVmServiceUri();

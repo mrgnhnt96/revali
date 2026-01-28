@@ -10,15 +10,25 @@ import 'package:revali_construct/models/hot_reload_data/hot_reload_data.dart';
 import 'package:revali_construct/models/hot_reload_data/hot_reload_files_changed.dart';
 import 'package:revali_construct/utils/debouncer.dart';
 
-void hotReload(Future<HttpServer> Function() callback) {
-  HotReload(serverFactory: callback).attach().ignore();
+void hotReload(Future<HttpServer?> Function() createServer) {
+  HotReload(
+    serverFactory: () async {
+      try {
+        return await createServer();
+      } catch (e) {
+        // ignore: avoid_print
+        print('Failed to create server\n$e');
+      }
+      return null;
+    },
+  ).attach().ignore();
 }
 
 class HotReload {
   HotReload({required this.serverFactory, this.logLevel = Level.OFF})
     : controller = StreamController<HotReloadData>.broadcast();
 
-  final Future<HttpServer> Function() serverFactory;
+  final Future<HttpServer?> Function() serverFactory;
   final Level logLevel;
   final StreamController<HotReloadData> controller;
 
@@ -43,7 +53,9 @@ class HotReload {
     HotReloader.logLevel = logLevel;
 
     /// Function in charge of replacing the running http server
-    Future<void> obtainNewServer(FutureOr<HttpServer> Function() create) async {
+    Future<void> obtainNewServer(
+      FutureOr<HttpServer?> Function() create,
+    ) async {
       /// Shut down existing server
       await runningServer?.close(force: true);
 
