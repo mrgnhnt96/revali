@@ -275,7 +275,6 @@ class VMServiceHandler {
     logger.detail('Closing stdin broadcast stream');
     await _stdinSourceSubscription?.cancel();
     await _stdinController?.close();
-    _stdinSourceSubscription = null;
     _stdinController = null;
   }
 
@@ -539,6 +538,25 @@ class VMServiceHandler {
         logger.write('$message\n');
       }
     });
+
+    process.exitCode.then((code) async {
+      if (isCompleted) return;
+      await stop(1);
+      logger.err('Server exited with code: $code');
+      final error = await process.stderr.transform(utf8.decoder).join();
+      if (error.trim() case final error when error.isNotEmpty) {
+        logger.err('Server stderr:\n$error');
+      }
+      final output = await process.stdout.transform(utf8.decoder).join();
+      if (output.trim() case final output when output.isNotEmpty) {
+        logger.err('Server stdout:\n$output');
+      }
+
+      logger.err(
+        'Make sure that you do not have any exceptions '
+        'being thrown in your server code.',
+      );
+    }).ignore();
   }
 
   String _formatTime(DateTime time) {
