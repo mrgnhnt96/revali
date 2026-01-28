@@ -1,12 +1,14 @@
 # TODO
 
 - [ ] Add tutorials for the following features:
-
   - [ ] **Middleware** - Add request/response processing
   - [ ] **Error handling** - Create custom error responses
   - [ ] **Authentication** - Secure your endpoints
   - [ ] **Database integration** - Connect to your data layer
-
+- [ ] Add "request" scoped dependencies
+  - [ ] App scoped (global and don't get refreshed)
+  - [ ] Request scoped (get refreshed for each request)
+    - This would mean that we need to create a new DI instance for each request, to avoid sharing data between requests, since we are following the DI singleton pattern
 - [ ] Remove websocket 1 way modes
 - [ ] Improve "Deleting precompiled script and retrying..." failure
   - Compile a revali app on using an older version of the dart sdk
@@ -14,6 +16,12 @@
   - Restart the revali app without recompiling
 - [ ] Figure out a way to handle sending streams from the client to the server
 - [ ] Fix issue where revali client is add multiple same cookies
+- [ ] Fix issue where if 2 paths match, the order should be
+
+  - No path ids first
+  - longest paths first
+
+    - This solves the issue where `places/near-me` would match `places/near-me/123`
 
   - The following code should only add the cookie once, but it is adding it multiple times
 

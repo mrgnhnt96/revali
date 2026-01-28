@@ -52,7 +52,7 @@
 
 # revali_router_annotations
 
-## 2.0.2
+## 2.0.2+1
 
 ### Fix
 
