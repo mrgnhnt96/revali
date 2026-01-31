@@ -7,8 +7,8 @@ import 'package:revali_router_core/cookies/cookies.dart';
 import 'package:revali_router_core/cookies/set_cookies.dart';
 
 abstract class Headers {
-  void set(String key, String value);
-  void add(String key, String value);
+  void set(String key, String value, {bool expose = true});
+  void add(String key, String value, {bool expose = true});
 
   /// Removed the header with case-insensitive name [key].
   void remove(String key);
@@ -20,6 +20,11 @@ abstract class Headers {
   void addEverything(Map<String, Iterable<String>> headers);
 
   void clear();
+
+  Set<String> get exposed;
+  bool isExposed(String key);
+  void expose(String key);
+  void unexpose(String key);
 
   set mimeType(String? value);
   set contentLength(int? value);

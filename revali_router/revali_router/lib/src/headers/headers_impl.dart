@@ -61,6 +61,29 @@ class HeadersImpl extends CommonHeadersMixin implements Headers {
   }
 
   @override
+  bool isExposed(String key) => exposed.contains(key);
+  @override
+  void expose(String key) {
+    add(HttpHeaders.accessControlExposeHeadersHeader, key);
+  }
+
+  @override
+  void unexpose(String key) {
+    final exposed = get(HttpHeaders.accessControlExposeHeadersHeader);
+    if (exposed == null) {
+      return;
+    }
+
+    final exposedHeaders = exposed.split(',').map((e) => e.trim()).toSet();
+    if (exposedHeaders.remove(key)) {
+      set(
+        HttpHeaders.accessControlExposeHeadersHeader,
+        exposedHeaders.join(','),
+      );
+    }
+  }
+
+  @override
   String? get(String key) {
     final result = _headers[key];
 
@@ -89,13 +112,23 @@ class HeadersImpl extends CommonHeadersMixin implements Headers {
   }
 
   @override
-  void add(String key, String value) {
+  void add(String key, String value, {bool? expose}) {
     _headers[key] = (_headers[key] ?? []).followedBy([value]);
+    if (expose case true) {
+      this.expose(key);
+    } else if (expose case false) {
+      unexpose(key);
+    }
   }
 
   @override
-  void set(String key, String value) {
+  void set(String key, String value, {bool? expose}) {
     _headers[key] = [value];
+    if (expose case true) {
+      this.expose(key);
+    } else if (expose case false) {
+      unexpose(key);
+    }
   }
 
   void setAll(String key, List<String> value) {
@@ -117,6 +150,7 @@ class HeadersImpl extends CommonHeadersMixin implements Headers {
   @override
   void remove(String key) {
     _headers.removeWhere((header, value) => equalsIgnoreAsciiCase(header, key));
+    unexpose(key);
   }
 
   @override

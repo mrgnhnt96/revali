@@ -117,4 +117,10 @@ abstract class CommonHeadersMixin extends Headers {
 
     return null;
   }
+
+  @override
+  Set<String> get exposed {
+    final exposed = get(HttpHeaders.accessControlExposeHeadersHeader);
+    return exposed?.split(',').map((e) => e.trim()).toSet() ?? {};
+  }
 }
