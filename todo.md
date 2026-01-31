@@ -1,5 +1,10 @@
 # TODO
 
+- [ ] Add documentation on how to use `mkcert` to run the server with HTTPS
+- [x] Add optional param to `headers.set(expose: true)` to expose the header to the client
+
+  - [x] This is required because browsers will block headers that are not exposed to the client
+
 - [ ] Add tutorials for the following features:
   - [ ] **Middleware** - Add request/response processing
   - [ ] **Error handling** - Create custom error responses

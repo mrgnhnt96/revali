@@ -42,15 +42,11 @@
 
 # revali_router
 
-## 3.0.2
+## 3.0.3
 
-### Features
+### Enhancements
 
-- Add `Reflect` class to replace `ReflectHandler`
-
-### Chore
-
-- Sync package versions
+- Add optional param to `headers.set(expose: true)` to expose the header to the client
 
 # revali_router_annotations
 
@@ -62,15 +58,11 @@
 
 # revali_router_core
 
-## 2.0.2
+## 2.0.3
 
-### Features
+### Enhancements
 
-- Remove `ReflectHandler`, replace with `Reflect`
-
-### Chore
-
-- Sync package versions
+- Add optional param to `headers.set(expose: true)` to expose the header to the client
 
 <!-- CONSTRUCTS -->
 
@@ -91,11 +83,11 @@
 
 # revali_client
 
-## 2.0.2
+## 2.0.3
 
-### Chore
+### Enhancements
 
-- Sync package versions
+- Add ability to update headers from within request interceptors
 
 # revali_client_gen
 

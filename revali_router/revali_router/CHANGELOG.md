@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 3.0.3 | 01.31.26
+
+### Enhancements
+
+- Add optional param to `headers.set(expose: true)` to expose the header to the client
+
 ## 3.0.2 | 11.22.25
 
 ### Features

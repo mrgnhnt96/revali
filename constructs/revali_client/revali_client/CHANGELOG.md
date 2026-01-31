@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.0.3 | 01.31.26
+
+### Enhancements
+
+- Add ability to update headers from within request interceptors
+
 ## 2.0.2 | 11.22.25
 
 ### Chore
