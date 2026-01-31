@@ -42,7 +42,7 @@
 
 # revali_router
 
-## 3.0.3
+## 3.0.3+1
 
 ### Enhancements
 
@@ -58,7 +58,7 @@
 
 # revali_router_core
 
-## 2.0.3
+## 2.0.3+1
 
 ### Enhancements
 

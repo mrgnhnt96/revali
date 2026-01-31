@@ -1,6 +1,7 @@
 # TODO
 
 - [ ] Add documentation on how to use `mkcert` to run the server with HTTPS
+- [ ] Update documentation to reflect the new `headers.set(expose: true)` param
 - [x] Add optional param to `headers.set(expose: true)` to expose the header to the client
 
   - [x] This is required because browsers will block headers that are not exposed to the client

@@ -62,6 +62,7 @@ class HeadersImpl extends CommonHeadersMixin implements Headers {
 
   @override
   bool isExposed(String key) => exposed.contains(key);
+
   @override
   void expose(String key) {
     add(HttpHeaders.accessControlExposeHeadersHeader, key);

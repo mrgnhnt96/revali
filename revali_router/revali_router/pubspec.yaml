@@ -1,6 +1,6 @@
 name: revali_router
 description: Feature rich http router for Revali
-version: 3.0.3
+version: 3.0.3+1
 repository: https://github.com/mrgnhnt96/revali/tree/main/revali_router/revali_router
 issue_tracker: https://github.com/mrgnhnt96/revali/issues
 documentation: https://revali.dev
@@ -29,7 +29,7 @@ dependencies:
   revali_annotations: ^2.0.2
   revali_core: ^1.4.0
   revali_router_annotations: ^2.0.2+1
-  revali_router_core: ^2.0.3
+  revali_router_core: ^2.0.3+1
   stack_trace: ^1.11.1
 
 dev_dependencies:
