@@ -19,8 +19,6 @@ class HttpPackageClient implements HttpClient {
     // ignore: unnecessary_await_in_return
     final httpRequest = http.Request(request.method, request.url);
 
-    httpRequest.headers.addAll(request.headers);
-
     if (request.bodyBytes case final bytes?) {
       httpRequest.bodyBytes = bytes;
     }
@@ -39,16 +37,16 @@ class HttpPackageClient implements HttpClient {
 
     for (final HttpInterceptor(:onRequest) in interceptors) {
       try {
-        switch (onRequest) {
-          case final Future<void> Function(HttpRequest) fn:
-            await fn(request);
-          case final fn:
-            fn(request);
+        switch (onRequest(request)) {
+          case final Future<void> fn:
+            await fn;
         }
       } catch (e) {
         // swallow
       }
     }
+
+    httpRequest.headers.addAll(request.headers);
 
     final response = await _client.send(httpRequest);
 
