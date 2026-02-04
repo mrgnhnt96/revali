@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2.0.5 | 02.04.26
+
+### Fixes
+
+- Fixed stale dependency files in virtual analysis context when local path dependencies change
+- Added file watching for dependency directories to detect changes in monorepo setups
+- Fixed `lastModified` filtering bug that prevented efficient dependency file refresh
+
 ## 2.0.4 | 01.28.26
 
 ### Fixes

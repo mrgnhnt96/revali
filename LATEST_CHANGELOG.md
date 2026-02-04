@@ -6,13 +6,13 @@
 
 # revali
 
-## 2.0.4
+## 2.0.5
 
 ### Fixes
 
-- Issue where stdin would error when trying to listen for input during hot reload
-- Issue where if exception were thrown on the first server creation, revali would exit
-- Prints error messages when exceptions are thrown during server creation
+- Fixed stale dependency files in virtual analysis context when local path dependencies change
+- Added file watching for dependency directories to detect changes in monorepo setups
+- Fixed `lastModified` filtering bug that prevented efficient dependency file refresh
 
 # revali_annotations
 
