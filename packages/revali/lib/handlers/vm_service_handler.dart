@@ -27,6 +27,7 @@ class VMServiceHandler {
     required this.onFilesChange,
     required this.onFileRemove,
     required this.errors,
+    this.getDependencyDirectories,
     this.dartDefine = const DartDefine(),
     this.dartVmServicePort = '0',
   }) : assert(
@@ -46,6 +47,7 @@ class VMServiceHandler {
   final Future<void> Function(List<String>) onFilesChange;
   final Future<void> Function(String) onFileRemove;
   final Future<List<(String, List<AnalysisError>)>> Function() errors;
+  final Future<List<String>> Function()? getDependencyDirectories;
 
   bool _isReloading = false;
 
@@ -59,6 +61,7 @@ class VMServiceHandler {
 
   io.Process? _serverProcess;
   StreamSubscription<WatchEvent>? _watcherSubscription;
+  final List<StreamSubscription<WatchEvent>> _dependencyWatchers = [];
   StreamSubscription<List<int>>? _inputSubscription;
   StreamSubscription<io.ProcessSignal>? _killSubscription;
 
@@ -114,7 +117,7 @@ class VMServiceHandler {
       logger.err(message);
     });
 
-    watchForFileChanges();
+    await watchForFileChanges();
     watchForInput();
     _isReloading = false;
   }
@@ -251,13 +254,18 @@ class VMServiceHandler {
   // Make sure to call `stop` after calling this method to also stop the
   // server process.
   Future<void> _cancelWatcherSubscription() async {
-    if (!isWatching) {
+    if (!isWatching && _dependencyWatchers.isEmpty) {
       return;
     }
 
-    logger.detail('Cancelling file watcher');
+    logger.detail('Cancelling file watchers');
     await _watcherSubscription?.cancel();
     _watcherSubscription = null;
+
+    for (final watcher in _dependencyWatchers) {
+      await watcher.cancel();
+    }
+    _dependencyWatchers.clear();
   }
 
   Future<void> _cancelInputSubscription() async {
@@ -303,7 +311,7 @@ class VMServiceHandler {
 
     if (enableHotReload) {
       watchForInput();
-      watchForFileChanges();
+      await watchForFileChanges();
     }
   }
 
@@ -372,13 +380,14 @@ class VMServiceHandler {
     });
   }
 
-  void watchForFileChanges() {
+  Future<void> watchForFileChanges() async {
     logger.detail('Watching ${root.path} for changes');
 
     if (_watcherSubscription != null) {
       return;
     }
 
+    // Watch the root directory
     _watcherSubscription = DirectoryWatcher(root.path).events
         .asyncMap((event) async {
           final WatchEvent(:type, :path) = event;
@@ -409,6 +418,52 @@ class VMServiceHandler {
           await stop(1);
         })
         .ignore();
+
+    // Watch dependency directories if available
+    if (getDependencyDirectories case final getDependencyDirectories?
+        when _dependencyWatchers.isEmpty) {
+      final dependencyDirs = await getDependencyDirectories();
+      for (final dir in dependencyDirs) {
+        logger.detail('Watching dependency directory: $dir');
+        final watcher = DirectoryWatcher(dir).events
+            .asyncMap((event) async {
+              final WatchEvent(:type, :path) = event;
+
+              // Only watch for Dart files in dependency directories
+              if (p.extension(path) == '.dart') {
+                if (type == ChangeType.REMOVE) {
+                  await onFileRemove(path);
+                } else {
+                  await onFilesChange([path]);
+                }
+              }
+
+              return event;
+            })
+            .debounce(Duration.zero)
+            .listen((event) {
+              final WatchEvent(:type, :path) = event;
+
+              if (p.extension(path) == '.dart') {
+                _reload(path);
+              }
+            });
+
+        _dependencyWatchers.add(watcher);
+
+        watcher
+            .asFuture<void>()
+            .then((_) async {
+              await _cancelWatcherSubscription();
+              await stop();
+            })
+            .catchError((_) async {
+              await _cancelWatcherSubscription();
+              await stop(1);
+            })
+            .ignore();
+      }
+    }
   }
 
   Future<void> stop([int exitCode = 0]) async {

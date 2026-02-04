@@ -144,6 +144,7 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
       onFilesChange: analyzer.refresh,
       onFileRemove: analyzer.remove,
       errors: generator.getErrors,
+      getDependencyDirectories: analyzer.getPathDependencyDirectories,
     );
 
     await generator.clean();

@@ -53,6 +53,34 @@ class Analyzer implements AnalyzerChanges {
 
   bool _isInitialized = false;
 
+  /// Gets the list of path dependency directories.
+  ///
+  /// Returns an empty list if the analyzer hasn't been initialized or
+  /// if there are no path dependencies.
+  Future<List<String>> getPathDependencyDirectories() async {
+    var packageConfig = _packageConfig;
+
+    // If package config hasn't been loaded yet, try to get it
+    if (packageConfig == null && _root != null) {
+      final dartToolFiles = [
+        ...await find.filesInDirectory('.dart_tool', workingDirectory: _root!),
+      ];
+      packageConfig = await _getPackageConfig(dartToolFiles);
+      if (packageConfig != null) {
+        _packageConfig = packageConfig;
+      }
+    }
+    if (packageConfig == null) {
+      return [];
+    }
+
+    return await _getDependencyFiles(
+      packageConfig,
+      pathDependenciesOnly: true,
+      directoryOnly: true,
+    );
+  }
+
   /// Reloads the analyzer.
   ///
   /// This is only needed to be called when a dependency has changed. The
@@ -60,33 +88,18 @@ class Analyzer implements AnalyzerChanges {
   /// dependencies are only resolved and cached when the analyzer is
   /// initialized.
   ///
-  /// This is relatively expensive, so it should only be called when necessary.
+  /// This refreshes all dependency files in the memory provider and notifies
+  /// the analysis context of changes, similar to how same-package file changes
+  /// are handled.
   Future<void> reload() async {
-    final dependencies = switch (_packageConfig) {
-      final String packageConfig => await _getDependencyFiles(
-        packageConfig,
-        pathDependenciesOnly: true,
-        directoryOnly: true,
-      ),
-      null => <String>[],
-    };
-
     final root = _root;
     if (root == null) {
       throw Exception('No root found');
     }
 
+    // Refresh all dependency files in the
+    // memory provider and notify the context
     await refreshDependencies();
-
-    final old = _analysisCollection;
-
-    _analysisCollection = AnalysisContextCollection(
-      includedPaths: [root, ...dependencies],
-      resourceProvider: _memoryProvider,
-      sdkPath: await sdkPath,
-    );
-
-    await old?.dispose();
   }
 
   Future<void> initialize({required String root}) async {
@@ -188,9 +201,9 @@ class Analyzer implements AnalyzerChanges {
 
       try {
         context = analysisCollection.contextFor(path)..changeFile(path);
-
         pendingChanges.add(context.applyPendingFileChanges());
       } catch (e) {
+        // File might not be in any context yet, that's okay
         continue;
       }
     }
@@ -327,23 +340,37 @@ class Analyzer implements AnalyzerChanges {
 
     _memoryProvider = MemoryResourceProvider();
 
-    final futures = <Future<(String, Uint8List)>>[];
+    final futures = <Future<(String, Uint8List?)>>[];
 
     for (final file in files) {
-      futures.add(
-        fs.file(file).readAsBytes().then((content) => (file, content)),
-      );
+      futures.add(() async {
+        try {
+          final content = await fs.file(file).readAsBytes();
+          return (file, content as Uint8List?);
+        } catch (_) {
+          return (file, null as Uint8List?);
+        }
+      }());
     }
 
     final sdkFiles = await find.file('*', workingDirectory: await sdkPath);
 
     for (final file in sdkFiles) {
-      futures.add(fs.file(file).readAsBytes().then((bytes) => (file, bytes)));
+      futures.add(() async {
+        try {
+          final bytes = await fs.file(file).readAsBytes();
+          return (file, bytes as Uint8List?);
+        } catch (_) {
+          return (file, null as Uint8List?);
+        }
+      }());
     }
 
     final results = await Future.wait(futures);
     for (final (path, bytes) in results) {
-      _memoryProvider.newFileWithBytes(path, bytes);
+      if (bytes != null) {
+        _memoryProvider.newFileWithBytes(path, bytes);
+      }
     }
   }
 
@@ -402,6 +429,7 @@ class Analyzer implements AnalyzerChanges {
           '',
           workingDirectory: directory,
           recursive: false,
+          lastModified: lastModified,
         ),
       );
     }

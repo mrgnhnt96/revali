@@ -79,7 +79,7 @@ class FindImpl implements Find {
     final type = file ? 'f' : 'd';
     final lastModifiedArg = switch (lastModified) {
       final DateTime date =>
-        '-mmin -${max(date.difference(DateTime.now()).inMinutes, 1)}',
+        '-mmin -${max(DateTime.now().difference(date).inMinutes, 1)}',
       null => '',
     };
 
@@ -101,6 +101,19 @@ class FindImpl implements Find {
       fs.path.join(workingDirectory, '**', name),
       recursive: true,
     ).listFileSystemSync(fs, followLinks: false);
+
+    // Filter by lastModified if provided
+    if (lastModified != null) {
+      final cutoffTime = lastModified;
+      return files
+          .where(
+            (file) =>
+                file.statSync().modified.isAfter(cutoffTime) ||
+                file.statSync().modified.isAtSameMomentAs(cutoffTime),
+          )
+          .map((e) => e.path)
+          .toList();
+    }
 
     return files.map((e) => e.path).toList();
   }
