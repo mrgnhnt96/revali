@@ -83,18 +83,31 @@ class Find {
           final almostMatches =
               (route.method == null || route.method != method) &&
                   hasMoreSegments;
+          final optionsMatch = method == 'OPTIONS' && route.canInvoke;
           final patternMatches =
               pattern.hasMatch(possibleSameSegments.join('/'));
 
           if (patternMatches &&
-              (methodsMatch || almostMatches || proxy != null)) {
+              (methodsMatch ||
+                  almostMatches ||
+                  proxy != null ||
+                  optionsMatch)) {
             if (proxy != null) {
               return RouteMatch(proxy);
             }
 
+            final remainingSegments =
+                pathSegments.skip(possibleSameSegments.length).toList();
+            if (remainingSegments.isEmpty && route.canInvoke) {
+              if (methodsMatch ||
+                  (route.method == 'GET' && method == 'HEAD') ||
+                  method == 'OPTIONS') {
+                return RouteMatch(route);
+              }
+            }
+
             final poss = find(
-              pathSegments:
-                  pathSegments.skip(possibleSameSegments.length).toList(),
+              pathSegments: remainingSegments,
               routes: route.routes,
               parent: route,
               method: method,

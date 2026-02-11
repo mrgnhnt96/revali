@@ -149,6 +149,67 @@ void main() {
       expect(result?.route, create);
     });
 
+    test('should find dynamic route for OPTIONS with same path methods', () {
+      final update = Route(
+        ':id',
+        method: 'PUT',
+        handler: (_) async {},
+      );
+      final delete = Route(
+        ':id',
+        method: 'DELETE',
+        handler: (_) async {},
+      );
+
+      final router = Router(
+        routes: [
+          Route(
+            'api',
+            routes: [
+              Route(
+                'admin/user',
+                routes: [
+                  Route(
+                    'login',
+                    method: 'POST',
+                    handler: (_) async {},
+                  ),
+                  Route(
+                    '',
+                    method: 'GET',
+                    handler: (_) async {},
+                  ),
+                  Route(
+                    '',
+                    method: 'POST',
+                    handler: (_) async {},
+                  ),
+                  update,
+                  delete,
+                ],
+              ),
+            ],
+          ),
+        ],
+      );
+
+      final result = Find(
+        segments: ['api', 'admin', 'user', '123'],
+        routes: router.routes,
+        method: 'OPTIONS',
+      ).run();
+
+      expect(result, isNotNull);
+      expect(result?.route, anyOf(update, delete));
+      expect(
+        result?.route.allowedMethods,
+        containsAll(['OPTIONS', 'PUT', 'DELETE']),
+      );
+      expect(result?.pathParameters, {
+        'id': ['123'],
+      });
+    });
+
     test(
         'should return nested route when root is '
         'not invokable and child path is empty', () {
