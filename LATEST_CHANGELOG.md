@@ -42,11 +42,11 @@
 
 # revali_router
 
-## 3.0.3+1
+## 3.0.4
 
-### Enhancements
+### Fixes
 
-- Add optional param to `headers.set(expose: true)` to expose the header to the client
+- Fix route matching for `OPTIONS` requests on dynamic endpoint paths (e.g. `:id`)
 
 # revali_router_annotations
 

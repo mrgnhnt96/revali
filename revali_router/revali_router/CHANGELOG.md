@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 3.0.4 | 02.11.26
+
+### Fixes
+
+- Fix route matching for `OPTIONS` requests on dynamic endpoint paths (e.g. `:id`)
+
 ## 3.0.3+1 | 01.31.26
 
 ### Enhancements
