@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## 2.0.6 | 02.16.26
+
+### Fixes
+
+- Handle `deleteFile` errors gracefully when path doesn't exist in memory provider
+- Buffer server stdout/stderr for reliable diagnostics when process exits unexpectedly
+- Log diagnostics before server crashes
+
+### Enhancements
+
+- Improved error logging for file watcher errors (now includes stack trace)
+- More informative shutdown and signal logging
+
 ## 2.0.5 | 02.04.26
 
 ### Fixes

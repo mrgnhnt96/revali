@@ -6,13 +6,18 @@
 
 # revali
 
-## 2.0.5
+## 2.0.6
 
 ### Fixes
 
-- Fixed stale dependency files in virtual analysis context when local path dependencies change
-- Added file watching for dependency directories to detect changes in monorepo setups
-- Fixed `lastModified` filtering bug that prevented efficient dependency file refresh
+- Handle `deleteFile` errors gracefully when path doesn't exist in memory provider
+- Buffer server stdout/stderr for reliable diagnostics when process exits unexpectedly
+- Log diagnostics before server crashes
+
+### Enhancements
+
+- Improved error logging for file watcher errors (now includes stack trace)
+- More informative shutdown and signal logging
 
 # revali_annotations
 
