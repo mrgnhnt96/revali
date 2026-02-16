@@ -69,6 +69,10 @@ class VMServiceHandler {
   StreamController<List<int>>? _stdinController;
   StreamSubscription<List<int>>? _stdinSourceSubscription;
 
+  // Buffers for server output - used when process exits to show diagnostics
+  final StringBuffer _stderrBuffer = StringBuffer();
+  final StringBuffer _stdoutBuffer = StringBuffer();
+
   bool get isServerRunning => _serverProcess != null;
 
   bool get isWatching => _watcherSubscription != null;
@@ -369,10 +373,12 @@ class VMServiceHandler {
           ]);
 
     _killSubscription ??= stream.listen((event) {
-      logger.detail('Received SIGINT');
+      logger.detail('Received process signal: $event');
       if (attemptsToKill > 0) {
+        logger.detail('Second signal received, forcing exit');
         exit(1);
       } else if (attemptsToKill == 0) {
+        logger.detail('Gracefully shutting down (user requested)');
         stop().ignore();
       }
 
@@ -410,10 +416,14 @@ class VMServiceHandler {
     _watcherSubscription
         ?.asFuture<void>()
         .then((_) async {
+          logger.detail('Root directory watcher closed normally');
           await _cancelWatcherSubscription();
           await stop();
         })
-        .catchError((_) async {
+        .catchError((Object e, StackTrace st) async {
+          logger
+            ..err('File watcher error (root directory): $e')
+            ..detail('Stack trace: $st');
           await _cancelWatcherSubscription();
           await stop(1);
         })
@@ -454,10 +464,14 @@ class VMServiceHandler {
         watcher
             .asFuture<void>()
             .then((_) async {
+              logger.detail('Dependency watcher closed: $dir');
               await _cancelWatcherSubscription();
               await stop();
             })
-            .catchError((_) async {
+            .catchError((Object e, StackTrace st) async {
+              logger
+                ..err('File watcher error (dependency $dir): $e')
+                ..detail('Stack trace: $st');
               await _cancelWatcherSubscription();
               await stop(1);
             })
@@ -474,7 +488,7 @@ class VMServiceHandler {
       return;
     }
 
-    logger.detail('Stopping dev server...');
+    logger.detail('Stopping dev server... (exitCode: $exitCode)');
     _progress?.cancel();
 
     await _cancelWatcherSubscription();
@@ -527,8 +541,11 @@ class VMServiceHandler {
       });
     }
 
+    _stderrBuffer.clear();
+    _stdoutBuffer.clear();
     process.stderr.listen((err) async {
       final message = utf8.decode(err).trim();
+      _stderrBuffer.writeln(message);
       if (message.isEmpty) return;
 
       HotReloadData? data;
@@ -575,6 +592,7 @@ class VMServiceHandler {
 
     process.stdout.listen((out) async {
       final message = utf8.decode(out).trim();
+      _stdoutBuffer.writeln(message);
       if (message.isEmpty) {
         return;
       }
@@ -595,21 +613,33 @@ class VMServiceHandler {
 
     process.exitCode.then((code) async {
       if (isCompleted) return;
+      // Log diagnostics FIRST before stop() - otherwise the process may exit
+      // before these messages are flushed when exitCode completer completes
+      logger
+        ..err('')
+        ..err('Server process terminated unexpectedly with exit code: $code');
+      final stderr = _stderrBuffer.toString().trim();
+      if (stderr.isNotEmpty) {
+        logger.err('Server stderr:');
+        for (final line in stderr.split('\n')) {
+          logger.err('  $line');
+        }
+      }
+      final stdout = _stdoutBuffer.toString().trim();
+      if (stdout.isNotEmpty) {
+        logger.err('Server stdout (last ${stdout.split("\n").length} lines):');
+        final lines = stdout.split('\n');
+        for (final line
+            in lines.length > 20 ? lines.sublist(lines.length - 20) : lines) {
+          logger.err('  $line');
+        }
+      }
+      logger
+        ..err(
+          'Check for uncaught exceptions or early exit in your server code.',
+        )
+        ..err('');
       await stop(1);
-      logger.err('Server exited with code: $code');
-      final error = await process.stderr.transform(utf8.decoder).join();
-      if (error.trim() case final error when error.isNotEmpty) {
-        logger.err('Server stderr:\n$error');
-      }
-      final output = await process.stdout.transform(utf8.decoder).join();
-      if (output.trim() case final output when output.isNotEmpty) {
-        logger.err('Server stdout:\n$output');
-      }
-
-      logger.err(
-        'Make sure that you do not have any exceptions '
-        'being thrown in your server code.',
-      );
     }).ignore();
   }
 

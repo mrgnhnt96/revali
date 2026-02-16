@@ -222,7 +222,16 @@ class Analyzer implements AnalyzerChanges {
       return;
     }
 
-    _memoryProvider.deleteFile(file);
+    try {
+      _memoryProvider.deleteFile(file);
+    } catch (e) {
+      // Path may not exist in memory provider (e.g. dependency file never
+      // loaded, or stored as folder). The file is gone from the real FS
+      // anyway - safe to ignore.
+      logger.detail('Could not remove from analyzer cache: $e');
+      return;
+    }
+
     context.changeFile(file);
 
     await refreshDependencies();
