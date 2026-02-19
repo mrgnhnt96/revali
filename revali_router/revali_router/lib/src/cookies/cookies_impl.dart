@@ -69,7 +69,7 @@ class CookiesImpl implements Cookies {
   bool get isEmpty => _values.isEmpty;
 
   @override
-  bool get isNotEmpty => _values.isNotEmpty;
+  bool get isNotEmpty => !isEmpty;
 
   @override
   List<String> get keys => _values.keys.toList();
@@ -90,7 +90,7 @@ class CookiesImpl implements Cookies {
   String headerValue() {
     final buffer = StringBuffer();
 
-    for (final MapEntry(key: name, :value) in _values.entries) {
+    for (final MapEntry(key: name, :value) in entries) {
       final entry = switch (value) {
         String() => '$name=$value; ',
         _ => '$name; ',

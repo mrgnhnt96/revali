@@ -46,7 +46,7 @@ class HttpPackageClient implements HttpClient {
       }
     }
 
-    httpRequest.headers.addAll(request.headers);
+    httpRequest.headers.addAll({'credentials': 'include', ...request.headers});
 
     final response = await _client.send(httpRequest);
 

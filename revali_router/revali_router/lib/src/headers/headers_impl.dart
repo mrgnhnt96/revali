@@ -89,11 +89,11 @@ class HeadersImpl extends CommonHeadersMixin implements Headers {
     final result = _headers[key];
 
     /// See https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-p1-messaging-21#page-22
-    return switch (result?.length) {
+    return switch (result?.toList()) {
       null => null,
-      0 => null,
-      1 => result?.first,
-      _ => result?.join(', '),
+      [] => null,
+      [final value] => value,
+      final list => list.join(', '),
     };
   }
 
@@ -157,6 +157,10 @@ class HeadersImpl extends CommonHeadersMixin implements Headers {
   @override
   void forEach(void Function(String key, Iterable<String> value) f) {
     for (final MapEntry(:key, :value) in values.entries) {
+      if (value.join().trim().isEmpty) {
+        continue;
+      }
+
       f(key, value);
     }
   }

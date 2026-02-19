@@ -4,7 +4,31 @@ import 'package:http_parser/http_parser.dart';
 import 'package:revali_router/revali_router.dart';
 
 class SetCookiesImpl extends CookiesImpl implements SetCookies {
-  SetCookiesImpl([super.values]);
+  SetCookiesImpl([super.values]) {
+    if (httpOnly case null) {
+      httpOnly = true;
+    }
+
+    if (this[SetCookieHeaders.secure] case null) {
+      secure = true;
+    } else {
+      secure = false;
+    }
+
+    if (sameSite case null) {
+      sameSite = SameSiteCookie.lax;
+    }
+
+    if (this[SetCookieHeaders.httpOnly] case null) {
+      httpOnly = true;
+    } else {
+      httpOnly = false;
+    }
+
+    if (path case null) {
+      path = '/';
+    }
+  }
 
   factory SetCookiesImpl.fromHeader(String? value) {
     final cookies = CookiesImpl.fromHeader(value);
@@ -87,7 +111,7 @@ class SetCookiesImpl extends CookiesImpl implements SetCookies {
   }
 
   @override
-  bool? get secure => containsKey(SetCookieHeaders.secure);
+  bool get secure => containsKey(SetCookieHeaders.secure);
 
   @override
   set secure(bool? value) {
@@ -146,4 +170,49 @@ class SetCookiesImpl extends CookiesImpl implements SetCookies {
 
   @override
   String get headerKey => HttpHeaders.setCookieHeader;
+
+  static const _attributes = {
+    SetCookieHeaders.secure,
+    SetCookieHeaders.httpOnly,
+    SetCookieHeaders.sameSite,
+    SetCookieHeaders.path,
+    SetCookieHeaders.domain,
+    SetCookieHeaders.expires,
+    SetCookieHeaders.maxAge,
+    SetCookieHeaders.sessionId,
+  };
+
+  Iterable<MapEntry<String, String?>> setValues() sync* {
+    for (final entry in super.entries) {
+      if (_attributes.contains(entry.key)) {
+        continue;
+      }
+
+      yield entry;
+    }
+  }
+
+  @override
+  bool get isEmpty => setValues().isEmpty;
+
+  @override
+  List<MapEntry<String, String?>> get entries {
+    final setValues = this.setValues().toList();
+
+    if (setValues.isEmpty) {
+      return [];
+    }
+
+    final data = [
+      ...setValues,
+      for (final attribute in _attributes)
+        switch (this[attribute]) {
+          null when !containsKey(attribute) => null,
+          null => MapEntry(attribute, null),
+          final value => MapEntry(attribute, value),
+        },
+    ];
+
+    return data.nonNulls.toList();
+  }
 }
