@@ -81,16 +81,11 @@
 
 # revali_server
 
-## 2.0.3
+## 2.0.4
 
-### Features
+### Fixes
 
-- Add `Body` and `PayloadBody` to inferred types
-
-### Enhancements
-
-- Improve error message when inferred type fails to resolve
-- Print stack trace when resolving routes throws
+- **revali_docker**: Remove default values from `ARG` declarations in generated Dockerfile; values must now be provided via `--build-arg` at build time instead of being baked into the file
 
 <!-- REVALI CLIENT -->
 

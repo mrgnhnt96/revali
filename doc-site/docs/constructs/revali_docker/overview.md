@@ -153,7 +153,7 @@ Pass environment variables to your Docker build using `--dart-define`:
 dart run revali build --dart-define=API_KEY=secret --dart-define=PORT=3000
 ```
 
-This generates a Dockerfile with build arguments:
+This generates a Dockerfile with build argument declarations (values must be provided via `--build-arg` when building):
 
 ```dockerfile title="Dockerfile"
 FROM dart:stable AS build
@@ -164,9 +164,9 @@ RUN rm pubspec_overrides.yaml || true
 
 RUN dart pub get
 
-# Build arguments from --dart-define
-ARG API_KEY=secret
-ARG PORT=3000
+# Build arguments from --dart-define (values provided via --build-arg at build time)
+ARG API_KEY
+ARG PORT
 
 RUN dart run revali build --release --type constructs --recompile
 
@@ -184,9 +184,9 @@ COPY --from=build /app/server /app/bin/server
 CMD ["/app/bin/server"]
 ```
 
-### Overriding at Build Time
+### Providing Values at Build Time
 
-You can override build arguments when building the Docker image:
+Provide build argument values when building the Docker image:
 
 ```bash
 docker build \
@@ -233,7 +233,7 @@ docker buildx build \
 
 ### Build with Custom Arguments
 
-Override build arguments:
+Provide build arguments:
 
 ```bash
 docker build \

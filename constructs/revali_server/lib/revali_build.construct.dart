@@ -7,8 +7,8 @@ base class RevaliBuildConstruct extends BuildConstruct {
   BuildDirectory generate(RevaliBuildContext context, MetaServer server) {
     final defines = <String>[];
     final args = <String>[];
-    for (final MapEntry(:key, :value) in context.defines.entries) {
-      args.add('ARG $key=$value');
+    for (final MapEntry(:key) in context.defines.entries) {
+      args.add('ARG $key');
       defines.add('$key=\$$key');
     }
 
