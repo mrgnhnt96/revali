@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.0.4 | 02.18.26
+
+### Enhancements
+
+- Add `credentials: 'include'` to HTTP requests for cookie support with fetch
+
 ## 2.0.3 | 01.31.26
 
 ### Enhancements

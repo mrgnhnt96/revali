@@ -47,11 +47,19 @@
 
 # revali_router
 
-## 3.0.4
+## 3.0.5
 
 ### Fixes
 
-- Fix route matching for `OPTIONS` requests on dynamic endpoint paths (e.g. `:id`)
+- Fix header getter pattern matching for multi-value headers
+- Skip empty header values in `forEach` callback
+- Fix `CookiesImpl.headerValue()` to use `entries` for proper inheritance
+
+### Enhancements
+
+- Add default values for SetCookie attributes (httpOnly, secure, sameSite, path)
+- Separate cookie values from SetCookie attributes in `SetCookiesImpl`
+- Change `SetCookiesImpl.secure` from nullable to non-nullable `bool`
 
 # revali_router_annotations
 
@@ -88,11 +96,11 @@
 
 # revali_client
 
-## 2.0.3
+## 2.0.4
 
 ### Enhancements
 
-- Add ability to update headers from within request interceptors
+- Add `credentials: 'include'` to HTTP requests for cookie support with fetch
 
 # revali_client_gen
 

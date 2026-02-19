@@ -1,9 +1,9 @@
 # TODO
 
+- [ ] Support multi path set-cookie headers
 - [ ] Add documentation on how to use `mkcert` to run the server with HTTPS
 - [ ] Update documentation to reflect the new `headers.set(expose: true)` param
 - [x] Add optional param to `headers.set(expose: true)` to expose the header to the client
-
   - [x] This is required because browsers will block headers that are not exposed to the client
 
 - [ ] Add tutorials for the following features:
@@ -23,10 +23,8 @@
 - [ ] Figure out a way to handle sending streams from the client to the server
 - [ ] Fix issue where revali client is add multiple same cookies
 - [ ] Fix issue where if 2 paths match, the order should be
-
   - No path ids first
   - longest paths first
-
     - This solves the issue where `places/near-me` would match `places/near-me/123`
 
   - The following code should only add the cookie once, but it is adding it multiple times

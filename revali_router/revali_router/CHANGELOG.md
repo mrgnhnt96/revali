@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## 3.0.5 | 02.18.26
+
+### Fixes
+
+- Fix header getter pattern matching for multi-value headers
+- Skip empty header values in `forEach` callback
+- Fix `CookiesImpl.headerValue()` to use `entries` for proper inheritance
+
+### Enhancements
+
+- Add default values for SetCookie attributes (httpOnly, secure, sameSite, path)
+- Separate cookie values from SetCookie attributes in `SetCookiesImpl`
+- Change `SetCookiesImpl.secure` from nullable to non-nullable `bool`
+
 ## 3.0.4 | 02.11.26
 
 ### Fixes
