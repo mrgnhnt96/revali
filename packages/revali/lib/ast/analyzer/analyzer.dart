@@ -53,6 +53,23 @@ class Analyzer implements AnalyzerChanges {
 
   bool _isInitialized = false;
 
+  /// Serializes access to the analysis session to prevent inconsistent
+  /// analysis errors when refresh and analyze run concurrently (e.g., file
+  /// watcher triggers refresh while code generation is analyzing).
+  Future<void> _lastSessionOperation = Future.value();
+
+  Future<T> _withSessionLock<T>(Future<T> Function() fn) async {
+    final previous = _lastSessionOperation;
+    final completer = Completer<void>();
+    _lastSessionOperation = completer.future;
+    await previous;
+    try {
+      return await fn();
+    } finally {
+      completer.complete();
+    }
+  }
+
   /// Gets the list of path dependency directories.
   ///
   /// Returns an empty list if the analyzer hasn't been initialized or
@@ -138,6 +155,10 @@ class Analyzer implements AnalyzerChanges {
 
   @override
   Future<void> refresh(List<String> files) async {
+    return _withSessionLock(() => _refreshImpl(files));
+  }
+
+  Future<void> _refreshImpl(List<String> files) async {
     var requiresDependencyRefresh = false;
 
     AnalysisContext? context;
@@ -213,6 +234,10 @@ class Analyzer implements AnalyzerChanges {
 
   @override
   Future<void> remove(String file) async {
+    return _withSessionLock(() => _removeImpl(file));
+  }
+
+  Future<void> _removeImpl(String file) async {
     AnalysisContext context;
     try {
       context = analysisCollection.contextFor(file);
@@ -242,6 +267,10 @@ class Analyzer implements AnalyzerChanges {
   /// If the path is a file, it will be analyzed as a single file.
   /// If the path is a directory, it will be analyzed as a directory.
   Future<List<Units>> analyze(String path) async {
+    return _withSessionLock(() => _analyzeImpl(path));
+  }
+
+  Future<List<Units>> _analyzeImpl(String path) async {
     final isFile = fs.isFileSync(path);
     final isDirectory = fs.isDirectorySync(path);
 
@@ -449,6 +478,13 @@ class Analyzer implements AnalyzerChanges {
   }
 
   Future<List<AnalysisError>> errors(
+    String root, {
+    Severity? severity = Severity.error,
+  }) async {
+    return _withSessionLock(() => _errorsImpl(root, severity: severity));
+  }
+
+  Future<List<AnalysisError>> _errorsImpl(
     String root, {
     Severity? severity = Severity.error,
   }) async {
