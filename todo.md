@@ -1,5 +1,6 @@
 # TODO
 
+- [ ] Add support for generics in `fromJson` factories
 - [ ] Support multi path set-cookie headers
 - [ ] Add documentation on how to use `mkcert` to run the server with HTTPS
 - [ ] Update documentation to reflect the new `headers.set(expose: true)` param

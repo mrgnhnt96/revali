@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 2.0.7 | 03.02.26
+
+### Enhancements
+
+- Added attempt recover when file watcher throws an error
+- Added queueing of analyzer updates to prevent race-y updates
+
+### Enhancements
+
+- Improved error logging for file watcher errors (now includes stack trace)
+- More informative shutdown and signal logging
+
 ## 2.0.6 | 02.16.26
 
 ### Fixes

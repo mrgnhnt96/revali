@@ -6,13 +6,12 @@
 
 # revali
 
-## 2.0.6
+## 2.0.7
 
-### Fixes
+### Enhancements
 
-- Handle `deleteFile` errors gracefully when path doesn't exist in memory provider
-- Buffer server stdout/stderr for reliable diagnostics when process exits unexpectedly
-- Log diagnostics before server crashes
+- Added attempt recover when file watcher throws an error
+- Added queueing of analyzer updates to prevent race-y updates
 
 ### Enhancements
 
