@@ -421,11 +421,7 @@ class VMServiceHandler {
           await stop();
         })
         .catchError((Object e, StackTrace st) async {
-          logger
-            ..err('File watcher error (root directory): $e')
-            ..detail('Stack trace: $st');
-          await _cancelWatcherSubscription();
-          await stop(1);
+          await _handleWatcherError(e, st, watcherType: 'root directory');
         })
         .ignore();
 
@@ -469,14 +465,40 @@ class VMServiceHandler {
               await stop();
             })
             .catchError((Object e, StackTrace st) async {
-              logger
-                ..err('File watcher error (dependency $dir): $e')
-                ..detail('Stack trace: $st');
-              await _cancelWatcherSubscription();
-              await stop(1);
+              await _handleWatcherError(e, st, watcherType: 'dependency $dir');
             })
             .ignore();
       }
+    }
+  }
+
+  /// Handles watcher stream errors. Recovers from transient
+  /// [FileSystemException]s (e.g., "Folder expected" when an ephemeral
+  /// directory is deleted) by restarting the watchers instead of stopping
+  /// the server.
+  Future<void> _handleWatcherError(
+    Object e,
+    StackTrace st, {
+    required String watcherType,
+  }) async {
+    await _cancelWatcherSubscription();
+
+    final isRecoverable =
+        (e is io.PathNotFoundException) ||
+        (e is io.FileSystemException &&
+            (e.message.contains('Folder expected') ||
+                e.message.contains('No such file')));
+
+    if (isRecoverable && !isCompleted) {
+      logger
+        ..detail('File watcher recovered ($watcherType): $e')
+        ..detail('Restarting watchers');
+      await watchForFileChanges();
+    } else {
+      logger
+        ..err('File watcher error ($watcherType): $e')
+        ..detail('Stack trace: $st');
+      await stop(1);
     }
   }
 
