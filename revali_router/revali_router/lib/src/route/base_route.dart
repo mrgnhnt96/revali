@@ -253,6 +253,15 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
       }
     }
 
+    // For prefix routes (no handler, only children), aggregate from descendants
+    if (method == null) {
+      if (routes case final childRoutes?) {
+        for (final child in childRoutes) {
+          methods.addAll(child.allowedMethods);
+        }
+      }
+    }
+
     return methods;
   }
 

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:mocktail/mocktail.dart';
 import 'package:revali_annotations/revali_annotations.dart';
 import 'package:revali_router/src/headers/headers_impl.dart';
@@ -143,6 +145,90 @@ void main() {
           final response = await router.handle(mockRequestContext);
 
           expect(response, isA<Response>());
+        });
+      });
+
+      group('forums routes', () {
+        late Router forumsRouter;
+
+        setUp(() {
+          forumsRouter = Router(
+            routes: [
+              Route(
+                'forums',
+                routes: [
+                  Route('list', method: 'POST', handler: (_) async {}),
+                  Route('', method: 'POST', handler: (_) async {}),
+                  Route(
+                    'member',
+                    method: 'POST',
+                    handler: (_) async {},
+                    routes: [
+                      Route(
+                        ':forumMemberId',
+                        method: 'DELETE',
+                        handler: (_) async {},
+                      ),
+                    ],
+                  ),
+                  Route(
+                    ':forumId',
+                    method: 'GET',
+                    handler: (_) async {},
+                    routes: [
+                      Route('members', method: 'GET', handler: (_) async {}),
+                    ],
+                  ),
+                  Route('', method: 'PUT', handler: (_) async {}),
+                  Route(':forumId', method: 'DELETE', handler: (_) async {}),
+                ],
+              ),
+            ],
+          );
+        });
+
+        test('should find DELETE /forums/member/:forumMemberId', () async {
+          final context = _MockRequest()
+            ..stub('forums/member/123', method: 'DELETE');
+
+          final response = await forumsRouter.handle(context);
+
+          expect(
+            response.statusCode,
+            isNot(HttpStatus.notFound),
+            reason: 'DELETE /forums/member/:forumMemberId should be found',
+          );
+        });
+      });
+
+      group('OPTIONS on prefix route', () {
+        test('should find OPTIONS /api and return 200', () async {
+          final apiRouter = Router(
+            routes: [
+              Route(
+                'api',
+                routes: [
+                  Route(
+                    '',
+                    routes: [
+                      Route('health', method: 'GET', handler: (_) async {}),
+                    ],
+                  ),
+                  Route('user', method: 'POST', handler: (_) async {}),
+                ],
+              ),
+            ],
+          );
+
+          final context = _MockRequest()..stub('api', method: 'OPTIONS');
+
+          final response = await apiRouter.handle(context);
+
+          expect(
+            response.statusCode,
+            isNot(HttpStatus.notFound),
+            reason: 'OPTIONS /api should be found',
+          );
         });
       });
     });

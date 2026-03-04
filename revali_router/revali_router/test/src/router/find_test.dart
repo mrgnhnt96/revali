@@ -502,5 +502,79 @@ void main() {
         expect(result, isNull);
       });
     });
+
+    test('OPTIONS /api/forums/member/:forumMemberId should be found', () {
+      // Route('member') and Route('member/:forumMemberId') are siblings.
+      // Static 'member' must not block dynamic 'member/:forumMemberId'
+      final deleteMember = Route(
+        'member/:forumMemberId',
+        method: 'DELETE',
+        handler: (_) async {},
+      );
+      final router = Router(
+        routes: [
+          Route(
+            'api',
+            routes: [
+              Route(
+                'forums',
+                routes: [
+                  Route('member', method: 'POST', handler: (_) async {}),
+                  deleteMember,
+                  Route(':forumId', method: 'GET', handler: (_) async {}),
+                ],
+              ),
+            ],
+          ),
+        ],
+      );
+
+      final result = Find(
+        segments: ['api', 'forums', 'member', 'u9828z10vux887x_fm'],
+        routes: router.routes,
+        method: 'OPTIONS',
+      ).run();
+
+      expect(
+        result,
+        isNotNull,
+        reason: 'OPTIONS /api/forums/member/:forumMemberId should be found',
+      );
+      expect(result?.route, deleteMember);
+    });
+
+    test('OPTIONS /api should be found for prefix route', () {
+      final api = Route(
+        'api',
+        routes: [
+          Route(
+            '',
+            routes: [
+              Route('health', method: 'GET', handler: (_) async {}),
+            ],
+          ),
+          Route('comments', method: 'POST', handler: (_) async {}),
+        ],
+      );
+
+      final router = Router(routes: [api]);
+
+      final result = Find(
+        segments: ['api'],
+        routes: router.routes,
+        method: 'OPTIONS',
+      ).run();
+
+      expect(
+        result,
+        isNotNull,
+        reason: 'OPTIONS /api should match prefix route',
+      );
+      expect(result?.route, api);
+      expect(
+        result?.route.allowedMethods,
+        containsAll(['OPTIONS', 'GET', 'HEAD', 'POST']),
+      );
+    });
   });
 }

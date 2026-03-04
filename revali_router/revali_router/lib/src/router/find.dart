@@ -138,20 +138,28 @@ class Find {
               } else {
                 continue;
               }
-            } else {
-              // If the route cannot be invoked, we need to add an empty segment
-              // to the segments list to continue the search for the nested
-              // route that can be invoked and is empty
-              segments.add('');
             }
+            // For OPTIONS, return prefix routes (no handler)
+            // so CORS can respond
+            // with aggregated allowed methods from descendants
+            if (checkRoute case final prefixRoute?
+                when method == 'OPTIONS' &&
+                    (prefixRoute.routes?.isNotEmpty ?? false)) {
+              return RouteMatch(prefixRoute);
+            }
+            // If the route cannot be invoked, we need to add an empty segment
+            // to the segments list to continue the search for the nested
+            // route that can be invoked and is empty
+            segments.add('');
           }
 
-          return find(
+          final poss = find(
             pathSegments: segments,
             routes: checkRoute?.routes,
             parent: route,
             method: method,
           );
+          if (poss != null) return poss;
         }
       }
 
