@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -266,8 +267,30 @@ class Analyzer implements AnalyzerChanges {
   ///
   /// If the path is a file, it will be analyzed as a single file.
   /// If the path is a directory, it will be analyzed as a directory.
+  ///
+  /// Retries on [InconsistentAnalysisException] since the session can be
+  /// invalidated when file watchers trigger [refresh] while analysis is in
+  /// progress or when [Units.resolved] is awaited after the lock is released.
   Future<List<Units>> analyze(String path) async {
-    return _withSessionLock(() => _analyzeImpl(path));
+    return _withSessionLock(() => _analyzeWithRetry(path));
+  }
+
+  Future<List<Units>> _analyzeWithRetry(String path) async {
+    const maxAttempts = 3;
+    InconsistentAnalysisException? lastException;
+    for (var attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        return await _analyzeImpl(path);
+      } on InconsistentAnalysisException catch (e) {
+        lastException = e;
+        if (attempt < maxAttempts - 1) {
+          await Future<void>.delayed(
+            Duration(milliseconds: 50 * (attempt + 1)),
+          );
+        }
+      }
+    }
+    throw lastException!;
   }
 
   Future<List<Units>> _analyzeImpl(String path) async {
@@ -288,7 +311,9 @@ class Analyzer implements AnalyzerChanges {
   Future<Units> _analyzeFile(String path) async {
     final context = analysisCollection.contextFor(path);
 
-    return Units(context: context, path: path);
+    final units = Units(context: context, path: path);
+    await units.resolved();
+    return units;
   }
 
   Future<List<Units>> _analyzeDirectory(String path) async {
@@ -304,7 +329,11 @@ class Analyzer implements AnalyzerChanges {
         throw ArgumentError('Could not parse file: $file');
       }
 
-      results.add(Units(context: context, path: file));
+      final units = Units(context: context, path: file);
+      // Eagerly resolve while holding the session lock so that subsequent
+      // refresh() calls cannot invalidate the session before we await.
+      await units.resolved();
+      results.add(units);
     }
 
     return results;
