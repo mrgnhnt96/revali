@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.0.8 | 03.03.26
+
+### Enhancements
+
+- Add retry logic to analyzer updates to prevent inconsistent analysis errors
+
 ## 2.0.7 | 03.02.26
 
 ### Enhancements

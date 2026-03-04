@@ -6,17 +6,11 @@
 
 # revali
 
-## 2.0.7
+## 2.0.8
 
 ### Enhancements
 
-- Added attempt recover when file watcher throws an error
-- Added queueing of analyzer updates to prevent race-y updates
-
-### Enhancements
-
-- Improved error logging for file watcher errors (now includes stack trace)
-- More informative shutdown and signal logging
+- Add retry logic to analyzer updates to prevent inconsistent analysis errors
 
 # revali_annotations
 
@@ -46,19 +40,16 @@
 
 # revali_router
 
-## 3.0.5
+## 3.0.6
 
 ### Fixes
 
-- Fix header getter pattern matching for multi-value headers
-- Skip empty header values in `forEach` callback
-- Fix `CookiesImpl.headerValue()` to use `entries` for proper inheritance
+- Fix OPTIONS returning 404 for prefix routes (e.g. `/api`) by returning the prefix route when path matches exactly and method is OPTIONS
+- Fix OPTIONS returning 404 for paths like `/api/forums/member/:id` when a static sibling route (e.g. `member`) partially matches: continue trying other routes instead of returning when recursion yields no match
 
 ### Enhancements
 
-- Add default values for SetCookie attributes (httpOnly, secure, sameSite, path)
-- Separate cookie values from SetCookie attributes in `SetCookiesImpl`
-- Change `SetCookiesImpl.secure` from nullable to non-nullable `bool`
+- Aggregate allowed methods from descendant routes for prefix routes (no handler) so OPTIONS responses include correct `Allow` and `Access-Control-Allow-Methods` headers
 
 # revali_router_annotations
 

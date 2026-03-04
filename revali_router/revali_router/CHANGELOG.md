@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 3.0.6 | 03.03.26
+
+### Fixes
+
+- Fix OPTIONS returning 404 for prefix routes (e.g. `/api`) by returning the prefix route when path matches exactly and method is OPTIONS
+- Fix OPTIONS returning 404 for paths like `/api/forums/member/:id` when a static sibling route (e.g. `member`) partially matches: continue trying other routes instead of returning when recursion yields no match
+
+### Enhancements
+
+- Aggregate allowed methods from descendant routes for prefix routes (no handler) so OPTIONS responses include correct `Allow` and `Access-Control-Allow-Methods` headers
+
 ## 3.0.5 | 02.18.26
 
 ### Fixes
