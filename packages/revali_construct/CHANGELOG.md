@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2.0.4 | 03.05.26
+
+### Features
+
+- Add `HotReloadConfig` model with `exclude` list for hot reload path filtering
+- Add `hot_reload` configuration to `RevaliYaml` for excluding paths from reload triggers
+
 ## 2.0.3 | 01.28.26
 
 ### Enhancements

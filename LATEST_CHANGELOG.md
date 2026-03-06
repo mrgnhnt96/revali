@@ -6,11 +6,15 @@
 
 # revali
 
-## 2.0.8
+## 2.0.9
+
+### Features
+
+- Add `hot_reload.exclude` in `revali.yaml` to ignore custom paths on reload (paths can be absolute or relative to revali.yaml)
 
 ### Enhancements
 
-- Add retry logic to analyzer updates to prevent inconsistent analysis errors
+- Preserve terminal content when running with `--loud` (verbose) mode instead of clearing screen on reload
 
 # revali_annotations
 
@@ -22,11 +26,12 @@
 
 # revali_construct
 
-## 2.0.3
+## 2.0.4
 
-### Enhancements
+### Features
 
-- Prints error messages when exceptions are thrown during server creation
+- Add `HotReloadConfig` model with `exclude` list for hot reload path filtering
+- Add `hot_reload` configuration to `RevaliYaml` for excluding paths from reload triggers
 
 # revali_core
 

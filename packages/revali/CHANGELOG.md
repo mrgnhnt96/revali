@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 2.0.9 | 03.05.26
+
+### Features
+
+- Add `hot_reload.exclude` in `revali.yaml` to ignore custom paths on reload (paths can be absolute or relative to revali.yaml)
+
+### Enhancements
+
+- Preserve terminal content when running with `--loud` (verbose) mode instead of clearing screen on reload
+
 ## 2.0.8 | 03.03.26
 
 ### Enhancements
