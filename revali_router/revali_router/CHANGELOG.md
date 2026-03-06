@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 3.0.7 | 03.05.26
+
+### Fixes
+
+- Fix dynamic routes like `/:param` incorrectly matching a static sibling route when extra path segments exist: only return parent when remaining path segments are empty so the correct dynamic route is matched
+
 ## 3.0.6 | 03.03.26
 
 ### Fixes

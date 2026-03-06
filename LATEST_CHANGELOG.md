@@ -45,16 +45,11 @@
 
 # revali_router
 
-## 3.0.6
+## 3.0.7
 
 ### Fixes
 
-- Fix OPTIONS returning 404 for prefix routes (e.g. `/api`) by returning the prefix route when path matches exactly and method is OPTIONS
-- Fix OPTIONS returning 404 for paths like `/api/forums/member/:id` when a static sibling route (e.g. `member`) partially matches: continue trying other routes instead of returning when recursion yields no match
-
-### Enhancements
-
-- Aggregate allowed methods from descendant routes for prefix routes (no handler) so OPTIONS responses include correct `Allow` and `Access-Control-Allow-Methods` headers
+- Fix dynamic routes like `/:param` incorrectly matching a static sibling route when extra path segments exist: only return parent when remaining path segments are empty so the correct dynamic route is matched
 
 # revali_router_annotations
 

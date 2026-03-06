@@ -517,7 +517,7 @@ packages:
       path: "../constructs/revali_server"
       relative: true
     source: path
-    version: "2.0.4"
+    version: "2.0.5"
   revali_test:
     dependency: "direct overridden"
     description:
