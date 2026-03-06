@@ -23,6 +23,7 @@ export 'models/files/part_file.dart';
 export 'models/files/revali_directory.dart';
 export 'models/files/server_directory.dart';
 export 'models/files/server_file.dart';
+export 'models/hot_reload_config.dart';
 export 'models/hot_reload_data/hot_reload_data.dart';
 export 'models/hot_reload_data/hot_reload_files_changed.dart';
 export 'models/iterable_type.dart';

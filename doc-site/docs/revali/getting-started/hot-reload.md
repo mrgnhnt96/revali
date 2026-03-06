@@ -24,6 +24,19 @@ Revali monitors these directories for changes:
 - **`./routes/**`\*\* - All controller files and subdirectories
 - **`./lib/components/**`\*\* - Lifecycle components (middleware, guards, etc.)
 
+### Customizing Watched Paths
+
+Configure paths to exclude from hot reload in `revali.yaml`:
+
+```yaml
+hot_reload:
+  exclude:
+    - lib/generated   # Don't reload when generated code changes
+    - docs            # Ignore documentation changes
+```
+
+Paths can be relative (to `revali.yaml`) or absolute. See [Revali Configuration](/revali/revali-configuration#hot-reload-configuration) for details.
+
 ### What Triggers Hot Reload
 
 ✅ **These changes trigger hot reload:**

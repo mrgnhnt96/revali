@@ -28,6 +28,7 @@ class VMServiceHandler {
     required this.onFileRemove,
     required this.errors,
     this.getDependencyDirectories,
+    this.hotReloadExclude = const [],
     this.dartDefine = const DartDefine(),
     this.dartVmServicePort = '0',
   }) : assert(
@@ -48,6 +49,10 @@ class VMServiceHandler {
   final Future<void> Function(String) onFileRemove;
   final Future<List<(String, List<AnalysisError>)>> Function() errors;
   final Future<List<String>> Function()? getDependencyDirectories;
+
+  /// Resolved absolute paths to exclude from hot reload. Changes in these
+  /// paths (or files/directories within them) will not trigger a reload.
+  final List<String> hotReloadExclude;
 
   bool _isReloading = false;
 
@@ -386,6 +391,18 @@ class VMServiceHandler {
     });
   }
 
+  bool _isPathExcluded(String path) {
+    if (hotReloadExclude.isEmpty) return false;
+
+    final normalizedPath = p.normalize(p.absolute(path));
+    for (final excluded in hotReloadExclude) {
+      final normalizedExcluded = p.normalize(p.absolute(excluded));
+      if (normalizedPath == normalizedExcluded) return true;
+      if (p.isWithin(normalizedExcluded, normalizedPath)) return true;
+    }
+    return false;
+  }
+
   Future<void> watchForFileChanges() async {
     logger.detail('Watching ${root.path} for changes');
 
@@ -410,6 +427,10 @@ class VMServiceHandler {
         .listen((event) {
           final WatchEvent(:type, :path) = event;
 
+          if (_isPathExcluded(path)) {
+            logger.detail('Ignoring change in excluded path: $path');
+            return;
+          }
           _reload(path);
         });
 
@@ -451,6 +472,10 @@ class VMServiceHandler {
               final WatchEvent(:type, :path) = event;
 
               if (p.extension(path) == '.dart') {
+                if (_isPathExcluded(path)) {
+                  logger.detail('Ignoring change in excluded path: $path');
+                  return;
+                }
                 _reload(path);
               }
             });

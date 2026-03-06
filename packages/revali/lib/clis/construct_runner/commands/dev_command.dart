@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:args/command_runner.dart';
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
+import 'package:path/path.dart' as p;
 import 'package:revali/ast/analyzer/analyzer.dart';
 import 'package:revali/clis/construct_runner/commands/mixins/dart_defines_mixin.dart';
 import 'package:revali/clis/construct_runner/generator/construct_generator.dart';
@@ -116,6 +117,17 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
     );
 
     final root = await generator.root;
+    final revaliConfig = await generator.revaliConfig;
+
+    final hotReloadExclude = revaliConfig.hotReload?.exclude.map((path) {
+      if (p.isAbsolute(path)) {
+        return p.normalize(path);
+      }
+
+      return p.normalize(p.join(root.path, path));
+    }).toList();
+
+    logger.detail('Hot reload exclude: $hotReloadExclude');
 
     if (profile || generateOnly) {
       await generator.clean();
@@ -145,6 +157,7 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
       onFileRemove: analyzer.remove,
       errors: generator.getErrors,
       getDependencyDirectories: analyzer.getPathDependencyDirectories,
+      hotReloadExclude: hotReloadExclude ?? [],
     );
 
     await generator.clean();

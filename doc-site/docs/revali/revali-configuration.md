@@ -42,6 +42,25 @@ constructs:
     enabled: true
 ```
 
+## Hot Reload Configuration
+
+Customize which paths trigger hot reload during development:
+
+```yaml title="revali.yaml"
+hot_reload:
+  exclude:
+    - lib/generated    # exclude directory (relative to revali.yaml)
+    - docs             # exclude docs folder
+    - /tmp/cache       # absolute paths also supported
+```
+
+Paths in `exclude` can be:
+
+- **Relative** - resolved from the `revali.yaml` file location (typically project root)
+- **Absolute** - used as-is
+
+Excluding a directory ignores all file changes within it. Excluding a file ignores only that file.
+
 ## Constructs Configuration
 
 ### Enable Constructs

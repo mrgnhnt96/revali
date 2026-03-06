@@ -6,14 +6,17 @@ part 'revali_yaml.g.dart';
 
 @JsonSerializable()
 class RevaliYaml extends Equatable {
-  const RevaliYaml({required this.constructs});
-  const RevaliYaml.none() : constructs = const [];
+  const RevaliYaml({required this.constructs, this.hotReload});
+  const RevaliYaml.none() : constructs = const [], hotReload = null;
 
   factory RevaliYaml.fromJson(Map<String, dynamic> json) =>
       _$RevaliYamlFromJson(json);
 
   @JsonKey(defaultValue: [])
   final List<RevaliConstructConfig> constructs;
+
+  @JsonKey(name: 'hot_reload')
+  final HotReloadConfig? hotReload;
 
   Map<String, dynamic> toJson() => _$RevaliYamlToJson(this);
 
@@ -51,5 +54,5 @@ class RevaliYaml extends Equatable {
   }
 
   @override
-  List<Object?> get props => [constructs];
+  List<Object?> get props => [constructs, hotReload];
 }
