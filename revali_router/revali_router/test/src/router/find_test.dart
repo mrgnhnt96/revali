@@ -503,6 +503,40 @@ void main() {
       });
     });
 
+    test('GET /saves/folders/:folderId must not return GET /saves/folders', () {
+      // Static 'folders' must not block dynamic 'folders/:folderId' when method matches
+      final listFolders = Route(
+        'folders',
+        method: 'GET',
+        handler: (_) async => 'list',
+      );
+      final getFolder = Route(
+        'folders/:folderId',
+        method: 'GET',
+        handler: (_) async => 'single',
+      );
+      final router = Router(
+        routes: [
+          Route(
+            'saves',
+            routes: [listFolders, getFolder],
+          ),
+        ],
+      );
+
+      final result = Find(
+        segments: ['saves', 'folders', 'my-folder-id'],
+        routes: router.routes,
+        method: 'GET',
+      ).run();
+
+      expect(result, isNotNull);
+      expect(result?.route, getFolder);
+      expect(result?.pathParameters, {
+        'folderId': ['my-folder-id'],
+      });
+    });
+
     test('OPTIONS /api/forums/member/:forumMemberId should be found', () {
       // Route('member') and Route('member/:forumMemberId') are siblings.
       // Static 'member' must not block dynamic 'member/:forumMemberId'

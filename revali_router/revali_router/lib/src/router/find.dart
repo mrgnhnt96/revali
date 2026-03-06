@@ -23,10 +23,7 @@ class Find {
           return null;
         }
 
-        final parts = pathSegments.take(parent.segments.length);
-        final remainingPathSegments = pathSegments.skip(parts.length).toList();
-
-        if (remainingPathSegments.isEmpty &&
+        if (pathSegments.isEmpty &&
             (parent.canInvoke &&
                 (parent.method == method ||
                     parent.method == 'GET' && method == 'HEAD'))) {
