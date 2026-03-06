@@ -13,6 +13,7 @@ import 'package:revali_server/converters/server_lifecycle_component_method.dart'
 import 'package:revali_server/converters/server_param.dart';
 import 'package:revali_server/converters/server_type.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
+import 'package:revali_server/utils/annotation_argument.dart';
 import 'package:revali_server/utils/annotation_arguments.dart';
 import 'package:revali_server/utils/extract_import.dart';
 
@@ -30,23 +31,37 @@ class ServerLifecycleComponent with ExtractImport {
   });
 
   factory ServerLifecycleComponent.fromDartObject(
+    DartObject object,
     ElementAnnotation annotation,
   ) {
-    final element = annotation.element?.enclosingElement;
+    if (object.type case final InterfaceType type) {
+      final element = type.element;
+      if (element is! ClassElement) {
+        throw Exception('Invalid element type');
+      }
 
-    if (element is! ClassElement) {
-      throw Exception('Invalid element type');
+      final arguments = AnnotationArguments.fromDartObject(annotation);
+      final constructor =
+          object.constructorInvocation?.constructor ??
+          element.constructors.firstWhereOrNull((e) => e.isPublic);
+
+      return ServerLifecycleComponent.fromClassElement(
+        element,
+        arguments,
+        constructor: constructor,
+        instanceFields: object,
+      );
     }
 
-    final arguments = AnnotationArguments.fromDartObject(annotation);
-
-    return ServerLifecycleComponent.fromClassElement(element, arguments);
+    throw Exception('Expected annotation type to be InterfaceType');
   }
 
   factory ServerLifecycleComponent.fromClassElement(
     ClassElement element,
-    AnnotationArguments arguments,
-  ) {
+    AnnotationArguments arguments, {
+    ConstructorElement? constructor,
+    DartObject? instanceFields,
+  }) {
     final methods = element.methods
         .map(ServerLifecycleComponentMethod.fromElement)
         .whereType<ServerLifecycleComponentMethod>()
@@ -71,11 +86,10 @@ class ServerLifecycleComponent with ExtractImport {
       };
     }
 
-    final constructor = element.constructors.firstWhereOrNull(
-      (e) => e.isPublic,
-    );
+    final ctor =
+        constructor ?? element.constructors.firstWhereOrNull((e) => e.isPublic);
 
-    if (constructor == null) {
+    if (ctor == null) {
       throw ArgumentError.value(
         LifecycleComponent,
         'type',
@@ -83,15 +97,41 @@ class ServerLifecycleComponent with ExtractImport {
       );
     }
 
-    final params = constructor.formalParameters.map((e) {
-      final param = ServerParam.fromElement(e);
+    final paramNamesFromConstructor = {
+      for (final p in ctor.formalParameters) p.name3 ?? '',
+    };
 
-      if (arguments.all[param.name] case final arg?) {
-        param.argument = arg;
-      }
+    final params = <ServerParam>[
+      ...ctor.formalParameters.map((FormalParameterElement e) {
+        final param = ServerParam.fromElement(e);
 
-      return param;
-    }).toList();
+        if (arguments.all[param.name] case final arg?) {
+          param.argument = arg;
+        }
+
+        return param;
+      }),
+      if (instanceFields != null)
+        for (final field in element.fields) ...[
+          if (_getInitializerListFieldValue(
+                field,
+                paramNamesFromConstructor,
+                instanceFields,
+              )
+              case final value?)
+            ServerParam(
+              name: field.name3!,
+              type: ServerType.fromType(field.type),
+              isRequired: true,
+              isNamed: true,
+              argument: AnnotationArgument.fromFieldValue(
+                field.name3!,
+                value,
+                field,
+              ),
+            ),
+        ],
+    ];
 
     final name = element.name3;
 
@@ -106,7 +146,7 @@ class ServerLifecycleComponent with ExtractImport {
       interceptors: interceptors,
       exceptionCatchers: exceptionCatchers,
       params: params,
-      import: ServerImports.fromElement(constructor.returnType.element),
+      import: ServerImports.fromElement(ctor.returnType.element),
       arguments: arguments,
       genericTypes: element.typeParameters
           .map(ServerGenericType.fromElement)
@@ -221,6 +261,19 @@ class ServerLifecycleComponent with ExtractImport {
 
   ServerClass get interceptorClass {
     return _create(Interceptor);
+  }
+
+  static DartObject? _getInitializerListFieldValue(
+    FieldElement field,
+    Set<String> paramNamesFromConstructor,
+    DartObject instanceFields,
+  ) {
+    if (field.isStatic) return null;
+    final name = field.name3;
+    if (name == null || paramNamesFromConstructor.contains(name)) {
+      return null;
+    }
+    return instanceFields.getField(name);
   }
 
   @override

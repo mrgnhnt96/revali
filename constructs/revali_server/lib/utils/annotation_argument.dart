@@ -1,5 +1,6 @@
 // ignore_for_file: unnecessary_parenthesis
 
+import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 // ignore: implementation_imports
@@ -8,6 +9,7 @@ import 'package:revali_router/revali_router.dart';
 import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_type.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
+import 'package:revali_server/utils/dart_object_to_source.dart';
 import 'package:revali_server/utils/extract_import.dart';
 
 class AnnotationArgument with ExtractImport {
@@ -81,6 +83,25 @@ class AnnotationArgument with ExtractImport {
       source: source,
       element: element,
       isInjectable: isInjectable,
+    );
+  }
+
+  /// Creates an [AnnotationArgument] from a field value read from a const
+  /// instance via [DartObject.getField]. Used for initializer list values
+  /// (fields assigned after `:` in constructors like `const Auth.admin() :
+  /// requireAdmin = true`).
+  factory AnnotationArgument.fromFieldValue(
+    String fieldName,
+    DartObject value,
+    FieldElement fieldElement,
+  ) {
+    return AnnotationArgument(
+      parameterName: fieldName,
+      type: ServerType.fromType(fieldElement.type),
+      isRequired: true,
+      source: dartObjectToSource(value),
+      element: fieldElement,
+      isInjectable: false,
     );
   }
 

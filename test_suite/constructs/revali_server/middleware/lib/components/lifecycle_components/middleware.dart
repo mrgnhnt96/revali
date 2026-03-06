@@ -45,4 +45,26 @@ class Stop implements LifecycleComponent {
   }
 }
 
+/// Middleware with a named constructor that uses initializer list
+/// (requireAdmin set after `:`). Tests that @Auth.admin() resolves correctly.
+class Auth implements LifecycleComponent {
+  const Auth({this.requireAdmin = false});
+  const Auth.admin() : requireAdmin = true;
+
+  final bool requireAdmin;
+
+  MiddlewareResult getToken(
+    @Header('Authorization') String? authorization,
+    Data dataHandler,
+  ) {
+    if (requireAdmin && authorization != 'admin-token') {
+      return const MiddlewareResult.stop(body: 'Admin required');
+    }
+    if (authorization case final value?) {
+      dataHandler.add(value);
+    }
+    return const MiddlewareResult.next();
+  }
+}
+
 enum MiddlewareType { read, write }

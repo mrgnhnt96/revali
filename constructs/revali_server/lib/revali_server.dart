@@ -15,6 +15,7 @@ export 'server.dart';
 export 'utils/annotation_argument.dart';
 export 'utils/annotation_arguments.dart';
 export 'utils/create_map.dart';
+export 'utils/dart_object_to_source.dart';
 export 'utils/data_annotation.dart';
 export 'utils/extract_import.dart';
 export 'utils/safe_property.dart';

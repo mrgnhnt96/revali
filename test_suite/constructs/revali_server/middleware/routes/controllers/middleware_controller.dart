@@ -35,4 +35,10 @@ class MiddlewareController {
   String pleaseStop() {
     return 'please stop';
   }
+
+  @Auth.admin()
+  @Get('admin')
+  String admin(@Data() String token) {
+    return token;
+  }
 }

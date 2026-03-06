@@ -342,7 +342,7 @@ packages:
       path: "../packages/revali"
       relative: true
     source: path
-    version: "2.0.8"
+    version: "2.0.9"
   revali_annotations:
     dependency: "direct overridden"
     description:
@@ -482,7 +482,7 @@ packages:
       path: "../packages/revali_construct"
       relative: true
     source: path
-    version: "2.0.3"
+    version: "2.0.4"
   revali_core:
     dependency: "direct overridden"
     description:

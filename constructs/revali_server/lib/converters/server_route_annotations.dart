@@ -138,7 +138,7 @@ class ServerRouteAnnotations with ExtractImport {
           package: 'revali_router_annotations',
           convert: (object, annotation) {
             lifecycleComponents.add(
-              ServerLifecycleComponent.fromDartObject(annotation),
+              ServerLifecycleComponent.fromDartObject(object, annotation),
             );
           },
         ),

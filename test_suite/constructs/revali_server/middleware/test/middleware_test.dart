@@ -94,5 +94,33 @@ package:revali_router/src/router/run_middlewares.dart'''),
         );
       },
     );
+
+    test(
+      'should allow request when @Auth.admin() middleware gets admin token',
+      () async {
+        final response = await server.send(
+          method: 'GET',
+          path: '/api/middleware/admin',
+          headers: {'Authorization': 'admin-token'},
+        );
+
+        expect(response.statusCode, 200);
+        expect(response.body, {'data': 'admin-token'});
+      },
+    );
+
+    test(
+      'should stop request when @Auth.admin() middleware gets non-admin token',
+      () async {
+        final response = await server.send(
+          method: 'GET',
+          path: '/api/middleware/admin',
+          headers: {'Authorization': 'user-token'},
+        );
+
+        expect(response.statusCode, 400);
+        expect(response.body, startsWith('Admin required'));
+      },
+    );
   });
 }
