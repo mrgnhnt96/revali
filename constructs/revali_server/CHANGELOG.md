@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.0.5 | 03.05.26
+
+### Features
+
+- Handle server components that use constructors to set fields (initializer list values), e.g. `const Auth.admin() : requireAdmin = true`
+
 ## 2.0.4 | 02.18.26
 
 ### Fixes

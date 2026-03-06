@@ -76,11 +76,11 @@
 
 # revali_server
 
-## 2.0.4
+## 2.0.5
 
-### Fixes
+### Features
 
-- **revali_docker**: Remove default values from `ARG` declarations in generated Dockerfile; values must now be provided via `--build-arg` at build time instead of being baked into the file
+- Handle server components that use constructors to set fields (initializer list values), e.g. `const Auth.admin() : requireAdmin = true`
 
 <!-- REVALI CLIENT -->
 
