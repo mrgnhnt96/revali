@@ -172,7 +172,10 @@ class VMServiceHandler {
   }
 
   void clearConsole() {
-    print('\x1B[2J\x1B[0;0H');
+    // When in loud (verbose) mode, preserve terminal content for debugging
+    if (logger.level != Level.verbose) {
+      print('\x1B[2J\x1B[0;0H');
+    }
     var message = '${yellow.wrap(_formatTime(DateTime.now()))}';
     if (canHotReload) {
       message += ' ${darkGray.wrap('[RELOAD]')}';
