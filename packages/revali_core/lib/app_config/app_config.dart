@@ -48,4 +48,11 @@ abstract base class AppConfig {
   }
 
   Future<void> configureDependencies(covariant DI di) async {}
+
+  /// Runs the async server startup sequence (bind, DI, routes, listen).
+  ///
+  /// The default implementation calls [start] as-is. Override to wrap [start]
+  /// (for example with `runZoned` from `dart:async`) so that the entire startup
+  /// runs inside a custom zone.
+  Future<HttpServer> runStartup(Future<HttpServer> Function() start) => start();
 }

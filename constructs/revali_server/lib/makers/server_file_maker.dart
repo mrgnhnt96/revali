@@ -104,115 +104,140 @@ String serverFile(
           'app',
           type: refer((AppConfig).name),
         ).assign(createApp(app)).statement,
-        declareFinal('server', late: true, type: refer('HttpServer')).statement,
-        tryCatch(
-          refer('server')
-              .assign(
-                refer('providedServer').ifNullThen(
-                  refer((HttpServer).name)
-                      .property(app.isSecure ? 'bindSecure' : 'bind')
-                      .call(
-                        [
-                          refer('app').property('host'),
-                          refer('app').property('port'),
-                          if (app.isSecure)
-                            refer(
-                              'app',
-                            ).property('securityContext').nullChecked,
-                        ],
-                        {
-                          if (app.isSecure)
-                            'requestClientCertificate': refer(
-                              'app',
-                            ).property('requestClientCertificate'),
-                          if (server.context.mode.isDebug)
-                            'shared': literalTrue,
-                        },
-                      )
-                      .awaited,
-                ),
-              )
-              .statement,
-          Block.of([
-            refer(
-              'print',
-            ).call([literalString(r'Failed to bind server:\n$e')]).statement,
-            refer('exit').call([literalNum(1)]).statement,
-          ]),
-        ),
-        const Code('\n'),
-        ...createDependencyInjection(server),
-        const Code('\n'),
-        ...createRoutesVariable(server),
-        const Code('\n'),
-        Block.of([
-          const Code('if ('),
-          refer('app').property('prefix').code,
-          const Code(' case'),
-          declareFinal('prefix?').code,
-          const Code(' when '),
-          refer('prefix').property('isNotEmpty').code,
-          const Code(') {'),
-          refer('_routes')
-              .assign(
-                literalList([
-                  refer((Route).name).newInstance(
-                    [refer('prefix')],
-                    {'routes': refer('_routes')},
-                  ),
-                ]),
-              )
-              .statement,
-          const Code('}'),
-        ]),
-        const Code('\n'),
-        declareFinal('router')
-            .assign(
-              refer((Router).name).newInstance([], {
-                if (server.context.mode.isNotRelease) 'debug': literalTrue,
-                'routes': literalList([
-                  refer('_routes').spread,
-                  refer('public').spread,
-                ]),
-                if (app.observers.hasObservers)
-                  'observers': literalList([
-                    if (app.observers.types.expand((e) => e.types)
-                        case final observers when observers.isNotEmpty)
-                      for (final observer in observers) createClass(observer),
-                    if (app.observers.mimics case final mimics
-                        when mimics.isNotEmpty)
-                      for (final type in mimics) createMimic(type),
-                  ]),
-                'reflects': refer('reflects'),
-                'defaultResponses': refer('app').property('defaultResponses'),
-                if (server.app case final app?
-                    when app.globalRouteAnnotations.hasAnnotations)
-                  'globalComponents': refer((LifecycleComponentsImpl).name)
-                      .newInstance([], {
-                        ...createModifierArgs(
-                          annotations: app.globalRouteAnnotations,
-                        ),
-                      }),
-              }),
-            )
-            .statement,
-        const Code('\n'),
-        refer('handleRequests')
+        refer('app')
+            .property('runStartup')
             .call([
-              refer('server'),
-              refer('router').property('handle'),
-              refer('router').property('responseHandler'),
-              refer('router').property('close'),
+              Method(
+                (b) => b
+                  ..modifier = MethodModifier.async
+                  ..body = Block.of([
+                    declareFinal(
+                      'server',
+                      late: true,
+                      type: refer('HttpServer'),
+                    ).statement,
+                    tryCatch(
+                      refer('server')
+                          .assign(
+                            refer('providedServer').ifNullThen(
+                              refer((HttpServer).name)
+                                  .property(
+                                    app.isSecure ? 'bindSecure' : 'bind',
+                                  )
+                                  .call(
+                                    [
+                                      refer('app').property('host'),
+                                      refer('app').property('port'),
+                                      if (app.isSecure)
+                                        refer('app')
+                                            .property('securityContext')
+                                            .nullChecked,
+                                    ],
+                                    {
+                                      if (app.isSecure)
+                                        'requestClientCertificate': refer(
+                                          'app',
+                                        ).property('requestClientCertificate'),
+                                      if (server.context.mode.isDebug)
+                                        'shared': literalTrue,
+                                    },
+                                  )
+                                  .awaited,
+                            ),
+                          )
+                          .statement,
+                      Block.of([
+                        refer('print').call([
+                          literalString(r'Failed to bind server:\n$e'),
+                        ]).statement,
+                        refer('exit').call([literalNum(1)]).statement,
+                      ]),
+                    ),
+                    const Code('\n'),
+                    ...createDependencyInjection(server),
+                    const Code('\n'),
+                    ...createRoutesVariable(server),
+                    const Code('\n'),
+                    Block.of([
+                      const Code('if ('),
+                      refer('app').property('prefix').code,
+                      const Code(' case'),
+                      declareFinal('prefix?').code,
+                      const Code(' when '),
+                      refer('prefix').property('isNotEmpty').code,
+                      const Code(') {'),
+                      refer('_routes')
+                          .assign(
+                            literalList([
+                              refer((Route).name).newInstance(
+                                [refer('prefix')],
+                                {'routes': refer('_routes')},
+                              ),
+                            ]),
+                          )
+                          .statement,
+                      const Code('}'),
+                    ]),
+                    const Code('\n'),
+                    declareFinal('router')
+                        .assign(
+                          refer((Router).name).newInstance([], {
+                            if (server.context.mode.isNotRelease)
+                              'debug': literalTrue,
+                            'routes': literalList([
+                              refer('_routes').spread,
+                              refer('public').spread,
+                            ]),
+                            if (app.observers.hasObservers)
+                              'observers': literalList([
+                                if (app.observers.types.expand((e) => e.types)
+                                    case final observers
+                                    when observers.isNotEmpty)
+                                  for (final observer in observers)
+                                    createClass(observer),
+                                if (app.observers.mimics case final mimics
+                                    when mimics.isNotEmpty)
+                                  for (final type in mimics) createMimic(type),
+                              ]),
+                            'reflects': refer('reflects'),
+                            'defaultResponses': refer(
+                              'app',
+                            ).property('defaultResponses'),
+                            if (server.app case final app?
+                                when app.globalRouteAnnotations.hasAnnotations)
+                              'globalComponents':
+                                  refer(
+                                    (LifecycleComponentsImpl).name,
+                                  ).newInstance([], {
+                                    ...createModifierArgs(
+                                      annotations: app.globalRouteAnnotations,
+                                    ),
+                                  }),
+                          }),
+                        )
+                        .statement,
+                    const Code('\n'),
+                    refer('handleRequests')
+                        .call([
+                          refer('server'),
+                          refer('router').property('handle'),
+                          refer('router').property('responseHandler'),
+                          refer('router').property('close'),
+                        ])
+                        .property('ignore')
+                        .call([])
+                        .statement,
+                    const Code('\n'),
+                    refer('app').property('onServerStarted').call([
+                      refer('server'),
+                    ]).statement,
+                    const Code('\n'),
+                    refer('server').returned.statement,
+                  ]),
+              ).closure,
             ])
-            .property('ignore')
-            .call([])
+            .returned
             .statement,
-        const Code('\n'),
-        refer(
-          'app',
-        ).property('onServerStarted').call([refer('server')]).statement,
-        const Code('\n'),
-        refer('server').returned.statement,
       ]),
   );
 

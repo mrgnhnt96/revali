@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:revali_router/src/app_config/app_config.dart';
@@ -46,6 +47,16 @@ void main() {
       );
 
       expect(appConfig.defaultResponses, isA<DefaultResponses>());
+    });
+
+    test('runStartup forwards to start', () {
+      const appConfig = AppConfig(
+        host: 'localhost',
+        port: 8080,
+      );
+      final completer = Completer<HttpServer>();
+      final future = appConfig.runStartup(() => completer.future);
+      expect(identical(future, completer.future), isTrue);
     });
   });
 }
