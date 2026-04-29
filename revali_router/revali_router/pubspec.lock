@@ -398,7 +398,7 @@ packages:
       path: "../../packages/revali_core"
       relative: true
     source: path
-    version: "1.4.0"
+    version: "1.5.0"
   revali_router_annotations:
     dependency: "direct main"
     description:

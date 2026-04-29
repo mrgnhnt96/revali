@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 3.1.0 | 04.28.26
+
+### Features
+
+- Cover `AppConfig.runStartup` with a default implementation that forwards to the provided start callback.
+
 ## 3.0.7 | 03.05.26
 
 ### Fixes

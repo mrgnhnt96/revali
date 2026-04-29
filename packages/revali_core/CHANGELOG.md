@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.5.0 | 04.28.26
+
+### Features
+
+- Add `runStartup` on `AppConfig` so apps can wrap async server startup (bind, DI, routes); the default implementation forwards to the provided `start` callback unchanged.
+
 ## 1.4.0 | 04.15.25
 
 ### Features

@@ -35,21 +35,21 @@
 
 # revali_core
 
-## 1.4.0
+## 1.5.0
 
 ### Features
 
-- Create `Args` class to parse arguments from `dart run revali dev`
+- Add `runStartup` on `AppConfig` so apps can wrap async server startup (bind, DI, routes); the default implementation forwards to the provided `start` callback unchanged.
 
 <!-- REVALI ROUTER -->
 
 # revali_router
 
-## 3.0.7
+## 3.1.0
 
-### Fixes
+### Features
 
-- Fix dynamic routes like `/:param` incorrectly matching a static sibling route when extra path segments exist: only return parent when remaining path segments are empty so the correct dynamic route is matched
+- Cover `AppConfig.runStartup` with a default implementation that forwards to the provided start callback.
 
 # revali_router_annotations
 
@@ -71,11 +71,11 @@
 
 # revali_server
 
-## 2.0.5
+## 2.1.0
 
 ### Features
 
-- Handle server components that use constructors to set fields (initializer list values), e.g. `const Auth.admin() : requireAdmin = true`
+- Emit the `runStartup` callback in generated `createServer` with a block body instead of an arrow function so multi-statement startup code is valid Dart.
 
 <!-- REVALI CLIENT -->
 

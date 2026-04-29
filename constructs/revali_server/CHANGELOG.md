@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.1.0 | 04.28.26
+
+### Features
+
+- Emit the `runStartup` callback in generated `createServer` with a block body instead of an arrow function so multi-statement startup code is valid Dart.
+
 ## 2.0.5 | 03.05.26
 
 ### Features
