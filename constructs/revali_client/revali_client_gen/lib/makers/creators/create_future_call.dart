@@ -16,7 +16,7 @@ List<Code> createFutureCall(ClientMethod method) {
     _ => returnType,
   };
 
-  final fromJson = parseJson(returnType, refer('body'));
+  final fromJson = parseJson(returnType, refer('_body'));
 
   final body = refer('response')
       .property('transform')
@@ -65,7 +65,7 @@ List<Code> createFutureCall(ClientMethod method) {
         false => body.returned.statement,
       }
     else ...[
-      declareFinal('body').assign(body).statement,
+      declareFinal('_body').assign(body).statement,
       const Code(''),
       fromJson,
     ],
