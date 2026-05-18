@@ -43,9 +43,10 @@ Hook main() {
                   if (files.isEmpty) {
                     return [];
                   }
+                  final dartFiles = files.where((e) => e.endsWith('.dart'));
 
                   return [
-                    'dart format ${files.join(' ')} --set-exit-if-changed',
+                    'dart format ${dartFiles.join(' ')} --set-exit-if-changed',
                   ];
                 },
               ),
