@@ -215,8 +215,8 @@ ${result.stderr}''');
       exitPort = ReceivePort();
       errorPort = ReceivePort();
       messagePort = ReceivePort();
-      errorListener = errorPort.listen((e) {
-        e = e as List<Object?>;
+      errorListener = errorPort.listen((event) {
+        final e = event as List<Object?>;
         final error = e[0] ?? TypeError();
         final trace = Trace.parse(e[1] as String? ?? '').terse;
 

@@ -1,7 +1,7 @@
 // ignore_for_file: unnecessary_parenthesis
 
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -54,14 +54,12 @@ class AnnotationArgument with ExtractImport {
     if (expression.parent case Expression(
       correspondingParameter: final param?,
     )) {
-      parameterName =
-          param.name3 ?? (throw Exception('Parameter name is null'));
+      parameterName = param.name ?? (throw Exception('Parameter name is null'));
       isRequired = param.isRequiredNamed;
     } else if (expression case Expression(
       correspondingParameter: final param?,
     )) {
-      parameterName =
-          param.name3 ?? (throw Exception('Parameter name is null'));
+      parameterName = param.name ?? (throw Exception('Parameter name is null'));
       isRequired = param.isRequiredNamed;
     } else if (expression.parent case NamedExpression(
       name: Label(:final label),

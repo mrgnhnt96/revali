@@ -1,6 +1,6 @@
 // ignore_for_file: unnecessary_parenthesis
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_server/converters/server_imports.dart';

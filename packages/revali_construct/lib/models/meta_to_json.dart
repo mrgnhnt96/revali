@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:revali_construct/models/meta_type.dart';
 import 'package:revali_construct/utils/element_extensions.dart';
 

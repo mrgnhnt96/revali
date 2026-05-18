@@ -1,6 +1,6 @@
 // ignore_for_file: use_late_for_private_fields_and_variables
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor2.dart';
 import 'package:revali/ast/checkers/checkers.dart';
 import 'package:revali/ast/visitors/method_visitor.dart';
@@ -74,7 +74,7 @@ class ControllerVisitor extends RecursiveElementVisitor2<void> {
     _path = controller.path;
     _type = controller.type;
     final methodVisitor = MethodVisitor();
-    element.accept2(methodVisitor);
+    element.accept(methodVisitor);
 
     _methods.addAll(methodVisitor.methods.values.expand((e) => e));
   }

@@ -1,7 +1,7 @@
 // ignore_for_file: unnecessary_parenthesis
 
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:change_case/change_case.dart';
 import 'package:collection/collection.dart';
@@ -98,7 +98,7 @@ class ServerLifecycleComponent with ExtractImport {
     }
 
     final paramNamesFromConstructor = {
-      for (final p in ctor.formalParameters) p.name3 ?? '',
+      for (final p in ctor.formalParameters) p.name ?? '',
     };
 
     final params = <ServerParam>[
@@ -120,12 +120,12 @@ class ServerLifecycleComponent with ExtractImport {
               )
               case final value?)
             ServerParam(
-              name: field.name3!,
+              name: field.name!,
               type: ServerType.fromType(field.type),
               isRequired: true,
               isNamed: true,
               argument: AnnotationArgument.fromFieldValue(
-                field.name3!,
+                field.name!,
                 value,
                 field,
               ),
@@ -133,7 +133,7 @@ class ServerLifecycleComponent with ExtractImport {
         ],
     ];
 
-    final name = element.name3;
+    final name = element.name;
 
     if (name == null) {
       throw Exception('Class name is null');
@@ -269,7 +269,7 @@ class ServerLifecycleComponent with ExtractImport {
     DartObject instanceFields,
   ) {
     if (field.isStatic) return null;
-    final name = field.name3;
+    final name = field.name;
     if (name == null || paramNamesFromConstructor.contains(name)) {
       return null;
     }

@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor2.dart';
 import 'package:revali/ast/checkers/checkers.dart';
 import 'package:revali/ast/visitors/get_params.dart';
@@ -27,7 +27,7 @@ class AppVisitor extends RecursiveElementVisitor2<void> {
   bool get hasApp => entries.isNotEmpty;
 
   @override
-  void visitClassElement(ClassElement2 element) {
+  void visitClassElement(ClassElement element) {
     super.visitClassElement(element);
 
     if (!appChecker.hasAnnotationOf(element)) {

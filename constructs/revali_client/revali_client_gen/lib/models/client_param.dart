@@ -1,5 +1,5 @@
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:revali_client_gen/enums/parameter_position.dart';
 import 'package:revali_client_gen/makers/utils/extract_import.dart';
 import 'package:revali_client_gen/models/client_imports.dart';
@@ -19,7 +19,7 @@ class ClientParam with ExtractImport {
 
   static ClientParam? fromElement(FormalParameterElement element) {
     final (:acceptMultiple, :access, :position) = _getPosition(
-      element.name3,
+      element.name,
       ({required List<OnMatch> onMatch, NonMatch? onNonMatch}) =>
           getAnnotations(
             element: element,
@@ -32,7 +32,7 @@ class ClientParam with ExtractImport {
       return null;
     }
 
-    final name = element.name3;
+    final name = element.name;
 
     if (name == null) {
       return null;

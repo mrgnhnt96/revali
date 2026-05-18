@@ -18,7 +18,7 @@ class FileTraverser {
     final resolved = await units.resolved();
 
     final classVisitor = AppVisitor();
-    resolved.libraryElement.accept2(classVisitor);
+    resolved.libraryElement.accept(classVisitor);
 
     if (!classVisitor.hasApp) {
       return;
@@ -31,7 +31,7 @@ class FileTraverser {
         importPath: element.library.uri.toString(),
         element: element,
         constructor:
-            entry.constructor.name3 ??
+            entry.constructor.name ??
             (throw Exception('Constructor name is null')),
         params: entry.params,
         appAnnotation: entry.annotation,

@@ -20,7 +20,7 @@ dependencies:
   equatable: ^2.0.5
   http_parser: ^4.1.0
   meta: ^1.16.0
-  mime: ^1.0.5
+  mime: ^2.0.0
   revali_annotations: ^2.0.2
   revali_core: ^1.4.0
 

@@ -7,7 +7,7 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
@@ -403,7 +403,7 @@ class UnresolvedAnnotationException implements Exception {
               annotatedElement.library!,
             )
             as ParsedLibraryResult;
-    final declaration = parsedLibrary.getElementDeclaration2(
+    final declaration = parsedLibrary.getFragmentDeclaration(
       annotatedElement.firstFragment,
     );
     if (declaration == null) {

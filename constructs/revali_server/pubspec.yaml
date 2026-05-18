@@ -16,12 +16,12 @@ environment:
   sdk: ">=3.8.0 <4.0.0"
 
 dependencies:
-  analyzer: ^8.0.0
+  analyzer: ^10.0.0
   args: ^2.6.0
   change_case: ^2.1.0
   code_builder: ^4.10.0
   collection: ^1.19.0
-  dart_style: ^3.1.2
+  dart_style: ">=3.1.4 <3.1.8"
   file: ^7.0.1
   glob: ^2.1.2
   json_annotation: ^4.9.0

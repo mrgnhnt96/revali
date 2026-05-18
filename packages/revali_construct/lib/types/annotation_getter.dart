@@ -1,5 +1,5 @@
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 typedef AnnotationMapper =
     void Function({required List<OnMatch> onMatch, NonMatch? onNonMatch});

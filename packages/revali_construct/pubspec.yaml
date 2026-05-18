@@ -17,7 +17,7 @@ environment:
   sdk: ">=3.8.0 <4.0.0"
 
 dependencies:
-  analyzer: ^8.0.0
+  analyzer: ^10.0.0
   equatable: ^2.0.5
   hotreloader: ^4.2.0
   json_annotation: ^4.9.0

@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:revali_construct/revali_construct.dart';
 
 Iterable<MetaParam> getParams(FunctionTypedElement element) {
