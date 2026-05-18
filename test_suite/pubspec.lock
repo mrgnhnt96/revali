@@ -334,7 +334,7 @@ packages:
       path: "../packages/revali"
       relative: true
     source: path
-    version: "2.0.9"
+    version: "2.1.0"
   revali_annotations:
     dependency: "direct overridden"
     description:
@@ -383,7 +383,7 @@ packages:
       path: "../constructs/revali_client/revali_client_gen"
       relative: true
     source: path
-    version: "2.0.2"
+    version: "2.1.0"
   revali_client_methods:
     dependency: transitive
     description:
@@ -474,7 +474,7 @@ packages:
       path: "../packages/revali_construct"
       relative: true
     source: path
-    version: "2.0.4"
+    version: "2.1.0"
   revali_core:
     dependency: "direct overridden"
     description:
@@ -488,7 +488,7 @@ packages:
       path: "../revali_router/revali_router"
       relative: true
     source: path
-    version: "3.1.0"
+    version: "3.2.0"
   revali_router_annotations:
     dependency: "direct overridden"
     description:
@@ -502,14 +502,14 @@ packages:
       path: "../revali_router/revali_router_core"
       relative: true
     source: path
-    version: "2.0.3+1"
+    version: "2.1.0"
   revali_server:
     dependency: "direct overridden"
     description:
       path: "../constructs/revali_server"
       relative: true
     source: path
-    version: "2.1.0"
+    version: "2.2.0"
   revali_test:
     dependency: "direct overridden"
     description:
