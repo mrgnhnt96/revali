@@ -141,10 +141,10 @@ packages:
     dependency: "direct main"
     description:
       name: hooksman
-      sha256: f04d7843bcc6d098db89419b1da44c43323e5bd8d1f412ff619d3d9e849f9686
+      sha256: d3b27ce30ce299429fa4e79fc8f29df3546ed82fb9160ce9915e3ea2d4c85782
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.0"
+    version: "3.1.2"
   http:
     dependency: transitive
     description:
@@ -249,6 +249,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.5.0"
+  scoped_deps:
+    dependency: transitive
+    description:
+      name: scoped_deps
+      sha256: bc54cece4fed785157dc53b7554d31107f574897f4b2d1196db905a38c084e31
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.0+2"
   source_span:
     dependency: transitive
     description:
