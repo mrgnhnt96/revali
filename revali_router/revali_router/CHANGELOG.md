@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 3.2.1 | 05.18.26
+
+### Fixes
+
+- Issue where `coerce` would incorrectly coerce JSON `null` values to `null` in maps.
+
 ## 3.2.0 | 05.18.26
 
 ### Chore
