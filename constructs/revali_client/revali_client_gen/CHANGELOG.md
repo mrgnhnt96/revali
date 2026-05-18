@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 2.1.0 | 05.18.26
+
+### Chore
+
+- Bump `analyzer` / `dart_style`; migrate codegen to analyzer 10.
+
+### Fix
+
+- Issue where `body` param conflicted with local variable name
+
 ## 2.0.2 | 11.22.25
 
 ### Chore

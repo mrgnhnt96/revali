@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.1.0 | 05.18.26
+
+### Chore
+
+- Bump `analyzer` / `dart_style` and migrate to the analyzer 10 element APIs.
+
 ## 2.0.9 | 03.05.26
 
 ### Features

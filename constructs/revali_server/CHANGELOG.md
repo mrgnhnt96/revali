@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.2.0 | 05.18.26
+
+### Chore
+
+- Bump `analyzer` / `dart_style`; migrate converters to analyzer 10.
+
 ## 2.1.0 | 04.28.26
 
 ### Features

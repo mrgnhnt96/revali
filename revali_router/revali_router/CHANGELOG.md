@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 3.2.0 | 05.18.26
+
+### Chore
+
+- Bump `mime` to 2.x (with aligned router stack).
+
 ## 3.1.0 | 04.28.26
 
 ### Features

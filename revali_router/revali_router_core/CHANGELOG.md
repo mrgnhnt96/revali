@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.1.0 | 05.18.26
+
+### Chore
+
+- Bump `mime` to 2.x.
+
 ## 2.0.3+1 | 01.31.26
 
 ### Enhancements

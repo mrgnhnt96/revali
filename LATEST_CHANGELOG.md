@@ -6,15 +6,11 @@
 
 # revali
 
-## 2.0.9
+## 2.1.0
 
-### Features
+### Chore
 
-- Add `hot_reload.exclude` in `revali.yaml` to ignore custom paths on reload (paths can be absolute or relative to revali.yaml)
-
-### Enhancements
-
-- Preserve terminal content when running with `--loud` (verbose) mode instead of clearing screen on reload
+- Bump `analyzer` / `dart_style` and migrate to the analyzer 10 element APIs.
 
 # revali_annotations
 
@@ -26,12 +22,11 @@
 
 # revali_construct
 
-## 2.0.4
+## 2.1.0
 
-### Features
+### Chore
 
-- Add `HotReloadConfig` model with `exclude` list for hot reload path filtering
-- Add `hot_reload` configuration to `RevaliYaml` for excluding paths from reload triggers
+- Bump `analyzer` and migrate generated-tooling code to analyzer 10.
 
 # revali_core
 
@@ -45,11 +40,11 @@
 
 # revali_router
 
-## 3.1.0
+## 3.2.0
 
-### Features
+### Chore
 
-- Cover `AppConfig.runStartup` with a default implementation that forwards to the provided start callback.
+- Bump `mime` to 2.x (with aligned router stack).
 
 # revali_router_annotations
 
@@ -61,21 +56,21 @@
 
 # revali_router_core
 
-## 2.0.3+1
+## 2.1.0
 
-### Enhancements
+### Chore
 
-- Add optional param to `headers.set(expose: true)` to expose the header to the client
+- Bump `mime` to 2.x.
 
 <!-- CONSTRUCTS -->
 
 # revali_server
 
-## 2.1.0
+## 2.2.0
 
-### Features
+### Chore
 
-- Emit the `runStartup` callback in generated `createServer` with a block body instead of an arrow function so multi-statement startup code is valid Dart.
+- Bump `analyzer` / `dart_style`; migrate converters to analyzer 10.
 
 <!-- REVALI CLIENT -->
 
@@ -89,8 +84,12 @@
 
 # revali_client_gen
 
-## 2.0.2
+## 2.1.0
 
 ### Chore
 
-- Sync package versions
+- Bump `analyzer` / `dart_style`; migrate codegen to analyzer 10.
+
+### Fix
+
+- Issue where `body` param conflicted with local variable name

@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.1.0 | 05.18.26
+
+### Chore
+
+- Bump `analyzer` and migrate generated-tooling code to analyzer 10.
+
 ## 2.0.4 | 03.05.26
 
 ### Features
