@@ -5,10 +5,12 @@ dynamic coerce(String value) {
     () => int.parse(value),
     () => double.parse(value),
     () => (jsonDecode(value) as List<String>).map(coerce),
-    () => (jsonDecode(value) as List).map((e) => coerce('$e')),
+    () => (jsonDecode(value) as List).map(
+          (e) => e == null ? null : coerce('$e'),
+        ),
     () => {
           for (final item in (jsonDecode(value) as Map).entries)
-            item.key: coerce('${item.value}'),
+            item.key: item.value == null ? null : coerce('${item.value}'),
         },
     () => switch (value) {
           'true' => true,

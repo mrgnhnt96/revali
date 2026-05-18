@@ -40,11 +40,11 @@
 
 # revali_router
 
-## 3.2.0
+## 3.2.1
 
-### Chore
+### Fixes
 
-- Bump `mime` to 2.x (with aligned router stack).
+- Issue where `coerce` would incorrectly coerce JSON `null` values to `null` in maps.
 
 # revali_router_annotations
 

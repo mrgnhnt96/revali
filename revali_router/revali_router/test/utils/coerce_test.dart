@@ -23,6 +23,17 @@ void main() {
       expect(coerce('{"a": 1, "b": 2}'), {'a': 1, 'b': 2});
     });
 
+    test('should preserve JSON null in maps', () {
+      expect(
+        coerce('{"name": "Morgan", "isAdmin": null}'),
+        {'name': 'Morgan', 'isAdmin': null},
+      );
+    });
+
+    test('should preserve JSON null in lists', () {
+      expect(coerce('[1, null, 3]'), [1, null, 3]);
+    });
+
     test('should coerce a string to a boolean', () {
       expect(coerce('true'), true);
       expect(coerce('false'), false);
