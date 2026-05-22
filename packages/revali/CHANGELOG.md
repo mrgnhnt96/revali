@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 2.1.1 | 05.21.26
+
+### Enhancements
+
+- Improve logging when conflicting routes are detected.
+- Preserve the "Serving at" message in the console after hot reload and screen clear.
+
+### Enhancements
+
+- Generate into `.revali.staging` and only replace `.revali` after generation succeeds, so an interrupted rebuild no longer removes `revali_client/pubspec.yaml` and breaks workspace `dart pub get`.
+
 ## 2.1.0 | 05.18.26
 
 ### Chore

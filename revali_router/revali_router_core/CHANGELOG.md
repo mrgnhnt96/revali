@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.2.0 | 05.21.26
+
+### Features
+
+- Add `ip` getter to `Request` and `UnderlyingRequest`.
+
 ## 2.1.0 | 05.18.26
 
 ### Chore

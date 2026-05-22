@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 3.3.0 | 05.21.26
+
+### Features
+
+- Expose client IP address via `request.ip`, derived from the connection's remote address.
+
 ## 3.2.1 | 05.18.26
 
 ### Fixes

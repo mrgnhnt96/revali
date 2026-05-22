@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2.3.0 | 05.21.26
+
+### Features
+
+- Add codegen support for `@Ip` route parameters.
+- Substitute generic type arguments on lifecycle component registrations into guard/middleware params (e.g. `@RateLimit<GetBody>()` resolves `@Body() T`).
+- Instantiate lifecycle components in generated wrappers with their type arguments (e.g. `RateLimit<GetBody>()`).
+
 ## 2.2.0 | 05.18.26
 
 ### Chore

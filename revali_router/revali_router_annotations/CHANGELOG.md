@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.1.0 | 05.21.26
+
+### Features
+
+- Add `@Ip` annotation for injecting the client IP into route handlers.
+
 ## 2.0.2+1 | 01.28.26
 
 ### Fix

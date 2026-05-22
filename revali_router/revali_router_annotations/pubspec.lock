@@ -61,17 +61,17 @@ packages:
     dependency: transitive
     description:
       name: revali_core
-      sha256: bbc804d6c0bacb9480ae315098dd1055d83d2155e376b6085f462f5c081615ca
+      sha256: d9e25a405d7467ff88ddbff7193a14dc36b01cec5505e4c0f3a7f79998e259e1
       url: "https://pub.dev"
     source: hosted
-    version: "1.4.0"
+    version: "1.5.0"
   revali_router_core:
     dependency: "direct main"
     description:
       path: "../revali_router_core"
       relative: true
     source: path
-    version: "2.0.3+1"
+    version: "2.2.0"
   source_span:
     dependency: transitive
     description:
