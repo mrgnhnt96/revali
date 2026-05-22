@@ -67,6 +67,8 @@ class ConstructGenerator with DirectoriesMixin {
   final GenerateConstructType generateConstructType;
 
   Directory? __root;
+  Directory? _stagingRoot;
+
   Future<Directory> get root async {
     if (__root case final root?) {
       return root;
@@ -91,18 +93,18 @@ class ConstructGenerator with DirectoriesMixin {
     final root = await this.root;
 
     final server = await root.getServer();
-    if (await server.exists() && type.isConstructs) {
+    if (server.existsSync() && type.isConstructs) {
       await server.delete(recursive: true);
     }
 
     final build = await root.getBuild();
-    if (await build.exists()) {
+    if (build.existsSync()) {
       await build.delete(recursive: true);
     }
 
     if (type.isConstructs) {
       await for (final construct in root.getConstructs()) {
-        if (await construct.exists()) {
+        if (construct.existsSync()) {
           await construct.delete(recursive: true);
         }
       }
@@ -125,6 +127,17 @@ class ConstructGenerator with DirectoriesMixin {
   }
 
   Future<MetaServer> _generate(Log progress) async {
+    await _prepareStaging();
+
+    try {
+      return await _generateIntoStaging(progress);
+    } catch (e) {
+      await _discardStaging();
+      rethrow;
+    }
+  }
+
+  Future<MetaServer> _generateIntoStaging(Log progress) async {
     final server = await routesHandler.parse();
 
     final buildMakers = <ConstructMaker>[];
@@ -257,7 +270,123 @@ http://revali.dev/constructs#server-constructs
       throw Exception('There are no Server Constructs in the project.');
     }
 
+    await _promoteStaging();
+
     return server;
+  }
+
+  Future<void> _prepareStaging() async {
+    final rootDir = await root;
+    final staging = rootDir.childDirectory('.revali.staging');
+
+    if (staging.existsSync()) {
+      await staging.delete(recursive: true);
+    }
+
+    await staging.create(recursive: true);
+    _stagingRoot = staging;
+  }
+
+  Future<void> _promoteStaging() async {
+    final staging = _stagingRoot;
+    if (staging == null || !staging.existsSync()) {
+      return;
+    }
+
+    final rootDir = await root;
+    final revali = await rootDir.getRevali();
+    final type = generateConstructType;
+
+    if (type.isBuild && type.isConstructs) {
+      await _replaceDirectory(revali, staging);
+    } else if (type.isConstructs) {
+      await _deleteConstructOutputs(revali);
+
+      if (!revali.existsSync()) {
+        await revali.create(recursive: true);
+      }
+
+      await _moveDirectoryContents(staging, revali);
+    } else if (type.isBuild) {
+      if (!revali.existsSync()) {
+        await revali.create(recursive: true);
+      }
+
+      final build = await revali.getBuild();
+      if (build.existsSync()) {
+        await build.delete(recursive: true);
+      }
+
+      final stagingBuild = staging.childDirectory('build');
+      if (stagingBuild.existsSync()) {
+        await stagingBuild.rename(build.path);
+      }
+
+      if (staging.existsSync()) {
+        await staging.delete(recursive: true);
+      }
+    }
+
+    _stagingRoot = null;
+  }
+
+  Future<void> _discardStaging() async {
+    final staging = _stagingRoot;
+    if (staging != null && staging.existsSync()) {
+      await staging.delete(recursive: true);
+    }
+
+    _stagingRoot = null;
+  }
+
+  Future<void> _replaceDirectory(Directory target, Directory source) async {
+    if (target.existsSync()) {
+      await target.delete(recursive: true);
+    }
+
+    await source.rename(target.path);
+  }
+
+  Future<void> _deleteConstructOutputs(Directory revali) async {
+    if (!revali.existsSync()) {
+      return;
+    }
+
+    final server = revali.childDirectory('server');
+    if (server.existsSync()) {
+      await server.delete(recursive: true);
+    }
+
+    for (final entity in revali.listSync()) {
+      if (entity is! Directory) continue;
+      if (entity.basename == 'server') continue;
+      if (entity.basename == 'build') continue;
+
+      await entity.delete(recursive: true);
+    }
+  }
+
+  Future<void> _moveDirectoryContents(
+    Directory source,
+    Directory target,
+  ) async {
+    for (final entity in source.listSync()) {
+      final dest = switch (entity) {
+        Directory() => target.childDirectory(entity.basename),
+        File() => target.childFile(entity.basename),
+        _ => throw StateError('Unexpected entity type: ${entity.runtimeType}'),
+      };
+
+      if (dest.existsSync()) {
+        await dest.delete(recursive: true);
+      }
+
+      await entity.rename(dest.path);
+    }
+
+    if (source.existsSync()) {
+      await source.delete(recursive: true);
+    }
   }
 
   Future<T?> constructFromMaker<T extends Construct>(
@@ -368,7 +497,11 @@ http://revali.dev/constructs#server-constructs
     required bool hasNameConflict,
     required String? package,
   }) async {
-    final revali = await (await root).getRevali();
+    final revali =
+        _stagingRoot ??
+        (throw StateError(
+          'Staging directory must be prepared before generating',
+        ));
 
     final fsDirectory = switch (hasNameConflict) {
       true => revali.childDirectory(
@@ -380,11 +513,11 @@ http://revali.dev/constructs#server-constructs
       _ => revali,
     }.sanitizedChildDirectory(name);
 
-    if (!await fsDirectory.exists()) {
+    if (!fsDirectory.existsSync()) {
       await fsDirectory.create(recursive: true);
     }
 
-    final revaliEntities = switch (await fsDirectory.exists()) {
+    final revaliEntities = switch (fsDirectory.existsSync()) {
       true =>
         await fsDirectory.list(recursive: true, followLinks: false).toList(),
       false => <FileSystemEntity>[],
@@ -397,7 +530,7 @@ http://revali.dev/constructs#server-constructs
     for (final file in revaliDirectory.files) {
       final fileEntity = fsDirectory.sanitizedChildFile(file.fileName);
 
-      if (!await fileEntity.exists()) {
+      if (!fileEntity.existsSync()) {
         await fileEntity.create(recursive: true);
       }
 
@@ -409,7 +542,7 @@ http://revali.dev/constructs#server-constructs
     for (final stale in paths) {
       final file = fs.file(stale);
 
-      if (!await file.exists()) continue;
+      if (!file.existsSync()) continue;
 
       await file.delete();
     }
@@ -451,7 +584,7 @@ http://revali.dev/constructs#server-constructs
     final constructYamlFile = root.childFile('revali.yaml');
 
     RevaliYaml? revaliConfig;
-    if (await constructYamlFile.exists()) {
+    if (constructYamlFile.existsSync()) {
       final yamlContent = await constructYamlFile.readAsString();
       final yaml = loadYaml(yamlContent) as YamlMap?;
 

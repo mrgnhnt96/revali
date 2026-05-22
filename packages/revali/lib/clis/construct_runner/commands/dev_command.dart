@@ -130,8 +130,6 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
     logger.detail('Hot reload exclude: $hotReloadExclude');
 
     if (profile || generateOnly) {
-      await generator.clean();
-
       final progress = logger.progress('Generating server code');
 
       await generator.generate(logger.delayed);
@@ -159,8 +157,6 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
       getDependencyDirectories: analyzer.getPathDependencyDirectories,
       hotReloadExclude: hotReloadExclude ?? [],
     );
-
-    await generator.clean();
 
     await serverHandler.start(enableHotReload: !runInRelease);
     return serverHandler.exitCode;
