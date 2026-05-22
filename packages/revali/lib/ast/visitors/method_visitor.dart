@@ -5,6 +5,11 @@ import 'package:revali/ast/visitors/get_params.dart';
 import 'package:revali_construct/revali_construct.dart';
 
 class MethodVisitor extends RecursiveElementVisitor2<void> {
+  MethodVisitor(this.controllerName);
+
+  /// Display name of the enclosing controller class (for diagnostics).
+  final String controllerName;
+
   // Method name to method element
   Map<String, List<MetaMethod>> methods = {};
 
@@ -19,7 +24,10 @@ class MethodVisitor extends RecursiveElementVisitor2<void> {
     final annotation = methodChecker.annotationsOf(element);
 
     if (annotation.length > 1) {
-      throw Exception('Only one method type per method is allowed');
+      throw Exception(
+        'Only one method type per method is allowed '
+        '(controller $controllerName, method ${element.name})',
+      );
     }
 
     final method = MethodAnnotation.fromAnnotation(annotation.first);
@@ -28,7 +36,14 @@ class MethodVisitor extends RecursiveElementVisitor2<void> {
     if (methods[method.name] case final parsed?) {
       for (final parsedMethod in parsed) {
         if (parsedMethod.path == method.path) {
-          throw Exception('Conflicting paths ${parsedMethod.path}');
+          final pathDesc = parsedMethod.path == null
+              ? 'null'
+              : '"${parsedMethod.path}"';
+          throw Exception(
+            'Conflicting paths in controller $controllerName: '
+            '${method.name} routes ${parsedMethod.name} and '
+            '${element.name} both use path $pathDesc',
+          );
         }
       }
     }

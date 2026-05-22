@@ -73,7 +73,7 @@ class ControllerVisitor extends RecursiveElementVisitor2<void> {
     final controller = ControllerAnnotation.fromAnnotation(annotation.first);
     _path = controller.path;
     _type = controller.type;
-    final methodVisitor = MethodVisitor();
+    final methodVisitor = MethodVisitor(element.name ?? 'Unknown');
     element.accept(methodVisitor);
 
     _methods.addAll(methodVisitor.methods.values.expand((e) => e));
