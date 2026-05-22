@@ -43,6 +43,33 @@ void main() {
         expect(route.path, '');
       });
 
+      test('allows underscore as a path segment', () {
+        final route = Route(
+          '_',
+          method: 'GET',
+          handler: (_) async {},
+        );
+
+        expect(route.path, '_');
+        expect(route.fullPath, '/_');
+      });
+
+      test('allows underscore as a nested path segment', () {
+        final route = Route(
+          'api',
+          routes: [
+            Route(
+              '_',
+              method: 'GET',
+              handler: (_) async {},
+            ),
+          ],
+        );
+
+        expect(route.routes!.first.path, '_');
+        expect(route.routes!.first.fullPath, '/api/_');
+      });
+
       test('allows empty parent with route when no handler is provided', () {
         final route = Route(
           '',

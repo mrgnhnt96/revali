@@ -56,7 +56,7 @@ class ServerParentRoute with ExtractImport implements ServerRoute, ServerClass {
   String get _routeName {
     final name = routePath.toNoCase();
 
-    if (name.isEmpty) {
+    if (name.isEmpty || name.toCamelCase().isEmpty) {
       return 'r$index';
     }
 

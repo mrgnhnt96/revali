@@ -24,6 +24,24 @@ void main() {
           expect(route.handlerName, 'r0Route');
         },
       );
+
+      test(
+        'should pre-pend name with r index when controller path is underscore',
+        () {
+          final route = ServerParentRoute(
+            className: 'WebController',
+            importPath: ServerImports([]),
+            routePath: '_',
+            routes: [],
+            params: [],
+            annotations: ServerRouteAnnotations.none(),
+            index: 3,
+            type: InstanceType.singleton,
+          );
+
+          expect(route.handlerName, 'r3Route');
+        },
+      );
     });
 
     group('#fileName', () {
@@ -42,6 +60,24 @@ void main() {
           );
 
           expect(route.fileName, 'r0_route');
+        },
+      );
+
+      test(
+        'should pre-pend name with r index when controller path is underscore',
+        () {
+          final route = ServerParentRoute(
+            className: 'WebController',
+            importPath: ServerImports([]),
+            routePath: '_',
+            routes: [],
+            params: [],
+            annotations: ServerRouteAnnotations.none(),
+            index: 3,
+            type: InstanceType.singleton,
+          );
+
+          expect(route.fileName, 'r3_route');
         },
       );
     });

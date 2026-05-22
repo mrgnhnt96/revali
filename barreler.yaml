@@ -49,6 +49,7 @@ dirs:
       - export: "package:revali_core/revali_core.dart"
         show:
           - Args
+          - RequestScopedDI
       - export: "package:revali_router_core/revali_router_core.dart"
         hide:
           - AppConfig

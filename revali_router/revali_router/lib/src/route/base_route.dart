@@ -103,8 +103,10 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
       }
 
       if (!ignorePathPattern) {
-        final segmentPattern =
-            RegExp(r'^:?[a-z0-9]+(?:[-_.][a-z0-9]+)*$', caseSensitive: false);
+        final segmentPattern = RegExp(
+          r'^:?(?:_|[a-z0-9]+(?:[-_.][a-z0-9]+)*)$',
+          caseSensitive: false,
+        );
         final segments = path.split('/');
         if (!segments.every(segmentPattern.hasMatch)) {
           throw ArgumentError(
