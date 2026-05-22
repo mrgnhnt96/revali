@@ -121,10 +121,12 @@ class MyController {
 }
 ```
 
-To bridge that gap, Revali ships the `Inject` base class. By extending it, you create a marker type that is constant (because it has a `const` constructor) but still tells Revali which dependency to resolve at runtime.
+To bridge that gap, Revali ships the [`Inject`][inject] base class from `revali_annotations`. By extending it, you create a marker type that is constant (because it has a `const` constructor) but still tells Revali which dependency to resolve at runtime.
+
+See [Configure Dependencies › The `Inject` Marker Class][configure-inject] for the full reference.
 
 ```dart
-import 'package:revali/revali.dart';
+import 'package:revali_annotations/revali_annotations.dart';
 
 final class InjectService extends Inject implements Service {
     const InjectService();
@@ -151,3 +153,5 @@ This pattern lets you mix literal configuration with runtime dependencies in a s
 [pipes]: ./core/pipes.md
 [bindings]: ./core/binding.md
 [lifecycle-component]: ./lifecycle-components/overview.md
+[inject]: https://pub.dev/documentation/revali_annotations/latest/revali_annotations/Inject-class.html
+[configure-inject]: ../../../revali/app-configuration/configure-dependencies#the-inject-marker-class

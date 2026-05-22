@@ -380,6 +380,8 @@ class UsersController {
 
 :::tip
 Learn how to [configure dependencies](../../../revali/app-configuration/configure-dependencies.md).
+
+If you need to pass a dependency inside a custom annotation argument (for example, a [`LifecycleComponent`](../lifecycle-components/overview.md)), use the [`Inject`](../../../revali/app-configuration/configure-dependencies.md#the-inject-marker-class) marker class instead of `@Dep()`.
 :::
 
 :::warning

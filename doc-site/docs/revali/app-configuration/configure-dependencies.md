@@ -208,6 +208,89 @@ class UserController {
 }
 ```
 
+## The `Inject` Marker Class
+
+Annotation arguments in Dart must be compile-time constants. That works well for literals and `const` constructors, but not for runtime dependencies such as services or repositories.
+
+The [`Inject`][inject] base class from `revali_annotations` bridges that gap. Extend it to create a marker type that is constant at compile time while still telling Revali which dependency to resolve from the DI container at runtime.
+
+### When to Use `Inject`
+
+Use `Inject` when a custom annotation needs **both**:
+
+- A compile-time value (for example, a status code or configuration flag)
+- A dependency that can only be created at runtime
+
+Common cases include [`LifecycleComponent`][lifecycle-component] constructors and other annotation types that mix primitive configuration with injected services.
+
+### Creating an Inject Marker
+
+Define a `const` class that extends `Inject` and implements the interface you want resolved:
+
+```dart title="lib/di/inject_service.dart"
+import 'package:revali_annotations/revali_annotations.dart';
+
+final class InjectService extends Inject implements Service {
+  const InjectService();
+}
+```
+
+The marker class itself has no behavior. It only carries type information so Revali knows what to resolve from DI.
+
+### Using Inject Markers in Annotations
+
+Pass the marker instance alongside your compile-time values:
+
+```dart title="routes/user_controller.dart"
+class MyComponent implements LifecycleComponent {
+  const MyComponent(this.statusCode, this.service);
+
+  final int statusCode;
+  final Service service;
+}
+
+@Controller('/users')
+class UserController {
+  @MyComponent(200, InjectService())
+  @Get('/')
+  User getUser() => ...;
+}
+```
+
+Without `Inject`, passing `Service()` directly would fail because it is not a compile-time constant:
+
+```dart
+@MyComponent(200, Service()) // Error: Service is not a constant
+```
+
+### How Revali Resolves `Inject` Types
+
+When Revali sees an annotation argument whose type extends `Inject`, it:
+
+1. Confirms the class extends `Inject` (so it is safe to treat as a marker)
+2. Looks at the interfaces or base classes the marker implements (for example, `Service`)
+3. Resolves the registered implementation from the DI container
+
+The dependency must be registered in `configureDependencies` like any other injectable type:
+
+```dart title="routes/main_app.dart"
+@override
+Future<void> configureDependencies(DI di) async {
+  di.registerLazySingleton<Service>(ServiceImpl.new);
+}
+```
+
+### `Inject` vs `@Dep()`
+
+These solve different problems:
+
+| Mechanism | Where it works | Use case |
+| --------- | -------------- | -------- |
+| `@Dep()` | Controller constructors and endpoint parameters | Inject dependencies into route handlers |
+| `Inject` | Custom annotation arguments | Mix compile-time configuration with runtime dependencies inside annotations |
+
+For controller and endpoint injection, prefer `@Dep()`. Reach for `Inject` only when a dependency must appear inside an annotation argument list.
+
 ## Best Practices
 
 ### 🏗️ **Architecture**
@@ -292,3 +375,6 @@ class DatabaseConfig {
 
 - **[Environment Variables](/revali/app-configuration/env-vars)**: Handle configuration across environments
 - **[Flavors](/revali/app-configuration/flavors)**: Create environment-specific configurations
+
+[inject]: https://pub.dev/documentation/revali_annotations/latest/revali_annotations/Inject-class.html
+[lifecycle-component]: /constructs/revali_server/lifecycle-components/overview
