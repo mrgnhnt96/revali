@@ -26,7 +26,7 @@ String guardContent(
 
   final parameters = createConstructorParameters(component.params);
   final fields = createFields(component.params);
-  final generics = createGenerics(component.genericTypes);
+  final generics = createGenerics(component.wrapperGenericTypes);
 
   final clazz = Class(
     (p) => p
@@ -73,7 +73,11 @@ String guardContent(
             )
             ..body = Block.of([
               declareFinal('component')
-                  .assign(refer(component.name).newInstance(positioned, named))
+                  .assign(
+                    refer(
+                      component.instantiatedName,
+                    ).newInstance(positioned, named),
+                  )
                   .statement,
               const Code('\n'),
               declareFinal('guards')

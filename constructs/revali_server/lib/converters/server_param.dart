@@ -1,10 +1,12 @@
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_param_annotations.dart';
 import 'package:revali_server/converters/server_type.dart';
 import 'package:revali_server/utils/annotation_argument.dart';
 import 'package:revali_server/utils/extract_import.dart';
+import 'package:revali_server/utils/substitute_type.dart';
 
 class ServerParam with ExtractImport {
   ServerParam({
@@ -50,7 +52,10 @@ class ServerParam with ExtractImport {
     );
   }
 
-  factory ServerParam.fromElement(FormalParameterElement element) {
+  factory ServerParam.fromElement(
+    FormalParameterElement element, {
+    Map<String, DartType> typeSubstitutions = const {},
+  }) {
     final importPath = ServerImports.fromElement(element);
 
     final paramAnnotations = ServerParamAnnotations.fromElement(element);
@@ -60,9 +65,13 @@ class ServerParam with ExtractImport {
       throw Exception('Parameter name is null');
     }
 
+    final paramType = typeSubstitutions.isEmpty
+        ? element.type
+        : substituteType(element.type, typeSubstitutions);
+
     return ServerParam(
       name: name,
-      type: ServerType.fromType(element.type),
+      type: ServerType.fromType(paramType),
       isRequired: element.isRequiredNamed || element.isRequiredPositional,
       isNamed: element.isNamed,
       defaultValue: element.defaultValueCode,

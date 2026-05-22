@@ -3,11 +3,14 @@
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:revali_client_gen/enums/parameter_position.dart';
 import 'package:revali_client_gen/makers/utils/extract_import.dart';
 import 'package:revali_client_gen/makers/utils/type_extensions.dart';
 import 'package:revali_client_gen/models/client_imports.dart';
 import 'package:revali_client_gen/models/client_lifecycle_component_method.dart';
 import 'package:revali_client_gen/models/client_param.dart';
+import 'package:revali_client_gen/models/client_type.dart';
+import 'package:revali_client_gen/utils/substitute_type.dart';
 import 'package:revali_router/revali_router.dart';
 
 class ClientLifecycleComponent with ExtractImport {
@@ -15,25 +18,53 @@ class ClientLifecycleComponent with ExtractImport {
     required this.guards,
     required this.middlewares,
     required this.interceptors,
+    required this.instantiatedTypeArguments,
+    required this.genericTypeParameterNames,
   });
 
   factory ClientLifecycleComponent.fromDartObject(
+    DartObject object,
+    // ignore: avoid_unused_constructor_parameters
     ElementAnnotation annotation,
   ) {
-    final element = annotation.element?.enclosingElement;
+    if (object.type case final InterfaceType type) {
+      final element = type.element;
+      if (element is! ClassElement) {
+        throw Exception('Invalid element type');
+      }
 
-    if (element is! ClassElement) {
-      throw Exception('Invalid element type');
+      return ClientLifecycleComponent.fromClassElement(
+        element,
+        typeArguments: type.typeArguments,
+      );
     }
 
-    return ClientLifecycleComponent.fromClassElement(element);
+    throw Exception('Expected annotation type to be InterfaceType');
   }
 
-  factory ClientLifecycleComponent.fromClassElement(ClassElement element) {
-    final methods = element.methods
-        .map(ClientLifecycleComponentMethod.fromElement)
-        .whereType<ClientLifecycleComponentMethod>()
-        .toList();
+  factory ClientLifecycleComponent.fromClassElement(
+    ClassElement element, {
+    List<DartType> typeArguments = const [],
+  }) {
+    final typeSubstitutions = buildTypeSubstitutionMap(element, typeArguments);
+    final genericTypeParameterNames = [
+      for (final typeParameter in element.typeParameters)
+        if (typeParameter.name case final name?) name,
+    ];
+
+    Iterable<ClientLifecycleComponentMethod> methodsFromElement() sync* {
+      for (final method in element.methods) {
+        if (ClientLifecycleComponentMethod.fromElement(
+              method,
+              typeSubstitutions: typeSubstitutions,
+            )
+            case final componentMethod?) {
+          yield componentMethod;
+        }
+      }
+    }
+
+    final methods = methodsFromElement().toList();
 
     final guards = <ClientLifecycleComponentMethod>[];
     final middlewares = <ClientLifecycleComponentMethod>[];
@@ -56,6 +87,10 @@ class ClientLifecycleComponent with ExtractImport {
       guards: guards,
       middlewares: middlewares,
       interceptors: interceptors,
+      instantiatedTypeArguments: typeSubstitutions.isNotEmpty
+          ? typeArguments.map(ClientType.fromType).toList()
+          : const <ClientType>[],
+      genericTypeParameterNames: genericTypeParameterNames,
     );
   }
 
@@ -77,7 +112,10 @@ class ClientLifecycleComponent with ExtractImport {
       );
     }
 
-    return ClientLifecycleComponent.fromClassElement(element);
+    return ClientLifecycleComponent.fromClassElement(
+      element,
+      typeArguments: typeArgumentsFrom(type),
+    );
   }
 
   static List<ClientLifecycleComponent> fromTypeReference(
@@ -112,6 +150,26 @@ class ClientLifecycleComponent with ExtractImport {
     List<ClientLifecycleComponentMethod> post,
   })
   interceptors;
+  final List<ClientType> instantiatedTypeArguments;
+  final List<String> genericTypeParameterNames;
+
+  bool get shouldSubstituteTypeArguments =>
+      instantiatedTypeArguments.isNotEmpty;
+
+  bool shouldExcludeParamFromClient(
+    ClientParam param,
+    Iterable<ClientParam> endpointParams,
+  ) {
+    if (param.position != ParameterPosition.body) {
+      return false;
+    }
+
+    if (shouldSubstituteTypeArguments) {
+      return true;
+    }
+
+    return endpointParams.any(param.conflictsWithClientParam);
+  }
 
   bool get hasGuards => guards.isNotEmpty;
   bool get hasMiddlewares => middlewares.isNotEmpty;
@@ -131,6 +189,7 @@ class ClientLifecycleComponent with ExtractImport {
     ...middlewares,
     ...interceptors.pre,
     ...interceptors.post,
+    ...instantiatedTypeArguments,
   ];
 
   @override

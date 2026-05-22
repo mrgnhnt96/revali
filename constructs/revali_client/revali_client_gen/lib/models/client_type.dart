@@ -1,6 +1,7 @@
 // ignore_for_file: unnecessary_parenthesis
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:revali_client_gen/makers/utils/extract_import.dart';
 import 'package:revali_client_gen/makers/utils/type_extensions.dart';
 import 'package:revali_client_gen/models/client_from_json.dart';
@@ -94,6 +95,10 @@ class ClientType with ExtractImport {
 
   factory ClientType.fromElement(FormalParameterElement element) {
     return ClientType.fromMeta(MetaType.fromType(element.type));
+  }
+
+  factory ClientType.fromType(DartType type) {
+    return ClientType.fromMeta(MetaType.fromType(type));
   }
 
   final String name;

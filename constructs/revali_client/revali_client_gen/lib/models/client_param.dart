@@ -1,9 +1,11 @@
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:revali_client_gen/enums/parameter_position.dart';
 import 'package:revali_client_gen/makers/utils/extract_import.dart';
 import 'package:revali_client_gen/models/client_imports.dart';
 import 'package:revali_client_gen/models/client_type.dart';
+import 'package:revali_client_gen/utils/substitute_type.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:revali_router_annotations/revali_router_annotations.dart';
 
@@ -17,7 +19,10 @@ class ClientParam with ExtractImport {
     required this.hasDefaultValue,
   });
 
-  static ClientParam? fromElement(FormalParameterElement element) {
+  static ClientParam? fromElement(
+    FormalParameterElement element, {
+    Map<String, DartType> typeSubstitutions = const {},
+  }) {
     final (:acceptMultiple, :access, :position) = _getPosition(
       element.name,
       ({required List<OnMatch> onMatch, NonMatch? onNonMatch}) =>
@@ -38,9 +43,13 @@ class ClientParam with ExtractImport {
       return null;
     }
 
+    final paramType = typeSubstitutions.isEmpty
+        ? element.type
+        : substituteType(element.type, typeSubstitutions);
+
     return ClientParam(
       name: name,
-      type: ClientType.fromElement(element),
+      type: ClientType.fromType(paramType),
       position: position,
       access: access,
       acceptMultiple: acceptMultiple,
@@ -174,6 +183,37 @@ class ClientParam with ExtractImport {
       acceptMultiple: acceptMultiple,
       hasDefaultValue: hasDefaultValue,
     );
+  }
+
+  bool matchesBinding(ClientParam other) {
+    return position == other.position &&
+        type.nonNullName == other.type.nonNullName &&
+        _accessEquals(access, other.access);
+  }
+
+  /// Whether two params would produce the same named argument on the client.
+  bool matchesClientSignature(ClientParam other) {
+    return position == other.position &&
+        name == other.name &&
+        type.nonNullName == other.type.nonNullName;
+  }
+
+  bool conflictsWithClientParam(ClientParam other) {
+    return matchesBinding(other) || matchesClientSignature(other);
+  }
+
+  static bool _accessEquals(List<String> a, List<String> b) {
+    if (a.length != b.length) {
+      return false;
+    }
+
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   @override

@@ -16,6 +16,7 @@ import 'package:revali_server/makers/utils/type_extensions.dart';
 import 'package:revali_server/utils/annotation_argument.dart';
 import 'package:revali_server/utils/annotation_arguments.dart';
 import 'package:revali_server/utils/extract_import.dart';
+import 'package:revali_server/utils/substitute_type.dart';
 
 class ServerLifecycleComponent with ExtractImport {
   ServerLifecycleComponent({
@@ -28,6 +29,7 @@ class ServerLifecycleComponent with ExtractImport {
     required this.import,
     required this.arguments,
     required this.genericTypes,
+    required this.instantiatedTypeArguments,
   });
 
   factory ServerLifecycleComponent.fromDartObject(
@@ -50,6 +52,7 @@ class ServerLifecycleComponent with ExtractImport {
         arguments,
         constructor: constructor,
         instanceFields: object,
+        typeArguments: type.typeArguments,
       );
     }
 
@@ -61,11 +64,26 @@ class ServerLifecycleComponent with ExtractImport {
     AnnotationArguments arguments, {
     ConstructorElement? constructor,
     DartObject? instanceFields,
+    List<DartType> typeArguments = const [],
   }) {
-    final methods = element.methods
-        .map(ServerLifecycleComponentMethod.fromElement)
-        .whereType<ServerLifecycleComponentMethod>()
+    final genericTypes = element.typeParameters
+        .map(ServerGenericType.fromElement)
         .toList();
+    final typeSubstitutions = buildTypeSubstitutionMap(element, typeArguments);
+
+    Iterable<ServerLifecycleComponentMethod> methodsFromElement() sync* {
+      for (final method in element.methods) {
+        if (ServerLifecycleComponentMethod.fromElement(
+              method,
+              typeSubstitutions: typeSubstitutions,
+            )
+            case final componentMethod?) {
+          yield componentMethod;
+        }
+      }
+    }
+
+    final methods = methodsFromElement().toList();
 
     final guards = <ServerLifecycleComponentMethod>[];
     final middlewares = <ServerLifecycleComponentMethod>[];
@@ -103,7 +121,10 @@ class ServerLifecycleComponent with ExtractImport {
 
     final params = <ServerParam>[
       ...ctor.formalParameters.map((FormalParameterElement e) {
-        final param = ServerParam.fromElement(e);
+        final param = ServerParam.fromElement(
+          e,
+          typeSubstitutions: typeSubstitutions,
+        );
 
         if (arguments.all[param.name] case final arg?) {
           param.argument = arg;
@@ -121,7 +142,11 @@ class ServerLifecycleComponent with ExtractImport {
               case final value?)
             ServerParam(
               name: field.name!,
-              type: ServerType.fromType(field.type),
+              type: ServerType.fromType(
+                typeSubstitutions.isEmpty
+                    ? field.type
+                    : substituteType(field.type, typeSubstitutions),
+              ),
               isRequired: true,
               isNamed: true,
               argument: AnnotationArgument.fromFieldValue(
@@ -148,9 +173,10 @@ class ServerLifecycleComponent with ExtractImport {
       params: params,
       import: ServerImports.fromElement(ctor.returnType.element),
       arguments: arguments,
-      genericTypes: element.typeParameters
-          .map(ServerGenericType.fromElement)
-          .toList(),
+      genericTypes: genericTypes,
+      instantiatedTypeArguments: typeSubstitutions.isNotEmpty
+          ? typeArguments.map(ServerType.fromType).toList()
+          : const [],
     );
   }
 
@@ -175,6 +201,7 @@ class ServerLifecycleComponent with ExtractImport {
     return ServerLifecycleComponent.fromClassElement(
       element,
       AnnotationArguments.none(),
+      typeArguments: typeArgumentsFrom(type),
     );
   }
 
@@ -216,6 +243,23 @@ class ServerLifecycleComponent with ExtractImport {
   final ServerImports import;
   final AnnotationArguments arguments;
   final List<ServerGenericType> genericTypes;
+  final List<ServerType> instantiatedTypeArguments;
+
+  bool get shouldSubstituteTypeArguments =>
+      instantiatedTypeArguments.isNotEmpty;
+
+  List<ServerGenericType> get wrapperGenericTypes =>
+      shouldSubstituteTypeArguments ? const [] : genericTypes;
+
+  String get cacheKey => instantiatedName;
+
+  String get instantiatedName {
+    if (!shouldSubstituteTypeArguments) {
+      return name;
+    }
+
+    return '$name<${instantiatedTypeArguments.map((e) => e.name).join(', ')}>';
+  }
 
   bool get hasGuards => guards.isNotEmpty;
   bool get hasMiddlewares => middlewares.isNotEmpty;
@@ -225,7 +269,12 @@ class ServerLifecycleComponent with ExtractImport {
 
   ServerClass _create(Type type, {String? subType}) {
     final sub = subType ?? '';
-    final className = '$name$sub${(type).name}'.toNoCase().toPascalCase();
+    final typeSuffix = shouldSubstituteTypeArguments
+        ? instantiatedTypeArguments.map((e) => e.name).join().toPascalCase()
+        : '';
+    final className = '$name$typeSuffix$sub${(type).name}'
+        .toNoCase()
+        .toPascalCase();
 
     final argsByParamName = arguments.all;
 
@@ -284,6 +333,7 @@ class ServerLifecycleComponent with ExtractImport {
     ...interceptors.post,
     ...exceptionCatchers,
     ...params,
+    ...instantiatedTypeArguments,
     arguments,
   ];
 

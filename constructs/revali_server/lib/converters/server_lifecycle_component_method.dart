@@ -7,6 +7,7 @@ import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_param.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
 import 'package:revali_server/utils/extract_import.dart';
+import 'package:revali_server/utils/substitute_type.dart';
 
 class ServerLifecycleComponentMethod with ExtractImport {
   ServerLifecycleComponentMethod({
@@ -18,7 +19,10 @@ class ServerLifecycleComponentMethod with ExtractImport {
     required this.import,
   });
 
-  static ServerLifecycleComponentMethod? fromElement(MethodElement object) {
+  static ServerLifecycleComponentMethod? fromElement(
+    MethodElement object, {
+    Map<String, DartType> typeSubstitutions = const {},
+  }) {
     final name = object.name;
 
     final returnTypeAlias = object.returnType.alias?.element.name;
@@ -51,7 +55,10 @@ class ServerLifecycleComponentMethod with ExtractImport {
       if (object.returnType case final InterfaceType type
           when returnType.startsWith((ExceptionCatcherResult).name)) {
         returnType = (ExceptionCatcherResult).name;
-        final exceptionElement = type.typeArguments.single;
+        final exceptionElement = substituteType(
+          type.typeArguments.single,
+          typeSubstitutions,
+        );
         exceptionType = exceptionElement.getDisplayString();
         if (exceptionElement.element?.library?.uri case final Uri uri) {
           importPaths.add(uri.toString());
@@ -64,7 +71,12 @@ class ServerLifecycleComponentMethod with ExtractImport {
     }
 
     final params = object.formalParameters
-        .map(ServerParam.fromElement)
+        .map(
+          (param) => ServerParam.fromElement(
+            param,
+            typeSubstitutions: typeSubstitutions,
+          ),
+        )
         .toList();
 
     if (name == null) {

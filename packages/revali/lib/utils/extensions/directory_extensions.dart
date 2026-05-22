@@ -10,7 +10,7 @@ extension DirectoryX on Directory {
     while (file == null && directory != null) {
       final pubspec = directory.childFile('pubspec.yaml');
 
-      if (await pubspec.exists()) {
+      if (pubspec.existsSync()) {
         file = pubspec;
         break;
       }
@@ -54,7 +54,7 @@ extension DirectoryX on Directory {
 
     final packageConfig = dartTool.childFile('package_config.json');
 
-    if (await packageConfig.exists()) {
+    if (packageConfig.existsSync()) {
       return packageConfig;
     }
 
@@ -62,7 +62,7 @@ extension DirectoryX on Directory {
       p.join('pub', 'workspace_ref.json'),
     );
 
-    if (!await workspaceRef.exists()) {
+    if (!workspaceRef.existsSync()) {
       throw Exception('Failed to find package config or workspace_ref');
     }
 
@@ -151,7 +151,7 @@ extension DirectoryX on Directory {
   Stream<Directory> getConstructs() async* {
     final revali = await getRevali();
 
-    if (!await revali.exists()) {
+    if (!revali.existsSync()) {
       return;
     }
 

@@ -24,7 +24,7 @@ String interceptorContent(
 
   final parameters = createConstructorParameters(component.params);
   final fields = createFields(component.params);
-  final generics = createGenerics(component.genericTypes);
+  final generics = createGenerics(component.wrapperGenericTypes);
 
   final clazz = Class(
     (p) => p
@@ -82,7 +82,9 @@ Method _pre(
       )
       ..body = Block.of([
         declareFinal('component')
-            .assign(refer(component.name).newInstance(positioned, named))
+            .assign(
+              refer(component.instantiatedName).newInstance(positioned, named),
+            )
             .statement,
         const Code('\n'),
         declareFinal('pres')
@@ -123,7 +125,9 @@ Method _post(
       )
       ..body = Block.of([
         declareFinal('component')
-            .assign(refer(component.name).newInstance(positioned, named))
+            .assign(
+              refer(component.instantiatedName).newInstance(positioned, named),
+            )
             .statement,
         const Code('\n'),
         declareFinal('posts')

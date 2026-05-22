@@ -19,3 +19,4 @@ export 'utils/dart_object_to_source.dart';
 export 'utils/data_annotation.dart';
 export 'utils/extract_import.dart';
 export 'utils/safe_property.dart';
+export 'utils/substitute_type.dart';

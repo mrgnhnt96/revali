@@ -14,7 +14,10 @@ class ClientLifecycleComponentMethod with ExtractImport {
     required String returnType,
   }) : _returnType = returnType;
 
-  static ClientLifecycleComponentMethod? fromElement(MethodElement object) {
+  static ClientLifecycleComponentMethod? fromElement(
+    MethodElement object, {
+    Map<String, DartType> typeSubstitutions = const {},
+  }) {
     final returnTypeAlias = object.returnType.alias?.element.name;
 
     String returnType;
@@ -47,7 +50,12 @@ class ClientLifecycleComponentMethod with ExtractImport {
     }
 
     final params = object.formalParameters
-        .map(ClientParam.fromElement)
+        .map(
+          (param) => ClientParam.fromElement(
+            param,
+            typeSubstitutions: typeSubstitutions,
+          ),
+        )
         .whereType<ClientParam>()
         .toList();
 

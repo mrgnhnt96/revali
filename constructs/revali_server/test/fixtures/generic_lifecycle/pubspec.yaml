@@ -1,0 +1,9 @@
+name: generic_lifecycle_fixture
+publish_to: none
+
+environment:
+  sdk: ">=3.8.0 <4.0.0"
+
+dependencies:
+  revali_router:
+    path: ../../../../../revali_router/revali_router

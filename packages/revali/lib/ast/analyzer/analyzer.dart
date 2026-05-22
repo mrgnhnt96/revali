@@ -210,7 +210,7 @@ class Analyzer implements AnalyzerChanges {
     AnalysisContext? context;
     for (final path in dependencies) {
       final file = fs.file(path);
-      final bytes = switch (await file.exists()) {
+      final bytes = switch (file.existsSync()) {
         true => await file.readAsBytes(),
         false => null,
       };

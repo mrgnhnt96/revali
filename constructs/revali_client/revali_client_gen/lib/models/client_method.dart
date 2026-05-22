@@ -41,10 +41,20 @@ class ClientMethod with ExtractImport {
           package: 'revali_router_annotations',
           convert: (object, annotation) {
             final component = ClientLifecycleComponent.fromDartObject(
+              object,
               annotation,
             );
 
             lifecycleComponents.add(component);
+          },
+        ),
+        OnMatch(
+          classType: LifecycleComponents,
+          package: 'revali_router_annotations',
+          convert: (object, annotation) {
+            lifecycleComponents.addAll(
+              ClientLifecycleComponent.fromTypeReference(object, annotation),
+            );
           },
         ),
         OnMatch(
@@ -152,10 +162,41 @@ class ClientMethod with ExtractImport {
 
   bool get isWebsocket => websocketType != WebsocketType.none;
 
-  List<ClientParam> get allParams => [
-    ...lifecycleComponents.expand((e) => e.allParams),
-    ...parameters,
-  ];
+  List<ClientParam> get allParams {
+    final merged = <ClientParam>[];
+
+    for (final component in lifecycleComponents) {
+      for (final param in component.allParams) {
+        if (component.shouldExcludeParamFromClient(param, parameters)) {
+          continue;
+        }
+
+        merged.add(param);
+      }
+    }
+
+    merged.addAll(parameters);
+
+    return _dedupeParamsByBinding(merged);
+  }
+
+  static List<ClientParam> _dedupeParamsByBinding(List<ClientParam> params) {
+    final deduped = <ClientParam>[];
+
+    for (final param in params) {
+      final index = deduped.indexWhere(
+        (existing) => existing.conflictsWithClientParam(param),
+      );
+
+      if (index >= 0) {
+        deduped[index] = param;
+      } else {
+        deduped.add(param);
+      }
+    }
+
+    return deduped;
+  }
 
   String get fullPath => [
     '',

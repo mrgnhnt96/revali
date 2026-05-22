@@ -29,10 +29,20 @@ class ClientController with ExtractImport {
           package: 'revali_router_annotations',
           convert: (object, annotation) {
             final component = ClientLifecycleComponent.fromDartObject(
+              object,
               annotation,
             );
 
             lifecycleComponents.add(component);
+          },
+        ),
+        OnMatch(
+          classType: LifecycleComponents,
+          package: 'revali_router_annotations',
+          convert: (object, annotation) {
+            lifecycleComponents.addAll(
+              ClientLifecycleComponent.fromTypeReference(object, annotation),
+            );
           },
         ),
         OnMatch(

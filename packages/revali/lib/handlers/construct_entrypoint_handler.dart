@@ -56,7 +56,7 @@ class ConstructEntrypointHandler with DirectoriesMixin {
     if (!recompile && !needsNewKernel) {
       final kernel = await root.getInternalRevaliFile(kernelFile);
 
-      if (await kernel.exists()) {
+      if (kernel.existsSync()) {
         logger
           ..detail('Skipping entrypoint generation, using existing kernel')
           ..success('Constructs entrypoint is up to date');
@@ -92,14 +92,14 @@ class ConstructEntrypointHandler with DirectoriesMixin {
       logger.detail('Saving assets file');
       final json = constructs.map((e) => e.toJson()).toList();
 
-      if (!await assetsFile.exists()) {
+      if (!assetsFile.existsSync()) {
         await assetsFile.create(recursive: true);
       }
 
       await assetsFile.writeAsString(jsonEncode(json));
     }
 
-    if (!await assetsFile.exists()) {
+    if (!assetsFile.existsSync()) {
       await saveAssets();
       return true;
     }
@@ -139,7 +139,7 @@ class ConstructEntrypointHandler with DirectoriesMixin {
       ConstructEntrypointHandler.entrypointFile,
     );
 
-    if (await entrypointFile.exists()) {
+    if (entrypointFile.existsSync()) {
       await entrypointFile.delete();
     }
 
@@ -157,7 +157,7 @@ class ConstructEntrypointHandler with DirectoriesMixin {
     final dartTool = await root.getDartTool();
     final packageJson = dartTool.childFile('package_config.json');
 
-    if (!await packageJson.exists()) {
+    if (!packageJson.existsSync()) {
       final progress = logger.progress('Running pub get');
       final result = await Process.run('dart', [
         'pub',
@@ -199,7 +199,7 @@ ${result.stderr}''');
     final root = await rootOf(initialDirectory);
     final file = await root.getInternalRevaliFile(kernelFile);
 
-    if (!await file.exists()) {
+    if (!file.existsSync()) {
       throw StateError('Script file does not exist');
     }
 

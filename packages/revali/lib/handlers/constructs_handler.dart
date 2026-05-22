@@ -34,7 +34,7 @@ class ConstructsHandler {
     final revaliConstructs = <ConstructYaml>[];
 
     final packageJsonFile = await root.getPackageConfig();
-    if (!await packageJsonFile.exists()) {
+    if (!packageJsonFile.existsSync()) {
       throw Exception('Failed to find package.json, run `dart pub get`');
     }
 
@@ -97,7 +97,7 @@ class ConstructsHandler {
       for (final config in construct.constructs) {
         final path = p.join(construct.packagePath, 'lib', config.path);
         final file = fs.file(path);
-        if (!await file.exists()) {
+        if (!file.existsSync()) {
           logger.err(
             'Failed to find the entrypoint for construct ${config.name}',
           );

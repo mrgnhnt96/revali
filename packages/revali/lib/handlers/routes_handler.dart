@@ -47,7 +47,7 @@ class RoutesHandler with DirectoriesMixin {
   Future<List<MetaPublic>> _getPublic(Directory root) async {
     final publicDir = await root.getPublic();
 
-    if (!await publicDir.exists()) {
+    if (!publicDir.existsSync()) {
       return [];
     }
 
@@ -74,7 +74,7 @@ class RoutesHandler with DirectoriesMixin {
   ) async {
     final routesDir = await root.getRoutes();
 
-    if (routesDir == null || !await routesDir.exists()) {
+    if (routesDir == null || !routesDir.existsSync()) {
       return (routes: <MetaRoute>[], apps: [MetaAppConfig.defaultConfig()]);
     }
 

@@ -7,6 +7,7 @@ Iterable<Parameter> getParameters(
   Iterable<ClientParam> params,
   ClientMethod method,
 ) sync* {
+  final seen = <String>{};
   final (cookies: _, :body, :query, :headers) = params.separate;
 
   if (!method.isWebsocket || method.websocketType.canSendAny) {
@@ -26,12 +27,20 @@ Iterable<Parameter> getParameters(
           continue;
         }
 
+        if (!_emitSignatureParam(param, seen)) {
+          continue;
+        }
+
         yield _create(param, isStream: method.websocketType.canSendMany);
       }
     }
   }
 
   for (final param in query) {
+    if (!_emitSignatureParam(param, seen)) {
+      continue;
+    }
+
     yield _create(param);
   }
 
@@ -40,8 +49,16 @@ Iterable<Parameter> getParameters(
   }
 
   for (final param in headers) {
+    if (!_emitSignatureParam(param, seen)) {
+      continue;
+    }
+
     yield _create(param);
   }
+}
+
+bool _emitSignatureParam(ClientParam param, Set<String> seen) {
+  return seen.add('${param.position.name}:${param.name}');
 }
 
 Parameter _create(ClientParam param, {bool isStream = false}) {

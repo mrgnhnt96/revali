@@ -6,11 +6,16 @@
 
 # revali
 
-## 2.1.0
+## 2.1.1
 
-### Chore
+### Enhancements
 
-- Bump `analyzer` / `dart_style` and migrate to the analyzer 10 element APIs.
+- Improve logging when conflicting routes are detected.
+- Preserve the "Serving at" message in the console after hot reload and screen clear.
+
+### Enhancements
+
+- Generate into `.revali.staging` and only replace `.revali` after generation succeeds, so an interrupted rebuild no longer removes `revali_client/pubspec.yaml` and breaks workspace `dart pub get`.
 
 # revali_annotations
 
@@ -40,37 +45,39 @@
 
 # revali_router
 
-## 3.2.1
+## 3.3.0
 
-### Fixes
+### Features
 
-- Issue where `coerce` would incorrectly coerce JSON `null` values to `null` in maps.
+- Expose client IP address via `request.ip`, derived from the connection's remote address.
 
 # revali_router_annotations
 
-## 2.0.2+1
+## 2.1.0
 
-### Fix
+### Features
 
-- Dependencies
+- Add `@Ip` annotation for injecting the client IP into route handlers.
 
 # revali_router_core
 
-## 2.1.0
+## 2.2.0
 
-### Chore
+### Features
 
-- Bump `mime` to 2.x.
+- Add `ip` getter to `Request` and `UnderlyingRequest`.
 
 <!-- CONSTRUCTS -->
 
 # revali_server
 
-## 2.2.0
+## 2.3.0
 
-### Chore
+### Features
 
-- Bump `analyzer` / `dart_style`; migrate converters to analyzer 10.
+- Add codegen support for `@Ip` route parameters.
+- Substitute generic type arguments on lifecycle component registrations into guard/middleware params (e.g. `@RateLimit<GetBody>()` resolves `@Body() T`).
+- Instantiate lifecycle components in generated wrappers with their type arguments (e.g. `RateLimit<GetBody>()`).
 
 <!-- REVALI CLIENT -->
 
@@ -90,6 +97,11 @@
 
 - Bump `analyzer` / `dart_style`; migrate codegen to analyzer 10.
 
+### Features
+
+- Resolve generic lifecycle type arguments from route annotations for client codegen.
+
 ### Fix
 
 - Issue where `body` param conflicted with local variable name
+- Duplicate `body` params in generated clients when routes use generic lifecycle components (e.g. `@RateLimit<GetBody>()` with `@Query() GetBody body`).

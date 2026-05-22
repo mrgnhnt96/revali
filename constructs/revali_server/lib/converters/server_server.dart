@@ -48,7 +48,9 @@ class ServerServer with ExtractImport {
       }
     }
 
-    final uniques = {for (final component in all) component.name: component};
+    final uniques = {
+      for (final component in all) component.cacheKey: component,
+    };
 
     return uniques.values.toList();
   }
