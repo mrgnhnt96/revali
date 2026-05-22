@@ -9,3 +9,4 @@ export 'args/args.dart';
 export 'di/di.dart';
 export 'di/di_handler.dart';
 export 'di/di_impl.dart';
+export 'di/request_scoped_di.dart';

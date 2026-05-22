@@ -25,6 +25,7 @@ class ServerLifecycleComponent with ExtractImport {
     required this.middlewares,
     required this.interceptors,
     required this.exceptionCatchers,
+    required this.requestWrappers,
     required this.params,
     required this.import,
     required this.arguments,
@@ -92,6 +93,7 @@ class ServerLifecycleComponent with ExtractImport {
       post: <ServerLifecycleComponentMethod>[],
     );
     final exceptionCatchers = <ServerLifecycleComponentMethod>[];
+    final requestWrappers = <ServerLifecycleComponentMethod>[];
 
     for (final method in methods) {
       final _ = switch (true) {
@@ -100,6 +102,7 @@ class ServerLifecycleComponent with ExtractImport {
         _ when method.isInterceptorPre => interceptors.pre.add(method),
         _ when method.isInterceptorPost => interceptors.post.add(method),
         _ when method.isExceptionCatcher => exceptionCatchers.add(method),
+        _ when method.isRequestWrapper => requestWrappers.add(method),
         _ => null,
       };
     }
@@ -170,6 +173,7 @@ class ServerLifecycleComponent with ExtractImport {
       middlewares: middlewares,
       interceptors: interceptors,
       exceptionCatchers: exceptionCatchers,
+      requestWrappers: requestWrappers,
       params: params,
       import: ServerImports.fromElement(ctor.returnType.element),
       arguments: arguments,
@@ -238,6 +242,7 @@ class ServerLifecycleComponent with ExtractImport {
   })
   interceptors;
   final List<ServerLifecycleComponentMethod> exceptionCatchers;
+  final List<ServerLifecycleComponentMethod> requestWrappers;
   final List<ServerParam> params;
   final String name;
   final ServerImports import;
@@ -266,6 +271,7 @@ class ServerLifecycleComponent with ExtractImport {
   bool get hasInterceptors =>
       interceptors.pre.isNotEmpty || interceptors.post.isNotEmpty;
   bool get hasExceptionCatchers => exceptionCatchers.isNotEmpty;
+  bool get hasRequestWrappers => requestWrappers.isNotEmpty;
 
   ServerClass _create(Type type, {String? subType}) {
     final sub = subType ?? '';
@@ -308,6 +314,10 @@ class ServerLifecycleComponent with ExtractImport {
     return _create(Middleware);
   }
 
+  ServerClass get requestWrapperClass {
+    return _create(RequestWrapper);
+  }
+
   ServerClass get interceptorClass {
     return _create(Interceptor);
   }
@@ -332,6 +342,7 @@ class ServerLifecycleComponent with ExtractImport {
     ...interceptors.pre,
     ...interceptors.post,
     ...exceptionCatchers,
+    ...requestWrappers,
     ...params,
     ...instantiatedTypeArguments,
     arguments,

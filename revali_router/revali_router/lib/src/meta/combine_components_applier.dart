@@ -10,6 +10,7 @@ class CombineComponentsApplier {
     for (final c in combine) {
       route.guards.addAll(c.guards);
       route.middlewares.addAll(c.middlewares);
+      route.requestWrappers.addAll(c.requestWrappers);
       route.interceptors.addAll(c.interceptors);
       route.catchers.addAll(c.catchers);
     }

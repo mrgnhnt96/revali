@@ -62,6 +62,16 @@ Map<String, Expression> createModifierArgs({
         for (final component in lifecycleComponents.middlewares)
           createClass(component.middlewareClass),
       ]),
+    if (mimics.requestWrappers.isNotEmpty ||
+        typeReferences.requestWrappers.isNotEmpty ||
+        lifecycleComponents.hasRequestWrappers)
+      'requestWrappers': literalList([
+        for (final wrapper in mimics.requestWrappers) createMimic(wrapper),
+        for (final wrappers in typeReferences.requestWrappers)
+          for (final wrapper in wrappers.types) createClass(wrapper),
+        for (final component in lifecycleComponents.requestWrappers)
+          createClass(component.requestWrapperClass),
+      ]),
     if (annotations.allowOrigins case final allow?
         when allow.origins.isNotEmpty)
       'allowedOrigins': refer((AllowOrigins).name).constInstance(
@@ -124,6 +134,7 @@ extension _IterableServerLifecycleComponentX
   bool get hasGuards => any((e) => e.hasGuards);
   bool get hasInterceptors => any((e) => e.hasInterceptors);
   bool get hasMiddlewares => any((e) => e.hasMiddlewares);
+  bool get hasRequestWrappers => any((e) => e.hasRequestWrappers);
 
   List<ServerLifecycleComponent> get guards => [
     for (final component in this)
@@ -136,6 +147,10 @@ extension _IterableServerLifecycleComponentX
   List<ServerLifecycleComponent> get middlewares => [
     for (final component in this)
       if (component.hasMiddlewares) component,
+  ];
+  List<ServerLifecycleComponent> get requestWrappers => [
+    for (final component in this)
+      if (component.hasRequestWrappers) component,
   ];
   List<ServerLifecycleComponent> get exceptionCatchers => [
     for (final component in this)

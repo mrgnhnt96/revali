@@ -5,6 +5,7 @@ import 'package:revali_router_core/revali_router_core.dart';
 class LifecycleComponentsImpl implements LifecycleComponents {
   LifecycleComponentsImpl({
     List<Middleware>? middlewares,
+    List<RequestWrapper>? requestWrappers,
     List<Interceptor>? interceptors,
     List<Guard>? guards,
     // ignore: strict_raw_type
@@ -17,6 +18,7 @@ class LifecycleComponentsImpl implements LifecycleComponents {
     this.responseHandler,
   })  : _meta = meta,
         middlewares = middlewares ?? [],
+        requestWrappers = requestWrappers ?? [],
         interceptors = interceptors ?? [],
         guards = guards ?? [],
         catchers = catchers ?? [] {
@@ -25,6 +27,8 @@ class LifecycleComponentsImpl implements LifecycleComponents {
 
   @override
   final List<Middleware> middlewares;
+  @override
+  final List<RequestWrapper> requestWrappers;
   @override
   final List<Interceptor> interceptors;
   @override

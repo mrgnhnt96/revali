@@ -61,6 +61,7 @@ Now that you have a class to group your lifecycle components, you can create a l
 
 | Return Type                         | Lifecycle Type                         | `Future` Support |
 | ----------------------------------- | -------------------------------------- | ---------------- |
+| `WrapperResult`                     | [Request Wrapper][wrapper]             | ✅               |
 | `GuardResult`                       | [Guard][guard]                         | ✅               |
 | `MiddlewareResult`                  | [Middleware][middleware]               | ✅               |
 | `InterceptorPreResult`              | [Interceptor (pre)][interceptor-pre]   | ✅               |
@@ -113,6 +114,7 @@ Each Lifecycle Component has certain access to the request & response context. R
 
 | Lifecycle Type                         | Context                                                |
 | -------------------------------------- | ------------------------------------------------------ |
+| [Request Wrapper][wrapper]             | [Context][context]                                     |
 | [Guard][guard]                         | [Guard Context][guard-context]                         |
 | [Middleware][middleware]               | [Middleware Context][middleware-context]               |
 | [Interceptor (pre)][interceptor-pre]   | [Interceptor Pre Context][interceptor-pre-context]     |
@@ -141,6 +143,8 @@ In addition to the [base implied bindings][binding], here's a comprehensive list
 
 | Implicit Binding             | Lifecycle Type          |
 | ---------------------------- | ----------------------- |
+| Context                      | Request Wrapper         |
+| NextResponse                 | Request Wrapper         |
 | RestrictedInterceptorContext | Interceptor             |
 | FullInterceptorContext       | Interceptor (post only) |
 | InterceptorMeta              | Interceptor             |
@@ -188,6 +192,8 @@ Future<void> myEndpoint() {
 [di]: ../../../revali/app-configuration/configure-dependencies.md
 [binding]: ../core/binding.md
 [data-sharing]: ../context/data-sharing.md
+[wrapper]: ./advanced/wrapper.md
+[context]: ../context/overview.md
 [guard]: ./advanced/guards.md
 [middleware]: ./advanced/middleware.md
 [interceptor-pre]: ./advanced/interceptors.md#pre

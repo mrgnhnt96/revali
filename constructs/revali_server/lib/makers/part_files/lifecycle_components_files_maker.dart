@@ -6,6 +6,7 @@ import 'package:revali_server/makers/part_files/lifecycle_components/exception_c
 import 'package:revali_server/makers/part_files/lifecycle_components/guard_content.dart';
 import 'package:revali_server/makers/part_files/lifecycle_components/interceptor_content.dart';
 import 'package:revali_server/makers/part_files/lifecycle_components/middleware_content.dart';
+import 'package:revali_server/makers/part_files/lifecycle_components/wrapper_content.dart';
 
 Iterable<PartFile> lifecycleComponentFilesMaker(
   ServerLifecycleComponent component,
@@ -35,6 +36,13 @@ Iterable<PartFile> lifecycleComponentFilesMaker(
     yield PartFile(
       path: path(component.middlewareClass.className),
       content: middlewareContent(component, formatter),
+    );
+  }
+
+  if (component.hasRequestWrappers) {
+    yield PartFile(
+      path: path(component.requestWrapperClass.className),
+      content: wrapperContent(component, formatter),
     );
   }
 

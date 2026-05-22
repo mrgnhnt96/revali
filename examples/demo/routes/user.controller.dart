@@ -151,6 +151,9 @@ final class AuthCombine implements CombineComponents {
 
   @override
   List<Middleware> get middlewares => [const Auth(AuthType.admin)];
+
+  @override
+  List<RequestWrapper> get requestWrappers => [];
 }
 
 final class OtherCombine implements CombineComponents {
@@ -169,6 +172,9 @@ final class OtherCombine implements CombineComponents {
 
   @override
   List<Middleware> get middlewares => [];
+
+  @override
+  List<RequestWrapper> get requestWrappers => [];
 }
 
 class MyParam implements Bind<String> {

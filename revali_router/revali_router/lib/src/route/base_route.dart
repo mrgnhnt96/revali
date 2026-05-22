@@ -15,6 +15,7 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
     String? method,
     Iterable<BaseRoute>? routes,
     List<Middleware>? middlewares,
+    List<RequestWrapper>? requestWrappers,
     List<Interceptor>? interceptors,
     List<Guard>? guards,
     // ignore: strict_raw_type
@@ -32,6 +33,7 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
           meta: meta,
           handler: handler,
           middlewares: middlewares ?? [],
+          requestWrappers: requestWrappers ?? [],
           interceptors: interceptors ?? [],
           guards: guards ?? [],
           catchers: catchers ?? [],
@@ -49,6 +51,7 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
     this.path, {
     required Iterable<BaseRoute>? routes,
     required this.middlewares,
+    required this.requestWrappers,
     required this.interceptors,
     required this.handler,
     required this.method,
@@ -148,6 +151,8 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
   late final List<BaseRoute>? routes;
   @override
   final List<Middleware> middlewares;
+  @override
+  final List<RequestWrapper> requestWrappers;
   @override
   final List<Interceptor> interceptors;
   @override
@@ -321,6 +326,19 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
 
       yield* traverse(route.parent);
       yield* route.middlewares;
+    }
+
+    yield* traverse(this);
+  }
+
+  Iterable<RequestWrapper> get allRequestWrappers sync* {
+    Iterable<RequestWrapper> traverse(BaseRoute? route) sync* {
+      if (route == null) {
+        return;
+      }
+
+      yield* traverse(route.parent);
+      yield* route.requestWrappers;
     }
 
     yield* traverse(this);

@@ -11,6 +11,7 @@ class Route extends BaseRoute {
     super.method,
     super.routes,
     super.middlewares,
+    super.requestWrappers,
     super.interceptors,
     super.guards,
     super.catchers,

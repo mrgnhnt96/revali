@@ -6,6 +6,7 @@ mixin RunMixin {
   RunInterceptors get interceptors => RunInterceptors(helper);
   RunGuards get guards => RunGuards(helper);
   RunMiddlewares get middlewares => RunMiddlewares(helper);
+  RunWrappers get wrappers => RunWrappers(helper);
   RunCatchers get catchers => RunCatchers(helper);
   RunOptions get options => RunOptions(helper);
   RunRedirect get redirect => RunRedirect(helper);

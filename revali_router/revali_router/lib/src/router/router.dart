@@ -55,6 +55,7 @@ part 'run_catchers.dart';
 part 'run_guards.dart';
 part 'run_interceptors.dart';
 part 'run_middlewares.dart';
+part 'run_wrappers.dart';
 part 'run_options.dart';
 part 'run_origin_check.dart';
 part 'run_redirect.dart';
@@ -141,10 +142,6 @@ class Router extends Equatable {
     try {
       final request = RequestImpl.fromRequest(context);
 
-      for (final observer in observers) {
-        observer.see(request, responseCompleter.future).ignore();
-      }
-
       final segments = request.segments;
 
       final match = Find(
@@ -163,6 +160,8 @@ class Router extends Equatable {
           stackTrace: StackTrace.current,
         );
 
+        _notifyObservers(request, responseCompleter.future);
+
         responseCompleter.complete(response);
 
         return response;
@@ -173,12 +172,21 @@ class Router extends Equatable {
           // TODO(mrgnhnt): Support dynamic path parameters
           pathParameters.map((key, value) => MapEntry(key, value.first));
 
-      helper = _createHelper(route, request);
+      helper = _createHelper(
+        route,
+        request,
+        observerResponseFuture: responseCompleter.future,
+      );
     } catch (e, stackTrace) {
       final response = _debugResponse(
         defaultResponses.internalServerError,
         error: e,
         stackTrace: stackTrace,
+      );
+
+      _notifyObservers(
+        RequestImpl.fromRequest(context),
+        responseCompleter.future,
       );
 
       responseCompleter.complete(response);
@@ -227,12 +235,24 @@ class Router extends Equatable {
     return await execute.run().catchError(catchers.call);
   }
 
-  HelperMixin _createHelper(BaseRoute route, RequestImpl request) {
+  HelperMixin _createHelper(
+    BaseRoute route,
+    RequestImpl request, {
+    required Future<Response> observerResponseFuture,
+  }) {
     return Helper(
       route: route,
       request: request,
       router: this,
+      observers: observers,
+      observerResponseFuture: observerResponseFuture,
     );
+  }
+
+  void _notifyObservers(FullRequest request, Future<Response> response) {
+    for (final observer in observers) {
+      observer.see(request, response).ignore();
+    }
   }
 
   @override

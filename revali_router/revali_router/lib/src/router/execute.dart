@@ -12,6 +12,7 @@ class Execute {
       :response,
       :debugErrorResponse,
       :defaultResponses,
+      :requestWrappers,
       context: ContextMixin(main: context),
       run: RunMixin(
         :interceptors,
@@ -19,6 +20,7 @@ class Execute {
         :middlewares,
         :handleWebSocket,
         :catchers,
+        :wrappers,
       ),
     ) = helper;
 
@@ -33,6 +35,47 @@ class Execute {
         stackTrace: StackTrace.current,
       );
     }
+
+    final useWrappers = requestWrappers.isNotEmpty && route is! WebSocketRoute;
+
+    Future<Response> runInner() async {
+      final HelperMixin(
+        :observers,
+        :observerResponseFuture,
+        :request,
+      ) = helper;
+
+      for (final observer in observers) {
+        observer.see(request, observerResponseFuture).ignore();
+      }
+
+      return _runPipeline(useHandlerZoneGuard: !useWrappers);
+    }
+
+    if (!useWrappers) {
+      return runInner();
+    }
+
+    return wrappers.run(runInner);
+  }
+
+  Future<Response> _runPipeline({required bool useHandlerZoneGuard}) async {
+    final HelperMixin(
+      :route,
+      :request,
+      :response,
+      :debugErrorResponse,
+      context: ContextMixin(main: context),
+      run: RunMixin(
+        :interceptors,
+        :guards,
+        :middlewares,
+        :handleWebSocket,
+        :catchers,
+      ),
+    ) = helper;
+
+    final handler = route.handler!;
 
     if (await middlewares() case final response?) {
       return response;
@@ -55,24 +98,25 @@ class Execute {
     final isHeadRequest = route.method == 'GET' && request.method == 'HEAD';
 
     if (!isHeadRequest) {
-      final errorResponse = Completer<Response?>();
-      await runZonedGuarded(() async {
-        try {
-          await handler(context);
-        } catch (e, stackTrace) {
-          final responseForError = await catchers(e, stackTrace);
-          responseForError.headers.addEverything(
-            response.headers.values,
-          );
-          errorResponse.complete(responseForError);
-        }
+      if (useHandlerZoneGuard) {
+        final errorResponse = Completer<Response?>();
+        await runZonedGuarded(() async {
+          try {
+            await handler(context);
+          } catch (e, stackTrace) {
+            final responseForError = await catchers(e, stackTrace);
+            responseForError.headers.addEverything(
+              response.headers.values,
+            );
+            errorResponse.complete(responseForError);
+          }
 
-        if (!errorResponse.isCompleted) {
-          errorResponse.complete(null);
-        }
-      }, (e, stack) {
-        // ignore: avoid_print
-        print('''
+          if (!errorResponse.isCompleted) {
+            errorResponse.complete(null);
+          }
+        }, (e, stack) {
+          // ignore: avoid_print
+          print('''
 
 ================ !!!! WARNING !!!! ================
 
@@ -91,10 +135,21 @@ ${Trace.from(stack)}
 ================ !!!! WARNING !!!! ================
 
 ''');
-      });
+        });
 
-      if (await errorResponse.future case final response?) {
-        return response;
+        if (await errorResponse.future case final response?) {
+          return response;
+        }
+      } else {
+        try {
+          await handler(context);
+        } catch (e, stackTrace) {
+          final responseForError = await catchers(e, stackTrace);
+          responseForError.headers.addEverything(
+            response.headers.values,
+          );
+          return responseForError;
+        }
       }
     }
 

@@ -15,6 +15,9 @@ class AnnotationMimics implements BaseAnnotations<ServerMimic> {
   List<ServerMimic> middlewares = [];
 
   @override
+  List<ServerMimic> requestWrappers = [];
+
+  @override
   List<ServerMimic> combines = [];
 
   List<ServerMimic> get all => [
@@ -22,6 +25,7 @@ class AnnotationMimics implements BaseAnnotations<ServerMimic> {
     ...guards,
     ...interceptors,
     ...middlewares,
+    ...requestWrappers,
     ...combines,
   ];
 }

@@ -15,6 +15,9 @@ class AnnotationTypeReferences implements BaseAnnotations<ServerTypeReference> {
   List<ServerTypeReference> middlewares = [];
 
   @override
+  List<ServerTypeReference> requestWrappers = [];
+
+  @override
   List<ServerTypeReference> combines = [];
 
   List<ServerTypeReference> get all => [
@@ -22,6 +25,7 @@ class AnnotationTypeReferences implements BaseAnnotations<ServerTypeReference> {
     ...guards,
     ...interceptors,
     ...middlewares,
+    ...requestWrappers,
     ...combines,
   ];
 }

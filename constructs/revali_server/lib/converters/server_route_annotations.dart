@@ -78,6 +78,15 @@ class ServerRouteAnnotations with ExtractImport {
           },
         ),
         OnMatch(
+          classType: RequestWrapper,
+          package: 'revali_router_core',
+          convert: (object, annotation) {
+            mimics.requestWrappers.add(
+              ServerMimic.fromDartObject(object, annotation),
+            );
+          },
+        ),
+        OnMatch(
           classType: Interceptor,
           package: 'revali_router_core',
           convert: (object, annotation) {
@@ -112,6 +121,18 @@ class ServerRouteAnnotations with ExtractImport {
           convert: (object, annotation) {
             types.middlewares.add(
               ServerTypeReference.fromElement(object, superType: Middleware),
+            );
+          },
+        ),
+        OnMatch(
+          classType: Wrappers,
+          package: 'revali_router_annotations',
+          convert: (object, annotation) {
+            types.requestWrappers.add(
+              ServerTypeReference.fromElement(
+                object,
+                superType: RequestWrapper,
+              ),
             );
           },
         ),

@@ -67,6 +67,11 @@ class ${_name.toPascalCase()} implements LifecycleComponent {
     throw UnimplementedError();
   }
 
+  WrapperResult wrap(Context context, NextResponse next) {
+    // TODO: implement wrap
+    throw UnimplementedError();
+  }
+
   InterceptorPreResult preInterceptor() {
     // TODO: implement preInterceptor
     throw UnimplementedError();

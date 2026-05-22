@@ -35,14 +35,16 @@ You can catch exceptions by using the [`Catcher`][catchers] Lifecycle Component.
 ## Lifecycle Order
 
 1. Request
-1. Observer
+1. [Request Wrapper][wrapper] (pre)
+1. Observer (pre)
 1. Middleware
 1. Guard
 1. Interceptor (Pre)
 1. Pipes
 1. Endpoint
 1. Interceptor (Post)
-1. Observer
+1. [Request Wrapper][wrapper] (post)
+1. Observer (post)
 1. Response
 
 ## Scoping
@@ -262,6 +264,7 @@ Profile mode is only available for the [`build`][build-command] command.
 When an error response is returned in release mode, the error response will not include any debug messages.
 
 [catchers]: ./advanced/exception-catchers.md
+[wrapper]: ./advanced/wrapper.md
 [debug-mode]: ../../../revali/cli/dev.md#debug-mode-default
 [run-modes]: ../../../revali/cli/dev.md#run-modes
 [build-command]: ../../../revali/cli/build.md

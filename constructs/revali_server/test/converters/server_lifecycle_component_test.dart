@@ -3,6 +3,8 @@ import 'package:code_builder/code_builder.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:revali_server/converters/server_lifecycle_component.dart';
 import 'package:revali_server/makers/part_files/lifecycle_components/guard_content.dart';
+import 'package:revali_server/makers/part_files/lifecycle_components/wrapper_content.dart';
+import 'package:revali_server/utils/annotation_arguments.dart';
 import 'package:revali_server/utils/substitute_type.dart';
 import 'package:test/test.dart';
 
@@ -146,6 +148,32 @@ void main() {
       expect(content, contains('final component = RateLimit<UserBody>('));
       expect(content, contains('UserBody.fromJson'));
       expect(content, contains('resolvePayload'));
+    });
+  });
+
+  group('wrapperContent', () {
+    test('generates RequestWrapper with next callback binding', () async {
+      final element = await helper.classElement(
+        unitPath: 'lib/wrapper_component.dart',
+        className: 'RequestScope',
+      );
+
+      final component = ServerLifecycleComponent.fromClassElement(
+        element,
+        AnnotationArguments.none(),
+      );
+
+      final formatter = DartFormatter(
+        languageVersion: DartFormatter.latestLanguageVersion,
+      ).format;
+      final emitter = DartEmitter.scoped(useNullSafetySyntax: true);
+      String format(Spec spec) => formatter(spec.accept(emitter).toString());
+
+      final content = wrapperContent(component, format);
+
+      expect(content, contains('class RequestScopeRequestWrapper'));
+      expect(content, contains('implements RequestWrapper'));
+      expect(content, contains('component.wrap(context, next)'));
     });
   });
 }

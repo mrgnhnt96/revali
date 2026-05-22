@@ -18,6 +18,8 @@ mixin HelperMixin {
   DebugErrorResponse get debugErrorResponse;
   DefaultResponses get defaultResponses;
   bool get debugResponses;
+  List<Observer> get observers;
+  Future<Response> get observerResponseFuture;
 
   AsyncWebSocketSender<dynamic> get asyncSender;
   set webSocketSender(void Function(dynamic data) sender);
@@ -31,6 +33,13 @@ mixin HelperMixin {
     return [
       ...globalComponents.middlewares,
       ...route.allMiddlewares,
+    ];
+  }
+
+  Iterable<RequestWrapper> get requestWrappers {
+    return [
+      ...globalComponents.requestWrappers,
+      ...route.allRequestWrappers,
     ];
   }
 

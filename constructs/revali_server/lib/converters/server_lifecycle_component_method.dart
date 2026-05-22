@@ -32,6 +32,15 @@ class ServerLifecycleComponentMethod with ExtractImport {
 
     final importPaths = <String>{};
 
+    final params = object.formalParameters
+        .map(
+          (param) => ServerParam.fromElement(
+            param,
+            typeSubstitutions: typeSubstitutions,
+          ),
+        )
+        .toList();
+
     if (returnTypeAlias != null && aliasReturnTypes.contains(returnTypeAlias)) {
       returnType = returnTypeAlias;
     } else if (object.returnType case final InterfaceType type
@@ -48,6 +57,10 @@ class ServerLifecycleComponentMethod with ExtractImport {
 
       if (returnType.startsWith((ExceptionCatcherResult).name)) {
         throw ArgumentError('Exception types cannot be a Future type');
+      }
+
+      if (returnType == (Response).name && _hasNextResponseParam(params)) {
+        returnType = wrapperResult;
       }
     } else {
       returnType = object.returnType.getDisplayString();
@@ -70,15 +83,6 @@ class ServerLifecycleComponentMethod with ExtractImport {
       return null;
     }
 
-    final params = object.formalParameters
-        .map(
-          (param) => ServerParam.fromElement(
-            param,
-            typeSubstitutions: typeSubstitutions,
-          ),
-        )
-        .toList();
-
     if (name == null) {
       throw Exception('Method name is null');
     }
@@ -93,6 +97,17 @@ class ServerLifecycleComponentMethod with ExtractImport {
     );
   }
 
+  static bool _hasNextResponseParam(List<ServerParam> params) {
+    return params.any((param) {
+      if (param.type.name == nextResponse) {
+        return true;
+      }
+
+      final normalized = param.type.name.replaceAll(' ', '');
+      return normalized.startsWith('Future<Response>Function(');
+    });
+  }
+
   final String name;
   final String returnType;
   final bool isFuture;
@@ -105,8 +120,14 @@ class ServerLifecycleComponentMethod with ExtractImport {
 
   static const interceptorPre = 'InterceptorPreResult';
   static const interceptorPost = 'InterceptorPostResult';
+  static const wrapperResult = 'WrapperResult';
+  static const nextResponse = 'NextResponse';
 
-  static final aliasReturnTypes = {interceptorPre, interceptorPost};
+  static final aliasReturnTypes = {
+    interceptorPre,
+    interceptorPost,
+    wrapperResult,
+  };
 
   static final returnTypes = {...coreReturnTypes, ...aliasReturnTypes};
 
@@ -121,6 +142,8 @@ class ServerLifecycleComponentMethod with ExtractImport {
   bool get isInterceptorPre => returnType == interceptorPre;
   bool get isInterceptorPost => returnType == interceptorPost;
   bool get isExceptionCatcher => returnType == (ExceptionCatcherResult).name;
+  bool get isRequestWrapper =>
+      returnType == wrapperResult && _hasNextResponseParam(parameters);
 
   @override
   List<ExtractImport?> get extractors => [...parameters];

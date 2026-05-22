@@ -25,6 +25,9 @@ final class AuthComponents implements CombineComponents {
 
   @override
   List<Middleware> get middlewares => [AuthMiddleware()];
+
+  @override
+  List<RequestWrapper> get requestWrappers => [];
 }
 
 class AuthMiddleware implements Middleware {

@@ -145,6 +145,7 @@ class TestRoute extends Route {
     this.method = 'GET',
     super.routes,
     super.middlewares,
+    super.requestWrappers,
     super.interceptors,
     super.guards,
     super.catchers,

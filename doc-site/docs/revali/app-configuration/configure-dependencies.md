@@ -284,12 +284,58 @@ Future<void> configureDependencies(DI di) async {
 
 These solve different problems:
 
-| Mechanism | Where it works | Use case |
-| --------- | -------------- | -------- |
-| `@Dep()` | Controller constructors and endpoint parameters | Inject dependencies into route handlers |
-| `Inject` | Custom annotation arguments | Mix compile-time configuration with runtime dependencies inside annotations |
+| Mechanism | Where it works                                  | Use case                                                                    |
+| --------- | ----------------------------------------------- | --------------------------------------------------------------------------- |
+| `@Dep()`  | Controller constructors and endpoint parameters | Inject dependencies into route handlers                                     |
+| `Inject`  | Custom annotation arguments                     | Mix compile-time configuration with runtime dependencies inside annotations |
 
 For controller and endpoint injection, prefer `@Dep()`. Reach for `Inject` only when a dependency must appear inside an annotation argument list.
+
+## Request-Scoped Dependencies
+
+Some dependencies should only exist for the duration of a single request — for example, a per-request database transaction or user session context. Use [`RequestScopedDI`][request-scoped-di] together with a [request wrapper][request-wrapper] to create an isolated DI container for each request.
+
+Install the scope in a request wrapper using a `Zone`:
+
+```dart title="lib/components/request_scope.dart"
+import 'package:revali_core/revali_core.dart';
+import 'package:revali_router/revali_router.dart';
+
+class RequestScope implements LifecycleComponent {
+  const RequestScope();
+
+  WrapperResult wrap(NextResponse next, DI parentDi) {
+    final scoped = RequestScopedDI(parent: parentDi);
+
+    return runZoned(
+      () async {
+        try {
+          return await next();
+        } finally {
+          await scoped.dispose();
+        }
+      },
+      zoneValues: {RequestScopedDI.zoneKey: scoped},
+    );
+  }
+}
+```
+
+Register request-scoped dependencies inside middleware or the endpoint:
+
+```dart
+RequestScopedDI.current.registerSingleton<Transaction>(Transaction());
+```
+
+Resolve dependencies with a fallback to the app-level container:
+
+```dart
+final service = RequestScopedDI.getFrom<MyService>(appDi);
+```
+
+:::tip
+Learn more about [request wrappers][request-wrapper].
+:::
 
 ## Best Practices
 
@@ -378,3 +424,5 @@ class DatabaseConfig {
 
 [inject]: https://pub.dev/documentation/revali_annotations/latest/revali_annotations/Inject-class.html
 [lifecycle-component]: /constructs/revali_server/lifecycle-components/overview
+[request-scoped-di]: https://pub.dev/documentation/revali_core/latest/revali_core/RequestScopedDI-class.html
+[request-wrapper]: /constructs/revali_server/lifecycle-components/advanced/wrapper

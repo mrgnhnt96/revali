@@ -11,6 +11,7 @@ extension _$BaseRouteAutoequal on BaseRoute {
         path,
         routes,
         middlewares,
+        requestWrappers,
         interceptors,
         catchers,
         guards,
