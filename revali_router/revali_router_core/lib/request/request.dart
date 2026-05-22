@@ -99,4 +99,16 @@ abstract class Request {
   /// request.segments // [user, 123]
   /// ```
   Iterable<String> get segments;
+
+  /// The IP address of the client that sent the request.
+  ///
+  /// Derived from the connection's remote address. This value is not read
+  /// from client-supplied headers like `X-Forwarded-For`.
+  ///
+  /// ## Example:
+  ///
+  /// ```dart
+  /// request.ip // 192.168.1.1
+  /// ```
+  String? get ip;
 }

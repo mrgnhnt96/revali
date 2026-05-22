@@ -15,6 +15,7 @@ export 'src/dep.dart';
 export 'src/guards.dart';
 export 'src/header.dart';
 export 'src/intercepts.dart';
+export 'src/ip.dart';
 export 'src/lifecycle_component.dart';
 export 'src/lifecycle_components.dart';
 export 'src/meta_data.dart';

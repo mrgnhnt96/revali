@@ -8,6 +8,7 @@ import 'package:revali_server/converters/server_body_annotation.dart';
 import 'package:revali_server/converters/server_cookie_annotation.dart';
 import 'package:revali_server/converters/server_header_annotation.dart';
 import 'package:revali_server/converters/server_imports.dart';
+import 'package:revali_server/converters/server_ip_annotation.dart';
 import 'package:revali_server/converters/server_mimic.dart';
 import 'package:revali_server/converters/server_param_annotation.dart';
 import 'package:revali_server/converters/server_pipe.dart';
@@ -24,6 +25,7 @@ class ServerParamAnnotations with ExtractImport {
     required this.data,
     required this.header,
     required this.cookie,
+    required this.ip,
     required this.binds,
     required this.bind,
   });
@@ -32,6 +34,7 @@ class ServerParamAnnotations with ExtractImport {
       query = null,
       header = null,
       cookie = null,
+      ip = null,
       param = null,
       dep = false,
       data = false,
@@ -61,6 +64,7 @@ class ServerParamAnnotations with ExtractImport {
     ServerParamAnnotation? param;
     ServerHeaderAnnotation? header;
     ServerCookieAnnotation? cookie;
+    ServerIpAnnotation? ip;
     ServerMimic? bind;
     ServerBindsAnnotation? binds;
     bool? dep;
@@ -94,6 +98,13 @@ class ServerParamAnnotations with ExtractImport {
           package: 'revali_router_annotations',
           convert: (object, annotation) {
             cookie = ServerCookieAnnotation.fromElement(object, annotation);
+          },
+        ),
+        OnMatch(
+          classType: Ip,
+          package: 'revali_router_annotations',
+          convert: (object, annotation) {
+            ip = ServerIpAnnotation.fromElement(object, annotation);
           },
         ),
         OnMatch(
@@ -146,6 +157,7 @@ class ServerParamAnnotations with ExtractImport {
       binds,
       data,
       cookie,
+      ip,
     ]) {
       if (annotation == null) {
         continue;
@@ -154,7 +166,7 @@ class ServerParamAnnotations with ExtractImport {
       if (isOnlyOne) {
         throw ArgumentError(
           'Only one of the following annotations can be used: '
-          '@Body, @Query, @Header, @Cookie, @Param, @Dep, @Binds, @Bind',
+          '@Body, @Query, @Header, @Cookie, @Ip, @Param, @Dep, @Binds, @Bind',
         );
       }
 
@@ -166,6 +178,7 @@ class ServerParamAnnotations with ExtractImport {
       query: query,
       header: header,
       cookie: cookie,
+      ip: ip,
       param: param,
       bind: bind,
       dep: dep ?? false,
@@ -191,6 +204,10 @@ class ServerParamAnnotations with ExtractImport {
       return value;
     }
 
+    if (ip case final value?) {
+      return value;
+    }
+
     if (param case final value?) {
       return value;
     }
@@ -206,6 +223,7 @@ class ServerParamAnnotations with ExtractImport {
   final ServerQueryAnnotation? query;
   final ServerHeaderAnnotation? header;
   final ServerCookieAnnotation? cookie;
+  final ServerIpAnnotation? ip;
   final ServerParamAnnotation? param;
   final ServerBindsAnnotation? binds;
   final ServerMimic? bind;
@@ -217,6 +235,7 @@ class ServerParamAnnotations with ExtractImport {
       query != null ||
       header != null ||
       cookie != null ||
+      ip != null ||
       param != null ||
       bind != null ||
       binds != null ||
@@ -244,6 +263,10 @@ class ServerParamAnnotations with ExtractImport {
       yield reflect;
     }
 
+    if (ip?.pipe?.reflect case final reflect?) {
+      yield reflect;
+    }
+
     if (binds?.bind.reflect case final reflect?) {
       yield reflect;
     }
@@ -254,6 +277,7 @@ class ServerParamAnnotations with ExtractImport {
     body,
     query,
     cookie,
+    ip,
     header,
     param,
     bind,
@@ -282,6 +306,10 @@ class ServerParamAnnotations with ExtractImport {
       }
 
       if (cookie?.pipe case final value?) {
+        yield value;
+      }
+
+      if (ip?.pipe case final value?) {
         yield value;
       }
     }

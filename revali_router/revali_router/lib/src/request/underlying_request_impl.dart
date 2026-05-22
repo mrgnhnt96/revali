@@ -45,6 +45,9 @@ class UnderlyingRequestImpl implements UnderlyingRequest {
   final String protocolVersion;
 
   @override
+  String? get ip => _request.connectionInfo?.remoteAddress.address;
+
+  @override
   Future<WebSocket> upgradeToWebSocket({Duration? ping}) async {
     final webSocket = await WebSocketTransformer.upgrade(_request);
     if (ping != null) {

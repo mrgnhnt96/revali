@@ -22,4 +22,7 @@ class RequestImpl extends RequestContextImpl implements FullRequest {
   set pathParameters(Map<String, String> pathParameters) {
     _pathParameters = Map.from(pathParameters);
   }
+
+  @override
+  String? get ip => request.ip;
 }

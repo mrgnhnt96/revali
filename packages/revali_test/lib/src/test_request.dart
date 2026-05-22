@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:revali_test/src/test_headers.dart';
+import 'package:revali_test/src/test_http_connection_info.dart';
 import 'package:revali_test/src/test_response.dart';
 
 class TestRequest extends Stream<Uint8List> implements HttpRequest {
@@ -14,6 +15,7 @@ class TestRequest extends Stream<Uint8List> implements HttpRequest {
     required this.onWebSocketMessage,
     Map<String, String> headers = const {},
     Object? body,
+    this.connectionInfo = const TestHttpConnectionInfo(),
   }) : _headers = headers {
     if (body is Stream) {
       _webSocketInput = switch (body) {
@@ -39,12 +41,11 @@ class TestRequest extends Stream<Uint8List> implements HttpRequest {
   late final Stream<Uint8List>? _webSocketInput;
   final void Function(TestResponse response) onResponse;
   final void Function(List<int>)? onWebSocketMessage;
+  @override
+  final HttpConnectionInfo? connectionInfo;
 
   @override
   X509Certificate? get certificate => throw UnimplementedError();
-
-  @override
-  HttpConnectionInfo? get connectionInfo => throw UnimplementedError();
 
   @override
   int get contentLength => -1;

@@ -11,6 +11,7 @@ import 'package:revali_server/makers/creators/create_cookie_var.dart';
 import 'package:revali_server/makers/creators/create_data_var.dart';
 import 'package:revali_server/makers/creators/create_from_json.dart';
 import 'package:revali_server/makers/creators/create_header_var.dart';
+import 'package:revali_server/makers/creators/create_ip_var.dart';
 import 'package:revali_server/makers/creators/create_missing_argument_exception.dart';
 import 'package:revali_server/makers/creators/create_param_var.dart';
 import 'package:revali_server/makers/creators/create_pipe.dart';
@@ -30,6 +31,7 @@ Expression createArgForParam(
     AnnotationType.param => createParamVar(annotation, param),
     AnnotationType.header ||
     AnnotationType.headerAll => createHeaderVar(annotation, param),
+    AnnotationType.ip => createIpVar(),
     AnnotationType.binds => createBindsVar(annotation, param),
     AnnotationType.data => createDataVar(param),
   };

@@ -7,7 +7,8 @@ enum AnnotationType {
   header,
   headerAll,
   binds,
-  data;
+  data,
+  ip;
 
   String get location => switch (this) {
         body => '@body',
@@ -19,5 +20,6 @@ enum AnnotationType {
         headerAll => '@header (all)',
         binds => '@binds',
         data => '@data',
+        ip => '@ip',
       };
 }
