@@ -1,4 +1,4 @@
-import 'package:revali_core/revali_core.dart';
+import 'package:revali_core/di/di.dart';
 
 class DIImpl implements DI {
   DIImpl()

@@ -14,6 +14,7 @@ extension _$WebSocketRouteAutoequal on WebSocketRoute {
         path,
         routes,
         middlewares,
+        requestWrappers,
         interceptors,
         catchers,
         guards,

@@ -12,6 +12,7 @@ extension _$RouteAutoequal on Route {
         path,
         routes,
         middlewares,
+        requestWrappers,
         interceptors,
         catchers,
         guards,

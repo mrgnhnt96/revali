@@ -11,6 +11,7 @@ extension _$SseRouteAutoequal on SseRoute {
         path,
         routes,
         middlewares,
+        requestWrappers,
         interceptors,
         catchers,
         guards,
