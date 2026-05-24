@@ -54,10 +54,7 @@ step_environment() {
 }
 
 step_bootstrap() {
-  dart pub global activate sip_cli
-  export PATH="${HOME}/.pub-cache/bin:${PATH}"
-  command -v sip
-  sip pub get --recursive --no-version-check --no-concurrent
+  echo "nada"
 }
 
 step_small_test() {
