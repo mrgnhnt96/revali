@@ -97,10 +97,26 @@ class FindImpl implements Find {
     List<String> ignoreDirs = const [],
     DateTime? lastModified,
   }) async {
-    final files = Glob(
+    // `**` does not match the working directory itself, so `dir/**/*` misses
+    // root-level files (e.g. the Dart SDK `version` file). Match both levels.
+    final patterns = [
+      _globPattern(fs.path.join(workingDirectory, name)),
       _globPattern(fs.path.join(workingDirectory, '**', name)),
-      recursive: true,
-    ).listFileSystemSync(fs, followLinks: false);
+    ];
+
+    final seen = <String>{};
+    final files = <File>[];
+    for (final pattern in patterns) {
+      for (final file in Glob(
+        pattern,
+        recursive: true,
+      ).listFileSystemSync(fs, followLinks: false).whereType<File>()) {
+        final path = _normalizePath(file.path);
+        if (seen.add(path)) {
+          files.add(file);
+        }
+      }
+    }
 
     // Filter by lastModified if provided
     if (lastModified != null) {
@@ -171,10 +187,24 @@ class FindImpl implements Find {
     List<String> ignoreDirs = const [],
     DateTime? lastModified,
   }) async {
-    final directories = Glob(
+    final patterns = [
+      _globPattern(fs.path.join(workingDirectory, directory)),
       _globPattern(fs.path.join(workingDirectory, '**', directory)),
-      recursive: true,
-    ).listFileSystemSync(fs, followLinks: false).whereType<Directory>();
+    ];
+
+    final seen = <String>{};
+    final directories = <Directory>[];
+    for (final pattern in patterns) {
+      for (final dir in Glob(
+        pattern,
+        recursive: true,
+      ).listFileSystemSync(fs, followLinks: false).whereType<Directory>()) {
+        final path = _normalizePath(dir.path);
+        if (seen.add(path)) {
+          directories.add(dir);
+        }
+      }
+    }
 
     return directories.map((e) => _normalizePath(e.path)).toList();
   }

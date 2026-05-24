@@ -51,7 +51,9 @@ class Analyzer implements AnalyzerChanges {
       return path;
     }
 
-    return _sdkPath = fs.file(platform.resolvedExecutable).parent.parent.path;
+    return _sdkPath = fs.path.normalize(
+      fs.file(platform.resolvedExecutable).parent.parent.path,
+    );
   }
 
   bool _isInitialized = false;
@@ -458,6 +460,44 @@ class Analyzer implements AnalyzerChanges {
     return lines;
   }
 
+  Future<List<String>> _workspaceDartToolFiles(String workspace) async {
+    final workspaceRef = fs.file(
+      fs.path.join(
+        workspace,
+        '.dart_tool',
+        'pub',
+        'workspace_ref.json',
+      ),
+    );
+
+    if (!workspaceRef.existsSync()) {
+      return const [];
+    }
+
+    try {
+      final workspaceRefJson =
+          jsonDecode(await workspaceRef.readAsString()) as Map;
+      final workspaceRoot = workspaceRefJson['workspaceRoot'];
+      if (workspaceRoot is! String || workspaceRoot.isEmpty) {
+        return const [];
+      }
+
+      final workspacePath = fs.path.normalize(
+        fs.path.join(workspaceRef.parent.path, workspaceRoot),
+      );
+
+      return await find.filesInDirectory(
+        '.dart_tool',
+        workingDirectory: workspacePath,
+        recursive: false,
+        ignoreDirs: const ['bin'],
+      );
+    } on Exception catch (e, st) {
+      logger.detail('Failed to load workspace .dart_tool files: $e\n$st');
+      return const [];
+    }
+  }
+
   Future<void> _createVirtualWorkspace(String workspace) async {
     // Reset the last retrieved dependencies at to null
     // so that we can retrieve ALL the dependencies again
@@ -473,6 +513,7 @@ class Analyzer implements AnalyzerChanges {
         '.dart_tool',
         workingDirectory: normalizedWorkspace,
       ),
+      ...await _workspaceDartToolFiles(normalizedWorkspace),
     ];
 
     final packageConfig = await _resolvePackageConfig(normalizedWorkspace);
