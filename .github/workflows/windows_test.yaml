@@ -1,4 +1,4 @@
-name: CI Test
+name: CI Smoke
 
 on:
   push:
@@ -9,14 +9,25 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: ci-test-${{ github.workflow }}-${{ github.ref }}
+  group: ci-smoke-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  test_windows:
-    name: Test on Windows
-    runs-on: windows-latest
-    timeout-minutes: 60
+  smoke:
+    name: Smoke test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            script: .github/scripts/ci-smoke.ps1
+            log_dir: logs/ci-smoke
+          - os: macos-latest
+            script: .github/scripts/ci-smoke.sh
+            log_dir: logs/ci-smoke
 
     steps:
       - name: Checkout
@@ -27,75 +38,32 @@ jobs:
         with:
           sdk: stable
 
-      - name: Run Windows test script
-        shell: pwsh
+      - name: Run smoke test (examples/hello)
+        shell: bash
         run: |
-          Write-Host "Starting Revali Windows CI..."
-          & "${{ github.workspace }}/.github/scripts/windows-test.ps1"
-          $exitCode = $LASTEXITCODE
-          Write-Host "Windows test script finished with exit code $exitCode"
-          exit $exitCode
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            pwsh "${{ github.workspace }}/${{ matrix.script }}"
+          else
+            chmod +x "${{ github.workspace }}/${{ matrix.script }}"
+            "${{ github.workspace }}/${{ matrix.script }}"
+          fi
 
-      - name: Upload Windows CI logs
+      - name: Upload smoke test logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: windows-ci-logs-${{ github.run_id }}
-          path: logs/windows-ci/
+          name: ci-smoke-logs-${{ matrix.os }}-${{ github.run_id }}
+          path: ${{ matrix.log_dir }}/
           if-no-files-found: warn
           retention-days: 14
 
       - name: Print summary log
         if: always()
-        shell: pwsh
+        shell: bash
         run: |
-          $summary = Join-Path "${{ github.workspace }}" "logs/windows-ci/summary.log"
-          if (Test-Path $summary) {
-            Write-Host "----- summary.log -----"
-            Get-Content $summary
-          } else {
-            Write-Host "summary.log was not created."
-          }
-
-  test_macos:
-    name: Test on macOS
-    runs-on: macos-latest
-    timeout-minutes: 60
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@v1
-        with:
-          sdk: stable
-
-      - name: Run macOS test script
-        run: |
-          echo "Starting Revali macOS CI..."
-          chmod +x "${{ github.workspace }}/.github/scripts/posix-test.sh"
-          "${{ github.workspace }}/.github/scripts/posix-test.sh"
-          exit_code=$?
-          echo "macOS test script finished with exit code $exit_code"
-          exit "$exit_code"
-
-      - name: Upload macOS CI logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-ci-logs-${{ github.run_id }}
-          path: logs/ci/
-          if-no-files-found: warn
-          retention-days: 14
-
-      - name: Print summary log
-        if: always()
-        run: |
-          summary="${{ github.workspace }}/logs/ci/summary.log"
+          summary="${{ github.workspace }}/${{ matrix.log_dir }}/summary.log"
           if [[ -f "$summary" ]]; then
             echo "----- summary.log -----"
             cat "$summary"
           else
             echo "summary.log was not created."
-          fi

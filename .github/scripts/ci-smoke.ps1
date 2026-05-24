@@ -1,0 +1,149 @@
+# Minimal CI smoke test: bootstrap deps and run revali on examples/hello.
+
+$ErrorActionPreference = 'Continue'
+$Root = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
+$LogDir = Join-Path $Root 'logs/ci-smoke'
+$Project = 'examples/hello'
+$StepResults = @()
+
+Set-Location $Root
+New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
+
+function Invoke-SmokeStep {
+    param(
+        [string]$Name,
+        [string]$LogFile,
+        [scriptblock]$Action
+    )
+
+    Write-Host ""
+    Write-Host "==> $Name" -ForegroundColor Cyan
+
+    @(
+        "STEP: $Name",
+        "Started: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss K')",
+        ''
+    ) | Out-File -FilePath $LogFile -Encoding utf8
+
+    $exitCode = 0
+    try {
+        & $Action 2>&1 | Tee-Object -FilePath $LogFile -Append
+    }
+    catch {
+        $_ | Out-String | Tee-Object -FilePath $LogFile -Append
+        $exitCode = 1
+    }
+
+    if ($null -ne $script:StepExitCode) {
+        $exitCode = $script:StepExitCode
+        $script:StepExitCode = $null
+    }
+
+    $status = if ($exitCode -eq 0) { 'PASS' } else { 'FAIL' }
+    "`nFinished: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss K') | Status: $status | Exit code: $exitCode" |
+        Out-File -FilePath $LogFile -Append -Encoding utf8
+
+    $script:StepResults += [pscustomobject]@{
+        Step     = $Name
+        LogFile  = $LogFile
+        ExitCode = $exitCode
+        Status   = $status
+    }
+
+    return $exitCode
+}
+
+function Add-PubCacheBinToPath {
+    $pubCacheBin = Join-Path $env:LOCALAPPDATA 'Pub/Cache/bin'
+    if (-not ($env:PATH -split ';' | Where-Object { $_ -eq $pubCacheBin })) {
+        $env:PATH = "$pubCacheBin;$env:PATH"
+    }
+}
+
+$overallExit = 0
+
+if ((Invoke-SmokeStep -Name 'Environment' -LogFile (Join-Path $LogDir '00-environment.log') -Action {
+        Write-Host "Root: $Root"
+        Write-Host "Project: $Project"
+        Write-Host "OS: $([System.Environment]::OSVersion.VersionString)"
+        dart --version -v
+        git --version
+    }) -ne 0) {
+    $overallExit = 1
+}
+
+if ((Invoke-SmokeStep -Name 'Bootstrap tooling' -LogFile (Join-Path $LogDir '01-bootstrap.log') -Action {
+        dart pub global activate sip_cli
+        if ($LASTEXITCODE -ne 0) { $script:StepExitCode = $LASTEXITCODE; return }
+
+        Add-PubCacheBinToPath
+        Get-Command sip -ErrorAction SilentlyContinue | Format-List *
+
+        sip pub get --recursive --no-version-check --no-concurrent
+        $script:StepExitCode = $LASTEXITCODE
+    }) -ne 0) {
+    $overallExit = 1
+}
+
+if ((Invoke-SmokeStep -Name 'Build runner (codegen deps)' -LogFile (Join-Path $LogDir '02-build-runner.log') -Action {
+        $packages = @(
+            'packages/revali_construct',
+            'revali_router/revali_router',
+            'constructs/revali_server'
+        )
+
+        foreach ($relative in $packages) {
+            Write-Host "build_runner in $relative"
+            Push-Location (Join-Path $Root $relative)
+            try {
+                dart pub get
+                if ($LASTEXITCODE -ne 0) { $script:StepExitCode = $LASTEXITCODE; return }
+                dart run build_runner build --delete-conflicting-outputs
+                if ($LASTEXITCODE -ne 0) { $script:StepExitCode = $LASTEXITCODE; return }
+            }
+            finally {
+                Pop-Location
+            }
+        }
+    }) -ne 0) {
+    $overallExit = 1
+}
+
+if ((Invoke-SmokeStep -Name 'Hello example (revali generate + build)' -LogFile (Join-Path $LogDir '03-hello.log') -Action {
+        Push-Location (Join-Path $Root $Project)
+        try {
+            dart pub get
+            if ($LASTEXITCODE -ne 0) { $script:StepExitCode = $LASTEXITCODE; return }
+
+            dart run revali dev --generate-only --recompile
+            if ($LASTEXITCODE -ne 0) { $script:StepExitCode = $LASTEXITCODE; return }
+
+            dart run revali build
+            $script:StepExitCode = $LASTEXITCODE
+        }
+        finally {
+            Pop-Location
+        }
+    }) -ne 0) {
+    $overallExit = 1
+}
+
+$summaryPath = Join-Path $LogDir 'summary.log'
+$summary = @(
+    'Revali CI smoke summary',
+    "Project: $Project",
+    "Completed: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss K')",
+    "Root: $Root",
+    "Overall exit code: $overallExit",
+    '',
+    'Step results:'
+)
+
+foreach ($result in $StepResults) {
+    $summary += "- [$($result.Status)] $($result.Step) (exit $($result.ExitCode)) -> $(Split-Path $result.LogFile -Leaf)"
+}
+
+$summary | Out-File -FilePath $summaryPath -Encoding utf8
+Get-Content $summaryPath | Write-Host
+
+exit $overallExit
