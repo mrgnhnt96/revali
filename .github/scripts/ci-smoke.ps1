@@ -28,10 +28,10 @@ function Invoke-SmokeStep {
 
     $exitCode = 0
     try {
-        & $Action 2>&1 | Tee-Object -FilePath $LogFile -Append
+        & $Action 2>&1 | Tee-Object -FilePath $LogFile -Append | Out-Null
     }
     catch {
-        $_ | Out-String | Tee-Object -FilePath $LogFile -Append
+        $_ | Out-String | Tee-Object -FilePath $LogFile -Append | Out-Null
         $exitCode = 1
     }
 
@@ -44,12 +44,12 @@ function Invoke-SmokeStep {
     "`nFinished: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss K') | Status: $status | Exit code: $exitCode" |
         Out-File -FilePath $LogFile -Append -Encoding utf8
 
-    $script:StepResults += [pscustomobject]@{
+    [void]($script:StepResults += [pscustomobject]@{
         Step     = $Name
         LogFile  = $LogFile
         ExitCode = $exitCode
         Status   = $status
-    }
+    })
 
     return $exitCode
 }
