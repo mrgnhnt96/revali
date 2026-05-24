@@ -15,15 +15,26 @@ class ClientServer with ExtractImport {
 
     if (server.apps case final apps when apps.isNotEmpty) {
       final flavor = context.flavor;
-      if ((flavor == null || flavor.isEmpty) && apps.length == 1) {
-        app = ClientApp.fromMeta(apps.first);
+      final configuredApps = apps.where((a) => a.element != null).toList();
+      final candidates = configuredApps.isNotEmpty ? configuredApps : apps;
+
+      if (candidates.length == 1) {
+        final only = candidates.first;
+        if (flavor == null ||
+            flavor.isEmpty ||
+            only.appAnnotation.flavor == flavor) {
+          app = ClientApp.fromMeta(only);
+          metaApp = only;
+        }
       }
 
-      for (final e in apps) {
-        if (e.appAnnotation.flavor == context.flavor) {
-          app = ClientApp.fromMeta(e);
-          metaApp = e;
-          break;
+      if (metaApp == null) {
+        for (final e in candidates) {
+          if (e.appAnnotation.flavor == context.flavor) {
+            app = ClientApp.fromMeta(e);
+            metaApp = e;
+            break;
+          }
         }
       }
     }

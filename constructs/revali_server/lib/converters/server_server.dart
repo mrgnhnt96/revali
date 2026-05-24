@@ -61,11 +61,19 @@ class ServerServer with ExtractImport {
     }
 
     final flavor = context.flavor;
-    if ((flavor == null || flavor.isEmpty) && apps.length == 1) {
-      return apps.first;
+    final configuredApps = apps.where((app) => !_isDefaultApp(app)).toList();
+    final candidates = configuredApps.isNotEmpty ? configuredApps : apps;
+
+    if (candidates.length == 1) {
+      final only = candidates.first;
+      if (flavor == null ||
+          flavor.isEmpty ||
+          only.appAnnotation.flavor == flavor) {
+        return only;
+      }
     }
 
-    for (final app in apps) {
+    for (final app in candidates) {
       if (app.appAnnotation.flavor == context.flavor) {
         return app;
       }
@@ -109,11 +117,21 @@ class ServerServer with ExtractImport {
       return;
     }
 
+    final configuredApps = apps.where((app) => !_isDefaultApp(app)).toList();
+    final flavorList = configuredApps.isNotEmpty ? configuredApps : apps;
     final configuredFlavors =
         'Configured Flavors:'
-        '\n\t- ${apps.map((e) => e.appAnnotation.flavor).join('\n\t- ')}';
+        '\n\t- ${flavorList.map((e) => e.appAnnotation.flavor).join('\n\t- ')}';
 
     if (context.flavor case final flavor? when flavor.isNotEmpty) {
+      if (configuredApps.isEmpty && apps.every(_isDefaultApp)) {
+        throw Exception(
+          'No app found for flavor "$flavor"\n'
+          'No @App configuration was discovered in routes/. '
+          'Check that routes/ exists and includes a *_app.dart file.\n'
+          '$configuredFlavors',
+        );
+      }
       throw Exception('No app found for flavor "$flavor"\n$configuredFlavors');
     }
 
@@ -149,3 +167,6 @@ class ServerServer with ExtractImport {
   @override
   List<ServerImports?> get imports => const [];
 }
+
+bool _isDefaultApp(ServerApp app) =>
+    app.className == 'AppConfig' && app.constructor == 'defaultApp';

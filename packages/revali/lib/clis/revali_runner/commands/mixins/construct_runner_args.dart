@@ -7,11 +7,27 @@ mixin ConstructRunnerArgs on Command<int> {
   List<String> get constructRunnerArgs {
     final argResults = this.argResults!;
 
-    final argsToPass = <String>[];
+    final argsToPass = <String>[name];
+
+    final flavor = argResults['flavor'] as String?;
+    if (flavor != null && flavor.isNotEmpty) {
+      argsToPass.addAll(['--flavor', flavor]);
+    }
 
     const ignore = {'--recompile'};
 
-    for (final entry in [name, ...argResults.arguments]) {
+    var skipNext = false;
+    for (final entry in argResults.arguments) {
+      if (skipNext) {
+        skipNext = false;
+        continue;
+      }
+
+      if (entry == '--flavor' || entry == '-f') {
+        skipNext = true;
+        continue;
+      }
+
       if (ignore.contains(entry)) {
         continue;
       }
