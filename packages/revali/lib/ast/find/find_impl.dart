@@ -111,11 +111,11 @@ class FindImpl implements Find {
                 file.statSync().modified.isAfter(cutoffTime) ||
                 file.statSync().modified.isAtSameMomentAs(cutoffTime),
           )
-          .map((e) => e.path)
+          .map((e) => _normalizePath(e.path))
           .toList();
     }
 
-    return files.map((e) => e.path).toList();
+    return files.map((e) => _normalizePath(e.path)).toList();
   }
 
   @override
@@ -176,10 +176,14 @@ class FindImpl implements Find {
       recursive: true,
     ).listFileSystemSync(fs, followLinks: false).whereType<Directory>();
 
-    return directories.map((e) => e.path).toList();
+    return directories.map((e) => _normalizePath(e.path)).toList();
   }
 
   /// Glob treats `\` as an escape, so Windows paths like `D:\a\...` break
   /// pattern matching unless separators are normalized to `/`.
   String _globPattern(String path) => path.replaceAll(r'\', '/');
+
+  /// Glob may return mixed separators on Windows (e.g. `D:/a\foo`); normalize
+  /// so downstream consumers like the analyzer memory provider accept them.
+  String _normalizePath(String path) => fs.path.normalize(path);
 }

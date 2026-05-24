@@ -123,7 +123,7 @@ class Analyzer implements AnalyzerChanges {
 
     final normalizedRoot = fs.path.normalize(root);
     final projectRoot = await fs.directory(root).getRoot();
-    _root = projectRoot?.path ?? normalizedRoot;
+    _root = fs.path.normalize(projectRoot?.path ?? normalizedRoot);
 
     logger.detail(
       'Initializing analyzer: input=$normalizedRoot, '
@@ -144,7 +144,7 @@ class Analyzer implements AnalyzerChanges {
       };
 
       _analysisCollection = AnalysisContextCollection(
-        includedPaths: [root, ...dependencies],
+        includedPaths: [_root!, ...dependencies],
         resourceProvider: _memoryProvider,
         sdkPath: await sdkPath,
       );
@@ -176,18 +176,19 @@ class Analyzer implements AnalyzerChanges {
         continue;
       }
 
-      final bytes = await fs.file(file).readAsBytes();
-      _memoryProvider.newFileWithBytes(file, bytes);
+      final path = fs.path.normalize(file);
+      final bytes = await fs.file(path).readAsBytes();
+      _memoryProvider.newFileWithBytes(path, bytes);
 
       if (requiresDependencyRefresh case false) {
         requiresDependencyRefresh = switch (_root) {
-          final String root => !fs.path.isWithin(root, file),
+          final String root => !fs.path.isWithin(root, path),
           null => false,
         };
       }
 
       try {
-        context = analysisCollection.contextFor(file)..changeFile(file);
+        context = analysisCollection.contextFor(path)..changeFile(path);
         await context.applyPendingFileChanges();
       } catch (e) {
         // its likely this file does not need to be included within analysis
@@ -217,20 +218,22 @@ class Analyzer implements AnalyzerChanges {
 
     AnalysisContext? context;
     for (final path in dependencies) {
-      final file = fs.file(path);
+      final normalizedPath = fs.path.normalize(path);
+      final file = fs.file(normalizedPath);
       final bytes = switch (file.existsSync()) {
         true => await file.readAsBytes(),
         false => null,
       };
 
       if (bytes == null) {
-        _memoryProvider.deleteFile(path);
+        _memoryProvider.deleteFile(normalizedPath);
       } else {
-        _memoryProvider.newFileWithBytes(path, bytes);
+        _memoryProvider.newFileWithBytes(normalizedPath, bytes);
       }
 
       try {
-        context = analysisCollection.contextFor(path)..changeFile(path);
+        context = analysisCollection.contextFor(normalizedPath)
+          ..changeFile(normalizedPath);
         pendingChanges.add(context.applyPendingFileChanges());
       } catch (e) {
         // File might not be in any context yet, that's okay
@@ -461,13 +464,18 @@ class Analyzer implements AnalyzerChanges {
     // if the dependencies have changed
     _retrievedDependenciesAt = null;
 
-    final dartFiles = await find.file('*.dart', workingDirectory: workspace);
+    final normalizedWorkspace = fs.path.normalize(workspace);
+
+    final dartFiles = await find.file('*.dart', workingDirectory: normalizedWorkspace);
 
     final dartToolFiles = [
-      ...await find.filesInDirectory('.dart_tool', workingDirectory: workspace),
+      ...await find.filesInDirectory(
+        '.dart_tool',
+        workingDirectory: normalizedWorkspace,
+      ),
     ];
 
-    final packageConfig = await _resolvePackageConfig(workspace);
+    final packageConfig = await _resolvePackageConfig(normalizedWorkspace);
 
     if (packageConfig == null) {
       final report =
@@ -525,7 +533,7 @@ class Analyzer implements AnalyzerChanges {
     final results = await Future.wait(futures);
     for (final (path, bytes) in results) {
       if (bytes != null) {
-        _memoryProvider.newFileWithBytes(path, bytes);
+        _memoryProvider.newFileWithBytes(fs.path.normalize(path), bytes);
       }
     }
   }
