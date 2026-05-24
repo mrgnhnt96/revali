@@ -3,7 +3,8 @@
 $ErrorActionPreference = 'Continue'
 $Root = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $LogDir = Join-Path $Root 'logs/ci-smoke'
-$Project = 'small_test'
+$Workspace = 'small_test'
+$App = Join-Path $Workspace 'app'
 $StepResults = @()
 
 Set-Location $Root
@@ -64,7 +65,8 @@ $overallExit = 0
 
 if ((Invoke-SmokeStep -Name 'Environment' -LogFile (Join-Path $LogDir '00-environment.log') -Action {
         Write-Host "Root: $Root"
-        Write-Host "Project: $Project"
+        Write-Host "Workspace: $Workspace"
+        Write-Host "App: $App"
         Write-Host "OS: $([System.Environment]::OSVersion.VersionString)"
         dart --version -v
         git --version
@@ -85,13 +87,19 @@ if ((Invoke-SmokeStep -Name 'Bootstrap tooling' -LogFile (Join-Path $LogDir '01-
 }
 
 if ((Invoke-SmokeStep -Name 'small_test (revali generate-only)' -LogFile (Join-Path $LogDir '02-small-test.log') -Action {
-        Push-Location (Join-Path $Root $Project)
+        Push-Location (Join-Path $Root $Workspace)
         try {
             dart pub get
             if ($LASTEXITCODE -ne 0) { $script:StepExitCode = $LASTEXITCODE; return }
 
-            dart run revali dev --generate-only --recompile
-            $script:StepExitCode = $LASTEXITCODE
+            Push-Location app
+            try {
+                dart run revali dev --generate-only --recompile
+                $script:StepExitCode = $LASTEXITCODE
+            }
+            finally {
+                Pop-Location
+            }
         }
         finally {
             Pop-Location
@@ -103,7 +111,8 @@ if ((Invoke-SmokeStep -Name 'small_test (revali generate-only)' -LogFile (Join-P
 $summaryPath = Join-Path $LogDir 'summary.log'
 $summary = @(
     'Revali CI smoke summary',
-    "Project: $Project",
+    "Workspace: $Workspace",
+    "App: $App",
     "Completed: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss K')",
     "Root: $Root",
     "Overall exit code: $overallExit",

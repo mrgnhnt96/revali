@@ -5,7 +5,8 @@ set -uo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 LOG_DIR="$ROOT/logs/ci-smoke"
-PROJECT="small_test"
+WORKSPACE="small_test"
+APP="$WORKSPACE/app"
 STEP_RESULTS=()
 
 mkdir -p "$LOG_DIR"
@@ -47,7 +48,8 @@ run_step() {
 
 step_environment() {
   echo "Root: $ROOT"
-  echo "Project: $PROJECT"
+  echo "Workspace: $WORKSPACE"
+  echo "App: $APP"
   echo "OS: $(uname -a)"
   dart --version -v
   git --version
@@ -59,8 +61,9 @@ step_bootstrap() {
 
 step_small_test() {
   (
-    cd "$ROOT/$PROJECT"
+    cd "$ROOT/$WORKSPACE"
     dart pub get
+    cd app
     dart run revali dev --generate-only --recompile
   )
 }
@@ -74,7 +77,8 @@ run_step 'small_test (revali generate-only)' "$LOG_DIR/02-small-test.log" step_s
 summary_path="$LOG_DIR/summary.log"
 {
   echo "Revali CI smoke summary"
-  echo "Project: $PROJECT"
+  echo "Workspace: $WORKSPACE"
+  echo "App: $APP"
   echo "Completed: $(date '+%Y-%m-%d %H:%M:%S %z')"
   echo "Root: $ROOT"
   echo "Overall exit code: $overall_exit"

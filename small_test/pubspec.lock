@@ -266,11 +266,12 @@ packages:
     source: hosted
     version: "2.2.0"
   revali:
-    dependency: "direct dev"
+    dependency: transitive
     description:
-      path: "../packages/revali"
-      relative: true
-    source: path
+      name: revali
+      sha256: "3ecf5da7e24ab743d6864c86ef3d5858de8070f4273d9959a1cc07ab01421fa7"
+      url: "https://pub.dev"
+    source: hosted
     version: "2.1.1"
   revali_annotations:
     dependency: "direct overridden"
@@ -294,7 +295,7 @@ packages:
     source: path
     version: "1.5.0"
   revali_router:
-    dependency: "direct main"
+    dependency: "direct overridden"
     description:
       path: "../revali_router/revali_router"
       relative: true
@@ -315,11 +316,12 @@ packages:
     source: path
     version: "2.2.0"
   revali_server:
-    dependency: "direct dev"
+    dependency: transitive
     description:
-      path: "../constructs/revali_server"
-      relative: true
-    source: path
+      name: revali_server
+      sha256: "0cdcad50da0a2a9e8be7d01864ca3cc83ba11c4999e9fb8e8bf418999c6fc42b"
+      url: "https://pub.dev"
+    source: hosted
     version: "2.3.0"
   source_span:
     dependency: transitive
