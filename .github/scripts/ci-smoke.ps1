@@ -79,7 +79,6 @@ if ((Invoke-SmokeStep -Name 'Bootstrap tooling' -LogFile (Join-Path $LogDir '01-
         Add-PubCacheBinToPath
         Get-Command sip -ErrorAction SilentlyContinue | Format-List *
 
-        sip pub get --recursive --no-version-check --no-concurrent
         $script:StepExitCode = $LASTEXITCODE
     }) -ne 0) {
     $overallExit = 1
