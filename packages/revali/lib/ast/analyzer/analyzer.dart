@@ -33,6 +33,7 @@ class Analyzer implements AnalyzerChanges {
   String? _packageConfig;
   DateTime? _retrievedDependenciesAt;
   String? _root;
+  List<String>? _packageConfigDiagnostics;
 
   MemoryResourceProvider _memoryProvider;
   AnalysisContextCollection? _analysisCollection;
@@ -120,8 +121,15 @@ class Analyzer implements AnalyzerChanges {
       return;
     }
 
+    final normalizedRoot = fs.path.normalize(root);
     final projectRoot = await fs.directory(root).getRoot();
-    _root = projectRoot?.path ?? fs.path.normalize(root);
+    _root = projectRoot?.path ?? normalizedRoot;
+
+    logger.detail(
+      'Initializing analyzer: input=$normalizedRoot, '
+      'projectRoot=${projectRoot?.path}, resolvedRoot=$_root, '
+      'cwd=${fs.currentDirectory.path}',
+    );
 
     try {
       await _createVirtualWorkspace(_root!);
@@ -140,10 +148,14 @@ class Analyzer implements AnalyzerChanges {
         resourceProvider: _memoryProvider,
         sdkPath: await sdkPath,
       );
-    } catch (e) {
+    } catch (e, st) {
       logger
         ..err('Error initializing analyzer')
-        ..detail('$e');
+        ..info('$e');
+      if (_packageConfigDiagnostics case final diagnostics?) {
+        logger.info('Package config diagnostics:\n${diagnostics.join('\n')}');
+      }
+      logger.detail('$st');
       rethrow;
     }
 
@@ -345,23 +357,102 @@ class Analyzer implements AnalyzerChanges {
       fs.currentDirectory.path,
     };
 
+    final diagnostics = <String>[
+      'Package config resolution failed.',
+      'workspace argument: $workspace',
+      'current working directory: ${fs.currentDirectory.path}',
+    ];
+
     for (final candidate in candidates) {
+      diagnostics.add('--- candidate: $candidate ---');
+
       try {
         final root = await fs.directory(candidate).getRoot();
         if (root == null) {
+          diagnostics.add(
+            '  pubspec.yaml: not found walking up from $candidate',
+          );
           continue;
         }
 
+        diagnostics.add('  project root: ${root.path}');
+        diagnostics.addAll(await _describePackageConfigLocations(root));
+
         final packageConfigFile = await root.getPackageConfig();
         if (packageConfigFile.existsSync()) {
+          diagnostics.add(
+            '  resolved package config: ${packageConfigFile.path}',
+          );
+          _packageConfigDiagnostics = diagnostics;
           return _packageConfig = packageConfigFile.path;
         }
-      } on Exception catch (e) {
-        logger.detail('Failed to resolve package config at $candidate: $e');
+
+        diagnostics.add(
+          '  resolved package config path missing: ${packageConfigFile.path}',
+        );
+      } on Exception catch (e, st) {
+        diagnostics.add('  error: $e');
+        logger.detail(
+          'Failed to resolve package config at $candidate: $e\n$st',
+        );
       }
     }
 
+    _packageConfigDiagnostics = diagnostics;
     return null;
+  }
+
+  Future<List<String>> _describePackageConfigLocations(Directory root) async {
+    final lines = <String>[];
+    final dartTool = root.childDirectory('.dart_tool');
+    final localPackageConfig = dartTool.childFile('package_config.json');
+    lines.add(
+      '  .dart_tool/package_config.json: '
+      '${localPackageConfig.existsSync() ? 'exists' : 'missing'} '
+      '(${localPackageConfig.path})',
+    );
+
+    final workspaceRef = dartTool.childFile(
+      fs.path.join('pub', 'workspace_ref.json'),
+    );
+    if (!workspaceRef.existsSync()) {
+      lines.add(
+        '  .dart_tool/pub/workspace_ref.json: missing (${workspaceRef.path})',
+      );
+      return lines;
+    }
+
+    lines.add(
+      '  .dart_tool/pub/workspace_ref.json: exists (${workspaceRef.path})',
+    );
+
+    try {
+      final workspaceRefJson =
+          jsonDecode(await workspaceRef.readAsString()) as Map;
+      final workspaceRoot = workspaceRefJson['workspaceRoot'];
+      lines.add('  workspaceRoot: $workspaceRoot');
+
+      final workspace = fs.directory(
+        fs.path.normalize(
+          fs.path.join(workspaceRef.parent.path, workspaceRoot as String),
+        ),
+      );
+      final workspacePackageConfig = workspace
+          .childDirectory('.dart_tool')
+          .childFile('package_config.json');
+
+      lines
+        ..add('  resolved workspace directory: ${workspace.path}')
+        ..add(
+          '  workspace .dart_tool/package_config.json: '
+          '${workspacePackageConfig.existsSync() ? 'exists' : 'missing'} '
+          '(${workspacePackageConfig.path})',
+        );
+    } on Exception catch (e) {
+      lines.add('  failed to inspect workspace_ref.json: $e');
+    }
+
+    return lines;
   }
 
   Future<void> _createVirtualWorkspace(String workspace) async {
@@ -379,8 +470,21 @@ class Analyzer implements AnalyzerChanges {
     final packageConfig = await _resolvePackageConfig(workspace);
 
     if (packageConfig == null) {
-      throw Exception('No package config found, run `dart pub get` first');
+      final report =
+          _packageConfigDiagnostics?.join('\n') ??
+          'No diagnostic details were collected.';
+      logger.info('Package config diagnostics:\n$report');
+      throw Exception(
+        'No package config found, run `dart pub get` first.\n$report',
+      );
     }
+
+    logger.detail(
+      'Virtual workspace: root=$workspace, '
+      'packageConfig=$packageConfig, '
+      'dartFiles=${dartFiles.length}, '
+      'dartToolFiles=${dartToolFiles.length}',
+    );
 
     final dependencies = await _getDependencyFiles(
       packageConfig,

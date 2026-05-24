@@ -154,9 +154,14 @@ class ConstructEntrypointHandler with DirectoriesMixin {
 
     final toCompile = await root.getInternalRevaliFile(entrypointFile);
 
-    final packageConfig = await root.getPackageConfig();
+    var packageConfig = await root.getPackageConfig();
 
     if (!packageConfig.existsSync()) {
+      logger.detail(
+        'package_config missing before pub get: ${packageConfig.path} '
+        '(project root: ${root.path})',
+      );
+
       final progress = logger.progress('Running pub get');
       final result = await Process.run('dart', [
         'pub',
@@ -166,8 +171,22 @@ class ConstructEntrypointHandler with DirectoriesMixin {
       progress.complete('Got dependencies');
 
       if (result.exitCode != 0) {
-        throw Exception('Failed to get dependencies');
+        throw Exception(
+          'Failed to get dependencies in ${root.path}\n'
+          'stdout: ${result.stdout}\n'
+          'stderr: ${result.stderr}',
+        );
       }
+
+      packageConfig = await root.getPackageConfig();
+      if (!packageConfig.existsSync()) {
+        throw Exception(
+          'package_config.json still missing after pub get at '
+          '${packageConfig.path} (project root: ${root.path})',
+        );
+      }
+
+      logger.detail('package_config resolved after pub get: ${packageConfig.path}');
     }
 
     final result = await Process.run('dart', [
