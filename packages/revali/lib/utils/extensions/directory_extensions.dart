@@ -204,26 +204,21 @@ extension DirectoryX on Directory {
   }
 
   File sanitizedChildFile(String basename) {
-    final segments = p.absolute(path, p.normalize(basename)).split(p.separator)
-      ..removeWhere((element) => element == '..');
-
-    final relative = p.relative(
-      '${p.separator}${p.joinAll(segments)}',
-      from: path,
-    );
-
-    return childFile(relative);
+    return _sanitizedChild(basename, childFile);
   }
 
   Directory sanitizedChildDirectory(String basename) {
-    final segments = p.absolute(path, p.normalize(basename)).split(p.separator)
-      ..removeWhere((element) => element == '..');
+    return _sanitizedChild(basename, childDirectory);
+  }
 
-    final relative = p.relative(
-      '${p.separator}${p.joinAll(segments)}',
-      from: path,
-    );
+  T _sanitizedChild<T>(String basename, T Function(String relative) create) {
+    final normalizedBase = p.normalize(path);
+    final absolute = p.normalize(p.join(normalizedBase, basename));
+    final segments = p.split(absolute)
+      ..removeWhere((segment) => segment == '..' || segment == '.');
+    final sanitized = p.joinAll(segments);
+    final relative = p.relative(sanitized, from: normalizedBase);
 
-    return childDirectory(relative);
+    return create(relative);
   }
 }
