@@ -326,7 +326,7 @@ ${result.stderr}''');
 
     final path = declareConst(
       '_root',
-    ).assign(literalString(root.path)).statement;
+    ).assign(literalString(root.path.replaceAll(r'\', '/'))).statement;
 
     final main = Method(
       (b) => b

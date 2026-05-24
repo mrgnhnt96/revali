@@ -120,10 +120,11 @@ class Analyzer implements AnalyzerChanges {
       return;
     }
 
-    _root = root;
+    final projectRoot = await fs.directory(root).getRoot();
+    _root = projectRoot?.path ?? fs.path.normalize(root);
 
     try {
-      await _createVirtualWorkspace(root);
+      await _createVirtualWorkspace(_root!);
 
       final dependencies = switch (_packageConfig) {
         final String packageConfig => await _getDependencyFiles(
@@ -339,15 +340,25 @@ class Analyzer implements AnalyzerChanges {
       return cached;
     }
 
-    try {
-      final packageConfigFile = await fs
-          .directory(workspace)
-          .getPackageConfig();
-      if (packageConfigFile.existsSync()) {
-        return _packageConfig = packageConfigFile.path;
+    final candidates = <String>{
+      fs.path.normalize(workspace),
+      fs.currentDirectory.path,
+    };
+
+    for (final candidate in candidates) {
+      try {
+        final root = await fs.directory(candidate).getRoot();
+        if (root == null) {
+          continue;
+        }
+
+        final packageConfigFile = await root.getPackageConfig();
+        if (packageConfigFile.existsSync()) {
+          return _packageConfig = packageConfigFile.path;
+        }
+      } on Exception catch (e) {
+        logger.detail('Failed to resolve package config at $candidate: $e');
       }
-    } on Exception {
-      return null;
     }
 
     return null;

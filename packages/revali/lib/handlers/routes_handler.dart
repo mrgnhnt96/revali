@@ -20,7 +20,8 @@ class RoutesHandler with DirectoriesMixin {
   final Analyzer analyzer;
 
   Future<List<(String, List<AnalysisError>)>> errors() async {
-    await analyzer.initialize(root: rootPath);
+    final root = await rootOf(rootPath);
+    await analyzer.initialize(root: root.path);
 
     final mapped = <String, List<AnalysisError>>{};
 
@@ -35,7 +36,7 @@ class RoutesHandler with DirectoriesMixin {
   Future<MetaServer> parse() async {
     final root = await rootOf(rootPath);
 
-    await analyzer.initialize(root: rootPath);
+    await analyzer.initialize(root: root.path);
 
     final (:routes, :apps) = await _getRoutes(root);
 
