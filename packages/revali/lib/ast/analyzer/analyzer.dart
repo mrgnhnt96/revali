@@ -15,6 +15,7 @@ import 'package:platform/platform.dart';
 import 'package:revali/ast/analyzer/analyzer_changes.dart';
 import 'package:revali/ast/analyzer/units.dart';
 import 'package:revali/ast/find/interfaces/find.dart';
+import 'package:revali/utils/extensions/directory_extensions.dart';
 
 class Analyzer implements AnalyzerChanges {
   Analyzer({
@@ -80,13 +81,7 @@ class Analyzer implements AnalyzerChanges {
 
     // If package config hasn't been loaded yet, try to get it
     if (packageConfig == null && _root != null) {
-      final dartToolFiles = [
-        ...await find.filesInDirectory('.dart_tool', workingDirectory: _root!),
-      ];
-      packageConfig = await _getPackageConfig(dartToolFiles);
-      if (packageConfig != null) {
-        _packageConfig = packageConfig;
-      }
+      packageConfig = await _resolvePackageConfig(_root!);
     }
     if (packageConfig == null) {
       return [];
@@ -339,42 +334,23 @@ class Analyzer implements AnalyzerChanges {
     return results;
   }
 
-  Future<String?> _getPackageConfig(List<String> dartToolFiles) async {
-    String? workspaceRef;
-    for (final file in dartToolFiles) {
-      if (fs.path.basename(file) == 'workspace_ref.json') {
-        workspaceRef = file;
-        break;
-      }
+  Future<String?> _resolvePackageConfig(String workspace) async {
+    if (_packageConfig case final String cached?) {
+      return cached;
     }
 
-    if (workspaceRef case final String file) {
-      if (jsonDecode(await fs.file(file).readAsString()) case {
-        'workspaceRoot': final String root,
-      }) {
-        final rootPath = fs.path.normalize(
-          fs.path.join(fs.file(file).parent.path, root),
-        );
-
-        final moreDartToolFiles = await find.filesInDirectory(
-          '.dart_tool',
-          workingDirectory: rootPath,
-          recursive: false,
-          ignoreDirs: ['bin'],
-        );
-
-        dartToolFiles.addAll(moreDartToolFiles);
+    try {
+      final packageConfigFile = await fs
+          .directory(workspace)
+          .getPackageConfig();
+      if (packageConfigFile.existsSync()) {
+        return _packageConfig = packageConfigFile.path;
       }
+    } on Exception {
+      return null;
     }
 
-    String? packageConfig;
-    for (final file in dartToolFiles) {
-      if (fs.path.basename(file) == 'package_config.json') {
-        packageConfig = file;
-      }
-    }
-
-    return packageConfig;
+    return null;
   }
 
   Future<void> _createVirtualWorkspace(String workspace) async {
@@ -389,9 +365,7 @@ class Analyzer implements AnalyzerChanges {
       ...await find.filesInDirectory('.dart_tool', workingDirectory: workspace),
     ];
 
-    final packageConfig = _packageConfig ??= await _getPackageConfig(
-      dartToolFiles,
-    );
+    final packageConfig = await _resolvePackageConfig(workspace);
 
     if (packageConfig == null) {
       throw Exception('No package config found, run `dart pub get` first');

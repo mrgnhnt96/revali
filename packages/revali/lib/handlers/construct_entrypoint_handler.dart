@@ -154,10 +154,9 @@ class ConstructEntrypointHandler with DirectoriesMixin {
 
     final toCompile = await root.getInternalRevaliFile(entrypointFile);
 
-    final dartTool = await root.getDartTool();
-    final packageJson = dartTool.childFile('package_config.json');
+    final packageConfig = await root.getPackageConfig();
 
-    if (!packageJson.existsSync()) {
+    if (!packageConfig.existsSync()) {
       final progress = logger.progress('Running pub get');
       final result = await Process.run('dart', [
         'pub',
