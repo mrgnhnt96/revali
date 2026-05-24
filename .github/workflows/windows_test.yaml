@@ -56,14 +56,3 @@ jobs:
           path: ${{ matrix.log_dir }}/
           if-no-files-found: warn
           retention-days: 14
-
-      - name: Print summary log
-        if: always()
-        shell: bash
-        run: |
-          summary="${{ github.workspace }}/${{ matrix.log_dir }}/summary.log"
-          if [[ -f "$summary" ]]; then
-            echo "----- summary.log -----"
-            cat "$summary"
-          else
-            echo "summary.log was not created."
