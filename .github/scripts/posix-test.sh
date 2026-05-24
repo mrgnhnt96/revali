@@ -72,6 +72,12 @@ pubspec_path, comment_out = sys.argv[1], sys.argv[2] == "true"
 with open(pubspec_path, encoding="utf-8") as handle:
     lines = handle.read().splitlines()
 
+def uncomment_line(line):
+    if not line.lstrip().startswith("#"):
+        return line
+    index = line.index("#")
+    return line[:index] + line[index + 1:]
+
 changed = False
 for index, line in enumerate(lines):
     if "path:" not in line or ".revali/" not in line:
@@ -86,10 +92,10 @@ for index, line in enumerate(lines):
             changed = True
     else:
         if index > 0 and lines[index - 1].lstrip().startswith("#"):
-            lines[index - 1] = lines[index - 1].lstrip("#").lstrip()
+            lines[index - 1] = uncomment_line(lines[index - 1])
             changed = True
         if line.lstrip().startswith("#"):
-            lines[index] = line.lstrip("#").lstrip()
+            lines[index] = uncomment_line(line)
             changed = True
 
 if changed:
@@ -212,7 +218,7 @@ step_bootstrap() {
     cd "$ROOT/scripts"
     dart pub get -v
   )
-  sip pub get --recursive --no-version-check
+  sip pub get --recursive --no-version-check --no-concurrent
 }
 
 step_build_runner() {

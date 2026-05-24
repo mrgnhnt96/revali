@@ -98,11 +98,13 @@ function Set-RevaliPubspecPathDependencies {
                 }
                 else {
                     if ($i -gt 0 -and $lines[$i - 1] -match '^\s*#') {
-                        $lines[$i - 1] = ($lines[$i - 1] -replace '^\s*#+\s?', '')
+                        $hashIndex = $lines[$i - 1].IndexOf('#')
+                        $lines[$i - 1] = $lines[$i - 1].Remove($hashIndex, 1)
                         $changed = $true
                     }
                     if ($lines[$i] -match '^\s*#') {
-                        $lines[$i] = ($lines[$i] -replace '^\s*#+\s?', '')
+                        $hashIndex = $lines[$i].IndexOf('#')
+                        $lines[$i] = $lines[$i].Remove($hashIndex, 1)
                         $changed = $true
                     }
                 }
@@ -259,7 +261,7 @@ if ((Invoke-LoggedStep -Name 'Bootstrap tooling' -LogFile (Join-Path $script:Log
         if ($LASTEXITCODE -ne 0) { $script:StepExitCode = $LASTEXITCODE; return }
         Pop-Location
 
-        sip pub get --recursive --no-version-check
+        sip pub get --recursive --no-version-check --no-concurrent
         $script:StepExitCode = $LASTEXITCODE
         if ($script:StepExitCode -ne 0) { return }
     }) -ne 0) {

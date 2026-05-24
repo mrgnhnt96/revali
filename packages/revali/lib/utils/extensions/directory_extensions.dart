@@ -69,20 +69,12 @@ extension DirectoryX on Directory {
     final workspaceRefJson =
         jsonDecode(await workspaceRef.readAsString()) as Map;
     final workspaceRoot = switch (workspaceRefJson['workspaceRoot']) {
-      final String workspaceRoot => workspaceRoot.replaceAll(
-        RegExp(
-          '${p.separator}..'
-          r'$',
-        ),
-        '',
-      ),
+      final String workspaceRoot => workspaceRoot,
       final other => throw Exception('Invalid workspace root: $other'),
     };
 
-    // clean up path, the workspaceRoot is usually a path relative and is '../../../'
-
     final workspace = fileSystem.directory(
-      p.normalize(p.join(dartTool.path, workspaceRoot)),
+      p.normalize(p.join(workspaceRef.parent.path, workspaceRoot)),
     );
 
     return workspace
