@@ -36,6 +36,10 @@ Expression createHandler({
   final (:positioned, :named) = getParams(
     route.params,
     inferredParams: inferredParams,
+    routePath: switch (route) {
+      ServerChildRoute(:final path) => path,
+      _ => '',
+    },
   );
   handler = refer(classVarName);
   if (invokeController) {

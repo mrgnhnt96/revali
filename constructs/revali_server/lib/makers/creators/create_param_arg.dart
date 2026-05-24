@@ -44,6 +44,7 @@ Expression createParamArg(
   ServerParam param, {
   Expression? defaultExpression,
   Map<String, Expression> customParams = const {},
+  String routePath = '',
 
   /// When true, the field of the class will be referenced instead of creating a
   /// new argument. This only applies if [ServerParam.argument] exists
@@ -123,7 +124,7 @@ Expression createParamArg(
   }
 
   if (annotation.baseAnnotation case final annotation?) {
-    return createArgForParam(annotation, param);
+    return createArgForParam(annotation, param, routePath: routePath);
   }
 
   if (annotation.data) {

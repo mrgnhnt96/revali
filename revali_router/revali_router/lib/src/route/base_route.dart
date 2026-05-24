@@ -94,11 +94,11 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
     }
 
     if (path.isNotEmpty) {
-      final noSpecials = RegExp(r'[^a-z0-9\/\-_.:]', caseSensitive: false);
+      final noSpecials = RegExp(r'[^a-z0-9\/\-_.:*]', caseSensitive: false);
       if (noSpecials.hasMatch(path)) {
         throw ArgumentError(
           'path should not contain special characters, allowed: a-z, A-Z, 0-9, '
-          ':, - and _ (pattern: ${noSpecials.pattern})',
+          ':, *, - and _ (pattern: ${noSpecials.pattern})',
         );
       }
 
@@ -107,11 +107,40 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
           r'^:?(?:_|[a-z0-9]+(?:[-_.][a-z0-9]+)*)$',
           caseSensitive: false,
         );
+        final wildcardPattern = RegExp(
+          r'^\*(?:_|[a-z0-9]+(?:[-_.][a-z0-9]+)*)?$',
+          caseSensitive: false,
+        );
         final segments = path.split('/');
-        if (!segments.every(segmentPattern.hasMatch)) {
-          throw ArgumentError(
-            'Invalid path format. Valid formats: /path/to/resource, path/:id (Segment pattern: ${segmentPattern.pattern})',
-          );
+        var wildcardCount = 0;
+        int? wildcardIndex;
+
+        for (final (index, segment) in segments.indexed) {
+          if (segment.startsWith('*')) {
+            wildcardCount++;
+            wildcardIndex = index;
+            if (!wildcardPattern.hasMatch(segment)) {
+              throw ArgumentError(
+                'Invalid wildcard format. Valid formats: *, *path',
+              );
+            }
+            continue;
+          }
+
+          if (!segmentPattern.hasMatch(segment)) {
+            throw ArgumentError(
+              'Invalid path format. Valid formats: /path/to/resource, '
+              'path/:id, path/*rest (Segment pattern: ${segmentPattern.pattern})',
+            );
+          }
+        }
+
+        if (wildcardCount > 1) {
+          throw ArgumentError('Only one wildcard is allowed per path');
+        }
+
+        if (wildcardCount == 1 && wildcardIndex != segments.length - 1) {
+          throw ArgumentError('Wildcard must be the last segment');
         }
       }
     }
@@ -127,8 +156,9 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
       final nonDynamicPaths = <String, List<String>>{};
       for (final route in routes) {
         final fullPath = route.fullPath;
-        final nonDynamicPath =
-            fullPath.replaceAll(RegExp(r':\w+'), '<dynamic>');
+        final nonDynamicPath = fullPath
+            .replaceAll(RegExp(r':[\w-]+'), '<dynamic>')
+            .replaceAll(RegExp(r'\*[\w-]*'), '<wildcard>');
 
         (nonDynamicPaths['${route.method}.$nonDynamicPath'] ??= [])
             .add(fullPath);
@@ -204,7 +234,15 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
 
   bool get canInvoke => handler != null && method != null;
   List<String> get segments => path.split('/');
-  List<String> get fullSegments => fullPath.substring(1).split('/');
+  List<String> get fullSegments {
+    if (fullPath.isEmpty) {
+      return const [];
+    }
+
+    return fullPath.substring(1).split('/');
+  }
+
+  bool get hasWildcard => segments.any((segment) => segment.startsWith('*'));
   bool get isDynamic => fullPath.contains(RegExp('[:*]'));
   bool get isStatic => !isDynamic;
 
@@ -288,7 +326,10 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
       final segment = segments[i];
       final otherSegment = otherSegments[i];
 
-      if (segment.startsWith(':') || otherSegment.startsWith(':')) {
+      if (segment.startsWith(':') ||
+          otherSegment.startsWith(':') ||
+          segment.startsWith('*') ||
+          otherSegment.startsWith('*')) {
         continue;
       }
 

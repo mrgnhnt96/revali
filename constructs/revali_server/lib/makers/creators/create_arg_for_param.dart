@@ -21,14 +21,19 @@ import 'package:revali_server/makers/utils/create_switch_pattern.dart';
 
 Expression createArgForParam(
   BaseParameterAnnotation annotation,
-  ServerParam param,
-) {
+  ServerParam param, {
+  String routePath = '',
+}) {
   var variable = switch (annotation.type) {
     AnnotationType.body => createBodyVar(annotation),
     AnnotationType.query ||
     AnnotationType.queryAll => createQueryVar(annotation, param),
     AnnotationType.cookie => createCookieVar(annotation, param),
-    AnnotationType.param => createParamVar(annotation, param),
+    AnnotationType.param => createParamVar(
+      annotation,
+      param,
+      routePath: routePath,
+    ),
     AnnotationType.header ||
     AnnotationType.headerAll => createHeaderVar(annotation, param),
     AnnotationType.ip => createIpVar(),

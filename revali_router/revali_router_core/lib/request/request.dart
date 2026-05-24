@@ -69,9 +69,11 @@ abstract class Request {
   /// ```
   Map<String, String> get pathParameters;
 
-  // This will be implemented in the future
-  // ignore: unused_element
-  Map<String, Iterable<String>> get _wildcardParameters;
+  /// Captured wildcard path segments keyed by the wildcard name.
+  ///
+  /// For `/files/*path` matching `/files/a/b`, `path` is `['a', 'b']`.
+  /// For `/*` matching `/a/b`, `*` is `['a', 'b']`.
+  Map<String, List<String>> get wildcardParameters;
 
   /// The HTTP method of the request.
   ///

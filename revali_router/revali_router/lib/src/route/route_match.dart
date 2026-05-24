@@ -23,38 +23,17 @@ class RouteMatch extends Equatable {
     }
 
     final routeSegments = route.fullSegments;
-
     final resolved = <String, List<String>>{};
 
-    final paramPositions = <int, (String, {bool isWildcard})>{};
     for (final (index, segment) in routeSegments.indexed) {
-      if (!segment.startsWith(RegExp('[:*]'))) {
-        continue;
-      }
-
-      final isWildcard = segment.startsWith('*');
-
-      final key = segment.substring(1);
-      paramPositions[index] = (
-        key,
-        isWildcard: isWildcard,
-      );
-
-      if (isWildcard) {
+      if (segment.startsWith('*')) {
+        final key = segment == '*' ? '*' : segment.substring(1);
+        resolved[key] = pathSegments.skip(index).toList();
         break;
       }
-    }
 
-    for (var i = 0; i < pathSegments.length; i++) {
-      final segment = pathSegments[i];
-
-      if (paramPositions[i] case (final key, :final isWildcard)) {
-        if (isWildcard) {
-          resolved[key] = pathSegments.skip(i).toList();
-          break;
-        }
-
-        resolved[key] = [segment];
+      if (segment.startsWith(':') && index < pathSegments.length) {
+        resolved[segment.substring(1)] = [pathSegments[index]];
       }
     }
 

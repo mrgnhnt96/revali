@@ -204,7 +204,6 @@ void main() {
             '%',
             '^',
             '&',
-            '*',
             '(',
             ')',
             ' ',
@@ -224,6 +223,68 @@ void main() {
               throwsArgumentError,
             );
           }
+
+          expect(
+            () => Route(
+              'user*extra',
+              method: 'GET',
+              handler: (_) async {},
+            ),
+            throwsArgumentError,
+          );
+        });
+
+        test('allows wildcard as the only segment', () {
+          final route = Route(
+            '*',
+            method: 'GET',
+            handler: (_) async {},
+          );
+
+          expect(route.path, '*');
+          expect(route.hasWildcard, isTrue);
+        });
+
+        test('allows wildcard as the last segment', () {
+          final route = Route(
+            'files/*path',
+            method: 'GET',
+            handler: (_) async {},
+          );
+
+          expect(route.path, 'files/*path');
+          expect(route.hasWildcard, isTrue);
+        });
+
+        test('if path contains more than one wildcard', () {
+          expect(
+            () => Route(
+              '*/*',
+              method: 'GET',
+              handler: (_) async {},
+            ),
+            throwsArgumentError,
+          );
+        });
+
+        test('if wildcard is not the last segment', () {
+          expect(
+            () => Route(
+              '*/files',
+              method: 'GET',
+              handler: (_) async {},
+            ),
+            throwsArgumentError,
+          );
+
+          expect(
+            () => Route(
+              'files/*/name',
+              method: 'GET',
+              handler: (_) async {},
+            ),
+            throwsArgumentError,
+          );
         });
 
         test('if path is not formatted correctly', () {

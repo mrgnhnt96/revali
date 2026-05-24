@@ -168,9 +168,25 @@ class Router extends Equatable {
       }
 
       final RouteMatch(:route, :pathParameters) = match;
-      request.pathParameters =
-          // TODO(mrgnhnt): Support dynamic path parameters
-          pathParameters.map((key, value) => MapEntry(key, value.first));
+      final wildcardKeys = {
+        for (final segment in route.fullSegments)
+          if (segment.startsWith('*'))
+            segment == '*' ? '*' : segment.substring(1),
+      };
+
+      request
+        ..pathParameters = {
+          for (final entry in pathParameters.entries)
+            entry.key:
+                entry.value.length == 1 && !wildcardKeys.contains(entry.key)
+                    ? entry.value.first
+                    : entry.value.join('/'),
+        }
+        ..wildcardParameters = {
+          for (final key in wildcardKeys)
+            if (pathParameters.containsKey(key))
+              key: List<String>.from(pathParameters[key]!),
+        };
 
       helper = _createHelper(
         route,

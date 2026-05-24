@@ -34,10 +34,95 @@ class Find {
       }
 
       final sorted = routes.toList()
-        // dynamic goes last
-        ..sort((a, b) => a.isDynamic ? 1 : 0);
+        ..sort((a, b) {
+          int order(BaseRoute route) {
+            if (route.hasWildcard) {
+              return 1000;
+            }
+            if (route.isDynamic) {
+              return 100;
+            }
+
+            // Prefer more specific static routes first.
+            return 100 - route.segments.length;
+          }
+
+          final orderCompare = order(a).compareTo(order(b));
+          if (orderCompare != 0) {
+            return orderCompare;
+          }
+
+          return a.path.compareTo(b.path);
+        });
 
       for (final route in sorted) {
+        final wildcardIndex =
+            route.segments.indexWhere((segment) => segment.startsWith('*'));
+
+        if (wildcardIndex != -1) {
+          if (pathSegments.length < wildcardIndex) {
+            continue;
+          }
+
+          final prefixRouteSegments =
+              route.segments.take(wildcardIndex).toList();
+          final prefixPathSegments = pathSegments.take(wildcardIndex).toList();
+
+          if (!_prefixMatches(prefixRouteSegments, prefixPathSegments)) {
+            continue;
+          }
+
+          if (pathSegments.length == wildcardIndex &&
+              _hasExactStaticSibling(
+                routes: sorted,
+                wildcardRoute: route,
+                exactPath: prefixPathSegments.join('/'),
+                method: method,
+              )) {
+            continue;
+          }
+
+          final hasMoreSegments = pathSegments.length > wildcardIndex;
+
+          BaseRoute? proxy;
+          if (!route.canInvoke) {
+            final segmentsToSkip = switch (route) {
+              BaseRoute(path: '') => max(prefixPathSegments.length - 1, 0),
+              _ => prefixPathSegments.length,
+            };
+            final poss = find(
+              pathSegments: pathSegments.skip(segmentsToSkip).toList(),
+              routes: route.routes,
+              parent: route,
+              method: method,
+            );
+
+            proxy = poss?.route;
+          }
+
+          final methodsMatch = route.method == method;
+          final almostMatches =
+              (route.method == null || route.method != method) &&
+                  hasMoreSegments;
+          final optionsMatch = method == 'OPTIONS' && route.canInvoke;
+
+          if (methodsMatch || almostMatches || proxy != null || optionsMatch) {
+            if (proxy != null) {
+              return RouteMatch(proxy);
+            }
+
+            if (route.canInvoke) {
+              if (methodsMatch ||
+                  (route.method == 'GET' && method == 'HEAD') ||
+                  method == 'OPTIONS') {
+                return RouteMatch(route);
+              }
+            }
+          }
+
+          continue;
+        }
+
         if (pathSegments.length < route.segments.length) {
           final routeIsEmpty =
               route.segments.where((e) => e.isNotEmpty).isEmpty;
@@ -175,5 +260,57 @@ class Find {
     }
 
     return result.resolvePathParameters(segments);
+  }
+
+  static bool _prefixMatches(
+    List<String> routeSegments,
+    List<String> pathSegments,
+  ) {
+    if (routeSegments.length != pathSegments.length) {
+      return false;
+    }
+
+    for (var i = 0; i < routeSegments.length; i++) {
+      final routeSegment = routeSegments[i];
+      final pathSegment = pathSegments[i];
+
+      if (routeSegment.startsWith(':')) {
+        continue;
+      }
+
+      if (routeSegment != pathSegment) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  bool _hasExactStaticSibling({
+    required List<BaseRoute> routes,
+    required BaseRoute wildcardRoute,
+    required String exactPath,
+    required String method,
+  }) {
+    for (final sibling in routes) {
+      if (identical(sibling, wildcardRoute)) {
+        continue;
+      }
+
+      if (sibling.hasWildcard || sibling.isDynamic) {
+        continue;
+      }
+
+      if (sibling.path != exactPath || !sibling.canInvoke) {
+        continue;
+      }
+
+      if (sibling.method == method ||
+          sibling.method == 'GET' && method == 'HEAD') {
+        return true;
+      }
+    }
+
+    return false;
   }
 }

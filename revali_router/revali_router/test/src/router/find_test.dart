@@ -610,5 +610,245 @@ void main() {
         containsAll(['OPTIONS', 'GET', 'HEAD', 'POST']),
       );
     });
+
+    group('wildcard routes', () {
+      test('should match bare wildcard route', () {
+        final catchAll = Route(
+          '*',
+          method: 'GET',
+          handler: (_) async {},
+        );
+        final router = Router(
+          routes: [
+            Route(
+              'api',
+              routes: [catchAll],
+            ),
+          ],
+        );
+
+        final result = Find(
+          segments: ['api', 'foo', 'bar'],
+          routes: router.routes,
+          method: 'GET',
+        ).run();
+
+        expect(result, isNotNull);
+        expect(result?.route, catchAll);
+        expect(result?.pathParameters, {
+          '*': ['foo', 'bar'],
+        });
+      });
+
+      test('should match named wildcard route', () {
+        final catchAll = Route(
+          'files/*path',
+          method: 'GET',
+          handler: (_) async {},
+        );
+        final router = Router(
+          routes: [catchAll],
+        );
+
+        final result = Find(
+          segments: ['files', 'a', 'b'],
+          routes: router.routes,
+          method: 'GET',
+        ).run();
+
+        expect(result, isNotNull);
+        expect(result?.route, catchAll);
+        expect(result?.pathParameters, {
+          'path': ['a', 'b'],
+        });
+      });
+
+      test('should prefer static route over wildcard route', () {
+        final list = Route(
+          'files',
+          method: 'GET',
+          handler: (_) async {},
+        );
+        final catchAll = Route(
+          'files/*path',
+          method: 'GET',
+          handler: (_) async {},
+        );
+        final router = Router(
+          routes: [list, catchAll],
+        );
+
+        final result = Find(
+          segments: ['files'],
+          routes: router.routes,
+          method: 'GET',
+        ).run();
+
+        expect(result, isNotNull);
+        expect(result?.route, list);
+      });
+
+      test(
+          'should prefer static route over wildcard route '
+          'when wildcard is registered first', () {
+        final list = Route(
+          'files',
+          method: 'GET',
+          handler: (_) async {},
+        );
+        final catchAll = Route(
+          'files/*path',
+          method: 'GET',
+          handler: (_) async {},
+        );
+        final router = Router(
+          routes: [catchAll, list],
+        );
+
+        final result = Find(
+          segments: ['files'],
+          routes: router.routes,
+          method: 'GET',
+        ).run();
+
+        expect(result, isNotNull);
+        expect(result?.route, list);
+      });
+
+      test(
+          'should prefer static route over wildcard route '
+          'when nested under a parent prefix', () {
+        final list = Route(
+          'files',
+          method: 'GET',
+          handler: (_) async {},
+        );
+        final catchAll = Route(
+          'files/*path',
+          method: 'GET',
+          handler: (_) async {},
+        );
+        final router = Router(
+          routes: [
+            Route(
+              'api',
+              routes: [catchAll, list],
+            ),
+          ],
+        );
+
+        final result = Find(
+          segments: ['api', 'files'],
+          routes: router.routes,
+          method: 'GET',
+        ).run();
+
+        expect(result, isNotNull);
+        expect(result?.route, list);
+      });
+
+      test('should still match wildcard route for nested paths', () {
+        final list = Route(
+          'files',
+          method: 'GET',
+          handler: (_) async {},
+        );
+        final catchAll = Route(
+          'files/*path',
+          method: 'GET',
+          handler: (_) async {},
+        );
+        final router = Router(
+          routes: [list, catchAll],
+        );
+
+        final result = Find(
+          segments: ['files', 'a', 'b'],
+          routes: router.routes,
+          method: 'GET',
+        ).run();
+
+        expect(result, isNotNull);
+        expect(result?.route, catchAll);
+        expect(result?.pathParameters, {
+          'path': ['a', 'b'],
+        });
+      });
+
+      test('should prefer dynamic route over wildcard route', () {
+        final byId = Route(
+          'files/:id',
+          method: 'GET',
+          handler: (_) async {},
+        );
+        final catchAll = Route(
+          'files/*path',
+          method: 'GET',
+          handler: (_) async {},
+        );
+        final router = Router(
+          routes: [byId, catchAll],
+        );
+
+        final result = Find(
+          segments: ['files', '123'],
+          routes: router.routes,
+          method: 'GET',
+        ).run();
+
+        expect(result, isNotNull);
+        expect(result?.route, byId);
+        expect(result?.pathParameters, {
+          'id': ['123'],
+        });
+      });
+
+      test('should match wildcard with prefix parameters', () {
+        final catchAll = Route(
+          'shop/:shopId/*path',
+          method: 'GET',
+          handler: (_) async {},
+        );
+        final router = Router(
+          routes: [catchAll],
+        );
+
+        final result = Find(
+          segments: ['shop', '123', 'products', '456'],
+          routes: router.routes,
+          method: 'GET',
+        ).run();
+
+        expect(result, isNotNull);
+        expect(result?.route, catchAll);
+        expect(result?.pathParameters, {
+          'shopId': ['123'],
+          'path': ['products', '456'],
+        });
+      });
+
+      test('should match wildcard with an empty captured path', () {
+        final catchAll = Route(
+          'files/*path',
+          method: 'GET',
+          handler: (_) async {},
+        );
+        final router = Router(
+          routes: [catchAll],
+        );
+
+        final result = Find(
+          segments: ['files'],
+          routes: router.routes,
+          method: 'GET',
+        ).run();
+
+        expect(result, isNotNull);
+        expect(result?.route, catchAll);
+        expect(result?.pathParameters, {
+          'path': <String>[],
+        });
+      });
+    });
   });
 }

@@ -23,6 +23,15 @@ class RequestImpl extends RequestContextImpl implements FullRequest {
     _pathParameters = Map.from(pathParameters);
   }
 
+  set wildcardParameters(Map<String, List<String>> wildcardParameters) {
+    _wildcardParameters = Map.from(wildcardParameters);
+  }
+
+  Map<String, List<String>>? _wildcardParameters;
+  @override
+  Map<String, List<String>> get wildcardParameters =>
+      Map.unmodifiable(_wildcardParameters ?? {});
+
   @override
   String? get ip => request.ip;
 }

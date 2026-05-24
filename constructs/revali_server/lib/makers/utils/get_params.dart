@@ -6,6 +6,7 @@ import 'package:revali_server/makers/creators/create_param_arg.dart';
   Iterable<ServerParam> params, {
   Expression? defaultExpression,
   Map<String, Expression> inferredParams = const {},
+  String routePath = '',
   bool useField = false,
 }) {
   final positioned = <Expression>[];
@@ -16,6 +17,7 @@ import 'package:revali_server/makers/creators/create_param_arg.dart';
       param,
       defaultExpression: defaultExpression,
       customParams: inferredParams,
+      routePath: routePath,
       useField: useField,
     );
 

@@ -70,6 +70,69 @@ void main() {
           }),
         );
       });
+
+      test('should resolve wildcard path parameters', () {
+        final route = match('files/*path');
+
+        final result = route.resolvePathParameters([
+          'files',
+          'a',
+          'b',
+          'c',
+        ]);
+
+        expect(
+          result.pathParameters,
+          equals({
+            'path': ['a', 'b', 'c'],
+          }),
+        );
+      });
+
+      test('should resolve bare wildcard path parameters', () {
+        final route = match('*');
+
+        final result = route.resolvePathParameters([
+          'a',
+          'b',
+        ]);
+
+        expect(
+          result.pathParameters,
+          equals({
+            '*': ['a', 'b'],
+          }),
+        );
+      });
+
+      test('should resolve wildcard to an empty list when no segments match',
+          () {
+        final route = match('files/*path');
+
+        final result = route.resolvePathParameters(['files']);
+
+        expect(
+          result.pathParameters,
+          equals({
+            'path': <String>[],
+          }),
+        );
+      });
+
+      test(
+          'should resolve bare wildcard to an empty list '
+          'when no segments match', () {
+        final route = match('*path');
+
+        final result = route.resolvePathParameters([]);
+
+        expect(
+          result.pathParameters,
+          equals({
+            'path': <String>[],
+          }),
+        );
+      });
     });
   });
 }
