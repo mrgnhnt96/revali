@@ -127,22 +127,22 @@ packages:
       path: "../../revali_router/revali_router"
       relative: true
     source: path
-    version: "3.1.0"
+    version: "3.3.0"
   revali_router_annotations:
     dependency: transitive
     description:
       name: revali_router_annotations
-      sha256: "02c5064086f33d9f1bf2cbf00c9a6a2c4a6284df460c7dcd857f39046440ee47"
+      sha256: "9cce8b408532a14e37af44d06d5e973b4aa2930975b6548dd14b16930f2650e7"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.2+1"
+    version: "2.1.0"
   revali_router_core:
     dependency: "direct overridden"
     description:
       path: "../../revali_router/revali_router_core"
       relative: true
     source: path
-    version: "2.0.3+1"
+    version: "2.2.0"
   shelf:
     dependency: "direct main"
     description:

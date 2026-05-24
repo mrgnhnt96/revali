@@ -463,7 +463,11 @@ class Analyzer implements AnalyzerChanges {
       final packageUri = Uri.parse(dependency.packageUri);
 
       if (pathDependenciesOnly) {
-        if (fs.path.split(rootUri.path) case final segments
+        final rootPathForCheck = switch (rootUri.scheme) {
+          'file' => rootUri.toFilePath(),
+          _ => rootUri.path,
+        };
+        if (fs.path.split(rootPathForCheck) case final segments
             when segments.contains('hosted') ||
                 segments.contains('git') ||
                 segments.contains('pkg')) {
@@ -471,9 +475,11 @@ class Analyzer implements AnalyzerChanges {
         }
       }
 
-      final rootPath = switch (rootUri.isAbsolute) {
-        true => fs.path.normalize(fs.path.join(rootUri.path, packageUri.path)),
-        false => fs.path.normalize(
+      final rootPath = switch (rootUri.scheme) {
+        'file' => fs.path.normalize(
+          fs.path.join(rootUri.toFilePath(), packageUri.path),
+        ),
+        _ => fs.path.normalize(
           fs.path.join(
             fs.file(packageConfig).parent.path,
             rootUri.path,

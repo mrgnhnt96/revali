@@ -39,7 +39,9 @@ class AnalysisHelper {
   }
 
   Future<ResolvedUnitResult> resolveLib(String relativePath) async {
-    final path = p.join(fixtureRoot, relativePath);
+    final path = p.normalize(
+      p.joinAll([fixtureRoot, ...p.split(relativePath)]),
+    );
     final session = collection.contextFor(path).currentSession;
     final result = await session.getResolvedUnit(path);
 

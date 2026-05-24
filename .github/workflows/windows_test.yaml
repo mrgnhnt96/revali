@@ -1,4 +1,4 @@
-name: Windows Test
+name: CI Test
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: windows-test-${{ github.workflow }}-${{ github.ref }}
+  group: ci-test-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -56,3 +56,46 @@ jobs:
           } else {
             Write-Host "summary.log was not created."
           }
+
+  test_macos:
+    name: Test on macOS
+    runs-on: macos-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Run macOS test script
+        run: |
+          echo "Starting Revali macOS CI..."
+          chmod +x "${{ github.workspace }}/.github/scripts/posix-test.sh"
+          "${{ github.workspace }}/.github/scripts/posix-test.sh"
+          exit_code=$?
+          echo "macOS test script finished with exit code $exit_code"
+          exit "$exit_code"
+
+      - name: Upload macOS CI logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-ci-logs-${{ github.run_id }}
+          path: logs/ci/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Print summary log
+        if: always()
+        run: |
+          summary="${{ github.workspace }}/logs/ci/summary.log"
+          if [[ -f "$summary" ]]; then
+            echo "----- summary.log -----"
+            cat "$summary"
+          else
+            echo "summary.log was not created."
+          fi

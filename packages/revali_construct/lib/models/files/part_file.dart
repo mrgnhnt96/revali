@@ -37,7 +37,7 @@ final class PartFile extends DartFile {
       ...p.split(parent.fileName),
     ]..remove('lib');
 
-    final parentPath = p.joinAll(partsToParent);
+    final parentPath = p.posix.joinAll(partsToParent);
 
     return '''
 part of '$parentPath';

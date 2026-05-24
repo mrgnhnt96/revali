@@ -53,7 +53,7 @@ class DartFile extends AnyFile {
     final partDirectives = parts.map((part) {
       final pathParts = p.split(part.fileName)..remove('lib');
 
-      return "part '${p.joinAll(pathParts)}';";
+      return "part '${p.posix.joinAll(pathParts)}';";
     }).toList()..sort();
 
     final partString = partDirectives.join('\n');

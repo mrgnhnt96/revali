@@ -44,9 +44,6 @@ function Invoke-LoggedStep {
         if ($null -ne $script:StepExitCode) {
             $exitCode = $script:StepExitCode
         }
-        elseif ($null -ne $LASTEXITCODE -and $LASTEXITCODE -ne 0) {
-            $exitCode = $LASTEXITCODE
-        }
     }
     catch {
         $_ | Out-String | Tee-Object -FilePath $LogFile -Append
@@ -246,7 +243,7 @@ Invoke-LoggedStep -Name 'Environment' -LogFile (Join-Path $script:LogDir '00-env
 
 if ((Invoke-LoggedStep -Name 'Bootstrap tooling' -LogFile (Join-Path $script:LogDir '01-bootstrap.log') -Action {
         dart pub global activate sip_cli
-        if ($LASTEXITCODE -ne 0) { return }
+        if ($LASTEXITCODE -ne 0) { $script:StepExitCode = $LASTEXITCODE; return }
 
         Add-PubCacheBinToPath
         Write-Host "Pub cache bin: $(Join-Path $env:LOCALAPPDATA 'Pub/Cache/bin')"
@@ -254,15 +251,17 @@ if ((Invoke-LoggedStep -Name 'Bootstrap tooling' -LogFile (Join-Path $script:Log
 
         Push-Location (Join-Path $script:Root 'hooks')
         dart pub get -v
-        if ($LASTEXITCODE -ne 0) { return }
+        if ($LASTEXITCODE -ne 0) { $script:StepExitCode = $LASTEXITCODE; return }
         Pop-Location
 
         Push-Location (Join-Path $script:Root 'scripts')
         dart pub get -v
-        if ($LASTEXITCODE -ne 0) { return }
+        if ($LASTEXITCODE -ne 0) { $script:StepExitCode = $LASTEXITCODE; return }
         Pop-Location
 
         sip pub get --recursive --no-version-check
+        $script:StepExitCode = $LASTEXITCODE
+        if ($script:StepExitCode -ne 0) { return }
     }) -ne 0) {
     $overallExit = 1
 }
@@ -278,9 +277,9 @@ if ((Invoke-LoggedStep -Name 'Build runner code generation' -LogFile (Join-Path 
             Write-Host "build_runner in $relative"
             Push-Location (Join-Path $script:Root $relative)
             dart pub get -v
-            if ($LASTEXITCODE -ne 0) { return }
+            if ($LASTEXITCODE -ne 0) { $script:StepExitCode = $LASTEXITCODE; return }
             dart run build_runner build --delete-conflicting-outputs -v
-            if ($LASTEXITCODE -ne 0) { return }
+            if ($LASTEXITCODE -ne 0) { $script:StepExitCode = $LASTEXITCODE; return }
             Pop-Location
         }
     }) -ne 0) {
@@ -293,7 +292,7 @@ if ((Invoke-LoggedStep -Name 'Test suite generation' -LogFile (Join-Path $script
 
         Push-Location (Join-Path $script:Root 'test_suite')
         dart pub get -v
-        if ($LASTEXITCODE -ne 0) { return }
+        if ($LASTEXITCODE -ne 0) { $script:StepExitCode = $LASTEXITCODE; return }
         Pop-Location
 
         $script:StepExitCode = Invoke-TestSuiteGeneration
@@ -318,10 +317,10 @@ if ((Invoke-LoggedStep -Name 'Hello example smoke test' -LogFile (Join-Path $scr
         $helloDir = Join-Path $script:Root 'examples/hello'
         Push-Location $helloDir
         dart pub get -v
-        if ($LASTEXITCODE -ne 0) { return }
+        if ($LASTEXITCODE -ne 0) { $script:StepExitCode = $LASTEXITCODE; return }
 
         dart run revali dev --generate-only --recompile
-        if ($LASTEXITCODE -ne 0) { return }
+        if ($LASTEXITCODE -ne 0) { $script:StepExitCode = $LASTEXITCODE; return }
 
         dart run revali build
     }) -ne 0) {

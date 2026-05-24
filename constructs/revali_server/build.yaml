@@ -1,8 +1,14 @@
 targets:
   $default:
+    sources:
+      exclude:
+        - test/fixtures/**
     builders:
       json_serializable:
         enabled: true
+        generate_for:
+          include:
+            - lib/**
         options:
           explicit_to_json: true
           include_if_null: true

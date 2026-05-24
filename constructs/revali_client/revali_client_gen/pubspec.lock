@@ -331,21 +331,21 @@ packages:
       path: "../../../revali_router/revali_router"
       relative: true
     source: path
-    version: "3.2.1"
+    version: "3.3.0"
   revali_router_annotations:
     dependency: "direct main"
     description:
       path: "../../../revali_router/revali_router_annotations"
       relative: true
     source: path
-    version: "2.0.2+1"
+    version: "2.1.0"
   revali_router_core:
     dependency: "direct overridden"
     description:
       path: "../../../revali_router/revali_router_core"
       relative: true
     source: path
-    version: "2.1.0"
+    version: "2.2.0"
   shelf:
     dependency: transitive
     description:
