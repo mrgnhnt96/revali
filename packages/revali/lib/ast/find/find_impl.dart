@@ -98,7 +98,7 @@ class FindImpl implements Find {
     DateTime? lastModified,
   }) async {
     final files = Glob(
-      fs.path.join(workingDirectory, '**', name),
+      _globPattern(fs.path.join(workingDirectory, '**', name)),
       recursive: true,
     ).listFileSystemSync(fs, followLinks: false);
 
@@ -172,10 +172,14 @@ class FindImpl implements Find {
     DateTime? lastModified,
   }) async {
     final directories = Glob(
-      fs.path.join(workingDirectory, '**', directory),
+      _globPattern(fs.path.join(workingDirectory, '**', directory)),
       recursive: true,
     ).listFileSystemSync(fs, followLinks: false).whereType<Directory>();
 
     return directories.map((e) => e.path).toList();
   }
+
+  /// Glob treats `\` as an escape, so Windows paths like `D:\a\...` break
+  /// pattern matching unless separators are normalized to `/`.
+  String _globPattern(String path) => path.replaceAll(r'\', '/');
 }
