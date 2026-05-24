@@ -38,7 +38,7 @@ jobs:
         with:
           sdk: stable
 
-      - name: Run smoke test (examples/hello)
+      - name: Run smoke test (small_test)
         shell: bash
         run: |
           if [[ "${{ runner.os }}" == "Windows" ]]; then

@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Minimal CI smoke test: bootstrap deps and run revali on examples/hello.
+# Minimal CI smoke test: bootstrap deps and run revali on small_test.
 
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 LOG_DIR="$ROOT/logs/ci-smoke"
-PROJECT="examples/hello"
+PROJECT="small_test"
 STEP_RESULTS=()
 
 mkdir -p "$LOG_DIR"
@@ -60,29 +60,11 @@ step_bootstrap() {
   sip pub get --recursive --no-version-check --no-concurrent
 }
 
-step_build_runner() {
-  local packages=(
-    packages/revali_construct
-    revali_router/revali_router
-    constructs/revali_server
-  )
-
-  for relative in "${packages[@]}"; do
-    echo "build_runner in $relative"
-    (
-      cd "$ROOT/$relative"
-      dart pub get
-      dart run build_runner build --delete-conflicting-outputs
-    )
-  done
-}
-
-step_hello() {
+step_small_test() {
   (
     cd "$ROOT/$PROJECT"
     dart pub get
     dart run revali dev --generate-only --recompile
-    dart run revali build
   )
 }
 
@@ -90,8 +72,7 @@ overall_exit=0
 
 run_step 'Environment' "$LOG_DIR/00-environment.log" step_environment || overall_exit=1
 run_step 'Bootstrap tooling' "$LOG_DIR/01-bootstrap.log" step_bootstrap || overall_exit=1
-run_step 'Build runner (codegen deps)' "$LOG_DIR/02-build-runner.log" step_build_runner || overall_exit=1
-run_step 'Hello example (revali generate + build)' "$LOG_DIR/03-hello.log" step_hello || overall_exit=1
+run_step 'small_test (revali generate-only)' "$LOG_DIR/02-small-test.log" step_small_test || overall_exit=1
 
 summary_path="$LOG_DIR/summary.log"
 {

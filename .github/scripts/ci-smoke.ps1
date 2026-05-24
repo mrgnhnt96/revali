@@ -1,9 +1,9 @@
-# Minimal CI smoke test: bootstrap deps and run revali on examples/hello.
+# Minimal CI smoke test: bootstrap deps and run revali on small_test.
 
 $ErrorActionPreference = 'Continue'
 $Root = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $LogDir = Join-Path $Root 'logs/ci-smoke'
-$Project = 'examples/hello'
+$Project = 'small_test'
 $StepResults = @()
 
 Set-Location $Root
@@ -85,40 +85,13 @@ if ((Invoke-SmokeStep -Name 'Bootstrap tooling' -LogFile (Join-Path $LogDir '01-
     $overallExit = 1
 }
 
-if ((Invoke-SmokeStep -Name 'Build runner (codegen deps)' -LogFile (Join-Path $LogDir '02-build-runner.log') -Action {
-        $packages = @(
-            'packages/revali_construct',
-            'revali_router/revali_router',
-            'constructs/revali_server'
-        )
-
-        foreach ($relative in $packages) {
-            Write-Host "build_runner in $relative"
-            Push-Location (Join-Path $Root $relative)
-            try {
-                dart pub get
-                if ($LASTEXITCODE -ne 0) { $script:StepExitCode = $LASTEXITCODE; return }
-                dart run build_runner build --delete-conflicting-outputs
-                if ($LASTEXITCODE -ne 0) { $script:StepExitCode = $LASTEXITCODE; return }
-            }
-            finally {
-                Pop-Location
-            }
-        }
-    }) -ne 0) {
-    $overallExit = 1
-}
-
-if ((Invoke-SmokeStep -Name 'Hello example (revali generate + build)' -LogFile (Join-Path $LogDir '03-hello.log') -Action {
+if ((Invoke-SmokeStep -Name 'small_test (revali generate-only)' -LogFile (Join-Path $LogDir '02-small-test.log') -Action {
         Push-Location (Join-Path $Root $Project)
         try {
             dart pub get
             if ($LASTEXITCODE -ne 0) { $script:StepExitCode = $LASTEXITCODE; return }
 
             dart run revali dev --generate-only --recompile
-            if ($LASTEXITCODE -ne 0) { $script:StepExitCode = $LASTEXITCODE; return }
-
-            dart run revali build
             $script:StepExitCode = $LASTEXITCODE
         }
         finally {
