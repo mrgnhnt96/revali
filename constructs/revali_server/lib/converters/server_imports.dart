@@ -1,6 +1,6 @@
 import 'package:analyzer/dart/element/element.dart';
-import 'package:path/path.dart' as p;
 import 'package:revali_construct/revali_construct.dart';
+import 'package:revali_construct/utils/import_path.dart';
 
 class ServerImports {
   ServerImports(Iterable<String> imports) {
@@ -13,11 +13,7 @@ class ServerImports {
       }
 
       if (import.startsWith('file:')) {
-        final cleanedImport = p.relative(
-          import.replaceFirst(RegExp('^file:'), ''),
-        );
-
-        paths.add(cleanedImport);
+        paths.add(fileUriToRelativeImportPath(import));
         continue;
       }
 
