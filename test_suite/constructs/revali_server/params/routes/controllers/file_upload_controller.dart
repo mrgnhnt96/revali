@@ -1,8 +1,8 @@
 import 'package:revali_router/revali_router.dart';
 
 @Controller('file')
-class FileUploader {
-  const FileUploader();
+class FileUploadController {
+  const FileUploadController();
 
   @Post()
   Map<String, dynamic> uploadFile(@Body() Map<String, dynamic> data) {

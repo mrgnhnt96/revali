@@ -144,7 +144,10 @@ Future<void> _multiPartForm() async {
         'meta': jsonEncode({'name': 'John', 'age': 25}),
       }),
       options: Options(
-        headers: {HttpHeaders.contentTypeHeader: 'multipart/form-data'},
+        headers: {
+          HttpHeaders.contentTypeHeader: 'multipart/form-data',
+          'X-IM-AWESOME': 'true',
+        },
       ),
     );
 
