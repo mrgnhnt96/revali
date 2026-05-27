@@ -24,4 +24,14 @@ class FileUploadController {
       'content': String.fromCharCodes(bytes),
     };
   }
+
+  @Post('stream')
+  Future<Map<String, dynamic>> uploadStream(
+    @Body() Stream<List<int>> bytes,
+  ) async {
+    final chunks = await bytes.toList();
+    final size = chunks.fold<int>(0, (sum, chunk) => sum + chunk.length);
+
+    return {'size': size};
+  }
 }

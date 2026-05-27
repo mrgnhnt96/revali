@@ -233,6 +233,13 @@ class ClientType with ExtractImport {
       return this;
     }
 
+    if (isFuture &&
+        typeArguments.length == 1 &&
+        typeArguments.first.isBytes &&
+        typeArguments.first.isStream) {
+      return typeArguments.first._copy()..method = method;
+    }
+
     if (!isFuture && !isStream) {
       return ClientType(
         name: 'Future<$name>',

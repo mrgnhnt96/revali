@@ -101,5 +101,25 @@ void main() {
         },
       });
     });
+
+    test('streaming octet-stream upload', () async {
+      const fileContent = 'stream me';
+
+      final response = await server.send(
+        method: 'POST',
+        path: '/api/file/stream',
+        headers: {
+          'content-type': 'application/octet-stream',
+        },
+        body: fileContent,
+      );
+
+      expect(response.statusCode, HttpStatus.ok);
+      expect(response.body, {
+        'data': {
+          'size': fileContent.length,
+        },
+      });
+    });
   });
 }

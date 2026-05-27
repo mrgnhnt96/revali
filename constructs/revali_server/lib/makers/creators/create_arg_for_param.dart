@@ -4,7 +4,6 @@ import 'package:revali_router/revali_router.dart';
 import 'package:revali_server/converters/base_parameter_annotation.dart';
 import 'package:revali_server/converters/has_pipe.dart';
 import 'package:revali_server/converters/server_param.dart';
-import 'package:revali_server/converters/server_type.dart';
 import 'package:revali_server/makers/creators/create_arg_from_binds.dart';
 import 'package:revali_server/makers/creators/create_body_var.dart';
 import 'package:revali_server/makers/creators/create_cookie_var.dart';
@@ -15,8 +14,10 @@ import 'package:revali_server/makers/creators/create_ip_var.dart';
 import 'package:revali_server/makers/creators/create_missing_argument_exception.dart';
 import 'package:revali_server/makers/creators/create_param_var.dart';
 import 'package:revali_server/makers/creators/create_pipe.dart';
+import 'package:revali_server/makers/creators/create_promoted_arg_value.dart';
 import 'package:revali_server/makers/creators/create_quer_var.dart';
 import 'package:revali_server/makers/creators/get_raw_type.dart';
+import 'package:revali_server/makers/utils/byte_stream_body_param.dart';
 import 'package:revali_server/makers/utils/create_switch_pattern.dart';
 
 Expression createArgForParam(
@@ -24,6 +25,27 @@ Expression createArgForParam(
   ServerParam param, {
   String routePath = '',
 }) {
+  if (isByteStreamBodyParam(param) && annotation.type == AnnotationType.body) {
+    if (byteStreamBodyHasAccess(annotation)) {
+      throw ArgumentError(
+        '@Body access is not supported for Stream<List<int>> parameters',
+      );
+    }
+
+    final stream = createOriginalPayloadStreamVar();
+
+    if (annotation case HasPipe(:final pipe?)) {
+      return createPipe(
+        pipe,
+        param: param,
+        annotation: annotation,
+        access: stream,
+      );
+    }
+
+    return stream;
+  }
+
   var variable = switch (annotation.type) {
     AnnotationType.body => createBodyVar(annotation),
     AnnotationType.query ||
@@ -81,17 +103,10 @@ Expression createArgForParam(
         const Code('when'),
         refer('data').property('isNotEmpty').code,
       ],
-    ]): fromJson ??
-        switch (param.type) {
-          ServerType(:final iterableType?) => switch (iterableType) {
-            IterableType.list => refer('data').property('cast').call([]),
-            IterableType.set => refer(
-              'data',
-            ).property('toSet').call([]).property('cast').call([]),
-            IterableType.iterable => refer('data'),
-          },
-          _ => refer('data'),
-        },
+    ]): createPromotedArgValue(
+      paramType: param.type,
+      fromJson: fromJson,
+    ),
     if (param.defaultValue case final defaultValue?)
       const Code('_'): CodeExpression(Code(defaultValue))
     else ...{

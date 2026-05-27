@@ -1,18 +1,32 @@
 // ignore_for_file: unnecessary_parenthesis
 
+import 'package:revali_construct/models/iterable_type.dart';
 import 'package:revali_server/converters/server_from_json.dart';
 import 'package:revali_server/converters/server_record_prop.dart';
 import 'package:revali_server/converters/server_type.dart';
 import 'package:revali_server/makers/utils/type_extensions.dart';
 
 String getRawType(ServerType type) {
+  String iterableRawType(ServerType type) {
+    final base = switch (type.iterableType) {
+      IterableType.set => 'Set',
+      IterableType.iterable => 'Iterable',
+      IterableType.list || null => 'List',
+    };
+
+    if (type.typeArguments.isEmpty) {
+      return '$base${type.isNullable ? '?' : ''}';
+    }
+
+    final args = type.typeArguments.map(getRawType).join(', ');
+    return '$base<$args>${type.isNullable ? '?' : ''}';
+  }
+
   String data(ServerType type) {
     final map = 'Map${type.isNullable ? '?' : ''}';
 
-    final list = 'List${type.isNullable ? '?' : ''}';
-
     return switch (type) {
-      ServerType(isIterable: true) => list,
+      ServerType(isIterable: true) => iterableRawType(type),
       ServerType(isPrimitive: true) => type.name,
       // named records
       ServerType(
@@ -21,7 +35,7 @@ String getRawType(ServerType type) {
       ) =>
         map,
       // at least 1 positional record
-      ServerType(isRecord: true) => list,
+      ServerType(isRecord: true) => 'List${type.isNullable ? '?' : ''}',
       ServerType(fromJson: ServerFromJson(params: [final type])) => getRawType(
         type,
       ),

@@ -10,6 +10,7 @@ import 'package:revali_server/makers/creators/create_class.dart';
 import 'package:revali_server/makers/creators/create_web_socket_handler.dart';
 import 'package:revali_server/makers/creators/should_nest_json_in_data.dart';
 import 'package:revali_server/makers/utils/binary_expression_extensions.dart';
+import 'package:revali_server/makers/utils/byte_stream_body_param.dart';
 import 'package:revali_server/makers/utils/get_params.dart';
 
 Expression createHandler({
@@ -75,7 +76,7 @@ Expression createHandler({
         _ => MethodModifier.async,
       }
       ..body = Block.of([
-        if (route.params.any((e) => e.annotations.body != null))
+        if (routeNeedsResolvePayload(route.params))
           refer('context')
               .property('request')
               .property('resolvePayload')
