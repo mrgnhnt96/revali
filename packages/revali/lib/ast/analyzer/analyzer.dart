@@ -380,8 +380,9 @@ class Analyzer implements AnalyzerChanges {
           continue;
         }
 
-        diagnostics.add('  project root: ${root.path}');
-        diagnostics.addAll(await _describePackageConfigLocations(root));
+        diagnostics
+          ..add('  project root: ${root.path}')
+          ..addAll(await _describePackageConfigLocations(root));
 
         final packageConfigFile = await root.getPackageConfig();
         if (packageConfigFile.existsSync()) {
@@ -462,12 +463,7 @@ class Analyzer implements AnalyzerChanges {
 
   Future<List<String>> _workspaceDartToolFiles(String workspace) async {
     final workspaceRef = fs.file(
-      fs.path.join(
-        workspace,
-        '.dart_tool',
-        'pub',
-        'workspace_ref.json',
-      ),
+      fs.path.join(workspace, '.dart_tool', 'pub', 'workspace_ref.json'),
     );
 
     if (!workspaceRef.existsSync()) {
@@ -506,7 +502,10 @@ class Analyzer implements AnalyzerChanges {
 
     final normalizedWorkspace = fs.path.normalize(workspace);
 
-    final dartFiles = await find.file('*.dart', workingDirectory: normalizedWorkspace);
+    final dartFiles = await find.file(
+      '*.dart',
+      workingDirectory: normalizedWorkspace,
+    );
 
     final dartToolFiles = [
       ...await find.filesInDirectory(

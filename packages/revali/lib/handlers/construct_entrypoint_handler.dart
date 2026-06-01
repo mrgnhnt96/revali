@@ -186,7 +186,9 @@ class ConstructEntrypointHandler with DirectoriesMixin {
         );
       }
 
-      logger.detail('package_config resolved after pub get: ${packageConfig.path}');
+      logger.detail(
+        'package_config resolved after pub get: ${packageConfig.path}',
+      );
     }
 
     final result = await Process.run('dart', [

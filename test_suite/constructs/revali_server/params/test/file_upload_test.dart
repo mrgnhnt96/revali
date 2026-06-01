@@ -14,20 +14,22 @@ String multipartBody({
   final buffer = StringBuffer();
 
   for (final entry in fields.entries) {
-    buffer.write('--$boundary$crlf');
-    buffer.write('Content-Disposition: form-data; name="${entry.key}"$crlf');
-    buffer.write(crlf);
-    buffer.write('${entry.value}$crlf');
+    buffer
+      ..write('--$boundary$crlf')
+      ..write('Content-Disposition: form-data; name="${entry.key}"$crlf')
+      ..write(crlf)
+      ..write('${entry.value}$crlf');
   }
 
   for (final entry in (files ?? const {}).entries) {
-    buffer.write('--$boundary$crlf');
-    buffer.write(
-      'Content-Disposition: form-data; name="${entry.key}"; '
-      'filename="${entry.value.filename}"$crlf',
-    );
-    buffer.write(crlf);
-    buffer.write('${entry.value.content}$crlf');
+    buffer
+      ..write('--$boundary$crlf')
+      ..write(
+        'Content-Disposition: form-data; name="${entry.key}"; '
+        'filename="${entry.value.filename}"$crlf',
+      )
+      ..write(crlf)
+      ..write('${entry.value.content}$crlf');
   }
 
   buffer.write('--$boundary--$crlf');
