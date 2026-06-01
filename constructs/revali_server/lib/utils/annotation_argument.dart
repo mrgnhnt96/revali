@@ -22,14 +22,20 @@ class AnnotationArgument with ExtractImport {
     required this.parameterName,
   });
 
-  factory AnnotationArgument.fromExpression(Expression expression) {
+  factory AnnotationArgument.fromExpression(
+    Expression expression, {
+    String? annotationContext,
+    String? knownNamedParameter,
+  }) {
     final source = expression.toSource();
     final type = expression.staticType;
     final element = type?.element;
 
     if (element == null || type == null) {
       throw ArgumentError(
-        'The argument expression has not been resolved yet...',
+        'The argument expression has not been resolved yet '
+        '(${_describeExpression(expression)}'
+        '${_annotationSuffix(annotationContext)})',
       );
     }
 
@@ -48,27 +54,20 @@ class AnnotationArgument with ExtractImport {
       }
     }
 
-    String parameterName;
-    bool isRequired;
-
-    if (expression.parent case Expression(
-      correspondingParameter: final param?,
-    )) {
-      parameterName = param.name ?? (throw Exception('Parameter name is null'));
-      isRequired = param.isRequiredNamed;
-    } else if (expression case Expression(
-      correspondingParameter: final param?,
-    )) {
-      parameterName = param.name ?? (throw Exception('Parameter name is null'));
-      isRequired = param.isRequiredNamed;
-    } else if (expression.parent case NamedExpression(
-      name: Label(:final label),
-    )) {
-      parameterName = label.name;
-      isRequired = false;
-    } else {
-      throw ArgumentError('Invalid expression');
+    final resolved = _resolveParameterName(
+      expression,
+      knownNamedParameter: knownNamedParameter,
+    );
+    if (resolved == null) {
+      throw ArgumentError(
+        'Could not determine the parameter name for an annotation argument '
+        '(${_describeExpression(expression)}'
+        '${_annotationSuffix(annotationContext)}). '
+        'Ancestor chain: ${_ancestorChain(expression)}',
+      );
     }
+
+    final (name: parameterName, isRequired: isRequired) = resolved;
 
     return AnnotationArgument(
       parameterName: parameterName,
@@ -119,4 +118,68 @@ class AnnotationArgument with ExtractImport {
 
   @override
   List<ServerImports?> get imports => [];
+}
+
+typedef _ResolvedParameter = ({String name, bool isRequired});
+
+_ResolvedParameter? _resolveParameterName(
+  Expression expression, {
+  String? knownNamedParameter,
+}) {
+  if (knownNamedParameter case final name?) {
+    return (name: name, isRequired: false);
+  }
+
+  AstNode? node = expression;
+  while (node != null) {
+    if (node case Expression(correspondingParameter: final param?)) {
+      return (
+        name: param.name ?? (throw Exception('Parameter name is null')),
+        isRequired: param.isRequiredNamed,
+      );
+    }
+    if (node case NamedExpression(name: Label(:final label))) {
+      return (name: label.name, isRequired: false);
+    }
+    node = node.parent;
+  }
+
+  return null;
+}
+
+String _describeExpression(Expression expression) {
+  final location = _expressionLocation(expression);
+  final locationSuffix = location == null ? '' : ' at $location';
+  return '`${expression.toSource()}` '
+      '(${expression.runtimeType})$locationSuffix';
+}
+
+String? _expressionLocation(Expression expression) {
+  final root = expression.root;
+  if (root is! CompilationUnit) {
+    return null;
+  }
+
+  final location = root.lineInfo.getLocation(expression.offset);
+  return '${location.lineNumber}:${location.columnNumber}';
+}
+
+String _ancestorChain(Expression expression) {
+  final parts = <String>[];
+  AstNode? node = expression;
+
+  while (node != null) {
+    parts.add('${node.runtimeType}(`${node.toSource()}`)');
+    node = node.parent;
+  }
+
+  return parts.join(' → ');
+}
+
+String _annotationSuffix(String? annotationContext) {
+  if (annotationContext == null) {
+    return '';
+  }
+
+  return ' in $annotationContext';
 }

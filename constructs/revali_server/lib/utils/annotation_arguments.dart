@@ -12,6 +12,10 @@ class AnnotationArguments with ExtractImport {
   factory AnnotationArguments.fromDartObject(ElementAnnotation annotation) {
     final positionalArguments = <AnnotationArgument>[];
     final namedArguments = <String, AnnotationArgument>{};
+    final annotationContext = switch (annotation) {
+      ElementAnnotationImpl(annotationAst: final ast) => ast.toSource(),
+      _ => annotation.element?.displayName,
+    };
 
     if (annotation case ElementAnnotationImpl(
       annotationAst: Annotation(
@@ -22,10 +26,15 @@ class AnnotationArguments with ExtractImport {
         if (param case NamedExpression(:final name, :final expression)) {
           namedArguments[name.label.name] = AnnotationArgument.fromExpression(
             expression,
+            annotationContext: annotationContext,
+            knownNamedParameter: name.label.name,
           );
         } else if (param case final Expression expression) {
           positionalArguments.add(
-            AnnotationArgument.fromExpression(expression),
+            AnnotationArgument.fromExpression(
+              expression,
+              annotationContext: annotationContext,
+            ),
           );
         }
       }
