@@ -22,6 +22,9 @@ class AnnotationArguments with ExtractImport {
         arguments: ArgumentList(childEntities: final args),
       ),
     )) {
+      final positionalParameters = _positionalParameters(annotation);
+      var positionalIndex = 0;
+
       for (final param in args) {
         if (param case NamedExpression(:final name, :final expression)) {
           namedArguments[name.label.name] = AnnotationArgument.fromExpression(
@@ -30,10 +33,17 @@ class AnnotationArguments with ExtractImport {
             knownNamedParameter: name.label.name,
           );
         } else if (param case final Expression expression) {
+          final knownParameter = positionalIndex < positionalParameters.length
+              ? positionalParameters[positionalIndex]
+              : null;
+          positionalIndex++;
+
           positionalArguments.add(
             AnnotationArgument.fromExpression(
               expression,
               annotationContext: annotationContext,
+              knownNamedParameter: knownParameter?.name,
+              knownIsRequired: knownParameter?.isRequired,
             ),
           );
         }
@@ -64,4 +74,19 @@ class AnnotationArguments with ExtractImport {
 
   @override
   List<ServerImports?> get imports => [];
+}
+
+typedef _PositionalParameter = ({String name, bool isRequired});
+
+List<_PositionalParameter> _positionalParameters(ElementAnnotation annotation) {
+  final element = annotation.element;
+  if (element is! ConstructorElement) {
+    return const [];
+  }
+
+  return [
+    for (final parameter in element.formalParameters)
+      if (parameter.isPositional)
+        (name: parameter.name ?? '', isRequired: parameter.isRequired),
+  ];
 }

@@ -18,7 +18,8 @@ class ServerBodyAnnotation
     ElementAnnotation annotation,
   ) {
     final access = object.getField('access')?.toListValue()?.map((e) {
-      return e.toStringValue()!;
+      return e.toStringValue() ??
+          (throw ArgumentError('Expected a string in @Body access, got: $e'));
     }).toList();
 
     final pipe = object.getField('pipe')?.toTypeValue();

@@ -8,7 +8,15 @@ class ServerAllowOrigins {
     final inherit = object.getField('inherit')?.toBoolValue() ?? true;
 
     return ServerAllowOrigins(
-      origins: raw.map((e) => e.toStringValue()!).toSet(),
+      origins: raw
+          .map(
+            (e) =>
+                e.toStringValue() ??
+                (throw ArgumentError(
+                  'Expected a string in @AllowOrigins origins, got: $e',
+                )),
+          )
+          .toSet(),
       inherit: inherit,
     );
   }

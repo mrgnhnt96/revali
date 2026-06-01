@@ -26,6 +26,7 @@ class AnnotationArgument with ExtractImport {
     Expression expression, {
     String? annotationContext,
     String? knownNamedParameter,
+    bool? knownIsRequired,
   }) {
     final source = expression.toSource();
     final type = expression.staticType;
@@ -57,6 +58,7 @@ class AnnotationArgument with ExtractImport {
     final resolved = _resolveParameterName(
       expression,
       knownNamedParameter: knownNamedParameter,
+      knownIsRequired: knownIsRequired,
     );
     if (resolved == null) {
       throw ArgumentError(
@@ -125,9 +127,10 @@ typedef _ResolvedParameter = ({String name, bool isRequired});
 _ResolvedParameter? _resolveParameterName(
   Expression expression, {
   String? knownNamedParameter,
+  bool? knownIsRequired,
 }) {
   if (knownNamedParameter case final name?) {
-    return (name: name, isRequired: false);
+    return (name: name, isRequired: knownIsRequired ?? false);
   }
 
   AstNode? node = expression;
@@ -155,13 +158,17 @@ String _describeExpression(Expression expression) {
 }
 
 String? _expressionLocation(Expression expression) {
-  final root = expression.root;
-  if (root is! CompilationUnit) {
+  try {
+    final root = expression.root;
+    if (root is! CompilationUnit) {
+      return null;
+    }
+
+    final location = root.lineInfo.getLocation(expression.offset);
+    return '${location.lineNumber}:${location.columnNumber}';
+  } on Object {
     return null;
   }
-
-  final location = root.lineInfo.getLocation(expression.offset);
-  return '${location.lineNumber}:${location.columnNumber}';
 }
 
 String _ancestorChain(Expression expression) {

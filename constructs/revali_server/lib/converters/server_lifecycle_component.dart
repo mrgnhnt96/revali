@@ -144,7 +144,12 @@ class ServerLifecycleComponent with ExtractImport {
               )
               case final value?)
             ServerParam(
-              name: field.name!,
+              name:
+                  field.name ??
+                  (throw ArgumentError(
+                    'Expected a named field on ${element.name}, '
+                    'got an unnamed field',
+                  )),
               type: ServerType.fromType(
                 typeSubstitutions.isEmpty
                     ? field.type
@@ -153,7 +158,11 @@ class ServerLifecycleComponent with ExtractImport {
               isRequired: true,
               isNamed: true,
               argument: AnnotationArgument.fromFieldValue(
-                field.name!,
+                field.name ??
+                    (throw ArgumentError(
+                      'Expected a named field on ${element.name}, '
+                      'got an unnamed field',
+                    )),
                 value,
                 field,
               ),

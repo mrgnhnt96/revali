@@ -8,7 +8,15 @@ class ServerAllowHeaders {
     final inherit = object.getField('inherit')?.toBoolValue() ?? true;
 
     return ServerAllowHeaders(
-      headers: raw.map((e) => e.toStringValue()!).toSet(),
+      headers: raw
+          .map(
+            (e) =>
+                e.toStringValue() ??
+                (throw ArgumentError(
+                  'Expected a string in @AllowHeaders headers, got: $e',
+                )),
+          )
+          .toSet(),
       inherit: inherit,
     );
   }

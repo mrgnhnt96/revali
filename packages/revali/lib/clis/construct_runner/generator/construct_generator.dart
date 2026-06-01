@@ -563,10 +563,11 @@ http://revali.dev/constructs#server-constructs
       );
 
       return true;
-    } catch (e) {
+    } catch (e, st) {
       logger
         ..err('Failed to generate Server Construct')
         ..err('Error: $e')
+        ..detail('$st')
         ..delayed('Error: $e');
 
       return false;

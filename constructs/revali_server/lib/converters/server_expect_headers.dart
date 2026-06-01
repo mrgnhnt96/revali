@@ -7,7 +7,15 @@ class ServerExpectHeaders {
     final raw = object.getField('headers')?.toSetValue() ?? {};
 
     return ServerExpectHeaders(
-      headers: raw.map((e) => e.toStringValue()!).toSet(),
+      headers: raw
+          .map(
+            (e) =>
+                e.toStringValue() ??
+                (throw ArgumentError(
+                  'Expected a string in @ExpectHeaders headers, got: $e',
+                )),
+          )
+          .toSet(),
     );
   }
 
