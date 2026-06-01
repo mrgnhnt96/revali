@@ -8,9 +8,7 @@ import 'package:test/test.dart';
 
 void main() {
   group('ClientType.typeForClient', () {
-    ClientMethod method({
-      required ClientType returnType,
-    }) {
+    ClientMethod method({required ClientType returnType}) {
       return ClientMethod(
         name: 'view',
         parentPath: 'api',
@@ -29,9 +27,7 @@ void main() {
       return ClientType(
         name: 'List<int>',
         iterableType: IterableType.list,
-        typeArguments: [
-          ClientType(name: 'int', isPrimitive: true),
-        ],
+        typeArguments: [ClientType(name: 'int', isPrimitive: true)],
       );
     }
 
@@ -64,19 +60,23 @@ void main() {
       expect(clientMethod.returnType.typeForClient.name, 'Stream<List<int>>');
     });
 
-    test('generates a streaming implementation for Future<Stream<List<int>>>', () {
-      final returnType = ClientType(
-        name: 'Future<Stream<List<int>>>',
-        isFuture: true,
-        typeArguments: [streamListIntType()],
-      );
-      final clientMethod = method(returnType: returnType);
-      final generated =
-          createImplMethod(clientMethod).accept(DartEmitter()).toString();
+    test(
+      'generates a streaming implementation for Future<Stream<List<int>>>',
+      () {
+        final returnType = ClientType(
+          name: 'Future<Stream<List<int>>>',
+          isFuture: true,
+          typeArguments: [streamListIntType()],
+        );
+        final clientMethod = method(returnType: returnType);
+        final generated = createImplMethod(
+          clientMethod,
+        ).accept(DartEmitter()).toString();
 
-      expect(generated, contains('async*'));
-      expect(generated, contains('yield*'));
-      expect(generated, isNot(contains('response.toList()')));
-    });
+        expect(generated, contains('async*'));
+        expect(generated, contains('yield*'));
+        expect(generated, isNot(contains('response.toList()')));
+      },
+    );
   });
 }

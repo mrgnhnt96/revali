@@ -19,10 +19,7 @@ class FileUploadController {
 
   @Post('raw')
   Map<String, dynamic> uploadRaw(@Body() List<int> bytes) {
-    return {
-      'size': bytes.length,
-      'content': String.fromCharCodes(bytes),
-    };
+    return {'size': bytes.length, 'content': String.fromCharCodes(bytes)};
   }
 
   @Post('stream')

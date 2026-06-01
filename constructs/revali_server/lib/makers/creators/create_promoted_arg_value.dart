@@ -44,9 +44,6 @@ Expression _typedCast(Expression data, ServerType? elementType) {
   }
 
   return CodeExpression(
-    Block.of([
-      data.code,
-      Code('.cast<${elementType.nonNullName}>()'),
-    ]),
+    Block.of([data.code, Code('.cast<${elementType.nonNullName}>()')]),
   );
 }

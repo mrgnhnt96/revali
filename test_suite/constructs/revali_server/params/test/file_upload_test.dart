@@ -54,18 +54,11 @@ void main() {
       final response = await server.send(
         method: 'POST',
         path: '/api/file',
-        headers: {
-          'content-type': 'multipart/form-data; boundary=$boundary',
-        },
+        headers: {'content-type': 'multipart/form-data; boundary=$boundary'},
         body: multipartBody(
           boundary: boundary,
-          fields: {
-            'is_awesome': 'true',
-            'count': '1',
-          },
-          files: {
-            'file': (filename: 'file.txt', content: fileContent),
-          },
+          fields: {'is_awesome': 'true', 'count': '1'},
+          files: {'file': (filename: 'file.txt', content: fileContent)},
         ),
       );
 
@@ -87,18 +80,13 @@ void main() {
       final response = await server.send(
         method: 'POST',
         path: '/api/file/raw',
-        headers: {
-          'content-type': 'application/octet-stream',
-        },
+        headers: {'content-type': 'application/octet-stream'},
         body: fileContent,
       );
 
       expect(response.statusCode, HttpStatus.ok);
       expect(response.body, {
-        'data': {
-          'size': fileContent.length,
-          'content': fileContent,
-        },
+        'data': {'size': fileContent.length, 'content': fileContent},
       });
     });
 
@@ -108,17 +96,13 @@ void main() {
       final response = await server.send(
         method: 'POST',
         path: '/api/file/stream',
-        headers: {
-          'content-type': 'application/octet-stream',
-        },
+        headers: {'content-type': 'application/octet-stream'},
         body: fileContent,
       );
 
       expect(response.statusCode, HttpStatus.ok);
       expect(response.body, {
-        'data': {
-          'size': fileContent.length,
-        },
+        'data': {'size': fileContent.length},
       });
     });
   });
