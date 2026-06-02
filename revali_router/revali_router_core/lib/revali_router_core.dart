@@ -53,6 +53,7 @@ export 'results/middleware_result.dart';
 export 'results/wrapper_result.dart';
 export 'route/lifecycle_components.dart';
 export 'route/route_entry.dart';
+export 'trusted_proxy/trusted_proxy.dart';
 export 'types/annotation_type.dart';
 export 'types/string_content.dart';
 export 'types/types.dart';

@@ -12,9 +12,13 @@ class UnderlyingRequestImpl implements UnderlyingRequest {
     required this.method,
     required HttpRequest request,
     required this.protocolVersion,
+    this.trustedProxy = const TrustedProxy(),
   }) : _request = request;
 
-  factory UnderlyingRequestImpl.fromRequest(HttpRequest request) {
+  factory UnderlyingRequestImpl.fromRequest(
+    HttpRequest request, {
+    TrustedProxy trustedProxy = const TrustedProxy(),
+  }) {
     final headers = HeadersImpl.from(request.headers);
 
     return UnderlyingRequestImpl(
@@ -27,6 +31,7 @@ class UnderlyingRequestImpl implements UnderlyingRequest {
       method: request.method,
       request: request,
       protocolVersion: request.protocolVersion,
+      trustedProxy: trustedProxy,
     );
   }
 
@@ -44,8 +49,13 @@ class UnderlyingRequestImpl implements UnderlyingRequest {
   @override
   final String protocolVersion;
 
+  final TrustedProxy trustedProxy;
+
   @override
-  String? get ip => _request.connectionInfo?.remoteAddress.address;
+  String? get ip => trustedProxy.resolve(
+        _request.connectionInfo?.remoteAddress.address,
+        headers,
+      );
 
   @override
   Future<WebSocket> upgradeToWebSocket({Duration? ping}) async {

@@ -1,6 +1,7 @@
 import 'package:revali_router_core/body/body.dart';
 import 'package:revali_router_core/method_mutations/headers/headers.dart';
 import 'package:revali_router_core/payload/payload.dart';
+import 'package:revali_router_core/trusted_proxy/trusted_proxy.dart';
 
 abstract class Request {
   const Request();
@@ -104,8 +105,8 @@ abstract class Request {
 
   /// The IP address of the client that sent the request.
   ///
-  /// Derived from the connection's remote address. This value is not read
-  /// from client-supplied headers like `X-Forwarded-For`.
+  /// Uses [TrustedProxy] headers when configured on the router; otherwise the
+  /// TCP remote address.
   ///
   /// ## Example:
   ///

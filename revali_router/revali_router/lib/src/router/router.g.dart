@@ -14,6 +14,7 @@ extension _$RouterAutoequal on Router {
         _globalComponents,
         debug,
         defaultResponses,
+        trustedProxy,
         _cleanUp,
       ];
 }

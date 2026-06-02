@@ -203,6 +203,9 @@ String serverFile(
                             'defaultResponses': refer(
                               'app',
                             ).property('defaultResponses'),
+                            'trustedProxy': refer(
+                              'app',
+                            ).property('trustedProxy'),
                             if (server.app case final app?
                                 when app.globalRouteAnnotations.hasAnnotations)
                               'globalComponents':
@@ -218,12 +221,19 @@ String serverFile(
                         .statement,
                     const Code('\n'),
                     refer('handleRequests')
-                        .call([
-                          refer('server'),
-                          refer('router').property('handle'),
-                          refer('router').property('responseHandler'),
-                          refer('router').property('close'),
-                        ])
+                        .call(
+                          [
+                            refer('server'),
+                            refer('router').property('handle'),
+                            refer('router').property('responseHandler'),
+                            refer('router').property('close'),
+                          ],
+                          {
+                            'trustedProxy': refer(
+                              'router',
+                            ).property('trustedProxy'),
+                          },
+                        )
                         .property('ignore')
                         .call([])
                         .statement,

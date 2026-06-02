@@ -68,6 +68,7 @@ class Router extends Equatable {
     this.observers = const [],
     this.debug = false,
     this.defaultResponses = const DefaultResponses(),
+    this.trustedProxy = const TrustedProxy(),
   })  : _reflects = reflects,
         _globalComponents = globalComponents;
 
@@ -77,6 +78,7 @@ class Router extends Equatable {
   final LifecycleComponents? _globalComponents;
   final bool debug;
   final DefaultResponses defaultResponses;
+  final TrustedProxy trustedProxy;
 
   final List<void Function()> _cleanUp = [];
 
@@ -84,7 +86,10 @@ class Router extends Equatable {
   ///
   /// Passes the request to the [handle] method.
   Future<Response> handleHttpRequest(HttpRequest request) async {
-    final context = RequestContextImpl.fromRequest(request);
+    final context = RequestContextImpl.fromRequest(
+      request,
+      trustedProxy: trustedProxy,
+    );
     return await handle(context);
   }
 

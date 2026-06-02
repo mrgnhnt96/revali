@@ -23,8 +23,14 @@ class RequestContextImpl with EquatableMixin implements RequestContext {
     required this.payloadResolver,
   });
 
-  factory RequestContextImpl.fromRequest(HttpRequest httpRequest) {
-    final request = UnderlyingRequestImpl.fromRequest(httpRequest);
+  factory RequestContextImpl.fromRequest(
+    HttpRequest httpRequest, {
+    TrustedProxy trustedProxy = const TrustedProxy(),
+  }) {
+    final request = UnderlyingRequestImpl.fromRequest(
+      httpRequest,
+      trustedProxy: trustedProxy,
+    );
 
     return RequestContextImpl._noPayload(
       request,
@@ -36,8 +42,14 @@ class RequestContextImpl with EquatableMixin implements RequestContext {
       : request = context.request,
         payloadResolver = context.payloadResolver;
 
-  RequestContextImpl.base(RequestContext context, HttpRequest httpRequest)
-      : request = UnderlyingRequestImpl.fromRequest(httpRequest),
+  RequestContextImpl.base(
+    RequestContext context,
+    HttpRequest httpRequest, {
+    TrustedProxy trustedProxy = const TrustedProxy(),
+  })  : request = UnderlyingRequestImpl.fromRequest(
+          httpRequest,
+          trustedProxy: trustedProxy,
+        ),
         payloadResolver = context.payloadResolver;
 
   @override

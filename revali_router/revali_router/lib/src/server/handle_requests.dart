@@ -10,11 +10,15 @@ Future<void> handleRequests(
   HttpServer server,
   Future<Response> Function(RequestContext context) handler,
   Future<ResponseHandler> Function(RequestContext context) responseHandler,
-  void Function() close,
-) async {
+  void Function() close, {
+  TrustedProxy trustedProxy = const TrustedProxy(),
+}) async {
   try {
     await for (final request in server) {
-      final context = RequestContextImpl.fromRequest(request);
+      final context = RequestContextImpl.fromRequest(
+        request,
+        trustedProxy: trustedProxy,
+      );
       ResponseHandler responseSender;
 
       try {
