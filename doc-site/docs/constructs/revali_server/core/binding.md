@@ -15,6 +15,7 @@ Think of binding as **automatic data extraction**:
 - **Path parameters** (`/users/:id`) → `@Param() String id`
 - **Query strings** (`?name=john&age=25`) → `@Query() String name`
 - **Request headers** (`Authorization: Bearer token`) → `@Header('Authorization') String auth`
+- **Client IP** → `@Ip() String? clientIp`
 - **Request body** (`{"name": "John"}`) → `@Body() User user`
 - **Dependencies** (services, repositories) → `@Dep() UserService service`
 
@@ -25,6 +26,7 @@ Think of binding as **automatic data extraction**:
 | `@Param()`  | Extract path parameters   | Endpoints only          | `@Param() String id`            |
 | `@Query()`  | Extract query parameters  | Endpoints only          | `@Query() String? search`       |
 | `@Header()` | Extract headers           | Endpoints only          | `@Header() String auth`         |
+| `@Ip()`     | Client IP address         | Endpoints only          | `@Ip() String? clientIp`        |
 | `@Body()`   | Extract request body      | Endpoints only          | `@Body() User user`             |
 | `@Dep()`    | Inject dependencies       | Endpoints & Controllers | `@Dep() UserService service`    |
 | `@Data()`   | Extract from Data Handler | Endpoints & Controllers | `@Data() User currentUser`      |
@@ -254,6 +256,25 @@ Without `@Header.all()`, multiple values are joined with commas: `Accept: json, 
 :::caution
 Header values are always `String` type. Use [pipes](./pipes.md) to convert to other types.
 :::
+
+## `@Ip()` - Client IP
+
+Inject the client IP resolved for the current request. The value matches [`request.ip`](../request/client-ip.md).
+
+```dart
+@Controller('users')
+class UsersController {
+  @Post('login')
+  String login(
+    @Body() LoginRequest credentials,
+    @Ip() String? clientIp,
+  ) {
+    return 'Login from $clientIp';
+  }
+}
+```
+
+By default the IP is the TCP remote address. Behind a reverse proxy, override `trustedProxy` on your [app configuration](/revali/app-configuration/create-an-app#trusted-proxy) so Revali reads headers such as `X-Forwarded-For`. See [Client IP](../request/client-ip.md) for header order, `useLeftmostIp`, and security guidance.
 
 ## `@Body()` - Request Body
 

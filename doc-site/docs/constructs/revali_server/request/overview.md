@@ -49,5 +49,13 @@ Using the `ReadOnlyRequest` parameter in the endpoint method is not recommended.
 By avoiding the `ReadOnlyRequest` parameter, you can keep your endpoint methods clean, focused, and testable.
 :::
 
+## Client IP
+
+Every request exposes the client IP as `request.ip`. Use [`@Ip()`](../core/binding.md#ip---client-ip) in endpoints or read `request.ip` from context.
+
+By default this is the TCP remote address. When the app runs behind a trusted reverse proxy, configure [`trustedProxy`](/revali/app-configuration/create-an-app#trusted-proxy) on your app so Revali resolves the IP from proxy headers (for example `X-Forwarded-For`).
+
+See [Client IP](./client-ip.md) for binding examples, `TrustedProxy` options, and security notes.
+
 [response]: ./../response/overview.md
 [lifecycle-context]: ../context/overview.md

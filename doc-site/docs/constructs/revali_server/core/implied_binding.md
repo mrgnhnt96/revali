@@ -51,6 +51,8 @@ class ApiController {
 | `RequestHeaders` | Read request headers | Header inspection  |
 | `RequestCookies` | Read request cookies | Cookie inspection  |
 
+For the client IP only, prefer [`@Ip()`](./binding.md#ip---client-ip) instead of reading `request.ip` manually.
+
 :::warning
 Prefer [binding annotations](./binding.md) and [pipes](./pipes.md) over direct request/response access for better testability and cleaner code.
 :::

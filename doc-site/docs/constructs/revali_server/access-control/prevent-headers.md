@@ -146,16 +146,20 @@ class ApiController {
 
 ### Preventing Header Injection
 
+Block clients from sending forwarding headers on routes where you rely on a trusted proxy for the client IP. Configure [`trustedProxy`](/revali/app-configuration/create-an-app#trusted-proxy) at the app level so `request.ip` and [`@Ip()`](../core/binding.md#ip---client-ip) read headers your proxy sets, not values clients supply.
+
 ```dart
 @PreventHeaders({'X-Forwarded-For', 'X-Real-IP', 'X-Original-IP'})
 @Controller('admin')
 class AdminController {
   @Get('sensitive')
-  String getSensitiveData() {
-    return 'Admin data without IP spoofing headers';
+  String getSensitiveData(@Ip() String? ip) {
+    return 'Admin data from $ip';
   }
 }
 ```
+
+See [Client IP](../request/client-ip.md) for how IP resolution and header blocking work together.
 
 ### API Version Control
 

@@ -48,6 +48,7 @@ Revali Server is a [Server Construct](/constructs#server-constructs) that genera
 - Request body parsing and validation
 - Query parameter handling
 - Header management
+- Client IP resolution (`@Ip`, `request.ip`, trusted proxy headers)
 - Cookie support
 - File upload capabilities
 - WebSocket support

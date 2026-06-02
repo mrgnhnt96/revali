@@ -127,6 +127,26 @@ class MainApp extends AppConfig {
 }
 ```
 
+### Trusted Proxy
+
+When your server sits behind a reverse proxy or load balancer, override `trustedProxy` so `request.ip` and `@Ip()` resolve the real client from proxy headers instead of the proxy's TCP address:
+
+```dart title="routes/main_app.dart"
+@App()
+class MainApp extends AppConfig {
+  const MainApp() : super(host: 'localhost', port: 8080);
+
+  @override
+  TrustedProxy get trustedProxy => const TrustedProxy(
+    headers: ['X-Forwarded-For'],
+  );
+}
+```
+
+Leave the default (`const TrustedProxy()`) when clients connect directly — proxy headers are ignored in that case.
+
+See [Client IP](/constructs/revali_server/request/client-ip) for `useLeftmostIp`, header precedence, and security guidance.
+
 ### Complete Example
 
 Here's a complete app configuration with all common options:
