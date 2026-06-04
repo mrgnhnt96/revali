@@ -1,7 +1,6 @@
-import 'dart:convert';
-
 import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
+import 'package:revali/utils/package_config_resolution.dart';
 
 extension DirectoryX on Directory {
   Future<Directory?> getRoot() async {
@@ -49,57 +48,7 @@ extension DirectoryX on Directory {
 
   /// Retrieves a file within the .dart_tool directory
   /// the file may _NOT_ exist
-  Future<File> getPackageConfig() async {
-    final root = await getRoot();
-    final rootPath = root?.path ?? path;
-
-    final dartTool = await getDartTool();
-
-    final packageConfig = dartTool.childFile('package_config.json');
-
-    if (packageConfig.existsSync()) {
-      return packageConfig;
-    }
-
-    final workspaceRef = dartTool.childFile(
-      p.join('pub', 'workspace_ref.json'),
-    );
-
-    if (!workspaceRef.existsSync()) {
-      throw Exception(
-        'No package_config.json at ${packageConfig.path} and no '
-        'workspace_ref at ${workspaceRef.path} (project root: $rootPath)',
-      );
-    }
-
-    final workspaceRefJson =
-        jsonDecode(await workspaceRef.readAsString()) as Map;
-    final workspaceRoot = switch (workspaceRefJson['workspaceRoot']) {
-      final String workspaceRoot => workspaceRoot,
-      final other => throw Exception(
-        'Invalid workspaceRoot in ${workspaceRef.path}: $other',
-      ),
-    };
-
-    final workspace = fileSystem.directory(
-      p.normalize(p.join(workspaceRef.parent.path, workspaceRoot)),
-    );
-
-    final resolved = workspace
-        .childDirectory('.dart_tool')
-        .childFile('package_config.json');
-
-    if (!resolved.existsSync()) {
-      throw Exception(
-        'Workspace package_config.json not found at ${resolved.path} '
-        '(workspaceRoot: "$workspaceRoot" from ${workspaceRef.path}, '
-        'resolved workspace directory: ${workspace.path}, '
-        'project root: $rootPath)',
-      );
-    }
-
-    return resolved;
-  }
+  Future<File> getPackageConfig() => resolvePackageConfigFile(this);
 
   /// The utilities directory within the .dart_tool directory
   /// specifically used with revali

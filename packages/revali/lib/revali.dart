@@ -31,4 +31,5 @@ export 'handlers/routes_handler.dart';
 export 'handlers/vm_service_handler.dart';
 export 'utils/extensions/directory_extensions.dart';
 export 'utils/mixins/directories_mixin.dart';
+export 'utils/package_config_resolution.dart';
 export 'utils/type_def/start_process.dart';

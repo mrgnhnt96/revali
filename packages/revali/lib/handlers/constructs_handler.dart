@@ -1,11 +1,12 @@
-import 'dart:convert';
 import 'dart:isolate';
 
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart' as p;
 import 'package:revali/utils/extensions/directory_extensions.dart';
-import 'package:revali_construct/revali_construct.dart';
+import 'package:revali/utils/package_config_resolution.dart';
+import 'package:revali_construct/models/construct_config.dart';
+import 'package:revali_construct/models/construct_yaml.dart';
 import 'package:yaml/yaml.dart';
 
 class ConstructsHandler {
@@ -33,25 +34,20 @@ class ConstructsHandler {
 
     final revaliConstructs = <ConstructYaml>[];
 
-    final packageJsonFile = await root.getPackageConfig();
-    if (!packageJsonFile.existsSync()) {
-      throw Exception('Failed to find package.json, run `dart pub get`');
+    final packageConfigFile = await root.getPackageConfig();
+    if (!packageConfigFile.existsSync()) {
+      throw Exception('Failed to find package_config.json, run `dart pub get`');
     }
 
-    final packageJson = jsonDecode(await packageJsonFile.readAsString()) as Map;
-    final packages = <String, String>{};
-
-    if (packageJson['packages']
-        case final List<Map<String, dynamic>> rawPackages) {
-      for (final package in rawPackages) {
-        if (package case {
-          'packageUri': final String packageUri,
-          'name': final String name,
-        }) {
-          packages[name] = packageUri;
-        }
-      }
+    final config = await loadProjectPackageConfig(root);
+    if (config == null) {
+      throw Exception('Failed to load package_config.json, run `dart pub get`');
     }
+
+    final packages = {
+      for (final package in config.packages)
+        package.name: relativePackageUri(package),
+    };
 
     for (final key in devDependencies?.keys ?? []) {
       final packageUri = 'package:$key/';

@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:convert';
+import 'dart:io' as io;
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
@@ -11,11 +11,13 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
+import 'package:package_config/package_config.dart' show loadPackageConfig;
 import 'package:platform/platform.dart';
 import 'package:revali/ast/analyzer/analyzer_changes.dart';
 import 'package:revali/ast/analyzer/units.dart';
 import 'package:revali/ast/find/interfaces/find.dart';
 import 'package:revali/utils/extensions/directory_extensions.dart';
+import 'package:revali/utils/package_config_resolution.dart';
 
 class Analyzer implements AnalyzerChanges {
   Analyzer({
@@ -409,89 +411,39 @@ class Analyzer implements AnalyzerChanges {
   }
 
   Future<List<String>> _describePackageConfigLocations(Directory root) async {
-    final lines = <String>[];
-    final dartTool = root.childDirectory('.dart_tool');
-    final localPackageConfig = dartTool.childFile('package_config.json');
-    lines.add(
-      '  .dart_tool/package_config.json: '
-      '${localPackageConfig.existsSync() ? 'exists' : 'missing'} '
-      '(${localPackageConfig.path})',
-    );
+    final localConfig = root
+        .childDirectory('.dart_tool')
+        .childFile('package_config.json');
+    final resolved = await findPackageConfigPath(root);
 
-    final workspaceRef = dartTool.childFile(
-      fs.path.join('pub', 'workspace_ref.json'),
-    );
-    if (!workspaceRef.existsSync()) {
-      lines.add(
-        '  .dart_tool/pub/workspace_ref.json: missing (${workspaceRef.path})',
-      );
-      return lines;
-    }
+    final localStatus = localConfig.existsSync() ? 'exists' : 'missing';
 
-    lines.add(
-      '  .dart_tool/pub/workspace_ref.json: exists (${workspaceRef.path})',
-    );
-
-    try {
-      final workspaceRefJson =
-          jsonDecode(await workspaceRef.readAsString()) as Map;
-      final workspaceRoot = workspaceRefJson['workspaceRoot'];
-      lines.add('  workspaceRoot: $workspaceRoot');
-
-      final workspace = fs.directory(
-        fs.path.normalize(
-          fs.path.join(workspaceRef.parent.path, workspaceRoot as String),
-        ),
-      );
-      final workspacePackageConfig = workspace
-          .childDirectory('.dart_tool')
-          .childFile('package_config.json');
-
-      lines
-        ..add('  resolved workspace directory: ${workspace.path}')
-        ..add(
-          '  workspace .dart_tool/package_config.json: '
-          '${workspacePackageConfig.existsSync() ? 'exists' : 'missing'} '
-          '(${workspacePackageConfig.path})',
-        );
-    } on Exception catch (e) {
-      lines.add('  failed to inspect workspace_ref.json: $e');
-    }
-
-    return lines;
+    return [
+      '  .dart_tool/package_config.json: $localStatus (${localConfig.path})',
+      if (resolved != null && resolved != localConfig.path)
+        '  resolved package config: $resolved',
+    ];
   }
 
-  Future<List<String>> _workspaceDartToolFiles(String workspace) async {
-    final workspaceRef = fs.file(
-      fs.path.join(workspace, '.dart_tool', 'pub', 'workspace_ref.json'),
+  Future<List<String>> _externalDartToolFiles(
+    String workspace,
+    String packageConfigPath,
+  ) async {
+    final localConfigPath = fs.path.normalize(
+      fs.path.join(workspace, '.dart_tool', 'package_config.json'),
     );
-
-    if (!workspaceRef.existsSync()) {
+    final resolvedPath = fs.path.normalize(packageConfigPath);
+    if (localConfigPath == resolvedPath) {
       return const [];
     }
 
-    try {
-      final workspaceRefJson =
-          jsonDecode(await workspaceRef.readAsString()) as Map;
-      final workspaceRoot = workspaceRefJson['workspaceRoot'];
-      if (workspaceRoot is! String || workspaceRoot.isEmpty) {
-        return const [];
-      }
-
-      final workspacePath = fs.path.normalize(
-        fs.path.join(workspaceRef.parent.path, workspaceRoot),
-      );
-
-      return await find.filesInDirectory(
-        '.dart_tool',
-        workingDirectory: workspacePath,
-        recursive: false,
-        ignoreDirs: const ['bin'],
-      );
-    } on Exception catch (e, st) {
-      logger.detail('Failed to load workspace .dart_tool files: $e\n$st');
-      return const [];
-    }
+    final workspaceRoot = fs.file(resolvedPath).parent.parent.path;
+    return find.filesInDirectory(
+      '.dart_tool',
+      workingDirectory: workspaceRoot,
+      recursive: false,
+      ignoreDirs: const ['bin'],
+    );
   }
 
   Future<void> _createVirtualWorkspace(String workspace) async {
@@ -512,7 +464,6 @@ class Analyzer implements AnalyzerChanges {
         '.dart_tool',
         workingDirectory: normalizedWorkspace,
       ),
-      ...await _workspaceDartToolFiles(normalizedWorkspace),
     ];
 
     final packageConfig = await _resolvePackageConfig(normalizedWorkspace);
@@ -526,6 +477,10 @@ class Analyzer implements AnalyzerChanges {
         'No package config found, run `dart pub get` first.\n$report',
       );
     }
+
+    dartToolFiles.addAll(
+      await _externalDartToolFiles(normalizedWorkspace, packageConfig),
+    );
 
     logger.detail(
       'Virtual workspace: root=$workspace, '
@@ -579,32 +534,18 @@ class Analyzer implements AnalyzerChanges {
   }
 
   Future<List<String>> _getDependencyFiles(
-    String packageConfig, {
+    String packageConfigPath, {
     bool directoryOnly = false,
     bool pathDependenciesOnly = false,
     DateTime? lastModified,
   }) async {
-    final json = jsonDecode(await fs.file(packageConfig).readAsString());
-
-    final dependencies = switch (json) {
-      {'packages': final List<dynamic> packages} =>
-        packages
-            .map((e) => Dependency.fromJson(e as Map<String, dynamic>))
-            .toList(),
-      _ => throw Exception('Invalid package config: $packageConfig'),
-    };
+    final config = await loadPackageConfig(io.File(packageConfigPath));
 
     final directories = <String>[];
-    for (final dependency in dependencies) {
-      final rootUri = Uri.parse(dependency.rootUri);
-      final packageUri = Uri.parse(dependency.packageUri);
-
+    for (final package in config.packages) {
       if (pathDependenciesOnly) {
-        final rootPathForCheck = switch (rootUri.scheme) {
-          'file' => rootUri.toFilePath(),
-          _ => rootUri.path,
-        };
-        if (fs.path.split(rootPathForCheck) case final segments
+        final rootPath = package.root.toFilePath();
+        if (fs.path.split(rootPath) case final segments
             when segments.contains('hosted') ||
                 segments.contains('git') ||
                 segments.contains('pkg')) {
@@ -612,24 +553,28 @@ class Analyzer implements AnalyzerChanges {
         }
       }
 
-      final rootPath = switch (rootUri.scheme) {
-        'file' => fs.path.normalize(
-          fs.path.join(rootUri.toFilePath(), packageUri.path),
-        ),
-        _ => fs.path.normalize(
-          fs.path.join(
-            fs.file(packageConfig).parent.path,
-            rootUri.path,
-            packageUri.path,
-          ),
-        ),
-      };
-
-      directories.add(rootPath);
+      directories.add(fs.path.normalize(package.packageUriRoot.toFilePath()));
     }
 
     if (directoryOnly) {
-      return directories.map((e) => fs.directory(e).parent.path).toList();
+      return config.packages
+          .where((package) {
+            if (!pathDependenciesOnly) {
+              return true;
+            }
+
+            final rootPath = package.root.toFilePath();
+            return switch (fs.path.split(rootPath)) {
+              final segments
+                  when !segments.contains('hosted') &&
+                      !segments.contains('git') &&
+                      !segments.contains('pkg') =>
+                true,
+              _ => false,
+            };
+          })
+          .map((package) => fs.path.normalize(package.root.toFilePath()))
+          .toList();
     }
 
     final futures = <Future<List<String>>>[];
@@ -715,24 +660,4 @@ class Analyzer implements AnalyzerChanges {
 
     return errors;
   }
-}
-
-class Dependency {
-  const Dependency({
-    required this.name,
-    required this.rootUri,
-    required this.packageUri,
-  });
-
-  factory Dependency.fromJson(Map<String, dynamic> json) {
-    return Dependency(
-      name: json['name'] as String,
-      rootUri: json['rootUri'] as String,
-      packageUri: json['packageUri'] as String,
-    );
-  }
-
-  final String name;
-  final String rootUri;
-  final String packageUri;
 }
