@@ -1,17 +1,31 @@
 import 'dart:convert';
 
+/// Coerces a value already produced by [jsonDecode] (or nested inside one).
+dynamic coerceDynamic(dynamic value) {
+  if (value == null) return null;
+
+  return switch (value) {
+    final Map<dynamic, dynamic> map => {
+        for (final entry in map.entries) entry.key: coerceDynamic(entry.value),
+      },
+    final List<dynamic> list => [
+        for (final element in list) coerceDynamic(element),
+      ],
+    final String string => coerce(string),
+    _ => value,
+  };
+}
+
 dynamic coerce(String value) {
   final attempts = [
     () => int.parse(value),
     () => double.parse(value),
-    () => (jsonDecode(value) as List<String>).map(coerce),
-    () => (jsonDecode(value) as List).map(
-          (e) => e == null ? null : coerce('$e'),
-        ),
-    () => {
-          for (final item in (jsonDecode(value) as Map).entries)
-            item.key: item.value == null ? null : coerce('${item.value}'),
-        },
+    () {
+      final decoded = jsonDecode(value);
+      return decoded is Map || decoded is List
+          ? coerceDynamic(decoded)
+          : decoded;
+    },
     () => switch (value) {
           'true' => true,
           'false' => false,

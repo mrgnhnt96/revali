@@ -42,5 +42,32 @@ void main() {
     test('should return the original value if no coercion is possible', () {
       expect(coerce('foo'), 'foo');
     });
+
+    test('should coerce nested maps without Dart toString', () {
+      const wire = '''
+{"table":"logs","where":{"type":"in","column":"level","values":["verbose","trace"]},"limit":50}''';
+
+      expect(
+        coerce(wire),
+        {
+          'table': 'logs',
+          'where': {
+            'type': 'in',
+            'column': 'level',
+            'values': ['verbose', 'trace'],
+          },
+          'limit': 50,
+        },
+      );
+    });
+
+    test('should coerce string elements inside nested lists in maps', () {
+      expect(
+        coerce('{"values": ["1", "2", "true"]}'),
+        {
+          'values': [1, 2, true],
+        },
+      );
+    });
   });
 }
