@@ -11,17 +11,25 @@ import 'package:revali_construct/models/hot_reload_data/hot_reload_files_changed
 import 'package:revali_construct/utils/debouncer.dart';
 
 void hotReload(Future<HttpServer?> Function() createServer) {
-  HotReload(
-    serverFactory: () async {
-      try {
-        return await createServer();
-      } catch (e) {
-        // ignore: avoid_print
-        print('Failed to create server\n$e');
-      }
-      return null;
+  runZonedGuarded(
+    () {
+      HotReload(
+        serverFactory: () async {
+          try {
+            return await createServer();
+          } catch (e, st) {
+            // ignore: avoid_print
+            print('Failed to create server\n$e\n$st');
+          }
+          return null;
+        },
+      ).attach().ignore();
     },
-  ).attach().ignore();
+    (error, stack) {
+      // ignore: avoid_print
+      print('Failed to create server (uncaught)\n$error\n$stack');
+    },
+  );
 }
 
 class HotReload {
@@ -45,6 +53,18 @@ class HotReload {
   }
 
   Future<void> attach() async {
+    return runZonedGuarded(
+      () async {
+        await _attach();
+      },
+      (error, stack) {
+        // ignore: avoid_print
+        print('Failed to create server (uncaught)\n$error\n$stack');
+      },
+    );
+  }
+
+  Future<void> _attach() async {
     /// Current server instance
     HttpServer? runningServer;
 

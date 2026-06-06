@@ -55,6 +55,8 @@ class VMServiceHandler {
   final List<String> hotReloadExclude;
 
   bool _isReloading = false;
+  bool _enableHotReload = false;
+  void Function()? _serveOnReady;
 
   Progress? __progress;
   Progress? get _progress => __progress;
@@ -98,6 +100,16 @@ class VMServiceHandler {
     }
 
     _isReloading = true;
+
+    if (!isServerRunning) {
+      _progress = logger.progress('Restarting server');
+      try {
+        await serve(enableHotReload: _enableHotReload, onReady: _serveOnReady);
+      } finally {
+        _isReloading = false;
+      }
+      return;
+    }
 
     _progress = logger.progress('Reloading');
 
@@ -316,10 +328,9 @@ class VMServiceHandler {
 
     progress.complete('Generated server code');
 
-    await serve(
-      enableHotReload: enableHotReload,
-      onReady: () => printParsedRoutes(server.routes),
-    );
+    _enableHotReload = enableHotReload;
+    _serveOnReady = () => printParsedRoutes(server.routes);
+    await serve(enableHotReload: enableHotReload, onReady: _serveOnReady);
 
     if (enableHotReload) {
       watchForInput();
@@ -662,35 +673,52 @@ class VMServiceHandler {
     });
 
     process.exitCode.then((code) async {
-      if (isCompleted) return;
-      // Log diagnostics FIRST before stop() - otherwise the process may exit
-      // before these messages are flushed when exitCode completer completes
-      logger
-        ..err('')
-        ..err('Server process terminated unexpectedly with exit code: $code');
-      final stderr = _stderrBuffer.toString().trim();
-      if (stderr.isNotEmpty) {
-        logger.err('Server stderr:');
-        for (final line in stderr.split('\n')) {
-          logger.err('  $line');
-        }
+      await _handleServerProcessExit(code);
+    }).ignore();
+  }
+
+  Future<void> _handleServerProcessExit(int code) async {
+    if (isCompleted) return;
+
+    _serverProcess = null;
+
+    // Log diagnostics before any stop() — otherwise the process may exit
+    // before these messages are flushed when exitCode completer completes.
+    logger
+      ..err('')
+      ..err('Server process terminated unexpectedly with exit code: $code');
+    final stderr = _stderrBuffer.toString().trim();
+    if (stderr.isNotEmpty) {
+      logger.err('Server stderr:');
+      for (final line in stderr.split('\n')) {
+        logger.err('  $line');
       }
-      final stdout = _stdoutBuffer.toString().trim();
-      if (stdout.isNotEmpty) {
-        logger.err('Server stdout (last ${stdout.split("\n").length} lines):');
-        final lines = stdout.split('\n');
-        for (final line
-            in lines.length > 20 ? lines.sublist(lines.length - 20) : lines) {
-          logger.err('  $line');
-        }
+    }
+    final stdout = _stdoutBuffer.toString().trim();
+    if (stdout.isNotEmpty) {
+      logger.err('Server stdout (last ${stdout.split("\n").length} lines):');
+      final lines = stdout.split('\n');
+      for (final line
+          in lines.length > 20 ? lines.sublist(lines.length - 20) : lines) {
+        logger.err('  $line');
       }
+    }
+
+    if (canHotReload) {
       logger
-        ..err(
-          'Check for uncaught exceptions or early exit in your server code.',
+        ..warn(
+          'Dev server is still running. Fix the error above, then press '
+          '${yellow.wrap('r')} to restart the server process.',
         )
         ..err('');
-      await stop(1);
-    }).ignore();
+      printInputCommands();
+      return;
+    }
+
+    logger
+      ..err('Check for uncaught exceptions or early exit in your server code.')
+      ..err('');
+    await stop(1);
   }
 
   String _formatTime(DateTime time) {
