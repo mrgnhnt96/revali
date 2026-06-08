@@ -18,6 +18,10 @@ class ClientLifecycleComponentMethod with ExtractImport {
     MethodElement object, {
     Map<String, DartType> typeSubstitutions = const {},
   }) {
+    if (!object.isPublic || object.isStatic) {
+      return null;
+    }
+
     final returnTypeAlias = object.returnType.alias?.element.name;
 
     String returnType;

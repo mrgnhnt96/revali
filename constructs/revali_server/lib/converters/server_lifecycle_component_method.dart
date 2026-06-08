@@ -23,6 +23,10 @@ class ServerLifecycleComponentMethod with ExtractImport {
     MethodElement object, {
     Map<String, DartType> typeSubstitutions = const {},
   }) {
+    if (!object.isPublic || object.isStatic) {
+      return null;
+    }
+
     final name = object.name;
 
     final returnTypeAlias = object.returnType.alias?.element.name;

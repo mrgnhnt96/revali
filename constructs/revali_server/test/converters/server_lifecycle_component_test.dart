@@ -2,6 +2,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:revali_server/converters/server_lifecycle_component.dart';
+import 'package:revali_server/makers/part_files/lifecycle_components/exception_content.dart';
 import 'package:revali_server/makers/part_files/lifecycle_components/guard_content.dart';
 import 'package:revali_server/makers/part_files/lifecycle_components/wrapper_content.dart';
 import 'package:revali_server/utils/annotation_arguments.dart';
@@ -149,6 +150,37 @@ void main() {
       expect(content, contains('UserBody.fromJson'));
       expect(content, contains('resolvePayload'));
     });
+  });
+
+  group('private lifecycle component methods', () {
+    test(
+      'ignores private methods when generating exception catchers',
+      () async {
+        final element = await helper.classElement(
+          unitPath: 'lib/components/exception_with_private.dart',
+          className: 'ExceptionWithPrivate',
+        );
+
+        final component = ServerLifecycleComponent.fromClassElement(
+          element,
+          AnnotationArguments.none(),
+        );
+
+        expect(component.exceptionCatchers, hasLength(1));
+        expect(component.exceptionCatchers.single.name, 'handleException');
+
+        final formatter = DartFormatter(
+          languageVersion: DartFormatter.latestLanguageVersion,
+        ).format;
+        final emitter = DartEmitter.scoped(useNullSafetySyntax: true);
+        String format(Spec spec) => formatter(spec.accept(emitter).toString());
+
+        final content = exceptionContent(component, format);
+
+        expect(content, contains('component.handleException'));
+        expect(content, isNot(contains('component._internal')));
+      },
+    );
   });
 
   group('wrapperContent', () {
