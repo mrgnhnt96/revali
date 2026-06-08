@@ -119,13 +119,16 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
     final root = await generator.root;
     final revaliConfig = await generator.revaliConfig;
 
-    final hotReloadExclude = revaliConfig.hotReload?.exclude.map((path) {
-      if (p.isAbsolute(path)) {
-        return p.normalize(path);
-      }
+    final hotReloadExclude = [
+      ...?revaliConfig.hotReload?.exclude.map((path) {
+        if (p.isAbsolute(path)) {
+          return p.normalize(path);
+        }
 
-      return p.normalize(p.join(root.path, path));
-    }).toList();
+        return p.normalize(p.join(root.path, path));
+      }),
+      p.normalize(p.join(root.path, '.revali.staging')),
+    ];
 
     logger.detail('Hot reload exclude: $hotReloadExclude');
 
@@ -155,7 +158,7 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
       onFileRemove: analyzer.remove,
       errors: generator.getErrors,
       getDependencyDirectories: analyzer.getPathDependencyDirectories,
-      hotReloadExclude: hotReloadExclude ?? [],
+      hotReloadExclude: hotReloadExclude,
     );
 
     await serverHandler.start(enableHotReload: !runInRelease);

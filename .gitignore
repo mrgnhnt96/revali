@@ -58,7 +58,7 @@ executables/debug
 packages/cli/libisar.dylib
 .test_optimizer.dart
 .revali
-.revali.staging
+.revali.staging*
 FAILED_PUBLISH.md
 FAILED_RELEASE.md
 FAILED_PUSH.md

@@ -68,6 +68,9 @@ class ConstructGenerator with DirectoriesMixin {
 
   Directory? __root;
   Directory? _stagingRoot;
+  Future<void> _generateTail = Future<void>.value();
+
+  static const _stagingPrefix = '.revali.staging';
 
   Future<Directory> get root async {
     if (__root case final root?) {
@@ -116,8 +119,11 @@ class ConstructGenerator with DirectoriesMixin {
   }
 
   Future<MetaServer> generate([Log progress]) async {
+    final task = _generateTail.then((_) => _generate(progress));
+    _generateTail = task.then((_) {}, onError: (_) {});
+
     try {
-      return await _generate(progress);
+      return await task;
     } catch (e) {
       logger
         ..delayed(red.wrap('Error occurred while generating constructs'))
@@ -277,11 +283,9 @@ http://revali.dev/constructs#server-constructs
 
   Future<void> _prepareStaging() async {
     final rootDir = await root;
-    final staging = rootDir.childDirectory('.revali.staging');
-
-    if (staging.existsSync()) {
-      await staging.delete(recursive: true);
-    }
+    final staging = rootDir.childDirectory(
+      '$_stagingPrefix.${DateTime.now().microsecondsSinceEpoch}',
+    );
 
     await staging.create(recursive: true);
     _stagingRoot = staging;
@@ -322,21 +326,80 @@ http://revali.dev/constructs#server-constructs
         await stagingBuild.rename(build.path);
       }
 
-      if (staging.existsSync()) {
-        await staging.delete(recursive: true);
-      }
+      await _removeDirectory(staging);
     }
 
     _stagingRoot = null;
+    await _cleanupOldStagingDirectories(rootDir);
   }
 
   Future<void> _discardStaging() async {
     final staging = _stagingRoot;
-    if (staging != null && staging.existsSync()) {
-      await staging.delete(recursive: true);
+    if (staging != null) {
+      await _removeDirectory(staging);
     }
 
     _stagingRoot = null;
+    await _cleanupOldStagingDirectories(await root);
+  }
+
+  Future<void> _cleanupOldStagingDirectories(Directory rootDir) async {
+    final activeStaging = _stagingRoot?.path;
+
+    for (final entity in rootDir.listSync()) {
+      if (entity is! Directory) continue;
+      if (!entity.basename.startsWith(_stagingPrefix)) continue;
+      if (entity.path == activeStaging) continue;
+
+      await _removeDirectory(entity);
+    }
+  }
+
+  Future<void> _removeDirectory(Directory directory) async {
+    if (!directory.existsSync()) {
+      return;
+    }
+
+    final trash = directory.parent.childDirectory(
+      '${directory.basename}.${DateTime.now().microsecondsSinceEpoch}',
+    );
+
+    try {
+      await directory.rename(trash.path);
+    } on FileSystemException {
+      try {
+        await directory.delete(recursive: true);
+      } on FileSystemException {
+        await _removeDirectoryContents(directory);
+        if (directory.existsSync()) {
+          await directory.delete();
+        }
+      }
+      return;
+    }
+
+    try {
+      await trash.delete(recursive: true);
+    } on FileSystemException {
+      await _removeDirectoryContents(trash);
+      if (trash.existsSync()) {
+        await trash.delete();
+      }
+    }
+  }
+
+  Future<void> _removeDirectoryContents(Directory directory) async {
+    if (!directory.existsSync()) {
+      return;
+    }
+
+    for (final entity in directory.listSync()) {
+      if (entity is Directory) {
+        await _removeDirectory(entity);
+      } else {
+        await entity.delete();
+      }
+    }
   }
 
   Future<void> _replaceDirectory(Directory target, Directory source) async {
@@ -370,6 +433,10 @@ http://revali.dev/constructs#server-constructs
     Directory source,
     Directory target,
   ) async {
+    if (!source.existsSync()) {
+      return;
+    }
+
     for (final entity in source.listSync()) {
       final dest = switch (entity) {
         Directory() => target.childDirectory(entity.basename),
@@ -384,9 +451,7 @@ http://revali.dev/constructs#server-constructs
       await entity.rename(dest.path);
     }
 
-    if (source.existsSync()) {
-      await source.delete(recursive: true);
-    }
+    await _removeDirectory(source);
   }
 
   Future<T?> constructFromMaker<T extends Construct>(

@@ -114,6 +114,7 @@ class VMServiceHandler {
     _progress = logger.progress('Reloading');
 
     if (await checkForErrors()) {
+      _isReloading = false;
       return;
     }
 
@@ -406,9 +407,14 @@ class VMServiceHandler {
   }
 
   bool _isPathExcluded(String path) {
-    if (hotReloadExclude.isEmpty) return false;
-
     final normalizedPath = p.normalize(p.absolute(path));
+    final basename = p.basename(normalizedPath);
+    if (basename == '.revali.staging' ||
+        basename.startsWith('.revali.staging.')) {
+      return true;
+    }
+
+    if (hotReloadExclude.isEmpty) return false;
     for (final excluded in hotReloadExclude) {
       final normalizedExcluded = p.normalize(p.absolute(excluded));
       if (normalizedPath == normalizedExcluded) return true;
