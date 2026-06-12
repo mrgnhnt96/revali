@@ -1,0 +1,9 @@
+dependency_overrides:
+  revali:
+    path: ../../../packages/revali
+  revali_construct:
+    path: ../../../packages/revali_construct
+  revali_router_annotations:
+    path: ../../../revali_router/revali_router_annotations
+  revali_swagger_annotations:
+    path: ../revali_swagger_annotations

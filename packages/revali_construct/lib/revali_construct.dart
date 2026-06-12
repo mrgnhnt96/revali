@@ -7,6 +7,7 @@
 export 'enums/generate_construct_type.dart';
 export 'enums/mode.dart';
 export 'hot_reload/hot_reload.dart' show hotReload;
+export 'hot_reload/reload_coalescer.dart';
 export 'models/app_annotation.dart';
 export 'models/build_construct.dart';
 export 'models/construct.dart';

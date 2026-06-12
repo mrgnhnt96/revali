@@ -84,10 +84,12 @@ void main() async {
   final failedPackages = findFailedPublishes(packages);
   failedProgress.complete('Found ${failedPackages.length} failed publishes');
 
-  final packagesToPublish = {
-    for (final pkg in failedPackages) pkg.name: pkg,
-    for (final (pkg, _) in changedPackages) pkg.name: pkg,
-  }.values.toList();
+  final packagesToPublish = sortPackagesForPublish(
+    {
+      for (final pkg in failedPackages) pkg.name: pkg,
+      for (final (pkg, _) in changedPackages) pkg.name: pkg,
+    }.values.toList(),
+  );
 
   final successPublishes = <Package>[];
 
@@ -613,4 +615,54 @@ class Package {
   File get license => File(p.join(root, 'LICENSE'));
 
   File get changelog => File(p.join(root, 'CHANGELOG.md'));
+}
+
+/// Publishes dependency packages before packages that depend on them.
+List<Package> sortPackagesForPublish(List<Package> packages) {
+  if (packages.length <= 1) return packages;
+
+  final publishing = {for (final package in packages) package.name: package};
+  final dependencies = <String, Set<String>>{};
+
+  for (final package in packages) {
+    final content = loadYaml(package.pubspec.readAsStringSync()) as YamlMap;
+    final packageDeps = <String>{};
+
+    for (final key in ['dependencies', 'dev_dependencies']) {
+      if (content[key] case final YamlMap section) {
+        for (final dep in section.keys) {
+          if (publishing.containsKey(dep)) {
+            packageDeps.add(dep as String);
+          }
+        }
+      }
+    }
+
+    dependencies[package.name] = packageDeps;
+  }
+
+  final sorted = <Package>[];
+  final visiting = <String>{};
+  final visited = <String>{};
+
+  void visit(String name) {
+    if (visited.contains(name)) return;
+    if (visiting.contains(name)) {
+      throw StateError('Circular dependency detected while sorting $name');
+    }
+
+    visiting.add(name);
+    for (final dep in dependencies[name] ?? const <String>{}) {
+      visit(dep);
+    }
+    visiting.remove(name);
+    visited.add(name);
+    sorted.add(publishing[name]!);
+  }
+
+  for (final name in publishing.keys) {
+    visit(name);
+  }
+
+  return sorted;
 }

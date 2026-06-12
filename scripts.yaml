@@ -164,6 +164,9 @@ test:
   revali_core: |
     cd packages/revali_core || exit 1
     {$test:_test}
+  revali_swagger: |
+    cd constructs/revali_swagger/revali_swagger || exit 1
+    {$test:_test}
 
 spell_check: cspell "./doc-site/docs/**/*" --config ".github/cspell/cspell.json"
 
@@ -185,6 +188,7 @@ test-suite:
     - cd test_suite && dart pub get {--offline}
     - (+) {$test-suite:revali_server}
     - (+) {$test-suite:revali_client}
+    - (+) {$test-suite:revali_swagger}
     - "{$test-suite:pubspec:uncomment}"
     - cd test_suite && dart pub get {--offline}
     - |
@@ -391,3 +395,8 @@ test-suite:
     meta-reflect: |
       DIR=meta_reflect
       {$test-suite:revali_server:_package}
+
+  revali_swagger:
+    (aliases): swagger
+    (command):
+      - cd constructs/revali_swagger/revali_swagger && dart test

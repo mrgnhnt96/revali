@@ -1,0 +1,1 @@
+enum OutputFormat { yaml, json }

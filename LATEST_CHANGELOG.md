@@ -79,6 +79,25 @@
 - Substitute generic type arguments on lifecycle component registrations into guard/middleware params (e.g. `@RateLimit<GetBody>()` resolves `@Body() T`).
 - Instantiate lifecycle components in generated wrappers with their type arguments (e.g. `RateLimit<GetBody>()`).
 
+# revali_swagger_annotations
+
+## 1.0.0
+
+### Features
+
+- Initial release with `@ApiInfo`, `@ApiTag`, `@ApiSummary`, `@ApiDescription`, `@ApiResponse`, `@ApiHidden`, and `@ApiType` annotations for customizing generated OpenAPI output.
+
+# revali_swagger
+
+## 1.0.0
+
+### Features
+
+- Initial release: generate OpenAPI 3.0.3 specs from Revali routes, parameters, and return types.
+- Write both `swagger.yaml` and `swagger.json` on every run.
+- Automatic JSON Schema for Dart primitives, collections, records, enums, and user-defined classes.
+- Optional annotation overrides for summaries, tags, responses, and custom schema types.
+
 <!-- REVALI CLIENT -->
 
 # revali_client

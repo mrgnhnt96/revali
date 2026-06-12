@@ -37,7 +37,10 @@ void main() {
         ..parent.createSync(recursive: true)
         ..writeAsStringSync('');
 
-      expect(fileUriToRelativeImportPath(devApp.absolute.uri.toString()), 'routes/apps/dev_app.dart');
+      expect(
+        fileUriToRelativeImportPath(devApp.absolute.uri.toString()),
+        'routes/apps/dev_app.dart',
+      );
     });
   });
 }

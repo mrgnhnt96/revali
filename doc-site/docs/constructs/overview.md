@@ -84,6 +84,7 @@ Build constructs generate code, assets, or files needed for deployment and produ
 
 - **[revali_client](/constructs/revali_client/overview)**: Generate client-side code for API consumption
 - **[revali_docker](/constructs/revali_docker/overview)**: Generate Docker configuration and deployment files
+- **[revali_swagger](/constructs/revali_swagger/overview)**: Generate an OpenAPI 3.0.3 spec from your routes
 
 ## Opt-In Constructs
 
@@ -129,3 +130,4 @@ Discover available constructs on [pub.dev](https://pub.dev/packages?q=dependency
 - **[revali_server](/constructs/revali_server/overview)**: Complete server implementation
 - **[revali_client](/constructs/revali_client/overview)**: Client-side code generation
 - **[revali_docker](/constructs/revali_docker/overview)**: Docker deployment support
+- **[revali_swagger](/constructs/revali_swagger/overview)**: OpenAPI 3.0.3 spec generation

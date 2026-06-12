@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:hotreloader/hotreloader.dart';
 import 'package:logging/logging.dart';
+import 'package:revali_construct/hot_reload/reload_coalescer.dart';
 import 'package:revali_construct/models/hot_reload_data/hot_reload_data.dart';
 import 'package:revali_construct/models/hot_reload_data/hot_reload_files_changed.dart';
 import 'package:revali_construct/utils/debouncer.dart';
@@ -83,13 +84,17 @@ class HotReload {
       runningServer = await create();
     }
 
+    final reloadQueue = CoalescingReloadQueue(
+      () => obtainNewServer(serverFactory),
+    );
+
     controller.stream.transform(const Debouncer()).listen((msg) async {
       try {
         stderr.writeln(jsonEncode(msg.toJson()));
       } catch (_) {}
       switch (msg.type) {
         case HotReloadType.filesChanged:
-          await obtainNewServer(serverFactory);
+          await reloadQueue.schedule();
         case HotReloadType.revaliStarted:
         case HotReloadType.hotReloadEnabled:
       }
@@ -125,6 +130,6 @@ class HotReload {
       }
     }
 
-    await obtainNewServer(serverFactory);
+    await reloadQueue.schedule();
   }
 }

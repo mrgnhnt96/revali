@@ -1,0 +1,250 @@
+openapi: 3.0.3
+info:
+  title: Sample API
+  version: 1.0.0
+paths:
+  '/complex':
+    get:
+      operationId: complex_getComplex
+      tags:
+        - complex
+      summary: Get a complex model
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplexModel'
+    post:
+      operationId: complex_createComplex
+      tags:
+        - complex
+      summary: Create a complex model
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ComplexModel'
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplexModel'
+  '/users':
+    get:
+      operationId: users_listUsers
+      tags:
+        - users
+      summary: List all users
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+            nullable: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+    post:
+      operationId: users_createUser
+      tags:
+        - users
+      summary: Create a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  '/users/{id}':
+    get:
+      operationId: users_getUser
+      tags:
+        - users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  '/users/search':
+    get:
+      operationId: users_searchUsers
+      tags:
+        - users
+      summary: Search users by query
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+components:
+  schemas:
+    ComplexModel:
+      type: object
+      properties:
+        id:
+          type: string
+        nickname:
+          type: string
+          nullable: true
+        count:
+          type: integer
+          format: int64
+        score:
+          type: number
+          format: double
+        weight:
+          type: number
+          format: double
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+          nullable: true
+        profileUrl:
+          type: string
+          format: uri
+          nullable: true
+        sessionDuration:
+          type: string
+        processingTime:
+          type: integer
+          format: int64
+        address:
+          $ref: '#/components/schemas/Address'
+        billingAddress:
+          allOf:
+            - $ref: '#/components/schemas/Address'
+          nullable: true
+        tags:
+          type: array
+          items:
+            type: string
+        locations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Address'
+        counters:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int64
+        contacts:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/Address'
+        namedCoord:
+          type: object
+          properties:
+            age:
+              type: integer
+              format: int64
+            name:
+              type: string
+          required:
+            - age
+            - name
+        latLng:
+          type: object
+          properties:
+            field0:
+              type: number
+              format: double
+            field1:
+              type: number
+              format: double
+          required:
+            - field0
+            - field1
+        status:
+          $ref: '#/components/schemas/Status'
+      required:
+        - id
+        - count
+        - score
+        - weight
+        - isActive
+        - createdAt
+        - sessionDuration
+        - processingTime
+        - address
+        - tags
+        - locations
+        - counters
+        - contacts
+        - namedCoord
+        - latLng
+        - status
+    Address:
+      type: object
+      properties:
+        street:
+          type: string
+        city:
+          type: string
+        zipCode:
+          type: string
+          nullable: true
+      required:
+        - street
+        - city
+    Status:
+      type: string
+      enum:
+        - active
+        - inactive
+        - pending
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+      required:
+        - id
+        - name
+        - email

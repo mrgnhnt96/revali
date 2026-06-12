@@ -1,0 +1,21 @@
+name: swagger_sample_app
+publish_to: none
+
+environment:
+  sdk: ">=3.8.0 <4.0.0"
+
+dependencies:
+  revali_router:
+    path: ../../../../../../revali_router/revali_router
+  revali_swagger_annotations:
+    path: ../../../../revali_swagger_annotations
+
+dependency_overrides:
+  revali_core:
+    path: ../../../../../../packages/revali_core
+  revali_router_annotations:
+    path: ../../../../../../revali_router/revali_router_annotations
+  revali_router_core:
+    path: ../../../../../../revali_router/revali_router_core
+  revali_swagger_annotations:
+    path: ../../../../revali_swagger_annotations
