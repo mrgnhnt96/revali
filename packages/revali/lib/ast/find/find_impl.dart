@@ -71,22 +71,31 @@ class FindImpl implements Find {
     List<String> ignoreDirs = const [],
     DateTime? lastModified,
   }) async {
-    final ignore = <String>[
-      for (final (index, dir) in _ignoreDirs.followedBy(ignoreDirs).indexed)
-        [if (index != 0) '-o', '-path', '*/$dir'].join(' '),
+    final args = <String>[
+      workingDirectory,
+      '(',
+
+      for (final (index, dir)
+          in _ignoreDirs.followedBy(ignoreDirs).indexed) ...[
+        if (index != 0) '-o',
+        '-path',
+        '*/$dir',
+      ],
+      ')',
+      '-prune',
+      '-o',
+      '-name',
+      name,
+      '-type',
+      if (file) 'f' else 'd',
+      if (lastModified case final date?) ...[
+        '-mmin',
+        '-${max(DateTime.now().difference(date).inMinutes, 1)}',
+      ],
+      '-print',
     ];
 
-    final type = file ? 'f' : 'd';
-    final lastModifiedArg = switch (lastModified) {
-      final DateTime date =>
-        '-mmin -${max(DateTime.now().difference(date).inMinutes, 1)}',
-      null => '',
-    };
-
-    final script =
-        "find $workingDirectory \\( ${ignore.join(' ')} \\) -prune -o -name '$name' -type $type $lastModifiedArg -print";
-
-    final result = await startProcess('bash', ['-c', script]);
+    final result = await startProcess('find', args);
     final stdout = await result.stdout.transform(utf8.decoder).join();
     return stdout.split('\n').where((e) => e.isNotEmpty).toList();
   }
