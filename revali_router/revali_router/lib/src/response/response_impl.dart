@@ -2,7 +2,8 @@ import 'dart:io';
 
 import 'package:revali_router/src/body/body_impl.dart';
 import 'package:revali_router/src/body/response_body/base_body_data.dart';
-import 'package:revali_router/src/headers/headers_impl.dart';
+import 'package:revali_router/src/headers/request_headers_impl.dart';
+import 'package:revali_router/src/headers/response_headers_impl.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
 class ResponseImpl implements Response {
@@ -12,10 +13,10 @@ class ResponseImpl implements Response {
   })  : _requestHeaders = requestHeaders,
         _body = BodyImpl(),
         headers = headers != null
-            ? HeadersImpl({
+            ? ResponseHeadersImpl({
                 for (final key in headers.keys) key: headers.getAll(key) ?? [],
               })
-            : HeadersImpl();
+            : ResponseHeadersImpl();
 
   factory ResponseImpl.from(Response response) {
     if (response is ResponseImpl) {
@@ -23,7 +24,7 @@ class ResponseImpl implements Response {
     }
 
     final result = ResponseImpl(
-      requestHeaders: HeadersImpl(),
+      requestHeaders: RequestHeadersImpl(),
       headers: response.headers,
     );
 
@@ -88,7 +89,7 @@ class ResponseImpl implements Response {
 
   @override
   Headers get joinedHeaders {
-    final headers = HeadersImpl.from(this.headers);
+    final headers = ResponseHeadersImpl.from(this.headers);
 
     _body.headers(_requestHeaders).forEach((key, values) {
       headers[key] ??= values.join(',');

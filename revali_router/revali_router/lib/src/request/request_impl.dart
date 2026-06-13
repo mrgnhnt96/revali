@@ -1,11 +1,11 @@
-import 'package:revali_router/src/headers/headers_impl.dart';
+import 'package:revali_router/src/headers/request_headers_impl.dart';
 import 'package:revali_router/src/request/request_context_impl.dart';
 import 'package:revali_router_core/revali_router_core.dart';
 
 // ignore: must_be_immutable
 class RequestImpl extends RequestContextImpl implements FullRequest {
   RequestImpl.fromRequest(super.request)
-      : headers = HeadersImpl.from(request.headers),
+      : headers = RequestHeadersImpl.from(request.headers),
         super.self();
 
   @override

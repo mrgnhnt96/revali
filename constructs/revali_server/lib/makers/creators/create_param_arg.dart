@@ -16,7 +16,7 @@ final impliedArguments = <String, Expression>{
   (DI).name: refer('di'),
   // --- response ---
   (Headers).name: refer('context').property('response').property('headers'),
-  (ResponseHeaders).name: refer('context').property('response').property('headers'),
+  (ResponseHeaders).name: refer('context').property('response').property('headers').asA(refer((ResponseHeaders).name)),
   (Cookies).name: refer('context').property('response').property('headers').property('cookies'),
   (ResponseCookies).name: refer('context').property('response').property('headers').property('cookies'),
   (SetCookies).name: refer('context').property('response').property('headers').property('setCookies'),
@@ -24,7 +24,7 @@ final impliedArguments = <String, Expression>{
   (Body).name: refer('context').property('response').property('body'),
   (PayloadBody).name: refer('context').property('response').property('body'),
   // --- request ---
-  (RequestHeaders).name: refer('context').property('request').property('headers'),
+  (RequestHeaders).name: refer('context').property('request').property('headers').asA(refer((RequestHeaders).name)),
   (RequestCookies).name: refer('context').property('request').property('headers').property('cookies'),
   (Request).name: refer('context').property('request'),
   // --- meta ---
