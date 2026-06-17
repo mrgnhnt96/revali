@@ -6,16 +6,17 @@
 
 # revali
 
-## 2.1.1
+## 2.2.0
+
+### Features
+
+- Resolve package dependencies via `package_config` for more reliable workspace resolution.
 
 ### Enhancements
 
-- Improve logging when conflicting routes are detected.
-- Preserve the "Serving at" message in the console after hot reload and screen clear.
-
-### Enhancements
-
-- Generate into `.revali.staging` and only replace `.revali` after generation succeeds, so an interrupted rebuild no longer removes `revali_client/pubspec.yaml` and breaks workspace `dart pub get`.
+- Normalize file paths on Windows so analyzer, construct runner, and VM service handlers work cross-platform.
+- Handle uncaught errors during dev server startup and hot reload with stack traces.
+- Improve workspace root detection and failure diagnostics.
 
 # revali_annotations
 
@@ -27,57 +28,86 @@
 
 # revali_construct
 
-## 2.1.0
-
-### Chore
-
-- Bump `analyzer` and migrate generated-tooling code to analyzer 10.
-
-# revali_core
-
-## 1.5.0
+## 2.2.0
 
 ### Features
 
-- Add `runStartup` on `AppConfig` so apps can wrap async server startup (bind, DI, routes); the default implementation forwards to the provided `start` callback unchanged.
+- Add `CoalescingReloadQueue` to serialize hot-reload restarts and coalesce concurrent reload requests.
+- Add `fileUriToRelativeImportPath` for cross-platform import paths in generated Dart source.
+
+### Enhancements
+
+- Use POSIX paths in generated `part` and `part of` directives for Windows compatibility.
+- Handle uncaught errors during hot reload with stack traces.
+
+# revali_core
+
+## 1.6.0
+
+### Features
+
+- Add `RequestScopedDI` for request-scoped dependency injection, installable via a request wrapper and `Zone`.
 
 <!-- REVALI ROUTER -->
 
 # revali_router
 
-## 3.3.0
+## 3.4.0
 
 ### Features
 
-- Expose client IP address via `request.ip`, derived from the connection's remote address.
+- Add `RequestWrapper` lifecycle component that wraps the entire request pipeline in setup and teardown logic.
+- Configure `trustedProxy` on the app to resolve client IP from reverse-proxy headers (e.g. `X-Forwarded-For`).
+- Support wildcard path parameters (`*rest` and bare `*`).
+- Allow underscores in route path segment names.
+- Support `Stream<List<int>>` byte-stream request bodies.
+
+### Fixes
+
+- Fix coercing nested maps and lists.
+- Fix route matching when path segments contain apostrophes.
+
+### Enhancements
+
+- Add stack traces and request context to exception handling.
+- Handle uncaught errors in the request pipeline.
 
 # revali_router_annotations
-
-## 2.1.0
-
-### Features
-
-- Add `@Ip` annotation for injecting the client IP into route handlers.
-
-# revali_router_core
 
 ## 2.2.0
 
 ### Features
 
-- Add `ip` getter to `Request` and `UnderlyingRequest`.
+- Add `@Wrappers` annotation for registering request wrappers on controllers and routes.
 
-<!-- CONSTRUCTS -->
-
-# revali_server
+# revali_router_core
 
 ## 2.3.0
 
 ### Features
 
-- Add codegen support for `@Ip` route parameters.
-- Substitute generic type arguments on lifecycle component registrations into guard/middleware params (e.g. `@RateLimit<GetBody>()` resolves `@Body() T`).
-- Instantiate lifecycle components in generated wrappers with their type arguments (e.g. `RateLimit<GetBody>()`).
+- Add `RequestWrapper` interface and `WrapperResult` type alias.
+- Add `TrustedProxy` for resolving client IP from proxy headers.
+- Add `wildcardParameters` getter on `Request`.
+
+<!-- CONSTRUCTS -->
+
+# revali_server
+
+## 2.4.0
+
+### Features
+
+- Generate request wrapper lifecycle components and nest them in the pipeline.
+- Generate wildcard path parameter bindings.
+- Support `Stream<List<int>>` body parameters for file uploads.
+- Cast `Headers` to typed request/response header interfaces in generation.
+
+### Enhancements
+
+- Use Windows-safe forward-slash import paths in generated code.
+- Include route and parameter context in generated exception throws.
+- Skip private and static lifecycle component methods during codegen.
 
 # revali_swagger_annotations
 
@@ -110,17 +140,17 @@
 
 # revali_client_gen
 
-## 2.1.0
-
-### Chore
-
-- Bump `analyzer` / `dart_style`; migrate codegen to analyzer 10.
+## 2.2.0
 
 ### Features
 
-- Resolve generic lifecycle type arguments from route annotations for client codegen.
+- Generate streaming clients for `Future<Stream<List<int>>>` return types (file downloads).
+
+### Enhancements
+
+- Use Windows-safe import paths in generated code.
+- Skip private and static lifecycle component methods during codegen.
 
 ### Fix
 
-- Issue where `body` param conflicted with local variable name
-- Duplicate `body` params in generated clients when routes use generic lifecycle components (e.g. `@RateLimit<GetBody>()` with `@Query() GetBody body`).
+- Flavor selection when a single app is configured without an explicit flavor.
