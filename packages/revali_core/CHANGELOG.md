@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.6.0 | 06.17.26
+
+### Features
+
+- Add `RequestScopedDI` for request-scoped dependency injection, installable via a request wrapper and `Zone`.
+
 ## 1.5.0 | 04.28.26
 
 ### Features

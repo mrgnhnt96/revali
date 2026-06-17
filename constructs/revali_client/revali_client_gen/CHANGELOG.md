@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## 2.2.0 | 06.17.26
+
+### Features
+
+- Generate streaming clients for `Future<Stream<List<int>>>` return types (file downloads).
+
+### Enhancements
+
+- Use Windows-safe import paths in generated code.
+- Skip private and static lifecycle component methods during codegen.
+
+### Fix
+
+- Flavor selection when a single app is configured without an explicit flavor.
+
 ## 2.1.0 | 05.18.26
 
 ### Chore

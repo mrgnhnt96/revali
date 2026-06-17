@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 2.2.0 | 06.17.26
+
+### Features
+
+- Add `CoalescingReloadQueue` to serialize hot-reload restarts and coalesce concurrent reload requests.
+- Add `fileUriToRelativeImportPath` for cross-platform import paths in generated Dart source.
+
+### Enhancements
+
+- Use POSIX paths in generated `part` and `part of` directives for Windows compatibility.
+- Handle uncaught errors during hot reload with stack traces.
+
 ## 2.1.0 | 05.18.26
 
 ### Chore

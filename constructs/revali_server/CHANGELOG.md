@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## 2.4.0 | 06.17.26
+
+### Features
+
+- Generate request wrapper lifecycle components and nest them in the pipeline.
+- Generate wildcard path parameter bindings.
+- Support `Stream<List<int>>` body parameters for file uploads.
+- Cast `Headers` to typed request/response header interfaces in generation.
+
+### Enhancements
+
+- Use Windows-safe forward-slash import paths in generated code.
+- Include route and parameter context in generated exception throws.
+- Skip private and static lifecycle component methods during codegen.
+
 ## 2.3.0 | 05.21.26
 
 ### Features

@@ -1,5 +1,5 @@
 name: revali_swagger_annotations
-version: 0.0.0
+version: 1.0.0
 description: Annotations for the revali_swagger construct to customize OpenAPI 3.0 documentation output
 repository: https://github.com/mrgnhnt96/revali/tree/main/constructs/revali_swagger
 issue_tracker: https://github.com/mrgnhnt96/revali/issues

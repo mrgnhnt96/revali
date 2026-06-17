@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.2.0 | 06.17.26
+
+### Features
+
+- Add `@Wrappers` annotation for registering request wrappers on controllers and routes.
+
 ## 2.1.0 | 05.21.26
 
 ### Features

@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 2.2.0 | 06.17.26
+
+### Features
+
+- Resolve package dependencies via `package_config` for more reliable workspace resolution.
+
+### Enhancements
+
+- Normalize file paths on Windows so analyzer, construct runner, and VM service handlers work cross-platform.
+- Handle uncaught errors during dev server startup and hot reload with stack traces.
+- Improve workspace root detection and failure diagnostics.
+
 ## 2.1.1 | 05.21.26
 
 ### Enhancements

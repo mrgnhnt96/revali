@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2.3.0 | 06.17.26
+
+### Features
+
+- Add `RequestWrapper` interface and `WrapperResult` type alias.
+- Add `TrustedProxy` for resolving client IP from proxy headers.
+- Add `wildcardParameters` getter on `Request`.
+
 ## 2.2.0 | 05.21.26
 
 ### Features

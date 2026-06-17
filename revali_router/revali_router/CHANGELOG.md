@@ -1,5 +1,25 @@
 # CHANGELOG
 
+## 3.4.0 | 06.17.26
+
+### Features
+
+- Add `RequestWrapper` lifecycle component that wraps the entire request pipeline in setup and teardown logic.
+- Configure `trustedProxy` on the app to resolve client IP from reverse-proxy headers (e.g. `X-Forwarded-For`).
+- Support wildcard path parameters (`*rest` and bare `*`).
+- Allow underscores in route path segment names.
+- Support `Stream<List<int>>` byte-stream request bodies.
+
+### Fixes
+
+- Fix coercing nested maps and lists.
+- Fix route matching when path segments contain apostrophes.
+
+### Enhancements
+
+- Add stack traces and request context to exception handling.
+- Handle uncaught errors in the request pipeline.
+
 ## 3.3.0 | 05.21.26
 
 ### Features
