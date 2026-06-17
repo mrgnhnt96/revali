@@ -568,7 +568,7 @@ class ChangeLogEntry {
 
 Iterable<Package> findPackages() sync* {
   const ignorePackages = {'scripts'};
-  const ignoreDirectories = {'examples', '.revali'};
+  const ignoreDirectories = {'examples', '.revali', 'test', 'small_test'};
 
   final pubspecGlob = Glob('**/pubspec.yaml');
 

@@ -109,6 +109,8 @@
 - Include route and parameter context in generated exception throws.
 - Skip private and static lifecycle component methods during codegen.
 
+<!-- SWAGGER -->
+
 # revali_swagger_annotations
 
 ## 1.0.0
