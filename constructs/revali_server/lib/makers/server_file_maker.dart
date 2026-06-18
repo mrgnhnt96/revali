@@ -6,6 +6,7 @@ import 'package:code_builder/code_builder.dart';
 import 'package:revali_router/revali_router.dart' hide AllowOrigins, Method;
 import 'package:revali_server/converters/server_server.dart';
 import 'package:revali_server/makers/creators/create_app.dart';
+import 'package:revali_server/makers/creators/create_bind_server.dart';
 import 'package:revali_server/makers/creators/create_class.dart';
 import 'package:revali_server/makers/creators/create_dependency_injection.dart';
 import 'package:revali_server/makers/creators/create_mimic.dart';
@@ -119,31 +120,11 @@ String serverFile(
                     tryCatch(
                       refer('server')
                           .assign(
-                            refer('providedServer').ifNullThen(
-                              refer((HttpServer).name)
-                                  .property(
-                                    app.isSecure ? 'bindSecure' : 'bind',
-                                  )
-                                  .call(
-                                    [
-                                      refer('app').property('host'),
-                                      refer('app').property('port'),
-                                      if (app.isSecure)
-                                        refer('app')
-                                            .property('securityContext')
-                                            .nullChecked,
-                                    ],
-                                    {
-                                      if (app.isSecure)
-                                        'requestClientCertificate': refer(
-                                          'app',
-                                        ).property('requestClientCertificate'),
-                                      if (server.context.mode.isDebug)
-                                        'shared': literalTrue,
-                                    },
-                                  )
-                                  .awaited,
-                            ),
+                            bindServerCall(
+                              app: refer('app'),
+                              providedServer: refer('providedServer'),
+                              shared: server.context.mode.isDebug,
+                            ).awaited,
                           )
                           .statement,
                       Block.of([
@@ -251,7 +232,7 @@ String serverFile(
       ]),
   );
 
-  final parts = <Spec>[main, createServer];
+  final parts = <Spec>[createBindServerMethod(), main, createServer];
 
   final content = parts.map(formatter).join('\n');
 
