@@ -94,20 +94,11 @@
 
 # revali_server
 
-## 2.4.0
+## 2.4.1
 
 ### Features
 
-- Generate request wrapper lifecycle components and nest them in the pipeline.
-- Generate wildcard path parameter bindings.
-- Support `Stream<List<int>>` body parameters for file uploads.
-- Cast `Headers` to typed request/response header interfaces in generation.
-
-### Enhancements
-
-- Use Windows-safe forward-slash import paths in generated code.
-- Include route and parameter context in generated exception throws.
-- Skip private and static lifecycle component methods during codegen.
+- Bind server to dual-stack on `localhost` for IPv4 compatibility.
 
 <!-- SWAGGER -->
 

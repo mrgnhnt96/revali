@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.4.1 | 06.18.26
+
+### Features
+
+- Bind server to dual-stack on `localhost` for IPv4 compatibility.
+
 ## 2.4.0 | 06.17.26
 
 ### Features
