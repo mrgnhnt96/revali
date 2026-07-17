@@ -1,22 +1,29 @@
 import 'package:http/http.dart' show ClientException;
 
-/// Whether [error] means *the connection went away*, rather than *your data is
-/// wrong*.
+/// Whether [error] came from the transport rather than from the payload.
 ///
-/// Generated stream clients swallow disconnect noise so a peer hanging up does
+/// Generated stream clients swallow transport noise so a peer hanging up does
 /// not throw into user code. That suppression must be narrow: an error raised
-/// because the socket closed is not the same as an error raised because the
-/// payload could not be decoded, and only the first is safe to ignore.
+/// because the connection went away is not the same as an error raised because
+/// the payload could not be decoded, and only the first is safe to ignore.
 ///
-/// Errors arriving on a response stream from the default `http`-backed client
-/// are [ClientException]s -- `package:http` rewraps the SDK's `HttpException`
-/// on the body stream in `io_client.dart`, which itself narrows with
-/// `test: (error) => error is HttpException`.
+/// Errors surfacing on a response stream from the default `http`-backed client
+/// are [ClientException]s: `io_client.dart` rewraps the SDK's `HttpException`
+/// on the body stream, and `browser_client.dart` funnels its errors through
+/// `_rethrowAsClientException`.
 ///
-/// Deliberately type-based, never message-matching.
+/// Type-based, never message-matching.
 ///
-/// Limitation: a custom `HttpClient` that does not go through `package:http`
-/// will not raise [ClientException], so its transport errors surface to the
-/// consumer instead of being swallowed. That is arguably correct, but it is a
-/// real behavioural difference worth knowing.
-bool isDisconnectError(Object error) => error is ClientException;
+/// The parameter is [Object]-nullable because `Stream.handleError`'s `test:` is
+/// declared `bool test(error)` -- i.e. `bool Function(dynamic)`. Function
+/// parameters are contravariant, so `bool Function(Object)` will not bind.
+///
+/// Known breadth: [ClientException] is package:http's general error type, so
+/// this also matches "Client is already closed" and a malformed content-length
+/// -- neither is a disconnect. Named `isTransportError` rather than
+/// `isDisconnectError` so the name does not promise more than it delivers.
+///
+/// Known limitation: a custom `HttpClient` that does not go through
+/// `package:http` raises its own types, which this will not match -- so its
+/// transport errors surface to the consumer instead of being swallowed.
+bool isTransportError(Object? error) => error is ClientException;

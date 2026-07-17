@@ -310,7 +310,7 @@ packages:
       path: "../revali_client"
       relative: true
     source: path
-    version: "2.1.0"
+    version: "2.0.4"
   revali_construct:
     dependency: "direct main"
     description:
