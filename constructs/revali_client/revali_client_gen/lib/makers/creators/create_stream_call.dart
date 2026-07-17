@@ -53,34 +53,35 @@ List<Code> createStreamCall(ClientMethod method) {
           ).closure,
         ]),
         false => body,
-      }.ignoreDisconnects.yieldedStar.statement
+      }.ignoreTransportErrors.yieldedStar.statement
     else ...[
       declareFinal('stream').assign(body).statement,
       const Code(''),
-      mapOver(refer('stream')).ignoreDisconnects.yieldedStar.statement,
+      mapOver(refer('stream')).ignoreTransportErrors.yieldedStar.statement,
     ],
   ];
 }
 
 extension _Expression on Expression {
-  /// Swallow the noise of a peer disconnecting -- and nothing else.
+  /// Swallow transport noise -- and nothing else.
   ///
-  /// This suppression exists so a client does not throw into user code when
-  /// the connection simply goes away (3687886c, "improve error handling for
-  /// sse and websocket", which paired it with a server-side guard in
+  /// The suppression exists so a peer going away does not throw into user code
+  /// (3687886c, which paired it with a server-side guard in
   /// `handle_web_socket.dart`). That intent is preserved.
   ///
-  /// It was previously unconditional, which took real errors with it --
-  /// notably the `Exception('Invalid response')` that [parseJson] raises when
-  /// a payload does not match the expected shape. A swallowed error completes
-  /// the stream normally, so a decode failure surfaced as an empty-but-
-  /// successful stream, and a crashed stream was indistinguishable from a
-  /// finished one.
+  /// It was unconditional, which took real errors with it -- notably the
+  /// `Exception('Invalid response')` that [parseJson] raises when a payload
+  /// does not match the expected shape. A swallowed error completes the stream
+  /// normally, so a decode failure arrived as an empty-but-successful stream
+  /// and a crashed stream was indistinguishable from a finished one.
   ///
-  /// `test:` narrows it to exactly the case it was written for -- the same
-  /// idiom `package:http` uses one layer below (`io_client.dart`:
-  /// `test: (error) => error is HttpException`).
-  Expression get ignoreDisconnects {
+  /// `test:` narrows it to the transport case it was written for.
+  ///
+  /// The predicate is referenced by BARE name: this generator writes its
+  /// imports by hand and unprefixed (see `client_server.dart`), and the emitted
+  /// class lands in a `part` file, which cannot carry imports of its own.
+  /// `package:revali_client` is already in `additionalPackages`.
+  Expression get ignoreTransportErrors {
     return property('handleError').call(
       [
         Method(
@@ -89,12 +90,7 @@ extension _Expression on Expression {
             ..body = const Code('// do nothing\n'),
         ).closure,
       ],
-      {
-        'test': refer(
-          'isDisconnectError',
-          'package:revali_client/revali_client.dart',
-        ),
-      },
+      {'test': refer('isTransportError')},
     );
   }
 }

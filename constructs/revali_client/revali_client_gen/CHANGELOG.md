@@ -1,14 +1,5 @@
 # CHANGELOG
 
-## 2.5.1 | 10.19.26
-
-### Fixes
-
-- Narrow the generated stream `handleError` to disconnects only. It was
-  unconditional, so a decode failure (`Invalid response`) or an application error
-  was swallowed too and the stream completed normally — leaving a crashed stream
-  indistinguishable from a finished one. Disconnect suppression is unchanged.
-
 ## 2.5.0 | 08.15.26
 
 ### Fixes

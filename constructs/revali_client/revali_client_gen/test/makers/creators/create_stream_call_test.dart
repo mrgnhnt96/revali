@@ -7,53 +7,53 @@ import 'package:test/test.dart';
 
 void main() {
   group('createStreamCall', () {
-    ClientMethod method({required ClientType returnType}) {
-      return ClientMethod(
-        name: 'name',
-        parameters: [],
-        lifecycleComponents: [],
-        returnType: returnType,
-        isSse: true,
-        websocketType: WebsocketType.none,
-        path: 'path',
-        parentPath: '',
-        method: 'GET',
-        isExcluded: false,
-      );
-    }
-
-    ClientType stringStream() => ClientType(
-          name: 'Stream',
-          typeArguments: [ClientType(name: 'String')],
+    ClientMethod method(ClientType returnType) => ClientMethod(
+          name: 'name',
+          parameters: [],
+          lifecycleComponents: [],
+          returnType: returnType,
+          isSse: true,
+          websocketType: WebsocketType.none,
+          path: 'path',
+          parentPath: '',
+          method: 'GET',
+          isExcluded: false,
         );
 
-    String emit(List<Code> code) {
+    ClientType stream(String arg) =>
+        ClientType(name: 'Stream', isStream: true, typeArguments: [ClientType(name: arg)]);
+
+    String emit(ClientType returnType) {
       final emitter = DartEmitter.scoped(useNullSafetySyntax: true);
-      return code.map((c) => c.accept(emitter).toString()).join('\n');
+      return createStreamCall(method(returnType))
+          .map((c) => c.accept(emitter).toString())
+          .join('\n');
     }
 
-    test('swallows disconnects', () {
-      // The suppression from 3687886c is preserved: a peer going away must not
-      // throw into user code.
-      final result = emit(createStreamCall(method(returnType: stringStream())));
+    // Both call sites must narrow. The bytes branch (fromJson == null) and the
+    // mapOver branch are separate codepaths through this file, and a fixture
+    // for only one of them lets the bug be reintroduced on the other.
+    for (final (name, arg) in [('mapOver', 'String'), ('bytes', 'List<int>')]) {
+      test('narrows the swallow on the $name branch', () {
+        final result = emit(stream(arg));
 
-      expect(result, contains('handleError'));
-    });
+        expect(result, contains('handleError'), reason: 'suppression is kept');
+        expect(
+          result,
+          contains('test: isTransportError'),
+          reason: 'an unconditional handleError also eats decode and app errors',
+        );
+      });
 
-    test('does NOT swallow every error — the swallow is narrowed by test:', () {
-      // The regression this guards. handleError WITHOUT a test: swallows
-      // everything and completes the stream normally, so a decode failure
-      // (parseJson raises Exception('Invalid response')) arrived as an
-      // empty-but-successful stream, and a crashed stream was
-      // indistinguishable from a finished one.
-      final result = emit(createStreamCall(method(returnType: stringStream())));
+      test('refers to the predicate by BARE name on the $name branch', () {
+        // This generator writes its imports by hand and unprefixed, and the
+        // emitted class lands in a `part` file which cannot carry imports. A
+        // prefixed reference (_i1.isTransportError) therefore emits code whose
+        // import is never written: "Undefined name '_i1'".
+        final result = emit(stream(arg));
 
-      expect(
-        result,
-        contains('test:'),
-        reason: 'an unconditional handleError also eats decode and app errors',
-      );
-      expect(result, contains('isDisconnectError'));
-    });
+        expect(result, isNot(contains('_i')), reason: 'a prefix here does not compile');
+      });
+    }
   });
 }
