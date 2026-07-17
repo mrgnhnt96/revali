@@ -53,23 +53,48 @@ List<Code> createStreamCall(ClientMethod method) {
           ).closure,
         ]),
         false => body,
-      }.ignoreError.yieldedStar.statement
+      }.ignoreDisconnects.yieldedStar.statement
     else ...[
       declareFinal('stream').assign(body).statement,
       const Code(''),
-      mapOver(refer('stream')).ignoreError.yieldedStar.statement,
+      mapOver(refer('stream')).ignoreDisconnects.yieldedStar.statement,
     ],
   ];
 }
 
 extension _Expression on Expression {
-  Expression get ignoreError {
-    return property('handleError').call([
-      Method(
-        (b) => b
-          ..requiredParameters.add(Parameter((b) => b..name = '_'))
-          ..body = const Code('// do nothing\n'),
-      ).closure,
-    ]);
+  /// Swallow the noise of a peer disconnecting -- and nothing else.
+  ///
+  /// This suppression exists so a client does not throw into user code when
+  /// the connection simply goes away (3687886c, "improve error handling for
+  /// sse and websocket", which paired it with a server-side guard in
+  /// `handle_web_socket.dart`). That intent is preserved.
+  ///
+  /// It was previously unconditional, which took real errors with it --
+  /// notably the `Exception('Invalid response')` that [parseJson] raises when
+  /// a payload does not match the expected shape. A swallowed error completes
+  /// the stream normally, so a decode failure surfaced as an empty-but-
+  /// successful stream, and a crashed stream was indistinguishable from a
+  /// finished one.
+  ///
+  /// `test:` narrows it to exactly the case it was written for -- the same
+  /// idiom `package:http` uses one layer below (`io_client.dart`:
+  /// `test: (error) => error is HttpException`).
+  Expression get ignoreDisconnects {
+    return property('handleError').call(
+      [
+        Method(
+          (b) => b
+            ..requiredParameters.add(Parameter((b) => b..name = '_'))
+            ..body = const Code('// do nothing\n'),
+        ).closure,
+      ],
+      {
+        'test': refer(
+          'isDisconnectError',
+          'package:revali_client/revali_client.dart',
+        ),
+      },
+    );
   }
 }

@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 3.1.0 | 10.19.26
+
+### Features
+
+- Add `isDisconnectError`, so generated stream clients can swallow the noise of a
+  peer disconnecting without also swallowing real errors.
+
 ## 3.0.1 | 09.01.26
 
 ### Fixes
