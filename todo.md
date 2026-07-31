@@ -1,5 +1,61 @@
 # TODO
 
+# 7.31.26 — Analyzer performance (ByteStore cache)
+
+`import_ozempic` now uses the same on-disk analyzer cache DAS / `build_runner` rely on. We should do the same in `packages/revali/lib/ast/analyzer/analyzer.dart`.
+
+## What landed in import_ozempic
+
+Public `AnalysisContextCollection` always uses an ephemeral `MemoryByteStore`, so every process start (and every full re-init) re-links from scratch. Switch to the impl and inject a persistent store:
+
+```dart
+import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/file_byte_store.dart';
+import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
+
+_analysisCollection = AnalysisContextCollectionImpl(
+  includedPaths: [...],
+  resourceProvider: _memoryProvider, // keep our MemoryResourceProvider
+  sdkPath: await sdkPath,
+  byteStore: MemoryCachingByteStore(
+    EvictingFileByteStore(
+      // e.g. <project>/.dart_tool/revali/analysis-cache
+      cachePath,
+      256 * 1024 * 1024, // on-disk budget
+    ),
+    64 * 1024 * 1024, // in-process LRU
+  ),
+  fileContentCache: FileContentCache(_memoryProvider),
+);
+```
+
+Reference implementation: `import_ozempic` → `lib/domain/analyzer.dart`.
+
+In practice the second analysis pass on the same project dropped from ~85s → ~10s there once the byte store was warm.
+
+## Why this matters for Revali specifically
+
+- We already keep sources in a `MemoryResourceProvider` and refresh them on file watch — that is **file content**, not **analysis results**.
+- Linked element models / errors still get recomputed unless a `ByteStore` is provided.
+- `dev` keeps the process alive, so the in-memory LRU helps hot reload; the on-disk `EvictingFileByteStore` helps across CLI restarts and full `initialize()` rebuilds (we currently recreate `_memoryProvider` + ACC).
+- Private `analyzer/src/...` APIs — same class of dependency we already accept elsewhere; pin/test on analyzer bumps.
+
+## Suggested follow-ups while touching this
+
+- [x] Wire `AnalysisContextCollectionImpl` + `MemoryCachingByteStore(EvictingFileByteStore(...))` + `FileContentCache` in `Analyzer.initialize`
+- [x] Persist cache under `.dart_tool/revali/analysis-cache` (gitignore already covers `.dart_tool`)
+- [x] Confirm byte-store hits still work with our memory FS + `changeFile` / `applyPendingFileChanges` refresh path (invalidate correctly on content hash change — analyzer does this via content hashes)
+- [x] Consider `withFineDependencies: true` later for incremental `dev` re-analysis (more experimental; bigger win for long-lived sessions than cold one-shots)
+- [ ] Optional: stop resolving every file in a directory walk up front if we can filter first (import_ozempic deferred `getResolvedUnit` until after filters) — less critical for routes-only analysis
+
+## Background / links
+
+- DAS uses `ByteStore` this way; public ACC does not expose it ([analyzer#46914](https://github.com/dart-lang/sdk/issues/46914))
+- `build_runner` 2.12–2.14 performance work (file content cache, triggers, AOT) — [dart-lang/build#4405](https://github.com/dart-lang/build/pull/4405), [triggers docs](https://pub.dev/packages/build_config#triggers)
+
+---
+
 - [ ] Add support for generics in `fromJson` factories
 - [ ] Support multi path set-cookie headers
 - [ ] Add documentation on how to use `mkcert` to run the server with HTTPS
