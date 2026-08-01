@@ -9,6 +9,14 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+// ignore: implementation_imports
+import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
+// ignore: implementation_imports
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+// ignore: implementation_imports
+import 'package:analyzer/src/dart/analysis/file_byte_store.dart';
+// ignore: implementation_imports
+import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:package_config/package_config.dart' show loadPackageConfig;
@@ -18,6 +26,12 @@ import 'package:revali/ast/analyzer/units.dart';
 import 'package:revali/ast/find/interfaces/find.dart';
 import 'package:revali/utils/extensions/directory_extensions.dart';
 import 'package:revali/utils/package_config_resolution.dart';
+
+/// ~256 MiB on disk — same order of magnitude as analysis_server's cache.
+const _byteStoreMaxSizeBytes = 256 * 1024 * 1024;
+
+/// ~64 MiB in-process LRU in front of the on-disk store.
+const _memoryCacheMaxSizeBytes = 64 * 1024 * 1024;
 
 class Analyzer implements AnalyzerChanges {
   Analyzer({
@@ -147,10 +161,19 @@ class Analyzer implements AnalyzerChanges {
         null => <String>[],
       };
 
-      _analysisCollection = AnalysisContextCollection(
+      final cachePath = _ensureCacheDirectory(_root!);
+
+      _analysisCollection = AnalysisContextCollectionImpl(
         includedPaths: [_root!, ...dependencies],
         resourceProvider: _memoryProvider,
         sdkPath: await sdkPath,
+        byteStore: MemoryCachingByteStore(
+          EvictingFileByteStore(cachePath, _byteStoreMaxSizeBytes),
+          _memoryCacheMaxSizeBytes,
+        ),
+        fileContentCache: FileContentCache(_memoryProvider),
+        // Improves incremental re-analysis for long-lived `dev` sessions.
+        withFineDependencies: true,
       );
     } catch (e, st) {
       logger
@@ -444,6 +467,21 @@ class Analyzer implements AnalyzerChanges {
       recursive: false,
       ignoreDirs: const ['bin'],
     );
+  }
+
+  /// Persists linked analysis results under `.dart_tool/revali/analysis-cache`.
+  ///
+  /// Uses `dart:io` deliberately: [EvictingFileByteStore] writes to the real
+  /// filesystem, independent of our [MemoryResourceProvider] source overlay.
+  String _ensureCacheDirectory(String root) {
+    final cachePath = fs.path.join(
+      root,
+      '.dart_tool',
+      'revali',
+      'analysis-cache',
+    );
+    io.Directory(cachePath).createSync(recursive: true);
+    return cachePath;
   }
 
   Future<void> _createVirtualWorkspace(String workspace) async {
