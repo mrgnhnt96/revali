@@ -12,6 +12,9 @@ dart run revali dev --flavor dev
 
 Serves at `http://127.0.0.1:8090/api/stress/...`
 
+Uses `AppConfig.workers = Platform.numberOfProcessors` so connections are
+accepted across multiple isolates (`HttpServer.bind(..., shared: true)`).
+
 ## Stress
 
 ```bash
