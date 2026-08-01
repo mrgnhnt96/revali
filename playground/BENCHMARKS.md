@@ -25,3 +25,4 @@ Numbers are single-machine and noisy (±5–10%); compare relative deltas.
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | baseline | 1885 | 159.8 | 160 | 218 | 251 | 0 | stress |
 | 4-single-find | 2525 | 123.4 | 97 | 211 | 947 | 0 | stress |
+| 6-static-route-map | 18255 | 16.4 | 12 | 34 | 105 | 0 | stress |

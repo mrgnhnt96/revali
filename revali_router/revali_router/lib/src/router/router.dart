@@ -70,7 +70,9 @@ class Router extends Equatable {
     this.defaultResponses = const DefaultResponses(),
     this.trustedProxy = const TrustedProxy(),
   })  : _reflects = reflects,
-        _globalComponents = globalComponents;
+        _globalComponents = globalComponents {
+    _prepareRoutes(routes);
+  }
 
   final List<Observer> observers;
   final List<BaseRoute> routes;
@@ -81,6 +83,38 @@ class Router extends Equatable {
   final TrustedProxy trustedProxy;
 
   final List<void Function()> _cleanUp = [];
+
+  /// Exact `METHOD path` → invokable static route (no `:param` / `*`).
+  final Map<String, BaseRoute> _staticRoutes = {};
+
+  void _prepareRoutes(List<BaseRoute> level) {
+    for (final route in level) {
+      if (route.routes case final children?) {
+        _prepareRoutes(children);
+      }
+      if (route.isStatic && route.canInvoke) {
+        final path = route.fullSegments.join('/');
+        final method = route.method!;
+        _staticRoutes['$method $path'] = route;
+        if (method == 'GET') {
+          _staticRoutes['HEAD $path'] = route;
+        }
+      }
+    }
+  }
+
+  RouteMatch? _findMatch(List<String> segments, String method) {
+    final staticKey = '$method ${segments.join('/')}';
+    if (_staticRoutes[staticKey] case final route?) {
+      return RouteMatch(route);
+    }
+
+    return Find(
+      segments: segments,
+      routes: routes,
+      method: method,
+    ).run();
+  }
 
   /// End-to-end HTTP serve path used by `handleRouterRequests`.
   ///
@@ -135,11 +169,7 @@ class Router extends Equatable {
   }
 
   Future<ResponseHandler> responseHandler(RequestContext context) async {
-    final match = Find(
-      segments: context.segments.toList(),
-      routes: routes,
-      method: context.method,
-    ).run();
+    final match = _findMatch(context.segments.toList(), context.method);
 
     return _responseHandlerFor(match?.route);
   }
@@ -176,11 +206,7 @@ class Router extends Equatable {
 
       final segments = request.segments;
 
-      final match = Find(
-        segments: segments,
-        routes: routes,
-        method: request.method,
-      ).run();
+      final match = _findMatch(segments, request.method);
 
       responseHandler = _responseHandlerFor(match?.route);
 

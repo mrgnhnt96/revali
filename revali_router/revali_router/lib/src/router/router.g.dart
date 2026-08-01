@@ -16,5 +16,6 @@ extension _$RouterAutoequal on Router {
         defaultResponses,
         trustedProxy,
         _cleanUp,
+        _staticRoutes,
       ];
 }
