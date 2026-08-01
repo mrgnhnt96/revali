@@ -6,8 +6,11 @@ import 'package:revali_test/src/test_response.dart';
 
 class TestServer extends Stream<HttpRequest> implements HttpServer {
   TestServer()
-    : _controller = StreamController.broadcast(),
-      _webSocketResponses = StreamController.broadcast();
+    // Single-subscription buffers until `createServer` listens. A broadcast
+    // controller drops early `send()`/`connect()` events when setUp does not
+    // await createServer — which most suite packages historically omit.
+    : _controller = StreamController<HttpRequest>(),
+      _webSocketResponses = StreamController<List<int>>.broadcast();
 
   final StreamController<HttpRequest> _controller;
   final StreamController<List<int>> _webSocketResponses;
@@ -42,7 +45,9 @@ class TestServer extends Stream<HttpRequest> implements HttpServer {
       },
     );
 
-    _response?.completeError('Did not get a response before next request');
+    if (_response case final pending? when !pending.isCompleted) {
+      pending.completeError('Did not get a response before next request');
+    }
 
     _response = Completer<TestResponse>();
 

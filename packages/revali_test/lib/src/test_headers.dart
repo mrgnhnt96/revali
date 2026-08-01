@@ -96,10 +96,38 @@ class TestHeaders implements HttpHeaders {
 
   @override
   void set(String name, Object value, {bool preserveHeaderCase = false}) {
-    add(switch (name) {
+    final key = switch (name) {
       _ when preserveHeaderCase => name,
       _ => name.toLowerCase(),
-    }, value);
+    };
+
+    // Match dart:io: assigning date-like headers as DateTime formats as
+    // HttpDate; string values are stored as-is (also typically HttpDate).
+    switch (key) {
+      case HttpHeaders.dateHeader when value is DateTime:
+        date = value.toUtc();
+        return;
+      case HttpHeaders.expiresHeader when value is DateTime:
+        expires = value.toUtc();
+        return;
+      case HttpHeaders.ifModifiedSinceHeader when value is DateTime:
+        ifModifiedSince = value.toUtc();
+        return;
+      default:
+        add(key, value);
+        _invalidateParsed(key);
+    }
+  }
+
+  void _invalidateParsed(String key) {
+    switch (key) {
+      case HttpHeaders.dateHeader:
+        _date = null;
+      case HttpHeaders.expiresHeader:
+        _expires = null;
+      case HttpHeaders.ifModifiedSinceHeader:
+        _ifModifiedSince = null;
+    }
   }
 
   @override
@@ -139,31 +167,32 @@ class TestHeaders implements HttpHeaders {
 
   DateTime? _date;
   @override
-  DateTime? get date => _date ??= switch (_headers[HttpHeaders.dateHeader]) {
-    final String value => DateTime.tryParse(value),
-    _ => null,
-  };
+  DateTime? get date =>
+      _date ??= _parseHttpDate(_headers[HttpHeaders.dateHeader]);
 
   @override
   set date(DateTime? value) {
-    _add(HttpHeaders.dateHeader, value?.toIso8601String());
+    _add(
+      HttpHeaders.dateHeader,
+      value == null ? null : HttpDate.format(value.toUtc()),
+    );
 
-    _date = value;
+    _date = value?.toUtc();
   }
 
   DateTime? _expires;
   @override
   DateTime? get expires =>
-      _expires ??= switch (_headers[HttpHeaders.expiresHeader]) {
-        final String value => DateTime.tryParse(value),
-        _ => null,
-      };
+      _expires ??= _parseHttpDate(_headers[HttpHeaders.expiresHeader]);
 
   @override
   set expires(DateTime? value) {
-    _add(HttpHeaders.expiresHeader, value?.toIso8601String());
+    _add(
+      HttpHeaders.expiresHeader,
+      value == null ? null : HttpDate.format(value.toUtc()),
+    );
 
-    _expires = value;
+    _expires = value?.toUtc();
   }
 
   String? _host;
@@ -182,17 +211,18 @@ class TestHeaders implements HttpHeaders {
 
   DateTime? _ifModifiedSince;
   @override
-  DateTime? get ifModifiedSince => _ifModifiedSince ??=
-      switch (_headers[HttpHeaders.ifModifiedSinceHeader]) {
-        final String value => DateTime.tryParse(value),
-        _ => null,
-      };
+  DateTime? get ifModifiedSince => _ifModifiedSince ??= _parseHttpDate(
+    _headers[HttpHeaders.ifModifiedSinceHeader],
+  );
 
   @override
   set ifModifiedSince(DateTime? value) {
-    _add(HttpHeaders.expiresHeader, value?.toIso8601String());
+    _add(
+      HttpHeaders.ifModifiedSinceHeader,
+      value == null ? null : HttpDate.format(value.toUtc()),
+    );
 
-    _ifModifiedSince = value;
+    _ifModifiedSince = value?.toUtc();
   }
 
   int? _port;
@@ -246,6 +276,18 @@ class TestHeaders implements HttpHeaders {
         add(key, value);
       case null:
         _headers.remove(key);
+    }
+  }
+
+  static DateTime? _parseHttpDate(String? value) {
+    if (value == null) {
+      return null;
+    }
+
+    try {
+      return HttpDate.parse(value);
+    } on FormatException {
+      return DateTime.tryParse(value)?.toUtc();
     }
   }
 }

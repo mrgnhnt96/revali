@@ -4,6 +4,7 @@
 //
 // ignore_for_file: directives_ordering
 
+export 'src/expect_http_date.dart';
 export 'src/test_headers.dart';
 export 'src/test_http_connection_info.dart';
 export 'src/test_request.dart';
