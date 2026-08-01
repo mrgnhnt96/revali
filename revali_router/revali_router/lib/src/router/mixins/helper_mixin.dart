@@ -29,51 +29,42 @@ mixin HelperMixin {
   ContextMixin get context;
   RunMixin get run;
 
-  Iterable<Middleware> get middlewares {
-    return [
-      ...globalComponents.middlewares,
-      ...route.allMiddlewares,
-    ];
-  }
+  /// Cached per-request so we don't rebuild spreads on every lifecycle stage.
+  late final List<Middleware> middlewares = [
+    ...globalComponents.middlewares,
+    ...route.allMiddlewares,
+  ];
 
-  Iterable<RequestWrapper> get requestWrappers {
-    return [
-      ...globalComponents.requestWrappers,
-      ...route.allRequestWrappers,
-    ];
-  }
+  late final List<RequestWrapper> requestWrappers = [
+    ...globalComponents.requestWrappers,
+    ...route.allRequestWrappers,
+  ];
 
-  Iterable<Interceptor> get interceptors {
-    return [
-      ...globalComponents.interceptors,
-      ...route.allInterceptors,
-    ];
-  }
+  late final List<Interceptor> interceptors = [
+    ...globalComponents.interceptors,
+    ...route.allInterceptors,
+  ];
 
-  Iterable<Guard> get guards {
-    return [
-      ...globalComponents.guards,
-      ...route.allGuards,
-    ];
-  }
+  late final List<Guard> guards = [
+    ...globalComponents.guards,
+    ...route.allGuards,
+  ];
 
   // ignore: strict_raw_type
-  Iterable<ExceptionCatcher> get catchers {
-    return [
-      ...route.allCatchers,
-      ...globalComponents.catchers,
-    ]..sort((a, b) {
-        if (a is DefaultExceptionCatcher) {
-          return 1;
-        }
+  late final List<ExceptionCatcher> catchers = [
+    ...route.allCatchers,
+    ...globalComponents.catchers,
+  ]..sort((a, b) {
+      if (a is DefaultExceptionCatcher) {
+        return 1;
+      }
 
-        if (b is DefaultExceptionCatcher) {
-          return -1;
-        }
+      if (b is DefaultExceptionCatcher) {
+        return -1;
+      }
 
-        return 0;
-      });
-  }
+      return 0;
+    });
 
   Set<String> get allowedOrigins => {
         if (route.allowedOrigins?.inherit case final inherit? when inherit)

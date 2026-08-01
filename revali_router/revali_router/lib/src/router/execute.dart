@@ -45,11 +45,17 @@ class Execute {
         :request,
       ) = helper;
 
-      for (final observer in observers) {
-        observer.see(request, observerResponseFuture).ignore();
+      if (observers.isNotEmpty) {
+        for (final observer in observers) {
+          observer.see(request, observerResponseFuture).ignore();
+        }
       }
 
-      return _runPipeline(useHandlerZoneGuard: !useWrappers);
+      // Zone guard is for catching unawaited handler errors in debug.
+      // Skip it in release — large win on the hot path.
+      return _runPipeline(
+        useHandlerZoneGuard: !useWrappers && helper.debugResponses,
+      );
     }
 
     if (!useWrappers) {
@@ -65,6 +71,9 @@ class Execute {
       :request,
       :response,
       :debugErrorResponse,
+      middlewares: lifecycleMiddlewares,
+      guards: lifecycleGuards,
+      interceptors: lifecycleInterceptors,
       context: ContextMixin(main: context),
       run: RunMixin(
         :interceptors,
@@ -77,19 +86,25 @@ class Execute {
 
     final handler = route.handler!;
 
-    if (await middlewares() case final response?) {
-      return response;
+    if (lifecycleMiddlewares.isNotEmpty) {
+      if (await middlewares() case final response?) {
+        return response;
+      }
     }
 
-    if (await guards() case final response?) {
-      return response;
+    if (lifecycleGuards.isNotEmpty) {
+      if (await guards() case final response?) {
+        return response;
+      }
     }
 
     if (route is WebSocketRoute) {
       return await handleWebSocket(await handler(context)).execute();
     }
 
-    await interceptors.pre();
+    if (lifecycleInterceptors.isNotEmpty) {
+      await interceptors.pre();
+    }
 
     // if the user decides to create a HEAD request,
     // we still need to run the handler,
@@ -153,7 +168,9 @@ ${Trace.from(stack)}
       }
     }
 
-    await interceptors.post();
+    if (lifecycleInterceptors.isNotEmpty) {
+      await interceptors.post();
+    }
 
     return response;
   }

@@ -327,6 +327,9 @@ class Router extends Equatable {
   }
 
   void _notifyObservers(FullRequest request, Future<Response> response) {
+    if (observers.isEmpty) {
+      return;
+    }
     for (final observer in observers) {
       observer.see(request, response).ignore();
     }

@@ -29,3 +29,4 @@ deltas measured close together; outliers are marked.
 | 6-static-route-map | 18255 | 16.4 | 12 | 34 | 105 | 0 | stress | **outlier** (high) |
 | 6-recheck | 9964 | 30.0 | 23 | 66 | 149 | 0 | stress | same code as 6, later |
 | 2-body-byte-cache | 13476 | 22.2 | 19 | 40 | 104 | 0 | stress | after item 2 vs 6-recheck |
+| 3-empty-lifecycle | 9113 | 32.9 | 26 | 69 | 142 | 0 | stress | noisy; within variance band |
