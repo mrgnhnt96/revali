@@ -167,6 +167,52 @@ test:
   revali_swagger: |
     cd constructs/revali_swagger/revali_swagger || exit 1
     {$test:_test}
+  revali_test: |
+    cd packages/revali_test || exit 1
+    {$test:_test}
+  revali_server: |
+    cd constructs/revali_server || exit 1
+    {$test:_test}
+
+# Fast feedback loop: package unit tests only (no test_suite generate).
+# Prefer this while iterating on router/codegen/hot-reload changes.
+unit-test:
+  (aliases): ut
+  # Fast loop for router/codegen/package unit tests (no test_suite generate).
+  # Full e2e: `sip run ts` (target <1m warm with shared kernel + skip-if-fresh).
+  (command):
+    - (+) {$unit-test:router}
+    - (+) {$unit-test:server}
+    - (+) {$unit-test:client-gen}
+    - (+) {$unit-test:revali}
+    - (+) {$unit-test:construct}
+    - (+) {$unit-test:core}
+    - (+) {$unit-test:revali-test}
+    - (+) {$unit-test:swagger}
+  router: |
+    cd revali_router/revali_router || exit 1
+    sip test --bail --concurrent --no-version-check
+  server: |
+    cd constructs/revali_server || exit 1
+    sip test --bail --concurrent --no-version-check
+  client-gen: |
+    cd constructs/revali_client/revali_client_gen || exit 1
+    sip test --bail --concurrent --no-version-check
+  revali: |
+    cd packages/revali || exit 1
+    sip test --bail --concurrent --no-version-check
+  construct: |
+    cd packages/revali_construct || exit 1
+    sip test --bail --concurrent --no-version-check
+  core: |
+    cd packages/revali_core || exit 1
+    sip test --bail --concurrent --no-version-check
+  revali-test: |
+    cd packages/revali_test || exit 1
+    sip test --bail --concurrent --no-version-check
+  swagger: |
+    cd constructs/revali_swagger/revali_swagger || exit 1
+    sip test --bail --concurrent --no-version-check
 
 spell_check: cspell "./doc-site/docs/**/*" --config ".github/cspell/cspell.json"
 
@@ -184,23 +230,37 @@ publish:
 test-suite:
   (aliases): ts
   (command):
+    - |
+      # Tests-only path: skip comment/pub-get/generate entirely.
+      if [ -n "{--skip-gen}" ]; then
+        cd test_suite || exit 1
+        sip test --test-randomize-ordering-seed random --recursive --concurrent --no-version-check
+        exit $?
+      fi
     - "{$test-suite:pubspec:comment-out}"
     - cd test_suite && dart pub get {--offline}
     - (+) {$test-suite:revali_server}
     - (+) {$test-suite:revali_client}
     - (+) {$test-suite:revali_swagger}
     - "{$test-suite:pubspec:uncomment}"
-    - cd test_suite && dart pub get {--offline}
     - |
+      # Second pub get resolves generated `.revali` path deps after uncomment.
+      # Skip when nothing was uncommented (no generated packages present).
+      ROOT="$(pwd)"
+      if find "$ROOT/test_suite" -path '*/.revali/*' -name pubspec.yaml 2>/dev/null | grep -q .; then
+        (cd "$ROOT/test_suite" && dart pub get {--offline})
+      fi
+
       if [ "$GEN_ONLY" = "true" ]; then
         exit 0
       elif [ -n "{--gen-only}" ]; then
           exit 0
       fi
 
-      cd test_suite || exit 1
+      cd "$ROOT/test_suite" || exit 1
 
-      sip test --test-randomize-ordering-seed random --bail --recursive
+      # No --bail: with --concurrent, bail truncates the suite early.
+      sip test --test-randomize-ordering-seed random --recursive --concurrent --no-version-check
 
       if [ $? -ne 0 ]; then
         exit 1
@@ -211,7 +271,15 @@ test-suite:
     cd $TEST_DIR || exit 1
 
     if [ -z "{--skip-gen}" ]; then
-      dart run revali dev --generate-only --recompile
+      # Prefer skip-if-fresh (warm) / shared kernel (cold). Pass --recompile
+      # to force kernel rebuild, or --force-gen to regenerate without skip.
+      if [ -n "{--recompile}" ]; then
+        dart run revali dev --generate-only --recompile
+      elif [ -n "{--force-gen}" ]; then
+        dart run revali dev --generate-only
+      else
+        dart run revali dev --generate-only --skip-if-fresh
+      fi
     fi
 
     if [ ! $? = 0 ]; then
@@ -221,7 +289,7 @@ test-suite:
 
   pubspec:
     comment-out: |
-      ALL_PUBSPECS=$(find . -name "pubspec.yaml" -not -path ".revali")
+      ALL_PUBSPECS=$(find test_suite -name "pubspec.yaml" -not -path "*/.revali/*")
 
       for PUBSPEC in $ALL_PUBSPECS; do
         # get the line number of the first line that contains 'path: .revali/*'
@@ -235,7 +303,7 @@ test-suite:
       done
 
     uncomment: |
-      ALL_PUBSPECS=$(find . -name "pubspec.yaml" -not -path ".revali")  
+      ALL_PUBSPECS=$(find test_suite -name "pubspec.yaml" -not -path "*/.revali/*")
 
       for PUBSPEC in $ALL_PUBSPECS; do
         # get the line number of the first line that contains 'path: .revali/*'
