@@ -8,6 +8,7 @@ import 'package:collection/collection.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
+import 'package:package_config/package_config.dart';
 import 'package:revali/handlers/constructs_handler.dart';
 import 'package:revali/utils/extensions/directory_extensions.dart';
 import 'package:revali/utils/mixins/directories_mixin.dart';
@@ -133,6 +134,10 @@ class ConstructEntrypointHandler with DirectoriesMixin {
   /// Returns true when construct package sources are newer than the compiled
   /// kernel. Path dependencies (common in monorepos) change without updating
   /// construct.yaml, so asset equality alone is not enough.
+  ///
+  /// Also checks path packages the entrypoint imports (notably
+  /// `package:revali`) — the kernel AOT-compiles those sources, so edits
+  /// there must invalidate it.
   Future<bool> kernelIsStale(
     List<ConstructYaml> constructs,
     Directory root,
@@ -144,11 +149,10 @@ class ConstructEntrypointHandler with DirectoriesMixin {
 
     final kernelModified = kernel.lastModifiedSync();
 
-    for (final construct in constructs) {
-      final packageRoot = fs.directory(construct.packagePath);
+    Future<bool> libNewerThanKernel(Directory packageRoot) async {
       final libDir = packageRoot.childDirectory('lib');
       if (!libDir.existsSync()) {
-        continue;
+        return false;
       }
 
       await for (final entity in libDir.list(
@@ -159,10 +163,41 @@ class ConstructEntrypointHandler with DirectoriesMixin {
         if (!entity.path.endsWith('.dart')) continue;
 
         if (entity.lastModifiedSync().isAfter(kernelModified)) {
-          logger.detail('Construct source newer than kernel: ${entity.path}');
+          logger.detail('Source newer than kernel: ${entity.path}');
           return true;
         }
       }
+      return false;
+    }
+
+    for (final construct in constructs) {
+      if (await libNewerThanKernel(fs.directory(construct.packagePath))) {
+        return true;
+      }
+    }
+
+    // Entrypoint imports package:revali (and transitive path deps). Without
+    // this, monorepo edits to the CLI/analyzer never rebuild the construct
+    // kernel and hot-reload keeps running stale code.
+    try {
+      final packageConfigFile = await root.getPackageConfig();
+      if (packageConfigFile.existsSync()) {
+        final config = await loadPackageConfigUri(
+          packageConfigFile.absolute.uri,
+        );
+        for (final package in config.packages) {
+          if (!package.root.isScheme('file')) continue;
+          if (package.name != 'revali' && !package.name.startsWith('revali_')) {
+            continue;
+          }
+          final packageRoot = fs.directory(package.root.toFilePath());
+          if (await libNewerThanKernel(packageRoot)) {
+            return true;
+          }
+        }
+      }
+    } catch (e) {
+      logger.detail('Could not check path packages for kernel staleness: $e');
     }
 
     return false;
