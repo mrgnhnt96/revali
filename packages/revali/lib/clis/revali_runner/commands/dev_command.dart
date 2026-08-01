@@ -56,6 +56,13 @@ class DevCommand extends Command<int> with ConstructRunnerArgs {
         negatable: false,
         hide: true,
       )
+      ..addFlag(
+        'inspect',
+        help:
+            'Record recent requests to .revali/inspect/requests.jsonl '
+            '(sets REVALI_INSPECT / REVALI_INSPECT_LOG)',
+        negatable: false,
+      )
       ..addOption(
         'dart-vm-service-port',
         help:
@@ -88,6 +95,19 @@ class DevCommand extends Command<int> with ConstructRunnerArgs {
 
   @override
   String get description => 'Starts the development server';
+
+  @override
+  List<String> get constructRunnerArgs {
+    final args = super.constructRunnerArgs;
+    if (argResults?['inspect'] as bool? ?? false) {
+      args
+        ..add('--dart-define=REVALI_INSPECT=true')
+        ..add(
+          '--dart-define=REVALI_INSPECT_LOG=.revali/inspect/requests.jsonl',
+        );
+    }
+    return args;
+  }
 
   @override
   String get usage {

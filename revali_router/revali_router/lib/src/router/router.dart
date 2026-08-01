@@ -33,6 +33,7 @@ import 'package:revali_router/src/route/base_route.dart';
 import 'package:revali_router/src/route/lifecycle_components_impl.dart';
 import 'package:revali_router/src/route/route_match.dart';
 import 'package:revali_router/src/route/web_socket_route.dart';
+import 'package:revali_router/src/router/request_trace.dart';
 import 'package:revali_router/src/web_socket/async_web_socket_sender_impl.dart';
 import 'package:revali_router/src/web_socket/web_socket_close_impl.dart';
 import 'package:revali_router/src/web_socket/web_socket_context_impl.dart';
@@ -68,6 +69,8 @@ class Router extends Equatable {
     Set<ReflectData> reflects = const {},
     this.observers = const [],
     this.debug = false,
+    this.inspect = false,
+    this.inspectLogPath = '',
     this.defaultResponses = const DefaultResponses(),
     this.trustedProxy = const TrustedProxy(),
   })  : _reflects = reflects,
@@ -80,10 +83,20 @@ class Router extends Equatable {
   final Set<ReflectData> _reflects;
   final LifecycleComponents? _globalComponents;
   final bool debug;
+
+  /// When true (or [debug] is true), retain recent [RequestTrace]s in memory.
+  final bool inspect;
+
+  /// When non-empty, append JSONL traces for MCP / tooling.
+  final String inspectLogPath;
   final DefaultResponses defaultResponses;
   final TrustedProxy trustedProxy;
 
   final List<void Function()> _cleanUp = [];
+
+  /// Ring buffer of recent requests (newest last). Capped at 50.
+  final List<RequestTrace> debugRequestLog = [];
+  static const int _maxRequestTraces = 50;
 
   /// Exact `METHOD path` → invokable static route (no `:param` / `*`).
   final Map<String, BaseRoute> _staticRoutes = {};
@@ -123,12 +136,14 @@ class Router extends Equatable {
   /// older `handleRequests` + [responseHandler] + [handle] split which Finds
   /// twice per request.
   Future<void> handleRequest(HttpRequest httpRequest) async {
+    final started = DateTime.now();
     final context = RequestContextImpl.fromRequest(
       httpRequest,
       trustedProxy: trustedProxy,
     );
 
     final (response, responseHandler) = await _handleWithHandler(context);
+    _recordTrace(context, response, started);
     await responseHandler.handle(response, context, httpRequest.response);
   }
 
@@ -190,7 +205,9 @@ class Router extends Equatable {
   }
 
   Future<Response> handle(RequestContext context) async {
+    final started = DateTime.now();
     final (response, _) = await _handleWithHandler(context);
+    _recordTrace(context, response, started);
     return response;
   }
 
@@ -333,6 +350,42 @@ class Router extends Equatable {
     }
     for (final observer in observers) {
       observer.see(request, response).ignore();
+    }
+  }
+
+  void _recordTrace(
+    RequestContext context,
+    Response response,
+    DateTime started,
+  ) {
+    if (!debug && !inspect) {
+      return;
+    }
+
+    final trace = RequestTrace(
+      method: context.method,
+      path: context.segments.join('/'),
+      statusCode: response.statusCode,
+      durationMs: DateTime.now().difference(started).inMilliseconds,
+      error: response.statusCode >= 400 ? '${response.body.data}' : null,
+      at: started,
+    );
+
+    debugRequestLog.add(trace);
+    while (debugRequestLog.length > _maxRequestTraces) {
+      debugRequestLog.removeAt(0);
+    }
+
+    final logPath = inspectLogPath;
+    if (logPath.isNotEmpty) {
+      try {
+        final file = File(logPath);
+        file.parent.createSync(recursive: true);
+        file.writeAsStringSync(
+          '${jsonEncode(trace.toJson())}\n',
+          mode: FileMode.append,
+        );
+      } catch (_) {}
     }
   }
 

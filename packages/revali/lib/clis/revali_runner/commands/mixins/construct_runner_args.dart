@@ -15,7 +15,7 @@ mixin ConstructRunnerArgs on Command<int> {
       argsToPass.addAll(['--flavor', flavor]);
     }
 
-    const ignore = {'--recompile', '--skip-if-fresh'};
+    const ignore = {'--recompile', '--skip-if-fresh', '--inspect'};
 
     var skipNext = false;
     for (final entry in argResults.arguments) {

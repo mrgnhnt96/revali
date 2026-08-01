@@ -13,9 +13,12 @@ extension _$RouterAutoequal on Router {
         _reflects,
         _globalComponents,
         debug,
+        inspect,
+        inspectLogPath,
         defaultResponses,
         trustedProxy,
         _cleanUp,
+        debugRequestLog,
         _staticRoutes,
       ];
 }

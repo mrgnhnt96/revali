@@ -208,6 +208,15 @@ if (!isWorker && providedServer == null && app.workers > 1) {
                           refer((Router).name).newInstance([], {
                             if (server.context.mode.isNotRelease)
                               'debug': literalTrue,
+                            'inspect': refer('bool')
+                                .property('fromEnvironment')
+                                .call([literalString('REVALI_INSPECT')]),
+                            'inspectLogPath': refer('String')
+                                .property('fromEnvironment')
+                                .call(
+                                  [literalString('REVALI_INSPECT_LOG')],
+                                  {'defaultValue': literalString('')},
+                                ),
                             'routes': literalList([
                               refer('_routes').spread,
                               refer('public').spread,
