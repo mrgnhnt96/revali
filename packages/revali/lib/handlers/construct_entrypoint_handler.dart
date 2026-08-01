@@ -51,7 +51,9 @@ class ConstructEntrypointHandler with DirectoriesMixin {
       }
     }
 
-    final needsNewKernel = await checkAssets(constructs, root);
+    final needsNewKernel =
+        await checkAssets(constructs, root) ||
+        await kernelIsStale(constructs, root);
 
     if (!recompile && !needsNewKernel) {
       final kernel = await root.getInternalRevaliFile(kernelFile);
@@ -126,6 +128,44 @@ class ConstructEntrypointHandler with DirectoriesMixin {
 
     await saveAssets();
     return true;
+  }
+
+  /// Returns true when construct package sources are newer than the compiled
+  /// kernel. Path dependencies (common in monorepos) change without updating
+  /// construct.yaml, so asset equality alone is not enough.
+  Future<bool> kernelIsStale(
+    List<ConstructYaml> constructs,
+    Directory root,
+  ) async {
+    final kernel = await root.getInternalRevaliFile(kernelFile);
+    if (!kernel.existsSync()) {
+      return true;
+    }
+
+    final kernelModified = kernel.lastModifiedSync();
+
+    for (final construct in constructs) {
+      final packageRoot = fs.directory(construct.packagePath);
+      final libDir = packageRoot.childDirectory('lib');
+      if (!libDir.existsSync()) {
+        continue;
+      }
+
+      await for (final entity in libDir.list(
+        recursive: true,
+        followLinks: false,
+      )) {
+        if (entity is! File) continue;
+        if (!entity.path.endsWith('.dart')) continue;
+
+        if (entity.lastModifiedSync().isAfter(kernelModified)) {
+          logger.detail('Construct source newer than kernel: ${entity.path}');
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
   Future<void> createEntrypoint(
