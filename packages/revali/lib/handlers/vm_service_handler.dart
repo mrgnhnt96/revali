@@ -143,9 +143,18 @@ class VMServiceHandler {
     // mid-reload are queued via [_pendingReload] instead of being dropped.
 
     try {
-      final server = await codeGenerator(_progress?.update);
+      var server = await codeGenerator(_progress?.update);
       _progress?.update('Restarting server process');
-      await _restartServerProcess();
+      try {
+        await _restartServerProcess();
+      } catch (e) {
+        // AI-style delete/create races can leave the first regen briefly
+        // inconsistent; one disk-synced retry usually recovers.
+        logger.detail('Restart failed ($e); regenerating and retrying once');
+        _progress?.update('Recovering');
+        server = await codeGenerator(_progress?.update);
+        await _restartServerProcess();
+      }
       _progress?.complete('Reloaded');
       clearConsole();
       printVmServiceUri();
@@ -241,18 +250,20 @@ class VMServiceHandler {
   }
 
   void printInputCommands() {
-    if (!io.stdin.hasTerminal) {
-      return;
-    }
-
     final buffer = StringBuffer()
       ..write(darkGray.wrap('Press: '))
       ..write(yellow.wrap('r'))
-      ..write(darkGray.wrap(' to reload, '))
+      ..write(darkGray.wrap(' reload, '))
       ..write(yellow.wrap('c'))
-      ..write(darkGray.wrap(' to clear, '))
+      ..write(darkGray.wrap(' clear, '))
       ..write(yellow.wrap('q'))
-      ..write(darkGray.wrap(' to quit'));
+      ..write(darkGray.wrap(' quit'));
+
+    if (!io.stdin.hasTerminal) {
+      buffer
+        ..write(darkGray.wrap(' — or write to '))
+        ..write(yellow.wrap(_devCommandFileName));
+    }
 
     logger.write('$buffer\n');
   }
@@ -325,6 +336,13 @@ class VMServiceHandler {
   }
 
   Future<void> _restartServerProcess() async {
+    final artifact = io.File(serverFile);
+    if (!artifact.existsSync()) {
+      throw StateError(
+        'Cannot restart: generated server is missing at $serverFile',
+      );
+    }
+
     _intentionalServerRestart = true;
     try {
       await _killServerProcess();
@@ -334,6 +352,12 @@ class VMServiceHandler {
       var attempts = 0;
       while (true) {
         attempts++;
+        if (!artifact.existsSync()) {
+          throw StateError(
+            'Generated server disappeared at $serverFile during restart',
+          );
+        }
+
         final ready = Completer<void>();
         var processExitedEarly = false;
 
@@ -455,12 +479,22 @@ class VMServiceHandler {
 
   void watchForInput() {
     try {
-      // Create broadcast stream controller once from stdin
-      if (_stdinController == null) {
+      // Create broadcast stream controller once from stdin. Headless / AI
+      // launches often get an immediately-closed stdin — do not poison the
+      // controller permanently when that happens.
+      if (_stdinController == null || _stdinController!.isClosed) {
         _stdinController = StreamController<List<int>>.broadcast();
+        _stdinSourceSubscription?.cancel();
         _stdinSourceSubscription = io.stdin.listen(
           (event) => _stdinController?.add(event),
-          onDone: () => _stdinController?.close(),
+          onDone: () {
+            logger.detail('stdin closed; hotkeys unavailable until restart');
+            _stdinSourceSubscription = null;
+          },
+          onError: (Object e) {
+            logger.detail('stdin error: $e');
+          },
+          cancelOnError: false,
         );
       }
 
@@ -471,24 +505,12 @@ class VMServiceHandler {
       lockInput();
 
       _inputSubscription = _stdinController?.stream.listen((event) {
-        var key = utf8.decode(event).toLowerCase().trim();
-        if (key.isEmpty && event.length == 1) {
-          key = '${event[0]}';
-        }
-        logger.detail('key: $key');
-
-        final _ = switch (key) {
-          'r' || 'R' => _reload().ignore(),
-          'c' || 'C' => _cleanConsole(),
-          'q' || 'Q' => stop().ignore(),
-          _ => null,
-        };
+        _handleDevCommand(utf8.decode(event));
       });
     } catch (e) {
       logger
-        ..err('Failed to connect to stdin, cannot watch for input')
-        ..detail('$e');
-      return;
+        ..detail('stdin not available (headless/AI mode): $e')
+        ..detail('Use .revali_cmd file for r/c/q commands instead');
     }
 
     logger.detail('Watching for kill signal');
@@ -522,6 +544,41 @@ class VMServiceHandler {
     });
   }
 
+  /// Handles interactive keys and headless `.revali_cmd` file commands.
+  void _handleDevCommand(String raw) {
+    final key = raw.toLowerCase().trim();
+    if (key.isEmpty) return;
+
+    logger.detail('dev command: $key');
+
+    final _ = switch (key) {
+      'r' || 'reload' => _reload().ignore(),
+      'c' || 'clear' => _cleanConsole(),
+      'q' || 'quit' || 'exit' => stop().ignore(),
+      _ => null,
+    };
+  }
+
+  Future<void> _handleDevCommandFile(String path) async {
+    try {
+      final file = io.File(path);
+      if (!file.existsSync()) return;
+      final raw = await file.readAsString();
+      // Truncate so the next write is a fresh command.
+      await file.writeAsString('');
+      for (final line in raw.split(RegExp(r'[\r\n]+'))) {
+        _handleDevCommand(line);
+      }
+    } catch (e) {
+      logger.detail('Failed to read .revali_cmd: $e');
+    }
+  }
+
+  static const _devCommandFileName = '.revali_cmd';
+
+  bool _isDevCommandPath(String path) =>
+      p.basename(path) == _devCommandFileName;
+
   bool _isPathExcluded(String path) {
     final normalizedPath = p.normalize(p.absolute(path));
     final basename = p.basename(normalizedPath);
@@ -553,6 +610,16 @@ class VMServiceHandler {
         .asyncMap((event) async {
           final WatchEvent(:type, :path) = event;
 
+          // Handle immediately (not debounced) so a trailing `r` command
+          // cannot swallow a preceding route-file change in the debounce
+          // window.
+          if (_isDevCommandPath(path)) {
+            if (type != ChangeType.REMOVE) {
+              await _handleDevCommandFile(path);
+            }
+            return null;
+          }
+
           if (type == ChangeType.REMOVE) {
             await onFileRemove(path);
           } else {
@@ -561,6 +628,8 @@ class VMServiceHandler {
 
           return event;
         })
+        .where((event) => event != null)
+        .cast<WatchEvent>()
         .debounce(const Duration(milliseconds: 300))
         .listen((event) {
           final WatchEvent(:type, :path) = event;
