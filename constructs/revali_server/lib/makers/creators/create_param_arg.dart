@@ -34,7 +34,7 @@ final impliedArguments = <String, Expression>{
   (Context).name: refer('context'),
   // --- data ---
   (Data).name: refer('context').property('data'),
-  (CleanUp).name: refer('context').property('data').property('get').call([]).ifNullThen(createMissingArgumentException(key: 'cleanUp', location: '@data').thrown.parenthesized),
+  (CleanUp).name: refer('context').property('data').property('get').call([]).ifNullThen(createMissingArgumentException(key: 'cleanUp', location: '@data', expectedType: 'CleanUp').thrown.parenthesized),
   // --- reflect ---
   (Reflect).name: refer('context').property('reflect'),
 };

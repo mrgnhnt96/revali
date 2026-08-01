@@ -35,17 +35,14 @@ void main() {
         path: '/api/query/required',
       );
 
-      expect(response.statusCode, 500);
+      expect(response.statusCode, 400);
       expect(
         response.body,
         startsWith('''
-Internal Server Error
+Bad Request
 
 __DEBUG__:
-Error: MissingArgumentException: key: shopId, location: @query
-
-Stack Trace:
-.revali/server/routes/__query_route.dart'''),
+Error: MissingArgumentException: key: shopId, location: @query'''),
       );
     });
 
@@ -72,17 +69,14 @@ Stack Trace:
     test('all should return error when not provided', () async {
       final response = await server.send(method: 'GET', path: '/api/query/all');
 
-      expect(response.statusCode, 500);
+      expect(response.statusCode, 400);
       expect(
         response.body,
         startsWith('''
-Internal Server Error
+Bad Request
 
 __DEBUG__:
-Error: MissingArgumentException: key: shopId, location: @query (all)
-
-Stack Trace:
-.revali/server/routes/__query_route.dart'''),
+Error: MissingArgumentException: key: shopId, location: @query (all)'''),
       );
     });
 

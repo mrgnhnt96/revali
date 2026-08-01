@@ -49,11 +49,15 @@ class RunCatchers {
       context: ContextMixin(main: context),
     ) = helper;
 
-    defaultResponse ??= defaultResponses.internalServerError;
+    // Binding failures are client errors unless a catcher handles them.
+    final fallback = defaultResponse ??
+        (e is MissingArgumentException
+            ? defaultResponses.badRequest
+            : defaultResponses.internalServerError);
 
     if (e is! Exception) {
       return debugErrorResponse(
-        defaultResponse,
+        fallback,
         error: e,
         stackTrace: stackTrace,
       );
@@ -74,7 +78,7 @@ class RunCatchers {
           response
             .._overrideWith(
               statusCode: statusCode,
-              backupCode: 500,
+              backupCode: e is MissingArgumentException ? 400 : 500,
               headers: headers,
               body: body,
             ),
@@ -85,7 +89,7 @@ class RunCatchers {
     }
 
     return debugErrorResponse(
-      defaultResponse,
+      fallback,
       error: e,
       stackTrace: stackTrace,
     );

@@ -15,6 +15,7 @@ import 'package:revali_router/src/exceptions/close_web_socket_exception.dart';
 import 'package:revali_router/src/exceptions/guard_stop_exception.dart';
 import 'package:revali_router/src/exceptions/invalid_handler_result_exception.dart';
 import 'package:revali_router/src/exceptions/middleware_stop_exception.dart';
+import 'package:revali_router/src/exceptions/missing_argument_exception.dart';
 import 'package:revali_router/src/exceptions/missing_handler_exception.dart';
 import 'package:revali_router/src/exceptions/route_not_found_exception.dart';
 import 'package:revali_router/src/meta/meta_scope_impl.dart';

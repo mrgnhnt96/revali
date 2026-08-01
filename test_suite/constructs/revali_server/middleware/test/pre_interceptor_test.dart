@@ -66,11 +66,11 @@ void main() {
         path: '/api/pre/interceptor/auth-user-throws',
       );
 
-      expect(response.statusCode, 500);
+      expect(response.statusCode, 400);
       expect(
         response.body,
         startsWith('''
-Internal Server Error
+Bad Request
 
 __DEBUG__:
 Error: MissingArgumentException: key: data, location: @data

@@ -36,17 +36,14 @@ void main() {
         path: '/api/header/required',
       );
 
-      expect(response.statusCode, 500);
+      expect(response.statusCode, 400);
       expect(
         response.body,
         startsWith('''
-Internal Server Error
+Bad Request
 
 __DEBUG__:
-Error: MissingArgumentException: key: X-Shop-Id, location: @header
-
-Stack Trace:
-.revali/server/routes/__header_route.dart'''),
+Error: MissingArgumentException: key: X-Shop-Id, location: @header'''),
       );
     });
 
@@ -78,17 +75,14 @@ Stack Trace:
         path: '/api/header/all',
       );
 
-      expect(response.statusCode, 500);
+      expect(response.statusCode, 400);
       expect(
         response.body,
         startsWith('''
-Internal Server Error
+Bad Request
 
 __DEBUG__:
-Error: MissingArgumentException: key: X-Shop-Id, location: @header (all)
-
-Stack Trace:
-.revali/server/routes/__header_route.dart'''),
+Error: MissingArgumentException: key: X-Shop-Id, location: @header (all)'''),
       );
     });
 

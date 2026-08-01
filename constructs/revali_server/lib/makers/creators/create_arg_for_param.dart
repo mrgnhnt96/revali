@@ -151,9 +151,13 @@ Expression createArgForParam(
             const Code('List()'),
           ],
         ]): literalNull,
-      const Code('_'): createMissingArgumentException(
+      Block.of([
+        declareFinal('mismatched', type: refer('Object?')).code,
+      ]): createMissingArgumentException(
         key: annotation.name ?? param.name,
         location: annotation.type.location,
+        expectedType: param.type.nonNullName,
+        actualType: actualTypeOf(refer('mismatched')),
       ).thrown,
     },
   });

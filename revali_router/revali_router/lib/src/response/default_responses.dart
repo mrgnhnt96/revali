@@ -4,10 +4,12 @@ class DefaultResponses {
   const DefaultResponses({
     SimpleResponse? internalServerError,
     SimpleResponse? notFound,
+    SimpleResponse? badRequest,
     SimpleResponse? failedCorsOrigin,
     SimpleResponse? failedCorsHeaders,
   })  : _internalServerError = internalServerError,
         _notFound = notFound,
+        _badRequest = badRequest,
         _failedCorsOrigin = failedCorsOrigin,
         _failedCorsHeaders = failedCorsHeaders;
 
@@ -32,6 +34,18 @@ class DefaultResponses {
     return SimpleResponse(
       404,
       body: 'Not Found',
+    );
+  }
+
+  final SimpleResponse? _badRequest;
+  SimpleResponse get badRequest {
+    if (_badRequest case final response?) {
+      return response;
+    }
+
+    return SimpleResponse(
+      400,
+      body: 'Bad Request',
     );
   }
 
