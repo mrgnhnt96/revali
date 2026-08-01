@@ -25,6 +25,18 @@ dart run bin/stress.dart --concurrency 100 --duration 10s --mix all
 
 Mixes: `ping`, `delay`, `error`, `heavy`, `all`.
 
+## Hot reload churn
+
+With `revali dev --flavor dev` running:
+
+```bash
+./bin/churn_hot_reload.sh   # add/remove controllers, broken→fixed
+./bin/churn_ai_ready.sh     # parallel AI-style writes + .revali_cmd hotkeys
+```
+
+Headless reload (no TTY): write `r`, `c`, or `q` to `.revali_cmd` in the
+playground root.
+
 ## Bench (stable ping RPS)
 
 ```bash

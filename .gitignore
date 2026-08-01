@@ -66,3 +66,7 @@ FAILED_PUSH.md
 coverage/
 constructs/revali_server/bin/tester.dart
 FAILED_COMMIT.md
+
+# Dev CLI headless command channel
+.revali_cmd
+**/.revali_cmd
