@@ -484,6 +484,18 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
     }
 
     yield* traverse(this);
+
+    // Prefix routes used for OPTIONS aggregation should surface expected
+    // headers from empty-path children (same URL as the parent).
+    if (method == null) {
+      if (routes case final childRoutes?) {
+        for (final child in childRoutes) {
+          if (child.path.isEmpty) {
+            yield* traverse(child);
+          }
+        }
+      }
+    }
   }
 
   @override
