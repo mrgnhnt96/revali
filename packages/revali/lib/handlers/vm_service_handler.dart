@@ -169,19 +169,28 @@ class VMServiceHandler {
   void lockInput() {
     if (!io.stdin.hasTerminal) return;
 
-    io.stdin.echoMode = false;
-    io.stdin.lineMode = false;
-    // hide cursor
-    io.stdout.write('\x1B[?25l');
+    try {
+      io.stdin.echoMode = false;
+      io.stdin.lineMode = false;
+      // hide cursor
+      io.stdout.write('\x1B[?25l');
+    } on io.StdinException {
+      // Pseudo-TTYs / redirected stdin can report hasTerminal=true but still
+      // reject mode changes (e.g. errno 19). Continue without raw input.
+    }
   }
 
   void unlockInput() {
     if (!io.stdin.hasTerminal) return;
 
-    io.stdin.echoMode = true;
-    io.stdin.lineMode = true;
-    // show cursor
-    io.stdout.write('\x1B[?25h');
+    try {
+      io.stdin.echoMode = true;
+      io.stdin.lineMode = true;
+      // show cursor
+      io.stdout.write('\x1B[?25h');
+    } on io.StdinException {
+      // See [lockInput].
+    }
   }
 
   void clearConsole() {
