@@ -82,6 +82,21 @@ class Router extends Equatable {
 
   final List<void Function()> _cleanUp = [];
 
+  /// End-to-end HTTP serve path used by `handleRouterRequests`.
+  ///
+  /// Performs a **single** route Find, then writes the response — unlike the
+  /// older `handleRequests` + [responseHandler] + [handle] split which Finds
+  /// twice per request.
+  Future<void> handleRequest(HttpRequest httpRequest) async {
+    final context = RequestContextImpl.fromRequest(
+      httpRequest,
+      trustedProxy: trustedProxy,
+    );
+
+    final (response, responseHandler) = await _handleWithHandler(context);
+    await responseHandler.handle(response, context, httpRequest.response);
+  }
+
   /// Handles an HTTP request.
   ///
   /// Passes the request to the [handle] method.
@@ -126,7 +141,11 @@ class Router extends Equatable {
       method: context.method,
     ).run();
 
-    return match?.route.responseHandler ??
+    return _responseHandlerFor(match?.route);
+  }
+
+  ResponseHandler _responseHandlerFor(BaseRoute? route) {
+    return route?.responseHandler ??
         _globalComponents?.responseHandler ??
         const DefaultResponseHandler();
   }
@@ -140,9 +159,17 @@ class Router extends Equatable {
   }
 
   Future<Response> handle(RequestContext context) async {
+    final (response, _) = await _handleWithHandler(context);
+    return response;
+  }
+
+  Future<(Response, ResponseHandler)> _handleWithHandler(
+    RequestContext context,
+  ) async {
     final responseCompleter = Completer<Response>();
 
     HelperMixin helper;
+    late final ResponseHandler responseHandler;
 
     try {
       final request = RequestImpl.fromRequest(context);
@@ -154,6 +181,8 @@ class Router extends Equatable {
         routes: routes,
         method: request.method,
       ).run();
+
+      responseHandler = _responseHandlerFor(match?.route);
 
       if (match == null) {
         final response = _debugResponse(
@@ -169,7 +198,7 @@ class Router extends Equatable {
 
         responseCompleter.complete(response);
 
-        return response;
+        return (response, responseHandler);
       }
 
       final RouteMatch(:route, :pathParameters) = match;
@@ -199,6 +228,7 @@ class Router extends Equatable {
         observerResponseFuture: responseCompleter.future,
       );
     } catch (e, stackTrace) {
+      responseHandler = _responseHandlerFor(null);
       final response = _debugResponse(
         defaultResponses.internalServerError,
         error: e,
@@ -212,7 +242,7 @@ class Router extends Equatable {
 
       responseCompleter.complete(response);
 
-      return response;
+      return (response, responseHandler);
     }
 
     final cleanUp = helper.data.get<CleanUp>();
@@ -226,7 +256,7 @@ class Router extends Equatable {
 
     responseCompleter.complete(response);
 
-    return response;
+    return (response, responseHandler);
   }
 
   Future<Response> _handle(HelperMixin helper) async {

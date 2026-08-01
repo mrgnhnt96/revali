@@ -24,3 +24,4 @@ Numbers are single-machine and noisy (±5–10%); compare relative deltas.
 | label | RPS | mean ms | p50 ms | p95 ms | p99 ms | failed | tool |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | baseline | 1885 | 159.8 | 160 | 218 | 251 | 0 | stress |
+| 4-single-find | 2525 | 123.4 | 97 | 211 | 947 | 0 | stress |

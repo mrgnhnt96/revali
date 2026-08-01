@@ -244,20 +244,12 @@ if (!isWorker && providedServer == null && app.workers > 1) {
                         )
                         .statement,
                     const Code('\n'),
-                    refer('handleRequests')
-                        .call(
-                          [
-                            refer('server'),
-                            refer('router').property('handle'),
-                            refer('router').property('responseHandler'),
-                            refer('router').property('close'),
-                          ],
-                          {
-                            'trustedProxy': refer(
-                              'router',
-                            ).property('trustedProxy'),
-                          },
-                        )
+                    refer('handleRouterRequests')
+                        .call([
+                          refer('server'),
+                          refer('router'),
+                          refer('router').property('close'),
+                        ])
                         .property('ignore')
                         .call([])
                         .statement,
