@@ -9,8 +9,10 @@ abstract base class AppConfig {
     required this.host,
     required this.port,
     this.prefix = _defaultPrefix,
+    this.workers = 1,
   })  : securityContext = null,
-        requestClientCertificate = false;
+        requestClientCertificate = false,
+        assert(workers >= 1, 'workers must be >= 1');
 
   const AppConfig.secure({
     required this.host,
@@ -18,7 +20,8 @@ abstract base class AppConfig {
     required SecurityContext this.securityContext,
     this.requestClientCertificate = false,
     this.prefix = _defaultPrefix,
-  });
+    this.workers = 1,
+  }) : assert(workers >= 1, 'workers must be >= 1');
 
   const AppConfig.defaultApp()
       : this(
@@ -33,6 +36,12 @@ abstract base class AppConfig {
   final String? prefix;
   final bool requestClientCertificate;
   final SecurityContext? securityContext;
+
+  /// Number of isolates that accept connections on [port].
+  ///
+  /// When greater than 1, each isolate binds with `shared: true` so the OS
+  /// distributes connections across workers. Defaults to 1 (single isolate).
+  final int workers;
 
   DI initializeDI() => DIImpl();
 

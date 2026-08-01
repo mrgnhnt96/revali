@@ -7,6 +7,7 @@ base class AppConfig extends core.AppConfig {
     required super.host,
     required super.port,
     super.prefix,
+    super.workers,
   });
 
   const AppConfig.secure({
@@ -15,6 +16,7 @@ base class AppConfig extends core.AppConfig {
     required super.securityContext,
     super.requestClientCertificate,
     super.prefix,
+    super.workers,
   }) : super.secure();
 
   AppConfig.defaultApp() : super.defaultApp();
