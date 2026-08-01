@@ -7,6 +7,7 @@ import 'package:revali_server/makers/part_files/public_file_maker.dart';
 import 'package:revali_server/makers/part_files/reflects_file_maker.dart';
 import 'package:revali_server/makers/part_files/route_file_maker.dart';
 import 'package:revali_server/makers/part_files/routes_file_maker.dart';
+import 'package:revali_server/makers/routes_manifest_maker.dart';
 import 'package:revali_server/makers/server_file_maker.dart';
 import 'package:revali_server/models/options.dart';
 
@@ -41,6 +42,7 @@ class RevaliServerConstruct implements ServerConstruct {
             ...lifecycleComponentFilesMaker(component, format),
         ],
       ),
+      additionalFiles: [routesManifestFile(serverServer)],
     );
   }
 }
