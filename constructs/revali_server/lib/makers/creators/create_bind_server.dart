@@ -76,10 +76,9 @@ return await HttpServer.bind(host, app.port, shared: shared, v6Only: v6Only);
 Expression bindServerCall({
   required Expression app,
   required Expression providedServer,
-  required bool shared,
+  required Expression shared,
 }) {
-  return refer('_bindServer').call(
-    [app],
-    {'providedServer': providedServer, if (shared) 'shared': literalTrue},
-  );
+  return refer(
+    '_bindServer',
+  ).call([app], {'providedServer': providedServer, 'shared': shared});
 }

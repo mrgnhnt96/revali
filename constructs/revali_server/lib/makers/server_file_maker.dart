@@ -1,6 +1,7 @@
 // ignore_for_file: unnecessary_parenthesis
 
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:code_builder/code_builder.dart';
 import 'package:revali_router/revali_router.dart' hide AllowOrigins, Method;
@@ -26,6 +27,7 @@ String serverFile(
       "// ignore_for_file: ${options.ignoreLints.join(', ')}\n",
     "import 'dart:io';",
     "import 'dart:async';",
+    "import 'dart:isolate';",
     '',
     "import 'package:path/path.dart' as p;",
     for (final imprt in {
@@ -44,6 +46,8 @@ String serverFile(
     throw Exception('No app found');
   }
 
+  final isDebug = server.context.mode.isDebug;
+
   final main = Method(
     (b) => b
       ..name = 'main'
@@ -56,7 +60,7 @@ String serverFile(
         ),
       )
       ..body = Block.of([
-        if (server.context.mode.isDebug)
+        if (isDebug)
           refer('hotReload').call([
             Method(
               (b) => b
@@ -68,6 +72,25 @@ String serverFile(
           ]).statement
         else
           refer('createServer').call([literalNull, refer('args')]).statement,
+      ]),
+  );
+
+  // Worker entry sets a per-isolate flag so createServer keeps its positional
+  // signature (used by tests as createServer(httpServer)).
+  final workerEntrypoint = Method(
+    (b) => b
+      ..name = '_revaliWorkerMain'
+      ..returns = refer('void')
+      ..requiredParameters.add(
+        Parameter(
+          (p) => p
+            ..name = 'args'
+            ..type = refer('List<String>'),
+        ),
+      )
+      ..body = Block.of([
+        refer('_revaliIsWorker').assign(literalTrue).statement,
+        refer('createServer').call([literalNull, refer('args')]).statement,
       ]),
   );
 
@@ -96,6 +119,8 @@ String serverFile(
         ),
       ])
       ..body = Block.of([
+        declareFinal('isWorker').assign(refer('_revaliIsWorker')).statement,
+        refer('_revaliIsWorker').assign(literalFalse).statement,
         declareFinal('args')
             .assign(
               refer((Args).name).newInstanceNamed('parse', [refer('rawArgs')]),
@@ -105,6 +130,19 @@ String serverFile(
           'app',
           type: refer((AppConfig).name),
         ).assign(createApp(app)).statement,
+        const Code('''
+if (!isWorker && providedServer == null && app.workers > 1) {
+  for (final isolate in _revaliWorkerIsolates) {
+    isolate.kill(priority: Isolate.immediate);
+  }
+  _revaliWorkerIsolates = <Isolate>[];
+  for (var i = 1; i < app.workers; i++) {
+    _revaliWorkerIsolates.add(
+      await Isolate.spawn(_revaliWorkerMain, rawArgs),
+    );
+  }
+}
+'''),
         refer('app')
             .property('runStartup')
             .call([
@@ -123,7 +161,12 @@ String serverFile(
                             bindServerCall(
                               app: refer('app'),
                               providedServer: refer('providedServer'),
-                              shared: server.context.mode.isDebug,
+                              shared: isDebug
+                                  ? literalTrue
+                                  : refer('app')
+                                        .property('workers')
+                                        .greaterThan(literalNum(1))
+                                        .or(refer('isWorker')),
                             ).awaited,
                           )
                           .statement,
@@ -219,9 +262,11 @@ String serverFile(
                         .call([])
                         .statement,
                     const Code('\n'),
+                    const Code('if (!isWorker) {'),
                     refer('app').property('onServerStarted').call([
                       refer('server'),
                     ]).statement,
+                    const Code('}'),
                     const Code('\n'),
                     refer('server').returned.statement,
                   ]),
@@ -232,7 +277,24 @@ String serverFile(
       ]),
   );
 
-  final parts = <Spec>[createBindServerMethod(), main, createServer];
+  final parts = <Spec>[
+    declareVar(
+      '_revaliWorkerIsolates',
+      type: TypeReference(
+        (t) => t
+          ..symbol = 'List'
+          ..types.add(refer((Isolate).name)),
+      ),
+    ).assign(literalList([], refer((Isolate).name))).statement,
+    declareVar(
+      '_revaliIsWorker',
+      type: refer('bool'),
+    ).assign(literalFalse).statement,
+    createBindServerMethod(),
+    workerEntrypoint,
+    main,
+    createServer,
+  ];
 
   final content = parts.map(formatter).join('\n');
 
