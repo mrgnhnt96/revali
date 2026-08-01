@@ -18,6 +18,17 @@ class HelloController {
 }
 ```
 
+## CLI
+
+```bash
+dart run revali dev
+dart run revali routes [--generate] [--json]
+dart run revali doctor
+dart run revali create controller
+```
+
+See the [root README](../../README.md) and [AGENTS.md](../../AGENTS.md) for routes/doctor/create, HTTP 400 binding errors, `@RequestId()`, and the `revali_mcp` agent server.
+
 ## Documentation
 
 Check out the [documentation](https://www.revali.dev/) for more information on how to use Revali.

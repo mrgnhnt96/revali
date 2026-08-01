@@ -25,6 +25,27 @@ class ExampleController {
 
 To learn more about how Revali can help simplify your backend development workflow, including advanced topics like dependency injection, WebSocket management, and custom middleware, please visit [revali.dev](https://revali.dev) for the full documentation.
 
+## CLI
+
+```bash
+dart run revali --help
+
+dart run revali dev [--inspect] [--skip-if-fresh] [--recompile]
+dart run revali routes [--generate] [--json]   # .revali/server/routes.json
+dart run revali doctor [--json]
+dart run revali create controller|app|lifecycle-component|pipe|observer
+```
+
+`create` proxies to `dart run revali_server create` (scaffolds still live in `revali_server`).
+
+Missing / invalid request bindings raise `MissingArgumentException` and map to **HTTP 400**. Prefer `LifecycleComponent` for new middleware; `@RequestId()` is available as a built-in kit.
+
+## Agents & MCP
+
+- Contributor / agent conventions: [AGENTS.md](./AGENTS.md)
+- Cursor skill: [`.cursor/skills/revali`](./.cursor/skills/revali/SKILL.md)
+- Stdio MCP server: [`packages/revali_mcp`](./packages/revali_mcp) (`list_routes`, `get_route`, `doctor`, `recent_requests`, `create_scaffold`)
+
 ## Contributing
 
 We welcome contributions!

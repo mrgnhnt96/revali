@@ -8,6 +8,19 @@ sidebar_position: 0
 
 Lifecycle components are classes that are used to manage the lifecycle of a request. Specifically, they are used to manage the request from the time it is received by the server to the time it is sent back to the client. Each can have dedicated tasks, such as logging, authentication, or authorization.
 
+:::tip Preferred API
+Build new middleware with **`LifecycleComponent`** (method return types select the role). Annotate the app, controller, or endpoint with `@MyComponent()` or `@LifecycleComponents([MyComponent])`.
+
+Classic `implements Middleware` / `Guard` / `Interceptor` / `ExceptionCatcher` interfaces remain supported for advanced cases — see [Middleware](./advanced/middleware.md) and siblings under Advanced.
+:::
+
+## Built-in kits
+
+| Kit | Usage |
+|-----|--------|
+| `@RequestId()` | Ensure `X-Request-Id` (or a custom header) on every request |
+| `@AllowOrigins(...)` | CORS allowed origins (access control, not a LifecycleComponent) |
+
 ## App Lifecycle
 
 Since Lifecycle Components are used for requests, they are called upon when a request is received by the server.

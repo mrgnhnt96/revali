@@ -10,11 +10,29 @@ The Revali Server CLI is your development companion, providing powerful code gen
 
 ## Getting Started
 
-The CLI is accessed through the `dart run revali_server` command. To see all available options:
+Scaffolding is implemented by `revali_server`, and is also reachable from the main Revali CLI:
 
 ```bash
+dart run revali --help
+dart run revali create --help
+
+# equivalent:
 dart run revali_server --help
+dart run revali_server create
 ```
+
+Other project tooling on `dart run revali`:
+
+| Command | Purpose |
+|---------|---------|
+| `dev` / `build` | Generate and run / build |
+| `routes` | List routes from `.revali/server/routes.json` (`--generate`, `--json`) |
+| `doctor` | SDK, constructs, kernel cache, output freshness |
+| `create` | Proxy to `revali_server create` |
+
+### MCP (agents)
+
+From the app package directory (where `.revali/` is written), run `dart run revali_mcp` (package `packages/revali_mcp` on the path / as a path dependency). See root `AGENTS.md` for Cursor `mcp.json` snippet.
 
 ## Code Generation Made Easy
 
@@ -25,7 +43,8 @@ The `create` command is your gateway to rapid development. It generates boilerpl
 The easiest way to get started is with interactive mode:
 
 ```bash
-dart run revali_server create
+dart run revali create
+# or: dart run revali_server create
 ```
 
 This will present you with a menu of available components to generate, making it perfect for beginners or when you're unsure what you need.
@@ -34,52 +53,52 @@ This will present you with a menu of available components to generate, making it
 
 For faster development, you can create components directly:
 
-#### 🎯 Controllers
+#### Controllers
 
 Generate API endpoint controllers with proper routing setup.
 
 ```bash
-dart run revali_server create controller
+dart run revali create controller
 ```
 
 **What you get:** A fully configured controller class with the `@Controller` annotation and example methods.
 
-#### 🏗️ Apps
+#### Apps
 
 Create application configuration files for complex setups.
 
 ```bash
-dart run revali_server create app
+dart run revali create app
 ```
 
 **What you get:** A complete app configuration with middleware, routing, and lifecycle management.
 
-#### 🔄 Lifecycle Components
+#### Lifecycle Components
 
 Generate components that hook into the application lifecycle.
 
 ```bash
-dart run revali_server create lifecycle-component # or lc for short
+dart run revali create lifecycle-component # or lc for short
 ```
 
 **What you get:** A component class with lifecycle method stubs and proper annotations.
 
-#### 👀 Observers
+#### Observers
 
 Create event observers for monitoring and logging.
 
 ```bash
-dart run revali_server create observer
+dart run revali create observer
 ```
 
 **What you get:** An observer class with event handling methods and proper registration.
 
-#### 🔧 Pipes
+#### Pipes
 
 Generate data transformation and validation pipes.
 
 ```bash
-dart run revali_server create pipe
+dart run revali create pipe
 ```
 
 **What you get:** A pipe class with transformation logic and proper error handling.
@@ -127,6 +146,6 @@ revali_server:
 Now that you know how to use the CLI, you're ready to:
 
 1. **[Create your first endpoint](./create-your-first-endpoint.md)** - Use the CLI to generate a controller and build your first API
-2. **[Run your server](./run-the-server.md)** - Start the development server and see your code in action
+2. **[Run the server](./run-the-server.md)** - Start the development server and see your code in action
 
 Ready to build something amazing? Let's create your first endpoint!

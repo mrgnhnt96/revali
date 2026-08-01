@@ -26,7 +26,8 @@ class MyComponent implements LifecycleComponent {
 Try using the [`create` cli][create-cli] to generate the components for you!
 
 ```bash
-dart run revali_server create lifecycle-component
+dart run revali create lifecycle-component
+# or: dart run revali_server create lifecycle-component
 ```
 
 :::

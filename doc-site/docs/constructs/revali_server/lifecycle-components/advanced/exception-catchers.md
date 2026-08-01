@@ -6,6 +6,13 @@ sidebar_position: 6
 
 An `ExceptionCatcher` is a Lifecycle Component that allows you to catch exceptions that are thrown during the request lifecycle. No matter where the exception is thrown, the request flow is aborted and the exception is caught by the server. The `ExceptionCatcher`'s responsibility is to handle certain types of exceptions and prepare an error response to be sent back to the client.
 
+## Recipes
+
+- Prefer a **domain exception → 4xx** catcher for expected client failures (`ValidationException`, `UnauthorizedException`, etc.).
+- Do **not** use `ExceptionCatcher<Exception>` as a typed catcher — the runtime requires a concrete subtype (see below). Use `DefaultExceptionCatcher` only when you intentionally want a catch-all.
+- Prefer the free `LifecycleComponent` form (method returning `ExceptionCatcherResult<MyError>`) for new code; classic `extends ExceptionCatcher<T>` remains supported.
+- **`MissingArgumentException`** (missing/invalid `@Query`/`@Body`/… bindings) is mapped by the framework to **HTTP 400** automatically — you do not need a custom catcher unless you want a different body shape.
+
 ## Create an ExceptionCatcher
 
 To create an `ExceptionCatcher`, you need to extend the `ExceptionCatcher` class and implement the `catchException` method. The `catchException` will only be called if the exception thrown is an instance of the type specified in the type argument of the `ExceptionCatcher` class.
