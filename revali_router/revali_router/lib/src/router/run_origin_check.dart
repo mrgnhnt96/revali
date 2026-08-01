@@ -67,13 +67,15 @@ class RunOriginCheck {
       HttpHeaders.accessControlRequestHeadersHeader,
     );
 
-    for (final header in request.headers.keys) {
-      if (preventedHeaders.contains(header)) {
-        return debugErrorResponse(
-          defaultResponses.failedCorsHeaders,
-          error: 'Header is not allowed.',
-          stackTrace: StackTrace.current,
-        );
+    if (preventedHeaders.isNotEmpty) {
+      for (final header in request.headers.keys) {
+        if (preventedHeaders.contains(header)) {
+          return debugErrorResponse(
+            defaultResponses.failedCorsHeaders,
+            error: 'Header is not allowed.',
+            stackTrace: StackTrace.current,
+          );
+        }
       }
     }
 

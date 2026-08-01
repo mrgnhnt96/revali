@@ -8,6 +8,7 @@ base class AppConfig extends core.AppConfig {
     required super.port,
     super.prefix,
     super.workers,
+    super.backlog,
   });
 
   const AppConfig.secure({
@@ -17,6 +18,7 @@ base class AppConfig extends core.AppConfig {
     super.requestClientCertificate,
     super.prefix,
     super.workers,
+    super.backlog,
   }) : super.secure();
 
   AppConfig.defaultApp() : super.defaultApp();

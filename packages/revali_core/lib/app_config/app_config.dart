@@ -10,9 +10,11 @@ abstract base class AppConfig {
     required this.port,
     this.prefix = _defaultPrefix,
     this.workers = 1,
+    this.backlog = 0,
   })  : securityContext = null,
         requestClientCertificate = false,
-        assert(workers >= 1, 'workers must be >= 1');
+        assert(workers >= 1, 'workers must be >= 1'),
+        assert(backlog >= 0, 'backlog must be >= 0');
 
   const AppConfig.secure({
     required this.host,
@@ -21,7 +23,9 @@ abstract base class AppConfig {
     this.requestClientCertificate = false,
     this.prefix = _defaultPrefix,
     this.workers = 1,
-  }) : assert(workers >= 1, 'workers must be >= 1');
+    this.backlog = 0,
+  })  : assert(workers >= 1, 'workers must be >= 1'),
+        assert(backlog >= 0, 'backlog must be >= 0');
 
   const AppConfig.defaultApp()
       : this(
@@ -42,6 +46,12 @@ abstract base class AppConfig {
   /// When greater than 1, each isolate binds with `shared: true` so the OS
   /// distributes connections across workers. Defaults to 1 (single isolate).
   final int workers;
+
+  /// Listen backlog passed to [HttpServer.bind] / [HttpServer.bindSecure].
+  ///
+  /// `0` means use the OS default. Raise under connection bursts when using
+  /// multiple [workers].
+  final int backlog;
 
   DI initializeDI() => DIImpl();
 

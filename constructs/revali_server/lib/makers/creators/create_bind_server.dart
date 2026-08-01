@@ -64,10 +64,17 @@ if (app.securityContext case final context?) {
     requestClientCertificate: app.requestClientCertificate,
     v6Only: v6Only,
     shared: shared,
+    backlog: app.backlog,
   );
 }
 
-return await HttpServer.bind(host, app.port, shared: shared, v6Only: v6Only);
+return await HttpServer.bind(
+  host,
+  app.port,
+  shared: shared,
+  v6Only: v6Only,
+  backlog: app.backlog,
+);
 '''),
       ]),
   );

@@ -10,6 +10,19 @@ class DefaultResponseHandler
     implements ResponseHandler {
   const DefaultResponseHandler();
 
+  static String? _cachedHttpDate;
+  static int _cachedHttpDateSecond = -1;
+
+  static String _httpDateNow() {
+    final now = DateTime.now().toUtc();
+    final second = now.millisecondsSinceEpoch ~/ 1000;
+    if (second != _cachedHttpDateSecond) {
+      _cachedHttpDateSecond = second;
+      _cachedHttpDate = HttpDate.format(now);
+    }
+    return _cachedHttpDate!;
+  }
+
   @override
   Future<void> handle(
     Response response,
@@ -62,7 +75,7 @@ class DefaultResponseHandler
     }
 
     if (!responseHeaders.keys.contains(HttpHeaders.dateHeader)) {
-      http.headers.date = DateTime.now().toUtc();
+      http.headers.set(HttpHeaders.dateHeader, _httpDateNow());
     }
 
     /// Disallow body for certain status codes
