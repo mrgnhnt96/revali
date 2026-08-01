@@ -107,6 +107,18 @@ Expression createArgForParam(
       paramType: param.type,
       fromJson: fromJson,
     ),
+    // Query/header values are coerced (e.g. "5" → 5, "true" → true). When the
+    // parameter type is String, accept those primitives and stringify them
+    // instead of throwing MissingArgumentException.
+    if (rawType == 'String')
+      Block.of([declareFinal('data', type: refer('Object')).code]): refer(
+        'data',
+      ).property('toString').call([]),
+    // Coerced ints should satisfy double parameters (`?n=5` → 5).
+    if (rawType == 'double')
+      Block.of([declareFinal('data', type: refer('num')).code]): refer(
+        'data',
+      ).property('toDouble').call([]),
     if (param.defaultValue case final defaultValue?)
       const Code('_'): CodeExpression(Code(defaultValue))
     else ...{
