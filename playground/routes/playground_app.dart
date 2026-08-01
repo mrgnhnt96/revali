@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:revali_router/revali_router.dart';
 
 @App(flavor: 'dev')
@@ -8,6 +6,8 @@ final class PlaygroundApp extends AppConfig {
     : super(
         host: 'localhost',
         port: 8090,
-        workers: Platform.numberOfProcessors,
+        // Single isolate while stressing hot reload; multi-worker respawn
+        // is a separate failure mode.
+        workers: 1,
       );
 }
