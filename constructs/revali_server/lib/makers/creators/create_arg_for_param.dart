@@ -96,9 +96,21 @@ Expression createArgForParam(
     false => getRawType(param.type).replaceAll('?', ''),
   };
 
+  // Coerced query/header multi-values are `List<dynamic>` / `Set<dynamic>`.
+  // JSON bodies decode sets as `List`. A pattern of `List<String>` / `Set`
+  // never matches those at runtime, so match the unspecialized iterable and
+  // let [createPromotedArgValue] cast / toSet elements.
+  final patternType = switch (rawType) {
+    final type when type.startsWith('List') => 'List',
+    // JSON has no Set; decoded arrays are List. Iterable matches both.
+    final type when type.startsWith('Set') => 'Iterable',
+    final type when type.startsWith('Iterable') => 'Iterable',
+    _ => rawType,
+  };
+
   return createSwitchPattern(variable, {
     Block.of([
-      declareFinal('data', type: refer(rawType)).code,
+      declareFinal('data', type: refer(patternType)).code,
       if (rawType.startsWith('Map')) ...[
         const Code('when'),
         refer('data').property('isNotEmpty').code,
@@ -109,11 +121,17 @@ Expression createArgForParam(
     ),
     // Query/header values are coerced (e.g. "5" → 5, "true" → true). When the
     // parameter type is String, accept those primitives and stringify them
-    // instead of throwing MissingArgumentException.
-    if (rawType == 'String')
-      Block.of([declareFinal('data', type: refer('Object')).code]): refer(
+    // instead of throwing MissingArgumentException. Do not match arbitrary
+    // Object (e.g. empty JSON Map `{}`) — that should fall through to the
+    // default / missing-argument arms.
+    if (rawType == 'String') ...{
+      Block.of([declareFinal('data', type: refer('num')).code]): refer(
         'data',
       ).property('toString').call([]),
+      Block.of([declareFinal('data', type: refer('bool')).code]): refer(
+        'data',
+      ).property('toString').call([]),
+    },
     // Coerced ints should satisfy double parameters (`?n=5` → 5).
     if (rawType == 'double')
       Block.of([declareFinal('data', type: refer('num')).code]): refer(

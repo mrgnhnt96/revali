@@ -18,8 +18,21 @@ dynamic coerceDynamic(dynamic value) {
 
 dynamic coerce(String value) {
   final attempts = [
-    () => int.parse(value),
-    () => double.parse(value),
+    () {
+      // Keep leading-zero forms as strings (`007`, `05`, `-01`). Numeric
+      // parse would drop the zeros, and String query/header bindings that
+      // stringify coerced values would then return the wrong wire form.
+      if (_hasLeadingZero(value)) {
+        throw const FormatException();
+      }
+      return int.parse(value);
+    },
+    () {
+      if (_hasLeadingZero(value)) {
+        throw const FormatException();
+      }
+      return double.parse(value);
+    },
     () {
       final decoded = jsonDecode(value);
       return decoded is Map || decoded is List
@@ -42,4 +55,9 @@ dynamic coerce(String value) {
   }
 
   return value;
+}
+
+bool _hasLeadingZero(String value) {
+  // `0` / `-0` are fine as ints; `00`, `007`, `-01` must stay strings.
+  return RegExp(r'^-?0\d').hasMatch(value);
 }

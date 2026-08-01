@@ -43,6 +43,18 @@ void main() {
       expect(coerce('foo'), 'foo');
     });
 
+    test('preserves leading zeros as strings', () {
+      expect(coerce('007'), '007');
+      expect(coerce('05'), '05');
+      expect(coerce('00'), '00');
+      expect(coerce('-01'), '-01');
+    });
+
+    test('still coerces a bare zero to int', () {
+      expect(coerce('0'), 0);
+      expect(coerce('-0'), 0);
+    });
+
     test('should coerce nested maps without Dart toString', () {
       const wire = '''
 {"table":"logs","where":{"type":"in","column":"level","values":["verbose","trace"]},"limit":50}''';
