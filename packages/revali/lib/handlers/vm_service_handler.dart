@@ -55,6 +55,12 @@ class VMServiceHandler {
   final List<String> hotReloadExclude;
 
   bool _isReloading = false;
+  bool _pendingReload = false;
+  bool _intentionalServerRestart = false;
+
+  /// Bumped whenever watchers are torn down so stale `asFuture` handlers
+  /// do not call [stop] after an intentional cancel/restart.
+  int _watcherGeneration = 0;
   bool _enableHotReload = false;
   void Function()? _serveOnReady;
 
@@ -93,20 +99,36 @@ class VMServiceHandler {
 
   String _vmServiceUri = '';
 
+  /// Coalesce rapid file-change reloads and restart the child process so
+  /// newly added/removed libraries (controllers, apps) take effect.
+  ///
+  /// Dart VM hot reload cannot reliably load new libraries, so regenerating
+  /// `.revali/` alone is not enough when route files appear or disappear.
   Future<void> _reload([String? path]) async {
     if (_isReloading) {
-      logger.detail('Still reloading, skipping');
+      _pendingReload = true;
+      logger.detail('Reload in progress; queued follow-up reload');
       return;
     }
 
     _isReloading = true;
+    try {
+      do {
+        _pendingReload = false;
+        await _performReload();
+      } while (_pendingReload && !isCompleted);
+    } finally {
+      _isReloading = false;
+    }
+  }
 
+  Future<void> _performReload() async {
     if (!isServerRunning) {
       _progress = logger.progress('Restarting server');
       try {
         await serve(enableHotReload: _enableHotReload, onReady: _serveOnReady);
       } finally {
-        _isReloading = false;
+        _progress = null;
       }
       return;
     }
@@ -114,34 +136,39 @@ class VMServiceHandler {
     _progress = logger.progress('Reloading');
 
     if (await checkForErrors()) {
-      _isReloading = false;
       return;
     }
 
-    await _cancelWatcherSubscription();
+    // Keep the file watcher alive during regen/restart so edits that land
+    // mid-reload are queued via [_pendingReload] instead of being dropped.
 
-    final server = await codeGenerator(_progress?.update);
-    _progress?.complete('Reloaded');
-    clearConsole();
-    printVmServiceUri();
-    printParsedRoutes(server.routes);
+    try {
+      final server = await codeGenerator(_progress?.update);
+      _progress?.update('Restarting server process');
+      await _restartServerProcess();
+      _progress?.complete('Reloaded');
+      clearConsole();
+      printVmServiceUri();
+      printParsedRoutes(server.routes);
 
-    logger.flush((message) {
-      if (message == null) return;
-      final lines = message.split('\n');
-      final updatedMessage = [for (final line in lines) '[FLUSHED]: $line'];
-      logger.detail('[FLUSHED]: $updatedMessage');
+      logger.flush((message) {
+        if (message == null) return;
+        final lines = message.split('\n');
+        final updatedMessage = [for (final line in lines) '[FLUSHED]: $line'];
+        logger.detail('[FLUSHED]: $updatedMessage');
 
-      if (!message.contains(RegExp('error|fail', caseSensitive: false))) {
-        return;
-      }
+        if (!message.contains(RegExp('error|fail', caseSensitive: false))) {
+          return;
+        }
 
-      logger.err(message);
-    });
-
-    await watchForFileChanges();
-    watchForInput();
-    _isReloading = false;
+        logger.err(message);
+      });
+    } catch (e, st) {
+      _progress?.fail('Failed to reload');
+      logger
+        ..err('$e')
+        ..detail('$st');
+    }
   }
 
   Future<bool> checkForErrors() async {
@@ -150,7 +177,6 @@ class VMServiceHandler {
       return false;
     }
 
-    _isReloading = false;
     clearConsole();
     _progress?.fail('Failed to reload');
     logger
@@ -271,17 +297,90 @@ class VMServiceHandler {
     }
 
     logger.detail('Killing server process');
-    _isReloading = false;
     final process = _serverProcess;
     if (process == null) {
       return;
     }
+    // Clear before kill so exit handlers can treat this as intentional when
+    // [_intentionalServerRestart] is set.
+    _serverProcess = null;
+
     if (io.Platform.isWindows) {
       await io.Process.run('taskkill', ['/F', '/T', '/PID', '${process.pid}']);
-    } else {
-      process.kill();
+      return;
     }
-    _serverProcess = null;
+
+    process.kill();
+    try {
+      await process.exitCode.timeout(const Duration(seconds: 3));
+    } on TimeoutException {
+      logger.detail('Server did not exit after SIGTERM; sending SIGKILL');
+      process.kill(io.ProcessSignal.sigkill);
+      try {
+        await process.exitCode.timeout(const Duration(seconds: 2));
+      } on TimeoutException {
+        logger.warn('Server process did not exit after SIGKILL');
+      }
+    }
+  }
+
+  Future<void> _restartServerProcess() async {
+    _intentionalServerRestart = true;
+    try {
+      await _killServerProcess();
+      // Allow the OS to release the listen port before rebinding.
+      await Future<void>.delayed(const Duration(milliseconds: 350));
+
+      var attempts = 0;
+      while (true) {
+        attempts++;
+        final ready = Completer<void>();
+        var processExitedEarly = false;
+
+        await serve(
+          enableHotReload: _enableHotReload,
+          onReady: () {
+            _serveOnReady?.call();
+            if (!ready.isCompleted) {
+              ready.complete();
+            }
+          },
+        );
+
+        final started = _serverProcess;
+        if (started != null) {
+          started.exitCode.then((code) {
+            if (!ready.isCompleted) {
+              processExitedEarly = true;
+              ready.completeError(
+                StateError('Server exited during startup (code $code)'),
+              );
+            }
+          }).ignore();
+        }
+
+        try {
+          await ready.future.timeout(const Duration(seconds: 45));
+          return;
+        } catch (e) {
+          logger.detail('Server restart attempt $attempts failed: $e');
+          await _killServerProcess();
+          if (attempts >= 3) {
+            logger.err(
+              'Failed to restart server process after $attempts attempts',
+            );
+            rethrow;
+          }
+          // Back off harder when the port is still held.
+          await Future<void>.delayed(Duration(milliseconds: 500 * attempts));
+          if (processExitedEarly) {
+            continue;
+          }
+        }
+      }
+    } finally {
+      _intentionalServerRestart = false;
+    }
   }
 
   // Internal method to cancel the watcher subscription.
@@ -292,6 +391,7 @@ class VMServiceHandler {
       return;
     }
 
+    _watcherGeneration++;
     logger.detail('Cancelling file watchers');
     await _watcherSubscription?.cancel();
     _watcherSubscription = null;
@@ -402,6 +502,13 @@ class VMServiceHandler {
           ]);
 
     _killSubscription ??= stream.listen((event) {
+      // Killing the child during hot-reload restart must not tear down the
+      // parent CLI (signals can surface here when the child shares a group).
+      if (_intentionalServerRestart || _isReloading) {
+        logger.detail('Ignoring $event during reload/restart');
+        return;
+      }
+
       logger.detail('Received process signal: $event');
       if (attemptsToKill > 0) {
         logger.detail('Second signal received, forcing exit');
@@ -439,6 +546,8 @@ class VMServiceHandler {
       return;
     }
 
+    final generation = _watcherGeneration;
+
     // Watch the root directory
     _watcherSubscription = DirectoryWatcher(root.path).events
         .asyncMap((event) async {
@@ -452,7 +561,7 @@ class VMServiceHandler {
 
           return event;
         })
-        .debounce(Duration.zero)
+        .debounce(const Duration(milliseconds: 300))
         .listen((event) {
           final WatchEvent(:type, :path) = event;
 
@@ -466,11 +575,17 @@ class VMServiceHandler {
     _watcherSubscription
         ?.asFuture<void>()
         .then((_) async {
+          if (generation != _watcherGeneration || isCompleted) {
+            return;
+          }
           logger.detail('Root directory watcher closed normally');
           await _cancelWatcherSubscription();
           await stop();
         })
         .catchError((Object e, StackTrace st) async {
+          if (generation != _watcherGeneration || isCompleted) {
+            return;
+          }
           await _handleWatcherError(e, st, watcherType: 'root directory');
         })
         .ignore();
@@ -496,7 +611,7 @@ class VMServiceHandler {
 
               return event;
             })
-            .debounce(Duration.zero)
+            .debounce(const Duration(milliseconds: 300))
             .listen((event) {
               final WatchEvent(:type, :path) = event;
 
@@ -514,11 +629,17 @@ class VMServiceHandler {
         watcher
             .asFuture<void>()
             .then((_) async {
+              if (generation != _watcherGeneration || isCompleted) {
+                return;
+              }
               logger.detail('Dependency watcher closed: $dir');
               await _cancelWatcherSubscription();
               await stop();
             })
             .catchError((Object e, StackTrace st) async {
+              if (generation != _watcherGeneration || isCompleted) {
+                return;
+              }
               await _handleWatcherError(e, st, watcherType: 'dependency $dir');
             })
             .ignore();
@@ -591,6 +712,8 @@ class VMServiceHandler {
 
     var hasStartedServer = false;
 
+    // Avoid a shell intermediary so SIGTERM targets only the server VM
+    // and does not bounce into the parent CLI's signal watchers.
     final process = _serverProcess = await io.Process.start('dart', [
       if (enableHotReload) ...[
         '--enable-vm-service=$dartVmServicePort',
@@ -604,7 +727,7 @@ class VMServiceHandler {
       '-D__RELEASE__=${mode.isRelease}',
       serverFile,
       ...serverArgs,
-    ], runInShell: true);
+    ]);
 
     // On Windows listen for CTRL-C and use taskkill to kill
     // the spawned process along with any child processes.
@@ -694,6 +817,12 @@ class VMServiceHandler {
 
   Future<void> _handleServerProcessExit(int code) async {
     if (isCompleted) return;
+
+    // Intentional kill+respawn during reload — do not treat as a crash.
+    if (_intentionalServerRestart) {
+      logger.detail('Server process exited during intentional restart ($code)');
+      return;
+    }
 
     _serverProcess = null;
 
