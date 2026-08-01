@@ -6,17 +6,24 @@
 
 # revali
 
-## 2.2.0
+## 2.3.0
 
 ### Features
 
-- Resolve package dependencies via `package_config` for more reliable workspace resolution.
+- Add `routes`, `doctor`, and `create` CLI commands for route inspection, diagnostics, and scaffolding.
+- Add `--inspect` on `dev` to record recent requests to `.revali/inspect/requests.jsonl`.
+- Add headless `.revali_cmd` channel for reload/recovery without a TTY.
 
 ### Enhancements
 
-- Normalize file paths on Windows so analyzer, construct runner, and VM service handlers work cross-platform.
-- Handle uncaught errors during dev server startup and hot reload with stack traces.
-- Improve workspace root detection and failure diagnostics.
+- Share construct kernels across packages and persist the analyzer byte store for faster rebuilds.
+- Harden hot reload: atomic promote, kernel invalidation on package changes, analyzer overlay for new routes, and rapid-churn recovery.
+- Discover `app.dart` and warn when falling back to the default app.
+- Exclude `bin` / `test` / `tool` from hot-reload watches.
+
+### Fixes
+
+- Tolerate stdin mode errors on non-TTY terminals.
 
 # revali_annotations
 
@@ -28,49 +35,46 @@
 
 # revali_construct
 
-## 2.2.0
+## 2.3.0
 
 ### Features
 
-- Add `CoalescingReloadQueue` to serialize hot-reload restarts and coalesce concurrent reload requests.
-- Add `fileUriToRelativeImportPath` for cross-platform import paths in generated Dart source.
-
-### Enhancements
-
-- Use POSIX paths in generated `part` and `part of` directives for Windows compatibility.
-- Handle uncaught errors during hot reload with stack traces.
+- Allow `ServerDirectory` to include additional generated files alongside `server.dart` via `additionalFiles`.
 
 # revali_core
 
-## 1.6.0
+## 1.7.0
 
 ### Features
 
-- Add `RequestScopedDI` for request-scoped dependency injection, installable via a request wrapper and `Zone`.
+- Add `AppConfig.workers` for multi-isolate serving (`shared: true` when > 1).
+- Add `AppConfig.backlog` to control the `HttpServer.bind` listen backlog.
 
 <!-- REVALI ROUTER -->
 
 # revali_router
 
-## 3.4.0
+## 3.5.0
 
 ### Features
 
-- Add `RequestWrapper` lifecycle component that wraps the entire request pipeline in setup and teardown logic.
-- Configure `trustedProxy` on the app to resolve client IP from reverse-proxy headers (e.g. `X-Forwarded-For`).
-- Support wildcard path parameters (`*rest` and bare `*`).
-- Allow underscores in route path segment names.
-- Support `Stream<List<int>>` byte-stream request bodies.
+- Add `@RequestId()` lifecycle kit to ensure every request has an ID header (default `X-Request-Id`).
+- Add request inspect / timing traces for `dev --inspect`.
+- Plumb `AppConfig.workers` and `AppConfig.backlog` through the router `AppConfig`.
 
 ### Fixes
 
-- Fix coercing nested maps and lists.
-- Fix route matching when path segments contain apostrophes.
+- Map `MissingArgumentException` to HTTP 400 (with richer expected/actual type detail).
+- Include empty-path child routes in OPTIONS `Allow` headers.
+- Bind `Set` and coerced query parameters correctly.
+- Harden the request accept loop against handler failures.
 
 ### Enhancements
 
-- Add stack traces and request context to exception handling.
-- Handle uncaught errors in the request pipeline.
+- O(1) static route lookup; single `Find` per request.
+- Cache UTF-8 bytes for JSON/string response bodies.
+- Cache HTTP `Date` (~1s) and skip empty CORS / middleware / guard / interceptor stages.
+- Add configurable `DefaultResponses.badRequest`.
 
 # revali_router_annotations
 
@@ -94,11 +98,23 @@
 
 # revali_server
 
-## 2.4.1
+## 2.5.0
 
 ### Features
 
-- Bind server to dual-stack on `localhost` for IPv4 compatibility.
+- Emit `.revali/server/routes.json` route manifest on generate.
+- Spawn shared `HttpServer` worker isolates when `AppConfig.workers` > 1.
+- Wire request-inspect hooks into generated server startup.
+
+### Fixes
+
+- Return HTTP 400 for missing/invalid parameter bindings (`MissingArgumentException`).
+- Bind `Set` and coerced query parameters correctly (including coerced values to `String` params).
+
+### Enhancements
+
+- Pass `AppConfig.backlog` into server bind.
+- Serve with a single route `Find` on the hot path.
 
 <!-- SWAGGER -->
 
