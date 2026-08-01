@@ -43,6 +43,17 @@ void main() {
       expect(json1, json2);
       expect(identical(json1, json2), isTrue);
     });
+
+    test('encodedBytes caches UTF-8 bytes', () {
+      final data = {'key': 'value'};
+      final jsonData = _MockJsonData(data);
+
+      final bytes1 = jsonData.encodedBytes();
+      final bytes2 = jsonData.encodedBytes();
+
+      expect(bytes1, '{"key":"value"}'.codeUnits);
+      expect(identical(bytes1, bytes2), isTrue);
+    });
   });
 }
 

@@ -231,6 +231,59 @@ void main() {
           );
         });
       });
+
+      group('static route lookup', () {
+        late Router router;
+
+        setUp(() {
+          router = Router(
+            routes: [
+              Route(
+                'api',
+                routes: [
+                  Route(
+                    'ping',
+                    method: 'GET',
+                    handler: (context) async {
+                      context.response.body = 'pong';
+                    },
+                  ),
+                  Route(
+                    ':id',
+                    method: 'GET',
+                    handler: (context) async {
+                      context.response.body = 'dynamic';
+                    },
+                  ),
+                ],
+              ),
+            ],
+          );
+        });
+
+        test('resolves exact static GET routes', () async {
+          final context = _MockRequest()..stub('api/ping');
+          final response = await router.handle(context);
+
+          expect(response.statusCode, HttpStatus.ok);
+          expect(response.body.data, 'pong');
+        });
+
+        test('maps HEAD onto static GET routes', () async {
+          final context = _MockRequest()..stub('api/ping', method: 'HEAD');
+          final response = await router.handle(context);
+
+          expect(response.statusCode, isNot(HttpStatus.notFound));
+        });
+
+        test('still resolves dynamic routes when static misses', () async {
+          final context = _MockRequest()..stub('api/42');
+          final response = await router.handle(context);
+
+          expect(response.statusCode, HttpStatus.ok);
+          expect(response.body.data, 'dynamic');
+        });
+      });
     });
   });
 }

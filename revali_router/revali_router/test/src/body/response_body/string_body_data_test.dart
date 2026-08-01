@@ -42,5 +42,16 @@ void main() {
 
       expect(stringBodyData.contentLength, utf8.encode(data).length);
     });
+
+    test('encodedBytes caches UTF-8 bytes', () {
+      const data = 'Hello, World!';
+      final stringBodyData = StringBodyData(data);
+
+      final bytes1 = stringBodyData.encodedBytes();
+      final bytes2 = stringBodyData.encodedBytes();
+
+      expect(bytes1, utf8.encode(data));
+      expect(identical(bytes1, bytes2), isTrue);
+    });
   });
 }
