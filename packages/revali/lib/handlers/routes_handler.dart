@@ -1,3 +1,5 @@
+import 'dart:io' as io;
+
 import 'package:analyzer/error/error.dart';
 import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
@@ -98,6 +100,13 @@ class RoutesHandler with DirectoriesMixin {
     }
 
     if (apps.isEmpty) {
+      if (routes.isNotEmpty) {
+        io.stderr.writeln(
+          'Warning: no @App class found under routes/. '
+          'Expected a file named app.dart, *_app.dart, or *.app.dart. '
+          'Falling back to AppConfig.defaultApp().',
+        );
+      }
       apps.add(MetaAppConfig.defaultConfig());
     }
 

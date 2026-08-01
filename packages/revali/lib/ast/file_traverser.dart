@@ -11,7 +11,10 @@ class FileTraverser {
   final FileSystem fs;
 
   Stream<MetaAppConfig> parseApps(Units units) async* {
-    if (!path.basename(units.parsed.path).contains(RegExp(r'[._]app\.dart$'))) {
+    final basename = path.basename(units.parsed.path);
+    // Accept `app.dart`, `*_app.dart`, and `*.app.dart`.
+    if (basename != 'app.dart' &&
+        !basename.contains(RegExp(r'[._]app\.dart$'))) {
       return;
     }
 
