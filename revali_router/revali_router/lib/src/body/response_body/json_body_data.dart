@@ -10,6 +10,6 @@ final class JsonBodyData extends JsonData<Map<String, dynamic>> {
 
   @override
   Stream<List<int>> read() {
-    return Stream.value(encoding.encode(toJson()));
+    return Stream.value(encodedBytes());
   }
 }

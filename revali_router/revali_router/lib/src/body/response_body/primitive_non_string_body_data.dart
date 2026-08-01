@@ -3,15 +3,21 @@ part of 'base_body_data.dart';
 final class PrimitiveNonStringBodyData<T> extends BaseBodyData<T> {
   PrimitiveNonStringBodyData(super.data);
 
+  List<int>? _cachedBytes;
+
+  List<int> encodedBytes() {
+    return _cachedBytes ??= encoding.encode(jsonEncode(data));
+  }
+
   @override
   String get mimeType => 'text/plain';
 
   @override
-  int get contentLength => encoding.encode(jsonEncode(data)).length;
+  int get contentLength => encodedBytes().length;
 
   @override
   Stream<List<int>> read() {
-    return Stream.value(encoding.encode(jsonEncode(data)));
+    return Stream.value(encodedBytes());
   }
 
   @override
