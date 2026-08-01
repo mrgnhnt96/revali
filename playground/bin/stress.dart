@@ -84,9 +84,16 @@ Future<void> main(List<String> args) async {
   ticker.cancel();
   client.close(force: true);
 
+  final elapsedSec = duration.inMilliseconds / 1000.0;
+  final rps = elapsedSec == 0 ? 0.0 : stats.ok / elapsedSec;
+
   stdout
     ..writeln('\n=== FINAL ===')
-    ..writeln(stats.snapshot(final_: true));
+    ..writeln(stats.snapshot(final_: true))
+    ..writeln(
+      'rps=${rps.toStringAsFixed(1)} '
+      'elapsedSec=${elapsedSec.toStringAsFixed(1)}',
+    );
 
   final intentionalErrors = mix == 'all' || mix == 'error';
   if (stats.clientExceptions > 0) {
@@ -152,10 +159,12 @@ class _Stats {
   int samples = 0;
   int totalUs = 0;
   final Map<String, int> errors = {};
+  final List<int> _latenciesUs = [];
 
   void record(int code, int us) {
     samples++;
     totalUs += us;
+    _latenciesUs.add(us);
     if (code >= 200 && code < 400) {
       ok++;
     } else if (code >= 400 && code < 500) {
@@ -168,9 +177,17 @@ class _Stats {
   void recordError(Object e, int us) {
     samples++;
     totalUs += us;
+    _latenciesUs.add(us);
     clientExceptions++;
     final key = e.runtimeType.toString();
     errors[key] = (errors[key] ?? 0) + 1;
+  }
+
+  double _percentileMs(double p) {
+    if (_latenciesUs.isEmpty) return 0;
+    final sorted = [..._latenciesUs]..sort();
+    final idx = ((sorted.length - 1) * p).round().clamp(0, sorted.length - 1);
+    return sorted[idx] / 1000.0;
   }
 
   String snapshot({bool final_ = false}) {
@@ -178,10 +195,15 @@ class _Stats {
     final errSummary = errors.entries
         .map((e) => '${e.key}:${e.value}')
         .join(',');
+    final percentiles = final_
+        ? ' p50=${_percentileMs(0.50).toStringAsFixed(1)}'
+              ' p95=${_percentileMs(0.95).toStringAsFixed(1)}'
+              ' p99=${_percentileMs(0.99).toStringAsFixed(1)}'
+        : '';
     return '${final_ ? "FINAL " : ""}'
         'ok=$ok 4xx=$status4xx 5xx=$status5xx '
         'clientErr=$clientExceptions avgMs=${avgMs.toStringAsFixed(1)} '
-        'n=$samples'
+        'n=$samples$percentiles'
         '${errSummary.isEmpty ? "" : " errors={$errSummary}"}';
   }
 }

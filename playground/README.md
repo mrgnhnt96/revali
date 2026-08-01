@@ -24,3 +24,11 @@ dart run bin/stress.dart --concurrency 100 --duration 10s --mix all
 ```
 
 Mixes: `ping`, `delay`, `error`, `heavy`, `all`.
+
+## Bench (stable ping RPS)
+
+```bash
+dart run bin/bench.dart --label baseline --concurrency 300 --duration 15s
+```
+
+Results are tracked in [BENCHMARKS.md](BENCHMARKS.md).
