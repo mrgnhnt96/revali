@@ -304,13 +304,14 @@ http://revali.dev/constructs#server-constructs
     if (type.isBuild && type.isConstructs) {
       await _replaceDirectory(revali, staging);
     } else if (type.isConstructs) {
-      await _deleteConstructOutputs(revali);
-
+      // Never delete live outputs before the new tree is in place — a wipe
+      // gap leaves `server/server.dart` missing and kills headless/AI reloads
+      // that restart the child mid-promote.
       if (!revali.existsSync()) {
         await revali.create(recursive: true);
       }
 
-      await _moveDirectoryContents(staging, revali);
+      await _swapConstructOutputs(revali, staging);
     } else if (type.isBuild) {
       if (!revali.existsSync()) {
         await revali.create(recursive: true);
@@ -331,6 +332,78 @@ http://revali.dev/constructs#server-constructs
 
     _stagingRoot = null;
     await _cleanupOldStagingDirectories(rootDir);
+  }
+
+  /// Atomically replaces construct output dirs (e.g. `server/`) from [staging]
+  /// into [revali], preserving `build/`. Each directory is swapped via rename
+  /// so the live path is never absent for longer than a rename.
+  Future<void> _swapConstructOutputs(
+    Directory revali,
+    Directory staging,
+  ) async {
+    final promoted = <String>{};
+
+    for (final entity in staging.listSync()) {
+      promoted.add(entity.basename);
+
+      switch (entity) {
+        case Directory():
+          await _atomicReplaceDirectory(
+            revali.childDirectory(entity.basename),
+            entity,
+          );
+        case File():
+          final dest = revali.childFile(entity.basename);
+          if (dest.existsSync()) {
+            await dest.delete();
+          }
+          await entity.rename(dest.path);
+        default:
+          throw StateError('Unexpected entity type: ${entity.runtimeType}');
+      }
+    }
+
+    // Drop stale construct dirs that were not in this generation.
+    if (revali.existsSync()) {
+      for (final entity in revali.listSync()) {
+        if (entity is! Directory) continue;
+        if (entity.basename == 'build') continue;
+        if (promoted.contains(entity.basename)) continue;
+        await _removeDirectory(entity);
+      }
+    }
+
+    await _removeDirectory(staging);
+  }
+
+  Future<void> _atomicReplaceDirectory(
+    Directory target,
+    Directory source,
+  ) async {
+    if (!source.existsSync()) {
+      return;
+    }
+
+    if (!target.existsSync()) {
+      await source.rename(target.path);
+      return;
+    }
+
+    final backup = target.parent.childDirectory(
+      '${target.basename}.bak.${DateTime.now().microsecondsSinceEpoch}',
+    );
+
+    await target.rename(backup.path);
+    try {
+      await source.rename(target.path);
+    } catch (_) {
+      if (backup.existsSync() && !target.existsSync()) {
+        await backup.rename(target.path);
+      }
+      rethrow;
+    }
+
+    await _removeDirectory(backup);
   }
 
   Future<void> _discardStaging() async {
@@ -408,50 +481,6 @@ http://revali.dev/constructs#server-constructs
     }
 
     await source.rename(target.path);
-  }
-
-  Future<void> _deleteConstructOutputs(Directory revali) async {
-    if (!revali.existsSync()) {
-      return;
-    }
-
-    final server = revali.childDirectory('server');
-    if (server.existsSync()) {
-      await server.delete(recursive: true);
-    }
-
-    for (final entity in revali.listSync()) {
-      if (entity is! Directory) continue;
-      if (entity.basename == 'server') continue;
-      if (entity.basename == 'build') continue;
-
-      await entity.delete(recursive: true);
-    }
-  }
-
-  Future<void> _moveDirectoryContents(
-    Directory source,
-    Directory target,
-  ) async {
-    if (!source.existsSync()) {
-      return;
-    }
-
-    for (final entity in source.listSync()) {
-      final dest = switch (entity) {
-        Directory() => target.childDirectory(entity.basename),
-        File() => target.childFile(entity.basename),
-        _ => throw StateError('Unexpected entity type: ${entity.runtimeType}'),
-      };
-
-      if (dest.existsSync()) {
-        await dest.delete(recursive: true);
-      }
-
-      await entity.rename(dest.path);
-    }
-
-    await _removeDirectory(source);
   }
 
   Future<T?> constructFromMaker<T extends Construct>(
