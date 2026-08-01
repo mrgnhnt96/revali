@@ -129,6 +129,10 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
       }),
       p.normalize(p.join(root.path, '.revali.staging')),
       p.normalize(p.join(root.path, '.revali')),
+      // Tooling / scripts should not bounce the server.
+      p.normalize(p.join(root.path, 'bin')),
+      p.normalize(p.join(root.path, 'test')),
+      p.normalize(p.join(root.path, 'tool')),
     ];
 
     logger.detail('Hot reload exclude: $hotReloadExclude');
