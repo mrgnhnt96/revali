@@ -80,7 +80,10 @@ class BuildCommand extends Command<int> with ConstructRunnerArgs {
   @override
   Future<int> run() async {
     try {
-      await _generator.generate(recompile: recompile);
+      final shouldRun = await _generator.generate(recompile: recompile);
+      if (!shouldRun) {
+        return 0;
+      }
     } catch (e) {
       logger.err('Failed to generate the construct');
       return 1;

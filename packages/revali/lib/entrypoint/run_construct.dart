@@ -11,11 +11,22 @@ Future<int> runConstruct(
 }) async {
   const fs = LocalFileSystem();
 
+  // `--root` is consumed by the construct kernel entrypoint / spawn caller;
+  // ConstructRunner's arg parser must not see it.
+  final filteredArgs = <String>[];
+  for (var i = 0; i < args.length; i++) {
+    if (args[i] == ConstructEntrypointHandler.rootArgName) {
+      if (i + 1 < args.length) i++;
+      continue;
+    }
+    filteredArgs.add(args[i]);
+  }
+
   var isLoud = false;
   var isQuiet = false;
-  if (args.contains('--loud')) {
+  if (filteredArgs.contains('--loud')) {
     isLoud = true;
-  } else if (args.contains('--quiet')) {
+  } else if (filteredArgs.contains('--quiet')) {
     isQuiet = true;
   }
 
@@ -46,7 +57,7 @@ Future<int> runConstruct(
     ),
   );
 
-  final result = await runner.run(args);
+  final result = await runner.run(filteredArgs);
 
   return result;
 }

@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
+import 'dart:io' as io;
 import 'dart:isolate';
 
 import 'package:code_builder/code_builder.dart';
@@ -11,6 +11,7 @@ import 'package:mason_logger/mason_logger.dart';
 import 'package:package_config/package_config.dart';
 import 'package:revali/handlers/constructs_handler.dart';
 import 'package:revali/utils/extensions/directory_extensions.dart';
+import 'package:revali/utils/kernel_cache.dart';
 import 'package:revali/utils/mixins/directories_mixin.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:stack_trace/stack_trace.dart';
@@ -34,14 +35,22 @@ class ConstructEntrypointHandler with DirectoriesMixin {
   static const String kernelExtension = '.dill';
   static const String kernelFile = '$entrypointFile$kernelExtension';
   static const String assetsFile = 'revali.assets.json';
+  static const String rootArgName = '--root';
 
-  Future<void> generate({bool recompile = false}) async {
+  /// Generates / refreshes the construct kernel.
+  ///
+  /// Returns `true` when the construct isolate should run (server/client gen).
+  /// Returns `false` when [skipIfFresh] short-circuits a fully up-to-date
+  /// package.
+  Future<bool> generate({
+    bool recompile = false,
+    bool skipIfFresh = false,
+  }) async {
     final root = await rootOf(initialDirectory);
     logger.detail('Root: ${root.path}');
 
     final constructProgress = logger.progress('Retrieving constructs');
     final constructs = await constructHandler.constructDepsFrom(root);
-
     constructProgress.complete('Retrieved constructs');
 
     logger.detail('Constructs Dependencies: ${constructs.length}');
@@ -52,18 +61,57 @@ class ConstructEntrypointHandler with DirectoriesMixin {
       }
     }
 
-    final needsNewKernel =
-        await checkAssets(constructs, root) ||
-        await kernelIsStale(constructs, root);
+    final fingerprint = constructSetFingerprint(constructs);
+    final cacheDir = resolveKernelCacheDir(
+      fs,
+      root,
+    ).childDirectory(fingerprint);
+    final cachedKernel = cacheDir.childFile(kernelFile);
+    final cachedEntrypoint = cacheDir.childFile(entrypointFile);
 
-    if (!recompile && !needsNewKernel) {
-      final kernel = await root.getInternalRevaliFile(kernelFile);
+    if (skipIfFresh && !recompile) {
+      final outputsFresh = await _packageOutputsAreFresh(root);
+      // Use local kernel only — a sibling publishing to the shared cache must
+      // not cause this package to skip regenerating its `.revali` outputs.
+      final localKernelForSkip = await root.getInternalRevaliFile(kernelFile);
+      final kernelFresh =
+          localKernelForSkip.existsSync() &&
+          !await kernelIsStale(constructs, root);
+      if (outputsFresh && kernelFresh) {
+        logger.success('Generated outputs are fresh — skipping generate');
+        return false;
+      }
+    }
 
-      if (kernel.existsSync()) {
+    final assetsChanged = await checkAssets(constructs, root);
+    final localKernel = await root.getInternalRevaliFile(kernelFile);
+    final localEntrypoint = await root.getInternalRevaliFile(entrypointFile);
+
+    // Staleness is always against the *local* kernel. A fresh shared cache must
+    // be installed locally — never treated as "already up to date" in-place.
+    final localKernelStale = await kernelIsStale(constructs, root);
+    final cacheIsFresh =
+        cachedKernel.existsSync() &&
+        !await _fileNewerThanSources(cachedKernel, constructs, root);
+
+    if (!recompile && !assetsChanged) {
+      if (!localKernelStale && localKernel.existsSync()) {
         logger
           ..detail('Skipping entrypoint generation, using existing kernel')
           ..success('Constructs entrypoint is up to date');
-        return;
+        return true;
+      }
+
+      if (cacheIsFresh) {
+        await _installCachedKernel(
+          root: root,
+          cachedKernel: cachedKernel,
+          cachedEntrypoint: cachedEntrypoint,
+          localKernel: localKernel,
+          localEntrypoint: localEntrypoint,
+        );
+        logger.success('Constructs entrypoint restored from shared cache');
+        return true;
       }
     }
 
@@ -78,9 +126,150 @@ class ConstructEntrypointHandler with DirectoriesMixin {
     await createEntrypoint(root, constructs: constructs);
     entrypointProgress.complete('Generated constructs entrypoint');
 
-    final compileProgress = logger.progress('Compiling constructs entrypoint');
-    await compile(root: root);
-    compileProgress.complete('Compiled constructs entrypoint');
+    // Serialize compile/publish so parallel packages share one ~4s compile.
+    await _withSharedCacheLock(cacheDir, () async {
+      // Re-check after lock — another package may have compiled.
+      if (!recompile &&
+          cachedKernel.existsSync() &&
+          !await _fileNewerThanSources(cachedKernel, constructs, root)) {
+        await _installCachedKernel(
+          root: root,
+          cachedKernel: cachedKernel,
+          cachedEntrypoint: cachedEntrypoint,
+          localKernel: localKernel,
+          localEntrypoint: localEntrypoint,
+        );
+        logger.success('Constructs entrypoint reused from shared cache');
+        return;
+      }
+
+      final compileProgress = logger.progress(
+        'Compiling constructs entrypoint',
+      );
+      await compile(root: root);
+      compileProgress.complete('Compiled constructs entrypoint');
+
+      await _publishKernelToCache(
+        cacheDir: cacheDir,
+        localKernel: localKernel,
+        localEntrypoint: localEntrypoint,
+      );
+    });
+    return true;
+  }
+
+  /// Exclusive lock around shared-cache compile so concurrent packages
+  /// compile the construct-set kernel once.
+  Future<void> _withSharedCacheLock(
+    Directory cacheDir,
+    Future<void> Function() action,
+  ) async {
+    if (!cacheDir.existsSync()) {
+      await cacheDir.create(recursive: true);
+    }
+
+    final lockPath = cacheDir.childFile('.compile.lock').path;
+    io.RandomAccessFile? raf;
+    Object? lastError;
+
+    for (var attempt = 0; attempt < 240; attempt++) {
+      try {
+        raf = await io.File(lockPath).open(mode: io.FileMode.write);
+        await raf.lock();
+        lastError = null;
+        break;
+      } catch (e) {
+        lastError = e;
+        await raf?.close();
+        raf = null;
+        await Future<void>.delayed(const Duration(milliseconds: 250));
+      }
+    }
+
+    if (raf == null) {
+      logger.detail('Could not acquire kernel cache lock: $lastError');
+      // Proceed unlocked rather than fail the suite.
+      await action();
+      return;
+    }
+
+    try {
+      await action();
+    } finally {
+      try {
+        await raf.unlock();
+      } catch (_) {}
+      await raf.close();
+    }
+  }
+
+  Future<bool> _packageOutputsAreFresh(Directory root) async {
+    final server = root
+        .childDirectory('.revali')
+        .childDirectory('server')
+        .childFile('server.dart');
+    final outputs = <File>[server];
+
+    final clientDir = root
+        .childDirectory('.revali')
+        .childDirectory('revali_client');
+    if (clientDir.existsSync()) {
+      final clientServer = clientDir
+          .childDirectory('lib')
+          .childDirectory('src')
+          .childFile('server.dart');
+      if (clientServer.existsSync()) {
+        outputs.add(clientServer);
+      }
+    }
+
+    final kernel = await root.getInternalRevaliFile(kernelFile);
+
+    return outputsAreFresh(
+      fs: fs,
+      outputs: outputs,
+      inputDirs: [root.childDirectory('routes'), root.childDirectory('lib')],
+      extraFiles: [if (kernel.existsSync()) kernel],
+    );
+  }
+
+  Future<void> _installCachedKernel({
+    required Directory root,
+    required File cachedKernel,
+    required File cachedEntrypoint,
+    required File localKernel,
+    required File localEntrypoint,
+  }) async {
+    final revaliDir = await root.getInternalRevali();
+    if (!revaliDir.existsSync()) {
+      await revaliDir.create(recursive: true);
+    }
+
+    if (cachedEntrypoint.existsSync()) {
+      await cachedEntrypoint.copy(localEntrypoint.path);
+    }
+    await cachedKernel.copy(localKernel.path);
+  }
+
+  Future<void> _publishKernelToCache({
+    required Directory cacheDir,
+    required File localKernel,
+    required File localEntrypoint,
+  }) async {
+    try {
+      if (!cacheDir.existsSync()) {
+        await cacheDir.create(recursive: true);
+      }
+      if (localEntrypoint.existsSync()) {
+        await localEntrypoint.copy(cacheDir.childFile(entrypointFile).path);
+      }
+      if (localKernel.existsSync()) {
+        await localKernel.copy(cacheDir.childFile(kernelFile).path);
+      }
+      logger.detail('Published kernel to shared cache: ${cacheDir.path}');
+    } catch (e) {
+      logger.detail('Could not publish kernel to shared cache: $e');
+    }
   }
 
   Future<bool> checkAssets(
@@ -140,13 +329,31 @@ class ConstructEntrypointHandler with DirectoriesMixin {
   /// there must invalidate it.
   Future<bool> kernelIsStale(
     List<ConstructYaml> constructs,
-    Directory root,
-  ) async {
+    Directory root, {
+    File? cachedKernel,
+  }) async {
     final kernel = await root.getInternalRevaliFile(kernelFile);
-    if (!kernel.existsSync()) {
+    final candidates = <File>[
+      if (kernel.existsSync()) kernel,
+      if (cachedKernel != null && cachedKernel.existsSync()) cachedKernel,
+    ];
+
+    if (candidates.isEmpty) {
       return true;
     }
 
+    // Use the newest available kernel as the baseline.
+    candidates.sort(
+      (a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()),
+    );
+    return _fileNewerThanSources(candidates.first, constructs, root);
+  }
+
+  Future<bool> _fileNewerThanSources(
+    File kernel,
+    List<ConstructYaml> constructs,
+    Directory root,
+  ) async {
     final kernelModified = kernel.lastModifiedSync();
 
     Future<bool> libNewerThanKernel(Directory packageRoot) async {
@@ -238,7 +445,7 @@ class ConstructEntrypointHandler with DirectoriesMixin {
       );
 
       final progress = logger.progress('Running pub get');
-      final result = await Process.run('dart', [
+      final result = await io.Process.run('dart', [
         'pub',
         'get',
         '--no-precompile',
@@ -266,7 +473,7 @@ class ConstructEntrypointHandler with DirectoriesMixin {
       );
     }
 
-    final result = await Process.run('dart', [
+    final result = await io.Process.run('dart', [
       'compile',
       'kernel',
       toCompile.path,
@@ -298,6 +505,15 @@ ${result.stderr}''');
       throw StateError('Script file does not exist');
     }
 
+    // Pass the project root so a shared kernel can target any package.
+    final isolateArgs = <String>[
+      ...switch (args) {
+        List<String>() => args,
+        _ => args.toList(),
+      },
+      if (!args.contains(rootArgName)) ...[rootArgName, root.path],
+    ];
+
     var tryCount = 0;
     var succeeded = false;
     while (tryCount < 2 && !succeeded) {
@@ -325,10 +541,7 @@ ${result.stderr}''');
       try {
         await Isolate.spawnUri(
           Uri.file(file.path),
-          switch (args) {
-            List() => args,
-            _ => args.toList(),
-          },
+          isolateArgs,
           messagePort.sendPort,
           onExit: exitPort.sendPort,
           onError: errorPort.sendPort,
@@ -420,9 +633,33 @@ ${result.stderr}''');
         )
         .statement;
 
+    // Fallback root only — runtime prefers `--root` so kernels are shareable.
     final path = declareConst(
       '_root',
     ).assign(literalString(root.path.replaceAll(r'\', '/'))).statement;
+
+    final resolveRoot = Method(
+      (b) => b
+        ..name = '_resolveRoot'
+        ..returns = refer('String')
+        ..requiredParameters.add(
+          Parameter(
+            (p) => p
+              ..name = 'args'
+              ..type = TypeReference(
+                (t) => t
+                  ..symbol = 'List'
+                  ..types.add(refer('String')),
+              ),
+          ),
+        )
+        ..body = Block.of([
+          const Code('for (var i = 0; i < args.length - 1; i++) {'),
+          const Code("if (args[i] == '$rootArgName') return args[i + 1];"),
+          const Code('}'),
+          refer('_root').returned.statement,
+        ]),
+    );
 
     final main = Method(
       (b) => b
@@ -453,6 +690,9 @@ ${result.stderr}''');
           ),
         )
         ..body = Block.of([
+          declareFinal(
+            'root',
+          ).assign(refer('_resolveRoot').call([refer('args')])).statement,
           declareFinal('result')
               .assign(
                 refer('runConstruct', revali)
@@ -460,7 +700,7 @@ ${result.stderr}''');
                       [refer('args')],
                       {
                         'constructs': refer('_constructs'),
-                        'path': refer('_root'),
+                        'path': refer('root'),
                       },
                     )
                     .awaited,
@@ -475,7 +715,9 @@ ${result.stderr}''');
         ]),
     );
 
-    final library = Library((b) => b.body.addAll([constructs0, path, main]));
+    final library = Library(
+      (b) => b.body.addAll([constructs0, path, resolveRoot, main]),
+    );
 
     final emitter = DartEmitter(
       allocator: Allocator.simplePrefixing(),

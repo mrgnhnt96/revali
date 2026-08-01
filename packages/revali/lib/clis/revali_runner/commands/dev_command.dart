@@ -18,6 +18,13 @@ class DevCommand extends Command<int> with ConstructRunnerArgs {
             'Needed to sync changes for a local construct.',
         negatable: false,
       )
+      ..addFlag(
+        'skip-if-fresh',
+        help:
+            'Skip kernel + construct generation when `.revali` outputs are '
+            'newer than package sources.',
+        negatable: false,
+      )
       ..addOption(
         'flavor',
         abbr: 'f',
@@ -98,15 +105,25 @@ $args''';
   Future<int> run() async {
     final argResults = this.argResults!;
     final recompile = argResults['recompile'] as bool;
+    final skipIfFresh = argResults['skip-if-fresh'] as bool;
 
+    late final bool shouldRunConstructs;
     try {
-      await _generator.generate(recompile: recompile);
+      shouldRunConstructs = await _generator.generate(
+        recompile: recompile,
+        skipIfFresh: skipIfFresh,
+      );
     } catch (e) {
       logger
         ..detail('Error: $e')
         ..err('Failed to generate the construct');
       return 1;
     }
+
+    if (!shouldRunConstructs) {
+      return 0;
+    }
+
     logger.write('\n');
 
     await _generator.run(constructRunnerArgs);

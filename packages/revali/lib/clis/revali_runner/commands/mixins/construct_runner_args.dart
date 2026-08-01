@@ -1,5 +1,6 @@
 import 'package:args/command_runner.dart';
 import 'package:mason_logger/mason_logger.dart';
+import 'package:revali/handlers/construct_entrypoint_handler.dart';
 
 mixin ConstructRunnerArgs on Command<int> {
   Logger get logger;
@@ -14,7 +15,7 @@ mixin ConstructRunnerArgs on Command<int> {
       argsToPass.addAll(['--flavor', flavor]);
     }
 
-    const ignore = {'--recompile'};
+    const ignore = {'--recompile', '--skip-if-fresh'};
 
     var skipNext = false;
     for (final entry in argResults.arguments) {
@@ -23,7 +24,9 @@ mixin ConstructRunnerArgs on Command<int> {
         continue;
       }
 
-      if (entry == '--flavor' || entry == '-f') {
+      if (entry == '--flavor' ||
+          entry == '-f' ||
+          entry == ConstructEntrypointHandler.rootArgName) {
         skipNext = true;
         continue;
       }

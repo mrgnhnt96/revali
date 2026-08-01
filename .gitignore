@@ -59,6 +59,9 @@ packages/cli/libisar.dylib
 .test_optimizer.dart
 .revali
 .revali.staging*
+.revali_kernel_cache
+**/.revali_kernel_cache
+
 FAILED_PUBLISH.md
 FAILED_RELEASE.md
 FAILED_PUSH.md
