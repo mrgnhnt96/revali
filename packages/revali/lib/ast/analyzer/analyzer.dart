@@ -290,9 +290,12 @@ class Analyzer implements AnalyzerChanges {
       _memoryProvider.deleteFile(file);
     } catch (e) {
       // Path may not exist in memory provider (e.g. dependency file never
-      // loaded, or stored as folder). The file is gone from the real FS
-      // anyway - safe to ignore.
-      logger.detail('Could not remove from analyzer cache: $e');
+      // loaded, already deleted, or stored as folder). Safe to ignore.
+      final message = e.toString();
+      if (!message.contains('Not a file') &&
+          !message.contains('does not exist')) {
+        logger.detail('Could not remove from analyzer cache: $e');
+      }
       return;
     }
 
@@ -357,6 +360,28 @@ class Analyzer implements AnalyzerChanges {
   Future<List<Units>> _analyzeDirectory(String path) async {
     final results = <Units>[];
     final files = await find.file('*.dart', workingDirectory: path);
+
+    // `find` walks the real filesystem, but analysis reads from the memory
+    // overlay. Sync every on-disk file into memory before resolving so newly
+    // created controllers/apps are not silently skipped mid-reload.
+    AnalysisContext? syncContext;
+    for (final file in files) {
+      final normalized = fs.path.normalize(file);
+      final real = fs.file(normalized);
+      if (!real.existsSync()) {
+        continue;
+      }
+      _memoryProvider.newFileWithBytes(normalized, await real.readAsBytes());
+      try {
+        syncContext = analysisCollection.contextFor(normalized)
+          ..changeFile(normalized);
+      } catch (_) {
+        // File may not belong to an analysis context yet.
+      }
+    }
+    if (syncContext != null) {
+      await syncContext.applyPendingFileChanges();
+    }
 
     AnalysisContext context;
     for (final file in files) {
