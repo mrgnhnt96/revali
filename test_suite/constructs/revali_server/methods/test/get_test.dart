@@ -34,19 +34,16 @@ package:revali_router/src/router/router.dart'''),
 
       final headers = {...response.headers.values};
 
-      expect(
+      expectRecentHttpDate(
         headers.remove('date'),
-        isA<String>().having(DateTime.parse, 'parses to date', isA<DateTime>()),
-      );
-      expect(
-        response.headers.date?.isAfter(
-          DateTime.now().subtract(const Duration(milliseconds: 50)),
-        ),
-        isTrue,
+        parsed: response.headers.date,
       );
 
       expect(headers.remove('content-type'), 'text/plain');
-      expect(headers.remove('content-length'), '222');
+      expect(
+        headers.remove('content-length'),
+        '${(response.body as String).length}',
+      );
 
       expect(headers, isEmpty);
     });
@@ -59,15 +56,9 @@ package:revali_router/src/router/router.dart'''),
 
       final headers = {...response.headers.values};
 
-      expect(
+      expectRecentHttpDate(
         headers.remove('date'),
-        isA<String>().having(DateTime.parse, 'parses to date', isA<DateTime>()),
-      );
-      expect(
-        response.headers.date?.isAfter(
-          DateTime.now().subtract(const Duration(milliseconds: 50)),
-        ),
-        isTrue,
+        parsed: response.headers.date,
       );
 
       expect(headers.remove('access-control-allow-credentials'), 'true');
@@ -90,15 +81,9 @@ package:revali_router/src/router/router.dart'''),
       expect(response.body, isNull);
       final headers = {...response.headers.values};
 
-      expect(
+      expectRecentHttpDate(
         headers.remove('date'),
-        isA<String>().having(DateTime.parse, 'parses to date', isA<DateTime>()),
-      );
-      expect(
-        response.headers.date?.isAfter(
-          DateTime.now().subtract(const Duration(milliseconds: 50)),
-        ),
-        isTrue,
+        parsed: response.headers.date,
       );
 
       expect(headers.remove('access-control-allow-credentials'), 'true');
@@ -121,15 +106,9 @@ package:revali_router/src/router/router.dart'''),
       expect(response.body, isNull);
       final headers = {...response.headers.values};
 
-      expect(
+      expectRecentHttpDate(
         headers.remove('date'),
-        isA<String>().having(DateTime.parse, 'parses to date', isA<DateTime>()),
-      );
-      expect(
-        response.headers.date?.isAfter(
-          DateTime.now().subtract(const Duration(milliseconds: 50)),
-        ),
-        isTrue,
+        parsed: response.headers.date,
       );
 
       expect(headers.remove('access-control-allow-credentials'), 'true');

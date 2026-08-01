@@ -40,9 +40,9 @@ void main() {
   group('file-upload', () {
     late TestServer server;
 
-    setUp(() {
+    setUp(() async {
       server = TestServer();
-      createServer(server);
+      await createServer(server);
     });
 
     tearDown(() {

@@ -24,4 +24,16 @@ class QueryParamsController {
   String allOptional(@Query.all('shopId') List<String>? shopIds) {
     return shopIds?.join(',') ?? 'no shop ids';
   }
+
+  /// Coerced query values (`?n=5` → int) must stringify for [String] params.
+  @Get('coerced-string')
+  String coercedString(@Query() String shopId) {
+    return shopId;
+  }
+
+  /// Coerced ints must promote to [double] (`?n=5` → `5.0`).
+  @Get('coerced-double')
+  String coercedDouble(@Query() double n) {
+    return '$n';
+  }
 }

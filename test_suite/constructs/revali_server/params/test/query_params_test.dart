@@ -9,10 +9,10 @@ void main() {
   group('query-params', () {
     late TestServer server;
 
-    setUp(() {
+    setUp(() async {
       server = TestServer();
 
-      createServer(server);
+      await createServer(server);
     });
 
     tearDown(() {
@@ -94,6 +94,46 @@ Stack Trace:
 
       expect(response.statusCode, HttpStatus.ok);
       expect(response.body, {'data': 'no shop ids'});
+    });
+
+    test('String query stringifies coerced numeric values', () async {
+      final response = await server.send(
+        method: 'GET',
+        path: '/api/query/coerced-string?shopId=5',
+      );
+
+      expect(response.statusCode, HttpStatus.ok);
+      expect(response.body, {'data': '5'});
+    });
+
+    test('String query stringifies coerced bool values', () async {
+      final response = await server.send(
+        method: 'GET',
+        path: '/api/query/coerced-string?shopId=true',
+      );
+
+      expect(response.statusCode, HttpStatus.ok);
+      expect(response.body, {'data': 'true'});
+    });
+
+    test('String query preserves leading zeros', () async {
+      final response = await server.send(
+        method: 'GET',
+        path: '/api/query/coerced-string?shopId=007',
+      );
+
+      expect(response.statusCode, HttpStatus.ok);
+      expect(response.body, {'data': '007'});
+    });
+
+    test('double query promotes coerced int values', () async {
+      final response = await server.send(
+        method: 'GET',
+        path: '/api/query/coerced-double?n=5',
+      );
+
+      expect(response.statusCode, HttpStatus.ok);
+      expect(response.body, {'data': '5.0'});
     });
   });
 }

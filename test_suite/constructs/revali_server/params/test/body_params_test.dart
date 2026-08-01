@@ -9,10 +9,10 @@ void main() {
   group('body-params', () {
     late TestServer server;
 
-    setUp(() {
+    setUp(() async {
       server = TestServer();
 
-      createServer(server);
+      await createServer(server);
     });
 
     tearDown(() {

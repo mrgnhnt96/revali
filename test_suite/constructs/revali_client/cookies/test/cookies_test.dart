@@ -72,7 +72,11 @@ void main() {
 
       verifyRequest('/api/cookies/empty', method: 'GET');
       final resp = response!;
-      expect(resp.headers['set-cookie'], 'X-Auth=; ');
+      expect(resp.headers['set-cookie'], startsWith('X-Auth=;'));
+      expect(resp.headers['set-cookie'], contains('Secure'));
+      expect(resp.headers['set-cookie'], contains('HttpOnly'));
+      expect(resp.headers['set-cookie'], contains('SameSite=Lax'));
+      expect(resp.headers['set-cookie'], contains('Path=/'));
     });
   });
 }
