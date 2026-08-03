@@ -24,6 +24,7 @@
 ### Fixes
 
 - Tolerate stdin mode errors on non-TTY terminals.
+- Pick up local path-dependency edits during `revali dev` by notifying every analysis context (app context no longer keeps a stale copy).
 
 # revali_annotations
 

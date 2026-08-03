@@ -39,6 +39,9 @@ class RoutesHandler with DirectoriesMixin {
     final root = await rootOf(rootPath);
 
     await analyzer.initialize(root: root.path);
+    // Manual `r` / generate-only skip the file watcher — re-sync path deps
+    // so local package edits are visible without a full CLI restart.
+    await analyzer.refreshDependencies();
 
     final (:routes, :apps) = await _getRoutes(root);
 

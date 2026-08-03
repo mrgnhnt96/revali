@@ -52,7 +52,7 @@ class Analyzer implements AnalyzerChanges {
   List<String>? _packageConfigDiagnostics;
 
   MemoryResourceProvider _memoryProvider;
-  AnalysisContextCollection? _analysisCollection;
+  AnalysisContextCollectionImpl? _analysisCollection;
   AnalysisContextCollection get analysisCollection {
     if (_analysisCollection case final collection?) {
       return collection;
@@ -113,25 +113,39 @@ class Analyzer implements AnalyzerChanges {
     );
   }
 
-  /// Reloads the analyzer.
+  /// Reloads path-dependency sources into the memory overlay and notifies
+  /// **every** analysis context.
   ///
-  /// This is only needed to be called when a dependency has changed. The
-  /// analyzer groups packages into their own contexts. Because of this,
-  /// dependencies are only resolved and cached when the analyzer is
-  /// initialized.
-  ///
-  /// This refreshes all dependency files in the memory provider and notifies
-  /// the analysis context of changes, similar to how same-package file changes
-  /// are handled.
+  /// The analyzer creates a separate context per `includedPaths` root. Calling
+  /// [AnalysisContextCollection.contextFor] only updates the first matching
+  /// context (usually the dependency package). Route analysis runs in the app
+  /// context, which would otherwise keep a stale file state for the same
+  /// path — so local path-dep edits never show up until a full restart.
   Future<void> reload() async {
     final root = _root;
     if (root == null) {
       throw Exception('No root found');
     }
 
-    // Refresh all dependency files in the
-    // memory provider and notify the context
     await refreshDependencies();
+  }
+
+  /// Notifies every driver that [path] changed. Safe no-op for contexts that
+  /// do not own the URI.
+  Future<void> _notifyFileChanged(String path) async {
+    final collection = _analysisCollection;
+    if (collection == null) {
+      return;
+    }
+
+    final normalized = fs.path.normalize(path);
+    for (final context in collection.contexts) {
+      context.changeFile(normalized);
+    }
+
+    await Future.wait(
+      collection.contexts.map((c) => c.applyPendingFileChanges()),
+    );
   }
 
   Future<void> initialize({required String root}) async {
@@ -197,7 +211,6 @@ class Analyzer implements AnalyzerChanges {
   Future<void> _refreshImpl(List<String> files) async {
     var requiresDependencyRefresh = false;
 
-    AnalysisContext? context;
     for (final file in files) {
       if (!fs.file(file).existsSync()) {
         continue;
@@ -214,12 +227,7 @@ class Analyzer implements AnalyzerChanges {
         };
       }
 
-      try {
-        context = analysisCollection.contextFor(path)..changeFile(path);
-        await context.applyPendingFileChanges();
-      } catch (e) {
-        // its likely this file does not need to be included within analysis
-      }
+      await _notifyFileChanged(path);
     }
 
     if (requiresDependencyRefresh) {
@@ -241,9 +249,6 @@ class Analyzer implements AnalyzerChanges {
     );
     _retrievedDependenciesAt = DateTime.now();
 
-    final pendingChanges = <Future<void>>[];
-
-    AnalysisContext? context;
     for (final path in dependencies) {
       final normalizedPath = fs.path.normalize(path);
       final file = fs.file(normalizedPath);
@@ -253,22 +258,17 @@ class Analyzer implements AnalyzerChanges {
       };
 
       if (bytes == null) {
-        _memoryProvider.deleteFile(normalizedPath);
+        try {
+          _memoryProvider.deleteFile(normalizedPath);
+        } catch (_) {
+          // Already absent from the overlay.
+        }
       } else {
         _memoryProvider.newFileWithBytes(normalizedPath, bytes);
       }
 
-      try {
-        context = analysisCollection.contextFor(normalizedPath)
-          ..changeFile(normalizedPath);
-        pendingChanges.add(context.applyPendingFileChanges());
-      } catch (e) {
-        // File might not be in any context yet, that's okay
-        continue;
-      }
+      await _notifyFileChanged(normalizedPath);
     }
-
-    await Future.wait(pendingChanges);
   }
 
   @override
@@ -277,17 +277,10 @@ class Analyzer implements AnalyzerChanges {
   }
 
   Future<void> _removeImpl(String file) async {
-    AnalysisContext context;
-    try {
-      context = analysisCollection.contextFor(file);
-    } catch (e) {
-      // its likely this file does not need to be included within analysis
-      // so we can just return
-      return;
-    }
+    final path = fs.path.normalize(file);
 
     try {
-      _memoryProvider.deleteFile(file);
+      _memoryProvider.deleteFile(path);
     } catch (e) {
       // Path may not exist in memory provider (e.g. dependency file never
       // loaded, already deleted, or stored as folder). Safe to ignore.
@@ -299,8 +292,7 @@ class Analyzer implements AnalyzerChanges {
       return;
     }
 
-    context.changeFile(file);
-
+    await _notifyFileChanged(path);
     await refreshDependencies();
   }
 
@@ -364,7 +356,6 @@ class Analyzer implements AnalyzerChanges {
     // `find` walks the real filesystem, but analysis reads from the memory
     // overlay. Sync every on-disk file into memory before resolving so newly
     // created controllers/apps are not silently skipped mid-reload.
-    AnalysisContext? syncContext;
     for (final file in files) {
       final normalized = fs.path.normalize(file);
       final real = fs.file(normalized);
@@ -372,15 +363,7 @@ class Analyzer implements AnalyzerChanges {
         continue;
       }
       _memoryProvider.newFileWithBytes(normalized, await real.readAsBytes());
-      try {
-        syncContext = analysisCollection.contextFor(normalized)
-          ..changeFile(normalized);
-      } catch (_) {
-        // File may not belong to an analysis context yet.
-      }
-    }
-    if (syncContext != null) {
-      await syncContext.applyPendingFileChanges();
+      await _notifyFileChanged(normalized);
     }
 
     AnalysisContext context;
