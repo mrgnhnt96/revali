@@ -20,6 +20,7 @@
 - Harden hot reload: atomic promote, kernel invalidation on package changes, analyzer overlay for new routes, and rapid-churn recovery.
 - Discover `app.dart` and warn when falling back to the default app.
 - Exclude `bin` / `test` / `tool` from hot-reload watches.
+- Stabilize the `revali dev` status board: `[READY]`/`[RELOAD]` tags, preserve Serving at after clear/reload, and respect loud mode on `c`.
 
 ### Fixes
 

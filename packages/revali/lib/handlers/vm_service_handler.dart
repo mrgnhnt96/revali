@@ -58,6 +58,12 @@ class VMServiceHandler {
   bool _pendingReload = false;
   bool _intentionalServerRestart = false;
 
+  /// True after at least one successful reload/restart this session.
+  bool _hasReloadedOnce = false;
+
+  /// True after [printStatusBoard] has run for the current child process.
+  bool _statusBoardPrinted = false;
+
   /// Bumped whenever watchers are torn down so stale `asFuture` handlers
   /// do not call [stop] after an intentional cancel/restart.
   int _watcherGeneration = 0;
@@ -98,6 +104,10 @@ class VMServiceHandler {
   Future<int> get exitCode => _exitCodeCompleter.future;
 
   String _vmServiceUri = '';
+  String? _servingAt;
+  List<MetaRoute> __lastRoutes = [];
+
+  bool get _isLoud => logger.level == Level.verbose;
 
   /// Coalesce rapid file-change reloads and restart the child process so
   /// newly added/removed libraries (controllers, apps) take effect.
@@ -145,6 +155,13 @@ class VMServiceHandler {
     try {
       var server = await codeGenerator(_progress?.update);
       _progress?.update('Restarting server process');
+      _hasReloadedOnce = true;
+      _serveOnReady = () {
+        _printReadyBoard(
+          tag: StatusBoardTag.reload,
+          routes: server.routes,
+        ).ignore();
+      };
       try {
         await _restartServerProcess();
       } catch (e) {
@@ -153,12 +170,16 @@ class VMServiceHandler {
         logger.detail('Restart failed ($e); regenerating and retrying once');
         _progress?.update('Recovering');
         server = await codeGenerator(_progress?.update);
+        _serveOnReady = () {
+          _printReadyBoard(
+            tag: StatusBoardTag.reload,
+            routes: server.routes,
+          ).ignore();
+        };
         await _restartServerProcess();
       }
-      _progress?.complete('Reloaded');
-      clearConsole();
-      printVmServiceUri();
-      printParsedRoutes(server.routes);
+
+      // Status board is printed once from serve onReady — no second clear.
 
       logger.flush((message) {
         if (message == null) return;
@@ -177,6 +198,7 @@ class VMServiceHandler {
       logger
         ..err('$e')
         ..detail('$st');
+      printInputCommands();
     }
   }
 
@@ -186,7 +208,7 @@ class VMServiceHandler {
       return false;
     }
 
-    clearConsole();
+    _wipeOrDivide(label: 'errors');
     _progress?.fail('Failed to reload');
     logger
       ..write('\n')
@@ -197,6 +219,8 @@ class VMServiceHandler {
         logger.write('${red.wrap('  -')} ${error.message}\n');
       }
     }
+    logger.write('\n');
+    printInputCommands();
 
     return true;
   }
@@ -228,25 +252,68 @@ class VMServiceHandler {
     }
   }
 
-  void clearConsole() {
-    // When in loud (verbose) mode, preserve terminal content for debugging
-    if (logger.level != Level.verbose) {
+  void _wipeOrDivide({String label = 'reload'}) {
+    if (_isLoud) {
+      logger.write('\n${darkGray.wrap('── $label ──')}\n');
+    } else {
       print('\x1B[2J\x1B[0;0H');
     }
-    var message = '${yellow.wrap(_formatTime(DateTime.now()))}';
-    if (canHotReload) {
-      message += ' ${darkGray.wrap('[RELOAD]')}';
-    }
-    logger.info(message);
   }
 
-  void printVmServiceUri() {
-    if (_vmServiceUri.isEmpty) {
-      return;
+  /// Waits briefly for the child "Serving at" line (stdout races stderr).
+  Future<void> _printReadyBoard({
+    required StatusBoardTag tag,
+    List<MetaRoute>? routes,
+  }) async {
+    for (var i = 0; i < 40 && _servingAt == null; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 25));
+    }
+    printStatusBoard(tag: tag, routes: routes);
+  }
+
+  /// Stable status board reprinted after clear, reload, and `c`.
+  void printStatusBoard({
+    StatusBoardTag? tag,
+    List<MetaRoute>? routes,
+    bool clear = true,
+  }) {
+    final resolvedTag =
+        tag ??
+        (_hasReloadedOnce ? StatusBoardTag.reload : StatusBoardTag.ready);
+
+    if (clear) {
+      _wipeOrDivide(
+        label: resolvedTag == StatusBoardTag.reload ? 'reload' : 'ready',
+      );
     }
 
-    logger.success(_vmServiceUri);
-    printInputCommands();
+    var header = '${yellow.wrap(_formatTime(DateTime.now()))}';
+    if (canHotReload) {
+      final label = switch (resolvedTag) {
+        StatusBoardTag.ready => '[READY]',
+        StatusBoardTag.reload => '[RELOAD]',
+      };
+      header += ' ${darkGray.wrap(label)}';
+    }
+    logger.info(header);
+
+    if (_servingAt case final serving?) {
+      logger.success(serving);
+    }
+
+    if (_vmServiceUri.isNotEmpty) {
+      for (final line in _vmServiceUri.split('\n')) {
+        if (line.isEmpty) continue;
+        logger.info(darkGray.wrap(line));
+      }
+    }
+
+    if (_enableHotReload || canHotReload) {
+      printInputCommands();
+    }
+
+    printParsedRoutes(routes);
+    _statusBoardPrinted = true;
   }
 
   void printInputCommands() {
@@ -268,7 +335,6 @@ class VMServiceHandler {
     logger.write('$buffer\n');
   }
 
-  List<MetaRoute> __lastRoutes = [];
   void printParsedRoutes(List<MetaRoute>? routes0) {
     var routes = routes0;
     if (routes == null) {
@@ -463,18 +529,18 @@ class VMServiceHandler {
     progress.complete('Generated server code');
 
     _enableHotReload = enableHotReload;
-    _serveOnReady = () => printParsedRoutes(server.routes);
+    _serveOnReady = () {
+      _printReadyBoard(
+        tag: _hasReloadedOnce ? StatusBoardTag.reload : StatusBoardTag.ready,
+        routes: server.routes,
+      ).ignore();
+    };
     await serve(enableHotReload: enableHotReload, onReady: _serveOnReady);
 
     if (enableHotReload) {
       watchForInput();
       await watchForFileChanges();
     }
-  }
-
-  void _cleanConsole() {
-    print('\x1B[2J\x1B[0;0H');
-    printVmServiceUri();
   }
 
   void watchForInput() {
@@ -553,7 +619,7 @@ class VMServiceHandler {
 
     final _ = switch (key) {
       'r' || 'reload' => _reload().ignore(),
-      'c' || 'clear' => _cleanConsole(),
+      'c' || 'clear' => printStatusBoard(),
       'q' || 'quit' || 'exit' => stop().ignore(),
       _ => null,
     };
@@ -776,8 +842,12 @@ class VMServiceHandler {
     required bool enableHotReload,
     void Function()? onReady,
   }) async {
-    clearConsole();
+    // Status board is printed once when the server is ready — avoid an empty
+    // wipe here so we do not clear twice on reload.
     logger.detail('Starting server');
+    _vmServiceUri = '';
+    _servingAt = null;
+    _statusBoardPrinted = false;
 
     var hasStartedServer = false;
 
@@ -829,10 +899,8 @@ class VMServiceHandler {
 
       switch (data) {
         case HotReloadFilesChanged(:final files):
-          clearConsole();
-          printVmServiceUri();
-          printParsedRoutes(null);
-
+          // Parent file watchers restart the process; avoid a redundant wipe
+          // here that flickers the status board before that restart.
           await onFilesChange(files);
           logger.detail('Files changed:');
           for (final file in files) {
@@ -849,7 +917,11 @@ class VMServiceHandler {
           }
 
           hasStartedServer = true;
-          _progress?.complete();
+          final progressMessage = _hasReloadedOnce
+              ? 'Reloaded'
+              : 'Server started';
+          _progress?.complete(progressMessage);
+          _progress = null;
           onReady?.call();
           return;
 
@@ -867,13 +939,17 @@ class VMServiceHandler {
 
       if (message.contains('Dart VM service')) {
         _vmServiceUri = message;
-        logger.success(message);
       } else if (message.contains('Dart DevTools debugger')) {
-        _vmServiceUri += '\n$message';
-        logger.success(message);
-        printInputCommands();
-        logger.write('\n');
+        _vmServiceUri = _vmServiceUri.isEmpty
+            ? message
+            : '$_vmServiceUri\n$message';
         _progress = logger.progress('Starting server');
+      } else if (message.startsWith('Serving at ')) {
+        _servingAt = message;
+        // Board already printed without a URL (stdout raced past the wait).
+        if (_statusBoardPrinted) {
+          logger.success(message);
+        }
       } else {
         logger.write('$message\n');
       }
@@ -935,17 +1011,19 @@ class VMServiceHandler {
   }
 
   String _formatTime(DateTime time) {
-    String hour;
-    //am/pm
-    String ampm;
-    if (time.hour case _ when time.hour > 12) {
-      hour = (time.hour - 12).toString();
-      ampm = 'PM';
-    } else if (time.hour case _ when time.hour == 0) {
+    final String hour;
+    final String ampm;
+    if (time.hour == 0) {
       hour = '12';
       ampm = 'AM';
+    } else if (time.hour == 12) {
+      hour = '12';
+      ampm = 'PM';
+    } else if (time.hour > 12) {
+      hour = '${time.hour - 12}';
+      ampm = 'PM';
     } else {
-      hour = time.hour.toString();
+      hour = '${time.hour}';
       ampm = 'AM';
     }
 
@@ -955,6 +1033,8 @@ class VMServiceHandler {
     return '$hour:$minute:$second $ampm';
   }
 }
+
+enum StatusBoardTag { ready, reload }
 
 extension _MethodX on MetaMethod {
   /// Wraps the method with an associated color
