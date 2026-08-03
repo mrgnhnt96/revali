@@ -197,13 +197,34 @@ class UserController {
 }
 ```
 
-### 3. Hot Reload
+### 3. Hot Reload & keyboard shortcuts
 
-Changes are automatically detected and applied:
+Changes in `routes/` (and watched paths) reload automatically. While `revali dev` is running you can also press:
 
-- Save your file
-- Hot reload triggers automatically
-- Test your changes immediately
+| Key | Action |
+|-----|--------|
+| `r` | Force regenerate + restart the server process |
+| `c` | Clear the console and reprint the status board (URL, routes, hotkeys) |
+| `q` | Quit (same as Ctrl+C) |
+
+Without a TTY (CI / agents), write a command to `.revali_cmd` in the project root instead:
+
+```bash
+echo reload > .revali_cmd
+echo clear > .revali_cmd
+echo quit > .revali_cmd
+```
+
+After start or reload the console shows a stable status board:
+
+```text
+12:34:56 PM [READY]
+Serving at http://localhost:8080/api
+Press: r reload, c clear, q quit
+
+/users
+GET -> /users/
+```
 
 ### 4. Debug Issues
 
@@ -234,6 +255,7 @@ dart run revali dev -- --port 8081
 - Ensure files are in `routes/` directory
 - Check file naming conventions
 - Verify no syntax errors
+- Press `r` to force a full regenerate
 
 **Debugger Not Connecting:**
 

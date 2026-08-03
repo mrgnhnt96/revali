@@ -82,18 +82,27 @@ Sometimes you need to force a complete regeneration:
 
 ### Using the Terminal
 
-Press `r` in the terminal where Revali is running:
+While `revali dev` is running:
+
+| Key | Action |
+|-----|--------|
+| `r` | Force regenerate + restart |
+| `c` | Clear and reprint the status board |
+| `q` | Quit |
 
 ```console
 $ dart run revali dev
-[INFO] Starting the development server...
-[INFO] Server running on http://localhost:8080
+12:34:56 PM [READY]
+Serving at http://localhost:8080/api
+Press: r reload, c clear, q quit
 
 # Press 'r' to force regeneration
-r
-[INFO] Regenerating server code...
-[INFO] Server reloaded successfully
+12:35:10 PM [RELOAD]
+Serving at http://localhost:8080/api
+Press: r reload, c clear, q quit
 ```
+
+Without a TTY, write to `.revali_cmd` in the project root (`reload`, `clear`, or `quit`).
 
 ### Using the CLI
 
