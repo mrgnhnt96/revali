@@ -334,14 +334,14 @@ packages:
       path: "../packages/revali"
       relative: true
     source: path
-    version: "3.0.0"
+    version: "2.2.0"
   revali_annotations:
     dependency: "direct overridden"
     description:
       path: "../packages/revali_annotations"
       relative: true
     source: path
-    version: "3.0.0"
+    version: "2.0.2"
   revali_client:
     dependency: "direct overridden"
     description:
@@ -481,14 +481,14 @@ packages:
       path: "../packages/revali_core"
       relative: true
     source: path
-    version: "2.0.0"
+    version: "1.6.0"
   revali_router:
     dependency: "direct overridden"
     description:
       path: "../revali_router/revali_router"
       relative: true
     source: path
-    version: "4.0.0"
+    version: "3.4.0"
   revali_test:
     dependency: "direct overridden"
     description:

@@ -1,5 +1,40 @@
 # CHANGELOG
 
+## 3.0.0 | 08.04.26
+
+### Breaking Changes
+
+- Server code generation is now built into `revali` — `revali_server` no longer exists as a separate package. Remove it from your `dev_dependencies`; `revali` alone is sufficient.
+- `revali create` scaffolds in-process; it no longer shells out to `revali_server create`.
+- Depend on `revali_router: ^4.0.0`, `revali_annotations: ^3.0.0`, and `revali_core: ^2.0.0`.
+- The `revali.yaml` key for customizing `create` scaffold paths is now `server:` (was `revali_server:`).
+
+### Features
+
+- Add `routes`, `doctor`, and `create` CLI commands for route inspection, diagnostics, and scaffolding.
+- Add `--inspect` on `dev` to record recent requests to `.revali/inspect/requests.jsonl`.
+- Add headless `.revali_cmd` channel for reload/recovery without a TTY.
+- Emit `.revali/server/routes.json` route manifest on generate.
+- Spawn shared `HttpServer` worker isolates when `AppConfig.workers` > 1.
+- Wire request-inspect hooks into generated server startup.
+
+### Enhancements
+
+- Share construct kernels across packages and persist the analyzer byte store for faster rebuilds.
+- Harden hot reload: atomic promote, kernel invalidation on package changes, analyzer overlay for new routes, and rapid-churn recovery.
+- Discover `app.dart` and warn when falling back to the default app.
+- Exclude `bin` / `test` / `tool` from hot-reload watches.
+- Stabilize the `revali dev` status board: `[READY]`/`[RELOAD]` tags, preserve Serving at after clear/reload, and respect loud mode on `c`.
+- Pass `AppConfig.backlog` into server bind.
+- Serve with a single route `Find` on the hot path.
+
+### Fixes
+
+- Tolerate stdin mode errors on non-TTY terminals.
+- Pick up local path-dependency edits during `revali dev` by notifying every analysis context (app context no longer keeps a stale copy).
+- Return HTTP 400 for missing/invalid parameter bindings (`MissingArgumentException`).
+- Bind `Set` and coerced query parameters correctly (including coerced values to `String` params).
+
 ## 2.2.0 | 06.17.26
 
 ### Features

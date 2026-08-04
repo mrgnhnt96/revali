@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.3.0 | 08.04.26
+
+### Features
+
+- Allow `ServerDirectory` to include additional generated files alongside `server.dart` via `additionalFiles`.
+
 ## 2.2.0 | 06.17.26
 
 ### Features

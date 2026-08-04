@@ -1,5 +1,31 @@
 # CHANGELOG
 
+## 4.0.0 | 08.04.26
+
+### Breaking Changes
+
+- `revali_router_core` and `revali_router_annotations` no longer exist as separate packages (both deprecated) — depend on `revali_core: ^2.0.0` and `revali_annotations: ^3.0.0` directly. `revali_router`'s own public API is unchanged; only the import source of the re-exported types moved.
+
+### Features
+
+- Add `@RequestId()` lifecycle kit to ensure every request has an ID header (default `X-Request-Id`).
+- Add request inspect / timing traces for `dev --inspect`.
+- Plumb `AppConfig.workers` and `AppConfig.backlog` through the router `AppConfig`.
+
+### Fixes
+
+- Map `MissingArgumentException` to HTTP 400 (with richer expected/actual type detail).
+- Include empty-path child routes in OPTIONS `Allow` headers.
+- Bind `Set` and coerced query parameters correctly.
+- Harden the request accept loop against handler failures.
+
+### Enhancements
+
+- O(1) static route lookup; single `Find` per request.
+- Cache UTF-8 bytes for JSON/string response bodies.
+- Cache HTTP `Date` (~1s) and skip empty CORS / middleware / guard / interceptor stages.
+- Add configurable `DefaultResponses.badRequest`.
+
 ## 3.4.0 | 06.17.26
 
 ### Features
