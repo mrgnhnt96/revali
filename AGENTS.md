@@ -42,7 +42,7 @@ dart run revali dev [--inspect] [--skip-if-fresh] [--recompile]
 
 `dev` hotkeys: `r` reload, `c` clear status board, `q` quit. Headless: write `reload`/`clear`/`quit` to `.revali_cmd`.
 
-`create` proxies to `revali_server create`. Prefer MCP tools when configured (`list_routes`, `doctor`, `recent_requests`, `create_scaffold`).
+`create` scaffolds app/controller/lifecycle-component/pipe/observer files in-process. Prefer MCP tools when configured (`list_routes`, `doctor`, `recent_requests`, `create_scaffold`).
 
 ## Testing
 

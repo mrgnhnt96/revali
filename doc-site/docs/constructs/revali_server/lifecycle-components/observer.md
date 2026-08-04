@@ -38,7 +38,7 @@ class MyObserver implements Observer {
 Try using the [`create` cli][create-cli] to generate the observer for you!
 
 ```bash
-dart run revali_server create observer
+dart run revali create observer
 ```
 
 :::

@@ -8,10 +8,10 @@ description: Create an app and configure host & port
 Creating an app configuration is the first step in setting up your Revali application. This guide will walk you through creating your first app configuration.
 
 :::tip
-If you have the [Revali Server](/constructs/revali_server/overview) construct installed, you can quickly create an app configuration using the CLI command:
+You can quickly create an app configuration using the CLI command:
 
 ```bash
-dart run revali_server create app
+dart run revali create app
 ```
 
 :::

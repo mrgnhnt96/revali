@@ -10,14 +10,7 @@ Revali's construct system is designed to be intuitive and flexible, allowing dev
 
 ## What You Can Build
 
-Constructs enable you to extend Revali's capabilities in countless ways:
-
-### 🚀 **Server Constructs**
-
-- Custom HTTP servers with specialized protocols
-- WebSocket servers with real-time capabilities
-- gRPC servers for microservice communication
-- GraphQL servers with schema generation
+Constructs enable you to extend Revali's capabilities in countless ways. (Server generation itself is built into Revali and isn't something you author — see [Construct Types](#construct-types) below.)
 
 ### 📦 **Build Constructs**
 
@@ -37,18 +30,7 @@ Constructs enable you to extend Revali's capabilities in countless ways:
 
 ## Construct Types
 
-Revali supports different types of constructs, each optimized for specific use cases:
-
-### Server Constructs
-
-Server constructs generate the core server implementation for your application. They run during development and provide the runtime foundation for your API.
-
-**Characteristics:**
-
-- Generate code in `.revali/server/` directory
-- Handle HTTP requests and responses
-- Provide middleware, routing, and lifecycle management
-- **Limit**: One per project (ensures single server implementation)
+Revali supports different types of constructs, each optimized for specific use cases. Server generation itself isn't a construct you author — Revali always contributes its own, generating code into `.revali/server/` — but the types below are the ones you can build:
 
 ### Build Constructs
 
@@ -112,7 +94,6 @@ Ready to create your first construct? Follow these guides:
 For more complex constructs, explore these advanced concepts:
 
 - **[Construct Lifecycle](/create-constructs/core/construct-lifecycle)** - Understand how constructs integrate with Revali
-- **[Server Constructs](/create-constructs/core/server-construct)** - Build custom server implementations
 - **[Build Constructs](/create-constructs/core/build-construct)** - Create deployment and build tools
 - **[Generic Constructs](/create-constructs/core/generic-construct)** - Build flexible code generators
 

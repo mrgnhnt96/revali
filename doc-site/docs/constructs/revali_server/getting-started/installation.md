@@ -10,14 +10,14 @@ Welcome to Revali Server! This guide will help you set up everything you need to
 
 ## Quick Start
 
-The fastest way to get started is to add all required dependencies at once:
+The fastest way to get started is to add both required dependencies at once:
 
 ```bash
-# Add runtime dependencies
+# Add the runtime dependency
 dart pub add revali_router
 
-# Add development dependencies
-dart pub add revali revali_server --dev
+# Add the development dependency
+dart pub add revali --dev
 
 # Get all dependencies
 dart pub get
@@ -27,17 +27,17 @@ That's it! You're ready to start building your server.
 
 ## Understanding the Dependencies
 
-Revali Server is built on a foundation of three key packages, each serving a specific purpose:
+Revali Server is built on a foundation of two key packages, each serving a specific purpose:
 
 ### 🚀 Revali (Development Tool)
 
-The core framework that orchestrates your entire development experience.
+The core framework that orchestrates your entire development experience — including generating your server's code. No separate code-generator package to add.
 
 ```bash
 dart pub add revali --dev
 ```
 
-**Why it's needed:** Revali provides the build system, CLI tools, and development server that make everything work together seamlessly.
+**Why it's needed:** Revali provides the build system, CLI tools, development server, and server code generation that make everything work together seamlessly.
 
 ### 🛣️ Revali Router (Runtime)
 
@@ -49,16 +49,6 @@ dart pub add revali_router
 
 **Why it's needed:** This is the heart of your server - it processes incoming requests, matches them to your controllers, and sends back responses.
 
-### ⚙️ Revali Server (Code Generator)
-
-The code generator that creates your server implementation.
-
-```bash
-dart pub add revali_server --dev
-```
-
-**Why it's needed:** This package analyzes your code and generates the actual server files that Revali Router uses at runtime.
-
 ## Manual Installation
 
 If you prefer to add dependencies manually, here's what your `pubspec.yaml` should look like:
@@ -68,8 +58,7 @@ dependencies:
   revali_router: <latest> # Runtime routing
 
 dev_dependencies:
-  revali: <latest> # Development framework
-  revali_server: <latest> # Code generator
+  revali: <latest> # Development framework + server code generation
 ```
 
 :::tip

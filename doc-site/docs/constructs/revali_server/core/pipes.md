@@ -54,7 +54,7 @@ class UserPipe implements Pipe<String, User> {
 Use the CLI to generate pipes quickly:
 
 ```bash
-dart run revali_server create pipe
+dart run revali create pipe
 ```
 
 :::

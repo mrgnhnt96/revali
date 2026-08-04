@@ -17,7 +17,7 @@ Controllers are the foundation of your API. They organize related endpoints and 
 The fastest way to create a controller is using the CLI we learned about earlier:
 
 ```bash
-dart run revali_server create controller
+dart run revali create controller
 ```
 
 When prompted, enter `hello` as the controller name. This will generate a complete controller file with examples and proper structure.

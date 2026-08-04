@@ -36,7 +36,7 @@ dart run revali doctor [--json]
 dart run revali create controller|app|lifecycle-component|pipe|observer
 ```
 
-`create` proxies to `dart run revali_server create` (scaffolds still live in `revali_server`).
+Server generation is built into `revali` — no separate construct package to install.
 
 Missing / invalid request bindings raise `MissingArgumentException` and map to **HTTP 400**. Prefer `LifecycleComponent` for new middleware; `@RequestId()` is available as a built-in kit.
 

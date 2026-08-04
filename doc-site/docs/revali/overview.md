@@ -19,7 +19,7 @@ Revali is a modern, fast, and powerful Dart API framework that makes building ro
 
 ## How does it work?
 
-Revali analyzes your Dart classes, methods, and annotations to generate code through "constructs". These constructs are standalone Dart packages that are imported into your project, automatically detected by Revali, and used to generate the necessary code. This modular approach allows you to easily extend Revali's capabilities by creating your own constructs or using constructs created by the community.
+Revali analyzes your Dart classes, methods, and annotations to generate your server code — built in, no extra package needed. Beyond the server, Revali's capabilities can be extended with "constructs": standalone Dart packages that are imported into your project, automatically detected by Revali, and used to generate additional code (client SDKs, OpenAPI docs, Docker deployment, or your own).
 
 ```mermaid
 graph LR
@@ -45,5 +45,5 @@ Ready to build your first API? Get started in minutes:
 3. **[Run the Server](/revali/getting-started/run-the-server)** - See your API in action
 
 :::info
-For a complete server implementation, check out the [Revali Server](/constructs/revali_server/overview) construct guide.
+For a complete server implementation, check out the [Revali Server](/constructs/revali_server/overview) guide.
 :::

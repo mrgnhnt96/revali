@@ -8,7 +8,7 @@ description: Create a new controller and endpoint
 This guide will walk you through creating your first API endpoint using Revali's approach.
 
 :::tip
-This guide covers the core concepts of Revali. For a complete server implementation, check out the [Revali Server](/constructs/revali_server/overview) construct guide.
+This guide covers the core concepts of Revali. For a complete server implementation, check out the [Revali Server](/constructs/revali_server/overview) guide.
 :::
 
 ## Project Structure
@@ -130,4 +130,4 @@ For more advanced features like:
 - Error handling
 - Database integration
 
-Check out the [Revali Server](/constructs/revali_server/overview) construct documentation.
+Check out the [Revali Server](/constructs/revali_server/overview) documentation.

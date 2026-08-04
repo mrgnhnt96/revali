@@ -36,8 +36,6 @@ version: "1.0.0"
 
 # Constructs configuration
 constructs:
-  - name: revali_server
-    enabled: true
   - name: revali_docker
     enabled: true
 ```
@@ -69,8 +67,6 @@ By default, all constructs are enabled. To explicitly enable a construct, add it
 
 ```yaml title="revali.yaml"
 constructs:
-  - name: revali_server
-    enabled: true
   - name: revali_docker
     enabled: true
   - name: revali_client
@@ -95,10 +91,10 @@ If you have constructs with conflicting names, use the `package` field to specif
 
 ```yaml title="revali.yaml"
 constructs:
-  - name: revali_docker
-    package: revali_server # Specify package to avoid conflicts
+  - name: docs
+    package: revali_swagger # Specify package to avoid conflicts
     enabled: true
-  - name: custom_docker
+  - name: docs
     package: my_custom_package
     enabled: true
 ```

@@ -57,7 +57,7 @@ The `next` callback continues the execute pipeline: middleware → guards → in
 Try using the [`create` cli][create-cli] to generate a lifecycle component scaffold that includes a `wrap` method!
 
 ```bash
-dart run revali_server create lifecycle-component
+dart run revali create lifecycle-component
 ```
 
 :::

@@ -10,15 +10,11 @@ The Revali Server CLI is your development companion, providing powerful code gen
 
 ## Getting Started
 
-Scaffolding is implemented by `revali_server`, and is also reachable from the main Revali CLI:
+Scaffolding is built into the main Revali CLI:
 
 ```bash
 dart run revali --help
 dart run revali create --help
-
-# equivalent:
-dart run revali_server --help
-dart run revali_server create
 ```
 
 Other project tooling on `dart run revali`:
@@ -28,7 +24,7 @@ Other project tooling on `dart run revali`:
 | `dev` / `build` | Generate and run / build |
 | `routes` | List routes from `.revali/server/routes.json` (`--generate`, `--json`) |
 | `doctor` | SDK, constructs, kernel cache, output freshness |
-| `create` | Proxy to `revali_server create` |
+| `create` | Scaffold app/controller/lifecycle-component/pipe/observer files |
 
 ### MCP (agents)
 
@@ -44,7 +40,6 @@ The easiest way to get started is with interactive mode:
 
 ```bash
 dart run revali create
-# or: dart run revali_server create
 ```
 
 This will present you with a menu of available components to generate, making it perfect for beginners or when you're unsure what you need.
@@ -126,7 +121,7 @@ lib/
 Create a `revali.yaml` file in your project root to customize paths:
 
 ```yaml title="revali.yaml"
-revali_server:
+server:
   create_path:
     # Use arrays for nested directories
     controller: ["routes", "controllers"]

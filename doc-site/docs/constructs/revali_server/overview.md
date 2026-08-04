@@ -6,11 +6,11 @@ description: Create Server-Side Code with Revali Server
 
 # Revali Server
 
-Revali Server is the default server construct that generates comprehensive server-side code for Revali applications. It provides a powerful, type-safe way to build HTTP APIs using annotations, inspired by modern frameworks like NestJS.
+Revali Server generates comprehensive server-side code for Revali applications — built into `revali` itself, no separate package to install. It provides a powerful, type-safe way to build HTTP APIs using annotations, inspired by modern frameworks like NestJS.
 
 ## What is Revali Server?
 
-Revali Server is a [Server Construct](/constructs#server-constructs) that generates the complete server implementation for your Revali application. It handles:
+Revali Server is the [server generation](/constructs#server-generation) that comes with `revali`, producing the complete server implementation for your Revali application. It handles:
 
 - **HTTP Request Routing**: Automatic route generation from your controllers
 - **Middleware Support**: Request/response processing pipeline
@@ -136,7 +136,7 @@ This creates a complete REST API with:
 - **Developer Experience**: Excellent tooling and debugging support
 
 :::important
-**Single Server Construct**: You can only use one server construct per project. Revali Server is the recommended choice for most applications.
+**Built In**: Server generation is part of `revali` itself — every Revali project gets it automatically, with no separate construct to install or choose between.
 :::
 
 ## Next Steps

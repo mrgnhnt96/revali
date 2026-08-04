@@ -14,7 +14,7 @@ dart run revali_mcp
 | `get_route` | Filter by method / path / handler |
 | `doctor` | `dart run revali doctor --json` |
 | `recent_requests` | Tail `.revali/inspect/requests.jsonl` (`revali dev --inspect`) |
-| `create_scaffold` | `dart run revali_server create …` |
+| `create_scaffold` | `dart run revali create …` |
 
 ## Cursor
 

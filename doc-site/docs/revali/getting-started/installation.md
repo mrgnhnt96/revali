@@ -35,23 +35,6 @@ dev_dependencies:
 Replace `^1.0.0` with the latest version from [pub.dev](https://pub.dev/packages/revali).
 :::
 
-## Install a Server Construct
-
-Revali requires a server construct to generate the actual server code. The most common choice is `revali_server`:
-
-### Install Revali Server
-
-```bash
-dart pub add revali_server --dev
-```
-
-Or manually add to `pubspec.yaml`:
-
-```yaml title="pubspec.yaml"
-dev_dependencies:
-  revali_server: ^1.0.0
-```
-
 ## Install Runtime Dependencies
 
 For server functionality, you'll also need the runtime dependencies:
@@ -89,9 +72,8 @@ Ready to create your first endpoint? Check out the [Create Your First Endpoint](
 
 ## Available Constructs
 
-Revali supports various constructs for different use cases:
+Server-side code generation ([Revali Server](/constructs/revali_server/overview)) is built into `revali` — nothing extra to install. Beyond that, Revali supports optional constructs for other use cases:
 
-- **[revali_server](/constructs/revali_server/overview)**: Generate server-side code (most common)
 - **[revali_client](/constructs/revali_client/overview)**: Generate client-side code
 - **[revali_docker](/constructs/revali_docker/overview)**: Docker deployment support
 

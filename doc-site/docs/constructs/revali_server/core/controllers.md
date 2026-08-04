@@ -23,7 +23,7 @@ Think of controllers as **traffic directors** for your API. They:
 The fastest way to create a controller is using the CLI:
 
 ```bash
-dart run revali_server create controller
+dart run revali create controller
 ```
 
 When prompted, enter a name like `users` or `products`. This generates a complete controller with examples.
