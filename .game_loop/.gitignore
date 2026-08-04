@@ -1,0 +1,7 @@
+state.json
+sessions/
+log.jsonl
+verified.json
+probe/
+*.pid
+.state.*.tmp

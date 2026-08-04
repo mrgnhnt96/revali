@@ -1,0 +1,589 @@
+#!/usr/bin/env python3
+"""watchdog — rings the session back to work when INTENT and REALITY disagree.
+
+THE AUTONOMY ENGINE. The Stop gate (`game_loop stopgate`) stops the session SAYING the wrong thing at
+turn-end. It cannot make the session DO the next thing — a blocked turn-end still needs someone to
+press "go". This closes that hole, and it is what lets a run continue with no human present.
+
+THE MISMATCH IT DETECTS:
+  game_loop state says : a mandate is bound, work is outstanding, nobody is waiting on the human
+  harness state     : the transcript has not grown in IDLE_SEC — the session is parked
+  => contradiction  => ring (exit 2), which asyncRewake turns into a model wake-up.
+
+TWO MORE JOBS, same wake mechanism:
+  * USAGE-LIMIT PARK (park_until_limit_resets): when .game_loop/limits.json (fed by
+    `game_loop statusline`) shows a rate-limit window exhausted, ringing is pointless — a wake-up is
+    an API call into the wall that killed the run. Park, page the human, sleep until the window
+    resets, then ring pointing at the handoff the limitgate demanded.
+  * SLACK REPLY FORWARDING (poll_slack_replies): a T3 arm paged to Slack keeps its thread ts; while
+    the arm is live this polls the thread and, on a human reply, clears the arm and rings the answer
+    into the run — the desk is optional.
+
+HOW IT IS WIRED (.claude/settings.json -> hooks.Stop):
+  * asyncRewake:true + a long timeout — the hook blocks in the BACKGROUND; exit 2 wakes the model,
+    exit 0 is quiet.
+  * one watchdog per SESSION at a time; the newest supersedes the rest via a per-session pidfile
+    (a superseded one exits 0). Sessions never supersede each other — each watches only its own
+    mandate, in its own .game_loop/sessions/<id>/state.json.
+  * chunked sleep so supersede latency and laptop-sleep drift stay bounded.
+  * a WATCHDOG_TEST_SECONDS escape hatch force-rings quickly to verify the wake path end-to-end.
+
+WHAT IT DOES NOT DO (state the scope of a guard, including what it misses):
+  * It cannot tell "parked" from "thinking hard about one long tool call". Idleness is measured by
+    transcript growth; a long single tool call looks identical to being stopped. Superseding and the
+    ring cap keep that cheap rather than perfectly correct.
+  * It cannot know whether the work it resumes is the RIGHT work. It only knows the session is idle.
+  * If the harness stops honouring asyncRewake, this fails SILENT — nothing here would notice.
+    `game_loop status` reports the last ring so the silence is at least visible in the log.
+"""
+import datetime
+import json
+import os
+import sys
+import time
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # for the local flair/notify modules
+try:
+    import flair  # decoration only; the watchdog works identically without it
+except Exception:  # noqa: BLE001
+    flair = None
+try:
+    import notify  # paging only; the watchdog works identically without it
+except Exception:  # noqa: BLE001
+    notify = None
+
+CODE_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # the .game_loop/ this CODE is in
+
+# GAME_LOOP_HOME, honoured here for the same reason as in bin/game_loop and bin/verify, and for one
+# more that is specific to this process: the watchdog WRITES — state, the pid file, log.jsonl. Under
+# a pin those would land beside the pinned code, and a pin is upgraded by re-checkout, so every
+# upgrade would silently destroy the session state and the permanent log. Unset behaves as before.
+HOME_ENV = "GAME_LOOP_HOME"
+PINNED_MARK = "PINNED"
+
+
+def resolve_home(code_root, prog):
+    """Unset → the code's own directory (unchanged). Set → must exist and carry config.json, else
+    REFUSE rather than fall back to __file__. Pinned code run with no home is refused too."""
+    raw = os.environ.get(HOME_ENV)
+    if raw is None:
+        if os.path.exists(os.path.join(code_root, PINNED_MARK)):
+            sys.stderr.write(
+                f"{prog} REFUSED — this is a PINNED code checkout and no {HOME_ENV} names its "
+                f"project.\n    code : {code_root}\n\n"
+                "A pinned checkout carries CODE only. Its verify.yaml is a copy of some older "
+                "commit's,\nand any state written beside it is destroyed by the next re-pin. Name "
+                "the project's home:\n"
+                f"    {HOME_ENV}=<project>/.game_loop {code_root}/bin/{prog} ...\n"
+                "  → `game_loop self` prints the hook wiring that sets it.\n")
+            raise SystemExit(2)
+        return code_root
+    home = os.path.abspath(os.path.expanduser(raw.strip())) if raw.strip() else ""
+    if home and os.path.isfile(os.path.join(home, "config.json")):
+        return home
+    sys.stderr.write(
+        f"{prog} REFUSED — {HOME_ENV} does not name a game_loop home.\n"
+        f"    {HOME_ENV} : {raw!r}\n"
+        f"    looked for : {os.path.join(home, 'config.json') if home else '(empty value)'}\n\n"
+        "It must name the .game_loop/ holding the PROJECT's own identity — config.json, "
+        "verify.yaml,\nINVARIANTS.md, state, log.jsonl, pins, the ruled-out list. Falling back to "
+        "this code's own\ndirectory would check the PINNED copy instead of the project and report "
+        "success while gating\nnothing, so this refuses. Point it at a real .game_loop/, or unset it "
+        "entirely.\n")
+    raise SystemExit(2)
+
+
+ROOT = resolve_home(CODE_ROOT, "watchdog")          # .game_loop/ — identity and state
+STATE_F = os.path.join(ROOT, "state.json")          # re-pointed by set_session()
+LOG_F = os.path.join(ROOT, "log.jsonl")
+CONFIG_F = os.path.join(ROOT, "config.json")
+LIMITS_F = os.path.join(ROOT, "limits.json")        # account-scoped snapshot from `game_loop statusline`
+PID_PATH = os.path.join(ROOT, ".watchdog.pid")      # re-pointed by set_session()
+
+SESSION = None
+
+
+def set_session(sid):
+    """Scope state AND the pidfile to one session — a watchdog may only watch (and supersede) its own
+    session. A shared pidfile would let session A's Stop hook kill session B's armed watchdog, and a
+    shared state file would let A's mandate ring B out of an idle it had every right to. No id → the
+    repo-global legacy paths, unchanged behavior."""
+    global SESSION, STATE_F, PID_PATH
+    import re
+    sid = re.sub(r"[^A-Za-z0-9._-]", "-", sid.strip())[:64] if isinstance(sid, str) and sid.strip() else None
+    SESSION = sid
+    if sid:
+        sdir = os.path.join(ROOT, "sessions", sid)
+        STATE_F = os.path.join(sdir, "state.json")
+        PID_PATH = os.path.join(sdir, ".watchdog.pid")
+
+
+def _cfg():
+    wd = {"idle_sec": 30, "settle_sec": 5, "ring_cap": 3}
+    try:
+        with open(CONFIG_F) as f:
+            wd.update((json.load(f).get("watchdog") or {}))
+    except (OSError, ValueError):
+        pass
+    return wd
+
+
+def _limits_cfg():
+    lc = {"threshold_pct": 98, "exhausted_pct": 99, "handoff_file": "HANDOFF.md"}
+    try:
+        with open(CONFIG_F) as f:
+            lc.update((json.load(f).get("limits") or {}))
+    except (OSError, ValueError):
+        pass
+    return lc
+
+
+_WD = _cfg()
+_LC = _limits_cfg()
+# Env overrides let the test suite exercise the real DECISION logic in milliseconds.
+IDLE_SEC = int(os.environ.get("WATCHDOG_IDLE_SEC") or _WD["idle_sec"])
+# Let the harness finish flushing the turn to the transcript before taking a baseline. Measuring
+# idleness starting from the busiest instant in the turn guarantees "after > before" and the watchdog
+# would conclude "working, not parked" every time — settle first, THEN measure.
+SETTLE_SEC = int(os.environ.get("WATCHDOG_SETTLE_SEC") or _WD["settle_sec"])
+CHUNK_SEC = 10          # bounds supersede latency
+RING_CAP = int(_WD["ring_cap"])  # consecutive unproductive rings before standing down
+EXHAUSTED_PCT = float(_LC["exhausted_pct"])   # at/over this, the session is treated as rate-limited
+# Grace after a window resets before ringing — the reset timestamp is Anthropic's clock, not ours.
+RESUME_BUFFER_SEC = int(os.environ.get("WATCHDOG_RESUME_BUFFER_SEC") or 30)
+
+
+def handoff_path():
+    """Mirrors bin/game_loop: per-session (sessions/<id>/HANDOFF.md) so concurrent runs never
+    overwrite each other's handoff; repo-global only with no session id. Must be called AFTER
+    set_session() — the session decides whose handoff this watchdog reads and names."""
+    name = _LC.get("handoff_file", "HANDOFF.md")
+    if SESSION:
+        return os.path.join(ROOT, "sessions", SESSION, name)
+    return os.path.join(ROOT, name)
+
+
+def load_state():
+    try:
+        with open(STATE_F) as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return {}
+
+
+def save_state(st):
+    try:
+        os.makedirs(os.path.dirname(STATE_F), exist_ok=True)
+        with open(STATE_F, "w") as f:
+            json.dump(st, f, indent=2)
+            f.write("\n")
+    except OSError:
+        pass
+
+
+def logline(rec):
+    stamp = {"t": datetime.datetime.now().isoformat(timespec="seconds")}
+    if SESSION:
+        stamp["sid"] = SESSION[:8]
+    try:
+        with open(LOG_F, "a") as f:
+            f.write(json.dumps({**stamp, **rec}) + "\n")
+    except OSError:
+        pass
+
+
+def transcript_size(path):
+    try:
+        return os.path.getsize(path)
+    except (OSError, TypeError):
+        return None
+
+
+def quiet(why):
+    """Exit 0: no wake-up — and SAY WHY.
+
+    A watchdog that goes quiet for an unlogged reason is indistinguishable from a watchdog that is
+    broken. Every quiet path records its reasoning so a silent failure is at least readable.
+    """
+    logline({"kind": "watchdog_quiet", "why": why})
+    sys.exit(0)
+
+
+def superseded():
+    try:
+        with open(PID_PATH) as f:
+            return int(f.read().strip()) != os.getpid()
+    except (OSError, ValueError):
+        return False
+
+
+def claim_pidfile():
+    """Newest watchdog wins: kill any previously armed one and record ourselves. False if we can't."""
+    try:
+        with open(PID_PATH) as f:
+            old = int(f.read().strip())
+        if old != os.getpid():
+            os.kill(old, 15)
+    except (OSError, ValueError, ProcessLookupError):
+        pass
+    try:
+        os.makedirs(os.path.dirname(PID_PATH), exist_ok=True)
+        with open(PID_PATH, "w") as f:
+            f.write(str(os.getpid()))
+        return True
+    except OSError:
+        return False
+
+
+def limits_snapshot():
+    try:
+        with open(LIMITS_F) as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return None
+
+
+def exhausted_windows(snap, now_epoch):
+    """Windows at/over EXHAUSTED_PCT whose reset is still ahead: [(name, window), ...]."""
+    out = []
+    for name, w in ((snap or {}).get("windows") or {}).items():
+        try:
+            if (float(w.get("used_percentage", 0)) >= EXHAUSTED_PCT
+                    and float(w.get("resets_at", 0)) > now_epoch):
+                out.append((name, w))
+        except (TypeError, ValueError):
+            continue
+    return out
+
+
+def _fmt_reset(epoch):
+    try:
+        return datetime.datetime.fromtimestamp(float(epoch)).strftime("%a %H:%M")
+    except (TypeError, ValueError, OverflowError):
+        return "?"
+
+
+def park_until_limit_resets(state):
+    """An exhausted usage window means ringing is pointless: an asyncRewake wake-up is an API call,
+    and the API is exactly what just ran dry. So don't burn the ring budget against a dead wall —
+    park, page the human once, sleep until the window resets, then ring pointing at the handoff.
+
+    Waits for the LATEST reset among exhausted windows (a wake into a still-exhausted window would
+    just die again). Re-checks the snapshot while sleeping so an early roll-over, a plan change, or
+    a fresher snapshot ends the park as soon as the evidence does. WHAT THIS MISSES: if the human
+    quit Claude Code entirely there is no process left to wake — this survives a rate-limited
+    SESSION, not a closed laptop.
+    """
+    snap = limits_snapshot()
+    over = exhausted_windows(snap, time.time())
+    if not over:
+        # "no window is exhausted" and "I have no idea" are the SAME empty list here, and the second
+        # one means this function can never fire — no park, no ring at reset. Record it once per
+        # session so a run that didn't need to park is distinguishable, afterwards, from one that
+        # could never have parked. Without this the log of a run that died at its limit is silent.
+        if not (snap and (snap.get("windows") or {})):
+            st = load_state()
+            if not st.get("limit_blind_logged"):
+                st["limit_blind_logged"] = True
+                save_state(st)
+                logline({"kind": "watchdog_limit_blind",
+                         "detail": "no usage snapshot — the limit park and its reset ring cannot arm",
+                         "entrypoint": os.environ.get("CLAUDE_CODE_ENTRYPOINT") or ""})
+        return
+    until = max(float(w["resets_at"]) for _, w in over)
+    names = ", ".join(n for n, _ in over)
+    if not claim_pidfile():
+        quiet("cannot write pidfile")
+    st = load_state()
+    if st.get("limit_parked_until") != until:   # page once per park instance, not per Stop event
+        st["limit_parked_until"] = until
+        save_state(st)
+        logline({"kind": "watchdog_limit_park", "windows": names, "until": until})
+        if notify:
+            hp = handoff_path()
+            has_handoff = os.path.isfile(hp) and os.path.getsize(hp) > 0
+            notify.send("limit_park",
+                        f"⛺ parked — the {names} usage window is exhausted. "
+                        f"Resuming automatically at {_fmt_reset(until)}.\n"
+                        + (f"Handoff: {hp}" if has_handoff
+                           else "⚠ no handoff was written before the limit hit."))
+    while True:
+        remaining = until + RESUME_BUFFER_SEC - time.time()   # recomputed → laptop-sleep-proof
+        if remaining <= 0:
+            break
+        time.sleep(min(CHUNK_SEC, remaining))
+        if superseded():
+            quiet("superseded while parked at the usage limit")
+        st = load_state()
+        if not (st.get("mandate") or {}).get("active"):
+            quiet("mandate released while parked at the usage limit")
+        if (st.get("mandate") or {}).get("parked"):
+            quiet("the human called a break while parked at the usage limit")
+        if st.get("t3_armed"):
+            quiet("T3 armed while parked — the human is holding the ball")
+        if not exhausted_windows(limits_snapshot(), time.time()):
+            break   # fresher snapshot says the limit no longer binds — resume early
+    st = load_state()
+    st["watchdog_rings"] = 0                    # a wake into a reset window starts a fresh budget
+    st["watchdog_exhausted_paged"] = False
+    st.pop("limit_parked_until", None)
+    save_state(st)
+    logline({"kind": "watchdog_limit_resume", "windows": names})
+    if notify:
+        notify.send("limit_resume", f"🌅 the {names} window reset — ringing the run awake.")
+    m = state.get("mandate") or {}
+    print(
+        f"WATCHDOG: the exhausted usage window ({names}) has reset. The run is live again.\n\n"
+        f"  MANDATE: {m.get('text')}\n"
+        + (f"  Your handoff from before the limit: {handoff_path()}\n"
+           if os.path.isfile(handoff_path()) else "")
+        + "\nRe-orient (game_loop status, read the handoff if present) and carry on with the "
+        "mandate.\nDelete the handoff once you've re-absorbed it — a stale handoff misleads the "
+        "next reader.",
+        file=sys.stderr)
+    sys.exit(2)
+
+
+def poll_slack_replies(state):
+    """A T3 arm normally means 'the human holds the ball — stay quiet'. But when the arm was paged
+    to Slack with a thread ts, the ball can come BACK without anyone at the desk: poll the thread,
+    and when the human answers, clear the arm and ring the answer into the run.
+
+    Never returns except by quiet() or exit 2. Trust scope: a reply is taken as the human's words —
+    anyone in the channel can answer (stated in notify.py; scope the channel accordingly).
+    """
+    armed = state.get("t3_armed") or {}
+    ts = armed.get("slack_ts")
+    if not (notify and notify.can_read_replies() and ts):
+        quiet("T3 armed — the human is legitimately holding the ball")
+    if not claim_pidfile():
+        quiet("cannot write pidfile")
+    poll = notify.reply_poll_sec()
+    while True:
+        rs = notify.replies(ts, oldest=armed.get("slack_seen") or ts)
+        if rs:
+            st = load_state()
+            now_armed = st.get("t3_armed") or {}
+            if now_armed.get("slack_ts") != ts:
+                quiet("arm changed while polling slack — not forwarding a stale reply")
+            st["t3_armed"] = None      # answered — the human no longer holds the ball
+            save_state(st)
+            logline({"kind": "watchdog_slack_reply", "thread": ts,
+                     "replies": [r["text"] for r in rs]})
+            notify.send("arm", "🏃 got it — carrying your answer back into the run.", thread_ts=ts)
+            answers = "\n".join(f"    {r['text']}" for r in rs)
+            print(
+                "WATCHDOG: the human answered your T3 question — on Slack, from wherever they are.\n\n"
+                f"  Q: {armed.get('question')}\n  A:\n{answers}\n\n"
+                "The arm is cleared. Act on the answer and carry on.",
+                file=sys.stderr)
+            sys.exit(2)
+        slept = 0
+        while slept < poll:
+            nap = min(CHUNK_SEC, poll - slept)
+            time.sleep(nap)
+            slept += nap
+            if superseded():
+                quiet("superseded while polling slack replies")
+        st = load_state()
+        # NB: no mandate check here, deliberately. A Slack-paged arm is polled until it is answered or
+        # withdrawn, regardless of mandate — the human holds the ball, and their reply must reach the
+        # run whether or not the autonomy mandate is still bound (see the caller). Termination is the
+        # arm going away (answered elsewhere / re-armed) or a newer watchdog superseding this one.
+        if not st.get("t3_armed"):
+            quiet("arm consumed while polling slack replies")
+        state = st
+        armed = state.get("t3_armed") or {}
+
+
+def ring(state, rings):
+    ph = state.get("phase") or {}
+    m = state.get("mandate") or {}
+    logline({"kind": "watchdog_ring", "mandate": m.get("text"),
+             "phase": ph.get("doing"), "ring": rings + 1})
+    st = load_state()
+    st["watchdog_rings"] = rings + 1
+    st["watchdog_rings_total"] = st.get("watchdog_rings_total", 0) + 1
+    st["watchdog_last_ring"] = time.strftime("%Y-%m-%dT%H:%M:%S")
+    # Remember the transcript size AT the ring. The next check compares against it to answer the only
+    # question the cap cares about: did anything happen because we rang?
+    st["watchdog_last_ring_size"] = transcript_size(state.get("_tpath")) or 0
+
+    # Flair: a fun "bounced back" line + any milestone (uptime / assist-count) shout-out. Purely
+    # decorative and error-swallowed — a broken flair file must never stop the watchdog from ringing.
+    tail = ""
+    if flair is not None:
+        try:
+            lines = []
+            a = flair.assist("watchdog")
+            if a:
+                lines.append(a)
+            msgs, new = flair.milestones(st)
+            if new:
+                st.setdefault("flair_fired", []).extend(new)
+            lines += msgs
+            if lines:
+                tail = "\n\n" + "\n".join(lines)
+        except Exception:  # noqa: BLE001
+            tail = ""
+
+    save_state(st)
+
+    print(
+        f"WATCHDOG: {IDLE_SEC}s idle, and your game_loop state contradicts your harness state.\n\n"
+        f"  game_loop says: mandate bound — {m.get('text')}\n"
+        f"  game_loop says: {ph.get('milestone')} · {ph.get('doing')}\n"
+        f"  game_loop says: nobody is waiting on you (no T3 armed)\n"
+        f"  harness says  : the transcript has not grown in {IDLE_SEC}s — you are parked\n\n"
+        "Both cannot be true. You are under an autonomy mandate with work outstanding and you are\n"
+        "doing nothing. The Stop gate can stop you SAYING the wrong thing, but it cannot press go for\n"
+        "you. That is what this is.\n\n"
+        "GO — run the next thing; your plan / the mandate almost always already answers 'what next'.\n"
+        "Do not reply with a plan; run it. If the mandate is genuinely satisfied:\n"
+        "  game_loop mandate --clear --notes \"..\"\n"
+        "If you genuinely need the human:  game_loop arm --question .. --read .. --predict .."
+        + tail,
+        file=sys.stderr)
+    sys.exit(2)
+
+
+def main():
+    try:
+        payload = json.load(sys.stdin)
+    except (json.JSONDecodeError, ValueError):
+        payload = {}
+
+    # The payload's session_id is authoritative; env is the fallback for harnesses that omit it.
+    # Resolved BEFORE the first state read — it decides whose mandate this watchdog enforces.
+    set_session(payload.get("session_id")
+                or os.environ.get("GAME_LOOP_SESSION")
+                or os.environ.get("CLAUDE_CODE_SESSION_ID"))
+
+    state = load_state()
+    m = state.get("mandate") or {}
+    tpath = payload.get("transcript_path")
+    state["_tpath"] = tpath
+
+    # A live T3 arm means the human is legitimately holding the ball — do not ring. Unless the arm was
+    # paged to Slack, in which case the ball can come back from a phone: poll the thread. This runs
+    # BEFORE the mandate check on purpose — carrying back the answer to a question you already asked is
+    # not nagging, and whether a mandate is bound is orthogonal to whether the human's reply should
+    # reach the run. (The classic case Slack paging exists for is precisely: mandate finished, agent
+    # has a question, human away.) poll_slack_replies quiet()s when the arm is unpageable, so an
+    # unmandated session without a Slack-armed question still falls straight through to the guard below.
+    if state.get("t3_armed"):
+        poll_slack_replies(state)
+
+    # No mandate => nothing to keep going. The gate is inert and so is the watchdog: it must never nag
+    # a session that is not under a mandate.
+    if not m.get("active"):
+        quiet("no mandate bound")
+
+    # A human-called break (`game_loop mandate --park`) means the run is stopped deliberately, by the
+    # one authority this engine defers to. Idleness is EXPECTED, and ringing would drag the session
+    # back into work the human just paused. The mandate stays open; only they end the break
+    # (`mandate --resume`). Distinct from the usage-limit park below, which the clock ends.
+    if m.get("parked"):
+        quiet("mandate parked at the human's request")
+
+    # An exhausted usage window outranks everything below: idleness is EXPECTED while rate-limited,
+    # and a ring is an API call into the very wall that killed the run. Park until the reset.
+    park_until_limit_resets(state)  # returns immediately when no window is exhausted
+
+    # RESET BEFORE THE CAP. The cap means CONSECUTIVE UNPRODUCTIVE rings — stand down only if ringing
+    # is not getting the session working. If the transcript has grown since the last ring, the ring
+    # WORKED, so the budget is spent honestly rather than burned once and never recovered.
+    rings = state.get("watchdog_rings", 0)
+    if rings:
+        now_size = transcript_size(tpath) or 0
+        if now_size > state.get("watchdog_last_ring_size", 0):
+            st = load_state()
+            st["watchdog_rings"] = 0
+            st["watchdog_exhausted_paged"] = False
+            save_state(st)
+            logline({"kind": "watchdog_rearm", "was": rings,
+                     "note": "work happened since the last ring; the cap counts CONSECUTIVE "
+                             "unproductive rings, not rings ever"})
+            state["watchdog_rings"] = rings = 0
+
+    if rings >= RING_CAP:
+        logline({"kind": "watchdog_exhausted", "rings": rings,
+                 "note": "stood down after RING_CAP consecutive unproductive rings"})
+        # This is precisely the "the run is stuck and needs a body at the desk" moment — page it.
+        # Once per stand-down, not per Stop event: the flag clears whenever the rings reset.
+        if not state.get("watchdog_exhausted_paged"):
+            st = load_state()
+            st["watchdog_exhausted_paged"] = True
+            save_state(st)
+            if notify:
+                m0 = state.get("mandate") or {}
+                ph0 = state.get("phase") or {}
+                notify.send("watchdog_exhausted",
+                            f"🧯 the watchdog stood down after {rings} unproductive rings — the run "
+                            f"is stuck and needs you at the machine.\n"
+                            f"mandate: {m0.get('text')}\nphase: {ph0.get('milestone')} · "
+                            f"{ph0.get('doing')}")
+        quiet("ring cap reached")
+
+    # newest watchdog wins: supersede any previously armed one.
+    if not claim_pidfile():
+        quiet("cannot write pidfile")
+
+    # Settle before baselining — see SETTLE_SEC. Superseding still wins during the settle.
+    settled = 0
+    while settled < SETTLE_SEC:
+        nap = min(1, SETTLE_SEC - settled)
+        time.sleep(nap)
+        settled += nap
+        if superseded():
+            quiet("superseded during settle")
+    before = transcript_size(tpath)
+
+    test = int(os.environ.get("WATCHDOG_TEST_SECONDS", "0") or 0)
+    delay = test or IDLE_SEC
+
+    slept = 0
+    while slept < delay:
+        nap = min(CHUNK_SEC, delay - slept)
+        time.sleep(nap)
+        slept += nap
+        if superseded():
+            quiet("superseded by a newer watchdog")
+
+    if test:
+        print("WATCHDOG TEST RING: the asyncRewake wake path works end-to-end. Strip "
+              "WATCHDOG_TEST_SECONDS from .claude/settings.json and report it verified.",
+              file=sys.stderr)
+        sys.exit(2)
+
+    # Re-read: the world moved while we slept, and the decision must reflect NOW, not arm-time.
+    state = load_state()
+    m = state.get("mandate") or {}
+    if not m.get("active"):
+        quiet("mandate released while sleeping")
+    if m.get("parked"):
+        quiet("the human called a break while sleeping")
+    if state.get("t3_armed"):
+        quiet("T3 armed while sleeping")
+
+    after = transcript_size(tpath)
+    if before is not None and after is not None and after > before:
+        # Working, not parked. Reset the ring budget so a resumed session is not permanently deaf.
+        st = load_state()
+        if st.get("watchdog_rings"):
+            st["watchdog_rings"] = 0
+            save_state(st)
+        quiet("transcript grew — the session is working, not parked")
+
+    if before is None or after is None:
+        # Could not measure idleness at all. Say so rather than ring on a guess — a watchdog that
+        # fires blind teaches the agent to ignore it.
+        logline({"kind": "watchdog_blind", "transcript_path": tpath,
+                 "note": "could not size the transcript; not ringing on an unmeasured guess"})
+        quiet("cannot measure transcript growth")
+
+    ring(state, state.get("watchdog_rings", 0))
+
+
+if __name__ == "__main__":
+    main()
