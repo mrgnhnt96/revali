@@ -1,7 +1,7 @@
 import 'package:code_builder/code_builder.dart';
+import 'package:revali_core/payload/payload.dart' show Payload;
+import 'package:revali_core/revali_core.dart' show Payload;
 import 'package:revali_router/revali_router.dart' show Payload;
-import 'package:revali_router_core/payload/payload.dart' show Payload;
-import 'package:revali_router_core/revali_router_core.dart' show Payload;
 import 'package:revali_server/converters/base_parameter_annotation.dart';
 import 'package:revali_server/converters/server_body_annotation.dart';
 import 'package:revali_server/converters/server_param.dart';

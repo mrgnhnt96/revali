@@ -1,4 +1,4 @@
-import 'package:revali_router_core/data/data.dart';
+import 'package:revali_core/data/data.dart';
 
 class DataImpl implements Data {
   DataImpl();

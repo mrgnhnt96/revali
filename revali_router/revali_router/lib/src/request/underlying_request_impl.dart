@@ -1,8 +1,8 @@
 import 'dart:io';
 
+import 'package:revali_core/revali_core.dart';
 import 'package:revali_router/src/headers/request_headers_impl.dart';
 import 'package:revali_router/src/payload/payload_impl.dart';
-import 'package:revali_router_core/revali_router_core.dart';
 
 class UnderlyingRequestImpl implements UnderlyingRequest {
   const UnderlyingRequestImpl({

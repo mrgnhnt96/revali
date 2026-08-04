@@ -1,5 +1,5 @@
+import 'package:revali_annotations/revali_annotations.dart';
 import 'package:revali_construct/revali_construct.dart';
-import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_swagger/builders/schema_registry.dart';
 import 'package:revali_swagger/enums/param_location.dart';
 import 'package:revali_swagger/models/swagger_type.dart';
@@ -32,7 +32,7 @@ class SwaggerParam {
       onMatch: [
         OnMatch(
           classType: Body,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             setLocation(ParamLocation.body);
             final access = object.getField('access')?.toListValue();
@@ -44,7 +44,7 @@ class SwaggerParam {
         ),
         OnMatch(
           classType: Query,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             setLocation(ParamLocation.query);
             wireName ??= object.getField('name')?.toStringValue();
@@ -52,7 +52,7 @@ class SwaggerParam {
         ),
         OnMatch(
           classType: Param,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             setLocation(ParamLocation.path);
             wireName ??= object.getField('name')?.toStringValue();
@@ -60,7 +60,7 @@ class SwaggerParam {
         ),
         OnMatch(
           classType: Header,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             setLocation(ParamLocation.header);
             wireName ??= object.getField('name')?.toStringValue();
@@ -68,7 +68,7 @@ class SwaggerParam {
         ),
         OnMatch(
           classType: Cookie,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             setLocation(ParamLocation.cookie);
             wireName ??= object.getField('name')?.toStringValue();

@@ -9,10 +9,6 @@ dependency_overrides:
     path: ../packages/revali_construct
   revali_router:
     path: ../revali_router/revali_router
-  revali_router_annotations:
-    path: ../revali_router/revali_router_annotations
-  revali_router_core:
-    path: ../revali_router/revali_router_core
   revali_server:
     path: ../constructs/revali_server
   revali_test:

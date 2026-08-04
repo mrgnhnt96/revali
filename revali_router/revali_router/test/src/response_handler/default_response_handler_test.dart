@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:mocktail/mocktail.dart';
+import 'package:revali_core/revali_core.dart';
 import 'package:revali_router/src/response/simple_response.dart';
 import 'package:revali_router/src/response_handler/default_response_handler.dart';
-import 'package:revali_router_core/revali_router_core.dart';
 import 'package:test/test.dart';
 
 class _MockRequestContext extends Mock implements RequestContext {}

@@ -3,7 +3,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:revali_construct/revali_construct.dart';
-import 'package:revali_router_core/revali_router_core.dart';
+import 'package:revali_core/revali_core.dart';
 import 'package:revali_server/converters/server_from_json.dart';
 import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_record_prop.dart';

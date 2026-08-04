@@ -1,6 +1,6 @@
 import 'package:mocktail/mocktail.dart';
+import 'package:revali_core/revali_core.dart';
 import 'package:revali_router/src/route/route.dart';
-import 'package:revali_router_core/revali_router_core.dart';
 import 'package:test/test.dart';
 
 void main() {

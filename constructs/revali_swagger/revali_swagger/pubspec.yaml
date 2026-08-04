@@ -17,8 +17,8 @@ environment:
 
 dependencies:
   analyzer: ^10.0.0
+  revali_annotations: ^3.0.0
   revali_construct: ^2.2.0
-  revali_router_annotations: ^2.2.0
   revali_swagger_annotations: ^1.0.0
 
 dev_dependencies:

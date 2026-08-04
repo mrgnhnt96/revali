@@ -1,6 +1,6 @@
+import 'package:revali_annotations/revali_annotations.dart';
 import 'package:revali_construct/revali_construct.dart';
-import 'package:revali_router_annotations/revali_router_annotations.dart';
-import 'package:revali_router_core/revali_router_core.dart';
+import 'package:revali_core/revali_core.dart';
 import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_mimic.dart';
 import 'package:revali_server/converters/server_param.dart';
@@ -34,7 +34,7 @@ class ServerChildRoute with ExtractImport implements ServerRoute {
       onMatch: [
         OnMatch(
           classType: StatusCode,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (annotation, source) {
             if (httpCode != null) {
               throw ArgumentError(
@@ -47,7 +47,7 @@ class ServerChildRoute with ExtractImport implements ServerRoute {
         ),
         OnMatch(
           classType: Redirect,
-          package: 'revali_router_core',
+          package: 'revali_core',
           convert: (annotation, source) {
             if (redirect != null) {
               throw ArgumentError(

@@ -1,4 +1,4 @@
-import 'package:revali_router_core/revali_router_core.dart';
+import 'package:revali_core/revali_core.dart';
 import 'package:revali_server/converters/base_parameter_annotation.dart';
 
 class SimpleParameterAnnotation implements BaseParameterAnnotation {

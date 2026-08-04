@@ -1,7 +1,7 @@
 import 'package:analyzer/dart/element/element.dart';
+import 'package:revali_annotations/revali_annotations.dart';
 import 'package:revali_construct/revali_construct.dart';
-import 'package:revali_router_annotations/revali_router_annotations.dart';
-import 'package:revali_router_core/revali_router_core.dart' hide Body;
+import 'package:revali_core/revali_core.dart' hide Body;
 import 'package:revali_server/converters/base_parameter_annotation.dart';
 import 'package:revali_server/converters/server_binds_annotation.dart';
 import 'package:revali_server/converters/server_body_annotation.dart';
@@ -74,42 +74,42 @@ class ServerParamAnnotations with ExtractImport {
       onMatch: [
         OnMatch(
           classType: Body,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             body = ServerBodyAnnotation.fromElement(object, annotation);
           },
         ),
         OnMatch(
           classType: Query,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             query = ServerQueryAnnotation.fromElement(object, annotation);
           },
         ),
         OnMatch(
           classType: Header,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             header = ServerHeaderAnnotation.fromElement(object, annotation);
           },
         ),
         OnMatch(
           classType: Cookie,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             cookie = ServerCookieAnnotation.fromElement(object, annotation);
           },
         ),
         OnMatch(
           classType: Ip,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             ip = ServerIpAnnotation.fromElement(object, annotation);
           },
         ),
         OnMatch(
           classType: Param,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             param = ServerParamAnnotation.fromElement(object, annotation);
           },
@@ -117,28 +117,28 @@ class ServerParamAnnotations with ExtractImport {
         OnMatch(
           classType: Bind,
           ignoreGenerics: true,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             bind = ServerMimic.fromDartObject(object, annotation);
           },
         ),
         OnMatch(
           classType: Dep,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             dep = true;
           },
         ),
         OnMatch(
           classType: Data,
-          package: 'revali_router_core',
+          package: 'revali_core',
           convert: (object, annotation) {
             data = true;
           },
         ),
         OnMatch(
           classType: Binds,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             binds = ServerBindsAnnotation.fromElement(object, annotation);
           },

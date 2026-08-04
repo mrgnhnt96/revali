@@ -1,4 +1,5 @@
 import 'package:analyzer/dart/element/element.dart';
+import 'package:revali_annotations/revali_annotations.dart';
 import 'package:revali_client_gen/makers/creators/create_signature.dart';
 import 'package:revali_client_gen/models/client_lifecycle_component.dart';
 import 'package:revali_client_gen/models/client_method.dart';
@@ -6,7 +7,6 @@ import 'package:revali_client_gen/models/client_param.dart';
 import 'package:revali_client_gen/models/client_type.dart';
 import 'package:revali_client_gen/models/websocket_type.dart';
 import 'package:revali_construct/revali_construct.dart';
-import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:test/test.dart';
 
 import '../helpers/analysis_helper.dart';
@@ -40,7 +40,7 @@ void main() {
           onMatch: [
             OnMatch(
               classType: LifecycleComponent,
-              package: 'revali_router_annotations',
+              package: 'revali_annotations',
               convert: (object, annotation) {
                 lifecycleComponents.add(
                   ClientLifecycleComponent.fromDartObject(object, annotation),
@@ -49,7 +49,7 @@ void main() {
             ),
             OnMatch(
               classType: LifecycleComponents,
-              package: 'revali_router_annotations',
+              package: 'revali_annotations',
               convert: (object, annotation) {
                 lifecycleComponents.addAll(
                   ClientLifecycleComponent.fromTypeReference(

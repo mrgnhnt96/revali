@@ -1,5 +1,5 @@
+import 'package:revali_annotations/revali_annotations.dart';
 import 'package:revali_construct/revali_construct.dart';
-import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_swagger/builders/schema_registry.dart';
 import 'package:revali_swagger/models/swagger_param.dart';
 import 'package:revali_swagger/models/swagger_type.dart';
@@ -90,7 +90,7 @@ class SwaggerMethod {
         ),
         OnMatch(
           classType: StatusCode,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             defaultStatusCode = object.getField('code')?.toIntValue() ?? 200;
           },

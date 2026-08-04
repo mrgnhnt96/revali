@@ -297,13 +297,12 @@ packages:
     source: path
     version: "2.2.0"
   revali_annotations:
-    dependency: transitive
+    dependency: "direct main"
     description:
-      name: revali_annotations
-      sha256: "3c48a313f752164641725a0864ddbbf58d0a1a787580de60f63e5e93541ebb99"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.2"
+      path: "../../../packages/revali_annotations"
+      relative: true
+    source: path
+    version: "3.0.0"
   revali_construct:
     dependency: "direct main"
     description:
@@ -312,28 +311,12 @@ packages:
     source: path
     version: "2.2.0"
   revali_core:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: revali_core
-      sha256: "7443048876584bca785dc96a0c06d943b0b0bcb8189af5b35962f88c1fc83206"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.6.0"
-  revali_router_annotations:
-    dependency: "direct main"
-    description:
-      path: "../../../revali_router/revali_router_annotations"
+      path: "../../../packages/revali_core"
       relative: true
     source: path
-    version: "2.2.0"
-  revali_router_core:
-    dependency: transitive
-    description:
-      name: revali_router_core
-      sha256: "8cf1d9760a62694843d520853412c20dff8bda42ec842028fca4c987dcc9331f"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.3.0"
+    version: "2.0.0"
   revali_swagger_annotations:
     dependency: "direct main"
     description:

@@ -1,3 +1,0 @@
-dependency_overrides:
-  revali_router_core:
-    path: ../revali_router_core

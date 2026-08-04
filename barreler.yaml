@@ -14,6 +14,12 @@ defaults:
 dirs:
   - path: packages/revali_annotations/lib
     name: revali_annotations
+    exports:
+      - export: "package:revali_core/revali_core.dart"
+        show:
+          - AllowOrigins
+          - ExpectHeaders
+          - PreventHeaders
   - path: packages/revali/lib
     name: revali
   - path: packages/revali_test/lib
@@ -47,22 +53,7 @@ dirs:
       - src/body/response_body/base_body_data.dart
       - export: "package:revali_annotations/revali_annotations.dart"
       - export: "package:revali_core/revali_core.dart"
-        show:
-          - Args
-          - RequestScopedDI
-      - export: "package:revali_router_core/revali_router_core.dart"
         hide:
           - AppConfig
           - Body
           - LifecycleComponents
-      - export: "package:revali_router_annotations/revali_router_annotations.dart"
-  - path: revali_router/revali_router_core/lib
-    name: revali_router_core
-    exports:
-      - export: "package:revali_core/revali_core.dart"
-        show:
-          - AppConfig
-          - DI
-          - DIHandler
-  - path: revali_router/revali_router_annotations/lib
-    name: revali_router_annotations

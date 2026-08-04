@@ -1,6 +1,6 @@
+import 'package:revali_annotations/revali_annotations.dart';
 import 'package:revali_construct/revali_construct.dart';
-import 'package:revali_router_annotations/revali_router_annotations.dart';
-import 'package:revali_router_core/revali_router_core.dart';
+import 'package:revali_core/revali_core.dart';
 import 'package:revali_server/converters/server_app_annotation.dart';
 import 'package:revali_server/converters/server_app_observers.dart';
 import 'package:revali_server/converters/server_imports.dart';
@@ -29,7 +29,7 @@ class ServerApp with ExtractImport {
       onMatch: [
         OnMatch(
           classType: Observer,
-          package: 'revali_router_core',
+          package: 'revali_core',
           convert: (object, annotation) {
             observers.mimics.add(
               ServerMimic.fromDartObject(object, annotation),
@@ -38,7 +38,7 @@ class ServerApp with ExtractImport {
         ),
         OnMatch(
           classType: Observers,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             observers.types.add(
               ServerTypeReference.fromElement(object, superType: Observer),

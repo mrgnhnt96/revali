@@ -1,6 +1,6 @@
+import 'package:revali_core/revali_core.dart';
 import 'package:revali_router/src/body/body_impl.dart';
 import 'package:revali_router/src/request/request_impl.dart';
-import 'package:revali_router_core/revali_router_core.dart';
 
 // ignore: must_be_immutable, public_member_api_docs
 class WebSocketRequestImpl extends RequestImpl implements WebSocketRequest {

@@ -1,7 +1,7 @@
+import 'package:revali_core/revali_core.dart';
 import 'package:revali_router/src/body/response_body/base_body_data.dart';
 import 'package:revali_router/src/headers/headers_impl.dart';
 import 'package:revali_router/src/response/response_impl.dart';
-import 'package:revali_router_core/revali_router_core.dart';
 
 class WebSocketResponse implements Response {
   factory WebSocketResponse(

@@ -1,4 +1,4 @@
-import 'package:revali_router_core/revali_router_core.dart';
+import 'package:revali_core/revali_core.dart';
 
 typedef WebSocketCallBack = Stream<dynamic> Function(WebSocketContext);
 

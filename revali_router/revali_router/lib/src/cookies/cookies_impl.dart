@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:http_parser/http_parser.dart';
-import 'package:revali_router_core/revali_router_core.dart';
+import 'package:revali_core/revali_core.dart';
 
 class CookiesImpl implements Cookies {
   CookiesImpl([Map<String, String?>? values])

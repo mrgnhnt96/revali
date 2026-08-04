@@ -359,7 +359,7 @@ packages:
       path: "../revali_annotations"
       relative: true
     source: path
-    version: "2.0.2"
+    version: "3.0.0"
   revali_construct:
     dependency: "direct main"
     description:
@@ -373,7 +373,7 @@ packages:
       path: "../revali_core"
       relative: true
     source: path
-    version: "1.6.0"
+    version: "2.0.0"
   shelf:
     dependency: transitive
     description:

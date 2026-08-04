@@ -146,12 +146,6 @@ test:
   revali_router: |
     cd revali_router/revali_router || exit 1
     {$test:_test}
-  revali_router_annotations: |
-    cd revali_router/revali_router_annotations || exit 1
-    {$test:_test}
-  revali_router_core: |
-    cd revali_router/revali_router_core || exit 1
-    {$test:_test}
   revali: |
     cd packages/revali || exit 1
     {$test:_test}

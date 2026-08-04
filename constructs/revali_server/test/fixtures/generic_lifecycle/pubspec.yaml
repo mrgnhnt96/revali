@@ -9,7 +9,7 @@ dependencies:
     path: ../../../../../revali_router/revali_router
 
 dependency_overrides:
+  revali_annotations:
+    path: ../../../../../packages/revali_annotations
   revali_core:
     path: ../../../../../packages/revali_core
-  revali_router_core:
-    path: ../../../../../revali_router/revali_router_core

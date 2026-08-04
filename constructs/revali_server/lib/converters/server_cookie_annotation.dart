@@ -1,6 +1,6 @@
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:revali_router_core/revali_router_core.dart';
+import 'package:revali_core/revali_core.dart';
 import 'package:revali_server/converters/base_parameter_annotation.dart';
 import 'package:revali_server/converters/has_pipe.dart';
 import 'package:revali_server/converters/server_imports.dart';

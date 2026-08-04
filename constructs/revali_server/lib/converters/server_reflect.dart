@@ -1,8 +1,8 @@
 // ignore_for_file: overridden_fields
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:revali_annotations/revali_annotations.dart';
 import 'package:revali_construct/revali_construct.dart';
-import 'package:revali_router_annotations/revali_router_annotations.dart';
 import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_mimic.dart';
 import 'package:revali_server/utils/extract_import.dart';
@@ -39,7 +39,7 @@ class ServerReflect with ExtractImport {
         onMatch: [
           OnMatch(
             classType: MetaData,
-            package: 'revali_router_annotations',
+            package: 'revali_annotations',
             convert: (object, annotation) {
               final meta = ServerMimic.fromDartObject(object, annotation);
               if (field.name case final String name) {

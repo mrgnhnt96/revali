@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:mocktail/mocktail.dart';
+import 'package:revali_core/revali_core.dart';
 import 'package:revali_router/src/headers/headers_impl.dart';
 import 'package:revali_router/src/payload/payload_impl.dart';
 import 'package:revali_router/src/request/underlying_request_impl.dart';
-import 'package:revali_router_core/revali_router_core.dart';
 import 'package:test/test.dart';
 
 class _MockHttpRequest extends Mock implements HttpRequest {}

@@ -1,13 +1,13 @@
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:revali_annotations/revali_annotations.dart';
 import 'package:revali_client_gen/enums/parameter_position.dart';
 import 'package:revali_client_gen/makers/utils/extract_import.dart';
 import 'package:revali_client_gen/models/client_imports.dart';
 import 'package:revali_client_gen/models/client_type.dart';
 import 'package:revali_client_gen/utils/substitute_type.dart';
 import 'package:revali_construct/revali_construct.dart';
-import 'package:revali_router_annotations/revali_router_annotations.dart';
 
 class ClientParam with ExtractImport {
   ClientParam({
@@ -120,7 +120,7 @@ class ClientParam with ExtractImport {
       onMatch: [
         OnMatch(
           classType: Body,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             set(ParameterPosition.body);
 
@@ -129,7 +129,7 @@ class ClientParam with ExtractImport {
         ),
         OnMatch(
           classType: Header,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             if (object.getField('all')?.toBoolValue() case true) {
               acceptMultiple = true;
@@ -140,7 +140,7 @@ class ClientParam with ExtractImport {
         ),
         OnMatch(
           classType: Query,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             if (object.getField('all')?.toBoolValue() case true) {
               acceptMultiple = true;
@@ -151,7 +151,7 @@ class ClientParam with ExtractImport {
         ),
         OnMatch(
           classType: Cookie,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             set(ParameterPosition.cookie);
             getAccess(object);

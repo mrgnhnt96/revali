@@ -1,7 +1,7 @@
 // ignore_for_file: unnecessary_parenthesis
 
 import 'package:code_builder/code_builder.dart';
-import 'package:revali_router_core/revali_router_core.dart';
+import 'package:revali_core/revali_core.dart';
 import 'package:revali_server/converters/server_mimic.dart';
 import 'package:revali_server/converters/server_reflect.dart';
 import 'package:revali_server/makers/creators/create_mimic.dart';

@@ -1,6 +1,6 @@
 import 'package:revali_core/revali_core.dart' as core;
+import 'package:revali_core/revali_core.dart';
 import 'package:revali_router/src/response/default_responses.dart';
-import 'package:revali_router_core/revali_router_core.dart';
 
 base class AppConfig extends core.AppConfig {
   const AppConfig({

@@ -9,8 +9,6 @@ dependencies:
         path: ../../packages/revali_annotations
     revali_router:
         path: ../../revali_router/revali_router
-    revali_router_annotations:
-        path: ../../revali_router/revali_router_annotations
 
 dev_dependencies:
     mocktail: ^1.0.4

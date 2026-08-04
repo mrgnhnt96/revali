@@ -1,7 +1,7 @@
 import 'dart:math';
 
-import 'package:revali_router_annotations/revali_router_annotations.dart';
-import 'package:revali_router_core/revali_router_core.dart';
+import 'package:revali_annotations/revali_annotations.dart';
+import 'package:revali_core/revali_core.dart';
 
 /// Ensures every request has an ID header (default `X-Request-Id`).
 ///

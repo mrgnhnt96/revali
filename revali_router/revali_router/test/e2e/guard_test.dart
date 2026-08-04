@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:revali_router_core/components/guard.dart';
-import 'package:revali_router_core/context/context.dart';
-import 'package:revali_router_core/results/guard_result.dart';
+import 'package:revali_core/components/guard.dart';
+import 'package:revali_core/context/context.dart';
+import 'package:revali_core/results/guard_result.dart';
 import 'package:test/test.dart';
 
 import 'utils/test_request.dart';

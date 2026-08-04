@@ -6,7 +6,9 @@ import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
 import 'package:http_parser/http_parser.dart';
-import 'package:revali_annotations/revali_annotations.dart' hide WebSocket;
+import 'package:revali_annotations/revali_annotations.dart'
+    hide Body, LifecycleComponents, WebSocket;
+import 'package:revali_core/revali_core.dart';
 import 'package:revali_router/src/body/body_impl.dart';
 import 'package:revali_router/src/body/response_body/base_body_data.dart';
 import 'package:revali_router/src/context/context_impl.dart';
@@ -39,7 +41,6 @@ import 'package:revali_router/src/web_socket/web_socket_close_impl.dart';
 import 'package:revali_router/src/web_socket/web_socket_context_impl.dart';
 import 'package:revali_router/src/web_socket/web_socket_handler.dart';
 import 'package:revali_router/utils/sequential_executor.dart';
-import 'package:revali_router_core/revali_router_core.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 part 'body_for_error.dart';
@@ -57,10 +58,10 @@ part 'run_catchers.dart';
 part 'run_guards.dart';
 part 'run_interceptors.dart';
 part 'run_middlewares.dart';
-part 'run_wrappers.dart';
 part 'run_options.dart';
 part 'run_origin_check.dart';
 part 'run_redirect.dart';
+part 'run_wrappers.dart';
 
 class Router extends Equatable {
   Router({

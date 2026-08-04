@@ -1,7 +1,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:collection/collection.dart';
-import 'package:revali_router_annotations/revali_router_annotations.dart';
+import 'package:revali_annotations/revali_annotations.dart';
 import 'package:revali_server/converters/server_class.dart';
 import 'package:revali_server/converters/server_imports.dart';
 import 'package:revali_server/converters/server_reflect.dart';

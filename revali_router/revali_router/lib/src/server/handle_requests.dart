@@ -3,11 +3,11 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:revali_core/revali_core.dart';
 import 'package:revali_router/src/request/request_context_impl.dart';
 import 'package:revali_router/src/response/simple_response.dart';
 import 'package:revali_router/src/response_handler/default_response_handler.dart';
 import 'package:revali_router/src/router/router.dart';
-import 'package:revali_router_core/revali_router_core.dart';
 
 /// Serves HTTP requests from [server] using [handler] / [responseHandler].
 ///

@@ -1,5 +1,5 @@
+import 'package:revali_core/revali_core.dart';
 import 'package:revali_router/src/route/base_route.dart';
-import 'package:revali_router_core/revali_router_core.dart';
 
 part 'route.g.dart';
 

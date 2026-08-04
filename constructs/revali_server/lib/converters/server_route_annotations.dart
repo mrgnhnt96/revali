@@ -70,7 +70,7 @@ class ServerRouteAnnotations with ExtractImport {
       onMatch: [
         OnMatch(
           classType: Middleware,
-          package: 'revali_router_core',
+          package: 'revali_core',
           convert: (object, annotation) {
             mimics.middlewares.add(
               ServerMimic.fromDartObject(object, annotation),
@@ -79,7 +79,7 @@ class ServerRouteAnnotations with ExtractImport {
         ),
         OnMatch(
           classType: RequestWrapper,
-          package: 'revali_router_core',
+          package: 'revali_core',
           convert: (object, annotation) {
             mimics.requestWrappers.add(
               ServerMimic.fromDartObject(object, annotation),
@@ -88,7 +88,7 @@ class ServerRouteAnnotations with ExtractImport {
         ),
         OnMatch(
           classType: Interceptor,
-          package: 'revali_router_core',
+          package: 'revali_core',
           convert: (object, annotation) {
             mimics.interceptors.add(
               ServerMimic.fromDartObject(object, annotation),
@@ -97,7 +97,7 @@ class ServerRouteAnnotations with ExtractImport {
         ),
         OnMatch(
           classType: ExceptionCatcher,
-          package: 'revali_router_core',
+          package: 'revali_core',
           ignoreGenerics: true,
           convert: (object, annotation) {
             mimics.catchers.add(ServerMimic.fromDartObject(object, annotation));
@@ -105,7 +105,7 @@ class ServerRouteAnnotations with ExtractImport {
         ),
         OnMatch(
           classType: Catches,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             types.catchers.add(
               ServerTypeReference.fromElement(
@@ -117,7 +117,7 @@ class ServerRouteAnnotations with ExtractImport {
         ),
         OnMatch(
           classType: Middlewares,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             types.middlewares.add(
               ServerTypeReference.fromElement(object, superType: Middleware),
@@ -126,7 +126,7 @@ class ServerRouteAnnotations with ExtractImport {
         ),
         OnMatch(
           classType: Wrappers,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             types.requestWrappers.add(
               ServerTypeReference.fromElement(
@@ -138,7 +138,7 @@ class ServerRouteAnnotations with ExtractImport {
         ),
         OnMatch(
           classType: Intercepts,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             types.interceptors.add(
               ServerTypeReference.fromElement(object, superType: Interceptor),
@@ -147,7 +147,7 @@ class ServerRouteAnnotations with ExtractImport {
         ),
         OnMatch(
           classType: Guards,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             types.guards.add(
               ServerTypeReference.fromElement(object, superType: Guard),
@@ -156,7 +156,7 @@ class ServerRouteAnnotations with ExtractImport {
         ),
         OnMatch(
           classType: LifecycleComponent,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             lifecycleComponents.add(
               ServerLifecycleComponent.fromDartObject(object, annotation),
@@ -165,7 +165,7 @@ class ServerRouteAnnotations with ExtractImport {
         ),
         OnMatch(
           classType: LifecycleComponents,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             if (ServerLifecycleComponent.fromTypeReference(object, annotation)
                 case final components) {
@@ -175,21 +175,21 @@ class ServerRouteAnnotations with ExtractImport {
         ),
         OnMatch(
           classType: Guard,
-          package: 'revali_router_core',
+          package: 'revali_core',
           convert: (object, annotation) {
             mimics.guards.add(ServerMimic.fromDartObject(object, annotation));
           },
         ),
         OnMatch(
           classType: CombineComponents,
-          package: 'revali_router_core',
+          package: 'revali_core',
           convert: (object, annotation) {
             mimics.combines.add(ServerMimic.fromDartObject(object, annotation));
           },
         ),
         OnMatch(
           classType: Combines,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             types.combines.add(
               ServerTypeReference.fromElement(
@@ -201,7 +201,7 @@ class ServerRouteAnnotations with ExtractImport {
         ),
         OnMatch(
           classType: AddData,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           ignoreGenerics: true,
           convert: (object, annotation) {
             data.add(ServerMimic.fromDartObject(object, annotation));
@@ -209,14 +209,14 @@ class ServerRouteAnnotations with ExtractImport {
         ),
         OnMatch(
           classType: MetaData,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             meta.add(ServerMimic.fromDartObject(object, annotation));
           },
         ),
         OnMatch(
           classType: SetHeader,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             setHeaders.add(ServerSetHeader.fromDartObject(object));
           },
@@ -262,7 +262,7 @@ class ServerRouteAnnotations with ExtractImport {
         ),
         OnMatch(
           classType: ResponseHandler,
-          package: 'revali_router_core',
+          package: 'revali_core',
           convert: (object, annotation) {
             if (responseHandler != null) {
               throw ArgumentError(

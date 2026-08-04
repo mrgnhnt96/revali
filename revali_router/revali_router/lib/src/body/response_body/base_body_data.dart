@@ -7,8 +7,8 @@ import 'package:file/local.dart';
 import 'package:meta/meta.dart';
 import 'package:mime/mime.dart';
 import 'package:path/path.dart' as p;
+import 'package:revali_core/revali_core.dart';
 import 'package:revali_router/src/headers/headers_impl.dart';
-import 'package:revali_router_core/revali_router_core.dart';
 
 part 'binary_body_data.dart';
 part 'byte_stream_body_data.dart';

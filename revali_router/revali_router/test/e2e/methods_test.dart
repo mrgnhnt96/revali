@@ -2,8 +2,8 @@
 
 import 'dart:io';
 
-import 'package:revali_annotations/revali_annotations.dart';
-import 'package:revali_router_core/revali_router_core.dart';
+import 'package:revali_annotations/revali_annotations.dart' hide Body;
+import 'package:revali_core/revali_core.dart';
 import 'package:test/test.dart';
 
 import 'utils/test_request.dart';

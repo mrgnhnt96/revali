@@ -1,4 +1,5 @@
 import 'package:change_case/change_case.dart';
+import 'package:revali_annotations/revali_annotations.dart';
 import 'package:revali_client/revali_client.dart';
 import 'package:revali_client_gen/makers/utils/extract_import.dart';
 import 'package:revali_client_gen/models/client_imports.dart';
@@ -6,7 +7,6 @@ import 'package:revali_client_gen/models/client_lifecycle_component.dart';
 import 'package:revali_client_gen/models/client_method.dart';
 import 'package:revali_client_gen/models/websocket_type.dart';
 import 'package:revali_construct/revali_construct.dart';
-import 'package:revali_router_annotations/revali_router_annotations.dart';
 
 class ClientController with ExtractImport {
   ClientController({
@@ -26,7 +26,7 @@ class ClientController with ExtractImport {
       onMatch: [
         OnMatch(
           classType: LifecycleComponent,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             final component = ClientLifecycleComponent.fromDartObject(
               object,
@@ -38,7 +38,7 @@ class ClientController with ExtractImport {
         ),
         OnMatch(
           classType: LifecycleComponents,
-          package: 'revali_router_annotations',
+          package: 'revali_annotations',
           convert: (object, annotation) {
             lifecycleComponents.addAll(
               ClientLifecycleComponent.fromTypeReference(object, annotation),
