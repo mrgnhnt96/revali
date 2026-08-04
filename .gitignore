@@ -73,3 +73,9 @@ FAILED_COMMIT.md
 # Dev CLI headless command channel
 .revali_cmd
 **/.revali_cmd
+
+# llm_chat identity for this project
+.llm_chat/
+
+# machine-local hook config (absolute paths)
+.claude/settings.local.json

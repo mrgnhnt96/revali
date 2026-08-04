@@ -36,7 +36,7 @@ dart run revali doctor [--json]
 dart run revali create controller|app|lifecycle-component|pipe|observer
 ```
 
-Server generation is built into `revali` — no separate construct package to install.
+Server generation is built into `revali` — no separate construct package to install. Upgrading from an older version? See [MIGRATION.md](./MIGRATION.md) for the `revali_router_core` / `revali_router_annotations` / `revali_server` consolidation.
 
 Missing / invalid request bindings raise `MissingArgumentException` and map to **HTTP 400**. Prefer `LifecycleComponent` for new middleware; `@RequestId()` is available as a built-in kit.
 
