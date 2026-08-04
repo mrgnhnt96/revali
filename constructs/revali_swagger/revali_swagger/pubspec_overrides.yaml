@@ -7,5 +7,7 @@ dependency_overrides:
     path: ../../../packages/revali_construct
   revali_core:
     path: ../../../packages/revali_core
+  revali_router:
+    path: ../../../revali_router/revali_router
   revali_swagger_annotations:
     path: ../revali_swagger_annotations

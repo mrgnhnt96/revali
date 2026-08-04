@@ -9,6 +9,8 @@ dependencies:
     path: ../../../packages/revali_annotations
   revali_core:
     path: ../../../packages/revali_core
+  revali_router:
+    path: ../../../revali_router/revali_router
 
 dev_dependencies:
   example_construct:

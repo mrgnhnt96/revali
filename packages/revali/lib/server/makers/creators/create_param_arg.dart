@@ -1,0 +1,139 @@
+// ignore_for_file: unnecessary_parenthesis, lines_longer_than_80_chars
+
+import 'package:code_builder/code_builder.dart';
+import 'package:revali/server/converters/server_param.dart';
+import 'package:revali/server/makers/creators/create_arg_for_param.dart';
+import 'package:revali/server/makers/creators/create_arg_from_custom_param.dart';
+import 'package:revali/server/makers/creators/create_get_from_di.dart';
+import 'package:revali/server/makers/creators/create_missing_argument_exception.dart';
+import 'package:revali/server/makers/utils/type_extensions.dart';
+import 'package:revali/server/utils/data_annotation.dart';
+import 'package:revali_router/revali_router.dart';
+
+final impliedArguments = <String, Expression>{
+  // dart format off
+  // --- dependency injection ---
+  (DI).name: refer('di'),
+  // --- response ---
+  (Headers).name: refer('context').property('response').property('headers'),
+  (ResponseHeaders).name: refer('context').property('response').property('headers').asA(refer((ResponseHeaders).name)),
+  (Cookies).name: refer('context').property('response').property('headers').property('cookies'),
+  (ResponseCookies).name: refer('context').property('response').property('headers').property('cookies'),
+  (SetCookies).name: refer('context').property('response').property('headers').property('setCookies'),
+  (Response).name: refer('context').property('response'),
+  (Body).name: refer('context').property('response').property('body'),
+  (PayloadBody).name: refer('context').property('response').property('body'),
+  // --- request ---
+  (RequestHeaders).name: refer('context').property('request').property('headers').asA(refer((RequestHeaders).name)),
+  (RequestCookies).name: refer('context').property('request').property('headers').property('cookies'),
+  (Request).name: refer('context').property('request'),
+  // --- meta ---
+  (Meta).name: refer('context').property('meta'),
+  (MetaScope).name: refer('context').property('meta'),
+  (RouteEntry).name: refer('context').property('route'),
+  (Context).name: refer('context'),
+  // --- data ---
+  (Data).name: refer('context').property('data'),
+  (CleanUp).name: refer('context').property('data').property('get').call([]).ifNullThen(createMissingArgumentException(key: 'cleanUp', location: '@data', expectedType: 'CleanUp').thrown.parenthesized),
+  // --- reflect ---
+  (Reflect).name: refer('context').property('reflect'),
+};
+// dart format on
+
+Expression createParamArg(
+  ServerParam param, {
+  Expression? defaultExpression,
+  Map<String, Expression> customParams = const {},
+  String routePath = '',
+
+  /// When true, the field of the class will be referenced instead of creating a
+  /// new argument. This only applies if [ServerParam.argument] exists
+  /// or [ServerParam.hasDefaultValue]
+  bool useField = false,
+}) {
+  if (impliedArguments[param.type.name] case final expression?) {
+    return expression;
+  }
+
+  if (impliedArguments[param.type.name.split('<').first]
+      case final expression?) {
+    return expression;
+  }
+
+  if (customParams[param.type.name] case final expression?) {
+    return expression;
+  }
+
+  if (customParams[param.type.name.split('<').first] case final expression?) {
+    return expression;
+  }
+
+  final annotation = param.annotations;
+  if (!annotation.hasAnnotation &&
+      !param.hasDefaultValue &&
+      !param.hasArgument) {
+    if (!param.type.isPrimitive) {
+      if (defaultExpression != null) {
+        if (useField) {
+          return refer(param.name);
+        }
+
+        return defaultExpression;
+      }
+    }
+
+    if (param.type.isNullable) {
+      return literalNull;
+    }
+
+    throw ArgumentError(
+      'No annotation or default value for param `${param.type.name} ${param.name}`',
+    );
+  }
+
+  if (param.argument case final value?) {
+    if (useField) {
+      return refer(value.parameterName);
+    }
+
+    if (value.isInjectable) {
+      return createGetFromDi();
+    }
+
+    return CodeExpression(Code(value.source));
+  }
+
+  if (param.defaultValue case final value? when !annotation.hasAnnotation) {
+    if (useField) {
+      return refer(param.name);
+    }
+
+    return CodeExpression(Code(value));
+  }
+
+  if (annotation.dep) {
+    if (useField) {
+      return refer(param.name);
+    }
+
+    return createGetFromDi();
+  }
+
+  if (annotation.bind case final bind?) {
+    return createArgFromBind(bind, param);
+  }
+
+  if (annotation.baseAnnotation case final annotation?) {
+    return createArgForParam(annotation, param, routePath: routePath);
+  }
+
+  if (annotation.data) {
+    return createArgForParam(const DataAnnotation(), param);
+  }
+
+  if (defaultExpression != null) {
+    return defaultExpression;
+  }
+
+  throw ArgumentError('Unknown annotation for param ${param.name}');
+}

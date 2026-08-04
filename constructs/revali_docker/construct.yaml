@@ -1,0 +1,5 @@
+constructs:
+  - name: revali_docker
+    path: build.dart
+    method: buildConstruct
+    is_build: true

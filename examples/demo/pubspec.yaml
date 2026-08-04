@@ -14,5 +14,3 @@ dev_dependencies:
     mocktail: ^1.0.4
     revali:
         path: ../../packages/revali
-    revali_server:
-        path: ../../constructs/revali_server

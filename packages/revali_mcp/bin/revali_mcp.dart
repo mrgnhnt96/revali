@@ -247,7 +247,7 @@ Future<String> _callTool(
       final extra = (args['args'] as List<dynamic>?)?.cast<String>() ?? [];
       final cmd = [
         'run',
-        'revali_server',
+        'revali',
         'create',
         type,
         if (name != null) ...['--name', name],

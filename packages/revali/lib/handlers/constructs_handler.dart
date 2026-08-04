@@ -80,9 +80,46 @@ class ConstructsHandler {
       revaliConstructs.add(ConstructYaml.fromJson(json));
     }
 
+    if (await _builtInServerConstruct(packages) case final builtIn?) {
+      revaliConstructs.add(builtIn);
+    }
+
     await checkConstructs(revaliConstructs);
 
     return __constructs = revaliConstructs;
+  }
+
+  /// Server generation is built into `revali` itself — no separate
+  /// "server construct" package to install or discover. This always
+  /// contributes exactly one `is_server` maker, so a project can no longer
+  /// register an alternate one without hitting the existing
+  /// "only one Server Construct is allowed" check.
+  Future<ConstructYaml?> _builtInServerConstruct(
+    Map<String, String> packages,
+  ) async {
+    const packageUri = 'package:revali/';
+    final package = await Isolate.resolvePackageUri(Uri.parse(packageUri));
+
+    if (package == null) {
+      return null;
+    }
+
+    final packageDir = fs.directory(package);
+
+    return ConstructYaml(
+      constructs: const [
+        ConstructConfig(
+          name: 'revali_server',
+          path: 'server/server.dart',
+          method: 'serverConstruct',
+          isServer: true,
+        ),
+      ],
+      packagePath: packageDir.parent.path,
+      packageUri: packageUri,
+      packageName: 'revali',
+      packageRootUri: packages['revali'] ?? '__unknown_version__',
+    );
   }
 
   /// Asserts the config for all constructs

@@ -1,0 +1,31 @@
+import 'package:code_builder/code_builder.dart';
+import 'package:revali/server/converters/server_param.dart';
+import 'package:revali/server/makers/creators/create_param_arg.dart';
+
+({Iterable<Expression> positioned, Map<String, Expression> named}) getParams(
+  Iterable<ServerParam> params, {
+  Expression? defaultExpression,
+  Map<String, Expression> inferredParams = const {},
+  String routePath = '',
+  bool useField = false,
+}) {
+  final positioned = <Expression>[];
+  final named = <String, Expression>{};
+
+  for (final param in params) {
+    final arg = createParamArg(
+      param,
+      defaultExpression: defaultExpression,
+      customParams: inferredParams,
+      routePath: routePath,
+      useField: useField,
+    );
+
+    if (param.isNamed) {
+      named[param.name] = arg;
+    } else {
+      positioned.add(arg);
+    }
+  }
+  return (positioned: positioned, named: named);
+}

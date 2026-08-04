@@ -1,0 +1,305 @@
+// ignore_for_file: unnecessary_parenthesis
+
+import 'dart:io';
+import 'dart:isolate';
+
+import 'package:code_builder/code_builder.dart';
+import 'package:revali/server/converters/server_server.dart';
+import 'package:revali/server/makers/creators/create_app.dart';
+import 'package:revali/server/makers/creators/create_bind_server.dart';
+import 'package:revali/server/makers/creators/create_class.dart';
+import 'package:revali/server/makers/creators/create_dependency_injection.dart';
+import 'package:revali/server/makers/creators/create_mimic.dart';
+import 'package:revali/server/makers/creators/create_modifier_args.dart';
+import 'package:revali/server/makers/creators/create_routes_variable.dart';
+import 'package:revali/server/makers/utils/try_catch.dart';
+import 'package:revali/server/makers/utils/type_extensions.dart';
+import 'package:revali/server/models/options.dart';
+import 'package:revali_router/revali_router.dart' hide AllowOrigins, Method;
+
+String serverFile(
+  ServerServer server,
+  String Function(Spec) formatter, {
+  required Options options,
+}) {
+  final imports = [
+    if (options.ignoreLints case final lints when lints.isNotEmpty)
+      "// ignore_for_file: ${options.ignoreLints.join(', ')}\n",
+    "import 'dart:io';",
+    "import 'dart:async';",
+    "import 'dart:isolate';",
+    '',
+    "import 'package:path/path.dart' as p;",
+    for (final imprt in {
+      if (server.context.mode.isDebug)
+        'package:revali_construct/revali_construct.dart',
+      'package:revali_router/revali_router.dart',
+      ...server.packageImports(),
+    })
+      "import '$imprt';",
+    '',
+    for (final imprt in {...server.pathImports()}) "import '../../$imprt';",
+  ];
+
+  final app = server.app;
+  if (app == null) {
+    throw Exception('No app found');
+  }
+
+  final isDebug = server.context.mode.isDebug;
+
+  final main = Method(
+    (b) => b
+      ..name = 'main'
+      ..returns = refer('void')
+      ..requiredParameters.add(
+        Parameter(
+          (b) => b
+            ..name = 'args'
+            ..type = refer('List<String>'),
+        ),
+      )
+      ..body = Block.of([
+        if (isDebug)
+          refer('hotReload').call([
+            Method(
+              (b) => b
+                ..lambda = true
+                ..body = refer(
+                  'createServer',
+                ).call([literalNull, refer('args')]).code,
+            ).closure,
+          ]).statement
+        else
+          refer('createServer').call([literalNull, refer('args')]).statement,
+      ]),
+  );
+
+  // Worker entry sets a per-isolate flag so createServer keeps its positional
+  // signature (used by tests as createServer(httpServer)).
+  final workerEntrypoint = Method(
+    (b) => b
+      ..name = '_revaliWorkerMain'
+      ..returns = refer('void')
+      ..requiredParameters.add(
+        Parameter(
+          (p) => p
+            ..name = 'args'
+            ..type = refer('List<String>'),
+        ),
+      )
+      ..body = Block.of([
+        refer('_revaliIsWorker').assign(literalTrue).statement,
+        refer('createServer').call([literalNull, refer('args')]).statement,
+      ]),
+  );
+
+  final createServer = Method(
+    (b) => b
+      ..name = 'createServer'
+      ..returns = TypeReference(
+        (p) => p
+          ..symbol = (Future).name
+          ..types.add(refer((HttpServer).name)),
+      )
+      ..modifier = MethodModifier.async
+      ..optionalParameters.addAll([
+        Parameter(
+          (e) => e
+            ..name = 'providedServer'
+            ..named = false
+            ..type = refer('${(HttpServer).name}?'),
+        ),
+        Parameter(
+          (e) => e
+            ..name = 'rawArgs'
+            ..named = false
+            ..defaultTo = const Code('const []')
+            ..type = refer('List<String>'),
+        ),
+      ])
+      ..body = Block.of([
+        declareFinal('isWorker').assign(refer('_revaliIsWorker')).statement,
+        refer('_revaliIsWorker').assign(literalFalse).statement,
+        declareFinal('args')
+            .assign(
+              refer((Args).name).newInstanceNamed('parse', [refer('rawArgs')]),
+            )
+            .statement,
+        declareFinal(
+          'app',
+          type: refer((AppConfig).name),
+        ).assign(createApp(app)).statement,
+        const Code('''
+if (!isWorker && providedServer == null && app.workers > 1) {
+  for (final isolate in _revaliWorkerIsolates) {
+    isolate.kill(priority: Isolate.immediate);
+  }
+  _revaliWorkerIsolates = <Isolate>[];
+  for (var i = 1; i < app.workers; i++) {
+    _revaliWorkerIsolates.add(
+      await Isolate.spawn(_revaliWorkerMain, rawArgs),
+    );
+  }
+}
+'''),
+        refer('app')
+            .property('runStartup')
+            .call([
+              Method(
+                (b) => b
+                  ..modifier = MethodModifier.async
+                  ..body = Block.of([
+                    declareFinal(
+                      'server',
+                      late: true,
+                      type: refer('HttpServer'),
+                    ).statement,
+                    tryCatch(
+                      refer('server')
+                          .assign(
+                            bindServerCall(
+                              app: refer('app'),
+                              providedServer: refer('providedServer'),
+                              shared: isDebug
+                                  ? literalTrue
+                                  : refer('app')
+                                        .property('workers')
+                                        .greaterThan(literalNum(1))
+                                        .or(refer('isWorker')),
+                            ).awaited,
+                          )
+                          .statement,
+                      Block.of([
+                        refer('print').call([
+                          literalString(r'Failed to bind server:\n$e'),
+                        ]).statement,
+                        refer('exit').call([literalNum(1)]).statement,
+                      ]),
+                    ),
+                    const Code('\n'),
+                    ...createDependencyInjection(server),
+                    const Code('\n'),
+                    ...createRoutesVariable(server),
+                    const Code('\n'),
+                    Block.of([
+                      const Code('if ('),
+                      refer('app').property('prefix').code,
+                      const Code(' case'),
+                      declareFinal('prefix?').code,
+                      const Code(' when '),
+                      refer('prefix').property('isNotEmpty').code,
+                      const Code(') {'),
+                      refer('_routes')
+                          .assign(
+                            literalList([
+                              refer((Route).name).newInstance(
+                                [refer('prefix')],
+                                {'routes': refer('_routes')},
+                              ),
+                            ]),
+                          )
+                          .statement,
+                      const Code('}'),
+                    ]),
+                    const Code('\n'),
+                    declareFinal('router')
+                        .assign(
+                          refer((Router).name).newInstance([], {
+                            if (server.context.mode.isNotRelease)
+                              'debug': literalTrue,
+                            'inspect': refer('bool')
+                                .property('fromEnvironment')
+                                .call([literalString('REVALI_INSPECT')]),
+                            'inspectLogPath': refer('String')
+                                .property('fromEnvironment')
+                                .call(
+                                  [literalString('REVALI_INSPECT_LOG')],
+                                  {'defaultValue': literalString('')},
+                                ),
+                            'routes': literalList([
+                              refer('_routes').spread,
+                              refer('public').spread,
+                            ]),
+                            if (app.observers.hasObservers)
+                              'observers': literalList([
+                                if (app.observers.types.expand((e) => e.types)
+                                    case final observers
+                                    when observers.isNotEmpty)
+                                  for (final observer in observers)
+                                    createClass(observer),
+                                if (app.observers.mimics case final mimics
+                                    when mimics.isNotEmpty)
+                                  for (final type in mimics) createMimic(type),
+                              ]),
+                            'reflects': refer('reflects'),
+                            'defaultResponses': refer(
+                              'app',
+                            ).property('defaultResponses'),
+                            'trustedProxy': refer(
+                              'app',
+                            ).property('trustedProxy'),
+                            if (server.app case final app?
+                                when app.globalRouteAnnotations.hasAnnotations)
+                              'globalComponents':
+                                  refer(
+                                    (LifecycleComponentsImpl).name,
+                                  ).newInstance([], {
+                                    ...createModifierArgs(
+                                      annotations: app.globalRouteAnnotations,
+                                    ),
+                                  }),
+                          }),
+                        )
+                        .statement,
+                    const Code('\n'),
+                    refer('handleRouterRequests')
+                        .call([
+                          refer('server'),
+                          refer('router'),
+                          refer('router').property('close'),
+                        ])
+                        .property('ignore')
+                        .call([])
+                        .statement,
+                    const Code('\n'),
+                    const Code('if (!isWorker) {'),
+                    refer('app').property('onServerStarted').call([
+                      refer('server'),
+                    ]).statement,
+                    const Code('}'),
+                    const Code('\n'),
+                    refer('server').returned.statement,
+                  ]),
+              ).closure,
+            ])
+            .returned
+            .statement,
+      ]),
+  );
+
+  final parts = <Spec>[
+    declareVar(
+      '_revaliWorkerIsolates',
+      type: TypeReference(
+        (t) => t
+          ..symbol = 'List'
+          ..types.add(refer((Isolate).name)),
+      ),
+    ).assign(literalList([], refer((Isolate).name))).statement,
+    declareVar(
+      '_revaliIsWorker',
+      type: refer('bool'),
+    ).assign(literalFalse).statement,
+    createBindServerMethod(),
+    workerEntrypoint,
+    main,
+    createServer,
+  ];
+
+  final content = parts.map(formatter).join('\n');
+
+  return '''
+${imports.join('\n')}
+$content''';
+}

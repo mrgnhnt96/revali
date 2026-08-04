@@ -1,0 +1,3 @@
+dependency_overrides:
+  revali_construct:
+    path: ../../packages/revali_construct

@@ -17,6 +17,5 @@ dev_dependencies:
   revali:
   revali_client_gen:
   revali_client_test:
-  revali_server:
   revali_test:
   test: ^1.25.15

@@ -1,0 +1,37 @@
+// ignore_for_file: unnecessary_parenthesis
+
+import 'package:code_builder/code_builder.dart';
+import 'package:revali/server/converters/server_server.dart';
+import 'package:revali/server/makers/utils/try_catch.dart';
+import 'package:revali/server/makers/utils/type_extensions.dart';
+import 'package:revali_router/revali_router.dart' hide AllowOrigins, Method;
+
+List<Code> createRoutesVariable(ServerServer server) {
+  if (server.context.mode.isRelease) {
+    return [
+      declareVar(
+        '_routes',
+      ).assign(refer('routes').call([refer('di')])).statement,
+    ];
+  }
+
+  return [
+    declareVar(
+      '_routes',
+      type: TypeReference((b) => b..symbol = 'Iterable<${(Route).name}>'),
+    ).statement,
+    tryCatch(
+      Block.of([
+        refer('_routes').assign(refer('routes').call([refer('di')])).statement,
+      ]),
+      Block.of([
+        refer(
+          'print',
+        ).call([literalString(r'Failed to create routes:\n$e')]).statement,
+        refer('print').call([literalString(r'Stack:\n$stack')]).statement,
+        refer('server').returned.statement,
+      ]),
+      stack: true,
+    ),
+  ];
+}

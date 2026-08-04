@@ -1,5 +1,4 @@
 constructs:
     - name: revali_server
-      package: revali_server
       options:
         im: awesome

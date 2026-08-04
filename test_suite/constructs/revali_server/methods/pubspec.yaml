@@ -11,6 +11,5 @@ dependencies:
 
 dev_dependencies:
   revali:
-  revali_server:
   revali_test:
   test: ^1.25.15

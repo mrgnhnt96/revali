@@ -1,0 +1,40 @@
+// ignore_for_file: unnecessary_parenthesis
+
+import 'package:code_builder/code_builder.dart';
+import 'package:revali/server/converters/server_mimic.dart';
+import 'package:revali/server/converters/server_reflect.dart';
+import 'package:revali/server/makers/creators/create_mimic.dart';
+import 'package:revali/server/makers/utils/type_extensions.dart';
+import 'package:revali_core/revali_core.dart';
+
+Spec createReflect(ServerReflect? value) {
+  final reflect = value;
+  if (reflect == null) {
+    return const Code('');
+  }
+
+  Expression metaExp(MapEntry<String, Iterable<ServerMimic>> data) {
+    final MapEntry(:key, value: meta) = data;
+
+    var m = refer('m').index(literalString(key));
+
+    for (final item in meta) {
+      m = m.cascade('add').call([createMimic(item)]);
+    }
+
+    return m;
+  }
+
+  return refer((ReflectData).name).newInstance(
+    [refer(reflect.className)],
+    {
+      'metas': Method(
+        (p) => p
+          ..requiredParameters.add(Parameter((p) => p..name = 'm'))
+          ..body = Block.of([
+            for (final meta in reflect.metas.entries) metaExp(meta).statement,
+          ]),
+      ).closure,
+    },
+  );
+}

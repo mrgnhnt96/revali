@@ -1,0 +1,52 @@
+import 'package:analyzer/dart/constant/value.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:revali/server/converters/base_parameter_annotation.dart';
+import 'package:revali/server/converters/has_pipe.dart';
+import 'package:revali/server/converters/server_imports.dart';
+import 'package:revali/server/converters/server_pipe.dart';
+import 'package:revali/server/utils/extract_import.dart';
+import 'package:revali_core/revali_core.dart';
+
+class ServerHeaderAnnotation
+    with ExtractImport
+    implements HasPipe, BaseParameterAnnotation {
+  ServerHeaderAnnotation({
+    required this.name,
+    required this.pipe,
+    required this.all,
+  });
+
+  factory ServerHeaderAnnotation.fromElement(
+    DartObject object,
+    // ignore: avoid_unused_constructor_parameters
+    ElementAnnotation annotation,
+  ) {
+    final name = object.getField('name')?.toStringValue();
+    final pipe = object.getField('pipe')?.toTypeValue();
+    final all = object.getField('all')?.toBoolValue();
+
+    return ServerHeaderAnnotation(
+      name: name,
+      pipe: ServerPipe.fromType(pipe),
+      all: all ?? false,
+    );
+  }
+
+  @override
+  final String? name;
+  @override
+  final ServerPipe? pipe;
+  final bool all;
+
+  @override
+  AnnotationType get type => switch (all) {
+    true => AnnotationType.headerAll,
+    false => AnnotationType.header,
+  };
+
+  @override
+  List<ExtractImport?> get extractors => [pipe];
+
+  @override
+  List<ServerImports?> get imports => const [];
+}

@@ -17,5 +17,3 @@ dev_dependencies:
         path: ../../packages/revali
     revali_client_gen:
         path: ../../constructs/revali_client/revali_client_gen
-    revali_server:
-        path: ../../constructs/revali_server

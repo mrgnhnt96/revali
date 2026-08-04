@@ -22,6 +22,9 @@ dirs:
           - PreventHeaders
   - path: packages/revali/lib
     name: revali
+    exclude:
+      - "**/makers/**"
+      - "**/converters/**"
   - path: packages/revali_test/lib
     name: revali_test
   - path: packages/revali_core/lib
@@ -31,11 +34,8 @@ dirs:
     include:
       - export: "hot_reload/hot_reload.dart"
         show: hotReload
-  - path: constructs/revali_server/lib
-    name: revali_server
-    exclude:
-      - "**/makers/**"
-      - "**/converters/**"
+  - path: constructs/revali_docker/lib
+    name: revali_docker
   - path: constructs/revali_client/revali_client/lib
     name: revali_client
     exclude:

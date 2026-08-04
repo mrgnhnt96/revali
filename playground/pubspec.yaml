@@ -11,5 +11,3 @@ dependencies:
 dev_dependencies:
   revali:
     path: ../packages/revali
-  revali_server:
-    path: ../constructs/revali_server

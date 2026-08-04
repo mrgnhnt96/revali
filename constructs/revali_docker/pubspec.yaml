@@ -1,0 +1,22 @@
+name: revali_docker
+version: 1.0.0
+description: A Revali build construct that generates production-ready Dockerfiles for your server
+repository: https://github.com/mrgnhnt96/revali/tree/main/constructs/revali_docker
+issue_tracker: https://github.com/mrgnhnt96/revali/issues
+documentation: https://revali.dev
+funding:
+  - https://github.com/sponsors/mrgnhnt96
+topics:
+  - revali
+  - construct
+  - docker
+  - deployment
+
+environment:
+  sdk: ">=3.8.0 <4.0.0"
+
+dependencies:
+  revali_construct: ^2.2.0
+
+dev_dependencies:
+  test: ^1.25.15

@@ -5,3 +5,5 @@ dependency_overrides:
     path: ../revali_core
   revali_construct:
     path: ../revali_construct
+  revali_router:
+    path: ../../revali_router/revali_router
