@@ -6,13 +6,23 @@
 
 # revali
 
-## 2.3.0
+## 3.0.0
+
+### Breaking Changes
+
+- Server code generation is now built into `revali` — `revali_server` no longer exists as a separate package. Remove it from your `dev_dependencies`; `revali` alone is sufficient.
+- `revali create` scaffolds in-process; it no longer shells out to `revali_server create`.
+- Depend on `revali_router: ^4.0.0`, `revali_annotations: ^3.0.0`, and `revali_core: ^2.0.0`.
+- The `revali.yaml` key for customizing `create` scaffold paths is now `server:` (was `revali_server:`).
 
 ### Features
 
 - Add `routes`, `doctor`, and `create` CLI commands for route inspection, diagnostics, and scaffolding.
 - Add `--inspect` on `dev` to record recent requests to `.revali/inspect/requests.jsonl`.
 - Add headless `.revali_cmd` channel for reload/recovery without a TTY.
+- Emit `.revali/server/routes.json` route manifest on generate.
+- Spawn shared `HttpServer` worker isolates when `AppConfig.workers` > 1.
+- Wire request-inspect hooks into generated server startup.
 
 ### Enhancements
 
@@ -21,19 +31,25 @@
 - Discover `app.dart` and warn when falling back to the default app.
 - Exclude `bin` / `test` / `tool` from hot-reload watches.
 - Stabilize the `revali dev` status board: `[READY]`/`[RELOAD]` tags, preserve Serving at after clear/reload, and respect loud mode on `c`.
+- Pass `AppConfig.backlog` into server bind.
+- Serve with a single route `Find` on the hot path.
 
 ### Fixes
 
 - Tolerate stdin mode errors on non-TTY terminals.
 - Pick up local path-dependency edits during `revali dev` by notifying every analysis context (app context no longer keeps a stale copy).
+- Return HTTP 400 for missing/invalid parameter bindings (`MissingArgumentException`).
+- Bind `Set` and coerced query parameters correctly (including coerced values to `String` params).
 
 # revali_annotations
 
-## 2.0.2
+## 3.0.0
 
-### Chore
+### Breaking Changes
 
-- Sync package versions
+- Merge `revali_router_annotations` into this package (that package is deprecated). `@Query`, `@Param`, `@Header`, `@Cookie`, `@Ip`, `@Guards`, `@Middlewares`, `@Wrappers`, `@Intercepts`, `@Combines`, `@AddData`, `@MetaData`, `@SetHeader`, `@StatusCode`, `@Catches`, `@Dep`, `@Binds`, `Bind`, `Pipe`, `RequestHeaders`/`ResponseHeaders`, `RequestCookies`/`ResponseCookies`, and `LifecycleComponent`/`LifecycleComponents` now live here.
+- Depend on `revali_core: ^2.0.0`.
+- `AllowOrigins`, `PreventHeaders`, and `ExpectHeaders` now live in `revali_core`; still re-exported here for compatibility.
 
 # revali_construct
 
@@ -45,7 +61,12 @@
 
 # revali_core
 
-## 1.7.0
+## 2.0.0
+
+### Breaking Changes
+
+- Merge `revali_router_core` into this package (that package is deprecated). `Request`, `Response`, `Guard`, `Middleware`, `Interceptor`, `ExceptionCatcher`, `Observer`, `CombineComponents`, `ResponseHandler`, `Meta`, `MetaScope`, `Reflect`, `RouteEntry`, `TrustedProxy`, `Cookies`, `Headers`, `Body`, and related types now live here.
+- Move `AllowOrigins`, `PreventHeaders`, and `ExpectHeaders` here from `revali_annotations` (still re-exported from there for compatibility).
 
 ### Features
 
@@ -56,7 +77,11 @@
 
 # revali_router
 
-## 3.5.0
+## 4.0.0
+
+### Breaking Changes
+
+- `revali_router_core` and `revali_router_annotations` no longer exist as separate packages (both deprecated) — depend on `revali_core: ^2.0.0` and `revali_annotations: ^3.0.0` directly. `revali_router`'s own public API is unchanged; only the import source of the re-exported types moved.
 
 ### Features
 
@@ -78,45 +103,15 @@
 - Cache HTTP `Date` (~1s) and skip empty CORS / middleware / guard / interceptor stages.
 - Add configurable `DefaultResponses.badRequest`.
 
-# revali_router_annotations
-
-## 2.2.0
-
-### Features
-
-- Add `@Wrappers` annotation for registering request wrappers on controllers and routes.
-
-# revali_router_core
-
-## 2.3.0
-
-### Features
-
-- Add `RequestWrapper` interface and `WrapperResult` type alias.
-- Add `TrustedProxy` for resolving client IP from proxy headers.
-- Add `wildcardParameters` getter on `Request`.
-
 <!-- CONSTRUCTS -->
 
-# revali_server
+# revali_docker
 
-## 2.5.0
+## 1.0.0
 
 ### Features
 
-- Emit `.revali/server/routes.json` route manifest on generate.
-- Spawn shared `HttpServer` worker isolates when `AppConfig.workers` > 1.
-- Wire request-inspect hooks into generated server startup.
-
-### Fixes
-
-- Return HTTP 400 for missing/invalid parameter bindings (`MissingArgumentException`).
-- Bind `Set` and coerced query parameters correctly (including coerced values to `String` params).
-
-### Enhancements
-
-- Pass `AppConfig.backlog` into server bind.
-- Serve with a single route `Find` on the hot path.
+- Extracted from `revali_server` into its own standalone build construct. Generates production-ready, multi-stage Dockerfiles for your Revali server — install it directly with `dart pub add revali_docker --dev`.
 
 <!-- SWAGGER -->
 
