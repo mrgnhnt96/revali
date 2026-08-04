@@ -53,23 +53,44 @@ List<Code> createStreamCall(ClientMethod method) {
           ).closure,
         ]),
         false => body,
-      }.ignoreError.yieldedStar.statement
+      }.ignoreTransportErrors.yieldedStar.statement
     else ...[
       declareFinal('stream').assign(body).statement,
       const Code(''),
-      mapOver(refer('stream')).ignoreError.yieldedStar.statement,
+      mapOver(refer('stream')).ignoreTransportErrors.yieldedStar.statement,
     ],
   ];
 }
 
 extension _Expression on Expression {
-  Expression get ignoreError {
-    return property('handleError').call([
-      Method(
-        (b) => b
-          ..requiredParameters.add(Parameter((b) => b..name = '_'))
-          ..body = const Code('// do nothing\n'),
-      ).closure,
-    ]);
+  /// Swallow transport noise -- and nothing else.
+  ///
+  /// The suppression exists so a peer going away does not throw into user code
+  /// (3687886c, which paired it with a server-side guard in
+  /// `handle_web_socket.dart`). That intent is preserved.
+  ///
+  /// It was unconditional, which took real errors with it -- notably the
+  /// `Exception('Invalid response')` that [parseJson] raises when a payload
+  /// does not match the expected shape. A swallowed error completes the stream
+  /// normally, so a decode failure arrived as an empty-but-successful stream
+  /// and a crashed stream was indistinguishable from a finished one.
+  ///
+  /// `test:` narrows it to the transport case it was written for.
+  ///
+  /// The predicate is referenced by BARE name: this generator writes its
+  /// imports by hand and unprefixed (see `client_server.dart`), and the emitted
+  /// class lands in a `part` file, which cannot carry imports of its own.
+  /// `package:revali_client` is already in `additionalPackages`.
+  Expression get ignoreTransportErrors {
+    return property('handleError').call(
+      [
+        Method(
+          (b) => b
+            ..requiredParameters.add(Parameter((b) => b..name = '_'))
+            ..body = const Code('// do nothing\n'),
+        ).closure,
+      ],
+      {'test': refer('isTransportError')},
+    );
   }
 }
