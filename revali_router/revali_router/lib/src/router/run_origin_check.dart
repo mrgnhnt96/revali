@@ -21,35 +21,28 @@ class RunOriginCheck {
 
     var isAllowed = true;
     final origin = request.headers.origin;
-    if (allowedOrigins.isNotEmpty) {
+    // CORS governs browser cross-origin behavior. A request with no Origin
+    // header (native mobile/desktop clients, curl, server-to-server calls)
+    // isn't a cross-origin browser request, so it's never subject to origin
+    // allowlisting -- restricting @AllowOrigins to a web frontend's origin
+    // must not also lock out every non-browser client of the same endpoint.
+    if (origin != null && allowedOrigins.isNotEmpty) {
       isAllowed = false;
 
-      if (origin == null) {
-        if (!allowedOrigins.contains('*')) {
-          return debugErrorResponse(
-            defaultResponses.failedCorsOrigin,
-            error: 'Origin header is missing.',
-            stackTrace: StackTrace.current,
-          );
+      for (final pattern in allowedOrigins) {
+        if (pattern == '*' || pattern == origin) {
+          isAllowed = true;
+          break;
         }
 
-        isAllowed = true;
-      } else {
-        for (final pattern in allowedOrigins) {
-          if (pattern == '*' || pattern == origin) {
+        try {
+          final regex = RegExp(pattern);
+          if (regex.hasMatch(origin)) {
             isAllowed = true;
             break;
           }
-
-          try {
-            final regex = RegExp(pattern);
-            if (regex.hasMatch(origin)) {
-              isAllowed = true;
-              break;
-            }
-          } catch (_) {
-            // ignore the pattern if it is not a valid regex
-          }
+        } catch (_) {
+          // ignore the pattern if it is not a valid regex
         }
       }
     }
