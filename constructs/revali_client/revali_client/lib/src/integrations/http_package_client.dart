@@ -3,11 +3,15 @@ import 'package:revali_client/src/http_client.dart';
 import 'package:revali_client/src/http_interceptor.dart';
 import 'package:revali_client/src/http_request.dart';
 import 'package:revali_client/src/http_response.dart';
+import 'package:revali_client/src/integrations/credentials/credentials_io.dart'
+    if (dart.library.js_interop) 'package:revali_client/src/integrations/credentials/credentials_web.dart';
 
 class HttpPackageClient implements HttpClient {
   HttpPackageClient({http.Client? client, List<HttpInterceptor>? interceptors})
     : _client = client ?? http.Client(),
-      interceptors = interceptors ?? [];
+      interceptors = interceptors ?? [] {
+    enableCredentials(_client);
+  }
 
   final http.Client _client;
 
@@ -46,7 +50,7 @@ class HttpPackageClient implements HttpClient {
       }
     }
 
-    httpRequest.headers.addAll({'credentials': 'include', ...request.headers});
+    httpRequest.headers.addAll(request.headers);
 
     final response = await _client.send(httpRequest);
 

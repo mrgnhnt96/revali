@@ -40,6 +40,7 @@ dirs:
     name: revali_client
     exclude:
       - "**/cookie_parser.dart"
+      - "**/integrations/credentials/**"
   - path: constructs/revali_client/revali_client_test/lib
     name: revali_client_test
   - path: revali_router/revali_router/lib
