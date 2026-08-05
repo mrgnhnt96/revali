@@ -1,7 +1,9 @@
 import 'package:args/command_runner.dart';
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
+import 'package:path/path.dart' as p;
 import 'package:revali/clis/revali_runner/commands/mixins/construct_runner_args.dart';
+import 'package:revali/clis/revali_runner/commands/utils/validate_tls_args.dart';
 import 'package:revali/handlers/construct_entrypoint_handler.dart';
 
 class DevCommand extends Command<int> with ConstructRunnerArgs {
@@ -82,6 +84,20 @@ class DevCommand extends Command<int> with ConstructRunnerArgs {
             'A file containing additional key-value '
             'pairs that will be available as constants.',
         valueHelp: '.env',
+      )
+      ..addOption(
+        'cert',
+        help:
+            'Path to a TLS certificate chain (PEM). Binds the server with '
+            'HTTPS. Must be passed together with --key.',
+        valueHelp: 'certificates/localhost.pem',
+      )
+      ..addOption(
+        'key',
+        help:
+            'Path to the TLS private key (PEM) matching --cert. '
+            'Must be passed together with --cert.',
+        valueHelp: 'certificates/localhost-key.pem',
       );
   }
 
@@ -96,6 +112,16 @@ class DevCommand extends Command<int> with ConstructRunnerArgs {
   @override
   String get description => 'Starts the development server';
 
+  String? get _certPath => switch (argResults?['cert'] as String?) {
+    null => null,
+    final path => p.absolute(path),
+  };
+
+  String? get _keyPath => switch (argResults?['key'] as String?) {
+    null => null,
+    final path => p.absolute(path),
+  };
+
   @override
   List<String> get constructRunnerArgs {
     final args = super.constructRunnerArgs;
@@ -105,6 +131,11 @@ class DevCommand extends Command<int> with ConstructRunnerArgs {
         ..add(
           '--dart-define=REVALI_INSPECT_LOG=.revali/inspect/requests.jsonl',
         );
+    }
+    if ((_certPath, _keyPath) case (final cert?, final key?)) {
+      args
+        ..add('--dart-define=REVALI_CERT=$cert')
+        ..add('--dart-define=REVALI_KEY=$key');
     }
     return args;
   }
@@ -124,6 +155,13 @@ $args''';
   @override
   Future<int> run() async {
     final argResults = this.argResults!;
+
+    if (validateTlsArgs(cert: _certPath, key: _keyPath, fs: fs)
+        case final error?) {
+      logger.err(error);
+      return 1;
+    }
+
     final recompile = argResults['recompile'] as bool;
     final skipIfFresh = argResults['skip-if-fresh'] as bool;
 

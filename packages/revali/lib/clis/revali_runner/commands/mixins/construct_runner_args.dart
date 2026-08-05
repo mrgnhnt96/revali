@@ -26,6 +26,8 @@ mixin ConstructRunnerArgs on Command<int> {
 
       if (entry == '--flavor' ||
           entry == '-f' ||
+          entry == '--cert' ||
+          entry == '--key' ||
           entry == ConstructEntrypointHandler.rootArgName) {
         skipNext = true;
         continue;

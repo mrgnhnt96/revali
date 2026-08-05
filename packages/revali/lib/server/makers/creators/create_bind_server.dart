@@ -55,12 +55,21 @@ final host = switch (app.host) {
 
 final v6Only = app.host != 'localhost';
 
+// --cert/--key (revali dev) take precedence over AppConfig.secure's own
+// securityContext, since they're an explicit run-time request for TLS.
+const certPath = String.fromEnvironment('REVALI_CERT');
+const keyPath = String.fromEnvironment('REVALI_KEY');
+final securityContext = certPath.isNotEmpty && keyPath.isNotEmpty
+    ? (SecurityContext()
+        ..useCertificateChain(certPath)
+        ..usePrivateKey(keyPath))
+    : app.securityContext;
 
-if (app.securityContext case final context?) {
+if (securityContext != null) {
   return await HttpServer.bindSecure(
     host,
     app.port,
-    context,
+    securityContext,
     requestClientCertificate: app.requestClientCertificate,
     v6Only: v6Only,
     shared: shared,
