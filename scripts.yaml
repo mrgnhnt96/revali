@@ -31,7 +31,7 @@ build_runner:
     revali_router:
       (aliases): router
       (command): cd revali_router/revali_router && {$build_runner:build}
-    revali_server: cd constructs/revali_server && {$build_runner:build}
+    revali: cd packages/revali && {$build_runner:build}
   watch:
     (aliases): w
     (command): dart run build_runner watch --delete-conflicting-outputs
@@ -41,7 +41,7 @@ build_runner:
     revali_router:
       (aliases): router
       (command): cd revali_router/revali_router && {$build_runner:watch}
-    revali_server: cd constructs/revali_server && {$build_runner:watch}
+    revali: cd packages/revali && {$build_runner:watch}
 
 test:
   (command):
@@ -164,9 +164,6 @@ test:
   revali_test: |
     cd packages/revali_test || exit 1
     {$test:_test}
-  revali_server: |
-    cd constructs/revali_server || exit 1
-    {$test:_test}
 
 # Fast feedback loop: package unit tests only (no test_suite generate).
 # Prefer this while iterating on router/codegen/hot-reload changes.
@@ -176,7 +173,6 @@ unit-test:
   # Full e2e: `sip run ts` (target <1m warm with shared kernel + skip-if-fresh).
   (command):
     - (+) {$unit-test:router}
-    - (+) {$unit-test:server}
     - (+) {$unit-test:client-gen}
     - (+) {$unit-test:revali}
     - (+) {$unit-test:construct}
@@ -185,9 +181,6 @@ unit-test:
     - (+) {$unit-test:swagger}
   router: |
     cd revali_router/revali_router || exit 1
-    sip test --bail --concurrent --no-version-check
-  server: |
-    cd constructs/revali_server || exit 1
     sip test --bail --concurrent --no-version-check
   client-gen: |
     cd constructs/revali_client/revali_client_gen || exit 1

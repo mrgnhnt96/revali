@@ -17,11 +17,11 @@ Hook main() {
             tasks: [
               ShellTask(
                 include: [
-                  Glob('constructs/revali_server/lib/cli/models/**.dart'),
+                  Glob('packages/revali/lib/server/cli/models/**.dart'),
                 ],
                 commands: (files) {
                   return [
-                    'cd constructs/revali_server && dart run build_runner build --delete-conflicting-outputs',
+                    'cd packages/revali && dart run build_runner build --delete-conflicting-outputs',
                   ];
                 },
               ),
