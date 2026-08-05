@@ -90,9 +90,7 @@ Build constructs are specialized packages that generate deployment artifacts:
 ```tree
 .revali/
 ├── build/
-│   ├── docker/
-│   │   ├── Dockerfile
-│   │   └── docker-compose.yml
+│   ├── Dockerfile
 │   ├── assets/
 │   │   ├── static/
 │   │   └── templates/
@@ -136,23 +134,24 @@ After all constructs complete:
 
 ## Build Configuration
 
-### Custom Build Settings
+### Compiling a Native Executable
 
-You can configure build behavior in your `revali.yaml`:
+Adding a `build:` section to your `revali.yaml` tells `revali build` to compile your server into a native executable via `dart compile exe`, in addition to running your build constructs:
 
 ```yaml title="revali.yaml"
 build:
-  mode: release
-  output: .revali/build
-  constructs:
-    - docker
-    - assets
-    - deployment
-  optimization:
-    minify: true
-    compress: true
-    treeShake: true
+  target_os: linux            # optional, defaults to the host OS
+  target_arch: [x64, arm64]   # optional, defaults to the host architecture
+  strip_debug_info: true      # optional, default false
 ```
+
+Its mere presence is the signal — every field is optional and falls back to the host machine's own OS/architecture. `dart compile exe` can cross-compile to Linux from any host OS (macOS, Windows, or Linux) with no extra toolchain, added in Dart 3.8. Compiling for `macos` or `windows` targets still requires running `revali build` natively on that OS — there is no cross-compiling *to* those targets.
+
+`target_arch` accepts a list so you can compile once per architecture in a single `revali build` run (useful for multi-platform container images — see [Revali Docker](/constructs/revali_docker/overview#cross-compiling)). `strip_debug_info` removes the AOT debug information from the executable and saves it separately (`dart compile exe -S`), producing a smaller binary at the cost of needing that separate file to symbolicate a crash later.
+
+Build constructs that know how to package a compiled executable (like [Revali Docker](/constructs/revali_docker/overview)) will automatically use it instead of compiling it themselves. Without a `build:` section, `revali build` behaves exactly as it does today — it only runs build constructs, and doesn't compile anything on its own.
+
+`--dart-define` values are baked into the compiled executable directly, using their real resolved values — unlike a construct like Revali Docker's default (non-compiled) Dockerfile, which defers dart-defines to `docker build --build-arg` at image-build time.
 
 ## Build Artifacts
 

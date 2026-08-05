@@ -38,14 +38,14 @@ dart run revali build
 The generated `Dockerfile` will be created at:
 
 ```
-.revali/build/docker/Dockerfile
+.revali/build/Dockerfile
 ```
 
 Build and run your Docker image:
 
 ```bash
 # Build the image
-docker build -f .revali/build/docker/Dockerfile -t my-app .
+docker build -f .revali/build/Dockerfile -t my-app .
 
 # Run the container
 docker run -p 8080:8080 my-app
@@ -57,7 +57,7 @@ docker run -p 8080:8080 my-app
 
 Here's an example of a generated Dockerfile with explanations:
 
-```dockerfile title=".revali/build/docker/Dockerfile"
+```dockerfile title=".revali/build/Dockerfile"
 # Stage 1: Build environment
 FROM dart:stable AS build
 
@@ -192,7 +192,7 @@ Provide build argument values when building the Docker image:
 docker build \
   --build-arg API_KEY=production_key \
   --build-arg PORT=8080 \
-  -f .revali/build/docker/Dockerfile \
+  -f .revali/build/Dockerfile \
   -t my-app .
 ```
 
@@ -209,7 +209,7 @@ Learn more about [environment variables](/revali/app-configuration/env-vars).
 Build an image from the generated Dockerfile:
 
 ```bash
-docker build -f .revali/build/docker/Dockerfile -t my-app:latest .
+docker build -f .revali/build/Dockerfile -t my-app:latest .
 ```
 
 ### Tagged Build
@@ -217,7 +217,7 @@ docker build -f .revali/build/docker/Dockerfile -t my-app:latest .
 Tag your image for versioning:
 
 ```bash
-docker build -f .revali/build/docker/Dockerfile -t my-app:v1.0.0 .
+docker build -f .revali/build/Dockerfile -t my-app:v1.0.0 .
 ```
 
 ### Multi-Platform Build
@@ -227,9 +227,55 @@ Build for multiple architectures:
 ```bash
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
-  -f .revali/build/docker/Dockerfile \
+  -f .revali/build/Dockerfile \
   -t my-app:latest .
 ```
+
+## Cross-Compiling
+
+By default, Revali Docker compiles your server *inside* the Docker build (the multi-stage `dart:stable` build shown above). If you'd rather compile once on the host — no container pull, no `pub get` inside Docker — add a [`build:` section](/revali/cli/build#compiling-a-native-executable) to your `revali.yaml`:
+
+```yaml title="revali.yaml"
+build:
+  target_os: linux
+  target_arch: [x64, arm64]
+```
+
+`revali build` will compile the server directly via `dart compile exe --target-os --target-arch` — cross-compiling to Linux works from any host OS (macOS, Windows, or Linux), no extra toolchain required. Revali Docker then generates a minimal single-stage Dockerfile instead:
+
+```dockerfile
+FROM alpine:latest
+
+RUN apk add --no-cache libc6-compat ca-certificates
+
+# single arch:
+COPY .revali/build/server-amd64 /app/bin/server
+# multiple arches (picks the right one via buildx's $TARGETARCH):
+# ARG TARGETARCH
+# COPY .revali/build/server-${TARGETARCH} /app/bin/server
+RUN chmod +x /app/bin/server
+
+CMD ["/app/bin/server"]
+```
+
+When `target_arch` lists more than one architecture, the `ARG TARGETARCH` form is used automatically — the existing [Multi-Platform Build](#multi-platform-build) `docker buildx build --platform ...` command above still works unchanged, now backed by fast native host compiles instead of a QEMU-emulated compile inside the container for each target platform.
+
+:::caution
+This only compiles the Dart server itself. If your app depends on native (FFI) libraries, those still need to be built for the target platform separately — compiling for Linux from macOS doesn't cross-compile any bundled native `.so`/`.dylib` files.
+:::
+
+### `.dockerignore`
+
+If you exclude `.revali/` in your `.dockerignore` (recommended below, since it holds dev-time artifacts you don't want in your build context), you need to explicitly re-include `.revali/build/` — otherwise the `COPY` above can't find the compiled binary. Docker's `!negation` pattern **cannot** re-include a path whose parent directory was itself excluded, so exclude `.revali/`'s children individually instead of the directory itself:
+
+```text title=".dockerignore"
+.revali/*
+!.revali/build
+```
+
+### `--dart-define` values
+
+Without cross-compiling, dart-defines are deferred to `docker build --build-arg` at image-build time (see [Environment Variables](#environment-variables) above). With cross-compiling, they're baked into the executable directly at `revali build` time using their real resolved values, since there's no container build step left to defer them to.
 
 ### Build with Custom Arguments
 
@@ -239,7 +285,7 @@ Provide build arguments:
 docker build \
   --build-arg API_KEY=my_key \
   --build-arg DATABASE_URL=postgres://... \
-  -f .revali/build/docker/Dockerfile \
+  -f .revali/build/Dockerfile \
   -t my-app .
 ```
 
@@ -299,7 +345,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: .revali/build/docker/Dockerfile
+      dockerfile: .revali/build/Dockerfile
       args:
         API_KEY: ${API_KEY}
         DATABASE_URL: ${DATABASE_URL}
