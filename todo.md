@@ -57,8 +57,10 @@ In practice the second analysis pass on the same project dropped from ~85s → ~
 ---
 
 - [ ] Add support for generics in `fromJson` factories
-- [ ] Support multi path set-cookie headers
-- [ ] Add documentation on how to use `mkcert` to run the server with HTTPS
+- [x] Support multi path set-cookie headers
+  - Each cookie now gets its own `Set-Cookie` header line (`SetCookies.headerValues()`) instead of being joined into one invalid line
+- [x] Add documentation on how to use `mkcert` to run the server with HTTPS
+  - Also added real `--cert`/`--key` flags to `revali dev` so no `AppConfig.secure` code is needed for local HTTPS testing
 - [ ] Update documentation to reflect the new `headers.set(expose: true)` param
 - [x] Add optional param to `headers.set(expose: true)` to expose the header to the client
   - [x] This is required because browsers will block headers that are not exposed to the client
@@ -73,13 +75,14 @@ In practice the second analysis pass on the same project dropped from ~85s → ~
   - [ ] Request scoped (get refreshed for each request)
     - This would mean that we need to create a new DI instance for each request, to avoid sharing data between requests, since we are following the DI singleton pattern
 - [ ] Remove websocket 1 way modes
-- [ ] Improve "Deleting precompiled script and retrying..." failure
+- [x] Improve "Deleting precompiled script and retrying..." failure
   - Compile a revali app on using an older version of the dart sdk
   - Upgrade the dart sdk
   - Restart the revali app without recompiling
+  - Fixed: the retry path now recompiles the kernel before the second `Isolate.spawnUri` attempt instead of just deleting it and failing again
 - [ ] Figure out a way to handle sending streams from the client to the server
-- [ ] Fix issue where revali client is add multiple same cookies
-- [ ] Fix issue where if 2 paths match, the order should be
+- [x] Fix issue where revali client is add multiple same cookies
+- [x] Fix issue where if 2 paths match, the order should be
   - No path ids first
   - longest paths first
     - This solves the issue where `places/near-me` would match `places/near-me/123`
