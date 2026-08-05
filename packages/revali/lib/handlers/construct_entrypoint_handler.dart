@@ -548,7 +548,9 @@ ${result.stderr}''');
         );
         succeeded = true;
       } on IsolateSpawnException catch (e) {
-        if (tryCount > 1) {
+        final isFinalAttempt = tryCount > 1;
+
+        if (isFinalAttempt) {
           logger.err(
             'Failed to spawn build script after retry. '
             'This is likely due to a misconfigured construct definition.\n'
@@ -560,7 +562,7 @@ ${result.stderr}''');
           logger.err(
             'Error spawning build script isolate, '
             'this is likely due to a Dart '
-            'SDK update. Deleting precompiled script and retrying...',
+            'SDK update. Deleting precompiled script and recompiling...',
           );
         }
 
@@ -568,6 +570,18 @@ ${result.stderr}''');
           await file.delete();
         } catch (e) {
           logger.err('Failed to delete precompiled script: $e');
+        }
+
+        // The kernel was compiled against a different Dart SDK -- deleting
+        // it isn't enough, it must be recompiled before the retry, or the
+        // second Isolate.spawnUri attempt fails again against a missing
+        // file and prints the misleading "misconfigured construct" message.
+        if (!isFinalAttempt) {
+          try {
+            await compile(root: root);
+          } catch (e) {
+            logger.err('Failed to recompile build script: $e');
+          }
         }
       }
     }
