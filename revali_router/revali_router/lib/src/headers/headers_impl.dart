@@ -176,7 +176,7 @@ class HeadersImpl extends CommonHeadersMixin implements Headers {
           key: value.toList(),
         if (cookies.isNotEmpty) cookies.headerKey: [cookies.headerValue()],
         if (setCookies.isNotEmpty)
-          setCookies.headerKey: [setCookies.headerValue()],
+          setCookies.headerKey: setCookies.headerValues(),
       });
 
   @override

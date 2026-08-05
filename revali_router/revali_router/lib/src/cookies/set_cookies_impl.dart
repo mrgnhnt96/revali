@@ -192,6 +192,24 @@ class SetCookiesImpl extends CookiesImpl implements SetCookies {
     }
   }
 
+  Iterable<MapEntry<String, String?>> _attributeEntries() {
+    return [
+      for (final attribute in _attributes)
+        switch (this[attribute]) {
+          null when !containsKey(attribute) => null,
+          null => MapEntry(attribute, null),
+          final value => MapEntry(attribute, value),
+        },
+    ].nonNulls;
+  }
+
+  static String _formatEntry(MapEntry<String, String?> entry) {
+    return switch (entry.value) {
+      String() => '${entry.key}=${entry.value}',
+      _ => entry.key,
+    };
+  }
+
   @override
   bool get isEmpty => setValues().isEmpty;
 
@@ -203,16 +221,27 @@ class SetCookiesImpl extends CookiesImpl implements SetCookies {
       return [];
     }
 
-    final data = [
-      ...setValues,
-      for (final attribute in _attributes)
-        switch (this[attribute]) {
-          null when !containsKey(attribute) => null,
-          null => MapEntry(attribute, null),
-          final value => MapEntry(attribute, value),
-        },
-    ];
+    return [...setValues, ..._attributeEntries()];
+  }
 
-    return data.nonNulls.toList();
+  /// All cookies share the same attributes (`Secure`, `SameSite`, etc.) --
+  /// this type has no notion of per-cookie attributes.
+  @override
+  List<String> headerValues() {
+    final setValues = this.setValues().toList();
+
+    if (setValues.isEmpty) {
+      return const [];
+    }
+
+    final attributeSuffix = _attributeEntries().map(_formatEntry).join('; ');
+
+    return [
+      for (final cookie in setValues)
+        [
+          _formatEntry(cookie),
+          if (attributeSuffix.isNotEmpty) attributeSuffix,
+        ].join('; '),
+    ];
   }
 }

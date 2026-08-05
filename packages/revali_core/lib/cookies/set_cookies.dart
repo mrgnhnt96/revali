@@ -23,4 +23,10 @@ abstract class SetCookies implements Cookies {
   bool? get secure;
   bool? get httpOnly;
   SameSiteCookie? get sameSite;
+
+  /// One formatted `name=value; attr1; attr2=value` string per cookie,
+  /// suitable for a distinct `Set-Cookie` header line each — cookies must
+  /// never be comma- or semicolon-joined into a single line (RFC 6265
+  /// §4.1.1), unlike the request-side `Cookie` header [headerValue].
+  List<String> headerValues();
 }

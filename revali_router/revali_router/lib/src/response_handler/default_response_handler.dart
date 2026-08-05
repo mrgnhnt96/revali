@@ -114,7 +114,17 @@ class DefaultResponseHandler
     }
 
     responseHeaders.forEach((key, values) {
-      http.headers.set(key, values.join(','));
+      // Set-Cookie must never be comma-joined into a single line -- each
+      // cookie needs its own header line (RFC 6265 §4.1.1); comma-joining
+      // is also ambiguous since a cookie's Expires attribute may itself
+      // contain commas.
+      if (equalsIgnoreAsciiCase(key, HttpHeaders.setCookieHeader)) {
+        for (final value in values) {
+          http.headers.add(key, value);
+        }
+      } else {
+        http.headers.set(key, values.join(','));
+      }
     });
 
     if (http.connectionInfo == null) {
