@@ -1,4 +1,5 @@
 // ignore_for_file: overridden_fields, unnecessary_await_in_return
+// ignore_for_file: avoid_dynamic_calls
 
 import 'dart:async';
 import 'dart:io';
@@ -36,6 +37,7 @@ Future<void> testRequest(
     ..stub(
       method: route.method,
       path: route.path,
+      headers: route.headers,
     );
   final server = _MockServer();
 
@@ -90,6 +92,7 @@ extension _HttpRequestX on HttpRequest {
   HttpResponse stub({
     String method = 'GET',
     String path = '',
+    Map<String, String> headers = const {},
   }) {
     final mockResponse = _FakeHttpResponse();
     final mockHeaders = _MockHttpHeaders();
@@ -101,6 +104,12 @@ extension _HttpRequestX on HttpRequest {
     when(() => instance.response).thenReturn(mockResponse);
     when(() => instance.headers).thenReturn(mockHeaders);
     when(() => instance.protocolVersion).thenReturn('1.1');
+    when(() => mockHeaders.forEach(any())).thenAnswer((invocation) {
+      final action = invocation.positionalArguments[0];
+      for (final MapEntry(:key, :value) in headers.entries) {
+        action(key, [value]);
+      }
+    });
 
     return mockResponse;
   }
@@ -143,6 +152,7 @@ class TestRoute extends Route {
     this.observers = const [],
     this.path = '',
     this.method = 'GET',
+    this.headers = const {},
     super.routes,
     super.middlewares,
     super.requestWrappers,
@@ -163,6 +173,7 @@ class TestRoute extends Route {
         );
 
   final List<Observer> observers;
+  final Map<String, String> headers;
 
   Router toRouter() {
     return Router(
