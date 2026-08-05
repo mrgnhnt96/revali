@@ -5,7 +5,9 @@ description: Run your server over HTTPS using a local certificate
 
 # HTTPS in Development
 
-Revali can bind an `HttpServer` with TLS via `AppConfig.secure`, backed by `dart:io`'s `SecurityContext`. This is most useful in development when a client (a physical mobile device, a browser enforcing secure-context APIs, etc.) requires HTTPS even against `localhost`.
+Revali can bind an `HttpServer` with TLS, backed by `dart:io`'s `SecurityContext`. This is most useful in development when a client (a physical mobile device, a browser enforcing secure-context APIs, etc.) requires HTTPS even against `localhost`.
+
+There are two ways to enable it — `--cert`/`--key` on `revali dev` (no code changes, the easiest path for local testing) or `AppConfig.secure` (programmatic, for when you need more control). Both need a certificate and key file, so start there either way.
 
 ## Generate a Local Certificate with mkcert
 
@@ -22,11 +24,25 @@ mkcert -install
 mkcert -key-file certificates/localhost-key.pem -cert-file certificates/localhost.pem localhost 127.0.0.1 ::1
 ```
 
-This produces two files — commit `certificates/` to `.gitignore`, since these are local-machine credentials, not something to ship or share.
+This produces two files — add `certificates/` to `.gitignore`, since these are local-machine credentials, not something to ship or share.
 
-## Configure `AppConfig.secure`
+## Quick Start: `--cert` / `--key`
 
-Use the `AppConfig.secure` named constructor (instead of the default `AppConfig(...)`), and build a `SecurityContext` from the generated files:
+Pass the generated files directly to `revali dev` — no code changes needed, even if your `AppConfig` uses the plain (non-secure) constructor:
+
+```bash
+dart run revali dev --cert certificates/localhost.pem --key certificates/localhost-key.pem
+```
+
+Your server is now reachable over HTTPS at whatever host/port your `AppConfig` already specifies (e.g. `https://localhost:8080/api/`). `--cert` and `--key` must be passed together — providing only one is an error.
+
+:::note
+The startup log still prints `Serving at http://...` even when TLS is active — that message doesn't yet know about the connection scheme. The server itself is genuinely serving HTTPS; only the log line's `http://` is cosmetic.
+:::
+
+## Advanced: `AppConfig.secure`
+
+Reach for `AppConfig.secure` instead of `--cert`/`--key` when you need to build the `SecurityContext` yourself — for example, loading a certificate from somewhere other than two PEM files, switching it conditionally based on `--flavor`, or requesting a client certificate for mutual TLS (`requestClientCertificate`, not available via the CLI flags).
 
 ```dart title="routes/main_app.dart"
 import 'dart:io';
@@ -50,15 +66,15 @@ final class MainApp extends AppConfig {
 `AppConfig.secure` isn't `const` — a `SecurityContext` wraps a native, mutable TLS context, so the constructor above can't be `const` either.
 :::
 
-Run it the same way as always:
+Run it the same way as always, with no `--cert`/`--key` flags needed:
 
 ```bash
 dart run revali dev
 ```
 
-Your server is now reachable at `https://localhost:8443/api/`.
+If both are present — an `AppConfig.secure` app *and* `--cert`/`--key` on the command line — the CLI flags win, since they're a more specific, explicit request for that particular run.
 
-## Available Options
+### Available Options
 
 `AppConfig.secure` accepts everything the default constructor does (`host`, `port`, `prefix`, `workers`, `backlog`), plus:
 
@@ -73,5 +89,6 @@ If you need a *different* device on your network to trust the certificate (not j
 
 ## Next Steps
 
+- **[The Dev Command](/revali/cli/dev)**: Full `revali dev` flag reference
 - **[Create an App](/revali/app-configuration/create-an-app)**: Basic `AppConfig` setup
 - **[App Configuration Overview](/revali/app-configuration/overview)**: `AppConfig` fundamentals

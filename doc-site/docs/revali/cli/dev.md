@@ -43,6 +43,8 @@ This starts your server with default settings:
 | `--dart-vm-service-port <port>` | Port for the Dart VM service. `0` (default) automatically assigns one. |
 | `--dart-define`, `-D <KEY=value>` | Additional key-value pairs available as compile-time constants. Repeatable. |
 | `--dart-define-from-file <path>` | A file (e.g. `.env`) containing additional key-value pairs available as constants. Repeatable. |
+| `--cert <path>` | Path to a TLS certificate chain (PEM). Binds over HTTPS. Must be passed together with `--key`. See [HTTPS in Development](/revali/app-configuration/https). |
+| `--key <path>` | Path to the TLS private key (PEM) matching `--cert`. Must be passed together with `--cert`. |
 
 ## Run Modes
 
