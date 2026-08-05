@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:io' as io;
 
 import 'package:analyzer/error/error.dart';
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
+import 'package:path/path.dart' as p;
 import 'package:revali/revali.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:yaml/yaml.dart';
@@ -70,6 +72,8 @@ class ConstructGenerator with DirectoriesMixin {
   Directory? _stagingRoot;
   Future<void> _generateTail = Future<void>.value();
 
+  List<CompiledExecutable> _compiledExecutables = const [];
+
   static const _stagingPrefix = '.revali.staging';
 
   Future<Directory> get root async {
@@ -88,6 +92,7 @@ class ConstructGenerator with DirectoriesMixin {
     flavor: flavor,
     mode: mode,
     defines: dartDefines?.defined ?? const {},
+    compiledExecutables: _compiledExecutables,
   );
 
   Future<void> clean({
@@ -192,6 +197,15 @@ constructs:
     }
 
     if (generateConstructType.isBuild) {
+      final revaliConfig = await this.revaliConfig;
+
+      if (revaliConfig.build case final buildSettings?) {
+        progress?.call('Compiling server');
+        _compiledExecutables = await _compileServer(buildSettings);
+      }
+    }
+
+    if (generateConstructType.isBuild) {
       progress?.call('Running pre-build hooks');
 
       for (final maker in buildMakers) {
@@ -279,6 +293,129 @@ http://revali.dev/constructs#server-constructs
     await _promoteStaging();
 
     return server;
+  }
+
+  /// Regenerates the server construct for real (mirroring what
+  /// `revali_docker`'s in-container `RUN dart run revali build --type
+  /// constructs --recompile` line does today, just run here on the host),
+  /// then compiles it via `dart compile exe --target-os --target-arch` for
+  /// every architecture [buildSettings] requests. Writes into a fixed
+  /// scratch directory under `.dart_tool/` — never into `.revali/build/`
+  /// directly, since `_promoteStaging` unconditionally wipes and replaces
+  /// that directory after build-type constructs run.
+  Future<List<CompiledExecutable>> _compileServer(
+    BuildSettingsConfig buildSettings,
+  ) async {
+    final rootDir = await root;
+    final targetOs = buildSettings.resolvedTargetOs;
+
+    if (!TargetOs.current().canCompile(targetOs)) {
+      throw Exception(
+        'Cannot compile for target_os: ${targetOs.name} from a '
+        '${TargetOs.current().name} host. macOS and Windows targets must be '
+        'compiled on that same OS; only linux can be cross-compiled from '
+        'any host.',
+      );
+    }
+
+    final flavorArgs = [
+      if (flavor case final f?) ...['--flavor', f],
+    ];
+
+    final constructsResult = await io.Process.run(
+      'dart',
+      [
+        'run',
+        'revali',
+        'build',
+        ...flavorArgs,
+        '--${mode.flag}',
+        '--type',
+        'constructs',
+        '--recompile',
+      ],
+      workingDirectory: rootDir.path,
+      runInShell: true,
+    );
+
+    if (constructsResult.exitCode != 0) {
+      logger
+        ..detail('stdout: ${constructsResult.stdout}')
+        ..detail('stderr: ${constructsResult.stderr}')
+        ..err('Failed to regenerate server construct before compiling');
+
+      throw Exception('Failed to regenerate server construct before compiling');
+    }
+
+    final scratchDir = fs.directory(
+      p.join(rootDir.path, '.dart_tool', 'revali', 'build_artifacts'),
+    );
+    if (scratchDir.existsSync()) {
+      await scratchDir.delete(recursive: true);
+    }
+    await scratchDir.create(recursive: true);
+
+    final serverEntry = p.join(
+      rootDir.path,
+      '.revali',
+      'server',
+      'server.dart',
+    );
+    final defines = dartDefines?.defined ?? const {};
+    final defineArgs = [
+      for (final entry in defines.entries) '-D${entry.key}=${entry.value}',
+    ];
+
+    final compiled = <CompiledExecutable>[];
+
+    for (final arch in buildSettings.resolvedTargetArch) {
+      final basePath = p.join(
+        scratchDir.path,
+        'server-${targetOs.name}-${arch.name}',
+      );
+      final debugPath = buildSettings.stripDebugInfo ? '$basePath.debug' : null;
+
+      final compileResult = await io.Process.run(
+        'dart',
+        [
+          'compile',
+          'exe',
+          serverEntry,
+          '-o',
+          basePath,
+          '--target-os',
+          targetOs.name,
+          '--target-arch',
+          arch.name,
+          if (debugPath != null) ...['-S', debugPath],
+          ...defineArgs,
+        ],
+        workingDirectory: rootDir.path,
+        runInShell: true,
+      );
+
+      if (compileResult.exitCode != 0) {
+        logger
+          ..detail('stdout: ${compileResult.stdout}')
+          ..detail('stderr: ${compileResult.stderr}')
+          ..err('Failed to compile server for ${targetOs.name}/${arch.name}');
+
+        throw Exception(
+          'Failed to compile server for ${targetOs.name}/${arch.name}',
+        );
+      }
+
+      compiled.add(
+        CompiledExecutable(
+          targetOs: targetOs,
+          targetArch: arch,
+          path: basePath,
+          debugInfoPath: debugPath,
+        ),
+      );
+    }
+
+    return compiled;
   }
 
   Future<void> _prepareStaging() async {
@@ -630,7 +767,11 @@ http://revali.dev/constructs#server-constructs
 
       paths.remove(fileEntity.path);
 
-      await fileEntity.writeAsString(file.content);
+      if (file.bytes case final bytes?) {
+        await fileEntity.writeAsBytes(bytes);
+      } else {
+        await fileEntity.writeAsString(file.content);
+      }
     }
 
     for (final stale in paths) {

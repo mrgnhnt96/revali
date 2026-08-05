@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 3.1.0 | 08.05.26
+
+### Features
+
+- Add a `build:` section to `revali.yaml`. Its presence tells `revali build` to compile the server via `dart compile exe --target-os --target-arch`, cross-compiling to Linux from any host OS. Compiled executables are exposed to build-type constructs (e.g. `revali_docker`) via `RevaliBuildContext.compiledExecutables`, so they can package what was already compiled instead of compiling anything themselves. Supports `strip_debug_info` to split AOT debug info out of the executable for a smaller binary.
+
 ## 3.0.0 | 08.04.26
 
 ### Breaking Changes

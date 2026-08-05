@@ -390,7 +390,7 @@ packages:
       path: "../revali_construct"
       relative: true
     source: path
-    version: "2.3.0"
+    version: "2.4.0"
   revali_core:
     dependency: "direct main"
     description:
