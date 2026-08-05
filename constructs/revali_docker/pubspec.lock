@@ -229,17 +229,25 @@ packages:
     dependency: transitive
     description:
       name: revali_annotations
-      sha256: "3c48a313f752164641725a0864ddbbf58d0a1a787580de60f63e5e93541ebb99"
+      sha256: "4fffc27efa57e1db815c8e7caffb1d779a773e5e70d11894c6166d93d861da94"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.2"
+    version: "3.0.0"
   revali_construct:
     dependency: "direct main"
     description:
       path: "../../packages/revali_construct"
       relative: true
     source: path
-    version: "2.2.0"
+    version: "2.4.0"
+  revali_core:
+    dependency: transitive
+    description:
+      name: revali_core
+      sha256: "64dab5faf6661357f746dd707cf138a2ff46aece8b703e595f2a90a82ebc3348"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
   shelf:
     dependency: transitive
     description:
