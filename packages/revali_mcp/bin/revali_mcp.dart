@@ -161,7 +161,7 @@ final _tools = [
   },
   {
     'name': 'create_scaffold',
-    'description': 'Run dart run revali_server create <type> …',
+    'description': 'Run dart run revali create <type> …',
     'inputSchema': {
       'type': 'object',
       'properties': {
