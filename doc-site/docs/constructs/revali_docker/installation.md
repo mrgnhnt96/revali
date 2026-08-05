@@ -19,4 +19,4 @@ dev_dependencies:
   revali_docker: <latest>
 ```
 
-Once added, `dart run revali build --type constructs` (or `buildAndConstructs`) generates a `Dockerfile` alongside your server code — no further configuration required. See [Revali Server installation](../revali_server/getting-started/installation.md) for setting up the server itself.
+Once added, `dart run revali build` generates a `Dockerfile` at `.revali/build/Dockerfile` — no further configuration required. See [Revali Server installation](../revali_server/getting-started/installation.md) for setting up the server itself.

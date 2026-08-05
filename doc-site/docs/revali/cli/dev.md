@@ -31,6 +31,19 @@ This starts your server with default settings:
 - **API Prefix**: `/api`
 - **Mode**: Debug (with VM service)
 
+## Options
+
+| Flag | Description |
+| --- | --- |
+| `--debug` / `--release` / `--profile` | Run mode (see [Run Modes](#run-modes) below). Defaults to debug. |
+| `--flavor`, `-f <name>` | The flavor to use for the app (case-sensitive). |
+| `--recompile` | Re-compiles the construct kernel. Needed to sync changes for a local construct. |
+| `--skip-if-fresh` | Skip kernel + construct generation when `.revali` outputs are newer than package sources. |
+| `--inspect` | Record recent requests to `.revali/inspect/requests.jsonl` for later inspection. |
+| `--dart-vm-service-port <port>` | Port for the Dart VM service. `0` (default) automatically assigns one. |
+| `--dart-define`, `-D <KEY=value>` | Additional key-value pairs available as compile-time constants. Repeatable. |
+| `--dart-define-from-file <path>` | A file (e.g. `.env`) containing additional key-value pairs available as constants. Repeatable. |
+
 ## Run Modes
 
 Revali supports three different run modes, each optimized for different scenarios:
@@ -133,10 +146,10 @@ dart run revali dev -- --port 8081 --host="0.0.0.0" --verbose
 Arguments are automatically parsed and available in your `AppConfig`:
 
 ```dart title="routes/main_app.dart"
-import 'package:revali_annotations/revali_annotations.dart';
+import 'package:revali_router/revali_router.dart';
 
 @App()
-class MainApp extends AppConfig {
+final class MainApp extends AppConfig {
   MainApp(Args args) : super(
     host: args['host'] ?? 'localhost',
     port: int.parse(args['port'] ?? '8080'),

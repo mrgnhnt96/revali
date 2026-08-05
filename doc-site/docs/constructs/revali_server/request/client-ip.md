@@ -56,7 +56,7 @@ Configure which headers to trust in your app class by overriding `trustedProxy`:
 
 ```dart title="routes/main_app.dart"
 @App()
-class MainApp extends AppConfig {
+final class MainApp extends AppConfig {
   const MainApp() : super(host: 'localhost', port: 8080);
 
   @override

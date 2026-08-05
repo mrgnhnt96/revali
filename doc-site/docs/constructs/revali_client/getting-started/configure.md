@@ -165,6 +165,10 @@ The scheme is combined with your app configuration:
 **Development vs Production**: Use `http` for local development and `https` for production deployments. You can use different `revali.yaml` configurations or environment-based builds.
 :::
 
+:::note
+`scheme` (along with the host/port baked in from your server's `AppConfig`) only sets the **default** base URL at generation time. To point an already-generated client at a different URL at runtime — a LAN IP for testing from a physical device, or a per-environment API URL — pass `baseUrl` to the `Server` constructor instead. See [Server Class Initialization](/constructs/revali_client/generated-code#server-class-initialization).
+:::
+
 ---
 
 ### `integrations`

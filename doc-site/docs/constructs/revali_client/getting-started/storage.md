@@ -99,6 +99,10 @@ Cookie: sessionId=abc123; theme=dark
 Learn more about server-side cookies in the [Revali Server Cookie Guide][revali-server-cookies].
 :::
 
+### Web Targets and Cross-Origin Cookies
+
+The `Storage`-based cookie handling above applies on every platform, but a Dart **web** build also goes through the browser's own cookie jar for cross-origin requests. For the browser to actually send/receive cookies cross-origin, `HttpPackageClient` enables `BrowserClient.withCredentials` automatically when compiled for web — but this only has any effect if the server's CORS response also allows credentials for your frontend's exact origin (a non-wildcard `Access-Control-Allow-Origin` plus `Access-Control-Allow-Credentials: true`). See [Allow Origins][allow-origins] on the server side.
+
 ---
 
 ## The Storage Interface
@@ -402,3 +406,4 @@ Now that you understand storage, explore these related topics:
 - **[get_it Integration](/constructs/revali_client/integrations/get_it)** - Use with dependency injection
 
 [revali-server-cookies]: ../../revali_server/response/cookies.md
+[allow-origins]: ../../revali_server/access-control/allow-origins.md

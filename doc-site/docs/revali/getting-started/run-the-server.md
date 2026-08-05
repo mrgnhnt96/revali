@@ -107,15 +107,18 @@ Ready to add more features? Check out these guides:
 
 ### Port Already in Use
 
-If port 8080 is already in use, you can change it in your app configuration:
+If port 8080 is already in use, you can change it in your `AppConfig` subclass:
 
-```dart title="lib/main.dart"
-import 'package:revali_core/revali_core.dart';
+```dart title="routes/main_app.dart"
+import 'package:revali_router/revali_router.dart';
 
-void main() {
-  AppConfig(
-    port: 3000, // Use a different port
-  );
+@App()
+final class MainApp extends AppConfig {
+  const MainApp()
+      : super(
+          host: 'localhost',
+          port: 3000, // Use a different port
+        );
 }
 ```
 

@@ -20,8 +20,7 @@ All options are set in `revali.yaml` under the construct entry. Every option is 
 
 ```yaml title="revali.yaml"
 constructs:
-  - package: revali_swagger
-    path: lib/swagger.dart
+  - name: revali_swagger
     options:
       title: My API
       version: 2.1.0

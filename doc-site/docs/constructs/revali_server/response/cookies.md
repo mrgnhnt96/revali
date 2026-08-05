@@ -206,7 +206,7 @@ response.headers.setCookies.secure = true;
 response.headers.setCookies.httpOnly = true;
 
 // Restrict to same site
-response.headers.setCookies.sameSite = 'Strict';
+response.headers.setCookies.sameSite = SameSiteCookie.strict;
 ```
 
 ### Cookie Expiration

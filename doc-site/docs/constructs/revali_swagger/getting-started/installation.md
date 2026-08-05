@@ -36,8 +36,7 @@ Add `revali_swagger` to your `revali.yaml` constructs list:
 
 ```yaml title="revali.yaml"
 constructs:
-  - package: revali_swagger
-    path: lib/swagger.dart
+  - name: revali_swagger
 ```
 
 That's all that's needed for a working spec. Configuration options are covered in [Configuration](./configuration).

@@ -31,9 +31,6 @@ your_project/
 A minimal `revali.yaml` file looks like this:
 
 ```yaml title="revali.yaml"
-# Revali Configuration
-version: "1.0.0"
-
 # Constructs configuration
 constructs:
   - name: revali_docker
@@ -109,22 +106,33 @@ Some constructs offer additional configuration options. Use the `options` field 
 
 ```yaml title="revali.yaml"
 constructs:
-  - name: revali_docker
+  - name: revali_swagger
     enabled: true
     options:
-      baseImage: "dart:3.0-slim"
-      port: 8080
-      environment: "production"
+      title: My API
+      version: 2.1.0
   - name: revali_client
     enabled: true
     options:
-      outputDir: "lib/generated"
-      generateTypes: true
+      package_name: my_api_client
+      scheme: https
 ```
 
 :::tip
 Check each construct's documentation for available configuration options.
 :::
+
+## Build Configuration
+
+Adding a `build:` section tells `revali build` to compile your server into a native executable, rather than leaving compilation to a build construct:
+
+```yaml title="revali.yaml"
+build:
+  target_os: linux
+  target_arch: [x64, arm64]
+```
+
+See [`revali build`](/revali/cli/build#compiling-a-native-executable) for the full field reference.
 
 ## Next Steps
 

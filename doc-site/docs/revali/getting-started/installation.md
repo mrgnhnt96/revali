@@ -60,10 +60,10 @@ dart pub get
 
 ## Verify Installation
 
-Create a simple test to verify everything is working:
+Confirm the CLI resolves and your project's setup is healthy:
 
 ```bash
-dart run revali --version
+dart run revali doctor
 ```
 
 :::tip

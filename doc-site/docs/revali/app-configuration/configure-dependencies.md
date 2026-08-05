@@ -40,7 +40,7 @@ Use the `configureDependencies` method in your `AppConfig` class to register dep
 import 'package:revali_annotations/revali_annotations.dart';
 
 @App()
-class MainApp extends AppConfig {
+final class MainApp extends AppConfig {
   const MainApp() : super(host: 'localhost', port: 8080);
 
   @override
@@ -151,7 +151,7 @@ Here's a complete dependency configuration for a typical application:
 import 'package:revali_annotations/revali_annotations.dart';
 
 @App()
-class MainApp extends AppConfig {
+final class MainApp extends AppConfig {
   const MainApp() : super(host: 'localhost', port: 8080);
 
   @override

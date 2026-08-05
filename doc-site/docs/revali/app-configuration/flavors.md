@@ -30,7 +30,7 @@ To create a flavor, specify the flavor name in the `@App()` annotation:
 import 'package:revali_annotations/revali_annotations.dart';
 
 @App(flavor: 'development')
-class DevApp extends AppConfig {
+final class DevApp extends AppConfig {
   const DevApp() : super(
     host: 'localhost',
     port: 8080,
@@ -61,7 +61,7 @@ class DevApp extends AppConfig {
 import 'package:revali_annotations/revali_annotations.dart';
 
 @App(flavor: 'production')
-class ProdApp extends AppConfig {
+final class ProdApp extends AppConfig {
   const ProdApp() : super(
     host: '0.0.0.0',
     port: 80,
@@ -88,7 +88,7 @@ class ProdApp extends AppConfig {
 import 'package:revali_annotations/revali_annotations.dart';
 
 @App(flavor: 'staging')
-class StagingApp extends AppConfig {
+final class StagingApp extends AppConfig {
   const StagingApp() : super(
     host: '0.0.0.0',
     port: 8080,

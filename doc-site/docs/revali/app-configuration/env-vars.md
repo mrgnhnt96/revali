@@ -131,7 +131,7 @@ Here's how to use both methods in your `AppConfig`:
 import 'dart:io';
 
 @App()
-class MainApp extends AppConfig {
+final class MainApp extends AppConfig {
   MainApp() : super(
     // Use compile-time constants for build configuration
     host: const String.fromEnvironment('HOST', defaultValue: 'localhost'),

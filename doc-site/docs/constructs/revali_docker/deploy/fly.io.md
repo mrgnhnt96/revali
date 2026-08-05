@@ -101,18 +101,18 @@ If you haven't already, generate your Dockerfile:
 dart run revali build --release
 ```
 
-This creates `.revali/build/docker/Dockerfile`.
+This creates `.revali/build/Dockerfile`.
 
 ### 2. Move Dockerfile to Project Root
 
 Fly.io expects the Dockerfile in your project root:
 
 ```bash
-cp .revali/build/docker/Dockerfile ./Dockerfile
+cp .revali/build/Dockerfile ./Dockerfile
 ```
 
 :::note
-You can keep the Dockerfile in `.revali/build/docker/` by specifying the path in `fly.toml`, but moving it to the root simplifies deployment.
+You can keep the Dockerfile in `.revali/build/` by specifying the path in `fly.toml`, but moving it to the root simplifies deployment.
 :::
 
 ### 3. Initialize Fly App
@@ -163,8 +163,8 @@ primary_region = 'lax'
 # Build configuration
 [build]
   # Dockerfile path (default: ./Dockerfile)
-  # Uncomment if you keep it in .revali/build/docker/
-  # dockerfile = ".revali/build/docker/Dockerfile"
+  # Uncomment if you keep it in .revali/build/
+  # dockerfile = ".revali/build/Dockerfile"
 
 # HTTP service configuration
 [http_service]
@@ -560,7 +560,7 @@ jobs:
         run: dart run revali build --release
 
       - name: Copy Dockerfile
-        run: cp .revali/build/docker/Dockerfile ./Dockerfile
+        run: cp .revali/build/Dockerfile ./Dockerfile
 
       - name: Setup Fly CLI
         uses: superfly/flyctl-actions/setup-flyctl@master

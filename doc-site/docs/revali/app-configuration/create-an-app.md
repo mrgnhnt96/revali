@@ -45,7 +45,7 @@ Create a new file in your `routes/` directory. Let's call it `main_app.dart`:
 
 ```dart title="routes/main_app.dart"
 @App()
-class MainApp extends AppConfig {
+final class MainApp extends AppConfig {
   const MainApp() : super(host: 'localhost', port: 8080);
 }
 ```
@@ -78,7 +78,7 @@ The `AppConfig` constructor requires two essential parameters:
 
 ```dart title="routes/main_app.dart"
 @App()
-class MainApp extends AppConfig {
+final class MainApp extends AppConfig {
   // Listen on localhost only
   const MainApp() : super(host: 'localhost', port: 8080);
 }
@@ -86,7 +86,7 @@ class MainApp extends AppConfig {
 
 ```dart title="routes/main_app.dart"
 @App()
-class MainApp extends AppConfig {
+final class MainApp extends AppConfig {
   // Listen on all network interfaces
   const MainApp() : super(host: '0.0.0.0', port: 8080);
 }
@@ -96,7 +96,7 @@ class MainApp extends AppConfig {
 
 ```dart title="routes/main_app.dart"
 @App()
-class MainApp extends AppConfig {
+final class MainApp extends AppConfig {
   // Development port
   const MainApp() : super(host: 'localhost', port: 3000);
 }
@@ -104,7 +104,7 @@ class MainApp extends AppConfig {
 
 ```dart title="routes/main_app.dart"
 @App()
-class MainApp extends AppConfig {
+final class MainApp extends AppConfig {
   // Production port
   const MainApp() : super(host: 'localhost', port: 80);
 }
@@ -118,7 +118,7 @@ Add a global prefix to all your API routes:
 
 ```dart title="routes/main_app.dart"
 @App()
-class MainApp extends AppConfig {
+final class MainApp extends AppConfig {
   const MainApp() : super(
     host: 'localhost',
     port: 8080,
@@ -133,7 +133,7 @@ When your server sits behind a reverse proxy or load balancer, override `trusted
 
 ```dart title="routes/main_app.dart"
 @App()
-class MainApp extends AppConfig {
+final class MainApp extends AppConfig {
   const MainApp() : super(host: 'localhost', port: 8080);
 
   @override
@@ -152,10 +152,10 @@ See [Client IP](/constructs/revali_server/request/client-ip) for `useLeftmostIp`
 Here's a complete app configuration with all common options:
 
 ```dart title="routes/main_app.dart"
-import 'package:revali_annotations/revali_annotations.dart';
+import 'package:revali_router/revali_router.dart';
 
 @App()
-class MainApp extends AppConfig {
+final class MainApp extends AppConfig {
   const MainApp() : super(
     host: 'localhost',
     port: 8080,
@@ -186,7 +186,7 @@ You can create multiple app configurations for different purposes:
 
 ```dart title="routes/api_app.dart"
 @App()
-class ApiApp extends AppConfig {
+final class ApiApp extends AppConfig {
   const ApiApp() : super(
     host: 'localhost',
     port: 8080,
@@ -197,7 +197,7 @@ class ApiApp extends AppConfig {
 
 ```dart title="routes/admin_app.dart"
 @App()
-class AdminApp extends AppConfig {
+final class AdminApp extends AppConfig {
   const AdminApp() : super(
     host: 'localhost',
     port: 8081,

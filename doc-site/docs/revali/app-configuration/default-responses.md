@@ -24,7 +24,7 @@ Override the `defaultResponses` getter in your `AppConfig` class:
 import 'package:revali_router/revali_router.dart';
 
 @App()
-class MainApp extends AppConfig {
+final class MainApp extends AppConfig {
   const MainApp() : super(host: 'localhost', port: 8080);
 
   @override
@@ -57,7 +57,7 @@ Returned when an unhandled exception occurs:
 
 ```dart title="routes/main_app.dart"
 @App()
-class MainApp extends AppConfig {
+final class MainApp extends AppConfig {
   @override
   DefaultResponses get defaultResponses => DefaultResponses(
     internalServerError: SimpleResponse(
@@ -83,7 +83,7 @@ Returned when no route matches the request:
 
 ```dart title="routes/main_app.dart"
 @App()
-class MainApp extends AppConfig {
+final class MainApp extends AppConfig {
   @override
   DefaultResponses get defaultResponses => DefaultResponses(
     notFound: SimpleResponse(
@@ -109,7 +109,7 @@ Returned when a request comes from an unauthorized origin:
 
 ```dart title="routes/main_app.dart"
 @App()
-class MainApp extends AppConfig {
+final class MainApp extends AppConfig {
   @override
   DefaultResponses get defaultResponses => DefaultResponses(
     failedCorsOrigin: SimpleResponse(
@@ -135,7 +135,7 @@ Returned when a request contains unauthorized headers:
 
 ```dart title="routes/main_app.dart"
 @App()
-class MainApp extends AppConfig {
+final class MainApp extends AppConfig {
   @override
   DefaultResponses get defaultResponses => DefaultResponses(
     failedCorsHeaders: SimpleResponse(

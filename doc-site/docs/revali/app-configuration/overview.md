@@ -38,12 +38,18 @@ All server settings and dependencies are configured in a single, well-organized 
 
 Revali provides sensible defaults that work out-of-the-box:
 
-```dart
-AppConfig(
-    hostname: 'localhost',
-    port: 8080,
-    prefix: '/api',
-)
+```dart title="routes/main_app.dart"
+import 'package:revali_router/revali_router.dart';
+
+@App()
+final class MainApp extends AppConfig {
+  const MainApp()
+      : super(
+          host: 'localhost',
+          port: 8080,
+          prefix: '/api',
+        );
+}
 ```
 
 This means your API will be available at `http://localhost:8080/api/`

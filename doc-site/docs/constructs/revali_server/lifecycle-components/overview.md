@@ -74,7 +74,7 @@ import 'package:revali_router/revali_router.dart';
 // highlight-next-line
 @MyLifecycleComponent()
 @App()
-class MyApp extends AppConfig {
+final class MyApp extends AppConfig {
     ...
 }
 ```
@@ -139,7 +139,7 @@ If we have multiple Lifecycle Components applied to an endpoint, the order of ex
 ```dart title="routes/apps/my_app.dart"
 @LifecycleComponent0()
 @App()
-class MyApp extends AppConfig {
+final class MyApp extends AppConfig {
     ...
 }
 ```

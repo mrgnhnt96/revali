@@ -102,14 +102,18 @@ final server = Server(
   // Provide custom storage for cookies and session data
   storage: MyCustomStorage(),
 
-  // Add HTTP interceptors for logging, auth, etc.
-  interceptors: [
-    LoggingInterceptor(),
-    AuthInterceptor(),
-  ],
+  // Point at a different host at runtime (e.g. a LAN IP for testing from a
+  // physical device, or an environment-specific API URL)
+  baseUrl: Uri.parse('https://api.example.com'),
 
-  // Provide a custom HTTP client
-  client: MyCustomHttpClient(),
+  // Provide a custom HTTP client -- interceptors are configured here, not
+  // on Server directly (see HTTP Interceptors below)
+  client: HttpPackageClient(
+    interceptors: [
+      LoggingInterceptor(),
+      AuthInterceptor(),
+    ],
+  ),
 );
 ```
 
@@ -359,7 +363,7 @@ class ErrorInterceptor implements HttpInterceptor {
 }
 
 final server = Server(
-  interceptors: [ErrorInterceptor()],
+  client: HttpPackageClient(interceptors: [ErrorInterceptor()]),
 );
 ```
 

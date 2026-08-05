@@ -26,6 +26,16 @@ dart run revali build
 
 This runs the build process in Release mode with full optimizations.
 
+## Options
+
+| Flag | Description |
+| --- | --- |
+| `--release` / `--profile` | Build mode (see [Build Modes](#build-modes) below). Release is the default. |
+| `--flavor`, `-f <name>` | The flavor to use for the app (case-sensitive). |
+| `--recompile` | Re-compiles the construct kernel. Needed to sync changes for a local construct. |
+| `--dart-define`, `-D <KEY=value>` | Additional key-value pairs available as compile-time constants. Repeatable. |
+| `--dart-define-from-file <path>` | A file (e.g. `.env`) containing additional key-value pairs available as constants. Repeatable. |
+
 ## Build Modes
 
 Revali supports two build modes, each optimized for different deployment scenarios:
@@ -104,7 +114,7 @@ Build constructs are specialized packages that generate deployment artifacts:
 ### 1. Pre-Build Analysis
 
 ```bash
-dart run revali build --verbose
+dart run revali build
 ```
 
 The build process first analyzes your project:
