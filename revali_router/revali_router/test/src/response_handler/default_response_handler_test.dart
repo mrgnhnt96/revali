@@ -18,12 +18,14 @@ void main() {
     late _MockHttpResponse http;
     late _MockHttpHeaders httpHeaders;
     late Map<String, String> written;
+    late Map<String, List<String>> addedValues;
 
     setUp(() {
       context = _MockRequestContext();
       http = _MockHttpResponse();
       httpHeaders = _MockHttpHeaders();
       written = {};
+      addedValues = {};
 
       when(() => context.method).thenReturn('GET');
       when(context.close).thenAnswer((_) async {});
@@ -45,6 +47,17 @@ void main() {
         final name = invocation.positionalArguments[0] as String;
         final value = invocation.positionalArguments[1];
         written[name.toLowerCase()] = value.toString();
+      });
+      when(
+        () => httpHeaders.add(
+          any(),
+          any(),
+          preserveHeaderCase: any(named: 'preserveHeaderCase'),
+        ),
+      ).thenAnswer((invocation) {
+        final name = invocation.positionalArguments[0] as String;
+        final value = invocation.positionalArguments[1];
+        addedValues.putIfAbsent(name.toLowerCase(), () => []).add('$value');
       });
     });
 
@@ -72,6 +85,25 @@ void main() {
 
       expect(first, isNotNull);
       expect(second, first);
+    });
+
+    test('writes one Set-Cookie header per cookie via add, not a joined set',
+        () async {
+      final response = SimpleResponse(200, body: 'ok');
+      response.headers.setCookies
+        ..['a'] = '1'
+        ..['b'] = '2';
+
+      await const DefaultResponseHandler().handle(response, context, http);
+
+      final setCookieValues = addedValues[HttpHeaders.setCookieHeader];
+      expect(setCookieValues, isNotNull);
+      expect(setCookieValues, hasLength(2));
+      expect(setCookieValues!.any((v) => v.startsWith('a=1;')), isTrue);
+      expect(setCookieValues.any((v) => v.startsWith('b=2;')), isTrue);
+
+      // Set-Cookie must never go through `.set()` with joined values.
+      expect(written.containsKey(HttpHeaders.setCookieHeader), isFalse);
     });
   });
 }
