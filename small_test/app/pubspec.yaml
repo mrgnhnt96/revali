@@ -11,4 +11,3 @@ dependencies:
 
 dev_dependencies:
   revali:
-  revali_server:
