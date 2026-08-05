@@ -102,7 +102,12 @@ void main() {
 
       expect(code, contains('List'));
       expect(code, contains('.cast<String>()'));
-      expect(code, isNot(contains('List<String>')));
+      // The switch pattern itself must stay untyped (`final List data`) --
+      // matching on `final List<String> data` would never match the raw
+      // `List<dynamic>` runtime value from queryParametersAll. `List<String>`
+      // legitimately still appears elsewhere, in the thrown exception's
+      // `expectedType` message.
+      expect(code, isNot(contains('final List<String> data')));
     });
   });
 }
