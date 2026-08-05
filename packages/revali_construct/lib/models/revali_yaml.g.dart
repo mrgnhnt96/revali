@@ -21,10 +21,16 @@ RevaliYaml _$RevaliYamlFromJson(Map json) => RevaliYaml(
       : HotReloadConfig.fromJson(
           Map<String, dynamic>.from(json['hot_reload'] as Map),
         ),
+  build: json['build'] == null
+      ? null
+      : BuildSettingsConfig.fromJson(
+          Map<String, dynamic>.from(json['build'] as Map),
+        ),
 );
 
 Map<String, dynamic> _$RevaliYamlToJson(RevaliYaml instance) =>
     <String, dynamic>{
       'constructs': instance.constructs.map((e) => e.toJson()).toList(),
       'hot_reload': instance.hotReload?.toJson(),
+      'build': instance.build?.toJson(),
     };

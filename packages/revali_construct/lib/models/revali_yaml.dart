@@ -6,8 +6,11 @@ part 'revali_yaml.g.dart';
 
 @JsonSerializable()
 class RevaliYaml extends Equatable {
-  const RevaliYaml({required this.constructs, this.hotReload});
-  const RevaliYaml.none() : constructs = const [], hotReload = null;
+  const RevaliYaml({required this.constructs, this.hotReload, this.build});
+  const RevaliYaml.none()
+    : constructs = const [],
+      hotReload = null,
+      build = null;
 
   factory RevaliYaml.fromJson(Map<String, dynamic> json) =>
       _$RevaliYamlFromJson(json);
@@ -17,6 +20,10 @@ class RevaliYaml extends Equatable {
 
   @JsonKey(name: 'hot_reload')
   final HotReloadConfig? hotReload;
+
+  /// The `build:` section. Its presence signals that `revali build` should
+  /// compile a native executable — see [BuildSettingsConfig].
+  final BuildSettingsConfig? build;
 
   Map<String, dynamic> toJson() => _$RevaliYamlToJson(this);
 
@@ -54,5 +61,5 @@ class RevaliYaml extends Equatable {
   }
 
   @override
-  List<Object?> get props => [constructs, hotReload];
+  List<Object?> get props => [constructs, hotReload, build];
 }

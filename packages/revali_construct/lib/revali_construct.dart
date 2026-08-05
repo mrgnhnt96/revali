@@ -4,12 +4,16 @@
 //
 // ignore_for_file: directives_ordering
 
+export 'enums/arch.dart';
 export 'enums/generate_construct_type.dart';
 export 'enums/mode.dart';
+export 'enums/target_os.dart';
 export 'hot_reload/hot_reload.dart' show hotReload;
 export 'hot_reload/reload_coalescer.dart';
 export 'models/app_annotation.dart';
 export 'models/build_construct.dart';
+export 'models/build_settings_config.dart';
+export 'models/compiled_executable.dart';
 export 'models/construct.dart';
 export 'models/construct_config.dart';
 export 'models/construct_maker.dart';
