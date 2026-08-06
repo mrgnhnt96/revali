@@ -6,40 +6,11 @@
 
 # revali
 
-## 3.0.0
-
-### Breaking Changes
-
-- Server code generation is now built into `revali` — `revali_server` no longer exists as a separate package. Remove it from your `dev_dependencies`; `revali` alone is sufficient.
-- `revali create` scaffolds in-process; it no longer shells out to `revali_server create`.
-- Depend on `revali_router: ^4.0.0`, `revali_annotations: ^3.0.0`, and `revali_core: ^2.0.0`.
-- The `revali.yaml` key for customizing `create` scaffold paths is now `server:` (was `revali_server:`).
+## 3.1.0
 
 ### Features
 
-- Add `routes`, `doctor`, and `create` CLI commands for route inspection, diagnostics, and scaffolding.
-- Add `--inspect` on `dev` to record recent requests to `.revali/inspect/requests.jsonl`.
-- Add headless `.revali_cmd` channel for reload/recovery without a TTY.
-- Emit `.revali/server/routes.json` route manifest on generate.
-- Spawn shared `HttpServer` worker isolates when `AppConfig.workers` > 1.
-- Wire request-inspect hooks into generated server startup.
-
-### Enhancements
-
-- Share construct kernels across packages and persist the analyzer byte store for faster rebuilds.
-- Harden hot reload: atomic promote, kernel invalidation on package changes, analyzer overlay for new routes, and rapid-churn recovery.
-- Discover `app.dart` and warn when falling back to the default app.
-- Exclude `bin` / `test` / `tool` from hot-reload watches.
-- Stabilize the `revali dev` status board: `[READY]`/`[RELOAD]` tags, preserve Serving at after clear/reload, and respect loud mode on `c`.
-- Pass `AppConfig.backlog` into server bind.
-- Serve with a single route `Find` on the hot path.
-
-### Fixes
-
-- Tolerate stdin mode errors on non-TTY terminals.
-- Pick up local path-dependency edits during `revali dev` by notifying every analysis context (app context no longer keeps a stale copy).
-- Return HTTP 400 for missing/invalid parameter bindings (`MissingArgumentException`).
-- Bind `Set` and coerced query parameters correctly (including coerced values to `String` params).
+- Add a `build:` section to `revali.yaml`. Its presence tells `revali build` to compile the server via `dart compile exe --target-os --target-arch`, cross-compiling to Linux from any host OS. Compiled executables are exposed to build-type constructs (e.g. `revali_docker`) via `RevaliBuildContext.compiledExecutables`, so they can package what was already compiled instead of compiling anything themselves. Supports `strip_debug_info` to split AOT debug info out of the executable for a smaller binary.
 
 # revali_annotations
 
@@ -53,11 +24,14 @@
 
 # revali_construct
 
-## 2.3.0
+## 2.4.0
 
 ### Features
 
-- Allow `ServerDirectory` to include additional generated files alongside `server.dart` via `additionalFiles`.
+- Add `TargetOs`/`Arch` enums and `CompiledExecutable` to describe native executables compiled by `revali build`.
+- Add `RevaliBuildContext.compiledExecutables`, populated whenever `revali.yaml` has a `build:` section, so build-type constructs can package an already-compiled executable instead of compiling one themselves.
+- Add a `build:` section to `RevaliYaml` (`BuildSettingsConfig`) for `target_os`, `target_arch`, and `strip_debug_info`.
+- Allow `AnyFile` to carry binary content via a new `bytes` field, written with `writeAsBytes` instead of `writeAsString` when present.
 
 # revali_core
 
@@ -77,41 +51,21 @@
 
 # revali_router
 
-## 4.0.0
-
-### Breaking Changes
-
-- `revali_router_core` and `revali_router_annotations` no longer exist as separate packages (both deprecated) — depend on `revali_core: ^2.0.0` and `revali_annotations: ^3.0.0` directly. `revali_router`'s own public API is unchanged; only the import source of the re-exported types moved.
-
-### Features
-
-- Add `@RequestId()` lifecycle kit to ensure every request has an ID header (default `X-Request-Id`).
-- Add request inspect / timing traces for `dev --inspect`.
-- Plumb `AppConfig.workers` and `AppConfig.backlog` through the router `AppConfig`.
+## 4.0.1
 
 ### Fixes
 
-- Map `MissingArgumentException` to HTTP 400 (with richer expected/actual type detail).
-- Include empty-path child routes in OPTIONS `Allow` headers.
-- Bind `Set` and coerced query parameters correctly.
-- Harden the request accept loop against handler failures.
-
-### Enhancements
-
-- O(1) static route lookup; single `Find` per request.
-- Cache UTF-8 bytes for JSON/string response bodies.
-- Cache HTTP `Date` (~1s) and skip empty CORS / middleware / guard / interceptor stages.
-- Add configurable `DefaultResponses.badRequest`.
+- Stop `Router` from retaining a cleanup closure per request for the life of the process. Under sustained load this was an unbounded memory leak that never released until the server restarted, even on requests with nothing to clean up.
 
 <!-- CONSTRUCTS -->
 
 # revali_docker
 
-## 1.0.0
+## 1.1.0
 
 ### Features
 
-- Extracted from `revali_server` into its own standalone build construct. Generates production-ready, multi-stage Dockerfiles for your Revali server — install it directly with `dart pub add revali_docker --dev`.
+- Automatically generate a minimal single-stage Dockerfile whenever `revali build` already compiled a native executable (via a `build:` section in `revali.yaml`), instead of the default multi-stage, compile-inside-Docker build. Supports multi-architecture images via `ARG TARGETARCH`. See [Cross-Compiling](https://www.revali.dev/constructs/revali_docker/overview#cross-compiling).
 
 <!-- SWAGGER -->
 
