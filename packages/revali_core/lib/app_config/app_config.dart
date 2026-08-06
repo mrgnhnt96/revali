@@ -61,8 +61,10 @@ abstract base class AppConfig {
       prefix = '/$p';
     }
 
+    final scheme = securityContext != null ? 'https' : 'http';
+
     print(
-      'Serving at http://${server.address.host}:${server.port}$prefix',
+      'Serving at $scheme://${server.address.host}:${server.port}$prefix',
     );
   }
 

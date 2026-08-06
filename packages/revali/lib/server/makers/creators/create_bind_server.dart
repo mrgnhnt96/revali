@@ -59,11 +59,18 @@ final v6Only = app.host != 'localhost';
 // securityContext, since they're an explicit run-time request for TLS.
 const certPath = String.fromEnvironment('REVALI_CERT');
 const keyPath = String.fromEnvironment('REVALI_KEY');
-final securityContext = certPath.isNotEmpty && keyPath.isNotEmpty
+final usingCliTls = certPath.isNotEmpty && keyPath.isNotEmpty;
+final securityContext = usingCliTls
     ? (SecurityContext()
         ..useCertificateChain(certPath)
         ..usePrivateKey(keyPath))
     : app.securityContext;
+
+// AppConfig.onServerStarted only knows about app.securityContext, so it
+// can't tell this override happened -- print it here instead.
+if (usingCliTls) {
+  print('TLS enabled via --cert/--key');
+}
 
 if (securityContext != null) {
   return await HttpServer.bindSecure(
