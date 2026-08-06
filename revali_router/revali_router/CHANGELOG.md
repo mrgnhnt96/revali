@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 4.0.1 | 08.06.26
+
+### Fixes
+
+- Stop `Router` from retaining a cleanup closure per request for the life of the process. Under sustained load this was an unbounded memory leak that never released until the server restarted, even on requests with nothing to clean up.
+
 ## 4.0.0 | 08.04.26
 
 ### Breaking Changes

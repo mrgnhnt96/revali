@@ -11,6 +11,39 @@
             "statusMessage": "game_loop: usage-limit handoff gate"
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit|NotebookEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.game_loop/bin/guard-writes.sh",
+            "timeout": 10,
+            "statusMessage": "game_loop: checking the write stays inside the repo"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|NotebookEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.game_loop/bin/game_loop limitgate",
+            "timeout": 10,
+            "statusMessage": "game_loop: usage-limit handoff gate"
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.game_loop/bin/guard-mcp.sh",
+            "timeout": 10,
+            "statusMessage": "game_loop: does this MCP call mutate?"
+          }
+        ]
       }
     ],
     "Stop": [
@@ -28,6 +61,47 @@
             "asyncRewake": true,
             "timeout": 604800,
             "statusMessage": "game_loop: arming the idle watchdog"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.game_loop/bin/game_loop stopgate",
+            "timeout": 10,
+            "statusMessage": "game_loop: is this turn-end earned?"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.game_loop/bin/watchdog",
+            "asyncRewake": true,
+            "timeout": 604800,
+            "statusMessage": "game_loop: arming the idle watchdog"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.game_loop/bin/game_loop sessionstart",
+            "timeout": 20,
+            "statusMessage": "game_loop: rehydrating the loop"
+          }
+        ]
+      }
+    ],
+    "PostCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.game_loop/bin/game_loop sessionstart",
+            "timeout": 20,
+            "statusMessage": "game_loop: rehydrating the loop"
           }
         ]
       }
