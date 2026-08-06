@@ -56,20 +56,21 @@ In practice the second analysis pass on the same project dropped from ~85s → ~
 
 ---
 
-- [ ] Add support for generics in `fromJson` factories
+- [x] Add support for generics in `fromJson` factories
+  - Supports `json_serializable`'s `genericArgumentFactories: true` shape: `factory Foo.fromJson(Map<String, dynamic> json, T Function(Object?) fromJsonT)` and `Map<String, dynamic> toJson(Object? Function(T) toJsonT)`, recursing per type argument
 - [x] Support multi path set-cookie headers
   - Each cookie now gets its own `Set-Cookie` header line (`SetCookies.headerValues()`) instead of being joined into one invalid line
 - [x] Add documentation on how to use `mkcert` to run the server with HTTPS
   - Also added real `--cert`/`--key` flags to `revali dev` so no `AppConfig.secure` code is needed for local HTTPS testing
-- [ ] Update documentation to reflect the new `headers.set(expose: true)` param
+- [x] Update documentation to reflect the new `headers.set(expose: true)` param
 - [x] Add optional param to `headers.set(expose: true)` to expose the header to the client
   - [x] This is required because browsers will block headers that are not exposed to the client
 
-- [ ] Add tutorials for the following features:
-  - [ ] **Middleware** - Add request/response processing
-  - [ ] **Error handling** - Create custom error responses
-  - [ ] **Authentication** - Secure your endpoints
-  - [ ] **Database integration** - Connect to your data layer
+- [x] Add tutorials for the following features:
+  - [x] **Middleware** - Add request/response processing
+  - [x] **Error handling** - Create custom error responses
+  - [x] **Authentication** - Secure your endpoints
+  - [x] **Database integration** - Connect to your data layer
 - [ ] Add "request" scoped dependencies
   - [ ] App scoped (global and don't get refreshed)
   - [ ] Request scoped (get refreshed for each request)
