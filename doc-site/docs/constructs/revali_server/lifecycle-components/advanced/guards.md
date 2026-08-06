@@ -24,7 +24,7 @@ class MyGuard implements Guard {
     const MyGuard();
 
     @override
-    Future<GuardResult> protect(GuardContext context) async {
+    Future<GuardResult> protect(Context context) async {
         return const GuardResult.pass();
     }
 }
@@ -107,7 +107,7 @@ class RoleGuard implements Guard {
   final String role;
 
   @override
-  Future<GuardResult> protect(GuardContext context) async {
+  Future<GuardResult> protect(Context context) async {
     var user = context.data.get<User?>();
 
     if (user == null) {

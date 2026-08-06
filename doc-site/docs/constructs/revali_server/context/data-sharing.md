@@ -85,7 +85,7 @@ class UserMiddleware implements LifecycleComponent {
 
   final UserService userService;
 
-  MiddlewareResult loadUser(
+  Future<MiddlewareResult> loadUser(
     Request request,
     Data data,
   ) async {
@@ -113,13 +113,13 @@ class UserGuard implements LifecycleComponent {
     final user = data.get<User>();
 
     if (user == null) {
-      return const GuardResult.deny(
+      return const GuardResult.block(
         statusCode: 401,
-        message: 'User not authenticated',
+        body: 'User not authenticated',
       );
     }
 
-    return const GuardResult.allow();
+    return const GuardResult.pass();
   }
 }
 ```

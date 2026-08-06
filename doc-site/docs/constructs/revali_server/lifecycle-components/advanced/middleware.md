@@ -24,8 +24,8 @@ class MyMiddleware implements Middleware {
     const MyMiddleware();
 
     @override
-    Future<MiddlewareResult> use(MiddlwareContext context) async {
-        return const MiddlewareResult.next()
+    Future<MiddlewareResult> use(Context context) async {
+        return const MiddlewareResult.next();
     }
 }
 ```

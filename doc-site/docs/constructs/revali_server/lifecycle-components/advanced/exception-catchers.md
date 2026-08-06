@@ -26,7 +26,7 @@ final class MyExceptionCatcher extends ExceptionCatcher<MyException> {
     const MyExceptionCatcher();
 
     @override
-    ExceptionCatcherResult catchException(MyException exception, ExceptionCatcherContext context) {
+    ExceptionCatcherResult catchException(MyException exception, Context context) {
         return const ExceptionCatcherResult.handled();
     }
 }
@@ -81,7 +81,7 @@ final class MyOtherCatcher extends ExceptionCatcher<MyException> {
     const MyOtherCatcher();
 
     @override
-    ExceptionCatcherResult catchException(MyException exception, ExceptionCatcherContext context) {
+    ExceptionCatcherResult catchException(MyException exception, Context context) {
         if (condition) {
             return const ExceptionCatcherResult.handled();
         } else {
@@ -104,7 +104,7 @@ final class MyExceptionCatcher extends ExceptionCatcher<MyException> {
     const MyExceptionCatcher();
 
     @override
-    ExceptionCatcherResult catchException(MyException exception, ExceptionCatcherContext context) {
+    ExceptionCatcherResult catchException(MyException exception, Context context) {
         return const ExceptionCatcherResult.handled(
             statusCode: 500,
             headers: {

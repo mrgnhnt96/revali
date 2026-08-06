@@ -110,52 +110,54 @@ class MyComponent implements LifecycleComponent {
 
 ### Context
 
-Each Lifecycle Component has certain access to the request & response context. Review the following context objects that are available to each Lifecycle Component:
-
-| Lifecycle Type                         | Context                                                |
-| -------------------------------------- | ------------------------------------------------------ |
-| [Request Wrapper][wrapper]             | [Context][context]                                     |
-| [Guard][guard]                         | [Guard Context][guard-context]                         |
-| [Middleware][middleware]               | [Middleware Context][middleware-context]               |
-| [Interceptor (pre)][interceptor-pre]   | [Interceptor Pre Context][interceptor-pre-context]     |
-| [Interceptor (post)][interceptor-post] | [Interceptor Post Context][interceptor-post-context]   |
-| [Exception Catcher][exception-catcher] | [Exception Catcher Context][exception-catcher-context] |
-
-Each field within the context objects can be [bound implicitly][implied-binding], so you don't need to add an annotation to bind the value to the parameter.
+Every Lifecycle Component method has access to the same [`Context`][context], regardless of its role (Guard, Middleware, Interceptor, Exception Catcher, or Request Wrapper). There isn't a different context type per role -- `Context` exposes `data`, `meta`, `route`, `request`, `response`, and `reflect`, and each of those fields can be [bound implicitly][implied-binding] as its own parameter, so you don't need to add an annotation to bind it:
 
 ```dart title="lib/components/my_component.dart"
 class MyComponent implements LifecycleComponent {
   const MyComponent();
 
-  GuardResult getAuth(ReadOnlyDataHandler dataHandler) {
-    // Perform authentication logic
+  GuardResult getAuth(Data data) {
+    final user = data.get<User>();
+
+    if (user == null) {
+      return const GuardResult.block(statusCode: 401);
+    }
+
+    return const GuardResult.pass();
   }
 
-  Future<GuardResult> verifyRole(WriteOnlyDataHandler dataHandler) async {
-    // Perform role verification logic
+  Future<GuardResult> verifyRole(Request request) async {
+    // Perform role verification logic using request.pathParameters, etc.
+    return const GuardResult.pass();
   }
 }
 ```
 
 ---
 
-In addition to the [base implied bindings][binding], here's a comprehensive list of the implicit bindings available:
+In addition to the [base implied bindings][binding], here's a comprehensive list of the implicit bindings available to every Lifecycle Component method:
 
-| Implicit Binding             | Lifecycle Type          |
-| ---------------------------- | ----------------------- |
-| Context                      | Request Wrapper         |
-| NextResponse                 | Request Wrapper         |
-| RestrictedInterceptorContext | Interceptor             |
-| FullInterceptorContext       | Interceptor (post only) |
-| InterceptorMeta              | Interceptor             |
-| ReadOnlyReflectHandler       | Interceptor             |
-| ReflectHandler               | Interceptor             |
-| MiddlewareContext            | Middleware              |
-| GuardMeta                    | Guard                   |
-| GuardContext                 | Guard                   |
-| ExceptionCatcherContext      | Exception Catcher       |
-| ExceptionCatcherMeta         | Exception Catcher       |
-| RouteEntry                   | Exception Catcher       |
+| Implicit Binding      | Resolves To                                 |
+| --------------------- | -------------------------------------------- |
+| `Context`             | The full context                             |
+| `DI`                  | The app's dependency injection container     |
+| `Request`             | `context.request`                            |
+| `RequestHeaders`      | `context.request.headers`                    |
+| `RequestCookies`      | `context.request.headers.cookies`            |
+| `Response`            | `context.response`                           |
+| `Headers`             | `context.response.headers`                   |
+| `ResponseHeaders`     | `context.response.headers`                   |
+| `Cookies`             | `context.response.headers.cookies`           |
+| `ResponseCookies`     | `context.response.headers.cookies`           |
+| `SetCookies`          | `context.response.headers.setCookies`        |
+| `Body` / `PayloadBody`| `context.response.body`                      |
+| `Meta` / `MetaScope`  | `context.meta`                               |
+| `RouteEntry`          | `context.route`                              |
+| `Data`                | `context.data` (see [Data Sharing][data-sharing]) |
+| `Reflect`             | `context.reflect`                            |
+| `CleanUp`             | A cleanup handle sourced from `context.data` |
+
+`NextResponse` is the one binding that **is** role-specific: a parameter typed `NextResponse` is what marks a method as a [Request Wrapper][wrapper] (its return type must be `WrapperResult`).
 
 :::important
 While you can bind the context object itself, it is recommended to scope your needs as much as possible. This can help declare your intent and make your code more readable. Consequently, it can also help you test your code more effectively.
@@ -199,10 +201,5 @@ Future<void> myEndpoint() {
 [interceptor-pre]: ./advanced/interceptors.md#pre
 [interceptor-post]: ./advanced/interceptors.md#post
 [exception-catcher]: ./advanced/exception-catchers.md
-[guard-context]: ./advanced/guards.md
-[middleware-context]: ./advanced/middleware.md
-[interceptor-pre-context]: ./advanced/interceptors.md#pre
-[interceptor-post-context]: ./advanced/interceptors.md#post
-[exception-catcher-context]: ./advanced/exception-catchers.md
 [implied-binding]: ../core/implied_binding.md
 [create-cli]: ../getting-started/cli.md#code-generation-made-easy
