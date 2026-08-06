@@ -40,10 +40,11 @@ Hook main() {
               ShellTask.always(
                 name: 'Format',
                 commands: (files) {
-                  if (files.isEmpty) {
+                  final dartFiles = files.where((e) => e.endsWith('.dart'));
+
+                  if (dartFiles.isEmpty) {
                     return [];
                   }
-                  final dartFiles = files.where((e) => e.endsWith('.dart'));
 
                   return [
                     'dart format ${dartFiles.join(' ')} --set-exit-if-changed',
