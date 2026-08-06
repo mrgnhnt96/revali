@@ -23,10 +23,25 @@ extension ElementX on Element {
     return null;
   }
 
+  /// Arities accepted for a `fromJson` factory/static method.
+  ///
+  /// `1` is the plain `fromJson(Map json)` shape. When [element] declares
+  /// type parameters, `1 + typeParameters.length` is also accepted -- the
+  /// `genericArgumentFactories`-style shape where one `T Function(Object?)`
+  /// closure follows the json map, one per type parameter, in declaration
+  /// order (see `json_serializable`'s `genericArgumentFactories: true`).
+  Set<int> _fromJsonArities(ClassElement element) {
+    final typeParamCount = element.typeParameters.length;
+
+    return {1, if (typeParamCount > 0) 1 + typeParamCount};
+  }
+
   Element? _fromJsonFromClass(ClassElement element) {
+    final arities = _fromJsonArities(element);
+
     for (final ctor in element.constructors) {
       if (ctor.name != 'fromJson') continue;
-      if (ctor.formalParameters.length != 1) continue;
+      if (!arities.contains(ctor.formalParameters.length)) continue;
 
       return ctor;
     }
@@ -34,6 +49,7 @@ extension ElementX on Element {
     for (final method in element.methods) {
       if (method.name != 'fromJson') continue;
       if (!method.isStatic) continue;
+      if (!arities.contains(method.formalParameters.length)) continue;
 
       return method;
     }
@@ -63,8 +79,23 @@ extension ElementX on Element {
       _ => <MethodElement>[],
     };
 
+    // `0` is the plain `toJson()` shape. When `element` declares type
+    // parameters, `typeParameters.length` is also accepted -- the
+    // `genericArgumentFactories`-style shape where one `Object Function(T)`
+    // closure is required per type parameter, in declaration order.
+    final typeParamCount = switch (element) {
+      ClassElement(:final typeParameters) => typeParameters.length,
+      _ => 0,
+    };
+    final arities = {0, if (typeParamCount > 0) typeParamCount};
+
     for (final method in methods) {
       if (method.name != 'toJson') continue;
+
+      final requiredPositionalCount = method.formalParameters
+          .where((p) => p.isRequiredPositional)
+          .length;
+      if (!arities.contains(requiredPositionalCount)) continue;
 
       return method;
     }

@@ -204,6 +204,24 @@ Expression? convertToJson(
   }
 
   if (type.hasToJsonMember) {
+    final paramCount = type.toJson?.paramCount ?? 0;
+    final typeArguments = type.typeArguments;
+
+    // `genericArgumentFactories`-style method: one `Object Function(T)`
+    // closure per type argument, in declaration order.
+    if (paramCount > 0 && paramCount == typeArguments.length) {
+      return result.safeProperty(type, 'toJson').call([
+        for (final typeArgument in typeArguments)
+          Method(
+            (b) => b
+              ..lambda = true
+              ..requiredParameters.add(Parameter((p) => p..name = 'v'))
+              ..body =
+                  (convertToJson(typeArgument, refer('v')) ?? refer('v')).code,
+          ).closure,
+      ]);
+    }
+
     return result.safeProperty(type, 'toJson').call([]);
   }
 

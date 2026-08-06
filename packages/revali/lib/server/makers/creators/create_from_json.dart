@@ -190,6 +190,38 @@ Expression? createFromJson(ServerType type, Expression variable) {
   }
 
   if (type.fromJson case final fromJson?) {
+    final typeArguments = type.typeArguments;
+
+    // `genericArgumentFactories`-style factory: the json map followed by one
+    // `T Function(Object?)` closure per type argument, in declaration order.
+    if (typeArguments.isNotEmpty &&
+        fromJson.params.length == 1 + typeArguments.length) {
+      // `variable`'s static type is the untyped `Map` bound by the caller's
+      // switch pattern -- rewrap via `Map.from` so its type arguments are
+      // inferred from the `Map<String, dynamic> json` parameter instead of
+      // staying `Map<dynamic, dynamic>`, which fails to assign statically.
+      final jsonArg = switch (fromJson.params.first) {
+        ServerType(isMap: true) => refer(
+          (Map).name,
+        ).newInstanceNamed('from', [variable.asA(refer((Map).name))]),
+        _ => variable,
+      };
+
+      return refer(type.nonNullName).newInstanceNamed('fromJson', [
+        jsonArg,
+        for (final typeArgument in typeArguments)
+          Method(
+            (b) => b
+              ..lambda = true
+              ..requiredParameters.add(Parameter((p) => p..name = 'e'))
+              ..body =
+                  (createFromJson(typeArgument, refer('e')) ??
+                          refer('e').asA(refer(typeArgument.name)))
+                      .code,
+          ).closure,
+      ]);
+    }
+
     return refer(type.nonNullName).newInstanceNamed('fromJson', [
       if (fromJson case ServerFromJson(params: [ServerType(isMap: true)]))
         refer(
