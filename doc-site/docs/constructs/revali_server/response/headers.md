@@ -82,6 +82,37 @@ class ApiController {
 }
 ```
 
+## Exposing Headers to the Client (CORS)
+
+Browsers only expose a small default set of response headers to cross-origin JavaScript (`fetch`/`XHR`) — anything else needs an explicit `Access-Control-Expose-Headers` entry, or the browser hides it from your client code even though it's present on the wire.
+
+Pass `expose: true` to `set`/`add` to have Revali manage that header for you:
+
+```dart
+@Controller('api')
+class ApiController {
+  @Get('data')
+  String getData(ResponseHeaders headers) {
+    headers.set('X-Request-Id', requestId, expose: true);
+
+    return 'Data';
+  }
+}
+```
+
+This does two things in one call: sets `X-Request-Id` on the response, and adds `X-Request-Id` to `Access-Control-Expose-Headers` so cross-origin client code can actually read `response.headers.get('X-Request-Id')`. Pass `expose: false` to remove a header from that list without touching its value; omit `expose` to leave exposure unchanged.
+
+You can also manage exposure independently of setting a value:
+
+```dart
+headers.expose('X-Request-Id');   // add to Access-Control-Expose-Headers
+headers.unexpose('X-Request-Id'); // remove it
+```
+
+:::note
+`expose` isn't available on the `@SetHeader(...)` annotation — only on the `Headers`/`ResponseHeaders` binding shown above, since exposure is usually decided per-request rather than statically.
+:::
+
 ## Common Headers
 
 ### Caching
