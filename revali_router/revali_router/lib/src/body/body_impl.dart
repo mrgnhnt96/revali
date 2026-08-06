@@ -66,7 +66,9 @@ base class BodyImpl extends Body {
       return;
     }
 
-    final stream = _byteStream = _data?.read()?.asBroadcastStream();
+    final stream = _byteStream = _data?.read()?.asBroadcastStream(
+          onCancel: (sub) => sub.cancel(),
+        );
 
     if (stream == null) {
       return;
