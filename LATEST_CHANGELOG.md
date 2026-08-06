@@ -51,11 +51,11 @@
 
 # revali_router
 
-## 4.0.1
+## 4.0.2
 
 ### Fixes
 
-- Stop `Router` from retaining a cleanup closure per request for the life of the process. Under sustained load this was an unbounded memory leak that never released until the server restarted, even on requests with nothing to clean up.
+- Stop `BodyImpl.read()` from leaking the response body's source stream subscription when its listener cancels early. `asBroadcastStream()` defaults to pausing (not canceling) the source when the last listener drops, in case a future listener resumes it later -- but a response body is only ever read once, so the paused subscription, and whatever it held open, never got released.
 
 <!-- CONSTRUCTS -->
 
