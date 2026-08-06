@@ -6,6 +6,7 @@ import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
 import 'package:http_parser/http_parser.dart';
+import 'package:meta/meta.dart';
 import 'package:revali_annotations/revali_annotations.dart'
     hide Body, LifecycleComponents, WebSocket;
 import 'package:revali_core/revali_core.dart';
@@ -94,6 +95,12 @@ class Router extends Equatable {
   final TrustedProxy trustedProxy;
 
   final List<void Function()> _cleanUp = [];
+
+  /// Cleanups registered by requests that haven't run yet (e.g. still
+  /// in-flight, or a long-lived connection that hasn't closed). Exposed for
+  /// tests to catch this list growing unbounded; not meant for app logic.
+  @visibleForTesting
+  int get pendingCleanUpCount => _cleanUp.length;
 
   /// Ring buffer of recent requests (newest last). Capped at 50.
   final List<RequestTrace> debugRequestLog = [];
@@ -292,8 +299,19 @@ class Router extends Equatable {
 
     final cleanUp = helper.data.get<CleanUp>();
     if (cleanUp is CleanUpImpl) {
-      context.addCleanUp(cleanUp.clean);
-      _cleanUp.add(cleanUp.clean);
+      // Registered on the router too, so a connection that never gets to
+      // close naturally (e.g. abandoned mid-flight) still runs its cleanup
+      // when the router itself closes. Self-removing so the common case --
+      // the request's own `context.close()` already ran it -- doesn't leave
+      // a dead entry behind; otherwise this list grows by one per request
+      // for the life of the process and never shrinks.
+      void runCleanUp() {
+        _cleanUp.remove(runCleanUp);
+        cleanUp.clean();
+      }
+
+      context.addCleanUp(runCleanUp);
+      _cleanUp.add(runCleanUp);
     }
 
     // ignore: argument_type_not_assignable_to_error_handler

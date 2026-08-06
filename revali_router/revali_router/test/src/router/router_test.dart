@@ -284,6 +284,52 @@ void main() {
         });
       });
     });
+
+    group('#pendingCleanUpCount', () {
+      test(
+        'does not retain one entry per request forever',
+        () async {
+          final router = Router(
+            routes: [
+              Route(
+                'ping',
+                method: 'GET',
+                handler: (context) async {
+                  context.response.body = 'pong';
+                },
+              ),
+            ],
+          );
+
+          const requestCount = 50;
+          for (var i = 0; i < requestCount; i++) {
+            final context = _MockRequest()..stub('ping');
+
+            await router.handle(context);
+
+            // Mirrors what the real response handler does at the end of
+            // every request (see default_response_handler.dart /
+            // handle_requests.dart): run whatever cleanups this request
+            // registered.
+            final registered = verify(
+              () => context.addCleanUp(captureAny()),
+            ).captured.cast<void Function()>();
+
+            for (final cleanUp in registered) {
+              cleanUp();
+            }
+          }
+
+          expect(
+            router.pendingCleanUpCount,
+            equals(0),
+            reason: "Router._cleanUp should drop a request's cleanup once "
+                'it actually runs, not retain it for the life of the '
+                'process.',
+          );
+        },
+      );
+    });
   });
 }
 
