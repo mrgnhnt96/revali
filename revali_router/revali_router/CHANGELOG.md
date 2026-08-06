@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 4.0.2 | 08.06.26
+
+### Fixes
+
+- Stop `BodyImpl.read()` from leaking the response body's source stream subscription when its listener cancels early. `asBroadcastStream()` defaults to pausing (not canceling) the source when the last listener drops, in case a future listener resumes it later -- but a response body is only ever read once, so the paused subscription, and whatever it held open, never got released.
+
 ## 4.0.1 | 08.06.26
 
 ### Fixes
