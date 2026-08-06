@@ -79,3 +79,6 @@ FAILED_COMMIT.md
 
 # machine-local hook config (absolute paths)
 .claude/settings.local.json
+
+# game_loop: per-developer/per-session autonomy harness, not project source
+.game_loop/
