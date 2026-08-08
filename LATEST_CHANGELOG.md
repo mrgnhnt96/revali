@@ -100,17 +100,8 @@
 
 # revali_client_gen
 
-## 2.2.0
-
-### Features
-
-- Generate streaming clients for `Future<Stream<List<int>>>` return types (file downloads).
-
-### Enhancements
-
-- Use Windows-safe import paths in generated code.
-- Skip private and static lifecycle component methods during codegen.
+## 2.3.0
 
 ### Fix
 
-- Flavor selection when a single app is configured without an explicit flavor.
+- Depend on `revali_router ^4.0.0` and `revali_annotations ^3.0.0` (previously `^3.4.0` / `^2.0.2`). The router/annotations consolidation refactor already raised this dependency floor in source, but the package version was never bumped, so pub.dev's 2.2.0 stayed pinned to the old constraints and couldn't resolve alongside `revali_router` 4.x or any construct requiring `revali_annotations` ^3.0.0 (e.g. `revali_docker` via `revali_construct`).
