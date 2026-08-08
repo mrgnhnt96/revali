@@ -93,7 +93,7 @@ packages:
       path: "../../../../../../revali_router/revali_router"
       relative: true
     source: path
-    version: "4.0.1"
+    version: "4.0.2"
   revali_swagger_annotations:
     dependency: "direct main"
     description:

@@ -488,7 +488,7 @@ packages:
       path: "../revali_router/revali_router"
       relative: true
     source: path
-    version: "4.0.1"
+    version: "4.0.2"
   revali_test:
     dependency: "direct overridden"
     description:
