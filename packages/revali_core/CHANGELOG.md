@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2.0.1 | 08.07.26
+
+### Fixes
+
+- Add `SetCookies.headerValues()`, returning one formatted `Set-Cookie` line per cookie instead of an invalid comma/semicolon-joined line (RFC 6265 §4.1.1). Published `revali_router` 4.0.2 already calls this method against the `SetCookies` interface, so any project resolving `revali_core` 2.0.0 alongside it fails to compile.
+- Reflect `https` (not `http`) in the "Serving at ..." startup log line when TLS is enabled via `--cert`/`--key` or `AppConfig.secure`.
+
 ## 2.0.0 | 08.04.26
 
 ### Breaking Changes

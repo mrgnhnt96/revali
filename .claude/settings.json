@@ -6,17 +6,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "d=\"$CLAUDE_PROJECT_DIR/.game_loop_self/.game_loop\"; [ -x \"$d/bin/game_loop\" ] || d=\"$CLAUDE_PROJECT_DIR/.game_loop\"; GAME_LOOP_HOME=\"$CLAUDE_PROJECT_DIR/.game_loop\" exec \"$d\"/bin/game_loop limitgate",
-            "timeout": 10,
-            "statusMessage": "game_loop: usage-limit handoff gate"
-          }
-        ]
-      },
-      {
-        "matcher": "Write|Edit|NotebookEdit|Bash",
-        "hooks": [
-          {
-            "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.game_loop/bin/guard-writes.sh",
             "timeout": 10,
             "statusMessage": "game_loop: checking the write stays inside the repo"
@@ -47,23 +36,6 @@
       }
     ],
     "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "d=\"$CLAUDE_PROJECT_DIR/.game_loop_self/.game_loop\"; [ -x \"$d/bin/game_loop\" ] || d=\"$CLAUDE_PROJECT_DIR/.game_loop\"; GAME_LOOP_HOME=\"$CLAUDE_PROJECT_DIR/.game_loop\" exec \"$d\"/bin/game_loop stopgate",
-            "timeout": 10,
-            "statusMessage": "game_loop: is this turn-end earned?"
-          },
-          {
-            "type": "command",
-            "command": "d=\"$CLAUDE_PROJECT_DIR/.game_loop_self/.game_loop\"; [ -x \"$d/bin/watchdog\" ] || d=\"$CLAUDE_PROJECT_DIR/.game_loop\"; GAME_LOOP_HOME=\"$CLAUDE_PROJECT_DIR/.game_loop\" exec \"$d\"/bin/watchdog",
-            "asyncRewake": true,
-            "timeout": 604800,
-            "statusMessage": "game_loop: arming the idle watchdog"
-          }
-        ]
-      },
       {
         "hooks": [
           {

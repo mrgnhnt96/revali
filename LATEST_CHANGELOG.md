@@ -35,17 +35,12 @@
 
 # revali_core
 
-## 2.0.0
+## 2.0.1
 
-### Breaking Changes
+### Fixes
 
-- Merge `revali_router_core` into this package (that package is deprecated). `Request`, `Response`, `Guard`, `Middleware`, `Interceptor`, `ExceptionCatcher`, `Observer`, `CombineComponents`, `ResponseHandler`, `Meta`, `MetaScope`, `Reflect`, `RouteEntry`, `TrustedProxy`, `Cookies`, `Headers`, `Body`, and related types now live here.
-- Move `AllowOrigins`, `PreventHeaders`, and `ExpectHeaders` here from `revali_annotations` (still re-exported from there for compatibility).
-
-### Features
-
-- Add `AppConfig.workers` for multi-isolate serving (`shared: true` when > 1).
-- Add `AppConfig.backlog` to control the `HttpServer.bind` listen backlog.
+- Add `SetCookies.headerValues()`, returning one formatted `Set-Cookie` line per cookie instead of an invalid comma/semicolon-joined line (RFC 6265 §4.1.1). Published `revali_router` 4.0.2 already calls this method against the `SetCookies` interface, so any project resolving `revali_core` 2.0.0 alongside it fails to compile.
+- Reflect `https` (not `http`) in the "Serving at ..." startup log line when TLS is enabled via `--cert`/`--key` or `AppConfig.secure`.
 
 <!-- REVALI ROUTER -->
 
