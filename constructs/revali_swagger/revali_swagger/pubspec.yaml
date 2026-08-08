@@ -1,5 +1,5 @@
 name: revali_swagger
-version: 1.0.0
+version: 1.1.0
 description: A Revali construct that generates OpenAPI 3.0 (Swagger) documentation from route metadata
 repository: https://github.com/mrgnhnt96/revali/tree/main/constructs/revali_swagger
 issue_tracker: https://github.com/mrgnhnt96/revali/issues
