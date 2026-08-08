@@ -84,11 +84,11 @@
 
 # revali_client
 
-## 2.0.4
+## 2.0.5
 
-### Enhancements
+### Fixes
 
-- Add `credentials: 'include'` to HTTP requests for cookie support with fetch
+- Actually enable cross-origin cookie credentials on web by setting `BrowserClient.withCredentials = true`, instead of adding a literal `credentials: 'include'` HTTP header (a no-op -- `credentials` is a `fetch()`-level option, not a header, so it never did anything). Non-web platforms are unaffected (no browser cookie jar to opt into).
 
 # revali_client_gen
 
