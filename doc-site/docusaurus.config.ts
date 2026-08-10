@@ -113,7 +113,7 @@ const config: Config = {
         navbar: {
             title: 'Revali',
             logo: {
-                alt: 'My Site Logo',
+                alt: 'Revali logo',
                 src: 'img/logo.svg',
             },
             items: [
