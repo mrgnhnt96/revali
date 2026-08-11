@@ -1,0 +1,153 @@
+name: Deploy docs
+
+# Builds doc-site/ (Jaspr, static mode) and publishes the output to
+# mrgnhnt96/revali-docs, whose GitHub Pages site serves docs.revali.dev.
+#
+# Why a second repository rather than actions/deploy-pages on this one:
+# GitHub allows one Pages site per repository, and a Pages site serves exactly
+# one custom domain. Keeping the docs in their own artifact repo leaves this
+# repo's single Pages site free for revali.dev, and means a docs deploy can
+# never reassign that domain by shipping a different CNAME.
+#
+# ============================================================================
+# ONE-TIME SETUP — done on 2026-08-10, recorded here so it can be rebuilt if
+# the publish repo is ever recreated:
+#
+# 1. `mrgnhnt96/revali-docs` exists and is PUBLIC. It holds only generated
+#    output; a public repo also gets Pages on the free tier. Its `main` branch
+#    was seeded by a local run of the steps below, because GitHub will not let
+#    you point Pages at a branch that does not exist yet.
+#
+# 2. Its Pages source is "Deploy from a branch", branch `main`, folder
+#    `/ (root)`. The custom domain came from the `CNAME` file in the pushed
+#    content — Pages reads it, no separate API call.
+#
+# 3. Auth is an SSH DEPLOY KEY, not a PAT: an ed25519 key with write access
+#    scoped to `mrgnhnt96/revali-docs` alone ("CI deploy (revali/deploy-docs.yml)"
+#    under that repo's Deploy keys), with the private half stored here as the
+#    `REVALI_DOCS_DEPLOY_KEY` secret. Deliberately not a PAT — a classic PAT
+#    with `repo` scope can write to every repo the owner can, and the default
+#    `GITHUB_TOKEN` cannot be used at all, since it only ever grants access to
+#    the repo a workflow runs in. To rotate: generate a new keypair, replace
+#    the deploy key there and the secret here.
+#
+# 4. DNS: a CNAME record for `docs.revali.dev` -> `mrgnhnt96.github.io`. A
+#    subdomain, so a plain CNAME works; no apex ALIAS/ANAME workaround. The
+#    `CNAME` file in doc-site/web/ is what tells Pages which domain to serve
+#    and provision a certificate for — it does NOT create the DNS record, and
+#    if it ever goes missing from a deploy the custom domain is silently
+#    unset. Hence the verification step below.
+# ============================================================================
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'doc-site/**'
+      - '.github/workflows/deploy-docs.yml'
+  workflow_dispatch: {}
+
+# Read-only on purpose: this workflow writes to revali-docs with
+# REVALI_DOCS_DEPLOY_KEY and needs no elevated permission here. No
+# `pages`/`id-token` either — those are for actions/deploy-pages, which only
+# ever deploys the repo it runs in.
+permissions:
+  contents: read
+
+# One publish at a time, and never cancelled mid-push: a half-pushed branch is
+# a half-deployed site.
+concurrency:
+  group: docs-pages
+  cancel-in-progress: false
+
+env:
+  DOCS_REPOSITORY: mrgnhnt96/revali-docs
+  DOCS_DOMAIN: docs.revali.dev
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: doc-site
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: '3.12.2'
+
+      - name: Get dependencies
+        run: dart pub get
+
+      - name: Analyze
+        run: dart analyze --fatal-infos
+
+      # Regenerated rather than trusted. `dart test` also fails on a stale
+      # committed index, but a deploy should never ship one either way.
+      - name: Build the search index
+        run: dart run tool/build_search_index.dart
+
+      - name: Build the site
+        run: dart run jaspr_cli:jaspr build
+
+      # After the build, so the anchor test can check every search result's
+      # deep link against the HTML that is about to be published.
+      - name: Test
+        run: dart test
+
+      # A silently-empty build would publish a blank site over a working one,
+      # and the custom domain is lost the moment CNAME goes missing.
+      - name: Verify the build output
+        working-directory: doc-site/build/jaspr
+        run: |
+          test -s index.html || { echo "::error::index.html missing or empty"; exit 1; }
+          grep -qx "$DOCS_DOMAIN" CNAME || {
+            echo "::error::CNAME missing or wrong: $(cat CNAME 2>/dev/null)"; exit 1; }
+          test -s search-index.json || {
+            echo "::error::search-index.json was not published"; exit 1; }
+          pages=$(find . -name index.html | wc -l)
+          [ "$pages" -ge 90 ] || {
+            echo "::error::only $pages pages rendered; expected the full site"; exit 1; }
+
+      - name: Publish to ${{ env.DOCS_REPOSITORY }}
+        working-directory: doc-site/build/jaspr
+        env:
+          DEPLOY_KEY: ${{ secrets.REVALI_DOCS_DEPLOY_KEY }}
+        run: |
+          if [ -z "$DEPLOY_KEY" ]; then
+            echo "::error::REVALI_DOCS_DEPLOY_KEY is not set — see the setup notes at the top of this workflow"
+            exit 1
+          fi
+
+          # Written under RUNNER_TEMP, not the workspace, so a stray `git add`
+          # can never sweep the private key into the published artifact.
+          key="$RUNNER_TEMP/docs_deploy_key"
+          install -m 600 /dev/null "$key"
+          printf '%s\n' "$DEPLOY_KEY" > "$key"
+          trap 'rm -f "$key"' EXIT
+
+          # Jaspr leaves build bookkeeping behind; it is not part of the site.
+          rm -rf .dart_tool .build.manifest
+
+          # REQUIRED, not boilerplate: a branch-source Pages site runs Jekyll by
+          # default, which silently drops any path segment beginning with an
+          # underscore.
+          touch .nojekyll
+
+          # Published as a single orphan commit, force-pushed: each build is a
+          # few MB of generated output including a dart2js bundle that changes
+          # wholesale, so history there would grow without ever being useful.
+          # The meaningful history is this repo's, and the commit message
+          # records which commit produced the deploy.
+          git init -q -b main
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Deploy ${GITHUB_SHA::7} from ${GITHUB_REPOSITORY}"
+
+          GIT_SSH_COMMAND="ssh -i $key -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new" \
+            git push -q --force "git@github.com:${DOCS_REPOSITORY}.git" main
