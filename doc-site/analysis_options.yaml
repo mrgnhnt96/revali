@@ -1,0 +1,18 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  exclude:
+    - build/**
+    - lib/**.options.dart
+
+linter:
+  rules:
+    - prefer_single_quotes
+    - directives_ordering
+    - unawaited_futures
+
+formatter:
+  # Wider than the 80-column default: this app is mostly nested `css(...)`
+  # style trees and inline SVG constants, and at 80 columns a single style rule
+  # spreads over six lines and stops reading as one declaration.
+  page_width: 100

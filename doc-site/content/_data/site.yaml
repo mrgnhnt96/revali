@@ -1,0 +1,25 @@
+# Site-wide values available to every page as `site.*`.
+#
+# `title` and `titleBase` are read by jaspr_content's PageLayoutBase; the rest
+# are read by RevaliDocsLayout.buildHead in lib/main.server.dart, which adds the
+# Open Graph and Twitter tags that jaspr_content only emits per-page.
+title: Revali
+titleBase: Revali Docs
+description: >-
+  Revali is a Dart API framework that reads the annotations on your classes and
+  generates the server, a type-safe client, an OpenAPI document and a
+  Dockerfile.
+url: https://docs.revali.dev
+favicon: /favicon.png
+image: /images/og.png
+github: https://github.com/mrgnhnt96/revali
+keywords:
+  - Dart
+  - API framework
+  - backend
+  - server
+  - Flutter
+  - OpenAPI
+  - Swagger
+  - code generation
+  - Revali
