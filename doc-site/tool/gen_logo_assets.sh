@@ -4,6 +4,10 @@
 #
 # Sources of truth (edit these, never the rasters):
 #   web/images/logo.svg         the mark, 256x256, transparent
+#
+# The two SVGs that carry lettering are themselves generated -- the wordmark is set in
+# Nunito and emitted as outlined paths, so edit tool/gen_wordmark.py and re-run it
+# before running this script:
 #   web/images/full_logo.svg    horizontal lockup, mark + wordmark  (full_logo_dark.svg
 #                               is the same file with the wordmark recoloured to #ffffff)
 #   web/images/social-card.svg  og:image / twitter:card
