@@ -2,6 +2,7 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
+import 'package:revali/clis/revali_runner/commands/ai/ai_command.dart';
 import 'package:revali/clis/revali_runner/commands/build_command.dart';
 import 'package:revali/clis/revali_runner/commands/dev_command.dart';
 import 'package:revali/clis/revali_runner/commands/doctor_command.dart';
@@ -16,7 +17,8 @@ class RevaliRunner extends CommandRunner<int> {
     required FileSystem fs,
   }) : super(
          'revali',
-         'Revali code generator — commands: dev, build, routes, doctor, create',
+         'Revali code generator — commands: '
+             'dev, build, routes, doctor, create, ai',
        ) {
     argParser
       ..addFlag('loud', help: 'Prints detailed output', hide: true)
@@ -45,6 +47,7 @@ class RevaliRunner extends CommandRunner<int> {
       DoctorCommand(fs: fs, logger: logger, generator: entrypointHandler),
     );
     addCommand(CreateCommand(fs: fs, logger: logger));
+    addCommand(AiCommand(fs: fs, logger: logger));
   }
 
   final Logger logger;
