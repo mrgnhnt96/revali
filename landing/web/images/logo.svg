@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="Revali">
+  <title>Revali</title>
+  <defs>
+    <linearGradient id="revali-wing" x1="20" y1="10" x2="120" y2="170" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fbbf24"/>
+      <stop offset="0.5" stop-color="#f59e0b"/>
+      <stop offset="1" stop-color="#d97706"/>
+    </linearGradient>
+    <linearGradient id="revali-letter" x1="100" y1="50" x2="190" y2="210" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7a8df0"/>
+      <stop offset="1" stop-color="#4e5fc6"/>
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(19.3 9.4) scale(1.04)">
+    <!-- Wing: three primaries, each a crescent bounded by two arcs of differing
+         radius (r64 outer edge, r200 inner edge). Bases are held at x <= 110 so
+         they stay tucked behind the stem and never intrude on the bowl counter. -->
+    <g fill="url(#revali-wing)">
+      <path d="M 110 82  A 64 64 0 0 1 30 14  A 200 200 0 0 0 110 82 Z"/>
+      <path d="M 108 112 A 64 64 0 0 1 10 54  A 200 200 0 0 0 108 112 Z"/>
+      <path d="M 108 142 A 64 64 0 0 1 16 110 A 200 200 0 0 0 108 142 Z"/>
+    </g>
+
+    <!-- The R: stem + bowl in one path, leg in a second. -->
+    <g fill="none" stroke="url(#revali-letter)" stroke-width="32" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M 100 198 V 66 H 140 A 38 38 0 0 1 140 142 H 100"/>
+      <path d="M 126 144 L 184 198"/>
+    </g>
+  </g>
+</svg>

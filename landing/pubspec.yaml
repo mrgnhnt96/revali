@@ -1,0 +1,21 @@
+name: revali_landing
+description: The Revali marketing site, published to revali.dev.
+publish_to: none
+
+environment:
+  sdk: ^3.10.0
+
+dependencies:
+  jaspr: ^0.23.3
+
+dev_dependencies:
+  build_runner: ^2.10.0
+  build_web_compilers: ^4.8.0
+  jaspr_builder: ^0.23.3
+  # Run via `dart run jaspr_cli:jaspr` — a project dependency rather than a
+  # global activation, so a clean checkout can build with no extra setup.
+  jaspr_cli: ^0.23.3
+  lints: ^6.0.0
+
+jaspr:
+  mode: static

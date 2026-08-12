@@ -1,0 +1,5 @@
+# Jaspr build output and its bookkeeping.
+/build
+.dart_tool/
+
+.DS_Store

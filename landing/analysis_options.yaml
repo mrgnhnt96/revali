@@ -1,0 +1,18 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  exclude:
+    - build/**
+    - lib/**.options.dart
+
+linter:
+  rules:
+    - prefer_single_quotes
+    - directives_ordering
+    - unawaited_futures
+
+formatter:
+  # Matches doc-site. The page is built out of deeply nested component trees,
+  # and at the 80-column default a single element spreads over enough lines
+  # that the shape of the markup stops being visible.
+  page_width: 100
