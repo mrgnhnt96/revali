@@ -1,0 +1,129 @@
+name: Deploy landing
+
+# Builds landing/ (Jaspr, static mode) and publishes it to THIS repository's
+# GitHub Pages site, which serves revali.dev.
+#
+# Why this one uses actions/deploy-pages while deploy-docs.yml pushes to a
+# second repository: GitHub allows one Pages site per repository, and a Pages
+# site serves exactly one custom domain. This repo's single Pages slot is the
+# apex domain, revali.dev — the docs were moved to mrgnhnt96/revali-docs
+# precisely so that slot stayed free for this. See the setup notes at the top
+# of deploy-docs.yml for the other half of the arrangement.
+#
+# DNS: revali.dev is an APEX domain, so it cannot be a CNAME. It needs the four
+# A records (and/or the four AAAA records) for GitHub Pages:
+#   185.199.108.153  185.199.109.153  185.199.110.153  185.199.111.153
+# The CNAME file in landing/web/ is what tells Pages which domain to serve and
+# provision a certificate for — it does NOT create the DNS records, and if it
+# ever goes missing from a deploy the custom domain is silently unset. Hence
+# the verification step below.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'landing/**'
+      - '.github/workflows/deploy-landing.yml'
+  workflow_dispatch: {}
+
+# `pages` and `id-token` are what actions/deploy-pages needs; `contents: read`
+# is for the checkout. Nothing here writes to the repository.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One publish at a time, and never cancelled mid-deploy: a half-uploaded
+# artifact is a half-deployed site.
+concurrency:
+  group: landing-pages
+  cancel-in-progress: false
+
+env:
+  LANDING_DOMAIN: revali.dev
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: landing
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: '3.12.2'
+
+      - name: Get dependencies
+        run: dart pub get
+
+      - name: Analyze
+        run: dart analyze --fatal-infos
+
+      # `--sitemap-domain` is not optional decoration: web/robots.txt points
+      # crawlers at /sitemap.xml, and without this flag jaspr does not emit
+      # one, leaving robots.txt advertising a 404.
+      - name: Build the site
+        run: dart run jaspr_cli:jaspr build --sitemap-domain https://revali.dev
+
+      # A silently-empty build would publish a blank page over a working one,
+      # and the custom domain is lost the moment CNAME goes missing.
+      - name: Verify the build output
+        working-directory: landing/build/jaspr
+        run: |
+          test -s index.html || { echo "::error::index.html missing or empty"; exit 1; }
+          grep -qx "$LANDING_DOMAIN" CNAME || {
+            echo "::error::CNAME missing or wrong: $(cat CNAME 2>/dev/null)"; exit 1; }
+          test -s styles.css || { echo "::error::styles.css was not published"; exit 1; }
+          test -s motion.js || { echo "::error::motion.js was not published"; exit 1; }
+          # robots.txt advertises this; a missing one is an advertised 404.
+          test -s sitemap.xml || { echo "::error::sitemap.xml was not generated"; exit 1; }
+          # The page is one long document; a truncated render still returns a
+          # valid index.html, so assert it actually contains every section.
+          for id in how lifecycle features loop start; do
+            grep -q "id=\"$id\"" index.html || {
+              echo "::error::section '$id' missing from the rendered page"; exit 1; }
+          done
+
+      # `upload-pages-artifact` ships the directory verbatim, and jaspr leaves
+      # ~3.8MB in it that is no part of the site: build bookkeeping, plus a
+      # `packages/` tree of dev-dependency READMEs and fix_data.yaml files that
+      # `build_web_compilers` emits for the debug `packages/` URL scheme. This
+      # page has no client entrypoint, so nothing references any of it — it is
+      # 40x the weight of the actual page, and it publishes the dependency list
+      # to the open web for no reason.
+      #
+      # Checked, not assumed: the grep fails the build if the rendered HTML
+      # ever does reference `packages/`, rather than silently breaking the page.
+      - name: Prune non-site files from the build output
+        working-directory: landing/build/jaspr
+        run: |
+          if grep -qE '(src|href)="/?packages/' index.html; then
+            echo "::error::index.html references packages/ — do not prune it"
+            exit 1
+          fi
+          rm -rf packages .dart_tool .build.manifest
+          echo "Publishing $(du -sh . | cut -f1) across $(find . -type f | wc -l) files"
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: landing/build/jaspr
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
