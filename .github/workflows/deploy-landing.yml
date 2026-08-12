@@ -109,16 +109,19 @@ jobs:
           rm -rf packages .dart_tool .build.manifest
           echo "Publishing $(du -sh . | cut -f1) across $(find . -type f | wc -l) files"
 
-      # `enablement: true` because this repo had no Pages site at all — the
-      # action's default is to look one up and hard-fail with a bare 404 if it
-      # is missing. Enabling it here rather than by hand in the settings UI
-      # keeps the deploy reproducible: a fresh fork, or this repo after Pages
-      # is ever turned off, sets itself up on the next push instead of failing
-      # on a step nobody can see the fix for.
+      # The Pages site has to exist already; this step only reads its config.
+      # It cannot be created from here — `enablement: true` was tried and the
+      # API answered "Resource not accessible by integration", because
+      # GITHUB_TOKEN's `pages: write` can deploy into a site but not create
+      # one. That needs repo admin, so it is a one-time human step:
+      #
+      #   Settings -> Pages -> Source: GitHub Actions
+      #   (custom domain revali.dev, Enforce HTTPS on)
+      #
+      # If this step ever fails with a bare 404, that setting is what is
+      # missing — not anything in this file.
       - name: Configure Pages
         uses: actions/configure-pages@v5
-        with:
-          enablement: true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
