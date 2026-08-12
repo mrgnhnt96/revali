@@ -109,8 +109,16 @@ jobs:
           rm -rf packages .dart_tool .build.manifest
           echo "Publishing $(du -sh . | cut -f1) across $(find . -type f | wc -l) files"
 
+      # `enablement: true` because this repo had no Pages site at all — the
+      # action's default is to look one up and hard-fail with a bare 404 if it
+      # is missing. Enabling it here rather than by hand in the settings UI
+      # keeps the deploy reproducible: a fresh fork, or this repo after Pages
+      # is ever turned off, sets itself up on the next push instead of failing
+      # on a step nobody can see the fix for.
       - name: Configure Pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
