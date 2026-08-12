@@ -23,6 +23,7 @@ Install the framework, configure your app, and run the CLI.
 - [revali build](https://docs.revali.dev/revali/cli/build): Produce the compiled server for deployment.
 - [revali routes](https://docs.revali.dev/revali/cli/routes): Print every route the generator found.
 - [revali doctor](https://docs.revali.dev/revali/cli/doctor): Check the project for the things that usually go wrong.
+- [revali ai](https://docs.revali.dev/revali/cli/ai): Install a Revali reference file for your AI coding assistant.
 - [revali.yaml](https://docs.revali.dev/revali/revali-configuration): Enable, disable and configure constructs.
 - [Middleware](https://docs.revali.dev/revali/tutorials/middleware): Run code before and after every request.
 - [Error Handling](https://docs.revali.dev/revali/tutorials/error-handling): Turn thrown exceptions into the responses you meant.

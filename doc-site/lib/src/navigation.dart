@@ -220,6 +220,11 @@ const _revali = NavSection(
           '/revali/cli/doctor',
           summary: 'Check the project for the things that usually go wrong.',
         ),
+        NavItem(
+          'revali ai',
+          '/revali/cli/ai',
+          summary: 'Install a Revali reference file for your AI coding assistant.',
+        ),
         // `revali.yaml` is what every command above reads, so it belongs beside
         // them rather than in App Configuration, which is about `AppConfig`.
         NavItem(
