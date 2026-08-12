@@ -51,9 +51,20 @@ magick "$tmp/sq.png" \
     -delete 0 web/favicon.ico
 
 # Named og.png rather than social-card.png because that is what
-# content/_data/site.yaml's `image:` points at, and it is the only consumer.
+# content/_data/site.yaml's `image:` points at.
 echo "web/images/og.png (1600x675)"
 rsvg-convert -w 1600 -h 675 web/images/social-card.svg -o web/images/og.png
 magick web/images/og.png -strip web/images/og.png
+
+# The landing site is a separate jaspr project with its own web/ directory, so it keeps
+# its own copies of the shared assets. Sync them here rather than by hand -- two
+# og:images that silently disagree is the failure mode worth spending four lines on.
+landing=../landing/web/images
+if [[ -d "$landing" ]]; then
+    echo "$landing/{og.png,full_logo_dark.svg,logo.svg}"
+    cp web/images/og.png web/images/full_logo_dark.svg web/images/logo.svg "$landing/"
+else
+    echo "warning: $landing not found, skipped the landing site copies" >&2
+fi
 
 echo "done"
