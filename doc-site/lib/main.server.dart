@@ -113,10 +113,19 @@ final class RevaliDocsLayout extends DocsLayout {
       yield meta(name: 'description', content: '$description');
       yield meta(attributes: {'property': 'og:description'}, content: '$description');
     }
-    if (site['image'] case final image? when pageData['image'] == null) {
-      // Absolute, not root-relative: every scraper that reads og:image fetches
-      // it out of context, and a relative one resolves against their host.
-      yield meta(attributes: {'property': 'og:image'}, content: '$base$image');
+    // Each page has its own social card, carrying that page's title, rendered
+    // by tool/gen_og_cards.dart. The file name is derived from the route here
+    // and there by the same rule; the deploy workflow fails if the two ever
+    // disagree about what exists.
+    //
+    // Absolute, not root-relative: every scraper that reads og:image fetches it
+    // out of context, and a relative one resolves against their host.
+    if (pageData['image'] == null) {
+      final card = '/images/og/${ogCardSlug(page.url)}.png';
+      yield meta(attributes: {'property': 'og:image'}, content: '$base$card');
+      // Twitter reads its own tag first and falls back to og:image; naming it
+      // explicitly keeps the two from drifting.
+      yield meta(name: 'twitter:image', content: '$base$card');
     }
     if (site['keywords'] case final List<Object?> keywords when pageData['keywords'] == null) {
       yield meta(name: 'keywords', content: keywords.join(', '));
@@ -336,3 +345,14 @@ List<StyleRule> get _styles => [
     ),
   ]),
 ];
+
+/// The file name of a route's social card, under `web/images/og/`.
+///
+/// Must stay in step with `ogCardSlug` in tool/gen_og_cards.dart -- that tool
+/// writes the files this names. Deliberately dumb: `/revali/cli/routes` becomes
+/// `revali-cli-routes`.
+String ogCardSlug(String route) {
+  final trimmed = route.replaceAll(RegExp(r'^/|/$'), '');
+  if (trimmed.isEmpty) return 'index';
+  return trimmed.replaceAll('/', '-');
+}

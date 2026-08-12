@@ -11,6 +11,10 @@ description: >-
   Dockerfile.
 url: https://docs.revali.dev
 favicon: /favicon.png
+# No longer the og:image. RevaliDocsLayout gives every page its own card from
+# web/images/og/, so this is only the generic card kept for anything that asks
+# for a site-level image. Changing it will not change what a docs link previews
+# as -- edit tool/src/docs_card.dart for that.
 image: /images/og.png
 github: https://github.com/mrgnhnt96/revali
 keywords:

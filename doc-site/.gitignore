@@ -11,3 +11,7 @@
 .cache-loader
 
 .DS_Store
+
+# Per-page social cards: ~10MB, regenerated from page titles by
+# tool/gen_og_cards.dart and rendered fresh in the deploy workflow.
+web/images/og/

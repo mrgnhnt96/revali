@@ -24,6 +24,10 @@ dev_dependencies:
   jaspr_cli: ^0.23.3
   lints: ^6.0.0
   test: ^1.26.0
+  # Build-time only: tool/gen_og_cards.dart renders the per-page social cards.
+  crypto: ^3.0.6
+  og_card:
+    path: ../packages/og_card
 
 jaspr:
   mode: static

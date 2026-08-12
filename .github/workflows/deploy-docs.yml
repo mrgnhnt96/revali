@@ -91,6 +91,13 @@ jobs:
       - name: Build the search index
         run: dart run tool/build_search_index.dart
 
+      # One card per page, ~10MB of PNGs. Generated here rather than committed:
+      # they are derived entirely from page titles and the template, and a
+      # template change rewrites all 97 at once, which is not a diff anyone
+      # wants in their history. web/images/og/ is gitignored to match.
+      - name: Generate the social cards
+        run: dart run tool/gen_og_cards.dart
+
       - name: Build the site
         run: dart run jaspr_cli:jaspr build
 
@@ -112,6 +119,16 @@ jobs:
           pages=$(find . -name index.html | wc -l)
           [ "$pages" -ge 90 ] || {
             echo "::error::only $pages pages rendered; expected the full site"; exit 1; }
+          # Every page names its own card in og:image, so a missing directory
+          # would leave 97 previews pointing at a 404 -- and nothing else here
+          # would notice, since the HTML is perfectly valid either way.
+          cards=$(find images/og -name '*.png' 2>/dev/null | wc -l)
+          [ "$cards" -ge 90 ] || {
+            echo "::error::only $cards social cards published; expected one per page"; exit 1; }
+          # Spot-check that the tool and the layout agree on the file name.
+          card=$(grep -o 'og:image" content="[^"]*"' revali/cli/routes/index.html | head -1 | sed 's|.*docs.revali.dev||;s|"$||')
+          test -s ".$card" || {
+            echo "::error::og:image points at $card, which was not published"; exit 1; }
 
       - name: Publish to ${{ env.DOCS_REPOSITORY }}
         working-directory: doc-site/build/jaspr
