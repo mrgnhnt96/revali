@@ -65,10 +65,19 @@ re-discovered.
   - `constructs/revali_client/revali_client/lib/src/revali_client.dart` throws `UnimplementedError('Stream body not implemented')`, with the intended implementation commented out directly beneath it
   - **Bigger than it looks — the server cannot receive one either.** There is no request-body stream binding: `PayloadImpl` resolves a body into `String`/`Json`/`FormData`/`Binary` body data, and `StreamBodyData` is *response*-side only. In the client, `Stream` bodies exist solely for **WebSocket** endpoints (`ClientMethod.websocketBody`), which never go through the HTTP `send` path where the throw lives
   - So implementing the client half alone would produce requests no Revali server can consume. Needs, in order: a server-side streaming body binding (`@Body() Stream<List<int>>`, or NDJSON `Stream<T>`) that consumes the payload incrementally without buffering, codegen for it on both ends, then the client transport (`HttpRequest.bodyStream` + `http.StreamedRequest`)
-- [ ] Rate limiting (promotes the long-standing "Nice to have" `RateLimit` entry)
-  - `RateLimit` currently exists **only** as a fixture name in `packages/revali/test/server/converters/server_lifecycle_component_test.dart`. There is no implementation
-- [ ] Widen the `Observer` interface for metrics/tracing
-  - It is only `see(Request request, Future<Response> response)` — no timing, no error hook, no route metadata, which makes it awkward to build observability on
+- [x] Rate limiting (promotes the long-standing "Nice to have" `RateLimit` entry)
+  - Done as **`@Throttle`**, not `@RateLimit`. ⚠ **This deviates from the name written in the older todo entry** — worth an explicit yes/no
+    - `revali_router` is imported wholesale, so a new export lands in every app's scope. `RateLimit` is a name apps take: this repo's own `generic_lifecycle` fixture defines one, and exporting `RateLimit` broke that package with `ambiguous_import` immediately. `Throttle` is also the idiomatic name elsewhere (Laravel `throttle`, NestJS `@Throttle`)
+    - Rename it back if you prefer `RateLimit` and would rather users `hide` it
+  - Caller = client IP via `trustedProxy`; bucket = the matched route's registered path, with an optional `bucket` to pool endpoints. Returns `429` with `Retry-After`, `X-RateLimit-Limit`, `X-RateLimit-Remaining`
+  - Fixed window, in memory, **per process** — documented rather than implied to be cluster-wide. A caller can send `2 × max` across a boundary, and `workers > 1` multiplies the effective limit
+  - Verified live through codegen: `@Throttle(max: 2)` gave 200, 200, 429 with `retry-after=299`, while a sibling endpoint stayed 200. 6 tests
+- [x] Widen the `Observer` interface for metrics/tracing
+  - It was only `see(Request request, Future<Response> response)` — no timing, no error hook, no route metadata
+  - Done via a **second** interface, `RequestObserver`, receiving a `RequestSummary` (method, path, matched route path, status, duration, error) once the request completes. Not a change to `Observer`, so nothing implementing it today breaks; discovered from the same `observers` list, so neither `AppConfig` nor the generator learns a new component kind — implement both
+  - Fires in **every** mode. The `RequestTrace` ring buffer stays gated on `debug`/`inspect` because it is debug tooling; telemetry is not
+  - `routePath` is the field that matters: labelling metrics with `path` gives one time series per id. 6 tests, including that `/users/1` and `/users/2` share `/users/:id`
+  - [ ] Follow-up worth considering: a `RequestObserver` that does *not* also implement `Observer` has nowhere to register, since `Router.observers` is `List<Observer>`. A dedicated list would need `AppConfig` + codegen support
 
 ## Tier 4 — Internal quality
 
