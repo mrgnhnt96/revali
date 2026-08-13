@@ -230,14 +230,14 @@ void main() {
         ..registerRequestScoped<Counter>(() => Counter(++built));
 
       Future<int> request() => RequestScopedDI(parent: app).run(() async {
-        final first = RequestScopedDI.current.get<Counter>().id;
-        await Future<void>.delayed(const Duration(milliseconds: 10));
+            final first = RequestScopedDI.current.get<Counter>().id;
+            await Future<void>.delayed(const Duration(milliseconds: 10));
 
-        // Still the same instance after yielding to the other request.
-        expect(RequestScopedDI.current.get<Counter>().id, first);
+            // Still the same instance after yielding to the other request.
+            expect(RequestScopedDI.current.get<Counter>().id, first);
 
-        return first;
-      });
+            return first;
+          });
 
       final ids = await Future.wait([request(), request(), request()]);
 
