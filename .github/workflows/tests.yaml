@@ -35,14 +35,16 @@ jobs:
           dart pub global activate sip_cli
           echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
 
-      # Wrapped rather than a bare `dart pub get`: the test_suite packages
+      # Generation comes first and resolves test_suite itself: those packages
       # depend on `.revali/` output that does not exist yet, so the script
-      # comments those path deps out, resolves, and restores them.
-      - name: Resolve dependencies
-        run: sip run pub get
-
+      # comments those path deps out, resolves, generates, and restores them.
       - name: Generate test suite
         run: sip run test-suite --gen-only
+
+      # Everything else. Safe as a plain recursive resolve only now that the
+      # `.revali` packages above actually exist on disk.
+      - name: Resolve remaining dependencies
+        run: sip pub get --recursive --no-version-check
 
       # Runs `dart test` per package, and fails when fewer packages ran than
       # expected -- so a run that discovers nothing cannot report success.
