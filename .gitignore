@@ -46,8 +46,9 @@ app.*.map.json
 # FVM Version Cache
 .fvm/
 
-# NODE
-node_modules/
+# Python bytecode from the doc-site/landing tool scripts
+__pycache__/
+
 libs/bricks/generated/mason-lock.json
 libs/bricks/generated/.mason/bricks.json
 __brick__

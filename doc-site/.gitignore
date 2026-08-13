@@ -5,11 +5,6 @@
 # web/search-index.json is generated but IS committed, so a clean checkout can
 # `jaspr serve` with no generation step. `dart test` fails when it goes stale.
 
-# Docusaurus leftovers, kept ignored while the old site is still on disk.
-/node_modules
-.docusaurus
-.cache-loader
-
 .DS_Store
 
 # Per-page social cards: ~10MB, regenerated from page titles by
