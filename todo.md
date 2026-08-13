@@ -1,5 +1,124 @@
 # TODO
 
+# 8.12.26 — Gap audit
+
+Findings from a read-through of the repo, grouped by how much they hurt. Each
+item carries the evidence that produced it so it can be re-checked rather than
+re-discovered.
+
+## Tier 1 — Adoption blockers
+
+- [ ] Publish `revali_test` to pub.dev (currently `publish_to: none`, no `version:`)
+  - It is the documented way to test a Revali app (`AGENTS.md` → `TestServer()` / `await createServer(server)`) and all 27 `test_suite` packages depend on it by relative path, but no external user can get it
+  - `TestServer` is not re-exported from any published package either, so there is no workaround
+  - Small surface: 8 files in `lib/`. Needs a version, a README, and a changelog
+- [ ] Write a testing documentation page
+  - Of 204 pages under `doc-site/content/`, **zero** cover testing; `TestServer` appears nowhere in the docs
+  - Blocked on the publish above — no point documenting a package users cannot depend on
+- [ ] Publish `revali_mcp` (also `publish_to: none`)
+  - `README.md` ships a Cursor config telling users to run `dart run revali_mcp`; that cannot resolve outside this repo
+  - Single 276-line `bin/revali_mcp.dart`, no `lib/`, no tests
+
+## Tier 2 — Production correctness
+
+- [ ] Graceful shutdown in the generated server
+  - Generated `main` is just `hotReload(() => createServer(null, args))` — no signal handling. Signals are only handled in the dev CLI (`vm_service_handler.dart`), to kill the child process
+  - `handle_requests.dart:31` detaches every request with `unawaited(...)`, so there is no in-flight set to drain even if a handler existed
+  - `revali_docker` generates Dockerfiles → container platforms stop with SIGTERM → in-flight responses are truncated on every deploy and scale-down
+  - Needs: track in-flight futures, stop accepting on SIGTERM/SIGINT, await with a timeout
+- [ ] Finish request-scoped DI (see also the open item under 7.31.26 below)
+  - The **read** side is already fully generated: `createGetFromDi()` emits `RequestScopedDI.getFrom(di)` and is used by guard/middleware/interceptor/exception/wrapper content, plus `create_param_arg.dart:100,119` and `create_class.dart:9`
+  - But nothing ever installs a `RequestScopedDI` into a zone — it is referenced in no file other than its own definition, so `maybeCurrent` is always `null` and every lookup falls through to the app container. The feature is dead code today
+  - `RequestScopedDI.onError` and `.dispose` are empty stubs, so per-request resources would never be cleaned up
+  - Needs: a built-in kit (like `@RequestId()`) that wraps via the existing `RequestWrapper` and runs the handler in a zone keyed by `RequestScopedDI.zoneKey`, an `AppConfig` hook for registering request-scoped factories, and real `dispose`/`onError` bodies
+
+## Tier 3 — Feature gaps
+
+- [ ] Support controller inheritance (supersedes "Get super methods from classes" under 1.22.25)
+  - `ControllerVisitor` (`controller_visitor.dart:77`) collects methods via `element.accept(MethodVisitor(...))`, and `MethodVisitor.visitMethodElement` only sees **declared** methods — endpoints inherited from a base class are silently dropped, with no error
+  - The codegen already uses `allSupertypes` in 8 other places, so the traversal machinery exists
+- [ ] Implement streaming request bodies in the client
+  - `constructs/revali_client/revali_client/lib/src/revali_client.dart:120-121` is a literal `throw UnimplementedError('Stream body not implemented')`, with the intended implementation commented out directly beneath it
+- [ ] Response compression (gzip/deflate negotiated via `Accept-Encoding`)
+  - Entirely absent: the only match for `gzip|deflate|content-encoding` across the router and packages is a doc comment at `body_data.dart:33`
+- [ ] Rate limiting (promotes the long-standing "Nice to have" `RateLimit` entry)
+  - `RateLimit` currently exists **only** as a fixture name in `packages/revali/test/server/converters/server_lifecycle_component_test.dart`. There is no implementation
+- [ ] Widen the `Observer` interface for metrics/tracing
+  - It is only `see(Request request, Future<Response> response)` — no timing, no error hook, no route metadata, which makes it awkward to build observability on
+
+## Tier 4 — Internal quality
+
+- [ ] Close the worst test-coverage gaps (`revali_router` is fine at 39 tests / 93 lib files; these are not)
+  - [ ] `revali_annotations` — **0** tests, 42 lib files
+  - [ ] `revali_client` runtime — 1 test, 14 lib files; this is the HTTP client every consumer app depends on
+  - [ ] `revali_core` — 3 tests, 64 lib files
+  - [ ] `revali_mcp` — 0 tests
+- [ ] Filter before resolving in `Analyzer._analyzeDirectory` (the last open item from 7.31.26)
+  - `analyzer.dart:369-382` fully resolves **every** `.dart` file it walks via `await units.resolved()`, with no pre-filter
+  - It already calls `getParsedUnit` first, so the parsed AST can be checked for `@Controller` / `@App` before paying for resolution — which is exactly the deferral `import_ozempic` does
+
+## Tier 5 — Cleanup / redundancy
+
+### CLI: flags are declared twice and stripped by hand
+
+There are three command trees. Two of them are a deliberate outer/inner split —
+`clis/revali_runner/` is the user-facing CLI, `clis/construct_runner/` runs
+*inside* the generated entrypoint isolate, and `server/cli/commands/create/` is
+mounted into the former. The split is fine; the flag duplication is not.
+
+- [x] Declare each command's flags once and derive both parsers from it
+  - `dev`: the inner command's 8 flags (`flavor, release, profile, debug, generate-only, dart-vm-service-port, dart-define, dart-define-from-file`) were an **exact subset** of the outer's 13. Outer-only: `recompile, skip-if-fresh, inspect, cert, key`
+  - `build`: the inner's 6 flags were an **exact subset** of the outer's 7. Outer-only: `recompile`
+  - `ConstructRunnerArgs.constructRunnerArgs` then hand-maintained a strip list to remove the outer-only ones before forwarding — so every new flag was a three-place edit: declare inner, declare outer, update the strip list. Miss the third and the flag leaked into the inner parser
+  - Done: `clis/shared/commands/construct_flags.dart` holds `sharedDevFlags` / `sharedBuildFlags`; both parsers call `declareAll`, and the forwarder emits from parsed results. Outer-only flags are absent from the list, so they cannot leak by construction
+- [x] **Bug: equals-form flags leak through the forwarder** (found while auditing the above)
+  - The forwarder matched whole tokens (`entry == '--cert'`) and then skipped the next token as the value. `--cert=a.pem` is a **single** token, so it matched nothing and was forwarded verbatim to the inner runner, which has no `cert` option → parse failure
+  - `dart run revali dev --cert cert.pem --key key.pem` worked; `dart run revali dev --cert=cert.pem --key=key.pem` did not
+  - Same shape for `--flavor=x`: it leaked through *in addition to* the explicit `--flavor <value>` the mixin prepended. Inner does declare `flavor`, so it was last-wins and benign — but the same latent fault
+  - Fixed by the consolidation above. Covered by `test/clis/shared/commands/construct_flags_test.dart` (10 tests, including both leak shapes) and verified end-to-end with `revali dev --generate-only --cert=… --key=…`
+- [x] Extract a shared base for `RevaliRunner` / `ConstructRunner`
+  - Both were `CommandRunner<int>` with byte-identical `--loud`/`--quiet` blocks and byte-identical `run()` / `runCommand()` overrides → now `clis/shared/commands/revali_command_runner.dart`
+
+### Codegen: collapse the near-duplicate lifecycle content makers
+
+- [x] Merge `guard_content.dart` and `middleware_content.dart` into one parameterized builder
+  - 130 and 131 lines; normalizing the naming left only **29 diff lines**, and just 3 were semantic: method name `protect` vs `use`, short-circuit getter `isBlock` vs `isStop`, terminal call `pass` vs `next`
+  - The rest was copy-paste drift — a local named `parameters` in one and `parameter` in the other, differently formatted `literalList` calls — which is exactly the maintenance hazard
+  - Done: `.../lifecycle_components/utils/sequential_component_content.dart`; both makers are now ~24-line wrappers. Generated output verified **byte-identical** before/after via a golden capture, and re-verified end-to-end by regenerating `test_suite/constructs/revali_server/middleware`
+  - The other three (`interceptor`, `exception`, `wrapper`) genuinely diverge (guard vs wrapper is 122 diff lines) and were deliberately left alone
+
+### Remove deprecated APIs
+
+- [x] Drop the 8 deprecated DI members
+  - `registerInstance` → `registerSingleton` and `register` → `registerFactory`/`registerLazySingleton`, each redeclared across all four of `di.dart`, `di_impl.dart`, `di_handler.dart`, `request_scoped_di.dart`
+  - No internal callers existed, so removal was clean. `Factory<T>` was left in place — it is a public typedef and not deprecated, though nothing in the repo uses it now
+  - `LATEST_CHANGELOG.md` moves `revali_core` from `2.0.1` → `3.0.0` with a Breaking Changes entry. `prep_for_publish.dart` derives pubspec versions and rewrites dependents' constraints from that file, so the four `revali_core: ^2.0.0` pins are **not** hand-edited
+  - ⚠ **Release decision still open**: `revali_router` re-exports `package:revali_core/revali_core.dart`, so this removal is visible through its public API and it arguably needs `4.0.2` → `5.0.0` rather than a patch. Same question for `revali` (`3.1.0`). Constraints only auto-update for packages included in the same release
+- [ ] Two stragglers elsewhere: `meta_type.dart:86` (`hasFromJson`) and `server_param.dart:124` (`type.importPath`) — left alone for now, different packages and different release cadence
+
+### Repo hygiene
+
+- [x] Delete ~59 MB of stale local logs
+  - `logs/` (28 MB) and `log_failures/` (31 MB), last written 2026-05-24, plus the empty leftover `test/` and `web/` directories at the repo root
+  - They never appeared in `git status`: the directories were not ignored, but all 34 files were `*.log`, which `.gitignore:3` covers — invisible clutter rather than obvious clutter
+  - Verified before deleting: 0 tracked files, and no non-`.log` file anywhere in them
+- [x] Remove the stale `.gitignore` entry `constructs/revali_server/bin/tester.dart` — that path no longer existed after the `revali_server` consolidation
+- [ ] Keep `small_test/` and `playground/` — both checked, both real. `small_test/` is a fixture used by `packages/revali/test/utils/directory_extensions_test.dart:41,52`; `playground/` is the benchmark harness with its own README/BENCHMARKS
+
+### Found while cleaning up
+
+- [ ] **Pre-existing failure: `test_suite/constructs/revali_server/middleware` → `pre_interceptor_test.dart`**
+  - "should throw if user is not added to the request" expects the debug body to *start with* `Error: MissingArgumentException: key: data, location: @data\n`, but the actual message now continues `, expected: User, actual: null` and is followed by a `Stack Trace:` block
+  - `missing_argument_exception.dart:28,31` append `expected:` / `actual:` when known. Both the exception and the test were last touched by the same commit (`2630ff46`, 2026-07-31), so the expectation looks like it was written against output from before those fields were populated
+  - Confirmed **not** caused by the cleanup: stashed all local changes, regenerated the package on clean `main`, and the test fails identically
+  - Only surfaces after a regenerate — `test_suite/**/.revali` is gitignored, so a stale local tree hides it
+
+### Worth auditing (lower confidence)
+
+- [ ] The `package:revali/revali.dart` barrel exports 43 entries, including internals like `ast/analyzer/…`, `handlers/vm_service_handler.dart` and `utils/kernel_cache.dart`
+  - Partly forced: `construct_entrypoint_handler.dart:612` writes an import of that barrel into the generated entrypoint, so it must expose the construct-running surface
+  - But it currently makes every internal a public API, so any refactor is technically breaking. Worth splitting a narrow `revali_entrypoint.dart` from the general barrel
+
 # 7.31.26 — Analyzer performance (ByteStore cache)
 
 `import_ozempic` now uses the same on-disk analyzer cache DAS / `build_runner` rely on. We should do the same in `packages/revali/lib/ast/analyzer/analyzer.dart`.
@@ -194,9 +313,10 @@ In practice the second analysis pass on the same project dropped from ~85s → ~
 
 ## Features
 
-- [ ] revali build
+- [x] revali build
   - Compiles the server code and prepares the "out-going" directory with any Public files
     - We may need to have a configuration file to handle what to ignore/include
+  - Shipped: `packages/revali/lib/clis/revali_runner/commands/build_command.dart`, documented at `doc-site/content/revali/cli/build.md` (`--release`/`--profile`, `--flavor`, `--recompile`, `--dart-define`)
 - [ ] revali upload
   - Uploads the "out-going" directory to a server
 - [x] Catch errors thrown by the generator
