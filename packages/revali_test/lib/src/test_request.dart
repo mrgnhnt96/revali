@@ -15,22 +15,19 @@ class TestRequest extends Stream<Uint8List> implements HttpRequest {
     required this.onWebSocketMessage,
     Map<String, String> headers = const {},
     Object? body,
+    Stream<List<int>>? webSocketInput,
     this.connectionInfo = const TestHttpConnectionInfo(),
-  }) : _headers = headers {
-    if (body is Stream) {
-      _webSocketInput = switch (body) {
-        Stream<Uint8List>() => body,
-        Stream<List<int>>() => body.map(Uint8List.fromList),
-        _ => throw Exception(
-          'Invalid body type, expected Stream<List<int>>, got $body',
-        ),
-      };
-
-      _body = null;
-    } else {
-      _body = body;
-      _webSocketInput = null;
-    }
+  }) : _headers = headers,
+       _body = body {
+    // WebSocket input arrives through its own parameter. It used to be
+    // inferred from `body` being a Stream, which made a *streamed HTTP body*
+    // impossible to express -- it was silently read as socket frames and the
+    // request arrived empty.
+    _webSocketInput = switch (webSocketInput) {
+      null => null,
+      Stream<Uint8List>() => webSocketInput,
+      _ => webSocketInput.map(Uint8List.fromList),
+    };
   }
 
   @override
@@ -63,18 +60,25 @@ class TestRequest extends Stream<Uint8List> implements HttpRequest {
     void Function()? onDone,
     bool? cancelOnError,
   }) {
-    final body = switch (_body) {
-      String() => _body,
-      null => '',
-      _ => jsonEncode(_body),
+    // Bytes and streams pass through untouched. JSON-encoding them -- which
+    // is what happened when this only special-cased String -- turned a
+    // binary upload into the *text* "[1,2,3]".
+    final source = switch (_body) {
+      null => const Stream<List<int>>.empty(),
+      final Stream<List<int>> stream => stream,
+      final List<int> bytes => Stream.value(bytes),
+      final String text => Stream.value(utf8.encode(text)),
+      final other => Stream.value(utf8.encode(jsonEncode(other))),
     };
 
-    return Stream.fromIterable([utf8.encode(body)]).listen(
-      onData,
-      onError: onError,
-      onDone: onDone,
-      cancelOnError: cancelOnError,
-    );
+    return source
+        .map(Uint8List.fromList)
+        .listen(
+          onData,
+          onError: onError,
+          onDone: onDone,
+          cancelOnError: cancelOnError,
+        );
   }
 
   @override

@@ -35,7 +35,10 @@ final class TestClient implements HttpClient {
         (final String path, final String query) => '$path?$query',
       },
       headers: request.headers,
-      body: request.body,
+      // A streamed or binary body lives on its own field; sending only
+      // `request.body` delivered an empty string for both, so a test would
+      // see zero bytes arrive while the same call worked over real HTTP.
+      body: request.bodyStream ?? request.bodyBytes ?? request.body,
     );
 
     final stream = switch (response.body) {

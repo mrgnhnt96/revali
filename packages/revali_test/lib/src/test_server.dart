@@ -77,7 +77,7 @@ class TestServer extends Stream<HttpRequest> implements HttpServer {
       method: method,
       path: path,
       headers: headers,
-      body: body,
+      webSocketInput: body,
       onWebSocketMessage: _webSocketResponses.add,
       onResponse: (response) {
         onResponse?.call(response);
