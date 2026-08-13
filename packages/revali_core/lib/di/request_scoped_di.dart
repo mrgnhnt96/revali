@@ -52,19 +52,9 @@ class RequestScopedDI implements DI {
   }
 
   @override
-  @Deprecated('Use registerSingleton instead')
-  void registerInstance<T extends Object>(T instance) =>
-      registerSingleton<T>(instance);
-
-  @override
   void registerSingleton<T extends Object>(T instance) {
     _local.registerSingleton<T>(instance);
   }
-
-  @override
-  @Deprecated('Use registerFactory or registerLazySingleton instead')
-  void register<T extends Object>(Factory<T> factory) =>
-      registerFactory<T>(factory);
 
   @override
   void registerFactory<T extends Object>(T Function() factory) {

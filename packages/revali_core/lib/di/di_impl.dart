@@ -11,11 +11,6 @@ class DIImpl implements DI {
   final Map<Type, dynamic> _lazySingletons;
 
   @override
-  @Deprecated('Use registerSingleton instead')
-  void registerInstance<T extends Object>(T instance) =>
-      registerSingleton<T>(instance);
-
-  @override
   void registerSingleton<T extends Object>(T instance) {
     _register<T>(_singletons, instance);
   }
@@ -24,11 +19,6 @@ class DIImpl implements DI {
   void registerFactory<T extends Object>(T Function() factory) {
     _register<T>(_factories, factory);
   }
-
-  @Deprecated('Use registerFactory or registerLazySingleton instead')
-  @override
-  void register<T extends Object>(Factory<T> factory) =>
-      registerFactory<T>(factory);
 
   void _register<T>(Map<Type, dynamic> map, dynamic value) {
     _ensureUnique<T>();

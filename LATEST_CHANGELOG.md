@@ -35,7 +35,11 @@
 
 # revali_core
 
-## 2.0.1
+## 3.0.0
+
+### Breaking Changes
+
+- Remove the deprecated `DI` registration methods. `registerInstance<T>` and `register<T>` are gone from `DI`, `DIImpl`, `DIHandler`, and `RequestScopedDI`; use `registerSingleton<T>` and `registerFactory<T>` / `registerLazySingleton<T>` instead. The `Factory<T>` typedef is unchanged.
 
 ### Fixes
 
