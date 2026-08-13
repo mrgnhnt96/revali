@@ -224,7 +224,9 @@ publish:
   (command):
     - "{$test-suite}"
     - sleep 3
-    - sip test --recursive --bail
+    # Not `sip test --recursive`, which reports "Results: 0 0 0" and exits 0
+    # from the repo root -- publishing having verified nothing.
+    - ./scripts/run_all_tests.sh
     - cd scripts && dart run lib/prep_for_publish.dart
 
 test-suite:
@@ -296,9 +298,12 @@ test-suite:
         LINE_NUMBER=$(grep -n "path: .revali/*" $PUBSPEC | cut -d: -f1)
 
         if [ -n "$LINE_NUMBER" ]; then
-          # comment out the line and the preceding line
-          sed -i '' "$((LINE_NUMBER))s/^/#/" $PUBSPEC
-          sed -i '' "$((LINE_NUMBER - 1))s/^/#/" $PUBSPEC
+          # comment out the line and the preceding line.
+          # perl, not `sed -i ''`: the empty-suffix form is BSD-only, so on
+          # GNU sed (Linux, CI) it consumed the script as a filename and the
+          # whole generate step failed.
+          perl -i -pe 'BEGIN { $n = shift }
+            s/^/#/ if $. == $n || $. == $n - 1' "$LINE_NUMBER" "$PUBSPEC"
         fi
       done
 
@@ -311,8 +316,8 @@ test-suite:
 
       if [ -n "$LINE_NUMBER" ]; then
           # uncomment the line and the preceding line
-          sed -i '' "$((LINE_NUMBER))s/^#*//g" $PUBSPEC
-          sed -i '' "$((LINE_NUMBER - 1))s/^#*//g" $PUBSPEC
+          perl -i -pe 'BEGIN { $n = shift }
+            s/^#+// if $. == $n || $. == $n - 1' "$LINE_NUMBER" "$PUBSPEC"
         fi
       done
 
