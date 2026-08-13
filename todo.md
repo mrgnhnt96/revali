@@ -67,7 +67,8 @@ re-discovered.
   - So only the client half was missing. Done: `HttpRequest.bodyStream`, a `BaseRequest` subclass that hands the stream to the transport whole (rather than `StreamedRequest`, which needs the caller to pump its sink and so breaks backpressure), and `Stream<List<int>>` / `Stream<String>` cases in the body switch
   - Other `Stream<T>` throws an `ArgumentError` naming the two supported types, rather than inventing a framing format (NDJSON, length-prefixing) the server has no binding for
   - Verified end to end: `revali_client` streamed 307 200 bytes as 300 lazily-produced 1 KiB chunks into a live server, which counted 307 200. 5 new client tests
-  - [ ] Follow-up: `revali_client_gen` has not been checked for what it emits when a handler declares a `Stream` body — the runtime supports it, but the generated typed client may not surface it yet
+  - [x] Checked `revali_client_gen`: it already emits the right thing — `Future<String> upload({required Stream<List<int>> chunks})` passing `body: chunks` straight through. No generator change needed
+  - [x] But the **test** transports dropped it silently. `TestClient` sent only `request.body`, so a streamed *or binary* body arrived as an empty string, and `TestRequest` `jsonEncode`d any non-String body while treating a `Stream` body as WebSocket input. A streaming endpoint tested through `TestServer` saw 0 bytes while the same call worked over real HTTP. Both fixed, with regression tests
 - [x] Rate limiting (promotes the long-standing "Nice to have" `RateLimit` entry)
   - Done as **`@Throttle`**, not `@RateLimit`. ⚠ **This deviates from the name written in the older todo entry** — worth an explicit yes/no
     - `revali_router` is imported wholesale, so a new export lands in every app's scope. `RateLimit` is a name apps take: this repo's own `generic_lifecycle` fixture defines one, and exporting `RateLimit` broke that package with `ambiguous_import` immediately. `Throttle` is also the idiomatic name elsewhere (Laravel `throttle`, NestJS `@Throttle`)
@@ -80,7 +81,8 @@ re-discovered.
   - Done via a **second** interface, `RequestObserver`, receiving a `RequestSummary` (method, path, matched route path, status, duration, error) once the request completes. Not a change to `Observer`, so nothing implementing it today breaks; discovered from the same `observers` list, so neither `AppConfig` nor the generator learns a new component kind — implement both
   - Fires in **every** mode. The `RequestTrace` ring buffer stays gated on `debug`/`inspect` because it is debug tooling; telemetry is not
   - `routePath` is the field that matters: labelling metrics with `path` gives one time series per id. 6 tests, including that `/users/1` and `/users/2` share `/users/:id`
-  - [ ] Follow-up worth considering: a `RequestObserver` that does *not* also implement `Observer` has nowhere to register, since `Router.observers` is `List<Observer>`. A dedicated list would need `AppConfig` + codegen support
+  - [x] Resolved by collapsing the two interfaces into one. `Observer.see` now takes a single `ObservedRequest` carrying the request plus futures for the response and the summary — so an observer wanting only the finished picture awaits `observed.summary` instead of implementing a second type. `RequestObserver` and the `RequestListener` marker are gone
+  - [x] Also fixed `revali create observer`, whose template still generated `ReadOnlyRequest`/`ReadOnlyResponse` — removed in the context consolidation — so scaffolded observers did not compile
 
 ## Tier 4 — Internal quality
 
