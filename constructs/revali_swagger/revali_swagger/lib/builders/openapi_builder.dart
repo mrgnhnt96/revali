@@ -5,6 +5,16 @@ import 'package:revali_swagger/models/swagger_method.dart';
 import 'package:revali_swagger/models/swagger_param.dart';
 import 'package:revali_swagger/models/swagger_server.dart';
 
+/// Returns [map] with its keys in a stable order.
+///
+/// Controllers are discovered by walking the filesystem, so insertion order
+/// follows whatever the OS returns — the same project emitted `/complex`
+/// first on macOS and `/users` first on Linux. A spec that reorders itself
+/// per platform cannot be diffed, committed, or compared against a golden.
+Map<String, dynamic> _sorted(Map<String, dynamic> map) {
+  return {for (final key in map.keys.toList()..sort()) key: map[key]};
+}
+
 Map<String, dynamic> buildOpenApiSpec(
   SwaggerServer server,
   SchemaRegistry registry,
@@ -29,6 +39,14 @@ Map<String, dynamic> buildOpenApiSpec(
     }
   }
 
+  // Operations within a path item are inserted in method-discovery order,
+  // which varies the same way.
+  for (final entry in paths.entries) {
+    paths[entry.key] = _sorted(entry.value as Map<String, dynamic>);
+  }
+
+  final sortedPaths = _sorted(paths);
+
   final schemasMap = registry.schemasMap;
 
   if (schemasMap.isEmpty) {
@@ -39,13 +57,13 @@ Map<String, dynamic> buildOpenApiSpec(
         'version': server.info.version,
         if (server.info.description case final String d) 'description': d,
       },
-      'paths': paths,
+      'paths': sortedPaths,
     };
   }
 
   // Prune schemas that are never $ref'd from paths or other reachable schemas.
   final referenced = <String>{};
-  _collectRefs(paths, referenced);
+  _collectRefs(sortedPaths, referenced);
   // Also collect refs within schemas themselves (transitive reachability).
   var changed = true;
   while (changed) {
@@ -58,10 +76,10 @@ Map<String, dynamic> buildOpenApiSpec(
       }
     }
   }
-  final prunedSchemas = {
+  final prunedSchemas = _sorted({
     for (final entry in schemasMap.entries)
       if (referenced.contains(entry.key)) entry.key: entry.value,
-  };
+  });
 
   return {
     'openapi': '3.0.3',
@@ -70,7 +88,7 @@ Map<String, dynamic> buildOpenApiSpec(
       'version': server.info.version,
       if (server.info.description case final String d) 'description': d,
     },
-    'paths': paths,
+    'paths': sortedPaths,
     if (prunedSchemas.isNotEmpty) 'components': {'schemas': prunedSchemas},
   };
 }

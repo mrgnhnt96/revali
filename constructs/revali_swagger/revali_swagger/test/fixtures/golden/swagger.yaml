@@ -75,24 +75,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-  '/users/{id}':
-    get:
-      operationId: users_getUser
-      tags:
-        - users
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
   '/users/search':
     get:
       operationId: users_searchUsers
@@ -114,8 +96,39 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/User'
+  '/users/{id}':
+    get:
+      operationId: users_getUser
+      tags:
+        - users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
 components:
   schemas:
+    Address:
+      type: object
+      properties:
+        street:
+          type: string
+        city:
+          type: string
+        zipCode:
+          type: string
+          nullable: true
+      required:
+        - street
+        - city
     ComplexModel:
       type: object
       properties:
@@ -216,19 +229,6 @@ components:
         - namedCoord
         - latLng
         - status
-    Address:
-      type: object
-      properties:
-        street:
-          type: string
-        city:
-          type: string
-        zipCode:
-          type: string
-          nullable: true
-      required:
-        - street
-        - city
     Status:
       type: string
       enum:
