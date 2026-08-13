@@ -22,13 +22,7 @@ class RetryPolicy {
     this.initialDelay = const Duration(milliseconds: 200),
     this.maxDelay = const Duration(seconds: 10),
     this.retryableStatusCodes = const {502, 503, 504},
-    this.idempotentMethods = const {
-      'GET',
-      'HEAD',
-      'OPTIONS',
-      'PUT',
-      'DELETE',
-    },
+    this.idempotentMethods = const {'GET', 'HEAD', 'OPTIONS', 'PUT', 'DELETE'},
     this.retryOnConnectionErrors = true,
     this.honorRetryAfter = true,
   }) : assert(maxAttempts >= 1, 'maxAttempts must be >= 1');
