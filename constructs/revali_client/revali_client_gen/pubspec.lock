@@ -310,7 +310,7 @@ packages:
       path: "../revali_client"
       relative: true
     source: path
-    version: "2.0.4"
+    version: "2.0.5"
   revali_construct:
     dependency: "direct main"
     description:
@@ -324,7 +324,7 @@ packages:
       path: "../../../packages/revali_core"
       relative: true
     source: path
-    version: "2.0.0"
+    version: "2.0.1"
   revali_router:
     dependency: "direct main"
     description:
