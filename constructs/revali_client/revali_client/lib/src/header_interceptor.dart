@@ -34,15 +34,18 @@ class HeaderInterceptor implements HttpInterceptor {
   final Map<String, String> Function() headers;
 
   @override
-  void onRequest(HttpRequest request) {
+  HttpResponse? onRequest(HttpRequest request) {
     headers().forEach((key, value) {
       // Never clobbers a header the call site set explicitly: an ambient
       // default losing to an argument is the behaviour a caller expects, and
       // the reverse is very hard to debug.
       request.headers.putIfAbsent(key, () => value);
     });
+
+    // Never short-circuits: this only decorates what is on its way out.
+    return null;
   }
 
   @override
-  void onResponse(HttpResponse response) {}
+  HttpResponse? onResponse(HttpResponse response) => null;
 }

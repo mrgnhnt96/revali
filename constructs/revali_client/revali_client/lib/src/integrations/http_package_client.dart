@@ -20,24 +20,23 @@ class HttpPackageClient implements HttpClient {
 
   @override
   Future<HttpResponse> send(HttpRequest request) async {
-    final httpRequest = _buildRequest(request);
-
-    for (final HttpInterceptor(:onRequest) in interceptors) {
-      try {
-        switch (onRequest(request)) {
-          case final Future<void> fn:
-            await fn;
-        }
-      } catch (e) {
-        // swallow
+    for (final interceptor in interceptors) {
+      // Deliberately unguarded. An interceptor that throws has not done its
+      // job, and swallowing that put a half-prepared request on the wire --
+      // a failed auth interceptor became a confusing 401 from the peer rather
+      // than an error at the point that actually broke.
+      if (await interceptor.onRequest(request) case final short?) {
+        return short;
       }
     }
 
-    httpRequest.headers.addAll(request.headers);
+    // Built *after* the interceptors, so one that rewrites the body or the
+    // encoding is reflected in what is actually sent, not just the headers.
+    final httpRequest = _buildRequest(request)..headers.addAll(request.headers);
 
     final response = await _client.send(httpRequest);
 
-    final httpResponse = HttpResponse(
+    var httpResponse = HttpResponse(
       request: request,
       statusCode: response.statusCode,
       headers: response.headers,
@@ -47,16 +46,9 @@ class HttpPackageClient implements HttpClient {
       contentLength: response.contentLength,
     );
 
-    for (final HttpInterceptor(:onResponse) in interceptors) {
-      try {
-        switch (onResponse) {
-          case final Future<void> Function(HttpResponse) fn:
-            await fn(httpResponse);
-          case final fn:
-            fn(httpResponse);
-        }
-      } catch (e) {
-        // swallow
+    for (final interceptor in interceptors) {
+      if (await interceptor.onResponse(httpResponse) case final replacement?) {
+        httpResponse = replacement;
       }
     }
 
