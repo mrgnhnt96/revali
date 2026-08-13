@@ -21,8 +21,7 @@
 entry there differs from its `pubspec.yaml` version, so **equal versions mean
 skipped**, and a dependent's constraint is only rewritten if that dependent is
 itself in the release. The mechanism is documented in
-[RELEASING.md](./RELEASING.md); what is outstanding right now, with the exact
-edits, is in [PENDING_RELEASE.md](./PENDING_RELEASE.md).
+[RELEASING.md](./RELEASING.md).
 
 ## Project layout
 

@@ -1,8 +1,7 @@
 # TODO
 
-> **Releases:** what is outstanding for the next release is in
-> [PENDING_RELEASE.md](./PENDING_RELEASE.md); how the release mechanism works
-> is in [RELEASING.md](./RELEASING.md). Neither lives here.
+> **Releases:** how the release mechanism works is in
+> [RELEASING.md](./RELEASING.md). That does not live here.
 
 # 8.12.26 — Gap audit
 

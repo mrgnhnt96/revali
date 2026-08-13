@@ -3,8 +3,10 @@
 How a release decides what ships. Durable reference — it does not change
 between releases.
 
-**What is outstanding right now lives in
-[PENDING_RELEASE.md](./PENDING_RELEASE.md).**
+Nothing is outstanding — the 08.13.26 release published nine packages and its
+checklist was deleted once applied. If a round is in flight, that round's
+outstanding edits belong in a scratch file that is deleted when it ships, not
+in this one.
 
 ## How the release decides what to publish
 
