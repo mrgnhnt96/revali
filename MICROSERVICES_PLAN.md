@@ -36,6 +36,39 @@ small.
 
 ## Gap 1 — Context dies at the hop
 
+**Status: SHIPPED.** `revali_core` 3.1.0, `revali_router` 5.1.0,
+`revali_client` 2.2.0. What landed:
+
+- `TraceContext` in `revali_core` — ambient for the whole request, carrying the
+  request id, W3C `traceparent`/`tracestate` and a mutable `baggage` map.
+  `outboundHeaders()` produces what to forward.
+- `Router` installs one per request, seeded from the caller's headers.
+- `@RequestId` stamps the id the context carries instead of generating a
+  second one.
+- `HeaderInterceptor` in `revali_client` bridges to outbound calls.
+- 19 unit tests in `revali_core`, 14 in `revali_router` (including a real
+  two-service hop), 5 in `revali_client`.
+
+**Decisions taken, against the open question below:** `traceparent` is
+propagated verbatim and never invented, with no span lifecycle — the option
+argued for at the bottom of this section. Forwarding is never automatic:
+`outboundHeaders()` is one line the app writes, because what counts as a
+trusted peer is the app's call. Auth forwarding was not built at all.
+
+**A bug this nearly shipped with.** The zone was first installed in
+`Router.handle`, which is the *older* split path. `handleRouterRequests` — what
+the generated server actually uses — goes through `Router.handleRequest`, so
+the context would have been null in every real app while every unit test
+passed. The end-to-end test caught it. It is now installed on both paths,
+inside `_handleRequest` where the request headers first exist.
+
+**Constraint worth recording:** `revali_client` depends only on `http` and runs
+on the web, where `dart:io` — and therefore `revali_core` — cannot follow. The
+trace type cannot be imported there, which is why the bridge is a
+`Map<String, String> Function()` callback rather than a direct dependency.
+
+**Original analysis follows.**
+
 **Priority: highest. Nothing else on this list is worth as much.**
 
 ### Evidence
@@ -353,7 +386,7 @@ framework.
 
 | Phase | Items | Rationale |
 |---|---|---|
-| **1** | ~~Gap 2 (health/readiness)~~ **done**, then Gap 1 (context propagation) | Both are small, both depend only on machinery that already exists, and neither can be bolted on from user code. Gap 2 additionally fixed a real ordering defect in a feature already shipped |
+| **1** | ~~Gap 2 (health/readiness)~~ **done**, ~~Gap 1 (context propagation)~~ **done** | Both are small, both depend only on machinery that already exists, and neither can be bolted on from user code. Gap 2 additionally fixed a real ordering defect in a feature already shipped |
 | **1a** | ~~Broadcast shutdown to worker isolates~~ **done** | Fallout from Gap 2: readiness and `drainDelay` were per-isolate. Closed, so both now hold at any `workers` count |
 | **2** | Gap 4 (client resilience) | Breaking signature change — cost rises with every additional `revali_client` user |
 | **3** | Gap 3 (env config) | Small, but an API-surface decision worth taking deliberately |

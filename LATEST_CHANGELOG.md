@@ -42,6 +42,9 @@
 - Add health probes to `AppConfig`. `HealthSettings` (exposed as `AppConfig.health`) configures a liveness path (`/healthz`) and a readiness path (`/readyz`), a list of `HealthCheck`s consulted by readiness, and a per-check `checkTimeout`. Either path can be set to `null`, or the whole thing disabled with `const HealthSettings.disabled()`.
 - Liveness and readiness answer different questions, and the split is deliberate: liveness failing tells an orchestrator to **restart** the process, so it keeps returning `200` during a graceful shutdown, while readiness flips to `503`. Failing liveness mid-drain would kill exactly the in-flight requests the drain exists to protect. Liveness also runs no checks — consulting a database there turns one database blip into a restart storm.
 - Add `AppConfig.drainDelay` (default `Duration.zero`, so existing behaviour is unchanged). Closing the listening socket is invisible to a load balancer: it keeps routing until its own readiness probe fails, and every request it sends in the meantime hits a closed socket. This is the window in which readiness reports `503` while the server can still serve. Behind a load balancer, set it longer than the probe's period times its failure threshold, and keep `drainDelay + shutdownTimeout` under the platform's kill grace period.
+- Add `TraceContext`, ambient for the whole of a request. A request id that only exists as a header dies at the first hop — a call the handler makes to another service opens a fresh, uncorrelated request, and the two services' logs cannot be joined afterwards. `TraceContext.current` carries the request id, W3C `traceparent`/`tracestate` and a mutable `baggage` map, reachable from anywhere inside the request without being threaded through. `outboundHeaders()` produces the headers to forward. Nothing forwards them automatically: what counts as a trusted peer is the app's call, not the framework's.
+- `traceparent` is **propagated, never invented**. It is carried verbatim when the caller sent one and left absent when they did not — a fabricated one is worse than none, since a collector will stitch it into the wrong trace. This deliberately stops short of span lifecycles, samplers and exporters.
+- `baggage` is encoded and parsed in the W3C header format, with keys and values percent-encoded so an unescaped `,` or `=` cannot silently split one entry into two. Malformed inbound entries are skipped rather than throwing, since they arrive from another service.
 
 # revali_test
 
@@ -76,6 +79,8 @@
 - Add `healthRoutes`, which builds the liveness and readiness routes described by a `HealthSettings`. Readiness takes an `isDraining` callback, read per request rather than captured, so the probe reflects the current shutdown state instead of the state at startup. Checks run concurrently, so the probe costs the slowest check rather than the sum of them, and a check that fails, throws, or outruns `checkTimeout` is reported as unhealthy with its name — a probe that 500s tells an orchestrator strictly less than one that names the dependency that is down.
 - `shutdownServer` takes a `drainDelay`, applied after the drain is flagged but **before** the listening socket closes. Requests arriving in that window are served and tracked normally, since the accept loop does not refuse while draining. Defaults to `Duration.zero`, which is exactly the previous behaviour.
 - Add `WorkerFleet` and `listenForDrainCommands`, the two halves of a shutdown that reaches worker isolates. With `AppConfig.workers > 1` every isolate binds the same port with `shared: true` and keeps its own in-flight set, while only the parent watches signals — so a `SIGTERM` drained one isolate and the parent's `exit(0)` truncated the rest, and a readiness probe balanced onto a worker reported ready while the parent was already draining. The parent now tells each worker to drain and waits for them to report back before exiting. A worker that dies, never registers, or hangs is bounded by a timeout rather than holding the process open.
+- Install a `TraceContext` for every request, seeded from the caller's `X-Request-Id`, `traceparent`, `tracestate` and `baggage` headers and generating a request id when none was sent. It is installed on the `handleRequest` serve path — the one `handleRouterRequests` and the generated server actually use — as well as the older `handle` split, and for every request whether or not `di` is configured: an id that only exists when dependency injection happens to be set up is one a logger cannot rely on.
+- `@RequestId` now stamps the id the ambient `TraceContext` carries rather than generating a second one, so the header and the context always name the same request. It still works outside a request, where there is no context.
 
 <!-- CONSTRUCTS -->
 
@@ -111,16 +116,11 @@
 
 # revali_client
 
-## 2.1.0
+## 2.2.0
 
 ### Features
 
-- Send streamed request bodies. A `Stream<List<int>>` or `Stream<String>` body is now handed to the transport and sent incrementally, so a large upload never has to fit in memory; previously this threw `UnimplementedError`. The server side already worked — `@Body() Stream<List<int>>` reads the payload as it arrives — so this completes the round trip. `HttpRequest` gains `bodyStream`. Any other `Stream<T>` throws an `ArgumentError` naming the supported types rather than inventing a framing format the server has no binding for.
-
-### Fixes
-
-- Parse every `Set-Cookie` value, and stop storing cookie attributes as cookies. A response setting several cookies arrives as one comma-joined header, which `CookieParser` could not match at all, so none were saved; the attributes it did match put `Path` and `Expires` into storage. Splitting now happens only at a comma beginning a new `name=` pair, so the comma inside an `Expires` date cannot split a cookie in half.
-- Actually enable cross-origin cookie credentials on web by setting `BrowserClient.withCredentials = true`, instead of adding a literal `credentials: 'include'` HTTP header (a no-op -- `credentials` is a `fetch()`-level option, not a header, so it never did anything). Non-web platforms are unaffected (no browser cookie jar to opt into).
+- Add `HeaderInterceptor`, which computes headers per request instead of fixing them when the client is built. The motivating case is correlation: a server handling a request and calling a peer forwards its trace headers with `HeaderInterceptor(() => TraceContext.current?.outboundHeaders() ?? const {})`. It never overwrites a header the call site set explicitly. The callback is deliberately the coupling — `revali_client` runs on the web, where `dart:io` and so `revali_core` cannot follow, so a function of `Map<String, String>` connects the two without dragging a server-only dependency into a browser bundle.
 
 # revali_client_gen
 
