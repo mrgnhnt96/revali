@@ -6,16 +6,37 @@ import 'package:revali_client/src/http_interceptor.dart';
 import 'package:revali_client/src/http_request.dart';
 import 'package:revali_client/src/http_response.dart';
 import 'package:revali_client/src/integrations/http_package_client.dart';
+import 'package:revali_client/src/retry_policy.dart';
 import 'package:revali_client/src/server_exception.dart';
 import 'package:revali_client/src/storage.dart';
 
 class RevaliClient {
-  RevaliClient({required this.storage, HttpClient? client, this.baseUrl})
-    : _client = client ?? HttpPackageClient();
+  RevaliClient({
+    required this.storage,
+    HttpClient? client,
+    this.baseUrl,
+    this.timeout,
+    this.retry = const RetryPolicy.none(),
+  }) : _client = client ?? HttpPackageClient();
 
   final Storage storage;
   final HttpClient _client;
   final String? baseUrl;
+
+  /// How long to wait for a response before giving up.
+  ///
+  /// Covers reaching the far side and getting its status and headers back, not
+  /// the time spent streaming a large body afterwards — a slow download is not
+  /// the same failure as a peer that never answers, and cutting the first off
+  /// at the same deadline as the second would break long transfers.
+  ///
+  /// Null waits indefinitely, which is the previous behaviour and a poor
+  /// default in a service mesh: a peer that accepts connections and never
+  /// replies otherwise holds this request forever.
+  final Duration? timeout;
+
+  /// When a failed request is sent again. Off by default.
+  final RetryPolicy retry;
 
   List<HttpInterceptor> get interceptors => _client.interceptors;
 
@@ -145,7 +166,7 @@ class RevaliClient {
         request.headers['content-type'] = 'application/json';
     }
 
-    final response = await _client.send(request);
+    final response = await _send(request);
 
     final hasException = switch (response.statusCode) {
       >= 200 && < 300 => false,
@@ -172,5 +193,54 @@ class RevaliClient {
     }
 
     return response;
+  }
+
+  /// Sends [request], applying [timeout] and [retry].
+  ///
+  /// Deliberately wraps the transport rather than living inside
+  /// [HttpPackageClient], so a custom [HttpClient] — a test double, a
+  /// different HTTP package — gets the same behaviour instead of having to
+  /// reimplement it.
+  Future<HttpResponse> _send(HttpRequest request) async {
+    final retryable = retry.allows(request);
+
+    var attempt = 0;
+    while (true) {
+      attempt++;
+
+      HttpResponse response;
+      try {
+        response = await _sendOnce(request);
+      } catch (_) {
+        if (!retryable || !retry.shouldRetryError(attempt)) {
+          rethrow;
+        }
+
+        await Future<void>.delayed(retry.delayFor(attempt));
+        continue;
+      }
+
+      if (!retryable || !retry.shouldRetryResponse(response, attempt)) {
+        return response;
+      }
+
+      final delay = retry.delayFor(attempt, response);
+
+      // The discarded response still owns a socket. Draining it releases the
+      // connection instead of leaking one per retry.
+      await response.stream.drain<void>().catchError((Object _) {});
+
+      await Future<void>.delayed(delay);
+    }
+  }
+
+  Future<HttpResponse> _sendOnce(HttpRequest request) {
+    final sent = _client.send(request);
+
+    if (timeout case final limit?) {
+      return sent.timeout(limit);
+    }
+
+    return sent;
   }
 }

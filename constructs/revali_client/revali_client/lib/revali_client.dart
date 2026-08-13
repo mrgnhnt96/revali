@@ -11,6 +11,7 @@ export 'src/http_interceptor.dart';
 export 'src/http_request.dart';
 export 'src/http_response.dart';
 export 'src/integrations/http_package_client.dart';
+export 'src/retry_policy.dart';
 export 'src/revali_client.dart';
 export 'src/server_exception.dart';
 export 'src/session_storage.dart';
