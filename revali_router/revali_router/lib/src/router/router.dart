@@ -75,10 +75,19 @@ class Router extends Equatable {
     this.inspectLogPath = '',
     this.defaultResponses = const DefaultResponses(),
     this.trustedProxy = const TrustedProxy(),
+    this.di,
   })  : _reflects = reflects,
         _globalComponents = globalComponents {
     _prepareRoutes(routes);
   }
+
+  /// The application container every request scopes from.
+  ///
+  /// When set, each request runs with its own [RequestScopedDI] installed, so
+  /// dependencies registered with `registerRequestScoped` are built once per
+  /// request and disposed when it ends. Null leaves requests unscoped, which
+  /// is how a [Router] constructed directly (in tests, say) behaves.
+  final DI? di;
 
   final List<Observer> observers;
   final List<BaseRoute> routes;
@@ -144,6 +153,19 @@ class Router extends Equatable {
   /// older `handleRequests` + [responseHandler] + [handle] split which Finds
   /// twice per request.
   Future<void> handleRequest(HttpRequest httpRequest) async {
+    // The scope covers writing the response too, not just the pipeline, so a
+    // streaming body can still resolve what it was built with. Disposal is
+    // awaited here, which also means a graceful shutdown drains it.
+    if (di case final parent?) {
+      return RequestScopedDI(parent: parent).run(
+        () => _handleRequest(httpRequest),
+      );
+    }
+
+    return _handleRequest(httpRequest);
+  }
+
+  Future<void> _handleRequest(HttpRequest httpRequest) async {
     final started = DateTime.now();
     final context = RequestContextImpl.fromRequest(
       httpRequest,
@@ -218,6 +240,25 @@ class Router extends Equatable {
   }
 
   Future<Response> handle(RequestContext context) async {
+    if (di case final parent?) {
+      final scope = RequestScopedDI(parent: parent);
+
+      // The caller writes the response after this returns, so disposal has to
+      // wait for the context to close rather than for this future. Not
+      // awaited, because [RequestContext.close] is synchronous -- errors are
+      // handled inside dispose().
+      context.addCleanUp(() => unawaited(scope.dispose()));
+
+      return runZoned(
+        () => _handle0(context),
+        zoneValues: {RequestScopedDI.zoneKey: scope},
+      );
+    }
+
+    return _handle0(context);
+  }
+
+  Future<Response> _handle0(RequestContext context) async {
     final started = DateTime.now();
     final (response, _) = await _handleWithHandler(context);
     _recordTrace(context, response, started);
