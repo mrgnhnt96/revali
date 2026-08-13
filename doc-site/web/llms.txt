@@ -21,6 +21,7 @@ Install the framework, configure your app, and run the CLI.
 - [Default Responses](https://docs.revali.dev/revali/app-configuration/default-responses): Set the body Revali returns for 404s and 500s.
 - [Environment Variables](https://docs.revali.dev/revali/app-configuration/env-vars): Read configuration from the environment, type-safely.
 - [HTTPS in Development](https://docs.revali.dev/revali/app-configuration/https): Serve TLS locally without a proxy in front.
+- [Compression](https://docs.revali.dev/revali/app-configuration/compression): Gzip responses for clients that ask for them.
 - [Graceful Shutdown](https://docs.revali.dev/revali/app-configuration/graceful-shutdown): Finish in-flight requests before the process exits.
 - [revali dev](https://docs.revali.dev/revali/cli/dev): Run the server with code generation and hot reload.
 - [revali build](https://docs.revali.dev/revali/cli/build): Produce the compiled server for deployment.

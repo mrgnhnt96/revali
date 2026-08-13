@@ -46,6 +46,7 @@
 
 ### Features
 
+- Add `CompressionSettings`, exposed as `AppConfig.compression`. Responses are gzipped by default for clients that send `Accept-Encoding: gzip`, above a 1 KB threshold and only for text-shaped mime types. Use `CompressionSettings.disabled()` when a CDN or reverse proxy already compresses.
 - Add request-scoped dependencies. `DI.registerRequestScoped<T>` builds `T` once per request and shares it for the rest of that request, with nothing shared between requests — the missing middle between `registerSingleton` (whole process) and `registerFactory` (every resolution). Instances implementing the new `Disposable` interface are released when the request ends, in reverse creation order, whether it succeeded or threw. Resolving a request-scoped type outside a request throws rather than silently handing back an undisposed instance shared with nobody. `RequestScopedDI` is now a working per-request container rather than a stub: it caches what it builds, tracks it for disposal, and finds registrations through the `DIHandler` wrapper via the new `RequestScopedRegistry` interface.
 - Add graceful-shutdown configuration to `AppConfig`: `handleShutdownSignals` (default `true`) to opt out of signal handling, `shutdownTimeout` (default 15s) to bound how long in-flight requests are awaited, and an `onServerStopped` hook that runs once they have drained so the app can release databases, consumers and file handles.
 
@@ -82,6 +83,7 @@
 
 ### Features
 
+- Gzip responses through the default response handler, negotiated via `Accept-Encoding` and configured with `Router.compression`. Deliberately conservative: only bodies of a known length are compressed, which leaves streaming and SSE responses untouched — gzip buffers, so compressing a stream would hold back chunks the handler meant to flush. Partial content (`206`) and already-encoded responses are skipped, and compressed responses carry `Vary: Accept-Encoding`.
 - `Router` takes an optional `di`. When set, every request runs with its own `RequestScopedDI` installed for the whole pipeline — middleware, guards, interceptors, the handler and exception catchers all resolve against the same scope. Disposal waits until the response has been fully written, so streaming and SSE handlers keep their request-scoped resources for as long as they are sending. Omitting `di` leaves requests unscoped, which is how a `Router` built directly in a test behaves.
 - Add graceful shutdown. `InFlightRequests` tracks requests the accept loop detached, `shutdownServer` stops the listener and waits for them within a timeout before forcing the socket closed, and `listenForShutdown` runs a callback on the first `SIGTERM`/`SIGINT` (ignoring later ones while a shutdown is already running, and skipping `SIGTERM` on Windows, which has no such signal). `handleRequests` and `handleRouterRequests` take an optional `inFlight` and behave exactly as before without it.
 

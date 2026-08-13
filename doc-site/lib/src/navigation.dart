@@ -204,6 +204,11 @@ const _revali = NavSection(
           summary: 'Serve TLS locally without a proxy in front.',
         ),
         NavItem(
+          'Compression',
+          '/revali/app-configuration/compression',
+          summary: 'Gzip responses for clients that ask for them.',
+        ),
+        NavItem(
           'Graceful Shutdown',
           '/revali/app-configuration/graceful-shutdown',
           summary: 'Finish in-flight requests before the process exits.',

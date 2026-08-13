@@ -1089,6 +1089,42 @@
       ]
     },
     {
+      "u": "/revali/app-configuration/compression",
+      "t": "Compression",
+      "d": "Gzip responses for clients that ask for them.",
+      "g": "Revali",
+      "s": [
+        {
+          "b": "Revali gzips responses by default. It is negotiated, so only a client that sent Accept-Encoding: gzip ever receives a compressed body — turning this on cannot break a client that did not ask. There is nothing to enable."
+        },
+        {
+          "h": "What gets compressed",
+          "a": "what-gets-compressed",
+          "b": "A response is compressed only when all of these hold: The client sent Accept-Encoding: gzip. The Content-Type is text-shaped — JSON, HTML, CSS, JavaScript, XML, SVG, plain text, CSV, Markdown. The body is at least minBytes (1 KB by default). The response is not already encoded, and is not partial content (206). Compressed responses also carry Vary: Accept-Encoding, so a cache in front of the server keeps the compressed and uncompressed variants apart instead of serving one to a client that cannot read it."
+        },
+        {
+          "h": "What deliberately does not",
+          "a": "what-deliberately-does-not",
+          "b": "Bodies of unknown length, which in practice means streaming responses and SSE. Gzip buffers, so compressing a stream would hold back chunks the handler meant to flush immediately — the compression would come at the cost of the thing streaming exists for. Already-compressed media. Images, video and archives come out marginally larger after gzip, having spent CPU to get there. Small bodies. Below roughly a packet there is nothing to save, and gzip's own header can make a tiny response bigger."
+        },
+        {
+          "h": "Tuning it",
+          "a": "tuning-it",
+          "b": "@App() final class MyApp extends AppConfig { const MyApp() : super(host: 'localhost', port: 8080); @override CompressionSettings get compression => const CompressionSettings( minBytes: 4096, mimeTypes: {...CompressionSettings.defaultMimeTypes, 'application/hal+json'}, ); }"
+        },
+        {
+          "h": "Turning it off",
+          "a": "turning-it-off",
+          "b": "Worth doing when something in front of the server already compresses — a CDN, or a reverse proxy like nginx — so you are not paying for it twice: @override CompressionSettings get compression => const CompressionSettings.disabled(); This applies to the default response handler. A route or global component that supplies its own ResponseHandler is responsible for its own compression."
+        },
+        {
+          "h": "What's next?",
+          "a": "whats-next",
+          "b": "Graceful Shutdown — the other server-wide behavior on AppConfig Headers — setting response headers yourself"
+        }
+      ]
+    },
+    {
       "u": "/revali/app-configuration/graceful-shutdown",
       "t": "Graceful Shutdown",
       "d": "Finish in-flight requests before the process exits.",
