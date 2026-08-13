@@ -1,28 +1,18 @@
-import 'package:args/args.dart';
-import 'package:args/command_runner.dart';
 import 'package:file/file.dart';
-import 'package:mason_logger/mason_logger.dart';
 import 'package:revali/ast/analyzer/analyzer.dart';
 import 'package:revali/clis/construct_runner/commands/build_command.dart';
 import 'package:revali/clis/construct_runner/commands/dev_command.dart';
+import 'package:revali/clis/shared/commands/revali_command_runner.dart';
 import 'package:revali_construct/revali_construct.dart';
 
-class ConstructRunner extends CommandRunner<int> {
+class ConstructRunner extends RevaliCommandRunner {
   ConstructRunner({
     required this.constructs,
     required this.rootPath,
-    required this.logger,
+    required super.logger,
     required FileSystem fs,
     required Analyzer analyzer,
   }) : super('', 'Generates the construct') {
-    argParser
-      ..addFlag('loud', help: 'Prints detailed output', hide: true)
-      ..addFlag(
-        'quiet',
-        help: 'Limits output to important information only',
-        hide: true,
-      );
-
     addCommand(
       DevCommand(
         fs: fs,
@@ -45,21 +35,4 @@ class ConstructRunner extends CommandRunner<int> {
 
   final List<ConstructMaker> constructs;
   final String rootPath;
-  final Logger logger;
-
-  @override
-  Future<int> run(Iterable<String> args) async {
-    final result = await super.run(args);
-
-    return result ?? 0;
-  }
-
-  @override
-  Future<int> runCommand(ArgResults topLevelResults) async {
-    final result = await super.runCommand(topLevelResults);
-
-    logger.flush();
-
-    return result ?? 0;
-  }
 }
