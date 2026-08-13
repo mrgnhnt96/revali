@@ -1,7 +1,16 @@
 name: revali_mcp
-description: Stdio MCP server for Revali — routes, doctor, inspect, create.
 version: 0.1.0
-publish_to: none
+description: Stdio MCP server for Revali — inspect routes, run doctor, read recent requests, and scaffold components from your AI editor.
+repository: https://github.com/mrgnhnt96/revali/tree/main/packages/revali_mcp
+issue_tracker: https://github.com/mrgnhnt96/revali/issues
+documentation: https://revali.dev
+funding:
+    - https://github.com/sponsors/mrgnhnt96
+topics:
+  - revali
+  - mcp
+  - server
+  - tooling
 
 environment:
   sdk: ">=3.8.0 <4.0.0"
