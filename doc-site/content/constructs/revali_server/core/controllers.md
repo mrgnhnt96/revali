@@ -208,6 +208,53 @@ class UsersController {
 }
 ```
 
+## Sharing endpoints between controllers
+
+Annotated methods on a superclass or mixin become routes on the controller
+that inherits them, so endpoints several controllers share can be declared
+once:
+
+```dart
+abstract class CrudBase {
+  const CrudBase();
+
+  @Get('all')
+  List<String> findAll() => const [];
+}
+
+mixin HealthEndpoints {
+  @Get('health')
+  String health() => 'ok';
+}
+
+@Controller('items')
+class ItemsController extends CrudBase with HealthEndpoints {
+  const ItemsController();
+
+  @Post()
+  String create() => 'created';
+}
+```
+
+`ItemsController` serves all three: `POST /api/items`, `GET /api/items/all`
+and `GET /api/items/health`.
+
+Overriding behaves the way you would expect:
+
+- Override **with** an annotation and yours replaces the inherited route.
+- Override **without** one and the inherited route stays, dispatching to your
+  implementation at runtime.
+
+<Callout type="caution">
+
+Inheriting endpoints from a **generic** base is not supported and fails the
+build with an explanatory error. The inherited signatures still refer to the
+base's type parameters, so the generated request bindings would be wrong.
+Declare those endpoints on the controller itself, or make the base
+non-generic.
+
+</Callout>
+
 ## What's Next?
 
 Now that you understand controllers, explore these related topics:

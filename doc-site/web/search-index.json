@@ -2065,6 +2065,11 @@
           "b": "// ✅ Good - focused on user operations @Controller('users') class UsersController { @Get() Future<List > getUsers() => _userService.getAllUsers(); @Post() Future createUser(@Body() CreateUserRequest request) => _userService.createUser(request); } // ❌ Avoid - mixing unrelated operations @Controller('users') class UsersController { @Get() Future<List > getUsers() => _userService.getAllUsers(); @Get() Future<List > getProducts() => _productService.getAllProducts(); // Wrong! }"
         },
         {
+          "h": "Sharing endpoints between controllers",
+          "a": "sharing-endpoints-between-controllers",
+          "b": "Annotated methods on a superclass or mixin become routes on the controller that inherits them, so endpoints several controllers share can be declared once: abstract class CrudBase { const CrudBase(); @Get('all') List findAll() => const []; } mixin HealthEndpoints { @Get('health') String health() => 'ok'; } @Controller('items') class ItemsController extends CrudBase with HealthEndpoints { const ItemsController(); @Post() String create() => 'created'; } ItemsController serves all three: POST /api/items, GET /api/items/all and GET /api/items/health. Overriding behaves the way you would expect: Override with an annotation and yours replaces the inherited route. Override without one and the inherited route stays, dispatching to your implementation at runtime. Inheriting endpoints from a generic base is not supported and fails the build with an explanatory error. The inherited signatures still"
+        },
+        {
           "h": "What's Next?",
           "a": "whats-next",
           "b": "Now that you understand controllers, explore these related topics: 1. HTTP Methods - Learn about different HTTP methods and how to use them 2. Binding - Understand how to extract data from requests 3. Pipes - Transform and validate request data 4. Dependency Injection - Configure your services and dependencies Ready to dive deeper? Let's explore HTTP methods!"
