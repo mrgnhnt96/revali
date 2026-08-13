@@ -145,11 +145,18 @@ mounted into the former. The split is fine; the flag duplication is not.
 
 ### Found while asking "what's next" — read these first
 
-- [ ] 🔴 **The pre-push test gate runs zero tests and exits 0.**
+- [x] 🔴 **The pre-push test gate runs zero tests and exits 0.**
   - `hooks/pre_push.dart` runs `sip test --recursive --bail` from the **repo root**. Observed directly: it prints `Results: ✅ 0 ❌ 0 ⚠️ 0`, emits `LoadSuite.forLoadException` errors and `Could not find package `test``, and **exits 0**
   - So the green `✓ Test Suite` on every push means nothing was run, not that anything passed. The four genuinely failing `test_suite` tests below have been sailing past it
   - The `Generate Test Suite` step before it *does* work — it is only the run that is empty
-  - Fix needs a floor, not just an exit code: assert a **minimum test count**, or run the suite the way `sip run ts` does (`cd test_suite && sip test --recursive`), which demonstrably executes them
+  - Worse than first reported: `sip test` under-reports even where it *does* run. In `test_suite/constructs/revali_server/access_control`, `dart test` exits 1 with 3 failures while `sip test` exits 0 reporting "40 passed, 0 failed" — the failures vanish from both the count and the exit code. So `sip run ts` was never a safe replacement either
+  - Done: `scripts/run_all_tests.sh` runs `dart test` per package, fails if any package fails, and **fails if fewer packages ran than expected** so "discovered nothing" cannot look like "everything passed". Packages that cannot run tests are skipped and reported as skipped
+  - Verified in all three directions: red with 4 failing packages, red with `--min 500` against 41 discovered, green at 41/41
+- [x] **Fixed the 4 packages the old gate had been hiding** — and only one was a stale test
+  - `middleware` — stale assertion: pinned the whole debug body as an exact prefix, broken by a richer `MissingArgumentException` message
+  - `access_control` — stale assertions: still expected `403` for a request with no `Origin`, which `3a3b7b92` deliberately changed without updating the tests
+  - `revali_client/cookies` — **real bug**: `CookieParser` could not parse a comma-joined multi-cookie header at all, and stored `Path`/`Expires` as cookies. `TestHeaders.add` also overwrote instead of appending, so only the last cookie survived
+  - `revali_client/default_custom_params` — **real bug**: generated code did not compile for a parameter whose wire form is a string but whose type is a custom class. Any app with such a parameter failed to build
 - [ ] 🔴 **`revali_router` is versioned `4.1.0` for a breaking change.**
   - `revali_router.dart` re-exports `package:revali_core/revali_core.dart` hiding only `AppConfig`, `Body` and `LifecycleComponents` — so `Observer` is part of **revali_router's** public API, and `examples/hello` imports it from there
   - `Observer.see`'s signature changed, which is breaking for revali_router consumers. Shipping it as a minor breaks every dependent on `dart pub upgrade`

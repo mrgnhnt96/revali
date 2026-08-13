@@ -10,6 +10,7 @@
 
 ### Features
 
+- Fix generated code failing to compile for a parameter whose wire form is a string but whose type is a custom class — `StringUser.fromJson(String)`, an enum with `fromJson`. The coercion arms for numbers and booleans returned `data.toString()` while the others returned the custom type, so the switch inferred `Object` and the file did not compile. They now apply the same `fromJson`.
 - Controllers inherit endpoints. Annotated methods on a superclass or mixin now become routes on the controller that extends it, instead of being silently dropped with no error. An override with its own annotation replaces the inherited route; an override *without* one keeps the inherited route and dispatches to the override at runtime. Inheriting endpoints from a **generic** base is rejected with an explanatory error rather than generating wrong bindings, since the inherited signatures still refer to the type parameters.
 - The generated server passes its DI container to the `Router`, so every request gets its own scope and `registerRequestScoped` dependencies work end to end.
 - The generated server now shuts down gracefully. On `SIGTERM`/`SIGINT` it stops accepting connections, waits for in-flight requests up to `AppConfig.shutdownTimeout`, runs `AppConfig.onServerStopped`, and exits `0` — so a deploy or scale-down no longer truncates responses that were mid-flight. Handlers are installed only for a server Revali created itself, never when one is provided (as `TestServer` does) and never in worker isolates.
@@ -63,6 +64,7 @@
 
 ### Features
 
+- `TestHeaders.add` appends instead of overwriting, matching `dart:io`. A response setting several cookies — each needing its own `Set-Cookie` line — arrived with only the last one, so tests could not see the rest.
 - `TestRequest` sends binary and streamed bodies as they are. Previously anything that was not a `String` was `jsonEncode`d, so a `List<int>` upload arrived as the *text* `"[1,2,3]"`, and a `Stream` body was read as WebSocket frames rather than a request body — leaving the request empty. WebSocket input now arrives through its own `webSocketInput` parameter, so a streamed HTTP body is expressible at all.
 - First release. `revali_test` was previously `publish_to: none`, so the testing helpers the docs and the internal suite rely on were unavailable to anyone outside this repo. It exposes `TestServer`, which stands in for an `HttpServer` so a generated server runs in-process without binding a socket, plus `TestRequest`/`TestResponse`/`TestHeaders` and the `expectRecentHttpDate` matcher.
 
@@ -137,6 +139,7 @@
 
 ### Fixes
 
+- Parse every `Set-Cookie` value, and stop storing cookie attributes as cookies. A response setting several cookies arrives as one comma-joined header, which `CookieParser` could not match at all, so none were saved; the attributes it did match put `Path` and `Expires` into storage. Splitting now happens only at a comma beginning a new `name=` pair, so the comma inside an `Expires` date cannot split a cookie in half.
 - Actually enable cross-origin cookie credentials on web by setting `BrowserClient.withCredentials = true`, instead of adding a literal `credentials: 'include'` HTTP header (a no-op -- `credentials` is a `fetch()`-level option, not a header, so it never did anything). Non-web platforms are unaffected (no browser cookie jar to opt into).
 
 # revali_client_gen
