@@ -117,10 +117,27 @@ class RevaliClient {
         request.body = body;
         request.headers['content-type'] = 'text/plain';
 
+      // Sent incrementally, so a large upload never has to fit in memory.
+      // The server side of this is `@Body() Stream<List<int>>`, which reads
+      // the payload as it arrives.
+      case Stream<List<int>>():
+        request.bodyStream = body;
+        request.headers['content-type'] = 'application/octet-stream';
+
+      case Stream<String>():
+        request.bodyStream = body.map(utf8.encode);
+        request.headers['content-type'] = 'text/plain';
+
       case Stream<dynamic>():
-        throw UnimplementedError('Stream body not implemented');
-      // request.body = body;
-      // request.headers['content-type'] = 'application/octet-stream';
+        // Anything else would need a framing format both ends agree on
+        // (NDJSON, length-prefixing), and the server has no binding for one.
+        // Better to say so than to invent a format silently.
+        throw ArgumentError(
+          'Cannot send a ${body.runtimeType} as a request body. Streamed '
+          'bodies must be Stream<List<int>> or Stream<String>; map the '
+          'stream to one of those before sending it.',
+        );
+
       case null:
         break;
       default:

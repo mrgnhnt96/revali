@@ -20,24 +20,7 @@ class HttpPackageClient implements HttpClient {
 
   @override
   Future<HttpResponse> send(HttpRequest request) async {
-    // ignore: unnecessary_await_in_return
-    final httpRequest = http.Request(request.method, request.url);
-
-    if (request.bodyBytes case final bytes?) {
-      httpRequest.bodyBytes = bytes;
-    }
-
-    if (request.body case final body when body.isNotEmpty) {
-      httpRequest.body = body;
-    }
-
-    if (request.encoding case final encoding?) {
-      httpRequest.encoding = encoding;
-    }
-
-    if (request.contentLength case final contentLength?) {
-      httpRequest.contentLength = contentLength;
-    }
+    final httpRequest = _buildRequest(request);
 
     for (final HttpInterceptor(:onRequest) in interceptors) {
       try {
@@ -78,5 +61,51 @@ class HttpPackageClient implements HttpClient {
     }
 
     return httpResponse;
+  }
+
+  http.BaseRequest _buildRequest(HttpRequest request) {
+    if (request.bodyStream case final stream?) {
+      return _StreamedRequest(request.method, request.url, stream)
+        ..contentLength = request.contentLength;
+    }
+
+    final httpRequest = http.Request(request.method, request.url);
+
+    if (request.bodyBytes case final bytes?) {
+      httpRequest.bodyBytes = bytes;
+    }
+
+    if (request.body case final body when body.isNotEmpty) {
+      httpRequest.body = body;
+    }
+
+    if (request.encoding case final encoding?) {
+      httpRequest.encoding = encoding;
+    }
+
+    if (request.contentLength case final contentLength?) {
+      httpRequest.contentLength = contentLength;
+    }
+
+    return httpRequest;
+  }
+}
+
+/// Sends a body straight from a stream.
+///
+/// `http.StreamedRequest` requires the caller to pump its sink, which means
+/// starting that pump before `send` and cancelling it if the request fails.
+/// Subclassing `BaseRequest` instead lets the stream be handed over whole, so
+/// the transport pulls from it and backpressure is preserved.
+class _StreamedRequest extends http.BaseRequest {
+  _StreamedRequest(super.method, super.url, this._body);
+
+  final Stream<List<int>> _body;
+
+  @override
+  http.ByteStream finalize() {
+    super.finalize();
+
+    return http.ByteStream(_body);
   }
 }
