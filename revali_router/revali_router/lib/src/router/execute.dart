@@ -46,8 +46,14 @@ class Execute {
       ) = helper;
 
       if (observers.isNotEmpty) {
-        for (final observer in observers) {
-          observer.see(request, observerResponseFuture).ignore();
+        for (final listener in observers) {
+          // Not every listener wants the start of a request -- a
+          // RequestObserver only takes the summary once it finishes.
+          if (listener is! Observer) {
+            continue;
+          }
+
+          listener.see(request, observerResponseFuture).ignore();
         }
       }
 

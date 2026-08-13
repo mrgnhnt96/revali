@@ -18,7 +18,7 @@ mixin HelperMixin {
   DebugErrorResponse get debugErrorResponse;
   DefaultResponses get defaultResponses;
   bool get debugResponses;
-  List<Observer> get observers;
+  List<RequestListener> get observers;
   Future<Response> get observerResponseFuture;
 
   AsyncWebSocketSender<dynamic> get asyncSender;

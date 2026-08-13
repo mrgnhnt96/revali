@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:revali_core/components/request_listener.dart';
+
 /// What a completed request looked like, from the outside.
 ///
 /// The shape a metrics counter, a latency histogram or a tracing span needs:
@@ -45,16 +47,12 @@ class RequestSummary {
 /// with the timing already resolved, which is what exporting a metric or
 /// closing a span actually needs.
 ///
-/// Registered as an `Observer` — the framework looks for this interface among
-/// the observers an app already declares, so implement **both**. `see` can be
-/// a no-op when only the summary is wanted:
+/// Registered like any other observer, and implementing `Observer` as well is
+/// optional — the router dispatches on whichever interfaces are present:
 ///
 /// ```dart
-/// class Metrics implements Observer, RequestObserver {
+/// class Metrics implements RequestObserver {
 ///   const Metrics();
-///
-///   @override
-///   Future<void> see(Request request, Future<Response> response) async {}
 ///
 ///   @override
 ///   void onRequestComplete(RequestSummary summary) {
@@ -64,11 +62,17 @@ class RequestSummary {
 /// }
 /// ```
 ///
+/// ```dart
+/// @Observers([Metrics])
+/// @App()
+/// final class MyApp extends AppConfig { ... }
+/// ```
+///
 /// Called on the response path, so keep it cheap — buffer and flush
 /// elsewhere rather than awaiting a network write here. Errors thrown from it
 /// are swallowed: the response has already been produced, and a broken
 /// metrics exporter must not take the request with it.
-abstract interface class RequestObserver {
+abstract interface class RequestObserver implements RequestListener {
   const RequestObserver();
 
   FutureOr<void> onRequestComplete(RequestSummary summary);

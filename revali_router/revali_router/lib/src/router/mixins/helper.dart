@@ -58,7 +58,7 @@ class Helper with HelperMixin, ContextMixin {
   late final DefaultResponses defaultResponses;
 
   @override
-  final List<Observer> observers;
+  final List<RequestListener> observers;
 
   @override
   final Future<Response> observerResponseFuture;

@@ -4,20 +4,28 @@ import 'dart:io';
 import 'package:revali_router/revali_router.dart';
 import 'package:test/test.dart';
 
-class _Recorder implements Observer, RequestObserver {
+/// Deliberately does **not** implement Observer: a listener that only wants
+/// the completed-request summary must be registerable without a no-op `see`.
+class _Recorder implements RequestObserver {
   final summaries = <RequestSummary>[];
-
-  @override
-  Future<void> see(Request request, Future<Response> response) async {}
 
   @override
   void onRequestComplete(RequestSummary summary) => summaries.add(summary);
 }
 
-class _Exploder implements Observer, RequestObserver {
-  @override
-  Future<void> see(Request request, Future<Response> response) async {}
+/// Implements both, which must also work.
+class _Both implements Observer, RequestObserver {
+  final summaries = <RequestSummary>[];
+  int seen = 0;
 
+  @override
+  Future<void> see(Request request, Future<Response> response) async => seen++;
+
+  @override
+  void onRequestComplete(RequestSummary summary) => summaries.add(summary);
+}
+
+class _Exploder implements RequestObserver {
   @override
   Future<void> onRequestComplete(RequestSummary summary) async =>
       throw StateError('exporter down');
@@ -36,7 +44,7 @@ void main() {
     late HttpServer server;
     late HttpClient client;
 
-    Future<void> serve(List<Observer> observers) async {
+    Future<void> serve(List<RequestListener> observers) async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
 
       final router = Router(
@@ -144,6 +152,17 @@ void main() {
       await settle();
 
       expect(recorder.summaries, hasLength(1));
+    });
+
+    test('a listener implementing both gets both callbacks', () async {
+      final both = _Both();
+      await serve([both]);
+
+      await hit('/users/7');
+      await settle();
+
+      expect(both.seen, 1, reason: 'Observer.see still fires');
+      expect(both.summaries, hasLength(1), reason: 'and so does the summary');
     });
 
     test('an observer that is not a RequestObserver is skipped', () async {

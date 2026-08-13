@@ -95,7 +95,13 @@ class Router extends Equatable {
   /// is how a [Router] constructed directly (in tests, say) behaves.
   final DI? di;
 
-  final List<Observer> observers;
+  /// Everything watching requests.
+  ///
+  /// Typed as the shared supertype rather than [Observer] so a listener that
+  /// only wants the completed-request summary can be registered without
+  /// implementing `see`. Each entry is dispatched to on the interfaces it
+  /// actually implements.
+  final List<RequestListener> observers;
   final List<BaseRoute> routes;
   final Set<ReflectData> _reflects;
   final LifecycleComponents? _globalComponents;
@@ -433,8 +439,11 @@ class Router extends Equatable {
     if (observers.isEmpty) {
       return;
     }
-    for (final observer in observers) {
-      observer.see(request, response).ignore();
+    for (final listener in observers) {
+      // A RequestObserver only wants the summary once the request finishes.
+      if (listener is Observer) {
+        listener.see(request, response).ignore();
+      }
     }
   }
 
@@ -495,21 +504,16 @@ class Router extends Equatable {
 
   void _notifyRequestObservers(RequestSummary summary) {
     for (final observer in observers) {
-      // Discovered from the same list rather than a second one, so nothing in
-      // the app config or the generator has to learn about a new kind of
-      // component. RequestObserver is not a subtype of Observer, so this is a
-      // cast, not a promotion.
+      // Only the listeners that asked for a summary.
       if (observer is! RequestObserver) {
         continue;
       }
-
-      final requestObserver = observer as RequestObserver;
 
       try {
         // Not awaited: the response is already produced, and a slow exporter
         // must not add latency to it. Async failures are caught here too,
         // since an unhandled one would escape into the request's zone.
-        final result = requestObserver.onRequestComplete(summary);
+        final result = observer.onRequestComplete(summary);
         if (result is Future<void>) {
           result.catchError(_reportObserverError);
         }

@@ -28,7 +28,7 @@ class ServerApp with ExtractImport {
     app.annotationsFor(
       onMatch: [
         OnMatch(
-          classType: Observer,
+          classType: RequestListener,
           package: 'revali_core',
           convert: (object, annotation) {
             observers.mimics.add(
@@ -41,7 +41,10 @@ class ServerApp with ExtractImport {
           package: 'revali_annotations',
           convert: (object, annotation) {
             observers.types.add(
-              ServerTypeReference.fromElement(object, superType: Observer),
+              ServerTypeReference.fromElement(
+                object,
+                superType: RequestListener,
+              ),
             );
           },
         ),
