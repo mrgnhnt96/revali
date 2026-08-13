@@ -20,8 +20,9 @@
 `LATEST_CHANGELOG.md` drives the release: a package publishes only when its
 entry there differs from its `pubspec.yaml` version, so **equal versions mean
 skipped**, and a dependent's constraint is only rewritten if that dependent is
-itself in the release. Pending work and the current per-package state are in
-[RELEASING.md](./RELEASING.md).
+itself in the release. The mechanism is documented in
+[RELEASING.md](./RELEASING.md); what is outstanding right now, with the exact
+edits, is in [PENDING_RELEASE.md](./PENDING_RELEASE.md).
 
 ## Project layout
 

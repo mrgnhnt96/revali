@@ -1,8 +1,8 @@
 # TODO
 
-> **Releases:** everything pending for the next release — and the reasons two
-> packages will silently *not* publish as things stand — is in
-> [RELEASING.md](./RELEASING.md), not here.
+> **Releases:** what is outstanding for the next release is in
+> [PENDING_RELEASE.md](./PENDING_RELEASE.md); how the release mechanism works
+> is in [RELEASING.md](./RELEASING.md). Neither lives here.
 
 # 8.12.26 — Gap audit
 
