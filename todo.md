@@ -143,6 +143,14 @@ mounted into the former. The split is fine; the flag duplication is not.
 - [x] Remove the stale `.gitignore` entry `constructs/revali_server/bin/tester.dart` — that path no longer existed after the `revali_server` consolidation
 - [ ] Keep `small_test/` and `playground/` — both checked, both real. `small_test/` is a fixture used by `packages/revali/test/utils/directory_extensions_test.dart:41,52`; `playground/` is the benchmark harness with its own README/BENCHMARKS
 
+### Found while fixing the gate
+
+- [x] **CI ran no tests either.** The only test workflow was `CI Smoke`, which generates code for `small_test` and runs nothing. Combined with the vacuous pre-push hook, **nothing had ever run the suite automatically** — every green check this repo has shown was one or the other of those
+  - Added `.github/workflows/tests.yaml`, which uses the same `scripts/run_all_tests.sh` and so inherits its floor. Verified by watching the run: `packages run: 41  passed: 41  failed: 0`
+- [x] **Test-suite generation only ever worked on macOS.** The pubspec comment-out/uncomment steps used `sed -i ''`, which is BSD-only; GNU sed takes the empty string as its script and the real script as a filename, so on Linux every call failed with `can't read 12s/^#*//g`. Replaced with `perl -i`, identical on both. This is why CI could not generate
+- [x] **`sip run publish` verified with the vacuous runner too** — `sip test --recursive --bail`, which exits 0 having run nothing. It would have published against no verification at all. Now uses the real gate
+- [x] **The OpenAPI spec was not deterministic.** Paths, per-path operations and component schemas were emitted in filesystem-walk order, so the same project produced `/complex` first on macOS and `/users` first on Linux — caught by CI against a macOS-generated golden. All three are now sorted, goldens regenerated
+
 ### Found while asking "what's next" — read these first
 
 - [x] 🔴 **The pre-push test gate runs zero tests and exits 0.**
