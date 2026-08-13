@@ -212,7 +212,9 @@ unit-test:
     cd constructs/revali_swagger/revali_swagger || exit 1
     sip test --bail --concurrent --no-version-check
 
-spell_check: cspell "./doc-site/docs/**/*" --config ".github/cspell/cspell.json"
+# Docs moved from docs/ to content/ in the Jaspr migration; the old glob
+# matched nothing, so this checked no files at all.
+spell_check: cspell "./doc-site/content/**/*" --config ".github/cspell/cspell.json"
 
 publish:
   (bail):

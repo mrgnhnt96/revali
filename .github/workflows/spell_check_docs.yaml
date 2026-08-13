@@ -14,7 +14,7 @@ jobs:
         with:
             config: '.github/cspell/cspell.json'
             includes: |
-                docs/**
+                content/**
             runs_on: macos-latest
             modified_files_only: false
             working_directory: doc-site
