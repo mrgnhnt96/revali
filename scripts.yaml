@@ -1,8 +1,19 @@
 barrel: dart run barreler build {--set-exit-if-changed}
 
+# doc-site is a Jaspr (Dart) site. `jaspr serve` hot-reloads content/ but does
+# not regenerate the search index, so build the index first either way.
 docs:
-  (command): cd doc-site && npm start
-  build: cd doc-site && npm i && npm run build
+  (command): |
+    cd doc-site
+    dart run tool/build_search_index.dart
+    dart run jaspr_cli:jaspr serve
+  # Mirrors .github/workflows/deploy-docs.yml. The og cards are generated, not
+  # committed — web/images/og/ is gitignored.
+  build: |
+    cd doc-site
+    dart run tool/build_search_index.dart
+    dart run tool/gen_og_cards.dart
+    dart run jaspr_cli:jaspr build
 
 hooks: dart run hooksman
 
