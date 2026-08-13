@@ -9,12 +9,14 @@ import 'package:revali_router/src/server/in_flight_requests.dart';
 ///
 /// The sequence matters:
 ///
-/// 1. `server.close()` is started but **not** awaited. It ends the accept
+/// 1. The drain is flagged, which flips the readiness probe to 503 while the
+///    server is *still accepting*. See [drainDelay].
+/// 2. `server.close()` is started but **not** awaited. It ends the accept
 ///    loop immediately so no new request is taken, but its own future may
 ///    wait on idle keep-alive connections, which is not something a shutdown
 ///    should block on.
-/// 2. In-flight requests are awaited, up to [timeout].
-/// 3. `server.close(force: true)` drops whatever sockets remain, so the
+/// 3. In-flight requests are awaited, up to [timeout].
+/// 4. `server.close(force: true)` drops whatever sockets remain, so the
 ///    process can actually exit.
 ///
 /// Returns true when everything drained within [timeout].
@@ -22,6 +24,7 @@ Future<bool> shutdownServer({
   required HttpServer server,
   required InFlightRequests inFlight,
   Duration timeout = const Duration(seconds: 30),
+  Duration drainDelay = Duration.zero,
   Future<void> Function()? onStopped,
   void Function(String message)? log,
 }) async {
@@ -29,6 +32,20 @@ Future<bool> shutdownServer({
   // moment close() lands -- knows not to run its own teardown on top of
   // requests that are still being served.
   inFlight.beginDraining();
+
+  // Closing the listening socket is invisible to a load balancer: it keeps
+  // routing until its own readiness probe fails, and every request it sends
+  // in the meantime hits a closed socket. Readiness reports 503 from the line
+  // above, so this window is the balancer's chance to notice and steer away
+  // while the server can still serve. Requests arriving during it are served
+  // and tracked normally -- the accept loop does not refuse while draining.
+  if (drainDelay > Duration.zero) {
+    log?.call(
+      'Draining: readiness now reports unavailable, '
+      'still accepting for ${drainDelay.inSeconds}s...',
+    );
+    await Future<void>.delayed(drainDelay);
+  }
 
   unawaited(server.close().catchError((Object _) {}));
 

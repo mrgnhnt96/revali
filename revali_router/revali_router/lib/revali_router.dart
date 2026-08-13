@@ -57,6 +57,7 @@ export 'src/route/web_socket_route.dart';
 export 'src/router/router.dart';
 export 'src/server/graceful_shutdown.dart';
 export 'src/server/handle_requests.dart';
+export 'src/server/health_routes.dart';
 export 'src/server/in_flight_requests.dart';
 export 'src/web_socket/async_web_socket_sender_impl.dart';
 export 'src/web_socket/web_socket_close_impl.dart';
