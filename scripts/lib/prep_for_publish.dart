@@ -27,8 +27,28 @@ void main() async {
       workingDirectory: root,
     );
 
+    // `git status --porcelain` exits 0 whether or not the tree is dirty -- a
+    // non-zero code means git itself failed (not a repo, no git). The dirty
+    // check is whether it printed anything.
     if (gitStatus.exitCode != 0) {
-      logger.err('Git is not clean! Push your changes first.');
+      logger
+        ..err('Failed to read git status:')
+        ..err('${gitStatus.stderr}'.trim());
+      exit(1);
+    }
+
+    final dirty = '${gitStatus.stdout}'.trim();
+
+    if (dirty.isNotEmpty) {
+      logger
+        ..err('Git is not clean! Commit and push your changes first.')
+        ..err('')
+        ..err(dirty)
+        ..err('')
+        ..err(
+          'This matters: after publishing, the release runs `git add .` and '
+          'commits everything above into the publish commit.',
+        );
       exit(1);
     }
   }
