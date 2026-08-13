@@ -70,6 +70,26 @@ abstract base class AppConfig {
 
   Future<void> configureDependencies(covariant DI di) async {}
 
+  /// Whether the server stops itself on `SIGTERM` / `SIGINT`.
+  ///
+  /// Container runtimes and process supervisors stop a process by sending
+  /// `SIGTERM`, so without this a deploy or scale-down truncates whatever
+  /// responses were mid-flight. Set to false to own signal handling yourself.
+  bool get handleShutdownSignals => true;
+
+  /// How long a shutdown waits for in-flight requests before giving up.
+  ///
+  /// Keep this below the grace period of whatever supervises the process —
+  /// Kubernetes defaults to 30s before `SIGKILL`, and being killed part-way
+  /// through the drain defeats the point.
+  Duration get shutdownTimeout => const Duration(seconds: 15);
+
+  /// Called once in-flight requests have drained, before the process exits.
+  ///
+  /// Release what the app owns here — database pools, message consumers,
+  /// file handles. Throwing is logged and does not stop the shutdown.
+  Future<void> onServerStopped() async {}
+
   /// Runs the async server startup sequence (bind, DI, routes, listen).
   ///
   /// The default implementation calls [start] as-is. Override to wrap [start]

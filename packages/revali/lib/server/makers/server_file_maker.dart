@@ -253,15 +253,43 @@ if (!isWorker && providedServer == null && app.workers > 1) {
                         )
                         .statement,
                     const Code('\n'),
+                    declareFinal('inFlight')
+                        .assign(refer((InFlightRequests).name).newInstance([]))
+                        .statement,
+                    const Code('\n'),
                     refer('handleRouterRequests')
-                        .call([
-                          refer('server'),
-                          refer('router'),
-                          refer('router').property('close'),
-                        ])
+                        .call(
+                          [
+                            refer('server'),
+                            refer('router'),
+                            refer('router').property('close'),
+                          ],
+                          {'inFlight': refer('inFlight')},
+                        )
                         .property('ignore')
                         .call([])
                         .statement,
+                    const Code('\n'),
+                    // Only a server this function created and owns may install
+                    // process-wide signal handlers. A provided server belongs
+                    // to the caller (tests pass a TestServer), and a worker
+                    // isolate shares the parent's signals.
+                    const Code(r'''
+if (!isWorker && providedServer == null && app.handleShutdownSignals) {
+  listenForShutdown((signal) async {
+    print('Received $signal, shutting down...');
+    await shutdownServer(
+      server: server,
+      inFlight: inFlight,
+      timeout: app.shutdownTimeout,
+      onStopped: app.onServerStopped,
+      log: print,
+    );
+    router.close();
+    exit(0);
+  });
+}
+'''),
                     const Code('\n'),
                     const Code('if (!isWorker) {'),
                     refer('app').property('onServerStarted').call([
