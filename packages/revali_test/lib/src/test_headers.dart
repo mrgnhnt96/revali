@@ -64,7 +64,20 @@ class TestHeaders implements HttpHeaders {
 
   @override
   void add(String name, Object value, {bool preserveHeaderCase = false}) {
-    _headers[name] = value.toString();
+    // Appends, like `dart:io`'s HttpHeaders.add. Overwriting meant a response
+    // setting several cookies -- each of which must be its own `Set-Cookie`
+    // line -- arrived with only the last one, so nothing that read them saw
+    // the rest.
+    //
+    // Joined with ", " because that is how `package:http` surfaces repeated
+    // headers to the real client; a test that joined them differently would
+    // exercise a shape production never produces.
+    final existing = _headers[name];
+
+    _headers[name] = switch (existing) {
+      null || '' => value.toString(),
+      final current => '$current, $value',
+    };
   }
 
   @override
