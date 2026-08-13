@@ -1,0 +1,50 @@
+name: Tests
+
+# The smoke workflow only generates code for small_test -- it runs no tests.
+# Until this existed, nothing ran the suite automatically: the pre-push hook
+# invoked `sip test --recursive` from the repo root, which reported
+# "Results: 0 0 0" and exited 0.
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: All packages
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Install sip_cli
+        run: |
+          dart pub global activate sip_cli
+          echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
+
+      # Wrapped rather than a bare `dart pub get`: the test_suite packages
+      # depend on `.revali/` output that does not exist yet, so the script
+      # comments those path deps out, resolves, and restores them.
+      - name: Resolve dependencies
+        run: sip run pub get
+
+      - name: Generate test suite
+        run: sip run test-suite --gen-only
+
+      # Runs `dart test` per package, and fails when fewer packages ran than
+      # expected -- so a run that discovers nothing cannot report success.
+      - name: Run all tests
+        run: ./scripts/run_all_tests.sh
