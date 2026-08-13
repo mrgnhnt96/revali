@@ -261,6 +261,36 @@ worth a deliberate yes rather than a drive-by one.
 
 ## Gap 4 — No resilience in the generated client
 
+**Status: SHIPPED.** `revali_client` 3.0.0 (breaking), `revali_client_gen`
+2.5.0. What landed:
+
+- `HttpInterceptor` returns `FutureOr<HttpResponse?>` on both hooks — `null`
+  to continue, a response to short-circuit or substitute. This was the
+  blocker: the old `void` signature made retries, caching and circuit
+  breaking impossible to build at all, by us or by anyone else.
+- Interceptor errors propagate instead of being swallowed.
+- `RevaliClient.timeout` and `RevaliClient.retry`, both above the transport so
+  a custom `HttpClient` gets them rather than reimplementing them.
+- `RetryPolicy`, off by default, restricted to idempotent methods and
+  transient statuses, refusing streamed bodies outright, with capped
+  exponential backoff and `Retry-After` support.
+- The outgoing request is now built *after* interceptors run, so one that
+  rewrites the body is reflected in what is sent.
+- 13 tests for the policy, 12 for client behaviour, 5 for `HeaderInterceptor`.
+
+**The blast radius was small and that is why it happened now.** Only
+`HeaderInterceptor` implemented the interface in-repo — the `interceptors` in
+`revali_client_gen` are server-side lifecycle components, unrelated. Generated
+client packages are unaffected, since `pubspec_file.dart` resolves
+`revali_client` by path rather than by version.
+
+**Deliberately not built:** circuit breaking. It needs shared state across
+calls and a policy for when to re-close, which is a larger design than a retry
+loop, and the interceptor signature now makes it buildable outside the
+framework.
+
+**Original analysis follows.**
+
 ### Evidence
 
 `HttpPackageClient.send` has no timeout, no retry, and no deadline propagation.
@@ -388,7 +418,7 @@ framework.
 |---|---|---|
 | **1** | ~~Gap 2 (health/readiness)~~ **done**, ~~Gap 1 (context propagation)~~ **done** | Both are small, both depend only on machinery that already exists, and neither can be bolted on from user code. Gap 2 additionally fixed a real ordering defect in a feature already shipped |
 | **1a** | ~~Broadcast shutdown to worker isolates~~ **done** | Fallout from Gap 2: readiness and `drainDelay` were per-isolate. Closed, so both now hold at any `workers` count |
-| **2** | Gap 4 (client resilience) | Breaking signature change — cost rises with every additional `revali_client` user |
+| **2** | ~~Gap 4 (client resilience)~~ **done** | Breaking signature change — done early, while `HeaderInterceptor` was the only in-repo implementer |
 | **3** | Gap 3 (env config) | Small, but an API-surface decision worth taking deliberately |
 | **4** | Gap 5 → Gap 6 (contracts, then typed errors) | Largest surface; Gap 6 depends on Gap 5. Gate on verifying `routes.json` completeness first |
 | **5** | Gap 7, Gap 8 | Friction and reach, not correctness |
