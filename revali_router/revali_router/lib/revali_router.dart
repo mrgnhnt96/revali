@@ -32,6 +32,7 @@ export 'src/headers/headers_impl.dart';
 export 'src/headers/request_headers_impl.dart';
 export 'src/headers/response_headers_impl.dart';
 export 'src/kits/request_id.dart';
+export 'src/kits/throttle.dart';
 export 'src/meta/combine_components_applier.dart';
 export 'src/meta/meta_scope_impl.dart';
 export 'src/payload/payload_impl.dart';
