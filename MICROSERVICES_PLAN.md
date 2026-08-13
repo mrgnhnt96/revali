@@ -114,18 +114,27 @@ in `LATEST_CHANGELOG.md` (not yet published). What landed:
   against a generated app — `/healthz` and `/readyz` return plain JSON while
   `/api/hello` keeps its `{"data": ...}` wrapper.
 
-### Known limitation — probes are per-isolate under `workers > 1`
+### Probes under `workers > 1` — **also SHIPPED** (was phase 1a)
 
-Not fixed, and it is not merely cosmetic. Every isolate runs `createServer`
-and therefore builds **its own** `InFlightRequests`, while
-`server_file_maker.dart` gates signal handling on `!isWorker`. So on `SIGTERM`
-the parent flags its drain and reports `503`, but a probe balanced onto a
-worker isolate still answers `200` — and the parent's `exit(0)` then takes the
+Every isolate runs `createServer` and builds **its own** `InFlightRequests`,
+while `server_file_maker.dart` gated signal handling on `!isWorker`. So on
+`SIGTERM` the parent flagged its drain and reported `503`, but a probe balanced
+onto a worker still answered `200` — and the parent's `exit(0)` then took the
 workers' in-flight requests with it.
 
-Correct behaviour needs the shutdown broadcast to workers over a `SendPort`,
-which is a larger change than this slice. **Until then, `drainDelay` and
-readiness are only trustworthy with `workers: 1`.**
+Fixed with `WorkerFleet` / `listenForDrainCommands` in `revali_router`. Workers
+are spawned with a registration port and drain on the parent's command rather
+than watching signals themselves; the parent drains its own isolate
+concurrently and only exits once every worker has reported back. A worker that
+dies, never registers, or hangs is bounded by a timeout instead of holding the
+process open. 6 tests against real spawned isolates.
+
+Verified against a running three-worker server — and the first attempt at that
+verification was **not** discriminating. With every request taking the same 3s,
+the workers finished naturally before the parent's own drain ended, so the
+broken build passed too. Re-run with uneven durations (500ms–14s) the
+difference is unambiguous: the 14s request on a worker returns `200` with the
+fix, and `http=000` — connection killed, no response — without it.
 
 **Original analysis follows.**
 
@@ -345,7 +354,7 @@ framework.
 | Phase | Items | Rationale |
 |---|---|---|
 | **1** | ~~Gap 2 (health/readiness)~~ **done**, then Gap 1 (context propagation) | Both are small, both depend only on machinery that already exists, and neither can be bolted on from user code. Gap 2 additionally fixed a real ordering defect in a feature already shipped |
-| **1a** | Broadcast shutdown to worker isolates | Fallout from Gap 2: readiness and `drainDelay` are per-isolate, so both are only trustworthy at `workers: 1`. Small, and it closes a hole the shipped feature otherwise hides |
+| **1a** | ~~Broadcast shutdown to worker isolates~~ **done** | Fallout from Gap 2: readiness and `drainDelay` were per-isolate. Closed, so both now hold at any `workers` count |
 | **2** | Gap 4 (client resilience) | Breaking signature change — cost rises with every additional `revali_client` user |
 | **3** | Gap 3 (env config) | Small, but an API-surface decision worth taking deliberately |
 | **4** | Gap 5 → Gap 6 (contracts, then typed errors) | Largest surface; Gap 6 depends on Gap 5. Gate on verifying `routes.json` completeness first |
