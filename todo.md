@@ -51,13 +51,20 @@ re-discovered.
 
 ## Tier 3 — Feature gaps
 
-- [ ] Support controller inheritance (supersedes "Get super methods from classes" under 1.22.25)
-  - `ControllerVisitor` (`controller_visitor.dart:77`) collects methods via `element.accept(MethodVisitor(...))`, and `MethodVisitor.visitMethodElement` only sees **declared** methods — endpoints inherited from a base class are silently dropped, with no error
-  - The codegen already uses `allSupertypes` in 8 other places, so the traversal machinery exists
+- [x] Support controller inheritance (supersedes "Get super methods from classes" under 1.22.25)
+  - `ControllerVisitor` collected methods via `element.accept(MethodVisitor(...))`, and `MethodVisitor.visitMethodElement` only sees **declared** methods — endpoints inherited from a base class were silently dropped, with no error. A controller whose only endpoints came from its base produced **zero** routes
+  - Done: supertypes are visited after the controller's own methods, so an override wins. `MethodVisitor` records only the names it actually registered, which distinguishes the two override cases — annotated override replaces the inherited route; unannotated override keeps it and dispatches to the override at runtime
+  - Generic bases throw an explanatory error instead of generating wrong bindings (the inherited signatures still refer to the type parameters). Worth revisiting with the `substitute_type.dart` machinery the lifecycle components already use
+  - Verified live: a controller extending a base and mixing in a mixin served all four routes, and `DELETE /purge` returned `override-purge`, proving the inherited annotation dispatches to the override
+- [x] Response compression (gzip negotiated via `Accept-Encoding`)
+  - Was entirely absent: the only match for `gzip|deflate|content-encoding` across the router and packages was a doc comment
+  - Done: `CompressionSettings` in `revali_core`, exposed as `AppConfig.compression` and `Router.compression`, applied by `DefaultResponseHandler`. On by default, 1 KB threshold, text-shaped mime types only, `Vary: Accept-Encoding` set
+  - Only bodies of a **known length** are compressed, which leaves streaming/SSE untouched — gzip buffers, so compressing a stream would hold back chunks the handler meant to flush
+  - [ ] Not done: `deflate` and `br`. Gzip is universally supported and the others need content negotiation with q-value ranking to pick between them
 - [ ] Implement streaming request bodies in the client
-  - `constructs/revali_client/revali_client/lib/src/revali_client.dart:120-121` is a literal `throw UnimplementedError('Stream body not implemented')`, with the intended implementation commented out directly beneath it
-- [ ] Response compression (gzip/deflate negotiated via `Accept-Encoding`)
-  - Entirely absent: the only match for `gzip|deflate|content-encoding` across the router and packages is a doc comment at `body_data.dart:33`
+  - `constructs/revali_client/revali_client/lib/src/revali_client.dart` throws `UnimplementedError('Stream body not implemented')`, with the intended implementation commented out directly beneath it
+  - **Bigger than it looks — the server cannot receive one either.** There is no request-body stream binding: `PayloadImpl` resolves a body into `String`/`Json`/`FormData`/`Binary` body data, and `StreamBodyData` is *response*-side only. In the client, `Stream` bodies exist solely for **WebSocket** endpoints (`ClientMethod.websocketBody`), which never go through the HTTP `send` path where the throw lives
+  - So implementing the client half alone would produce requests no Revali server can consume. Needs, in order: a server-side streaming body binding (`@Body() Stream<List<int>>`, or NDJSON `Stream<T>`) that consumes the payload incrementally without buffering, codegen for it on both ends, then the client transport (`HttpRequest.bodyStream` + `http.StreamedRequest`)
 - [ ] Rate limiting (promotes the long-standing "Nice to have" `RateLimit` entry)
   - `RateLimit` currently exists **only** as a fixture name in `packages/revali/test/server/converters/server_lifecycle_component_test.dart`. There is no implementation
 - [ ] Widen the `Observer` interface for metrics/tracing
@@ -121,6 +128,13 @@ mounted into the former. The split is fine; the flag duplication is not.
   - Verified before deleting: 0 tracked files, and no non-`.log` file anywhere in them
 - [x] Remove the stale `.gitignore` entry `constructs/revali_server/bin/tester.dart` — that path no longer existed after the `revali_server` consolidation
 - [ ] Keep `small_test/` and `playground/` — both checked, both real. `small_test/` is a fixture used by `packages/revali/test/utils/directory_extensions_test.dart:41,52`; `playground/` is the benchmark harness with its own README/BENCHMARKS
+
+### Found while working Tier 3
+
+- [ ] **Pre-existing failures: `test_suite/constructs/revali_server/access_control` → `allow_origin_controller_test.dart`**
+  - Three tests expect `403` for a missing `Origin` and get `200`: "combined returns an error response when child nor parent origin are not present", and the "inherited" / "not-inherited" equivalents
+  - Confirmed **not** caused by the Tier 3 work: stashed all local changes, regenerated on clean `main`, and it fails identically (`+40 -3`)
+  - Like the `pre_interceptor_test` failure below, it only surfaces after a regenerate — which raises a separate question, since the pre-push hook runs the suite and passed. Worth checking whether the hook's suite run is testing stale `.revali` output
 
 ### Found while working Tier 1
 
