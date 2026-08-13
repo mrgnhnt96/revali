@@ -4,6 +4,7 @@ import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart' as p;
 import 'package:revali/clis/revali_runner/commands/mixins/construct_runner_args.dart';
 import 'package:revali/clis/revali_runner/commands/utils/validate_tls_args.dart';
+import 'package:revali/clis/shared/commands/construct_flags.dart';
 import 'package:revali/handlers/construct_entrypoint_handler.dart';
 
 class DevCommand extends Command<int> with ConstructRunnerArgs {
@@ -26,64 +27,17 @@ class DevCommand extends Command<int> with ConstructRunnerArgs {
             'Skip kernel + construct generation when `.revali` outputs are '
             'newer than package sources.',
         negatable: false,
-      )
-      ..addOption(
-        'flavor',
-        abbr: 'f',
-        help: 'The flavor to use for the app (case-sensitive)',
-      )
-      ..addFlag(
-        'release',
-        help:
-            'Whether to run in release mode. Disables hot reload and debugger',
-        negatable: false,
-      )
-      ..addFlag(
-        'profile',
-        help:
-            'Whether to run in profile mode. Enables logger, '
-            'but disables hot reload and debugger',
-        negatable: false,
-      )
-      ..addFlag(
-        'debug',
-        help:
-            '(Default) Whether to run in debug mode. '
-            'Enables hot reload and debugger',
-        negatable: false,
-      )
-      ..addFlag(
-        'generate-only',
-        help: 'Only generate the constructs, does not run the server',
-        negatable: false,
-        hide: true,
-      )
+      );
+
+    sharedDevFlags.declareAll(argParser);
+
+    argParser
       ..addFlag(
         'inspect',
         help:
             'Record recent requests to .revali/inspect/requests.jsonl '
             '(sets REVALI_INSPECT / REVALI_INSPECT_LOG)',
         negatable: false,
-      )
-      ..addOption(
-        'dart-vm-service-port',
-        help:
-            'The port to use for the Dart VM service. '
-            'Use 0 to automatically assign a port.',
-        defaultsTo: '0',
-      )
-      ..addMultiOption(
-        'dart-define',
-        abbr: 'D',
-        help: 'Additional key-value pairs that will be available as constants.',
-        valueHelp: 'BASE_URL=https://api.example.com',
-      )
-      ..addMultiOption(
-        'dart-define-from-file',
-        help:
-            'A file containing additional key-value '
-            'pairs that will be available as constants.',
-        valueHelp: '.env',
       )
       ..addOption(
         'cert',
@@ -111,6 +65,9 @@ class DevCommand extends Command<int> with ConstructRunnerArgs {
 
   @override
   String get description => 'Starts the development server';
+
+  @override
+  List<ConstructFlag> get forwardedFlags => sharedDevFlags;
 
   String? get _certPath => switch (argResults?['cert'] as String?) {
     null => null,

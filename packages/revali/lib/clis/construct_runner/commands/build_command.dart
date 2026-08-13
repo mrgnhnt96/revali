@@ -4,6 +4,7 @@ import 'package:mason_logger/mason_logger.dart';
 import 'package:revali/ast/analyzer/analyzer.dart';
 import 'package:revali/clis/construct_runner/commands/mixins/dart_defines_mixin.dart';
 import 'package:revali/clis/construct_runner/generator/construct_generator.dart';
+import 'package:revali/clis/shared/commands/construct_flags.dart';
 import 'package:revali/handlers/routes_handler.dart';
 import 'package:revali/utils/mixins/directories_mixin.dart';
 import 'package:revali_construct/revali_construct.dart';
@@ -20,50 +21,7 @@ class BuildCommand extends Command<int>
   }) : routesHandler =
            routesHandler ??
            RoutesHandler(analyzer: analyzer, fs: fs, rootPath: rootPath) {
-    argParser
-      ..addOption(
-        'flavor',
-        abbr: 'f',
-        help: 'The flavor to use for the app (case-sensitive)',
-      )
-      ..addFlag(
-        'release',
-        help:
-            '(Default) Whether to run in release mode. Disabled hot reload, '
-            'debugger, and logger',
-        negatable: false,
-      )
-      ..addFlag(
-        'profile',
-        help:
-            'Whether to run in profile mode. Enables logger, '
-            'but disables hot reload and debugger',
-        negatable: false,
-      )
-      ..addOption(
-        'type',
-        allowedHelp: {
-          for (final type in GenerateConstructType.values)
-            type.name: type.description,
-        },
-        hide: true,
-        allowed: GenerateConstructType.values.map((e) => e.name),
-        defaultsTo: GenerateConstructType.build.name,
-        help: 'Which constructs to generate',
-      )
-      ..addMultiOption(
-        'dart-define',
-        abbr: 'D',
-        help: 'Additional key-value pairs that will be available as constants.',
-        valueHelp: 'BASE_URL=https://api.example.com',
-      )
-      ..addMultiOption(
-        'dart-define-from-file',
-        help:
-            'A file containing additional key-value '
-            'pairs that will be available as constants.',
-        valueHelp: '.env',
-      );
+    sharedBuildFlags.declareAll(argParser);
   }
 
   final RoutesHandler routesHandler;

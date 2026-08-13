@@ -1,47 +1,37 @@
 import 'package:args/command_runner.dart';
 import 'package:mason_logger/mason_logger.dart';
-import 'package:revali/handlers/construct_entrypoint_handler.dart';
+import 'package:revali/clis/shared/commands/construct_flags.dart';
 
+/// Builds the argument list the outer `revali` CLI hands to the construct
+/// runner running inside the generated entrypoint.
+///
+/// Only the flags in [forwardedFlags] are emitted, rebuilt from parsed
+/// results. Outer-only flags cannot leak through — they are simply not in the
+/// list — which is what makes `--cert=a.pem` safe. `--root` is not forwarded
+/// here either; `ConstructEntrypointHandler` appends it itself.
 mixin ConstructRunnerArgs on Command<int> {
   Logger get logger;
 
+  /// The flags the inner construct runner declares for this command.
+  List<ConstructFlag> get forwardedFlags;
+
   List<String> get constructRunnerArgs {
-    final argResults = this.argResults!;
+    final results = argResults!;
+    final args = <String>[name];
 
-    final argsToPass = <String>[name];
-
-    final flavor = argResults['flavor'] as String?;
-    if (flavor != null && flavor.isNotEmpty) {
-      argsToPass.addAll(['--flavor', flavor]);
+    for (final flag in forwardedFlags) {
+      flag.forward(results, args);
     }
 
-    const ignore = {'--recompile', '--skip-if-fresh', '--inspect'};
-
-    var skipNext = false;
-    for (final entry in argResults.arguments) {
-      if (skipNext) {
-        skipNext = false;
-        continue;
-      }
-
-      if (entry == '--flavor' ||
-          entry == '-f' ||
-          entry == '--cert' ||
-          entry == '--key' ||
-          entry == ConstructEntrypointHandler.rootArgName) {
-        skipNext = true;
-        continue;
-      }
-
-      if (ignore.contains(entry)) {
-        continue;
-      }
-
-      argsToPass.add(entry);
+    // Everything after `--` belongs to the server, not to us.
+    if (results.rest.isNotEmpty) {
+      args
+        ..add('--')
+        ..addAll(results.rest);
     }
 
-    logger.detail('Construct Args: $argsToPass');
+    logger.detail('Construct Args: $args');
 
-    return argsToPass;
+    return args;
   }
 }
