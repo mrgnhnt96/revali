@@ -24,7 +24,18 @@ Hook main() {
               ShellTask.always(
                 name: 'Run All Tests',
                 commands: (files) {
-                  return ['sip test --recursive --bail'];
+                  // Not `sip test --recursive`. From the repo root that ran
+                  // zero tests and exited 0, and even inside a package it
+                  // under-reports: in
+                  // test_suite/constructs/revali_server/access_control,
+                  // `dart test` exits 1 with 3 failures while `sip test`
+                  // exits 0 reporting "40 passed, 0 failed". A gate that
+                  // cannot go red is not a gate.
+                  //
+                  // The script runs `dart test` per package and also fails
+                  // if fewer packages ran than expected, so "discovered
+                  // nothing" can never look like "everything passed".
+                  return ['./scripts/run_all_tests.sh'];
                 },
               ),
               ShellTask.always(
