@@ -1053,6 +1053,42 @@
       ]
     },
     {
+      "u": "/revali/app-configuration/graceful-shutdown",
+      "t": "Graceful Shutdown",
+      "d": "Finish in-flight requests before the process exits.",
+      "g": "Revali",
+      "s": [
+        {
+          "b": "Container runtimes and process supervisors stop a process by sending SIGTERM. Revali catches it, stops accepting new connections, waits for the requests already being served, and only then exits. Without that, every deploy and every scale-down truncates whatever responses happened to be mid-flight — the client sees a dropped connection rather than the answer it was about to get. You get this by default. There is nothing to enable."
+        },
+        {
+          "h": "What happens on SIGTERM",
+          "a": "what-happens-on-sigterm",
+          "b": "1. The server stops accepting new connections. Anything that connects after this point is refused. 2. Requests already in flight keep running and send their responses. 3. onServerStopped runs, so the app can release what it owns. 4. The process exits with status 0. If requests are still running when shutdownTimeout elapses, the wait is abandoned and shutdown continues — a stuck handler cannot keep the process alive forever. SIGINT (Ctrl-C) follows the same path. A second signal while a shutdown is already running is ignored rather than starting a second one."
+        },
+        {
+          "h": "shutdownTimeout",
+          "a": "shutdowntimeout",
+          "b": "How long to wait for in-flight requests. Defaults to 15 seconds. @App() final class MyApp extends AppConfig { const MyApp() : super(host: 'localhost', port: 8080); @override Duration get shutdownTimeout => const Duration(seconds: 25); } Keep this below the grace period of whatever supervises the process. Kubernetes sends SIGKILL 30 seconds after SIGTERM by default, and being killed part-way through the drain defeats the point of draining at all."
+        },
+        {
+          "h": "Releasing resources",
+          "a": "releasing-resources",
+          "b": "Override onServerStopped to close what the app owns — database pools, message consumers, file handles. It runs after in-flight requests have finished, so nothing still serving a request has its connection pulled out from under it. @App() final class MyApp extends AppConfig { const MyApp() : super(host: 'localhost', port: 8080); @override Future onServerStopped() async { await database.close(); } } Throwing from onServerStopped is logged and does not stop the shutdown."
+        },
+        {
+          "h": "Owning signal handling yourself",
+          "a": "owning-signal-handling-yourself",
+          "b": "Set handleShutdownSignals to false if something else in your process already installs handlers, or you want to sequence shutdown differently: @override bool get handleShutdownSignals => false; Nothing else changes — the server simply stops listening for signals, and exiting becomes your responsibility. Signal handlers are only installed for a server Revali created and owns. They are never installed when you pass your own HttpServer to createServer (which is what TestServer does), nor in worker isolates, which share the parent process's signals."
+        },
+        {
+          "h": "What's next?",
+          "a": "whats-next",
+          "b": "Create an App — the rest of AppConfig revali build — produce the executable that receives these signals"
+        }
+      ]
+    },
+    {
       "u": "/revali/cli/dev",
       "t": "revali dev",
       "d": "Run the server with code generation and hot reload.",

@@ -198,6 +198,11 @@ const _revali = NavSection(
           '/revali/app-configuration/https',
           summary: 'Serve TLS locally without a proxy in front.',
         ),
+        NavItem(
+          'Graceful Shutdown',
+          '/revali/app-configuration/graceful-shutdown',
+          summary: 'Finish in-flight requests before the process exits.',
+        ),
       ],
     ),
     NavGroup(
