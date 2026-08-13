@@ -153,6 +153,11 @@ const _revali = NavSection(
         ),
       ],
     ),
+    NavItem(
+      'Testing',
+      '/revali/testing',
+      summary: 'Drive your server in-process with `revali_test`.',
+    ),
     NavGroup(
       'App Configuration',
       icon: NavIcons.sliders,

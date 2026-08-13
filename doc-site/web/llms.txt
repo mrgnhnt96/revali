@@ -12,6 +12,7 @@ Install the framework, configure your app, and run the CLI.
 - [Run the Server](https://docs.revali.dev/revali/getting-started/run-the-server): `revali dev`, and what it does on the way up.
 - [Debug the Server](https://docs.revali.dev/revali/getting-started/debug-server): Attach a debugger and set breakpoints in your handlers.
 - [Hot Reload](https://docs.revali.dev/revali/getting-started/hot-reload): Edit a handler and see it live without a restart.
+- [Testing](https://docs.revali.dev/revali/testing): Drive your server in-process with `revali_test`.
 - [Overview](https://docs.revali.dev/revali/app-configuration): Everything an app can declare, in one place.
 - [Create an App](https://docs.revali.dev/revali/app-configuration/create-an-app): Declare the `@App()` that owns host, port and prefix.
 - [Configure Dependencies](https://docs.revali.dev/revali/app-configuration/configure-dependencies): Register services once and inject them anywhere.
