@@ -179,14 +179,33 @@ class Router extends Equatable {
       trustedProxy: trustedProxy,
     );
 
-    final observation = _Observation();
-    final (response, responseHandler) = await _handleWithHandler(
-      context,
-      observation,
-    );
-    _recordTrace(context, response, started, observation);
-    await responseHandler.handle(response, context, httpRequest.response);
+    // Installed here rather than in [handleRequest], because the headers it
+    // is seeded from only exist once the request context has been built. The
+    // scope covers writing the response too, so a streaming body can still
+    // reach the context while it sends.
+    return _traceContextFor(context).runWith(() async {
+      final observation = _Observation();
+      final (response, responseHandler) = await _handleWithHandler(
+        context,
+        observation,
+      );
+      _recordTrace(context, response, started, observation);
+      await responseHandler.handle(response, context, httpRequest.response);
+    });
   }
+
+  /// Seeds a [TraceContext] from what the caller sent.
+  ///
+  /// A request that arrives already correlated stays on the same trace rather
+  /// than starting a new one.
+  TraceContext _traceContextFor(RequestContext context) => TraceContext.from(
+        requestId: context.headers[TraceContext.requestIdHeader],
+        traceparent: context.headers[TraceContext.traceparentHeader],
+        tracestate: context.headers[TraceContext.tracestateHeader],
+        baggage: TraceContext.decodeBaggage(
+          context.headers[TraceContext.baggageHeader],
+        ),
+      );
 
   /// Handles an HTTP request.
   ///
@@ -255,6 +274,13 @@ class Router extends Equatable {
   }
 
   Future<Response> handle(RequestContext context) async {
+    // Installed for every request, with or without `di`: an id that only
+    // exists when dependency injection happens to be configured is one a
+    // logger cannot rely on.
+    final zoneValues = <Object?, Object?>{
+      TraceContext.zoneKey: _traceContextFor(context),
+    };
+
     if (di case final parent?) {
       final scope = RequestScopedDI(parent: parent);
 
@@ -264,13 +290,10 @@ class Router extends Equatable {
       // handled inside dispose().
       context.addCleanUp(() => unawaited(scope.dispose()));
 
-      return runZoned(
-        () => _handle0(context),
-        zoneValues: {RequestScopedDI.zoneKey: scope},
-      );
+      zoneValues[RequestScopedDI.zoneKey] = scope;
     }
 
-    return _handle0(context);
+    return runZoned(() => _handle0(context), zoneValues: zoneValues);
   }
 
   Future<Response> _handle0(RequestContext context) async {
