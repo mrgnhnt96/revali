@@ -4088,6 +4088,42 @@
       ]
     },
     {
+      "u": "/constructs/revali_server/lifecycle-components/kits/throttle",
+      "t": "Throttle",
+      "d": "Reject callers that send too many requests",
+      "g": "Constructs",
+      "s": [
+        {
+          "b": "@Throttle rejects a caller that exceeds a request allowance with 429 Too Many Requests. Apply it to an app, a controller, or a single endpoint: @Throttle(max: 100, window: Duration(minutes: 1)) @Controller('search') class SearchController { const SearchController(); @Get() Future<List > search(@Query() String q) => _search(q); }"
+        },
+        {
+          "h": "What counts as one caller",
+          "a": "what-counts-as-one-caller",
+          "b": "The client IP, resolved through AppConfig.trustedProxy — so behind a proxy or load balancer it counts the real client rather than the proxy that forwarded every request."
+        },
+        {
+          "h": "What counts as one allowance",
+          "a": "what-counts-as-one-allowance",
+          "b": "By default, the matched route — its registered path, not the concrete URL. /api/users/:id is one bucket, so a caller hitting /api/users/1 and /api/users/2 spends one allowance, not two. Set bucket to pool several endpoints under a shared allowance, which is what you usually want for something like sign-in: @Throttle(max: 5, window: Duration(minutes: 15), bucket: 'auth') @Post('login') Future login(@Body() Credentials body) => _login(body); @Throttle(max: 5, window: Duration(minutes: 15), bucket: 'auth') @Post('reset-password') Future reset(@Body() Email body) => _reset(body);"
+        },
+        {
+          "h": "The rejection",
+          "a": "the-rejection",
+          "b": "A blocked request gets 429 with: Header Meaning Retry-After Seconds until the allowance resets. Never 0 X-RateLimit-Limit The configured max X-RateLimit-Remaining 0, since the caller is over"
+        },
+        {
+          "h": "Two limits worth knowing before you rely on it",
+          "a": "two-limits-worth-knowing-before-you-rely-on-it",
+          "b": "It is a fixed window. A caller can send up to 2 × max across a window boundary — max at the end of one window and max at the start of the next. Choose max with that in mind, or reach for a proxy-level limiter if you need a strict sliding window. State is per process. Counters live in memory, so with AppConfig.workers > 1, or more than one instance behind a load balancer, each has its own and the effective limit multiplies by the number of processes. For a limit shared across instances, enforce it in front of the server or back it with an external store such as Redis."
+        },
+        {
+          "h": "What's next?",
+          "a": "whats-next",
+          "b": "Lifecycle Components — how kits are applied and ordered Client IP — configuring trustedProxy so the right caller is counted"
+        }
+      ]
+    },
+    {
       "u": "/constructs/revali_server/lifecycle-components/advanced/wrapper",
       "t": "Request Wrapper",
       "d": "Wrap the entire request pipeline in setup and teardown logic",

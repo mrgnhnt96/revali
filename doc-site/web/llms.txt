@@ -71,6 +71,7 @@ The packages that generate your server, client, docs and Dockerfile.
 - [Overview](https://docs.revali.dev/constructs/revali_server/lifecycle-components): Reusable classes to handle incoming requests
 - [Components](https://docs.revali.dev/constructs/revali_server/lifecycle-components/components)
 - [Observer](https://docs.revali.dev/constructs/revali_server/lifecycle-components/observer): Observe incoming requests and outgoing responses
+- [Throttle](https://docs.revali.dev/constructs/revali_server/lifecycle-components/kits/throttle): Reject callers that send too many requests
 - [Request Wrapper](https://docs.revali.dev/constructs/revali_server/lifecycle-components/advanced/wrapper): Wrap the entire request pipeline in setup and teardown logic
 - [Middleware](https://docs.revali.dev/constructs/revali_server/lifecycle-components/advanced/middleware): React to incoming requests by modifying the request context
 - [Guards](https://docs.revali.dev/constructs/revali_server/lifecycle-components/advanced/guards): Protect the execution of the endpoint

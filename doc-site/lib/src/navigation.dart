@@ -367,6 +367,7 @@ const _constructs = NavSection(
             NavItem('Overview', '/constructs/revali_server/lifecycle-components'),
             NavItem('Components', '/constructs/revali_server/lifecycle-components/components'),
             NavItem('Observer', '/constructs/revali_server/lifecycle-components/observer'),
+            NavItem('Throttle', '/constructs/revali_server/lifecycle-components/kits/throttle'),
             NavItem(
               'Request Wrapper',
               '/constructs/revali_server/lifecycle-components/advanced/wrapper',
