@@ -6,15 +6,12 @@
 
 # revali
 
-## 3.2.0
+## 3.3.0
 
 ### Features
 
-- Fix generated code failing to compile for a parameter whose wire form is a string but whose type is a custom class — `StringUser.fromJson(String)`, an enum with `fromJson`. The coercion arms for numbers and booleans returned `data.toString()` while the others returned the custom type, so the switch inferred `Object` and the file did not compile. They now apply the same `fromJson`.
-- Controllers inherit endpoints. Annotated methods on a superclass or mixin now become routes on the controller that extends it, instead of being silently dropped with no error. An override with its own annotation replaces the inherited route; an override *without* one keeps the inherited route and dispatches to the override at runtime. Inheriting endpoints from a **generic** base is rejected with an explanatory error rather than generating wrong bindings, since the inherited signatures still refer to the type parameters.
-- The generated server passes its DI container to the `Router`, so every request gets its own scope and `registerRequestScoped` dependencies work end to end.
-- The generated server now shuts down gracefully. On `SIGTERM`/`SIGINT` it stops accepting connections, waits for in-flight requests up to `AppConfig.shutdownTimeout`, runs `AppConfig.onServerStopped`, and exits `0` — so a deploy or scale-down no longer truncates responses that were mid-flight. Handlers are installed only for a server Revali created itself, never when one is provided (as `TestServer` does) and never in worker isolates.
-- Add a `build:` section to `revali.yaml`. Its presence tells `revali build` to compile the server via `dart compile exe --target-os --target-arch`, cross-compiling to Linux from any host OS. Compiled executables are exposed to build-type constructs (e.g. `revali_docker`) via `RevaliBuildContext.compiledExecutables`, so they can package what was already compiled instead of compiling anything themselves. Supports `strip_debug_info` to split AOT debug info out of the executable for a smaller binary.
+- The generated server serves liveness and readiness probes. `healthRoutes` is registered alongside the `public` routes — **outside** the app prefix, so they answer on the bare paths an orchestrator is configured with rather than under `/api`. Readiness closes over the server's `InFlightRequests`, so it reports `503` as soon as a shutdown begins.
+- The generated shutdown honours `AppConfig.drainDelay`, but only on `SIGTERM`. `SIGINT` is a human at a terminal who wants the process gone now; `SIGTERM` is an orchestrator, which is who the delay exists for.
 
 # revali_annotations
 
@@ -37,24 +34,13 @@
 
 # revali_core
 
-## 3.0.0
-
-### Breaking Changes
-
-- `Observer.see` takes one `ObservedRequest` instead of `(Request, Future<Response>)`. Migration is mechanical: `see(request, response)` becomes `see(observed)`, with `observed.request` and `observed.response` in place of the parameters, and `observed.summary` newly available. One interface rather than two — an observer that only wants the finished picture awaits `observed.summary` instead of implementing a second type.
-- Remove the deprecated `DI` registration methods. `registerInstance<T>` and `register<T>` are gone from `DI`, `DIImpl`, `DIHandler`, and `RequestScopedDI`; use `registerSingleton<T>` and `registerFactory<T>` / `registerLazySingleton<T>` instead. The `Factory<T>` typedef is unchanged.
+## 3.1.0
 
 ### Features
 
-- Add `RequestSummary` and `ObservedRequest`, giving observers what they could not previously reach: how a request turned out. `Observer.see` now takes a single `ObservedRequest` carrying the `request` (available immediately) plus futures for the `response` and a `summary` — method, path, matched **route** path, status, duration and error. Label metrics with `routePath` (`/api/users/:id`) rather than `path` (`/api/users/42`); that is the difference between one time series and one per id. `see` also accepts a `FutureOr` return, so an observer that reports immediately need not be `async`.
-- Add `CompressionSettings`, exposed as `AppConfig.compression`. Responses are gzipped by default for clients that send `Accept-Encoding: gzip`, above a 1 KB threshold and only for text-shaped mime types. Use `CompressionSettings.disabled()` when a CDN or reverse proxy already compresses.
-- Add request-scoped dependencies. `DI.registerRequestScoped<T>` builds `T` once per request and shares it for the rest of that request, with nothing shared between requests — the missing middle between `registerSingleton` (whole process) and `registerFactory` (every resolution). Instances implementing the new `Disposable` interface are released when the request ends, in reverse creation order, whether it succeeded or threw. Resolving a request-scoped type outside a request throws rather than silently handing back an undisposed instance shared with nobody. `RequestScopedDI` is now a working per-request container rather than a stub: it caches what it builds, tracks it for disposal, and finds registrations through the `DIHandler` wrapper via the new `RequestScopedRegistry` interface.
-- Add graceful-shutdown configuration to `AppConfig`: `handleShutdownSignals` (default `true`) to opt out of signal handling, `shutdownTimeout` (default 15s) to bound how long in-flight requests are awaited, and an `onServerStopped` hook that runs once they have drained so the app can release databases, consumers and file handles.
-
-### Fixes
-
-- Add `SetCookies.headerValues()`, returning one formatted `Set-Cookie` line per cookie instead of an invalid comma/semicolon-joined line (RFC 6265 §4.1.1). Published `revali_router` 4.0.2 already calls this method against the `SetCookies` interface, so any project resolving `revali_core` 2.0.0 alongside it fails to compile.
-- Reflect `https` (not `http`) in the "Serving at ..." startup log line when TLS is enabled via `--cert`/`--key` or `AppConfig.secure`.
+- Add health probes to `AppConfig`. `HealthSettings` (exposed as `AppConfig.health`) configures a liveness path (`/healthz`) and a readiness path (`/readyz`), a list of `HealthCheck`s consulted by readiness, and a per-check `checkTimeout`. Either path can be set to `null`, or the whole thing disabled with `const HealthSettings.disabled()`.
+- Liveness and readiness answer different questions, and the split is deliberate: liveness failing tells an orchestrator to **restart** the process, so it keeps returning `200` during a graceful shutdown, while readiness flips to `503`. Failing liveness mid-drain would kill exactly the in-flight requests the drain exists to protect. Liveness also runs no checks — consulting a database there turns one database blip into a restart storm.
+- Add `AppConfig.drainDelay` (default `Duration.zero`, so existing behaviour is unchanged). Closing the listening socket is invisible to a load balancer: it keeps routing until its own readiness probe fails, and every request it sends in the meantime hits a closed socket. This is the window in which readiness reports `503` while the server can still serve. Behind a load balancer, set it longer than the probe's period times its failure threshold, and keep `drainDelay + shutdownTimeout` under the platform's kill grace period.
 
 # revali_test
 
@@ -82,25 +68,12 @@
 
 # revali_router
 
-## 5.0.0
-
-### Breaking Changes
-
-- `Observer.see` takes one `ObservedRequest` instead of `(Request, Future<Response>)`. This lands here as well as in `revali_core`: `revali_router.dart` re-exports `package:revali_core/revali_core.dart` hiding only `AppConfig`, `Body` and `LifecycleComponents`, so `Observer` is part of **this** package's public API and an observer that imports it from `package:revali_router/revali_router.dart` must migrate. The migration is mechanical — see `revali_core` 3.0.0.
-- Depend on `revali_core: ^3.0.0`, which also removes the deprecated `DI.registerInstance<T>` / `DI.register<T>` methods.
+## 5.1.0
 
 ### Features
 
-- Resolve each request's `ObservedRequest.summary` once it completes, in **every** mode. The existing `RequestTrace` ring buffer and inspect log stay gated on `debug`/`inspect`, but telemetry is not debug tooling — gating it there would leave production with none. Observers are not awaited, and a throwing one is logged rather than allowed to affect the response or the other observers.
-- Add the `@Throttle` kit: rejects a caller exceeding `max` requests per `window` with `429`, carrying `Retry-After`, `X-RateLimit-Limit` and `X-RateLimit-Remaining`. Callers are identified by client IP (resolved through `trustedProxy`), and allowances are bucketed by the matched route's *registered* path — `/api/users/:id`, not `/api/users/42` — with an optional `bucket` to pool several endpoints. It is a fixed window held in memory, so state is per process; documented as such rather than implied to be cluster-wide. Named `Throttle` rather than `RateLimit` deliberately: the barrel is imported wholesale, and `RateLimit` is a name apps already use for their own components.
-- Gzip responses through the default response handler, negotiated via `Accept-Encoding` and configured with `Router.compression`. Deliberately conservative: only bodies of a known length are compressed, which leaves streaming and SSE responses untouched — gzip buffers, so compressing a stream would hold back chunks the handler meant to flush. Partial content (`206`) and already-encoded responses are skipped, and compressed responses carry `Vary: Accept-Encoding`.
-- `Router` takes an optional `di`. When set, every request runs with its own `RequestScopedDI` installed for the whole pipeline — middleware, guards, interceptors, the handler and exception catchers all resolve against the same scope. Disposal waits until the response has been fully written, so streaming and SSE handlers keep their request-scoped resources for as long as they are sending. Omitting `di` leaves requests unscoped, which is how a `Router` built directly in a test behaves.
-- Add graceful shutdown. `InFlightRequests` tracks requests the accept loop detached, `shutdownServer` stops the listener and waits for them within a timeout before forcing the socket closed, and `listenForShutdown` runs a callback on the first `SIGTERM`/`SIGINT` (ignoring later ones while a shutdown is already running, and skipping `SIGTERM` on Windows, which has no such signal). `handleRequests` and `handleRouterRequests` take an optional `inFlight` and behave exactly as before without it.
-
-### Fixes
-
-- Stop `Router.close()` throwing `Concurrent modification during iteration`. Each registered cleanup removes itself from the list as it runs, so walking the live list was unsafe whenever `close()` happened with requests still registered. Previously unreachable, because `close()` only ever ran once everything had already drained.
-- Stop `BodyImpl.read()` from leaking the response body's source stream subscription when its listener cancels early. `asBroadcastStream()` defaults to pausing (not canceling) the source when the last listener drops, in case a future listener resumes it later -- but a response body is only ever read once, so the paused subscription, and whatever it held open, never got released.
+- Add `healthRoutes`, which builds the liveness and readiness routes described by a `HealthSettings`. Readiness takes an `isDraining` callback, read per request rather than captured, so the probe reflects the current shutdown state instead of the state at startup. Checks run concurrently, so the probe costs the slowest check rather than the sum of them, and a check that fails, throws, or outruns `checkTimeout` is reported as unhealthy with its name — a probe that 500s tells an orchestrator strictly less than one that names the dependency that is down.
+- `shutdownServer` takes a `drainDelay`, applied after the drain is flagged but **before** the listening socket closes. Requests arriving in that window are served and tracked normally, since the accept loop does not refuse while draining. Defaults to `Duration.zero`, which is exactly the previous behaviour.
 
 <!-- CONSTRUCTS -->
 
