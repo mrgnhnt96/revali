@@ -1,5 +1,9 @@
 name: og_card
 version: 0.1.0
+# Not published for now. It is used at build time by
+# doc-site/tool/gen_og_cards.dart and nothing else depends on it. The pub
+# metadata below is kept so this is a one-line change if that ever changes.
+publish_to: none
 description: Generate Open Graph social card images as PNG, in pure Dart, with no native dependencies.
 repository: https://github.com/mrgnhnt96/revali/tree/main/packages/og_card
 issue_tracker: https://github.com/mrgnhnt96/revali/issues

@@ -151,13 +151,3 @@
 ### Fix
 
 - Depend on `revali_router ^4.0.0` and `revali_annotations ^3.0.0` (previously `^3.4.0` / `^2.0.2`). The router/annotations consolidation refactor already raised this dependency floor in source, but the package version was never bumped, so pub.dev's 2.2.0 stayed pinned to the old constraints and couldn't resolve alongside `revali_router` 4.x or any construct requiring `revali_annotations` ^3.0.0 (e.g. `revali_docker` via `revali_construct`).
-
-<!-- TOOLS -->
-
-# og_card
-
-## 0.1.0
-
-### Features
-
-- Initial version. Renders Open Graph social card images as PNG in pure Dart, with no native dependencies. Used at build time by `doc-site/tool/gen_og_cards.dart`.
