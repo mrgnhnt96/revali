@@ -1,51 +1,93 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
 
 /// Minimal MCP stdio server (JSON-RPC + Content-Length framing).
+///
+/// Buffering is done in **bytes**, not decoded characters: `Content-Length`
+/// counts bytes, so a body containing any non-ASCII character (`é` is two
+/// bytes but one code unit) would otherwise look shorter than the header
+/// promised and the server would wait forever for data that already arrived.
 Future<void> main() async {
   final root = Directory.current.path;
-  final buffer = StringBuffer();
-  var contentLength = 0;
-  var inHeaders = true;
+  final buffer = BytesBuilder();
 
-  await for (final chunk in stdin.transform(utf8.decoder)) {
-    buffer.write(chunk);
+  await for (final chunk in stdin) {
+    buffer.add(chunk);
+    var bytes = buffer.takeBytes();
+
     while (true) {
-      final data = buffer.toString();
-      if (inHeaders) {
-        final sep = data.indexOf('\r\n\r\n');
-        final sepLf = sep < 0 ? data.indexOf('\n\n') : -1;
-        final sep2 = sep >= 0 ? sep : sepLf;
-        if (sep2 < 0) break;
-        final headerBlock = data.substring(0, sep2);
-        final headerEnd = sep >= 0 ? sep2 + 4 : sep2 + 2;
-        contentLength = 0;
-        for (final line in headerBlock.split(RegExp(r'\r?\n'))) {
-          final lower = line.toLowerCase();
-          if (lower.startsWith('content-length:')) {
-            contentLength = int.parse(line.split(':').last.trim());
-          }
-        }
-        buffer
-          ..clear()
-          ..write(data.substring(headerEnd));
-        inHeaders = false;
+      final header = _findHeaderEnd(bytes);
+      if (header == null) break;
+
+      final contentLength = _contentLengthOf(bytes, header.start);
+      if (contentLength == null) {
+        // A header block with no usable Content-Length can never complete.
+        // Drop it and resynchronise instead of stalling on it forever.
+        bytes = bytes.sublist(header.end);
+        continue;
       }
 
-      if (!inHeaders) {
-        final body = buffer.toString();
-        if (body.length < contentLength) break;
-        final message = body.substring(0, contentLength);
-        buffer
-          ..clear()
-          ..write(body.substring(contentLength));
-        inHeaders = true;
-        await _handleMessage(message, root);
-      }
+      if (bytes.length - header.end < contentLength) break;
+
+      final message = utf8.decode(
+        bytes.sublist(header.end, header.end + contentLength),
+      );
+      bytes = bytes.sublist(header.end + contentLength);
+
+      await _handleMessage(message, root);
+    }
+
+    buffer.add(bytes);
+  }
+}
+
+/// Locates the blank line terminating the header block, tolerating bare LF.
+///
+/// Returns where the headers stop (`start`) and where the body begins
+/// (`end`), or null while the terminator has not arrived yet.
+({int start, int end})? _findHeaderEnd(List<int> bytes) {
+  const cr = 0x0D;
+  const lf = 0x0A;
+
+  for (var i = 0; i + 1 < bytes.length; i++) {
+    if (bytes[i] == cr &&
+        i + 3 < bytes.length &&
+        bytes[i + 1] == lf &&
+        bytes[i + 2] == cr &&
+        bytes[i + 3] == lf) {
+      return (start: i, end: i + 4);
+    }
+
+    if (bytes[i] == lf && bytes[i + 1] == lf) {
+      return (start: i, end: i + 2);
     }
   }
+
+  return null;
+}
+
+/// Reads `Content-Length` out of the header block. Headers are ASCII, so
+/// decoding them ahead of the body is safe.
+int? _contentLengthOf(List<int> bytes, int headerLength) {
+  final header = latin1.decode(
+    bytes.sublist(0, headerLength),
+    allowInvalid: true,
+  );
+
+  for (final line in header.split(RegExp(r'\r?\n'))) {
+    final separator = line.indexOf(':');
+    if (separator < 0) continue;
+    if (line.substring(0, separator).trim().toLowerCase() != 'content-length') {
+      continue;
+    }
+
+    return int.tryParse(line.substring(separator + 1).trim());
+  }
+
+  return null;
 }
 
 Future<void> _handleMessage(String raw, String root) async {
@@ -93,23 +135,28 @@ Future<void> _handleMessage(String raw, String root) async {
 }
 
 void _respond(Object? id, Object result) {
-  final payload = jsonEncode({'jsonrpc': '2.0', 'id': id, 'result': result});
-  final bytes = utf8.encode(payload);
-  stdout
-    ..write('Content-Length: ${bytes.length}\r\n\r\n')
-    ..write(payload);
+  _send({'jsonrpc': '2.0', 'id': id, 'result': result});
 }
 
 void _respondError(Object? id, int code, String message) {
-  final payload = jsonEncode({
+  _send({
     'jsonrpc': '2.0',
     'id': id,
     'error': {'code': code, 'message': message},
   });
-  final bytes = utf8.encode(payload);
+}
+
+/// Writes one framed message.
+///
+/// The body goes out as bytes rather than via `stdout.write`, which would
+/// re-encode using [Stdout.encoding] -- not necessarily UTF-8, and so not
+/// necessarily the length already announced in the header.
+void _send(Map<String, Object?> payload) {
+  final bytes = utf8.encode(jsonEncode(payload));
+
   stdout
-    ..write('Content-Length: ${bytes.length}\r\n\r\n')
-    ..write(payload);
+    ..add(utf8.encode('Content-Length: ${bytes.length}\r\n\r\n'))
+    ..add(bytes);
 }
 
 final _tools = [

@@ -11,3 +11,6 @@ dependencies:
 
 executables:
   revali_mcp:
+
+dev_dependencies:
+  test: ^1.25.15
