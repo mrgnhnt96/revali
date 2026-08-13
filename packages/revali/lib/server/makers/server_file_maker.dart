@@ -203,6 +203,14 @@ if (!isWorker && providedServer == null && app.workers > 1) {
                       const Code('}'),
                     ]),
                     const Code('\n'),
+                    // Declared before the router so the readiness probe can
+                    // read the drain flag off it. The probe has to reflect
+                    // the *current* shutdown state, so it closes over
+                    // `inFlight` rather than a value read at startup.
+                    declareFinal('inFlight')
+                        .assign(refer((InFlightRequests).name).newInstance([]))
+                        .statement,
+                    const Code('\n'),
                     declareFinal('router')
                         .assign(
                           refer((Router).name).newInstance([], {
@@ -220,6 +228,19 @@ if (!isWorker && providedServer == null && app.workers > 1) {
                             'routes': literalList([
                               refer('_routes').spread,
                               refer('public').spread,
+                              // Added here rather than inside the prefix
+                              // wrapping above, so probes answer on the bare
+                              // paths an orchestrator is configured with.
+                              refer('healthRoutes').call([], {
+                                'settings': refer('app').property('health'),
+                                'isDraining': Method(
+                                  (b) => b
+                                    ..lambda = true
+                                    ..body = refer(
+                                      'inFlight',
+                                    ).property('isDraining').code,
+                                ).closure,
+                              }).spread,
                             ]),
                             if (app.observers.hasObservers)
                               'observers': literalList([
@@ -258,10 +279,6 @@ if (!isWorker && providedServer == null && app.workers > 1) {
                         )
                         .statement,
                     const Code('\n'),
-                    declareFinal('inFlight')
-                        .assign(refer((InFlightRequests).name).newInstance([]))
-                        .statement,
-                    const Code('\n'),
                     refer('handleRouterRequests')
                         .call(
                           [
@@ -287,6 +304,11 @@ if (!isWorker && providedServer == null && app.handleShutdownSignals) {
       server: server,
       inFlight: inFlight,
       timeout: app.shutdownTimeout,
+      // SIGINT is a human at a terminal who wants the process gone now.
+      // SIGTERM is an orchestrator, which is who the delay exists for.
+      drainDelay: signal == ProcessSignal.sigterm
+          ? app.drainDelay
+          : Duration.zero,
       onStopped: app.onServerStopped,
       log: print,
     );
