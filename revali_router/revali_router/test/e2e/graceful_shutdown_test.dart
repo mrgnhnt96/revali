@@ -171,6 +171,118 @@ void main() {
     });
   });
 
+  group('drain delay', () {
+    late HttpServer server;
+    late HttpClient client;
+    late InFlightRequests inFlight;
+
+    Future<void> serve() async {
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      inFlight = InFlightRequests();
+
+      final router = Router(
+        routes: [
+          Route(
+            'ping',
+            method: 'GET',
+            handler: (context) async {
+              context.response.body = 'pong';
+            },
+          ),
+          ...healthRoutes(
+            settings: const HealthSettings(),
+            isDraining: () => inFlight.isDraining,
+          ),
+        ],
+      );
+
+      unawaited(
+        handleRouterRequests(server, router, server.close, inFlight: inFlight),
+      );
+    }
+
+    Future<(int, String)> get(String path) async {
+      final request = await client.getUrl(
+        Uri.parse('http://127.0.0.1:${server.port}$path'),
+      );
+      final response = await request.close();
+
+      return (
+        response.statusCode,
+        await response.transform(utf8.decoder).join(),
+      );
+    }
+
+    setUp(() => client = HttpClient());
+
+    tearDown(() async {
+      client.close(force: true);
+      await server.close(force: true);
+    });
+
+    test('readiness fails while the server is still accepting', () async {
+      await serve();
+
+      expect((await get('/readyz')).$1, HttpStatus.ok);
+
+      final shutdown = shutdownServer(
+        server: server,
+        inFlight: inFlight,
+        timeout: const Duration(seconds: 5),
+        drainDelay: const Duration(milliseconds: 500),
+      );
+
+      // This is the whole point of the delay. Closing the socket is invisible
+      // to a load balancer, so there has to be a window where the probe says
+      // "stop sending" while the server can still answer what is already on
+      // its way. Without the delay these two assertions cannot both hold:
+      // the second would fail with a SocketException.
+      expect((await get('/readyz')).$1, HttpStatus.serviceUnavailable);
+      expect(await get('/ping'), (HttpStatus.ok, 'pong'));
+
+      expect(await shutdown, isTrue);
+    });
+
+    test('requests accepted during the delay are drained, not dropped',
+        () async {
+      await serve();
+
+      final shutdown = shutdownServer(
+        server: server,
+        inFlight: inFlight,
+        timeout: const Duration(seconds: 5),
+        drainDelay: const Duration(milliseconds: 300),
+      );
+
+      final late = await get('/ping');
+
+      expect(late, (HttpStatus.ok, 'pong'));
+      expect(await shutdown, isTrue);
+    });
+
+    test('no delay by default — the socket closes at once', () async {
+      await serve();
+
+      final port = server.port;
+
+      expect(
+        await shutdownServer(
+          server: server,
+          inFlight: inFlight,
+          timeout: const Duration(seconds: 5),
+        ),
+        isTrue,
+      );
+
+      await expectLater(
+        client
+            .getUrl(Uri.parse('http://127.0.0.1:$port/readyz'))
+            .then((r) => r.close()),
+        throwsA(isA<SocketException>()),
+      );
+    });
+  });
+
   group('InFlightRequests', () {
     test('drains immediately when nothing is in flight', () async {
       expect(
