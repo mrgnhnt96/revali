@@ -10,6 +10,7 @@
 
 ### Features
 
+- The generated server passes its DI container to the `Router`, so every request gets its own scope and `registerRequestScoped` dependencies work end to end.
 - The generated server now shuts down gracefully. On `SIGTERM`/`SIGINT` it stops accepting connections, waits for in-flight requests up to `AppConfig.shutdownTimeout`, runs `AppConfig.onServerStopped`, and exits `0` — so a deploy or scale-down no longer truncates responses that were mid-flight. Handlers are installed only for a server Revali created itself, never when one is provided (as `TestServer` does) and never in worker isolates.
 - Add a `build:` section to `revali.yaml`. Its presence tells `revali build` to compile the server via `dart compile exe --target-os --target-arch`, cross-compiling to Linux from any host OS. Compiled executables are exposed to build-type constructs (e.g. `revali_docker`) via `RevaliBuildContext.compiledExecutables`, so they can package what was already compiled instead of compiling anything themselves. Supports `strip_debug_info` to split AOT debug info out of the executable for a smaller binary.
 
@@ -44,6 +45,7 @@
 
 ### Features
 
+- Add request-scoped dependencies. `DI.registerRequestScoped<T>` builds `T` once per request and shares it for the rest of that request, with nothing shared between requests — the missing middle between `registerSingleton` (whole process) and `registerFactory` (every resolution). Instances implementing the new `Disposable` interface are released when the request ends, in reverse creation order, whether it succeeded or threw. Resolving a request-scoped type outside a request throws rather than silently handing back an undisposed instance shared with nobody. `RequestScopedDI` is now a working per-request container rather than a stub: it caches what it builds, tracks it for disposal, and finds registrations through the `DIHandler` wrapper via the new `RequestScopedRegistry` interface.
 - Add graceful-shutdown configuration to `AppConfig`: `handleShutdownSignals` (default `true`) to opt out of signal handling, `shutdownTimeout` (default 15s) to bound how long in-flight requests are awaited, and an `onServerStopped` hook that runs once they have drained so the app can release databases, consumers and file handles.
 
 ### Fixes
@@ -79,6 +81,7 @@
 
 ### Features
 
+- `Router` takes an optional `di`. When set, every request runs with its own `RequestScopedDI` installed for the whole pipeline — middleware, guards, interceptors, the handler and exception catchers all resolve against the same scope. Disposal waits until the response has been fully written, so streaming and SSE handlers keep their request-scoped resources for as long as they are sending. Omitting `di` leaves requests unscoped, which is how a `Router` built directly in a test behaves.
 - Add graceful shutdown. `InFlightRequests` tracks requests the accept loop detached, `shutdownServer` stops the listener and waits for them within a timeout before forcing the socket closed, and `listenForShutdown` runs a callback on the first `SIGTERM`/`SIGINT` (ignoring later ones while a shutdown is already running, and skipping `SIGTERM` on Windows, which has no such signal). `handleRequests` and `handleRouterRequests` take an optional `inFlight` and behave exactly as before without it.
 
 ### Fixes
