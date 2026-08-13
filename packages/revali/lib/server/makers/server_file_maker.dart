@@ -76,7 +76,8 @@ String serverFile(
   );
 
   // Worker entry sets a per-isolate flag so createServer keeps its positional
-  // signature (used by tests as createServer(httpServer)).
+  // signature (used by tests as createServer(httpServer)), and stashes the
+  // port the parent uses to tell this isolate to drain.
   final workerEntrypoint = Method(
     (b) => b
       ..name = '_revaliWorkerMain'
@@ -84,14 +85,15 @@ String serverFile(
       ..requiredParameters.add(
         Parameter(
           (p) => p
-            ..name = 'args'
-            ..type = refer('List<String>'),
+            ..name = 'boot'
+            ..type = refer('List<Object>'),
         ),
       )
-      ..body = Block.of([
-        refer('_revaliIsWorker').assign(literalTrue).statement,
-        refer('createServer').call([literalNull, refer('args')]).statement,
-      ]),
+      ..body = const Code('''
+_revaliIsWorker = true;
+_revaliWorkerRegistration = boot[1] as SendPort;
+createServer(null, (boot[0] as List).cast<String>());
+'''),
   );
 
   final createServer = Method(
@@ -121,6 +123,10 @@ String serverFile(
       ..body = Block.of([
         declareFinal('isWorker').assign(refer('_revaliIsWorker')).statement,
         refer('_revaliIsWorker').assign(literalFalse).statement,
+        declareFinal(
+          'workerRegistration',
+        ).assign(refer('_revaliWorkerRegistration')).statement,
+        refer('_revaliWorkerRegistration').assign(literalNull).statement,
         declareFinal('args')
             .assign(
               refer((Args).name).newInstanceNamed('parse', [refer('rawArgs')]),
@@ -136,9 +142,15 @@ if (!isWorker && providedServer == null && app.workers > 1) {
     isolate.kill(priority: Isolate.immediate);
   }
   _revaliWorkerIsolates = <Isolate>[];
+  // Also drops the previous generation's command ports, which a hot reload
+  // would otherwise accumulate on every restart.
+  final registration = _revaliWorkerFleet.open();
   for (var i = 1; i < app.workers; i++) {
     _revaliWorkerIsolates.add(
-      await Isolate.spawn(_revaliWorkerMain, rawArgs),
+      await Isolate.spawn(
+        _revaliWorkerMain,
+        <Object>[rawArgs, registration],
+      ),
     );
   }
 }
@@ -295,24 +307,47 @@ if (!isWorker && providedServer == null && app.workers > 1) {
                     // Only a server this function created and owns may install
                     // process-wide signal handlers. A provided server belongs
                     // to the caller (tests pass a TestServer), and a worker
-                    // isolate shares the parent's signals.
+                    // isolate is told when to drain by the parent instead.
                     const Code(r'''
-if (!isWorker && providedServer == null && app.handleShutdownSignals) {
+Future<void> drainThisIsolate(Duration drainDelay) async {
+  await shutdownServer(
+    server: server,
+    inFlight: inFlight,
+    timeout: app.shutdownTimeout,
+    drainDelay: drainDelay,
+    onStopped: app.onServerStopped,
+    log: print,
+  );
+  router.close();
+}
+
+if (isWorker) {
+  // Every isolate binds the same port and keeps its own in-flight set, so a
+  // worker has to drain itself. It never watches signals: the parent waits
+  // for the reply before exiting, and exit() would take the whole process
+  // down with requests still running here.
+  if (workerRegistration case final registration?) {
+    listenForDrainCommands(registration, drainThisIsolate);
+  }
+} else if (providedServer == null && app.handleShutdownSignals) {
   listenForShutdown((signal) async {
     print('Received $signal, shutting down...');
-    await shutdownServer(
-      server: server,
-      inFlight: inFlight,
-      timeout: app.shutdownTimeout,
-      // SIGINT is a human at a terminal who wants the process gone now.
-      // SIGTERM is an orchestrator, which is who the delay exists for.
-      drainDelay: signal == ProcessSignal.sigterm
-          ? app.drainDelay
-          : Duration.zero,
-      onStopped: app.onServerStopped,
-      log: print,
-    );
-    router.close();
+    // SIGINT is a human at a terminal who wants the process gone now.
+    // SIGTERM is an orchestrator, which is who the delay exists for.
+    final drainDelay = signal == ProcessSignal.sigterm
+        ? app.drainDelay
+        : Duration.zero;
+    // Concurrently, so every isolate flags its own readiness at once and
+    // probes report 503 across the whole fleet rather than only whichever
+    // isolate happened to handle the signal.
+    await Future.wait([
+      _revaliWorkerFleet.drainAll(
+        drainDelay: drainDelay,
+        timeout: drainDelay + app.shutdownTimeout,
+        log: print,
+      ),
+      drainThisIsolate(drainDelay),
+    ]);
     exit(0);
   });
 }
@@ -346,6 +381,14 @@ if (!isWorker && providedServer == null && app.handleShutdownSignals) {
       '_revaliIsWorker',
       type: refer('bool'),
     ).assign(literalFalse).statement,
+    declareFinal(
+      '_revaliWorkerFleet',
+      type: refer((WorkerFleet).name),
+    ).assign(refer((WorkerFleet).name).newInstance([])).statement,
+    declareVar(
+      '_revaliWorkerRegistration',
+      type: refer('${(SendPort).name}?'),
+    ).statement,
     createBindServerMethod(),
     workerEntrypoint,
     main,
