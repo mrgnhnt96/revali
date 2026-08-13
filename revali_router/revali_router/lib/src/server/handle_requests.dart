@@ -8,6 +8,8 @@ import 'package:revali_router/src/request/request_context_impl.dart';
 import 'package:revali_router/src/response/simple_response.dart';
 import 'package:revali_router/src/response_handler/default_response_handler.dart';
 import 'package:revali_router/src/router/router.dart';
+import 'package:revali_router/src/server/graceful_shutdown.dart';
+import 'package:revali_router/src/server/in_flight_requests.dart';
 
 /// Serves HTTP requests from [server] using [handler] / [responseHandler].
 ///
@@ -17,66 +19,93 @@ import 'package:revali_router/src/router/router.dart';
 /// Each request is handled concurrently. Failures resolving the response
 /// handler no longer abandon the connection — a 500 is written and the
 /// socket is closed so the accept loop stays healthy under load.
+///
+/// Pass [inFlight] to make detached requests awaitable at shutdown; see
+/// [shutdownServer].
 Future<void> handleRequests(
   HttpServer server,
   Future<Response> Function(RequestContext context) handler,
   Future<ResponseHandler> Function(RequestContext context) responseHandler,
   void Function() close, {
   TrustedProxy trustedProxy = const TrustedProxy(),
+  InFlightRequests? inFlight,
 }) async {
   try {
     await for (final request in server) {
       // Detach per-request work so a slow handler cannot stall accept().
-      unawaited(
-        _serveRequest(
-          request: request,
-          handler: handler,
-          responseHandler: responseHandler,
-          trustedProxy: trustedProxy,
-        ),
+      final work = _serveRequest(
+        request: request,
+        handler: handler,
+        responseHandler: responseHandler,
+        trustedProxy: trustedProxy,
       );
+
+      inFlight?.track(work);
+      unawaited(work);
     }
 
-    close();
+    _closeUnlessDraining(close, inFlight);
   } catch (e, st) {
     // Accept-loop failures are fatal for this listener, but must not escape
     // silently — log and invoke [close] so hot-reload / process supervision
     // can recover.
     print('HTTP accept loop terminated: $e\n$st');
     try {
-      close();
+      _closeUnlessDraining(close, inFlight);
     } catch (_) {}
   }
 }
 
+/// Runs [close] unless a graceful shutdown is already under way.
+///
+/// Closing the server ends the accept loop immediately, but in-flight
+/// requests are still being served at that point. Tearing their resources
+/// down here would defeat the drain, so during a shutdown the teardown is
+/// left to whoever called [shutdownServer], once the drain has finished.
+void _closeUnlessDraining(void Function() close, InFlightRequests? inFlight) {
+  if (inFlight != null && inFlight.isDraining) {
+    return;
+  }
+
+  close();
+}
+
 /// Serves HTTP requests using [Router.handleRequest] (single route Find).
+///
+/// Pass [inFlight] to make detached requests awaitable at shutdown; see
+/// [shutdownServer].
 Future<void> handleRouterRequests(
   HttpServer server,
   Router router,
-  void Function() close,
-) async {
+  void Function() close, {
+  InFlightRequests? inFlight,
+}) async {
   try {
     await for (final request in server) {
-      unawaited(
-        router.handleRequest(request).catchError((Object e, StackTrace st) {
-          print('Request failed: $e\n$st');
-          return _failClosed(
-            request: request,
-            context: RequestContextImpl.fromRequest(
-              request,
-              trustedProxy: router.trustedProxy,
-            ),
-            body: 'Internal Server Error (ROOT)',
-          );
-        }),
-      );
+      final work = router.handleRequest(request).catchError((
+        Object e,
+        StackTrace st,
+      ) {
+        print('Request failed: $e\n$st');
+        return _failClosed(
+          request: request,
+          context: RequestContextImpl.fromRequest(
+            request,
+            trustedProxy: router.trustedProxy,
+          ),
+          body: 'Internal Server Error (ROOT)',
+        );
+      });
+
+      inFlight?.track(work);
+      unawaited(work);
     }
 
-    close();
+    _closeUnlessDraining(close, inFlight);
   } catch (e, st) {
     print('HTTP accept loop terminated: $e\n$st');
     try {
-      close();
+      _closeUnlessDraining(close, inFlight);
     } catch (_) {}
   }
 }
