@@ -96,6 +96,17 @@ Expression createArgForParam(
     false => getRawType(param.type).replaceAll('?', ''),
   };
 
+  // `rawType` is the **wire** type, so a custom type deserialized from a
+  // string (`StringUser.fromJson(String)`) also reports `String` here. The
+  // coercion arms below must therefore still run the value through fromJson;
+  // handing back the bare `data.toString()` typed the whole switch as
+  // `Object` and the generated file did not compile.
+  final stringified = refer('data').property('toString').call([]);
+  final stringifiedValue = switch (param.annotations.data) {
+    true => stringified,
+    false => createFromJson(param.type, stringified) ?? stringified,
+  };
+
   // Coerced query/header multi-values are `List<dynamic>` / `Set<dynamic>`.
   // JSON bodies decode sets as `List`. A pattern of `List<String>` / `Set`
   // never matches those at runtime, so match the unspecialized iterable and
@@ -125,12 +136,10 @@ Expression createArgForParam(
     // Object (e.g. empty JSON Map `{}`) — that should fall through to the
     // default / missing-argument arms.
     if (rawType == 'String') ...{
-      Block.of([declareFinal('data', type: refer('num')).code]): refer(
-        'data',
-      ).property('toString').call([]),
-      Block.of([declareFinal('data', type: refer('bool')).code]): refer(
-        'data',
-      ).property('toString').call([]),
+      Block.of([declareFinal('data', type: refer('num')).code]):
+          stringifiedValue,
+      Block.of([declareFinal('data', type: refer('bool')).code]):
+          stringifiedValue,
     },
     // Coerced ints should satisfy double parameters (`?n=5` → 5).
     if (rawType == 'double')
