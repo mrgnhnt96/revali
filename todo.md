@@ -143,6 +143,19 @@ mounted into the former. The split is fine; the flag duplication is not.
 - [x] Remove the stale `.gitignore` entry `constructs/revali_server/bin/tester.dart` — that path no longer existed after the `revali_server` consolidation
 - [ ] Keep `small_test/` and `playground/` — both checked, both real. `small_test/` is a fixture used by `packages/revali/test/utils/directory_extensions_test.dart:41,52`; `playground/` is the benchmark harness with its own README/BENCHMARKS
 
+### Found while asking "what's next" — read these first
+
+- [ ] 🔴 **The pre-push test gate runs zero tests and exits 0.**
+  - `hooks/pre_push.dart` runs `sip test --recursive --bail` from the **repo root**. Observed directly: it prints `Results: ✅ 0 ❌ 0 ⚠️ 0`, emits `LoadSuite.forLoadException` errors and `Could not find package `test``, and **exits 0**
+  - So the green `✓ Test Suite` on every push means nothing was run, not that anything passed. The four genuinely failing `test_suite` tests below have been sailing past it
+  - The `Generate Test Suite` step before it *does* work — it is only the run that is empty
+  - Fix needs a floor, not just an exit code: assert a **minimum test count**, or run the suite the way `sip run ts` does (`cd test_suite && sip test --recursive`), which demonstrably executes them
+- [ ] 🔴 **`revali_router` is versioned `4.1.0` for a breaking change.**
+  - `revali_router.dart` re-exports `package:revali_core/revali_core.dart` hiding only `AppConfig`, `Body` and `LifecycleComponents` — so `Observer` is part of **revali_router's** public API, and `examples/hello` imports it from there
+  - `Observer.see`'s signature changed, which is breaking for revali_router consumers. Shipping it as a minor breaks every dependent on `dart pub upgrade`
+  - Same question for `revali` (`3.2.0`), which re-exports less but should be checked
+  - One-line changelog edit, but it has to happen before any release
+
 ### Found while working Tier 3
 
 - [ ] **Pre-existing failures: `test_suite/constructs/revali_server/access_control` → `allow_origin_controller_test.dart`**
