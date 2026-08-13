@@ -17,9 +17,15 @@ re-discovered.
   - Of the 98 pages under `doc-site/content/`, **zero** covered testing; `TestServer` appeared nowhere in the docs
   - Done: `content/revali/testing.md`, linked as a top-level `Testing` nav item. Covers the `TestServer` pattern, why `createServer` must be awaited, the `/api` prefix and `{"data": ...}` wrapper, header assertions with `expectRecentHttpDate`, streaming via `connect`, and when to bind a real socket instead
   - Verified: site builds, `build/jaspr/revali/testing/index.html` exists, nav link renders on sibling pages, all 35 doc-site tests pass
-- [ ] Publish `revali_mcp` (also `publish_to: none`)
-  - `README.md` ships a Cursor config telling users to run `dart run revali_mcp`; that cannot resolve outside this repo
-  - Single 276-line `bin/revali_mcp.dart`, no `lib/`, no tests
+- [x] Make `revali_mcp` publishable (also `publish_to: none`)
+  - `README.md` shipped a Cursor config telling users to run `dart run revali_mcp`; that could not resolve outside this repo
+  - Done: pub metadata, `CHANGELOG.md`, `LICENSE`, a `0.1.0` entry in `LATEST_CHANGELOG.md`, and install instructions for both a dev dependency and `dart pub global activate`. `dart pub publish --dry-run` reports **0 warnings**
+  - [ ] **Still to do — actually publish it.** Same as `revali_test`: pubspec version equals the changelog version, so the release script skips it. Bump the changelog entry when ready
+- [x] **Bug found while prepping it: stdio framing counted characters, not bytes**
+  - `Content-Length` is a byte count, but the server buffered `stdin.transform(utf8.decoder)` output and compared decoded character counts against it. `é` is two bytes and one code unit, so *any* non-ASCII message body left the server waiting on data that had already arrived — it never replied
+  - The write side had the mirror fault: the header announced `utf8.encode(payload).length` while the body went out via `stdout.write`, which re-encodes using `Stdout.encoding`
+  - Fixed by buffering raw bytes and slicing by byte offset; responses are written as UTF-8 bytes
+  - Package went from **0 tests** to 6, including an stdio client harness and a regression test for the non-ASCII body that used to hang (it reproduced as a timeout before the fix)
 
 ## Tier 2 — Production correctness
 
