@@ -42,19 +42,19 @@ class Execute {
       final HelperMixin(
         :observers,
         :observerResponseFuture,
+        :observerSummaryFuture,
         :request,
       ) = helper;
 
       if (observers.isNotEmpty) {
-        for (final listener in observers) {
-          // Not every listener wants the start of a request -- a
-          // RequestObserver only takes the summary once it finishes.
-          if (listener is! Observer) {
-            continue;
-          }
-
-          listener.see(request, observerResponseFuture).ignore();
-        }
+        notifyObservers(
+          observers,
+          ObservedRequest(
+            request: request,
+            response: observerResponseFuture,
+            summary: observerSummaryFuture,
+          ),
+        );
       }
 
       // Zone guard is for catching unawaited handler errors in debug.

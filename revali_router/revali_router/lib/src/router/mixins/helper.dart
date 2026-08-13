@@ -9,6 +9,7 @@ class Helper with HelperMixin, ContextMixin {
     required Router router,
     required this.observers,
     required this.observerResponseFuture,
+    required this.observerSummaryFuture,
   }) {
     globalComponents = router._globalComponents ?? LifecycleComponentsImpl();
     reflectHandler = Reflect(router._reflects);
@@ -58,10 +59,12 @@ class Helper with HelperMixin, ContextMixin {
   late final DefaultResponses defaultResponses;
 
   @override
-  final List<RequestListener> observers;
+  final List<Observer> observers;
 
   @override
   final Future<Response> observerResponseFuture;
+  @override
+  final Future<RequestSummary> observerSummaryFuture;
 
   @override
   ContextMixin get context => this;

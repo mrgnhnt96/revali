@@ -36,6 +36,7 @@ import 'package:revali_router/src/route/base_route.dart';
 import 'package:revali_router/src/route/lifecycle_components_impl.dart';
 import 'package:revali_router/src/route/route_match.dart';
 import 'package:revali_router/src/route/web_socket_route.dart';
+import 'package:revali_router/src/router/notify_observers.dart';
 import 'package:revali_router/src/router/request_trace.dart';
 import 'package:revali_router/src/web_socket/async_web_socket_sender_impl.dart';
 import 'package:revali_router/src/web_socket/web_socket_close_impl.dart';
@@ -95,13 +96,7 @@ class Router extends Equatable {
   /// is how a [Router] constructed directly (in tests, say) behaves.
   final DI? di;
 
-  /// Everything watching requests.
-  ///
-  /// Typed as the shared supertype rather than [Observer] so a listener that
-  /// only wants the completed-request summary can be registered without
-  /// implementing `see`. Each entry is dispatched to on the interfaces it
-  /// actually implements.
-  final List<RequestListener> observers;
+  final List<Observer> observers;
   final List<BaseRoute> routes;
   final Set<ReflectData> _reflects;
   final LifecycleComponents? _globalComponents;
@@ -184,12 +179,12 @@ class Router extends Equatable {
       trustedProxy: trustedProxy,
     );
 
-    final matched = _MatchedRoute();
+    final observation = _Observation();
     final (response, responseHandler) = await _handleWithHandler(
       context,
-      matched,
+      observation,
     );
-    _recordTrace(context, response, started, matched.path);
+    _recordTrace(context, response, started, observation);
     await responseHandler.handle(response, context, httpRequest.response);
   }
 
@@ -280,17 +275,22 @@ class Router extends Equatable {
 
   Future<Response> _handle0(RequestContext context) async {
     final started = DateTime.now();
-    final matched = _MatchedRoute();
-    final (response, _) = await _handleWithHandler(context, matched);
-    _recordTrace(context, response, started, matched.path);
+    final observation = _Observation();
+    final (response, _) = await _handleWithHandler(context, observation);
+    _recordTrace(context, response, started, observation);
     return response;
   }
 
   Future<(Response, ResponseHandler)> _handleWithHandler(
     RequestContext context, [
-    _MatchedRoute? matched,
+    _Observation? observation,
   ]) async {
     final responseCompleter = Completer<Response>();
+    // When no observation is supplied (a caller that records no trace), the
+    // summary never resolves -- so hand observers a future that never
+    // completes rather than one that completes with a lie.
+    final summaryFuture =
+        observation?.summary.future ?? Completer<RequestSummary>().future;
 
     HelperMixin helper;
     late final ResponseHandler responseHandler;
@@ -304,7 +304,7 @@ class Router extends Equatable {
 
       // Recorded here rather than threaded through every return below --
       // there are a dozen, and only the observer summary needs it.
-      matched?.path = match?.route.fullPath;
+      observation?.routePath = match?.route.fullPath;
 
       responseHandler = _responseHandlerFor(match?.route);
 
@@ -318,7 +318,7 @@ class Router extends Equatable {
           stackTrace: StackTrace.current,
         );
 
-        _notifyObservers(request, responseCompleter.future);
+        _notifyObservers(request, responseCompleter.future, summaryFuture);
 
         responseCompleter.complete(response);
 
@@ -350,6 +350,7 @@ class Router extends Equatable {
         route,
         request,
         observerResponseFuture: responseCompleter.future,
+        observerSummaryFuture: summaryFuture,
       );
     } catch (e, stackTrace) {
       responseHandler = _responseHandlerFor(null);
@@ -362,6 +363,7 @@ class Router extends Equatable {
       _notifyObservers(
         RequestImpl.fromRequest(context),
         responseCompleter.future,
+        summaryFuture,
       );
 
       responseCompleter.complete(response);
@@ -425,6 +427,7 @@ class Router extends Equatable {
     BaseRoute route,
     RequestImpl request, {
     required Future<Response> observerResponseFuture,
+    required Future<RequestSummary> observerSummaryFuture,
   }) {
     return Helper(
       route: route,
@@ -432,44 +435,54 @@ class Router extends Equatable {
       router: this,
       observers: observers,
       observerResponseFuture: observerResponseFuture,
+      observerSummaryFuture: observerSummaryFuture,
     );
   }
 
-  void _notifyObservers(FullRequest request, Future<Response> response) {
+  void _notifyObservers(
+    FullRequest request,
+    Future<Response> response,
+    Future<RequestSummary> summary,
+  ) {
     if (observers.isEmpty) {
       return;
     }
-    for (final listener in observers) {
-      // A RequestObserver only wants the summary once the request finishes.
-      if (listener is Observer) {
-        listener.see(request, response).ignore();
-      }
-    }
+
+    notifyObservers(
+      observers,
+      ObservedRequest(
+        request: request,
+        response: response,
+        summary: summary,
+      ),
+    );
   }
 
   void _recordTrace(
     RequestContext context,
     Response response,
     DateTime started, [
-    String? routePath,
+    _Observation? observation,
   ]) {
     final duration = DateTime.now().difference(started);
     final error = response.statusCode >= 400 ? '${response.body.data}' : null;
 
-    // Observers fire in every mode. The ring buffer and the inspect log below
-    // are debug tooling; a metrics exporter is not, and gating it on `debug`
-    // would leave production with no telemetry at all.
-    _notifyRequestObservers(
-      RequestSummary(
-        method: context.method,
-        path: '/${context.segments.join('/')}',
-        routePath: routePath,
-        statusCode: response.statusCode,
-        duration: duration,
-        startedAt: started,
-        error: error,
-      ),
-    );
+    // Resolved in every mode. The ring buffer and the inspect log below are
+    // debug tooling; an observer awaiting the summary is not, and gating it
+    // on `debug` would leave production with no telemetry at all.
+    if (observation != null && !observation.summary.isCompleted) {
+      observation.summary.complete(
+        RequestSummary(
+          method: context.method,
+          path: '/${context.segments.join('/')}',
+          routePath: observation.routePath,
+          statusCode: response.statusCode,
+          duration: duration,
+          startedAt: started,
+          error: error,
+        ),
+      );
+    }
 
     if (!debug && !inspect) {
       return;
@@ -502,39 +515,19 @@ class Router extends Equatable {
     }
   }
 
-  void _notifyRequestObservers(RequestSummary summary) {
-    for (final observer in observers) {
-      // Only the listeners that asked for a summary.
-      if (observer is! RequestObserver) {
-        continue;
-      }
-
-      try {
-        // Not awaited: the response is already produced, and a slow exporter
-        // must not add latency to it. Async failures are caught here too,
-        // since an unhandled one would escape into the request's zone.
-        final result = observer.onRequestComplete(summary);
-        if (result is Future<void>) {
-          result.catchError(_reportObserverError);
-        }
-      } catch (e, st) {
-        _reportObserverError(e, st);
-      }
-    }
-  }
-
-  static void _reportObserverError(Object error, [StackTrace? stackTrace]) {
-    // ignore: avoid_print
-    print('RequestObserver failed: $error\n${stackTrace ?? ''}');
-  }
-
   @override
   List<Object?> get props => _$props;
 }
 
-/// Carries the matched route's registered path back out of
-/// [Router._handleWithHandler], which has too many return paths to thread it
-/// through each one.
-class _MatchedRoute {
-  String? path;
+/// Per-request state shared between [Router._handleWithHandler], which knows
+/// the matched route, and the callers that record the outcome.
+///
+/// [Router._handleWithHandler] has too many return paths to thread either of
+/// these through each one.
+class _Observation {
+  /// Completed once the request finishes, so an observer can await it.
+  final summary = Completer<RequestSummary>();
+
+  /// The matched route's registered path, e.g. `/api/users/:id`.
+  String? routePath;
 }

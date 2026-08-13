@@ -205,10 +205,9 @@ class _Observer implements Observer {
   final StreamController<String> controller;
 
   @override
-  Future<void> see(
-    Request request,
-    Future<Response> response,
-  ) async {
+  Future<void> see(ObservedRequest observed) async {
+    final response = observed.response;
+
     controller.add('Observer-pre');
     await response;
     controller.add('Observer-post');

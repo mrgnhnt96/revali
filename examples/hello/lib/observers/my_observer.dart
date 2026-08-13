@@ -4,10 +4,9 @@ class MyObserver implements Observer {
   const MyObserver();
 
   @override
-  Future<void> see(
-    Request request,
-    Future<Response> response,
-  ) async {
+  Future<void> see(ObservedRequest observed) async {
+    final response = observed.response;
+
     print('before');
 
     await response;

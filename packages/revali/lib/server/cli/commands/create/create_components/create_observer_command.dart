@@ -52,12 +52,15 @@ class ${_name.toPascalCase()}Observer implements Observer {
   const ${_name.toPascalCase()}Observer();
 
   @override
-  Future<void> see(
-    ReadOnlyRequest request,
-    Future<ReadOnlyResponse> response,
-  ) async {
-    // TODO: implement see
-    throw UnimplementedError();
+  Future<void> see(ObservedRequest observed) async {
+    // Available immediately: observed.request
+    // Awaitable: observed.response, observed.summary
+    final summary = await observed.summary;
+
+    print(
+      '\${summary.method} \${summary.routePath} '
+      '-> \${summary.statusCode} in \${summary.duration.inMilliseconds}ms',
+    );
   }
 }
 ''';
