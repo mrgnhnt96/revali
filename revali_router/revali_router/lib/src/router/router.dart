@@ -178,8 +178,12 @@ class Router extends Equatable {
       trustedProxy: trustedProxy,
     );
 
-    final (response, responseHandler) = await _handleWithHandler(context);
-    _recordTrace(context, response, started);
+    final matched = _MatchedRoute();
+    final (response, responseHandler) = await _handleWithHandler(
+      context,
+      matched,
+    );
+    _recordTrace(context, response, started, matched.path);
     await responseHandler.handle(response, context, httpRequest.response);
   }
 
@@ -270,14 +274,16 @@ class Router extends Equatable {
 
   Future<Response> _handle0(RequestContext context) async {
     final started = DateTime.now();
-    final (response, _) = await _handleWithHandler(context);
-    _recordTrace(context, response, started);
+    final matched = _MatchedRoute();
+    final (response, _) = await _handleWithHandler(context, matched);
+    _recordTrace(context, response, started, matched.path);
     return response;
   }
 
   Future<(Response, ResponseHandler)> _handleWithHandler(
-    RequestContext context,
-  ) async {
+    RequestContext context, [
+    _MatchedRoute? matched,
+  ]) async {
     final responseCompleter = Completer<Response>();
 
     HelperMixin helper;
@@ -289,6 +295,10 @@ class Router extends Equatable {
       final segments = request.segments;
 
       final match = _findMatch(segments, request.method);
+
+      // Recorded here rather than threaded through every return below --
+      // there are a dozen, and only the observer summary needs it.
+      matched?.path = match?.route.fullPath;
 
       responseHandler = _responseHandlerFor(match?.route);
 
@@ -431,8 +441,27 @@ class Router extends Equatable {
   void _recordTrace(
     RequestContext context,
     Response response,
-    DateTime started,
-  ) {
+    DateTime started, [
+    String? routePath,
+  ]) {
+    final duration = DateTime.now().difference(started);
+    final error = response.statusCode >= 400 ? '${response.body.data}' : null;
+
+    // Observers fire in every mode. The ring buffer and the inspect log below
+    // are debug tooling; a metrics exporter is not, and gating it on `debug`
+    // would leave production with no telemetry at all.
+    _notifyRequestObservers(
+      RequestSummary(
+        method: context.method,
+        path: '/${context.segments.join('/')}',
+        routePath: routePath,
+        statusCode: response.statusCode,
+        duration: duration,
+        startedAt: started,
+        error: error,
+      ),
+    );
+
     if (!debug && !inspect) {
       return;
     }
@@ -441,8 +470,8 @@ class Router extends Equatable {
       method: context.method,
       path: context.segments.join('/'),
       statusCode: response.statusCode,
-      durationMs: DateTime.now().difference(started).inMilliseconds,
-      error: response.statusCode >= 400 ? '${response.body.data}' : null,
+      durationMs: duration.inMilliseconds,
+      error: error,
       at: started,
     );
 
@@ -464,6 +493,44 @@ class Router extends Equatable {
     }
   }
 
+  void _notifyRequestObservers(RequestSummary summary) {
+    for (final observer in observers) {
+      // Discovered from the same list rather than a second one, so nothing in
+      // the app config or the generator has to learn about a new kind of
+      // component. RequestObserver is not a subtype of Observer, so this is a
+      // cast, not a promotion.
+      if (observer is! RequestObserver) {
+        continue;
+      }
+
+      final requestObserver = observer as RequestObserver;
+
+      try {
+        // Not awaited: the response is already produced, and a slow exporter
+        // must not add latency to it. Async failures are caught here too,
+        // since an unhandled one would escape into the request's zone.
+        final result = requestObserver.onRequestComplete(summary);
+        if (result is Future<void>) {
+          result.catchError(_reportObserverError);
+        }
+      } catch (e, st) {
+        _reportObserverError(e, st);
+      }
+    }
+  }
+
+  static void _reportObserverError(Object error, [StackTrace? stackTrace]) {
+    // ignore: avoid_print
+    print('RequestObserver failed: $error\n${stackTrace ?? ''}');
+  }
+
   @override
   List<Object?> get props => _$props;
+}
+
+/// Carries the matched route's registered path back out of
+/// [Router._handleWithHandler], which has too many return paths to thread it
+/// through each one.
+class _MatchedRoute {
+  String? path;
 }

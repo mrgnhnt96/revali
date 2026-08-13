@@ -18,6 +18,7 @@ export 'components/guard.dart';
 export 'components/interceptor.dart';
 export 'components/middleware.dart';
 export 'components/observer.dart';
+export 'components/request_observer.dart';
 export 'components/request_wrapper.dart';
 export 'context/bind_context.dart';
 export 'context/context.dart';
