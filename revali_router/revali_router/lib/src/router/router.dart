@@ -205,7 +205,12 @@ class Router extends Equatable {
   }
 
   void close() {
-    for (final cleanUp in _cleanUp) {
+    // Iterate a copy: each entry removes itself from [_cleanUp] as it runs,
+    // which is a concurrent modification if we walk the live list. Only
+    // reachable when close() happens with requests still registered -- e.g. a
+    // graceful shutdown -- so it stayed hidden while close() only ever ran
+    // after everything had already drained.
+    for (final cleanUp in [..._cleanUp]) {
       try {
         cleanUp();
       } catch (_) {}
