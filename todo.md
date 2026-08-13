@@ -39,11 +39,15 @@ re-discovered.
 - [x] **Bug found while building it: `Router.close()` threw `Concurrent modification during iteration`**
   - Each registered cleanup removes itself from `_cleanUp` as it runs, so iterating the live list is unsafe. Unreachable before, because `close()` only ever ran once every request had drained and self-removed — draining made it reachable immediately
   - Also required ordering care: closing the server ends the accept loop at once, so the loop now skips its own teardown while a drain is under way, leaving it to the shutdown path. Otherwise cleanup runs *under* the requests still being served
-- [ ] Finish request-scoped DI (see also the open item under 7.31.26 below)
-  - The **read** side is already fully generated: `createGetFromDi()` emits `RequestScopedDI.getFrom(di)` and is used by guard/middleware/interceptor/exception/wrapper content, plus `create_param_arg.dart:100,119` and `create_class.dart:9`
-  - But nothing ever installs a `RequestScopedDI` into a zone — it is referenced in no file other than its own definition, so `maybeCurrent` is always `null` and every lookup falls through to the app container. The feature is dead code today
-  - `RequestScopedDI.onError` and `.dispose` are empty stubs, so per-request resources would never be cleaned up
-  - Needs: a built-in kit (like `@RequestId()`) that wraps via the existing `RequestWrapper` and runs the handler in a zone keyed by `RequestScopedDI.zoneKey`, an `AppConfig` hook for registering request-scoped factories, and real `dispose`/`onError` bodies
+- [x] Finish request-scoped DI
+  - The **read** side was already fully generated: `createGetFromDi()` emits `RequestScopedDI.getFrom(di)` and is used by guard/middleware/interceptor/exception/wrapper content, plus `create_param_arg.dart:100,119` and `create_class.dart:9`
+  - But nothing ever installed a `RequestScopedDI` into a zone, so `maybeCurrent` was always `null` and every lookup fell through to the app container. The feature was dead code
+  - `RequestScopedDI.onError` and `.dispose` were empty stubs, so per-request resources were never cleaned up
+  - Done: `DI.registerRequestScoped<T>` + a `Disposable` interface in `revali_core`; `RequestScopedDI` now caches what it builds, tracks it for disposal, and finds registrations through the `DIHandler` wrapper via a new `RequestScopedRegistry` interface. `Router` takes an optional `di` and installs a scope for the whole pipeline; the generated server passes it
+  - Rather than the wrapper-kit approach originally sketched, the scope is installed by the router itself — a kit would have been opt-in, and `registerRequestScoped` silently behaving like a factory when someone forgot the annotation is exactly the bug this exists to prevent
+  - Disposal waits until the response is fully written (so streaming/SSE keep their resources) and is awaited on the production path, so a graceful shutdown drains it too
+  - `onError` was removed rather than implemented: it had no semantics, no callers, and the failure path is already covered by disposal running whether the request succeeded or threw
+  - Verified against a real server: two `@Dep()` params in one handler resolved to the same instance, three sequential requests got `uow=1/2/3`, and each was disposed before the next was built. 30 tests in `revali_core`
 
 ## Tier 3 — Feature gaps
 
