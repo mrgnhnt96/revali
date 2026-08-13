@@ -26,7 +26,6 @@ lib/
 tool/
   build_search_index.dart  content/ -> web/search-index.json + llms.txt
   verify_in_browser.py     headless-Chrome checks and screenshots
-  migrate_docusaurus.py    the one-shot Docusaurus migration, kept as a record
 web/
   search-index.json   generated, and committed
   CNAME               docs.revali.dev
