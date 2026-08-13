@@ -29,11 +29,16 @@ re-discovered.
 
 ## Tier 2 — Production correctness
 
-- [ ] Graceful shutdown in the generated server
-  - Generated `main` is just `hotReload(() => createServer(null, args))` — no signal handling. Signals are only handled in the dev CLI (`vm_service_handler.dart`), to kill the child process
-  - `handle_requests.dart:31` detaches every request with `unawaited(...)`, so there is no in-flight set to drain even if a handler existed
-  - `revali_docker` generates Dockerfiles → container platforms stop with SIGTERM → in-flight responses are truncated on every deploy and scale-down
-  - Needs: track in-flight futures, stop accepting on SIGTERM/SIGINT, await with a timeout
+- [x] Graceful shutdown in the generated server
+  - Generated `main` was just `hotReload(() => createServer(null, args))` — no signal handling. Signals were only handled in the dev CLI (`vm_service_handler.dart`), to kill the child process
+  - `handle_requests.dart` detached every request with `unawaited(...)`, so there was no in-flight set to drain even if a handler had existed
+  - `revali_docker` generates Dockerfiles → container platforms stop with SIGTERM → in-flight responses were truncated on every deploy and scale-down
+  - Done: `InFlightRequests` + `shutdownServer` + `listenForShutdown` in `revali_router`; `AppConfig` gains `handleShutdownSignals`, `shutdownTimeout` (15s) and `onServerStopped`; the generated server wires them up, but only for a server Revali created itself (never a provided `TestServer`, never a worker isolate)
+  - Verified end-to-end against a real process: SIGTERM sent 1s into a 3s handler, client still received `HTTP 200 {"data":"drained"}`, port released, exit 0. Confirmed non-vacuous — the same scenario without tracking throws `HttpException` at the client
+  - 9 new tests in `revali_router/test/e2e/graceful_shutdown_test.dart`
+- [x] **Bug found while building it: `Router.close()` threw `Concurrent modification during iteration`**
+  - Each registered cleanup removes itself from `_cleanUp` as it runs, so iterating the live list is unsafe. Unreachable before, because `close()` only ever ran once every request had drained and self-removed — draining made it reachable immediately
+  - Also required ordering care: closing the server ends the accept loop at once, so the loop now skips its own teardown while a drain is under way, leaving it to the shutdown path. Otherwise cleanup runs *under* the requests still being served
 - [ ] Finish request-scoped DI (see also the open item under 7.31.26 below)
   - The **read** side is already fully generated: `createGetFromDi()` emits `RequestScopedDI.getFrom(di)` and is used by guard/middleware/interceptor/exception/wrapper content, plus `create_param_arg.dart:100,119` and `create_class.dart:9`
   - But nothing ever installs a `RequestScopedDI` into a zone — it is referenced in no file other than its own definition, so `maybeCurrent` is always `null` and every lookup falls through to the app container. The feature is dead code today
