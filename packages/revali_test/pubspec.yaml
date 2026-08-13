@@ -1,5 +1,17 @@
 name: revali_test
-publish_to: none
+version: 1.0.0
+description: Test helpers for Revali servers — drive a generated server in-process, without binding a socket
+repository: https://github.com/mrgnhnt96/revali/tree/main/packages/revali_test
+issue_tracker: https://github.com/mrgnhnt96/revali/issues
+documentation: https://revali.dev
+funding:
+    - https://github.com/sponsors/mrgnhnt96
+topics:
+  - revali
+  - api
+  - backend
+  - server
+  - testing
 
 environment:
   sdk: ">=3.8.0 <4.0.0"
