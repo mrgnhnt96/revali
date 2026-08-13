@@ -67,14 +67,18 @@ void main() {
       );
 
       expect(response.statusCode, 400);
+      // Asserted by content rather than as an exact prefix: the debug block
+      // also carries `expected:`/`actual:` and a stack trace, and pinning the
+      // whole string breaks every time the diagnostics improve.
       expect(
         response.body,
-        startsWith('''
-Bad Request
-
-__DEBUG__:
-Error: MissingArgumentException: key: data, location: @data
-'''),
+        allOf(
+          startsWith('Bad Request'),
+          contains('__DEBUG__:'),
+          contains('MissingArgumentException'),
+          contains('key: data'),
+          contains('location: @data'),
+        ),
       );
     });
 

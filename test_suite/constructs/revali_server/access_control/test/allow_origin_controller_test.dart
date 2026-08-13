@@ -72,14 +72,19 @@ void main() {
         ]);
       });
 
-      test('returns an error response when origin is not present', () async {
+      test('allows a request with no origin at all', () async {
         final response = await server.send(
           method: 'GET',
           path: '/api/allow-origin/inherited',
         );
 
-        expect(response.statusCode, 403);
-        expect(response.headers['access-control-allow-origin'], isNull);
+        // A request with no Origin is not a cross-origin browser request,
+        // so origin allowlisting does not apply to it -- see
+        // "fix: stop rejecting requests with no Origin header under
+        // restrictive AllowOrigins". Locking these out would also lock out
+        // every curl / mobile / server-to-server caller of the endpoint.
+        expect(response.statusCode, 200);
+        expect(response.headers['access-control-allow-origin'], ['*']);
       });
 
       test('returns a successful response when OPTIONS request', () async {
@@ -127,17 +132,15 @@ void main() {
         expect(response.statusCode, 403);
       });
 
-      test(
-        'returns an error response when child origin is not present',
-        () async {
-          final response = await server.send(
-            method: 'GET',
-            path: '/api/allow-origin/not-inherited',
-          );
+      test('allows a request with no origin at all', () async {
+        final response = await server.send(
+          method: 'GET',
+          path: '/api/allow-origin/not-inherited',
+        );
 
-          expect(response.statusCode, 403);
-        },
-      );
+        expect(response.statusCode, 200);
+        expect(response.headers['access-control-allow-origin'], ['*']);
+      });
 
       test('returns a successful response when origin is present', () async {
         final response = await server.send(
@@ -211,14 +214,14 @@ void main() {
         },
       );
 
-      test('returns an error response when child nor parent origin '
-          'are not present', () async {
+      test('allows a request with neither child nor parent origin', () async {
         final response = await server.send(
           method: 'GET',
           path: '/api/allow-origin/combined',
         );
 
-        expect(response.statusCode, 403);
+        expect(response.statusCode, 200);
+        expect(response.headers['access-control-allow-origin'], ['*']);
       });
 
       test('returns a successful response when OPTIONS request', () async {
