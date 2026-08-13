@@ -1,5 +1,9 @@
 # TODO
 
+> **Releases:** everything pending for the next release — and the reasons two
+> packages will silently *not* publish as things stand — is in
+> [RELEASING.md](./RELEASING.md), not here.
+
 # 8.12.26 — Gap audit
 
 Findings from a read-through of the repo, grouped by how much they hurt. Each

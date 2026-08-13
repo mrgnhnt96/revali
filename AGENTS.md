@@ -4,10 +4,24 @@
 
 | Goal | Command |
 |------|---------|
-| Package unit tests (router/codegen) | `sip run ut` |
-| Full e2e suite (warm) | `sip run ts --skip-gen` |
-| Full e2e with generate | `sip run ts` |
+| One package | `cd <package> && dart test` |
+| Everything, the way CI does | `./scripts/run_all_tests.sh` |
+| Regenerate the e2e suite first | `sip run ts --gen-only` |
 | Internals change needing kernel rebuild | `dart run revali dev --generate-only --recompile` |
+
+> **Do not verify with `sip test`.** It under-reports: in
+> `test_suite/constructs/revali_server/access_control`, `dart test` exits 1
+> with 3 failures while `sip test` exits 0 reporting "40 passed, 0 failed",
+> and from the repo root it runs nothing at all and still exits 0. Use
+> `dart test` or the script above, both of which can actually go red.
+
+## Releasing
+
+`LATEST_CHANGELOG.md` drives the release: a package publishes only when its
+entry there differs from its `pubspec.yaml` version, so **equal versions mean
+skipped**, and a dependent's constraint is only rewritten if that dependent is
+itself in the release. Pending work and the current per-package state are in
+[RELEASING.md](./RELEASING.md).
 
 ## Project layout
 
