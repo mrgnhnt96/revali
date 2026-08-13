@@ -8,7 +8,61 @@ import 'package:revali_router/src/body/response_body/base_body_data.dart';
 class DefaultResponseHandler
     with RemoveHeadersMixin
     implements ResponseHandler {
-  const DefaultResponseHandler();
+  const DefaultResponseHandler({
+    this.compression = const CompressionSettings(),
+  });
+
+  final CompressionSettings compression;
+
+  /// Whether this response should be gzipped for this client.
+  ///
+  /// Deliberately conservative. Only bodies of a known length are compressed,
+  /// which leaves streaming responses alone — gzip buffers, so compressing a
+  /// stream would hold chunks back that the handler meant to flush.
+  /// Partial content is excluded too: compressing a byte range would make the
+  /// range describe bytes the client did not ask for.
+  bool _shouldCompress(
+    Headers headers,
+    RequestContext context,
+    int statusCode,
+  ) {
+    if (!compression.allows(headers.mimeType)) {
+      return false;
+    }
+
+    if (headers.get(HttpHeaders.contentEncodingHeader) != null) {
+      return false;
+    }
+
+    if (statusCode == HttpStatus.partialContent || headers.range != null) {
+      return false;
+    }
+
+    if (headers.contentLength case final length?
+        when length >= compression.minBytes) {
+      return _acceptsGzip(context);
+    }
+
+    return false;
+  }
+
+  bool _acceptsGzip(RequestContext context) {
+    final values = context.headers.getAll(HttpHeaders.acceptEncodingHeader) ??
+        const <String>[];
+
+    for (final value in values) {
+      for (final part in value.split(',')) {
+        // Strip any q-value: "gzip;q=0.8".
+        final token = part.split(';').first.trim();
+
+        if (equalsIgnoreAsciiCase(token, 'gzip')) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
 
   static String? _cachedHttpDate;
   static int _cachedHttpDateSecond = -1;
@@ -51,6 +105,32 @@ class DefaultResponseHandler
         removeContentRelated(responseHeaders);
       default:
         break;
+    }
+
+    // Decided before the transfer-encoding block below, which branches on
+    // contentLength -- gzipping makes the declared length wrong, so it has to
+    // be cleared first and the response sent chunked.
+    final compress = _shouldCompress(
+      responseHeaders,
+      context,
+      response.statusCode,
+    );
+
+    if (compress) {
+      responseHeaders
+        ..[HttpHeaders.contentEncodingHeader] = 'gzip'
+        ..contentLength = null;
+
+      // Caches key on this: the same URL now has a gzipped and an
+      // uncompressed variant, and serving the wrong one breaks the client.
+      final vary = responseHeaders.get(HttpHeaders.varyHeader);
+      responseHeaders[HttpHeaders.varyHeader] = switch (vary) {
+        null || '' => HttpHeaders.acceptEncodingHeader,
+        final existing
+            when existing.toLowerCase().contains('accept-encoding') =>
+          existing,
+        final existing => '$existing, ${HttpHeaders.acceptEncodingHeader}',
+      };
     }
 
     var deChunkBeforeSending = false;
@@ -111,6 +191,10 @@ class DefaultResponseHandler
 
     if (deChunkBeforeSending && body != null) {
       body = chunkedCoding.decoder.bind(body);
+    }
+
+    if (compress && body != null) {
+      body = gzip.encoder.bind(body);
     }
 
     responseHeaders.forEach((key, values) {

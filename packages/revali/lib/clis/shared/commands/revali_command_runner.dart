@@ -2,7 +2,7 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:mason_logger/mason_logger.dart';
 
-/// Shared behaviour for the outer `revali` CLI and the inner construct runner.
+/// Shared behavior for the outer `revali` CLI and the inner construct runner.
 ///
 /// Both expose the same hidden verbosity flags and both need the logger
 /// flushed once a command finishes, so that lives here rather than being

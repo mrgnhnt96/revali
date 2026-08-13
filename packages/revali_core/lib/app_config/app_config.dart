@@ -70,6 +70,14 @@ abstract base class AppConfig {
 
   Future<void> configureDependencies(covariant DI di) async {}
 
+  /// Gzip compression of responses.
+  ///
+  /// On by default, and negotiated — only a client that sent
+  /// `Accept-Encoding: gzip` ever receives a compressed response. Override
+  /// with `const CompressionSettings.disabled()` when something in front of
+  /// the server (a CDN, a reverse proxy) already compresses.
+  CompressionSettings get compression => const CompressionSettings();
+
   /// Whether the server stops itself on `SIGTERM` / `SIGINT`.
   ///
   /// Container runtimes and process supervisors stop a process by sending

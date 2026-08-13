@@ -51,6 +51,7 @@ export 'request/clean_up/clean_up_impl.dart';
 export 'request/full_request.dart';
 export 'request/request.dart';
 export 'request/underlying_request.dart';
+export 'response/compression_settings.dart';
 export 'response/response.dart';
 export 'response_handler/remove_headers_mixin.dart';
 export 'response_handler/response_handler.dart';

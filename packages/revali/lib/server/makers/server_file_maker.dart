@@ -239,6 +239,7 @@ if (!isWorker && providedServer == null && app.workers > 1) {
                             'trustedProxy': refer(
                               'app',
                             ).property('trustedProxy'),
+                            'compression': refer('app').property('compression'),
                             // Gives every request its own scope, so
                             // `registerRequestScoped` dependencies are built
                             // once per request and disposed when it ends.

@@ -75,11 +75,17 @@ class Router extends Equatable {
     this.inspectLogPath = '',
     this.defaultResponses = const DefaultResponses(),
     this.trustedProxy = const TrustedProxy(),
+    this.compression = const CompressionSettings(),
     this.di,
   })  : _reflects = reflects,
         _globalComponents = globalComponents {
     _prepareRoutes(routes);
   }
+
+  /// Gzip settings for responses this router sends through its default
+  /// response handler. A route or global component supplying its own handler
+  /// is responsible for its own compression.
+  final CompressionSettings compression;
 
   /// The application container every request scopes from.
   ///
@@ -223,8 +229,12 @@ class Router extends Equatable {
   ResponseHandler _responseHandlerFor(BaseRoute? route) {
     return route?.responseHandler ??
         _globalComponents?.responseHandler ??
-        const DefaultResponseHandler();
+        _defaultResponseHandler;
   }
+
+  late final _defaultResponseHandler = DefaultResponseHandler(
+    compression: compression,
+  );
 
   void close() {
     // Iterate a copy: each entry removes itself from [_cleanUp] as it runs,
