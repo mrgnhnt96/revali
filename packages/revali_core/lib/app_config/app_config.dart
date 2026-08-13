@@ -78,12 +78,38 @@ abstract base class AppConfig {
   /// the server (a CDN, a reverse proxy) already compresses.
   CompressionSettings get compression => const CompressionSettings();
 
+  /// Liveness and readiness probes.
+  ///
+  /// Served outside [prefix], on `/healthz` and `/readyz` by default. Override
+  /// to register [HealthCheck]s, move the paths, or turn them off with
+  /// `const HealthSettings.disabled()`.
+  HealthSettings get health => const HealthSettings();
+
   /// Whether the server stops itself on `SIGTERM` / `SIGINT`.
   ///
   /// Container runtimes and process supervisors stop a process by sending
   /// `SIGTERM`, so without this a deploy or scale-down truncates whatever
   /// responses were mid-flight. Set to false to own signal handling yourself.
   bool get handleShutdownSignals => true;
+
+  /// How long readiness reports 503 *before* the listener stops accepting.
+  ///
+  /// Closing the listening socket is invisible to a load balancer: it keeps
+  /// routing until its own readiness probe fails, and those requests hit a
+  /// closed socket. This delay is the window in which the probe can fail
+  /// while the server is still able to serve, so traffic is steered away
+  /// before the door shuts rather than after.
+  ///
+  /// Defaults to [Duration.zero], which preserves the previous behaviour of
+  /// closing immediately. Behind a load balancer, set it to longer than the
+  /// probe's period times its failure threshold — Kubernetes defaults to
+  /// 10s × 3, so 30s or more is not unusual — and keep
+  /// `drainDelay + shutdownTimeout` under the platform's kill grace period,
+  /// which Kubernetes defaults to 30s.
+  ///
+  /// Only applied on `SIGTERM`. `SIGINT` is a human at a terminal who wants
+  /// the process gone now, and making Ctrl-C wait would be a poor trade.
+  Duration get drainDelay => Duration.zero;
 
   /// How long a shutdown waits for in-flight requests before giving up.
   ///

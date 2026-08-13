@@ -39,6 +39,8 @@ export 'di/request_scoped_registry.dart';
 export 'error/override_error_response.dart';
 export 'error/override_error_response_mixin.dart';
 export 'file/memory_file.dart';
+export 'health/health_check.dart';
+export 'health/health_settings.dart';
 export 'meta/meta.dart';
 export 'meta/meta_scope.dart';
 export 'method_mutations/headers/headers.dart';
