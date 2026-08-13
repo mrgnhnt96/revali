@@ -179,6 +179,11 @@ const _revali = NavSection(
           summary: 'Register services once and inject them anywhere.',
         ),
         NavItem(
+          'Request-Scoped Dependencies',
+          '/revali/app-configuration/request-scoped-dependencies',
+          summary: 'One instance per request, disposed when it ends.',
+        ),
+        NavItem(
           'Flavors',
           '/revali/app-configuration/flavors',
           summary: 'One codebase, several environments.',

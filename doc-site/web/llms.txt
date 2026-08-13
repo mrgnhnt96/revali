@@ -16,6 +16,7 @@ Install the framework, configure your app, and run the CLI.
 - [Overview](https://docs.revali.dev/revali/app-configuration): Everything an app can declare, in one place.
 - [Create an App](https://docs.revali.dev/revali/app-configuration/create-an-app): Declare the `@App()` that owns host, port and prefix.
 - [Configure Dependencies](https://docs.revali.dev/revali/app-configuration/configure-dependencies): Register services once and inject them anywhere.
+- [Request-Scoped Dependencies](https://docs.revali.dev/revali/app-configuration/request-scoped-dependencies): One instance per request, disposed when it ends.
 - [Flavors](https://docs.revali.dev/revali/app-configuration/flavors): One codebase, several environments.
 - [Default Responses](https://docs.revali.dev/revali/app-configuration/default-responses): Set the body Revali returns for 404s and 500s.
 - [Environment Variables](https://docs.revali.dev/revali/app-configuration/env-vars): Read configuration from the environment, type-safely.
