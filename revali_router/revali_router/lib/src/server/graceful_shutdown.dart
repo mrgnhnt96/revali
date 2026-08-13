@@ -40,9 +40,15 @@ Future<bool> shutdownServer({
   // while the server can still serve. Requests arriving during it are served
   // and tracked normally -- the accept loop does not refuse while draining.
   if (drainDelay > Duration.zero) {
+    // Sub-second delays are legitimate, and `inSeconds` truncates them to a
+    // baffling "for 0s".
+    final window = drainDelay.inMilliseconds < 1000
+        ? '${drainDelay.inMilliseconds}ms'
+        : '${drainDelay.inSeconds}s';
+
     log?.call(
       'Draining: readiness now reports unavailable, '
-      'still accepting for ${drainDelay.inSeconds}s...',
+      'still accepting for $window...',
     );
     await Future<void>.delayed(drainDelay);
   }
