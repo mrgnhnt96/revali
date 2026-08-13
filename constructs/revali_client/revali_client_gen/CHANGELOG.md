@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.4.0 | 08.13.26
+
+### Fixes
+
+- Raise the `revali_core` floor to `^3.0.0` and the `revali_router` floor to `^5.0.0`. Nothing in this package changed; it is re-released so the published set still resolves. Both are new majors this round, and a dependent's constraint is only rewritten if that dependent is itself part of the release — leaving 2.3.0 behind on `^2.0.0` / `^4.0.2` would make it unresolvable alongside them.
+
 ## 2.3.0 | 08.07.26
 
 ### Fix

@@ -82,3 +82,6 @@ FAILED_COMMIT.md
 
 # game_loop: per-developer/per-session autonomy harness, not project source
 .game_loop/
+
+# graphify: generated knowledge-graph cache, not project source
+graphify-out/

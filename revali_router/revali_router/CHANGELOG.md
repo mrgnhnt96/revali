@@ -1,5 +1,25 @@
 # CHANGELOG
 
+## 5.0.0 | 08.13.26
+
+### Breaking Changes
+
+- `Observer.see` takes one `ObservedRequest` instead of `(Request, Future<Response>)`. This lands here as well as in `revali_core`: `revali_router.dart` re-exports `package:revali_core/revali_core.dart` hiding only `AppConfig`, `Body` and `LifecycleComponents`, so `Observer` is part of **this** package's public API and an observer that imports it from `package:revali_router/revali_router.dart` must migrate. The migration is mechanical — see `revali_core` 3.0.0.
+- Depend on `revali_core: ^3.0.0`, which also removes the deprecated `DI.registerInstance<T>` / `DI.register<T>` methods.
+
+### Features
+
+- Resolve each request's `ObservedRequest.summary` once it completes, in **every** mode. The existing `RequestTrace` ring buffer and inspect log stay gated on `debug`/`inspect`, but telemetry is not debug tooling — gating it there would leave production with none. Observers are not awaited, and a throwing one is logged rather than allowed to affect the response or the other observers.
+- Add the `@Throttle` kit: rejects a caller exceeding `max` requests per `window` with `429`, carrying `Retry-After`, `X-RateLimit-Limit` and `X-RateLimit-Remaining`. Callers are identified by client IP (resolved through `trustedProxy`), and allowances are bucketed by the matched route's *registered* path — `/api/users/:id`, not `/api/users/42` — with an optional `bucket` to pool several endpoints. It is a fixed window held in memory, so state is per process; documented as such rather than implied to be cluster-wide. Named `Throttle` rather than `RateLimit` deliberately: the barrel is imported wholesale, and `RateLimit` is a name apps already use for their own components.
+- Gzip responses through the default response handler, negotiated via `Accept-Encoding` and configured with `Router.compression`. Deliberately conservative: only bodies of a known length are compressed, which leaves streaming and SSE responses untouched — gzip buffers, so compressing a stream would hold back chunks the handler meant to flush. Partial content (`206`) and already-encoded responses are skipped, and compressed responses carry `Vary: Accept-Encoding`.
+- `Router` takes an optional `di`. When set, every request runs with its own `RequestScopedDI` installed for the whole pipeline — middleware, guards, interceptors, the handler and exception catchers all resolve against the same scope. Disposal waits until the response has been fully written, so streaming and SSE handlers keep their request-scoped resources for as long as they are sending. Omitting `di` leaves requests unscoped, which is how a `Router` built directly in a test behaves.
+- Add graceful shutdown. `InFlightRequests` tracks requests the accept loop detached, `shutdownServer` stops the listener and waits for them within a timeout before forcing the socket closed, and `listenForShutdown` runs a callback on the first `SIGTERM`/`SIGINT` (ignoring later ones while a shutdown is already running, and skipping `SIGTERM` on Windows, which has no such signal). `handleRequests` and `handleRouterRequests` take an optional `inFlight` and behave exactly as before without it.
+
+### Fixes
+
+- Stop `Router.close()` throwing `Concurrent modification during iteration`. Each registered cleanup removes itself from the list as it runs, so walking the live list was unsafe whenever `close()` happened with requests still registered. Previously unreachable, because `close()` only ever ran once everything had already drained.
+- Stop `BodyImpl.read()` from leaking the response body's source stream subscription when its listener cancels early. `asBroadcastStream()` defaults to pausing (not canceling) the source when the last listener drops, in case a future listener resumes it later -- but a response body is only ever read once, so the paused subscription, and whatever it held open, never got released.
+
 ## 4.0.2 | 08.06.26
 
 ### Fixes

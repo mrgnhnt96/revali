@@ -18,13 +18,11 @@
 
 # revali_annotations
 
-## 3.0.0
+## 3.1.0
 
-### Breaking Changes
+### Fixes
 
-- Merge `revali_router_annotations` into this package (that package is deprecated). `@Query`, `@Param`, `@Header`, `@Cookie`, `@Ip`, `@Guards`, `@Middlewares`, `@Wrappers`, `@Intercepts`, `@Combines`, `@AddData`, `@MetaData`, `@SetHeader`, `@StatusCode`, `@Catches`, `@Dep`, `@Binds`, `Bind`, `Pipe`, `RequestHeaders`/`ResponseHeaders`, `RequestCookies`/`ResponseCookies`, and `LifecycleComponent`/`LifecycleComponents` now live here.
-- Depend on `revali_core: ^2.0.0`.
-- `AllowOrigins`, `PreventHeaders`, and `ExpectHeaders` now live in `revali_core`; still re-exported here for compatibility.
+- Raise the `revali_core` floor to `^3.0.0`. Nothing in this package changed; it is re-released so the published set still resolves. `revali_core` 3.0.0 is a new major, and a dependent's constraint is only rewritten if that dependent is itself part of the release — leaving 3.0.0 behind on `revali_core: ^2.0.0` would make it unresolvable alongside every other package in this round.
 
 # revali_construct
 
@@ -60,7 +58,7 @@
 
 # revali_test
 
-## 1.0.0
+## 0.1.0
 
 ### Features
 
@@ -84,7 +82,12 @@
 
 # revali_router
 
-## 4.1.0
+## 5.0.0
+
+### Breaking Changes
+
+- `Observer.see` takes one `ObservedRequest` instead of `(Request, Future<Response>)`. This lands here as well as in `revali_core`: `revali_router.dart` re-exports `package:revali_core/revali_core.dart` hiding only `AppConfig`, `Body` and `LifecycleComponents`, so `Observer` is part of **this** package's public API and an observer that imports it from `package:revali_router/revali_router.dart` must migrate. The migration is mechanical — see `revali_core` 3.0.0.
+- Depend on `revali_core: ^3.0.0`, which also removes the deprecated `DI.registerInstance<T>` / `DI.register<T>` methods.
 
 ### Features
 
@@ -121,7 +124,7 @@
 
 # revali_swagger
 
-## 1.1.0
+## 1.2.0
 
 ### Fixes
 
@@ -146,8 +149,8 @@
 
 # revali_client_gen
 
-## 2.3.0
+## 2.4.0
 
-### Fix
+### Fixes
 
-- Depend on `revali_router ^4.0.0` and `revali_annotations ^3.0.0` (previously `^3.4.0` / `^2.0.2`). The router/annotations consolidation refactor already raised this dependency floor in source, but the package version was never bumped, so pub.dev's 2.2.0 stayed pinned to the old constraints and couldn't resolve alongside `revali_router` 4.x or any construct requiring `revali_annotations` ^3.0.0 (e.g. `revali_docker` via `revali_construct`).
+- Raise the `revali_core` floor to `^3.0.0` and the `revali_router` floor to `^5.0.0`. Nothing in this package changed; it is re-released so the published set still resolves. Both are new majors this round, and a dependent's constraint is only rewritten if that dependent is itself part of the release — leaving 2.3.0 behind on `^2.0.0` / `^4.0.2` would make it unresolvable alongside them.

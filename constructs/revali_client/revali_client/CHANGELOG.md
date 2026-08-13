@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 2.1.0 | 08.13.26
+
+### Features
+
+- Send streamed request bodies. A `Stream<List<int>>` or `Stream<String>` body is now handed to the transport and sent incrementally, so a large upload never has to fit in memory; previously this threw `UnimplementedError`. The server side already worked — `@Body() Stream<List<int>>` reads the payload as it arrives — so this completes the round trip. `HttpRequest` gains `bodyStream`. Any other `Stream<T>` throws an `ArgumentError` naming the supported types rather than inventing a framing format the server has no binding for.
+
+### Fixes
+
+- Parse every `Set-Cookie` value, and stop storing cookie attributes as cookies. A response setting several cookies arrives as one comma-joined header, which `CookieParser` could not match at all, so none were saved; the attributes it did match put `Path` and `Expires` into storage. Splitting now happens only at a comma beginning a new `name=` pair, so the comma inside an `Expires` date cannot split a cookie in half.
+- Actually enable cross-origin cookie credentials on web by setting `BrowserClient.withCredentials = true`, instead of adding a literal `credentials: 'include'` HTTP header (a no-op -- `credentials` is a `fetch()`-level option, not a header, so it never did anything). Non-web platforms are unaffected (no browser cookie jar to opt into).
+
 ## 2.0.5 | 08.07.26
 
 ### Fixes

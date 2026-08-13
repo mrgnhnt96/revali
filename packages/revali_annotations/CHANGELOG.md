@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 3.1.0 | 08.13.26
+
+### Fixes
+
+- Raise the `revali_core` floor to `^3.0.0`. Nothing in this package changed; it is re-released so the published set still resolves. `revali_core` 3.0.0 is a new major, and a dependent's constraint is only rewritten if that dependent is itself part of the release — leaving 3.0.0 behind on `revali_core: ^2.0.0` would make it unresolvable alongside every other package in this round.
+
 ## 3.0.0 | 08.04.26
 
 ### Breaking Changes

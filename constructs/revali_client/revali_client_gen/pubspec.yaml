@@ -1,5 +1,5 @@
 name: revali_client_gen
-version: 2.3.0
+version: 2.4.0
 description: A Revali Server Client Construct to generate client code using `revali_router`
 repository: https://github.com/mrgnhnt96/revali/tree/main/constructs/revali_client
 issue_tracker: https://github.com/mrgnhnt96/revali/issues
@@ -21,11 +21,11 @@ dependencies:
   collection: ^1.19.1
   dart_style: ">=3.1.4 <3.1.8"
   path: ^1.9.1
-  revali_annotations: ^3.0.0
-  revali_client: ^2.0.4
+  revali_annotations: ^3.1.0
+  revali_client: ^2.1.0
   revali_construct: ^2.4.0
-  revali_core: ^2.0.0
-  revali_router: ^4.0.2
+  revali_core: ^3.0.0
+  revali_router: ^5.0.0
 
 dev_dependencies:
   test: ^1.25.15
