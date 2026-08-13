@@ -8,13 +8,15 @@ re-discovered.
 
 ## Tier 1 — Adoption blockers
 
-- [ ] Publish `revali_test` to pub.dev (currently `publish_to: none`, no `version:`)
-  - It is the documented way to test a Revali app (`AGENTS.md` → `TestServer()` / `await createServer(server)`) and all 27 `test_suite` packages depend on it by relative path, but no external user can get it
-  - `TestServer` is not re-exported from any published package either, so there is no workaround
-  - Small surface: 8 files in `lib/`. Needs a version, a README, and a changelog
-- [ ] Write a testing documentation page
-  - Of 204 pages under `doc-site/content/`, **zero** cover testing; `TestServer` appears nowhere in the docs
-  - Blocked on the publish above — no point documenting a package users cannot depend on
+- [x] Make `revali_test` publishable (was `publish_to: none`, no `version:`)
+  - It is the documented way to test a Revali app (`AGENTS.md` → `TestServer()` / `await createServer(server)`) and all 27 `test_suite` packages depend on it by relative path, but no external user could get it
+  - `TestServer` is not re-exported from any published package either, so there was no workaround
+  - Done: pub metadata, `README.md`, `CHANGELOG.md`, `LICENSE`, and a `1.0.0` entry in `LATEST_CHANGELOG.md`. `dart pub publish --dry-run` passes
+  - [ ] **Still to do — actually publish it.** The pubspec version equals the changelog version, so `checkForChanges` treats it as unchanged and `prep_for_publish` (which runs `pub publish --force`) skips it. Bump the `LATEST_CHANGELOG` entry above the pubspec version when ready to cut the first release
+- [x] Write a testing documentation page
+  - Of the 98 pages under `doc-site/content/`, **zero** covered testing; `TestServer` appeared nowhere in the docs
+  - Done: `content/revali/testing.md`, linked as a top-level `Testing` nav item. Covers the `TestServer` pattern, why `createServer` must be awaited, the `/api` prefix and `{"data": ...}` wrapper, header assertions with `expectRecentHttpDate`, streaming via `connect`, and when to bind a real socket instead
+  - Verified: site builds, `build/jaspr/revali/testing/index.html` exists, nav link renders on sibling pages, all 35 doc-site tests pass
 - [ ] Publish `revali_mcp` (also `publish_to: none`)
   - `README.md` ships a Cursor config telling users to run `dart run revali_mcp`; that cannot resolve outside this repo
   - Single 276-line `bin/revali_mcp.dart`, no `lib/`, no tests
@@ -104,6 +106,15 @@ mounted into the former. The split is fine; the flag duplication is not.
   - Verified before deleting: 0 tracked files, and no non-`.log` file anywhere in them
 - [x] Remove the stale `.gitignore` entry `constructs/revali_server/bin/tester.dart` — that path no longer existed after the `revali_server` consolidation
 - [ ] Keep `small_test/` and `playground/` — both checked, both real. `small_test/` is a fixture used by `packages/revali/test/utils/directory_extensions_test.dart:41,52`; `playground/` is the benchmark harness with its own README/BENCHMARKS
+
+### Found while working Tier 1
+
+- [x] **`sip run publish` was broken.** `findPackages()` discovers `packages/og_card` (no `publish_to: none`, full pub metadata), but it had no `LATEST_CHANGELOG.md` entry, and `checkForChanges` calls `exit(1)` on the first package missing one. Broken since og_card landed in `b22baf4c`
+  - Fixed with an entry at its current `0.1.0` (found → unchanged → skipped) plus the `LICENSE` pub validation requires
+  - [ ] og_card still has no `README.md` or `CHANGELOG.md` — pub warnings, not errors, so it can publish without them
+- [x] **The docs spell check checked nothing.** Both `scripts.yaml` and `.github/workflows/spell_check_docs.yaml` globbed `doc-site/docs/**`, a path that stopped existing when the docs moved to `content/` in the Jaspr migration. Both passed vacuously
+  - Repointed at `content/`, which surfaced 25 unknown words across 17 files — all legitimate technical terms, now in `allowed_words.txt`. Also split `mrgnhnt`/`Ashburn`, which had merged into one entry because the file had no trailing newline
+  - cspell now reports 0 issues across 99 files, locally and CI-style
 
 ### Found while cleaning up
 
