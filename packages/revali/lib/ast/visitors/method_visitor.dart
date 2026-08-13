@@ -13,11 +13,26 @@ class MethodVisitor extends RecursiveElementVisitor2<void> {
   // Method name to method element
   Map<String, List<MetaMethod>> methods = {};
 
+  /// Dart method names already registered as routes.
+  ///
+  /// The controller's own methods are visited before its supertypes', so an
+  /// override wins and the inherited annotation is skipped rather than
+  /// registering a second route for the same method.
+  ///
+  /// Only *registered* names are recorded: an override that drops the
+  /// annotation is not a route of its own, so the inherited one still
+  /// applies and dispatches to the override at runtime.
+  final Set<String> _registered = {};
+
   @override
   void visitMethodElement(MethodElement element) {
     super.visitMethodElement(element);
 
     if (!methodChecker.hasAnnotationOf(element)) {
+      return;
+    }
+
+    if (element.name case final name? when _registered.contains(name)) {
       return;
     }
 
@@ -49,10 +64,13 @@ class MethodVisitor extends RecursiveElementVisitor2<void> {
     }
 
     final params = getParams(element).toList();
+    final name = element.name ?? (throw Exception('Method name is null'));
+
+    _registered.add(name);
 
     (methods[method.name] ??= []).add(
       MetaMethod(
-        name: element.name ?? (throw Exception('Method name is null')),
+        name: name,
         method: method.name,
         path: method.path,
         params: params,

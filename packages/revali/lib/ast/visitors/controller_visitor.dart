@@ -73,8 +73,32 @@ class ControllerVisitor extends RecursiveElementVisitor2<void> {
     final controller = ControllerAnnotation.fromAnnotation(annotation.first);
     _path = controller.path;
     _type = controller.type;
-    final methodVisitor = MethodVisitor(element.name ?? 'Unknown');
+    final controllerName = element.name ?? 'Unknown';
+    final methodVisitor = MethodVisitor(controllerName);
+
+    // The controller's own methods first, so an override beats the
+    // annotation it inherits.
     element.accept(methodVisitor);
+
+    for (final supertype in element.allSupertypes) {
+      final superElement = supertype.element;
+
+      if (!superElement.methods.any(methodChecker.hasAnnotationOf)) {
+        continue;
+      }
+
+      if (supertype.typeArguments.isNotEmpty) {
+        throw Exception(
+          'Controller $controllerName inherits endpoints from generic type '
+          '${superElement.name}<${supertype.typeArguments.join(', ')}>, which '
+          'is not supported: the inherited signatures still refer to the type '
+          'parameters, so the generated bindings would be wrong. Move the '
+          'endpoints onto $controllerName, or make the base non-generic.',
+        );
+      }
+
+      superElement.accept(methodVisitor);
+    }
 
     _methods.addAll(methodVisitor.methods.values.expand((e) => e));
   }
