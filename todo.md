@@ -3,6 +3,29 @@
 > **Releases:** how the release mechanism works is in
 > [RELEASING.md](./RELEASING.md). That does not live here.
 
+# 8.14.26 — Open
+
+- [ ] **Let `revali up` find the repository root by itself, instead of `--root ..`**
+  - Every invocation from inside a service is `dart run revali up --root ..`,
+    because discovery starts from the working directory and a service package
+    sits one level below the repository that holds its siblings. The flag is
+    not hard to type; it is that the tool already has everything it needs to
+    know the answer and asks anyway
+  - Suggested by Morgan: a `.revalirc` (or similar) marking the root. Open
+    question is what else belongs in it — if it holds only the root marker,
+    an empty file is doing the same job a directory name would, and a config
+    file with one implicit field tends to grow a second one badly. Worth
+    deciding what it is *for* before adding it
+  - Cheaper alternatives worth ruling out first, since each needs no new file:
+    walk up for the nearest directory containing >1 Revali service; walk up to
+    the git root; or reuse whatever `melos`/workspace marker the repo already
+    has. `ServiceDiscovery.find` is the seam — it already takes a root
+    directory and answers "is this a Revali service?", so root-finding is a
+    layer above it, not a change to it
+  - Keep `--root` working. It is the escape hatch for a layout the walk gets
+    wrong, and removing it would turn a papercut into a blocker
+  - Deferred deliberately: raised while verifying the `up` TUI, unrelated to it
+
 # 8.12.26 — Gap audit
 
 Findings from a read-through of the repo, grouped by how much they hurt. Each
