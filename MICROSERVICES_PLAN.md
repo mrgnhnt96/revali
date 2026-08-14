@@ -438,13 +438,46 @@ instead.
 
 ## Gap 6 — Errors do not survive the hop
 
-`ServerException` carries a status code and a raw body string. Server-side
-exception catchers produce structured, typed failures; one hop away they are
-an unparsed `String`. A shared error envelope plus generated typed exceptions
-would let a caller `catch` a peer's domain error instead of pattern-matching
-on a body.
+**Status: SHIPPED.** `revali_core` 3.1.0, `revali_router` 5.1.0,
+`revali_client` 3.0.0. What landed:
 
-Depends on #5 — the contract has to be shared before the error types can be.
+- `HttpError` in `revali_core` — a stable `code` alongside the status, a
+  human `message`, optional `details`, serialising to `{"error": {...}}` and
+  mirroring the existing `{"data": ...}` success wrapper.
+- The router answers an *unclaimed* `HttpError` with its status and envelope,
+  after the catcher loop so an app's own catcher still wins.
+- `ServerException` parses the envelope into `code` / `reason` / `details`,
+  best-effort, falling back to the raw body for any peer that does not send
+  one.
+- 7 tests in `revali_router`, 10 in `revali_client`, and 3 end-to-end in a new
+  `test_suite/constructs/revali_client/errors` package running a real
+  generated server against a real generated client.
+
+**Opt-in on purpose.** The framework's plain-text defaults (`'Not Found'`) are
+untouched, so every client reading them today keeps working and `code` is
+simply null for them. Changing those defaults would have been a silent
+breaking change for every existing consumer.
+
+**A pre-existing bug this surfaced.** `RevaliClient.request` decoded the error
+body with `response.stream.transform(utf8.decoder)`, which throws a `TypeError`
+when the transport returns a `Stream<Uint8List>` — as `package:http` does —
+because `transform` is generic on the stream's runtime type. Only the error
+path decodes a body that way, and no test in the suite had ever exercised an
+error response through a generated client, so *every* structured failure would
+have surfaced as `type 'Utf8Decoder' is not a subtype of ...`. The new package
+was what found it.
+
+**Not built: generated typed exceptions per endpoint.** The original sketch
+wanted a caller to `catch` a peer's domain error as a Dart type. That needs
+handlers to declare which errors they can raise — an annotation, and a
+contract to carry it — which is a design in its own right rather than a
+follow-on. `code` gets most of the value now, and does not foreclose it.
+
+**Was gated on Gap 5, and that dependency turned out to be wrong.** The note
+said the contract had to be shared before error types could be. In practice
+the envelope is a wire format both sides already agree on, and needs nothing
+from the manifest.
+
 
 ---
 
@@ -475,7 +508,7 @@ framework.
 | **1a** | ~~Broadcast shutdown to worker isolates~~ **done** | Fallout from Gap 2: readiness and `drainDelay` were per-isolate. Closed, so both now hold at any `workers` count |
 | **2** | ~~Gap 4 (client resilience)~~ **done** | Breaking signature change — done early, while `HeaderInterceptor` was the only in-repo implementer |
 | **3** | ~~Gap 3 (env config)~~ **done** | Small, but an API-surface decision worth taking deliberately |
-| **4** | Gap 5 (drift detection) **done**; client-from-manifest **dropped**, Gap 6 still open | The `routes.json` completeness gate was checked and **failed**: no return types, no type structure. Drift detection shipped; generation needs distribution, not a richer manifest |
+| **4** | Gap 5 (drift detection) **done**; client-from-manifest **dropped**; ~~Gap 6~~ **done** | The `routes.json` completeness gate was checked and **failed**: no return types, no type structure. Drift detection shipped; generation needs distribution, not a richer manifest |
 | **5** | Gap 7, Gap 8 | Friction and reach, not correctness |
 
 Phase 1 is the one that changes whether Revali can honestly claim microservice
