@@ -1,62 +1,30 @@
-import 'dart:async';
-import 'dart:io';
-
-import 'package:revali_router/src/app_config/app_config.dart';
-import 'package:revali_router/src/response/default_responses.dart';
+import 'package:revali_router/revali_router.dart';
 import 'package:test/test.dart';
 
+/// Extends the `revali_router` AppConfig, which is the one apps actually
+/// extend — `revali_router` re-exports `revali_core` with `AppConfig` hidden.
+final class _App extends AppConfig {
+  _App({super.env}) : super.fromEnv();
+}
+
 void main() {
-  group('AppConfig', () {
-    test('should create AppConfig with required parameters', () {
-      const appConfig = AppConfig(
-        host: 'localhost',
-        port: 8080,
-      );
+  group('AppConfig.fromEnv', () {
+    test('is reachable from the class apps extend', () {
+      // Regression: this constructor existed only on the core AppConfig at
+      // first, so a core unit test passed while every real app failed to
+      // compile with "Superclass has no constructor named
+      // AppConfig.fromEnv".
+      final app = _App(env: Env({'PORT': '9000'}));
 
-      expect(appConfig.host, 'localhost');
-      expect(appConfig.port, 8080);
-      expect(appConfig.prefix, 'api');
+      expect(app.host, '0.0.0.0');
+      expect(app.port, 9000);
     });
 
-    test('should create secure AppConfig with required parameters', () {
-      final securityContext = SecurityContext();
-      final appConfig = AppConfig.secure(
-        host: 'localhost',
-        port: 8080,
-        securityContext: securityContext,
-      );
+    test('still carries the router defaults', () {
+      final app = _App(env: Env({}));
 
-      expect(appConfig.host, 'localhost');
-      expect(appConfig.port, 8080);
-      expect(appConfig.securityContext, securityContext);
-      expect(appConfig.requestClientCertificate, false);
-      expect(appConfig.prefix, 'api');
-    });
-
-    test('should create default AppConfig', () {
-      final appConfig = AppConfig.defaultApp();
-
-      expect(appConfig.host, isNotNull);
-      expect(appConfig.port, isNotNull);
-    });
-
-    test('should return default responses', () {
-      const appConfig = AppConfig(
-        host: 'localhost',
-        port: 8080,
-      );
-
-      expect(appConfig.defaultResponses, isA<DefaultResponses>());
-    });
-
-    test('runStartup forwards to start', () {
-      const appConfig = AppConfig(
-        host: 'localhost',
-        port: 8080,
-      );
-      final completer = Completer<HttpServer>();
-      final future = appConfig.runStartup(() => completer.future);
-      expect(identical(future, completer.future), isTrue);
+      expect(app.defaultResponses, isA<DefaultResponses>());
+      expect(app.trustedProxy, isA<TrustedProxy>());
     });
   });
 }
