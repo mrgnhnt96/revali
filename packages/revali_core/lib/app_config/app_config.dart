@@ -33,6 +33,51 @@ abstract base class AppConfig {
           port: 8080,
         );
 
+  /// Takes [host] and [port] from the environment at startup.
+  ///
+  /// ```dart
+  /// @App()
+  /// final class MyApp extends AppConfig {
+  ///   MyApp() : super.fromEnv();
+  /// }
+  /// ```
+  ///
+  /// Note this constructor is **not** `const` — it reads the process
+  /// environment, which is only knowable at runtime — so the app class cannot
+  /// have a `const` constructor either. That is the whole point: a container
+  /// image is built once and told what it is by its environment, so a port
+  /// baked in at compile time is a port that cannot be changed by the platform
+  /// running it.
+  ///
+  /// Two defaults differ from [AppConfig.defaultApp] deliberately:
+  ///
+  /// - **Host is `0.0.0.0`, not `localhost`.** A server bound to `localhost`
+  ///   inside a container accepts only connections originating in that same
+  ///   container, so every request from outside is refused — with the process
+  ///   looking perfectly healthy.
+  /// - **Port comes from `PORT`.** Cloud Run, Heroku, Render and Fly all
+  ///   assign a port this way and route to it; ignoring it means listening
+  ///   where nothing is being sent.
+  ///
+  /// A `PORT` that is set but not a number throws rather than falling back:
+  /// someone set it on purpose, and quietly listening somewhere else is worse
+  /// than not starting.
+  AppConfig.fromEnv({
+    String hostVariable = 'HOST',
+    String portVariable = 'PORT',
+    String defaultHost = '0.0.0.0',
+    int defaultPort = 8080,
+    this.prefix = _defaultPrefix,
+    this.workers = 1,
+    this.backlog = 0,
+    Env? env,
+  })  : host = (env ?? Env.current).string(hostVariable, orElse: defaultHost),
+        port = (env ?? Env.current).integer(portVariable, orElse: defaultPort),
+        securityContext = null,
+        requestClientCertificate = false,
+        assert(workers >= 1, 'workers must be >= 1'),
+        assert(backlog >= 0, 'backlog must be >= 0');
+
   static const String _defaultPrefix = 'api';
 
   final String host;

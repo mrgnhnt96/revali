@@ -23,6 +23,23 @@ base class AppConfig extends core.AppConfig {
 
   AppConfig.defaultApp() : super.defaultApp();
 
+  /// Takes [host] and [port] from the environment at startup.
+  ///
+  /// See `core.AppConfig.fromEnv`. Forwarded here because this is the class
+  /// apps actually extend — `revali_router` re-exports `revali_core` with
+  /// `AppConfig` hidden, so a constructor that exists only upstream is
+  /// unreachable from an app.
+  AppConfig.fromEnv({
+    super.hostVariable,
+    super.portVariable,
+    super.defaultHost,
+    super.defaultPort,
+    super.prefix,
+    super.workers,
+    super.backlog,
+    super.env,
+  }) : super.fromEnv();
+
   DefaultResponses get defaultResponses => const DefaultResponses();
 
   /// Trusted proxy headers used when resolving [Request.ip].
