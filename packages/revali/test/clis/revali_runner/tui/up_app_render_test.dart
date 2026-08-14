@@ -1,5 +1,6 @@
 import 'package:file/memory.dart';
 import 'package:nocterm/nocterm.dart' hide isEmpty, isNotEmpty;
+import 'package:revali/clis/revali_runner/tui/service_list.dart';
 import 'package:revali/clis/revali_runner/tui/service_style.dart';
 import 'package:revali/clis/revali_runner/tui/up_app.dart';
 import 'package:revali/services/service_discovery.dart';
@@ -117,6 +118,131 @@ void main() {
         tester.terminalState,
         hasStyledText('orders', TextStyle(color: serviceColor(1))),
       );
+    });
+  });
+
+  group('a roster bigger than the cap', () {
+    /// Phonetic names, so no service's label is a substring of another's:
+    /// `containsText('svc-1')` would pass on a rendered `svc-10` and the
+    /// not-visible assertions below are the whole point of these tests.
+    const fleet = [
+      'alpha',
+      'bravo',
+      'charlie',
+      'delta',
+      'echo',
+      'foxtrot',
+      'golf',
+      'hotel',
+      'india',
+    ];
+
+    List<ServiceSession> sessions([int? count]) => [
+      for (final (index, name) in fleet.take(count ?? fleet.length).indexed)
+        session(name, 8080 + index),
+    ];
+
+    /// The fleet members currently drawn in the roster.
+    ///
+    /// Read back off the rendered screen rather than off the component, so
+    /// these tests keep proving the cap against what a developer would see
+    /// even if the roster is reimplemented on a different scrolling widget.
+    List<String> visible(NoctermTester tester) => [
+      for (final name in fleet)
+        if (containsText(name).matches(tester.terminalState, {})) name,
+    ];
+
+    test('renders only the cap, not a row per service', () async {
+      final tester = await pumpApp(sessions());
+
+      expect(visible(tester), hasLength(kVisibleServiceRows));
+      expect(visible(tester), ['alpha', 'bravo', 'charlie']);
+      expect(tester.terminalState, isNot(containsText('india')));
+    });
+
+    test('leaves the log pane its room as the fleet grows', () async {
+      final alpha = session('alpha', 8080);
+      for (var i = 0; i < 40; i++) {
+        alpha.ingest('line $i\n', isError: false);
+      }
+
+      final tester = await pumpApp([alpha, ...sessions().skip(1)]);
+
+      // The nine-service fleet still gets a log pane deep enough to read: if
+      // the roster grew per service, these lines would be off the bottom.
+      expect(tester.terminalState, containsText('line 39'));
+      expect(tester.terminalState, containsText('line 35'));
+    });
+
+    test('scrolls a selection moved past the window into view', () async {
+      final tester = await pumpApp(sessions());
+
+      expect(tester.terminalState, isNot(containsText('foxtrot')));
+
+      // Down five: past the bottom of the opening window either way.
+      for (var i = 0; i < 5; i++) {
+        await tester.sendKey(LogicalKey.arrowDown);
+      }
+
+      expect(tester.terminalState, containsText('▸ foxtrot'));
+      expect(visible(tester), hasLength(kVisibleServiceRows));
+    });
+
+    test('scrolls the wrap off the top onto the last service', () async {
+      final tester = await pumpApp(sessions());
+
+      await tester.sendKey(LogicalKey.arrowUp);
+
+      expect(tester.terminalState, containsText('▸ india'));
+      expect(tester.terminalState, isNot(containsText('alpha')));
+    });
+
+    test('brings a digit-selected service into view', () async {
+      final tester = await pumpApp(sessions());
+
+      expect(tester.terminalState, isNot(containsText('hotel')));
+
+      await tester.sendKey(LogicalKey.digit8);
+
+      expect(tester.terminalState, containsText('▸ hotel'));
+    });
+
+    test('always draws the focused service, wherever it is', () async {
+      final tester = await pumpApp(sessions());
+
+      // Every position in turn, so no window arithmetic is proved only at the
+      // ends: a marker that fell off screen anywhere would land here.
+      for (var index = 0; index < fleet.length; index++) {
+        await tester.sendKey(LogicalKey.arrowDown);
+
+        final focused = fleet[(index + 1) % fleet.length];
+        expect(
+          tester.terminalState,
+          containsText('▸ $focused'),
+          reason: 'the focused row must never scroll out of view',
+        );
+      }
+    });
+
+    test('says how much of the fleet it is showing', () async {
+      final tester = await pumpApp(sessions());
+
+      expect(tester.terminalState, containsText('showing 1-3 of 9 services'));
+      expect(tester.terminalState, containsText('▼'));
+
+      await tester.sendKey(LogicalKey.digit8);
+
+      expect(tester.terminalState, containsText('showing 7-9 of 9 services'));
+      expect(tester.terminalState, containsText('▲'));
+    });
+
+    test('stays silent when the whole fleet fits', () async {
+      final tester = await pumpApp(sessions(kVisibleServiceRows));
+
+      expect(visible(tester), ['alpha', 'bravo', 'charlie']);
+      expect(tester.terminalState, isNot(containsText('showing')));
+      expect(tester.terminalState, isNot(containsText('▲')));
+      expect(tester.terminalState, isNot(containsText('▼')));
     });
   });
 
