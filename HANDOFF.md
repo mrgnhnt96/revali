@@ -68,10 +68,15 @@ longer depends on anyone remembering the `0.0.0` trick.
 
 ### 3. `sip test` and `dart test` disagree
 
-`dart test` honours `dart_test.yaml` tag skips. **`sip test` does not** — and
-the pre-commit hook runs `sip test`. The Redis integration tests were tagged
-`integration` and skipped by `dart test`, but the hook ran them anyway and
-failed without a server, blocking three commits.
+`dart test` honours `dart_test.yaml` tag skips. **`sip test` does not.** On
+`packages/revali_redis`, `dart test` reports `+50 ~1` with the
+`@Tags(['integration'])` suite skipped; `sip test` reports 62 passed, 0 skipped.
+
+> **Fixed 2026-08-13.** The pre-commit hook used to run `sip test`, so it ran
+> the 12 Redis tests on machines with no server and blocked three commits. It
+> now calls `scripts/run_all_tests.sh --path <package>`, which uses `dart test`
+> — removing the last dependence on a runner this repo already documents as
+> exiting 0 where `dart test` exits 1 with 3 failures.
 
 They now check for a reachable server *inside each test body*, so they
 self-skip under any runner. Keep that pattern for anything needing external
