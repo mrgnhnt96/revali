@@ -34,12 +34,26 @@ cd "$ROOT"
 # and a hand-made one goes wherever its author said. Matching on a convention
 # is a race this script loses quietly: the failures look like a broken merge,
 # and they scale with however many worktrees happen to exist.
+#
+# Only worktrees strictly INSIDE this checkout are candidates. Excluding merely
+# "the one that is ROOT" is not enough and fails in the direction that hurts:
+# run from inside a worktree, ROOT is that worktree and the main checkout is its
+# PARENT, so every package under ROOT sits below it and the whole suite is pruned
+# to nothing -- 0 packages, which the floor below correctly calls a broken gate.
+# Discovery never walks above ROOT anyway, so anything not under it is not a
+# candidate in the first place.
+#
+# The trailing `?*` matters: `"$ROOT"/*` would also match `$ROOT/` itself, since
+# `*` matches the empty string -- which is the same self-prune by another route.
 worktree_prefixes=()
 while IFS= read -r line; do
   case "$line" in
     "worktree "*)
       wt="${line#worktree }"
-      [ "$wt" = "$ROOT" ] || worktree_prefixes+=("$wt")
+      case "$wt" in
+        "$ROOT") ;;
+        "$ROOT"/?*) worktree_prefixes+=("$wt") ;;
+      esac
       ;;
   esac
 done < <(git worktree list --porcelain 2>/dev/null || true)
