@@ -5,6 +5,12 @@ import 'package:nocterm/nocterm.dart';
 /// Spells out the shifted forms rather than leaving them to be discovered:
 /// `R`/`C`/`Q` act on the whole fleet, and a developer who reaches for one by
 /// accident restarts every service they have running.
+///
+/// `j`/`k` and `g` are here for the opposite reason — nothing on screen implies
+/// a pane can be scrolled at all until it has been, so this line is the only
+/// place they exist to be found. The wheel is not listed: it needs no
+/// discovering, and a legend that named every way in would be longer than the
+/// screen is wide.
 class UpFooter extends StatelessComponent {
   const UpFooter({super.key});
 
@@ -14,6 +20,8 @@ class UpFooter extends StatelessComponent {
       mainAxisSize: MainAxisSize.min,
       children: [
         _Hint('↑↓', 'select'),
+        _Hint('jk', 'scroll'),
+        _Hint('g', 'live'),
         _Hint('r', 'reload'),
         _Hint('c', 'clear'),
         _Hint('q', 'quit'),

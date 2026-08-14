@@ -738,4 +738,153 @@ void main() {
       expect(notifications, 1);
     });
   });
+
+  group('the scroll position', () {
+    /// Feeds [count] whole lines, one per write.
+    void fill(ServiceSession it, int count, {int from = 0}) {
+      for (var i = from; i < from + count; i++) {
+        it.ingest('line-$i\n', isError: false);
+      }
+    }
+
+    test('starts at the live end', () {
+      final it = session();
+      fill(it, 20);
+
+      expect(it.isLive, isTrue);
+      expect(it.scrollTop, isNull);
+    });
+
+    test('scrolling up leaves the live end and anchors the top row', () {
+      final it = session();
+      fill(it, 20);
+
+      it.scrollBy(-3, viewport: 5);
+
+      expect(it.isLive, isFalse);
+      // 20 lines, a 5-row window: the last window starts at 15, and three
+      // rows back from there is 12.
+      expect(it.scrollTop, 12);
+    });
+
+    test('new output leaves an anchored position exactly where it was', () {
+      final it = session();
+      fill(it, 20);
+      it.scrollBy(-3, viewport: 5);
+
+      fill(it, 50, from: 20);
+
+      expect(it.scrollTop, 12);
+    });
+
+    test('scrolling back onto the last window re-sticks', () {
+      final it = session();
+      fill(it, 20);
+      it
+        ..scrollBy(-3, viewport: 5)
+        ..scrollBy(3, viewport: 5);
+
+      expect(it.isLive, isTrue);
+      expect(it.scrollTop, isNull);
+    });
+
+    test('cannot be scrolled past the oldest line kept', () {
+      final it = session();
+      fill(it, 20);
+
+      it.scrollBy(-1000, viewport: 5);
+
+      expect(it.scrollTop, 0);
+    });
+
+    test('a buffer that fits the pane has nowhere to scroll', () {
+      final it = session();
+      fill(it, 3);
+
+      it.scrollBy(-10, viewport: 20);
+
+      expect(it.isLive, isTrue);
+    });
+
+    test('eviction moves the anchor so the view does not drift', () {
+      // A cap small enough to reach, so eviction is the thing under test
+      // rather than a thing that happens after 500 lines.
+      final it = session(maxLines: 10);
+      fill(it, 10);
+
+      it.scrollBy(-2, viewport: 4);
+      expect(it.scrollTop, 4);
+
+      // Two more lines evict two from the front, so the same *content* is now
+      // two indices lower.
+      fill(it, 2, from: 10);
+
+      expect(it.scrollTop, 2);
+      expect(
+        it.lines[it.scrollTop!].text,
+        'line-4',
+        reason: 'the anchor must still name the line it was parked on',
+      );
+    });
+
+    test('an anchor on the oldest line stops rather than going negative', () {
+      final it = session(maxLines: 10);
+      fill(it, 10);
+
+      it.scrollBy(-1000, viewport: 4);
+      expect(it.scrollTop, 0);
+
+      fill(it, 5, from: 10);
+
+      expect(it.scrollTop, 0);
+    });
+
+    test('scrollToLive resumes following', () {
+      final it = session();
+      fill(it, 20);
+      it
+        ..scrollBy(-3, viewport: 5)
+        ..scrollToLive();
+
+      expect(it.isLive, isTrue);
+    });
+
+    test('a clear resets it, so a stale anchor cannot blank the pane', () {
+      final it = session();
+      fill(it, 20);
+      it
+        ..scrollBy(-3, viewport: 5)
+        ..ingest('\x1b[2J', isError: false);
+
+      expect(it.isLive, isTrue);
+      expect(it.lines, isEmpty);
+    });
+
+    test('notifies its listeners when the position changes', () {
+      final it = session();
+      fill(it, 20);
+
+      var notifications = 0;
+      it
+        ..addListener(() => notifications++)
+        ..scrollBy(-3, viewport: 5);
+      expect(notifications, 1);
+
+      // Already there: nothing changed, so nothing is repainted.
+      it.scrollToLive();
+      expect(notifications, 2);
+
+      it.scrollToLive();
+      expect(notifications, 2);
+    });
+
+    test('a zero-height pane cannot be scrolled', () {
+      final it = session();
+      fill(it, 20);
+
+      it.scrollBy(-3, viewport: 0);
+
+      expect(it.isLive, isTrue);
+    });
+  });
 }
