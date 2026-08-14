@@ -1,0 +1,7 @@
+tags:
+  # Needs a Redis server, so skipped by default: a developer without one
+  # running should still get a green suite. Run them with:
+  #   dart test --run-skipped --tags integration
+  # and point at a server with REDIS_TEST_HOST / REDIS_TEST_PORT.
+  integration:
+    skip: "Requires a running Redis (dart test --run-skipped --tags integration)"
