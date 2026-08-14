@@ -243,10 +243,12 @@ class UpCommand extends Command<int> {
   /// `Ctrl+C`: stop the fleet, and on a second press stop waiting for it.
   ///
   /// The first press is a SIGTERM to every child, not a kill, so each drains
-  /// through the same graceful path a `Ctrl+C` at its own terminal would take
-  /// — and the screen stays up while they do, which is what makes the drain
-  /// something you can watch rather than guess at. The rows going `stopped`
-  /// one by one is the acknowledgement; there is no line to print one on.
+  /// through the same graceful path a `Ctrl+C` at its own terminal would take.
+  /// That takes real time — a service with an in-flight drain delay and worker
+  /// isolates to wind down takes seconds — so the TUI swaps to its shutdown
+  /// screen for the duration, naming what is happening and keeping each
+  /// service's state moving as it goes. See `shutdown_view.dart`; nothing about
+  /// the mechanism here changes for it.
   ///
   /// The screen then comes down on its own once they are all gone. A second
   /// press is the way out when one of them does not go: the screen must not be
