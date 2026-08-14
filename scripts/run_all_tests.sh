@@ -67,6 +67,13 @@ while IFS= read -r pubspec; do
   case "$dir" in
     */.dart_tool/*|*/.revali/*|*/build/*) continue ;;
     */test/fixtures/*|*/fixtures/*) continue ;;
+    # Linked git worktrees live INSIDE the repo (showrunner puts each crawler in
+    # .worktrees/), so discovery walks straight into a second, third and fourth
+    # copy of the whole suite. They are not another package to test: a fresh
+    # worktree carries tracked files only, so it has no .dart_tool and every
+    # package in it fails to resolve -- 64 red packages that say nothing about
+    # the change being gated, and which read as "this merge broke everything".
+    */.worktrees/*) continue ;;
   esac
 
   [ -d "$dir/test" ] || continue
@@ -101,7 +108,8 @@ while IFS= read -r pubspec; do
   printf '  ✗ %s\n' "$rel"
   sed 's/\x1b\[[0-9;]*m//g' /tmp/revali_test_out | tail -25 | sed 's/^/      /'
   failed_packages+=("$rel")
-done < <(find "$SEARCH_ROOT" -name pubspec.yaml -not -path '*/.dart_tool/*' | sort)
+done < <(find "$SEARCH_ROOT" -name pubspec.yaml \
+  -not -path '*/.dart_tool/*' -not -path '*/.worktrees/*' | sort)
 
 echo
 echo "packages run: $ran  passed: $passed  failed: ${#failed_packages[@]}  skipped: $skipped"
