@@ -366,9 +366,10 @@ every publish behind a consumer waiting for work.
 redelivered. Set it well above the time a healthy handler takes: too low and a
 slow handler's work is taken out from under it and processed twice.
 
-Reclaiming runs only when a read came back with no fresh work. It is a repair
-path, and running it while messages are flowing would spend round trips on
-bookkeeping instead of on the queue.
+Reclaiming runs only when a read came back with no fresh work, as does the
+retry of your own pending entries. Both are repair paths, and running them
+while messages are flowing would spend round trips on bookkeeping instead of
+on the queue.
 
 ### Dead letters
 
@@ -382,14 +383,9 @@ on the original topic.
 Acknowledging *after* the copy, rather than before, means a failed copy leaves
 the entry pending rather than losing it.
 
-<Callout type="important">
-
-`maxDeliveries` only takes effect when `claimAfter` is set. Dead-lettering
-happens on the reclaim pass, so a broker with reclaiming disabled never
-dead-letters anything — a poison message is redelivered to its original
-consumer indefinitely.
-
-</Callout>
+`maxDeliveries` applies whether or not `claimAfter` is set. Retrying your own
+failed messages is always on; `claimAfter` only governs taking over entries
+*another* consumer abandoned.
 
 Nothing consumes `<topic>.dead` for you. Point a consumer at it, or read it by
 hand when something looks wrong — the value is that the message is somewhere a
