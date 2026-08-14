@@ -54,6 +54,8 @@
 - Add `Env`, a runtime reader for the process environment: `require`, `string`, `integer`, `boolean` and `uri`, each with an explicit fallback. A variable set to the empty string counts as **unset**, because orchestrators and CI routinely inject empty values for variables nobody configured. A value that is present but unparseable **throws** rather than falling back — someone set it on purpose, and quietly ignoring it is how an app ends up listening on a port nothing routes to. Takes an explicit map in tests, so a suite never mutates the real environment.
 - Add `AppConfig.fromEnv`, taking host and port from the environment at startup. Two defaults differ from `AppConfig.defaultApp` deliberately: the host is `0.0.0.0` rather than `localhost`, since a server bound to loopback inside a container refuses every request from outside while looking perfectly healthy; and the port comes from `PORT`, which is how Cloud Run, Heroku, Render and Fly assign one. It is **not** `const` — it reads the environment, which is only knowable at runtime — so an app using it cannot have a `const` constructor either. That is the point: a port baked in at compile time cannot be changed by the platform running the image.
 - Add `HttpError`, a failure that survives the hop. A status code alone tells a caller that something went wrong, not *what*: two different 404s are indistinguishable to the service calling you, so its only options are to give up or to match on a human-readable message that was never meant to be an API. `HttpError` carries a stable `code` alongside the status, plus a `message` for humans and optional machine-readable `details`, and serialises to `{"error": {...}}` — mirroring the `{"data": ...}` wrapper successful responses already use. Named constructors cover the usual statuses. Throwing it is **opt-in**: the framework's existing plain-text default responses are unchanged, so clients reading them today keep working.
+- Add the messaging contract: `MessageBroker`, `BrokerMessage`, `BrokerSubscription` and `ConsumerRegistry`, plus an `InMemoryBroker` for tests and local development. Revali does **not** run a broker — like a database it is infrastructure you deploy, and this is the client side. Implementations live in their own packages so the framework never picks a winner between brokers whose delivery and ordering guarantees genuinely differ.
+- `ConsumerRegistry` gives each message what a request already gets: its own `TraceContext`, seeded from the message headers, so an event published during a request stays on that request's trace when it is handled minutes later in another process; its own `RequestScopedDI` scope, disposed when the message ends; and a place in shutdown. Draining **pauses** subscriptions before waiting, rather than cancelling — cancelling abandons messages mid-handler, and on an at-least-once broker every one of them is then redelivered as a duplicate nobody needed.
 
 # revali_test
 
@@ -92,6 +94,17 @@
 - `@RequestId` now stamps the id the ambient `TraceContext` carries rather than generating a second one, so the header and the context always name the same request. It still works outside a request, where there is no context.
 - Forward `AppConfig.fromEnv` on this package's `AppConfig`. `revali_router` re-exports `revali_core` with `AppConfig` hidden and defines its own subclass, which is the one apps actually extend — a constructor that exists only upstream is unreachable from an app, and one that was only added there compiled in a `revali_core` unit test while every real app failed with "Superclass has no constructor named `AppConfig.fromEnv`".
 - Respond to an uncaught `HttpError` with its own status and error envelope. Handled **after** the exception catchers, so an app that registered a catcher for its own `HttpError` subtype still wins — the envelope is a fallback for an unclaimed error, not an override.
+
+# revali_redis
+
+## 0.1.0
+
+### Features
+
+- A `MessageBroker` backed by **Redis Streams**, not pub/sub: Redis pub/sub is fire-and-forget, so a consumer that is restarting simply misses whatever was published — the opposite of what a work queue is for. Streams persist, and consumer groups give one delivery per group with redelivery until acknowledged.
+- Speaks RESP over a socket with no third-party client, so the package has no dependency beyond `revali_core`. The decoder returns null on an incomplete reply and the connection buffers across packets, because a reply split across two packets is routine for a large `XREADGROUP` batch and decoding it as if whole desynchronises the connection rather than failing outright.
+- Acknowledges only on success, leaving a failed handler's entry pending for redelivery. Creates its consumer group with `MKSTREAM` so a consumer may start before anything was ever published, and tolerates `BUSYGROUP` so the second start is not fatal. Each subscription gets its own connection, since `XREADGROUP` blocks and sharing one would stall every publish behind a consumer waiting for work.
+- Delivery is **at least once**; handlers must be idempotent. That is the broker contract, not a limitation of this implementation.
 
 <!-- CONSTRUCTS -->
 

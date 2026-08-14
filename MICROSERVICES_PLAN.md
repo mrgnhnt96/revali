@@ -524,11 +524,41 @@ since their stdin is not a terminal under the runner. The documented
 
 ## Gap 8 — HTTP and WebSocket only
 
-No first-class async messaging (queue/topic consumers as a lifecycle concern),
-which is how a large share of real microservice systems actually communicate.
-Best shaped as a **construct**, not core — it does not belong in the request
-pipeline and the broker landscape is too varied to pick a winner in the
-framework.
+**Status: PARTIALLY SHIPPED.** `revali_core` 3.1.0, new `revali_redis` 0.1.0.
+
+- `MessageBroker` / `BrokerMessage` / `BrokerSubscription` — the contract.
+- `ConsumerRegistry` — per-message trace context, per-message DI scope with
+  disposal, and drain participation that **pauses** before waiting.
+- `InMemoryBroker` — for tests and local dev, modelling the parts of broker
+  behaviour that change how code must be written (groups sharing work,
+  separate groups each getting a copy, redelivery on failure) and none of the
+  parts that make a real broker useful.
+- `revali_redis` — Redis Streams, RESP spoken directly over a socket, no
+  third-party client. 18 tests in core, 39 in the Redis package.
+
+**Revali does not run a broker**, and that was the question worth settling
+first: like a database, the broker is infrastructure you deploy, and this is
+only the client side. Adapters live in their own packages so core never picks
+a winner between brokers whose guarantees genuinely differ.
+
+**Consumers deliberately do not run the full request pipeline.** They get DI
+scoping, trace continuity and shutdown. They do not get guards or middleware:
+a guard exists to reject a caller, and a queue message has none.
+
+**Still open:**
+
+- **`@Consumes('order.placed')` codegen.** Today a consumer is registered in
+  code against `ConsumerRegistry`. The annotation is sugar over exactly that,
+  but it needs a visitor, a meta model and a maker in the generator — a
+  self-contained piece of work rather than a detail of this one.
+- **A real-Redis integration test.** Everything here is tested against a fake
+  connection and a thoroughly tested RESP codec; nothing has yet talked to a
+  running Redis. The compose work from Gap 7 is the natural place to stand one
+  up.
+- **Reconnection.** A dropped connection backs off and retries the read loop;
+  it does not re-establish the consumer group or replay pending entries with
+  `XAUTOCLAIM`.
+
 
 ---
 
