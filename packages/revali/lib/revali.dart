@@ -31,6 +31,7 @@ export 'handlers/routes_handler.dart';
 export 'handlers/vm_service_handler.dart';
 export 'server/cli/models/cli_config.dart';
 export 'server/cli/models/create_paths.dart';
+export 'server/contract/contract_check.dart';
 export 'server/models/options.dart';
 export 'server/revali_server.construct.dart';
 export 'server/server.dart';

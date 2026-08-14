@@ -6,6 +6,7 @@ import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart' as p;
 import 'package:revali/handlers/construct_entrypoint_handler.dart';
+import 'package:revali/server/contract/contract_check.dart';
 
 class RoutesCommand extends Command<int> {
   RoutesCommand({
@@ -20,7 +21,14 @@ class RoutesCommand extends Command<int> {
         help: 'Run generate-only before reading the manifest',
         negatable: false,
       )
-      ..addFlag('json', help: 'Print raw routes.json', negatable: false);
+      ..addFlag('json', help: 'Print raw routes.json', negatable: false)
+      ..addOption(
+        'check',
+        help:
+            'Compare the current manifest against a pinned routes.json and '
+            'exit non-zero on breaking changes',
+        valueHelp: 'path',
+      );
   }
 
   final Logger logger;
@@ -64,6 +72,12 @@ class RoutesCommand extends Command<int> {
     }
 
     final raw = await manifest.readAsString();
+
+    final pinnedPath = argResults?['check'] as String?;
+    if (pinnedPath != null) {
+      return _check(pinnedPath, raw);
+    }
+
     if (argResults?['json'] as bool? ?? false) {
       io.stdout.writeln(raw.trimRight());
       return 0;
@@ -84,5 +98,51 @@ class RoutesCommand extends Command<int> {
     }
 
     return 0;
+  }
+
+  /// Compares the current manifest against a pinned one.
+  ///
+  /// Exits 1 when a consumer that built against the pin could now break, so
+  /// this is usable as a CI gate.
+  int _check(String pinnedPath, String currentRaw) {
+    final pinned = fs.file(pinnedPath);
+
+    if (!pinned.existsSync()) {
+      logger.err('No pinned manifest at $pinnedPath');
+      return 1;
+    }
+
+    final ContractReport report;
+    try {
+      report = checkContract(
+        jsonDecode(pinned.readAsStringSync()) as Map<String, dynamic>,
+        jsonDecode(currentRaw) as Map<String, dynamic>,
+      );
+    } catch (e) {
+      logger.err('Could not compare manifests: $e');
+      return 1;
+    }
+
+    for (final change in report.compatible) {
+      logger.info('  compatible  $change');
+    }
+    for (final change in report.breaking) {
+      logger.err('  BREAKING    $change');
+    }
+
+    if (report.changes.isEmpty) {
+      logger.success('No contract changes against $pinnedPath');
+      return 0;
+    }
+
+    if (!report.hasBreaking) {
+      logger.success(
+        '\n${report.compatible.length} compatible change(s), none breaking',
+      );
+      return 0;
+    }
+
+    logger.err('\n${report.breaking.length} breaking change(s)');
+    return 1;
   }
 }

@@ -16,7 +16,10 @@ AnyFile routesManifestFile(ServerServer server, {String prefix = 'api'}) {
     }
   }
 
-  final payload = {'version': 1, 'prefix': prefix, 'routes': routes};
+  // Version 2 adds `returns`. A consumer pinned against version 1 has no
+  // return types to compare, so the contract check reports that rather than
+  // silently treating "absent" as "unchanged".
+  final payload = {'version': 2, 'prefix': prefix, 'routes': routes};
 
   return AnyFile(
     basename: 'routes',
@@ -49,6 +52,12 @@ Map<String, Object?> _routeEntry(
     'handler': child.handlerName,
     'sse': child.isSse,
     'webSocket': child.webSocket != null,
+    // The name only. This manifest describes a route *surface*, not a type
+    // model: it carries no fields, no nested types and no serialisation
+    // strategy, so it can tell a consumer that a response changed shape at
+    // the top level and cannot generate a client. See MICROSERVICES_PLAN.md.
+    'returns': child.returnType.nonNullName,
+    'returnsNullable': child.returnType.isNullable,
     'params': [for (final param in child.params) _paramEntry(param)],
     'lifecycle': lifecycle,
   };
