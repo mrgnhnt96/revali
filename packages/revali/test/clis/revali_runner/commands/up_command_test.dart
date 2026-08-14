@@ -11,6 +11,7 @@ import 'package:revali/clis/revali_runner/commands/up_command.dart';
 // Prefixed for the same reason `up_command.dart` prefixes it: the TUI's
 // `UpCommand` key constants share their name with the command class.
 import 'package:revali/clis/revali_runner/tui/up_app.dart' as tui;
+import 'package:revali/services/ansi.dart';
 import 'package:revali/services/service_discovery.dart';
 import 'package:revali/services/service_plan.dart';
 import 'package:revali/services/service_session.dart';
@@ -262,6 +263,39 @@ void main() {
 
         expect(cmdFileOf(orders.plan), '$word\n');
       }
+    });
+  });
+
+  group('the colour handshake with the child', () {
+    test('the fleet still hands every child its assigned port', () {
+      expect(
+        command.childEnvironment(planFor('orders', port: 8081), useTui: true),
+        containsPair('PORT', '8081'),
+      );
+      expect(
+        command.childEnvironment(planFor('billing'), useTui: false),
+        containsPair('PORT', '8080'),
+      );
+    });
+
+    test('asks for colour where a pane is going to paint it', () {
+      // Without this the child sees a pipe, `ansiOutputEnabled` is false, and
+      // it emits plain text -- so the pane has no colour to render however
+      // well it renders.
+      expect(
+        command.childEnvironment(planFor('orders'), useTui: true),
+        containsPair(kForceAnsiEnvVar, '1'),
+      );
+    });
+
+    test('does not ask for it on the flat path', () {
+      // The regression most likely to ship unnoticed. That path's pipe is not
+      // an implementation detail -- it is the build log CI reads, and escape
+      // sequences in one are exactly what the flat path exists to avoid.
+      expect(
+        command.childEnvironment(planFor('orders'), useTui: false),
+        isNot(contains(kForceAnsiEnvVar)),
+      );
     });
   });
 

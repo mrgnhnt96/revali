@@ -13,6 +13,7 @@ import 'package:path/path.dart' as p;
 // name with the command class below. Unprefixed, the class would shadow it and
 // the constants would be unreachable from here.
 import 'package:revali/clis/revali_runner/tui/up_app.dart' as tui;
+import 'package:revali/services/ansi.dart';
 import 'package:revali/services/service_discovery.dart';
 import 'package:revali/services/service_plan.dart';
 import 'package:revali/services/service_session.dart';
@@ -386,6 +387,33 @@ class UpCommand extends Command<int> {
   /// The file `revali dev` watches when it has no terminal of its own.
   static const _devCommandFileName = '.revali_cmd';
 
+  /// What one child is started with, on top of this process's own environment.
+  ///
+  /// [useTui] is the whole of the colour decision, and it is a decision the
+  /// *parent* has to make: a child's stdout is a pipe on both paths, so the
+  /// child cannot tell them apart by looking. Under the TUI a pipe is an
+  /// implementation detail of a pane that is about to paint colour; on the flat
+  /// path it is the output CI reads, where escape sequences are a regression.
+  ///
+  /// Public so the two branches can be proved without spawning a process. The
+  /// flat one is the branch nobody runs by hand, because it is the one CI
+  /// takes — and getting it wrong is invisible here and loud in a build log.
+  Map<String, String> childEnvironment(
+    ServicePlan plan, {
+    required bool useTui,
+  }) => {
+    // The port the fleet assigned. `AppConfig.fromEnv` reads it; a service
+    // that hard-codes its port ignores this and will collide with whatever
+    // else claimed that port.
+    'PORT': '${plan.port}',
+
+    // Ask for colour. `mason_logger` colours through `ansiOutputEnabled`,
+    // which is false on a pipe — so without this the child emits plain text
+    // and the pane has nothing to render however well it renders.
+    // `revali dev` reads this variable and opts in; see [kForceAnsiEnvVar].
+    if (useTui) kForceAnsiEnvVar: '1',
+  };
+
   /// Starts one service, appending its exit future to [exits].
   ///
   /// A service that cannot start adds nothing, so the fleet carries on without
@@ -409,10 +437,7 @@ class UpCommand extends Command<int> {
         'dart',
         ['run', 'revali', 'dev'],
         workingDirectory: plan.service.directory.path,
-        // The port the fleet assigned. `AppConfig.fromEnv` reads it; a
-        // service that hard-codes its port ignores this and will collide
-        // with whatever else claimed that port.
-        environment: {'PORT': '${plan.port}'},
+        environment: childEnvironment(plan, useTui: _useTui),
       );
     } catch (e) {
       logger.err('${plan.label}: failed to start: $e');
