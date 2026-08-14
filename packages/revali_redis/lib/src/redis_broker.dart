@@ -1,0 +1,350 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:revali_core/revali_core.dart';
+import 'package:revali_redis/src/redis_connection.dart';
+import 'package:revali_redis/src/resp.dart';
+
+/// A [MessageBroker] backed by Redis Streams.
+///
+/// Streams rather than pub/sub: Redis pub/sub is fire-and-forget, so a
+/// consumer that is restarting simply misses whatever was published, which is
+/// the opposite of what a work queue is for. Streams persist, and consumer
+/// groups give exactly the semantics the contract describes — one delivery per
+/// group, redelivery until acknowledged.
+///
+/// Delivery is **at least once**. A handler that succeeds but whose `XACK` is
+/// lost will see its message again, so handlers must be idempotent.
+class RedisBroker implements MessageBroker {
+  RedisBroker({
+    required RedisConnection connection,
+    required RedisConnection Function() openConnection,
+    this.consumerName = 'revali',
+    this.blockFor = const Duration(seconds: 2),
+    this.batchSize = 16,
+  }) : _control = connection,
+       _openConnection = openConnection;
+
+  /// Connects to a Redis server.
+  ///
+  /// Each subscription gets its own connection, because `XREADGROUP` blocks:
+  /// sharing one would stall every publish behind a consumer waiting for work.
+  static Future<RedisBroker> connect({
+    String host = 'localhost',
+    int port = 6379,
+    String consumerName = 'revali',
+  }) async {
+    final connections = <SocketRedisConnection>[];
+
+    final control = await SocketRedisConnection.connect(host, port);
+    connections.add(control);
+
+    return RedisBroker(
+      connection: control,
+      consumerName: consumerName,
+      openConnection: () {
+        // Opened lazily and awaited by the caller; see [_LazyConnection].
+        final connection = _LazyConnection(() async {
+          final opened = await SocketRedisConnection.connect(host, port);
+          connections.add(opened);
+
+          return opened;
+        });
+
+        return connection;
+      },
+    );
+  }
+
+  final RedisConnection _control;
+  final RedisConnection Function() _openConnection;
+
+  /// Identifies this process within a consumer group.
+  ///
+  /// Redis tracks unacknowledged messages per consumer name, so two replicas
+  /// sharing one name makes each other's pending entries invisible.
+  final String consumerName;
+
+  /// How long `XREADGROUP` waits for work before returning empty.
+  ///
+  /// Bounded rather than infinite so a shutdown never waits longer than this
+  /// for the read loop to notice it should stop.
+  final Duration blockFor;
+
+  final int batchSize;
+
+  final _subscriptions = <_RedisSubscription>[];
+  var _closed = false;
+
+  @override
+  Future<void> publish(
+    String topic,
+    String payload, {
+    Map<String, String> headers = const {},
+  }) async {
+    if (_closed) {
+      throw StateError('Broker is closed');
+    }
+
+    await _control.send([
+      'XADD',
+      topic,
+      '*',
+      'payload',
+      payload,
+      'headers',
+      jsonEncode(headers),
+    ]);
+  }
+
+  @override
+  Future<BrokerSubscription> subscribe(
+    String topic, {
+    required String group,
+    required MessageHandler onMessage,
+  }) async {
+    if (_closed) {
+      throw StateError('Broker is closed');
+    }
+
+    await _ensureGroup(topic, group);
+
+    final subscription = _RedisSubscription(
+      topic: topic,
+      group: group,
+      consumerName: consumerName,
+      connection: _openConnection(),
+      onMessage: onMessage,
+      blockFor: blockFor,
+      batchSize: batchSize,
+    );
+
+    _subscriptions.add(subscription);
+    subscription.start();
+
+    return subscription;
+  }
+
+  /// Creates the consumer group, tolerating one that already exists.
+  ///
+  /// `MKSTREAM` so a consumer may start before anything has ever been
+  /// published — otherwise the first deploy order between two services
+  /// decides whether either of them works.
+  Future<void> _ensureGroup(String topic, String group) async {
+    try {
+      await _control.send(['XGROUP', 'CREATE', topic, group, r'$', 'MKSTREAM']);
+    } on RedisError catch (e) {
+      if (!e.isBusyGroup) {
+        rethrow;
+      }
+    }
+  }
+
+  @override
+  Future<void> close() async {
+    _closed = true;
+
+    for (final subscription in _subscriptions) {
+      await subscription.cancel();
+    }
+    _subscriptions.clear();
+
+    await _control.close();
+  }
+}
+
+class _RedisSubscription implements BrokerSubscription {
+  _RedisSubscription({
+    required this.topic,
+    required this.group,
+    required this.consumerName,
+    required RedisConnection connection,
+    required MessageHandler onMessage,
+    required this.blockFor,
+    required this.batchSize,
+  }) : _connection = connection,
+       _onMessage = onMessage;
+
+  @override
+  final String topic;
+
+  final String group;
+  final String consumerName;
+  final RedisConnection _connection;
+  final MessageHandler _onMessage;
+  final Duration blockFor;
+  final int batchSize;
+
+  var _paused = false;
+  var _cancelled = false;
+  Future<void>? _loop;
+
+  void start() => _loop = _read();
+
+  Future<void> _read() async {
+    while (!_cancelled) {
+      if (_paused) {
+        // Paused, not stopped: the loop stays alive so a resumed subscription
+        // does not need re-establishing.
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        continue;
+      }
+
+      final Object? reply;
+      try {
+        reply = await _connection.send([
+          'XREADGROUP',
+          'GROUP',
+          group,
+          consumerName,
+          'BLOCK',
+          '${blockFor.inMilliseconds}',
+          'COUNT',
+          '$batchSize',
+          'STREAMS',
+          topic,
+          '>',
+        ]);
+      } catch (_) {
+        if (_cancelled) {
+          return;
+        }
+
+        // A dropped connection must not end the loop silently; back off and
+        // let the next attempt surface it.
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+        continue;
+      }
+
+      for (final message in parseStreamReply(reply, topic)) {
+        if (_cancelled) {
+          return;
+        }
+
+        try {
+          await _onMessage(message);
+          // Acknowledged only on success: a handler that threw leaves the
+          // entry pending, which is what makes redelivery possible.
+          await _connection.send(['XACK', topic, group, message.id]);
+        } catch (_) {
+          // Left unacknowledged deliberately.
+        }
+      }
+    }
+  }
+
+  @override
+  Future<void> pause() async => _paused = true;
+
+  @override
+  Future<void> cancel() async {
+    _cancelled = true;
+    _paused = true;
+
+    await _loop;
+    await _connection.close();
+  }
+}
+
+/// Turns an `XREADGROUP` reply into messages.
+///
+/// The reply nests three levels deep — streams, then entries, then a flat
+/// field/value list — and is null when the block expired with no work.
+List<BrokerMessage> parseStreamReply(Object? reply, String topic) {
+  if (reply is! List) {
+    return const [];
+  }
+
+  final messages = <BrokerMessage>[];
+
+  for (final stream in reply) {
+    if (stream is! List || stream.length < 2) {
+      continue;
+    }
+
+    final entries = stream[1];
+    if (entries is! List) {
+      continue;
+    }
+
+    for (final entry in entries) {
+      if (entry is! List || entry.length < 2) {
+        continue;
+      }
+
+      final id = entry[0];
+      final fields = entry[1];
+      if (id is! String || fields is! List) {
+        continue;
+      }
+
+      final values = <String, String>{};
+      for (var i = 0; i + 1 < fields.length; i += 2) {
+        final key = fields[i];
+        final value = fields[i + 1];
+        if (key is String && value is String) {
+          values[key] = value;
+        }
+      }
+
+      messages.add(
+        BrokerMessage(
+          topic: topic,
+          id: id,
+          payload: values['payload'] ?? '',
+          headers: _decodeHeaders(values['headers']),
+        ),
+      );
+    }
+  }
+
+  return messages;
+}
+
+Map<String, String> _decodeHeaders(String? raw) {
+  if (raw == null || raw.isEmpty) {
+    return const {};
+  }
+
+  try {
+    final decoded = jsonDecode(raw);
+    if (decoded is! Map) {
+      return const {};
+    }
+
+    return {
+      for (final entry in decoded.entries) '${entry.key}': '${entry.value}',
+    };
+  } catch (_) {
+    // Headers are metadata; a malformed set must not cost the message.
+    return const {};
+  }
+}
+
+/// A connection opened on first use.
+///
+/// `subscribe` needs a connection synchronously but opening a socket is
+/// asynchronous, so the first command waits for the connect rather than the
+/// caller doing so.
+class _LazyConnection implements RedisConnection {
+  _LazyConnection(this._open);
+
+  final Future<RedisConnection> Function() _open;
+  Future<RedisConnection>? _opened;
+
+  Future<RedisConnection> get _connection => _opened ??= _open();
+
+  @override
+  Future<Object?> send(List<String> command) async {
+    final connection = await _connection;
+
+    return connection.send(command);
+  }
+
+  @override
+  Future<void> close() async {
+    if (_opened case final opened?) {
+      await (await opened).close();
+    }
+  }
+}

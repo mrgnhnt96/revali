@@ -1,0 +1,13 @@
+name: revali_redis
+description: A Redis Streams message broker for Revali, built on the framework's MessageBroker contract.
+version: 0.1.0
+repository: https://github.com/mrgnhnt96/revali/tree/main/packages/revali_redis
+
+environment:
+  sdk: ">=3.8.0 <4.0.0"
+
+dependencies:
+  revali_core: ^3.0.0
+
+dev_dependencies:
+  test: ^1.25.15

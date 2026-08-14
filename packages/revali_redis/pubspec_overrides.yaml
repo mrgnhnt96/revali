@@ -1,0 +1,3 @@
+dependency_overrides:
+  revali_core:
+    path: ../revali_core
