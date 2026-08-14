@@ -1,5 +1,7 @@
 import 'package:analyzer/dart/element/element.dart';
+import 'package:code_builder/code_builder.dart';
 import 'package:revali_annotations/revali_annotations.dart';
+import 'package:revali_client_gen/makers/creators/create_request.dart';
 import 'package:revali_client_gen/makers/creators/create_signature.dart';
 import 'package:revali_client_gen/models/client_lifecycle_component.dart';
 import 'package:revali_client_gen/models/client_method.dart';
@@ -121,6 +123,42 @@ void main() {
         );
       },
     );
+
+    test('keeps every same-typed query param through the analyzer', () async {
+      final method = await methodFromAnalyzer(
+        className: 'QuoteController',
+        methodName: 'quote',
+      );
+
+      expect(method.separateParams.query.map((param) => param.name), [
+        'latitude',
+        'longitude',
+        'downPaymentCents',
+        'termPeriods',
+        'unitIndex',
+      ]);
+    });
+
+    test('generated request sends every same-typed query param', () async {
+      final method = await methodFromAnalyzer(
+        className: 'QuoteController',
+        methodName: 'quote',
+      );
+
+      final request = createRequest(
+        method,
+      ).accept(DartEmitter()).toString().replaceAll(RegExp(r'\s+'), '');
+
+      for (final name in [
+        'latitude',
+        'longitude',
+        'downPaymentCents',
+        'termPeriods',
+        'unitIndex',
+      ]) {
+        expect(request, contains("'$name':$name"), reason: '$name not sent');
+      }
+    });
 
     test('generated signature exposes body only once', () async {
       final method = await methodFromAnalyzer(

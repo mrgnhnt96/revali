@@ -294,6 +294,117 @@ void main() {
         expect(m.allParams, [endpointBody]);
       });
 
+      ClientParam param({
+        required String name,
+        required String type,
+        required ParameterPosition position,
+      }) {
+        return ClientParam(
+          name: name,
+          position: position,
+          type: ClientType(name: type),
+          access: [],
+          acceptMultiple: false,
+          hasDefaultValue: false,
+        );
+      }
+
+      ClientMethod endpoint(List<ClientParam> parameters) {
+        return ClientMethod(
+          name: 'quote',
+          parentPath: '',
+          method: 'GET',
+          path: 'quote',
+          returnType: ClientType(name: 'void'),
+          parameters: parameters,
+          lifecycleComponents: [],
+          isSse: false,
+          websocketType: WebsocketType.none,
+          isExcluded: false,
+        );
+      }
+
+      test('keeps every endpoint query param sharing a type', () {
+        final latitude = param(
+          name: 'latitude',
+          type: 'double',
+          position: ParameterPosition.query,
+        );
+        final longitude = param(
+          name: 'longitude',
+          type: 'double',
+          position: ParameterPosition.query,
+        );
+
+        final m = endpoint([latitude, longitude]);
+
+        expect(m.allParams, [latitude, longitude]);
+      });
+
+      test('keeps every endpoint query param sharing a nullable type', () {
+        final downPaymentCents = param(
+          name: 'downPaymentCents',
+          type: 'int?',
+          position: ParameterPosition.query,
+        );
+        final termPeriods = param(
+          name: 'termPeriods',
+          type: 'int?',
+          position: ParameterPosition.query,
+        );
+        final unitIndex = param(
+          name: 'unitIndex',
+          type: 'int?',
+          position: ParameterPosition.query,
+        );
+
+        final m = endpoint([downPaymentCents, termPeriods, unitIndex]);
+
+        expect(m.allParams, [downPaymentCents, termPeriods, unitIndex]);
+      });
+
+      test('keeps every endpoint header param sharing a type', () {
+        final ifMatch = param(
+          name: 'ifMatch',
+          type: 'String',
+          position: ParameterPosition.header,
+        );
+        final ifNoneMatch = param(
+          name: 'ifNoneMatch',
+          type: 'String',
+          position: ParameterPosition.header,
+        );
+
+        final m = endpoint([ifMatch, ifNoneMatch]);
+
+        expect(m.allParams, [ifMatch, ifNoneMatch]);
+      });
+
+      test('generated signature exposes every same-typed query param', () {
+        final m = endpoint([
+          param(
+            name: 'latitude',
+            type: 'double',
+            position: ParameterPosition.query,
+          ),
+          param(
+            name: 'longitude',
+            type: 'double',
+            position: ParameterPosition.query,
+          ),
+          param(
+            name: 'unitIndex',
+            type: 'int?',
+            position: ParameterPosition.query,
+          ),
+        ]);
+
+        expect(
+          createSignature(m).optionalParameters.map((param) => param.name),
+          containsAll(['latitude', 'longitude', 'unitIndex']),
+        );
+      });
+
       test(
         'excludes lifecycle body when endpoint exposes the same type as query',
         () {
