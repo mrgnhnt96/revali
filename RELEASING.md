@@ -15,14 +15,36 @@ in this one.
 1. Discovers every package **without** `publish_to: none`, ignoring
    `examples/`, `.revali/`, `test/` and `small_test/`.
 2. **Exits 1 if any discovered package has no `LATEST_CHANGELOG.md` entry.**
-3. Publishes only the packages whose `LATEST_CHANGELOG.md` version **differs
+3. Asks pub.dev which versions of each package are actually published.
+4. Prints a **release plan** covering every discovered package, then asks for
+   confirmation before touching anything.
+5. Publishes only the packages whose `LATEST_CHANGELOG.md` version **differs
    from** their `pubspec.yaml` version, then writes that version into the
    pubspec and rewrites every dependent's constraint to `^<new version>`.
 
 Two consequences worth holding onto:
 
-- **Equal versions mean skipped.** A package with real changes whose changelog
-  version still matches its pubspec is silently not published.
+- **Equal versions mean skipped**, and that is usually correct: after a
+  successful publish the pubspec is bumped to match, so every package not
+  being released sits equal. What used to be dangerous is that the skip was
+  *silent* — "correctly up to date" and "someone forgot to bump the changelog,
+  so this release did nothing" produced identical output, namely none, while
+  the run still exited 0.
+
+  The plan now distinguishes them by asking the registry, so each package
+  reads as one of:
+
+  | Marker | Meaning |
+  |---|---|
+  | `PUBLISH` | changelog version differs from pubspec — this one ships |
+  | `current` | versions agree **and** the registry has that version |
+  | `MISSING` | versions agree and the registry does **not** — nothing will publish it, and nothing would have said so |
+  | `unknown` | the registry could not be reached; not an error, but not a clean bill of health either |
+
+  A brand-new package is the sharp edge `MISSING` catches: its first version
+  appears in both files, so it is skipped forever and never reaches pub.dev.
+  `revali_redis` works around this by starting its pubspec at `0.0.0`, which
+  works and only works if whoever adds the package remembers.
 - **A dependent's constraint is only rewritten if that dependent is itself
   in the release.** Publishing a major without re-releasing its dependents
   leaves them pinned to the old range, and the published set stops resolving.
@@ -43,9 +65,14 @@ want a `README.md` and `CHANGELOG.md`, which it still lacks.
 
 - `./scripts/run_all_tests.sh` must pass. `sip run publish` calls it now; it
   previously used `sip test --recursive`, which exits 0 having run nothing.
-- `prep_for_publish.dart` runs `pub publish --force`. There is **no
-  confirmation step**, so `LATEST_CHANGELOG.md` is the only thing standing
-  between a wrong version and pub.dev.
+- `prep_for_publish.dart` runs `pub publish --force`, which cannot be undone.
+  It now prints the plan and asks first, and **refuses outright when no
+  terminal is attached** rather than attempting a prompt it cannot complete.
+  Pass `--yes` to publish without asking — that is the CI path, and it has to
+  be typed.
+
+  Run it from a real terminal. Piping its output to a file or a log is enough
+  to make `stdout` not a terminal, at which point it declines and explains why.
 - Versions are edited in `LATEST_CHANGELOG.md`, never in a `pubspec.yaml`.
   The script writes the pubspec; editing it by hand makes the package look
   unchanged and it silently will not publish.
