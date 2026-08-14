@@ -11,7 +11,14 @@
 # Also enforces a floor. Exiting 0 having run nothing is the other way a test
 # gate lies, and it is the one that hides for longest.
 #
-# Usage: scripts/run_all_tests.sh [--min N]
+# `dart test` also honours `dart_test.yaml` tag skips, which `sip test` does
+# not: in packages/revali_redis, `dart test` reports "+50 ~1" (the
+# @Tags(['integration']) suite skipped) while `sip test` runs all 62. That
+# divergence is why the pre-commit hook calls this script with --path rather
+# than running sip itself -- a hook that runs tests the suite declared skippable
+# fails on machines without the infrastructure those tests need.
+#
+# Usage: scripts/run_all_tests.sh [--min N] [--path DIR]
 
 set -uo pipefail
 
@@ -19,12 +26,33 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 MIN_PACKAGES=25
+SEARCH_ROOT="."
+SCOPED=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --min) MIN_PACKAGES="$2"; shift 2 ;;
+    # Scope discovery to one package subtree, still recursively -- the hook
+    # needs the nested packages under e.g. revali_router/ too.
+    --path)
+      SEARCH_ROOT="$2"
+      SCOPED=1
+      shift 2
+      ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
 done
+
+if [ ! -d "$SEARCH_ROOT" ]; then
+  echo "no such directory: $SEARCH_ROOT" >&2
+  exit 2
+fi
+
+# A whole-repo run expects dozens of packages; a scoped run may legitimately
+# hold one. The floor still exists either way -- exiting 0 having run nothing
+# is the other way a test gate lies.
+if [ "$SCOPED" -eq 1 ] && [ "$MIN_PACKAGES" -eq 25 ]; then
+  MIN_PACKAGES=1
+fi
 
 failed_packages=()
 passed=0
@@ -73,7 +101,7 @@ while IFS= read -r pubspec; do
   printf '  ✗ %s\n' "$rel"
   sed 's/\x1b\[[0-9;]*m//g' /tmp/revali_test_out | tail -25 | sed 's/^/      /'
   failed_packages+=("$rel")
-done < <(find . -name pubspec.yaml -not -path '*/.dart_tool/*' | sort)
+done < <(find "$SEARCH_ROOT" -name pubspec.yaml -not -path '*/.dart_tool/*' | sort)
 
 echo
 echo "packages run: $ran  passed: $passed  failed: ${#failed_packages[@]}  skipped: $skipped"
