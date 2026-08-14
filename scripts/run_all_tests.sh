@@ -25,6 +25,25 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
+# Linked git worktrees are checkouts of THIS repo living inside it, so package
+# discovery walks straight into a full second copy of the suite -- which has no
+# .dart_tool, so every package in it fails to resolve.
+#
+# Ask git where they are rather than guessing a directory name. showrunner puts
+# them in .worktrees/, the harness's own worktree tool uses .claude/worktrees/,
+# and a hand-made one goes wherever its author said. Matching on a convention
+# is a race this script loses quietly: the failures look like a broken merge,
+# and they scale with however many worktrees happen to exist.
+worktree_prefixes=()
+while IFS= read -r line; do
+  case "$line" in
+    "worktree "*)
+      wt="${line#worktree }"
+      [ "$wt" = "$ROOT" ] || worktree_prefixes+=("$wt")
+      ;;
+  esac
+done < <(git worktree list --porcelain 2>/dev/null || true)
+
 MIN_PACKAGES=25
 SEARCH_ROOT="."
 SCOPED=0
@@ -67,14 +86,19 @@ while IFS= read -r pubspec; do
   case "$dir" in
     */.dart_tool/*|*/.revali/*|*/build/*) continue ;;
     */test/fixtures/*|*/fixtures/*) continue ;;
-    # Linked git worktrees live INSIDE the repo (showrunner puts each crawler in
-    # .worktrees/), so discovery walks straight into a second, third and fourth
-    # copy of the whole suite. They are not another package to test: a fresh
-    # worktree carries tracked files only, so it has no .dart_tool and every
-    # package in it fails to resolve -- 64 red packages that say nothing about
-    # the change being gated, and which read as "this merge broke everything".
-    */.worktrees/*) continue ;;
   esac
+
+  # Skip anything inside a linked worktree -- see worktree_prefixes above.
+  case "$dir" in
+    /*) abs_dir="$dir" ;;
+    ./*) abs_dir="$ROOT/${dir#./}" ;;
+    *) abs_dir="$ROOT/$dir" ;;
+  esac
+  in_worktree=0
+  for wt in ${worktree_prefixes+"${worktree_prefixes[@]}"}; do
+    case "$abs_dir/" in "$wt"/*) in_worktree=1; break ;; esac
+  done
+  [ "$in_worktree" -eq 0 ] || continue
 
   [ -d "$dir/test" ] || continue
 
