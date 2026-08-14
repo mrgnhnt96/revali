@@ -15,7 +15,7 @@ re-discovered.
   - It is the documented way to test a Revali app (`AGENTS.md` → `TestServer()` / `await createServer(server)`) and all 27 `test_suite` packages depend on it by relative path, but no external user could get it
   - `TestServer` is not re-exported from any published package either, so there was no workaround
   - Done: pub metadata, `README.md`, `CHANGELOG.md`, `LICENSE`, and a `1.0.0` entry in `LATEST_CHANGELOG.md`. `dart pub publish --dry-run` passes
-  - [ ] **Still to do — actually publish it.** The pubspec version equals the changelog version, so `checkForChanges` treats it as unchanged and `prep_for_publish` (which runs `pub publish --force`) skips it. Bump the `LATEST_CHANGELOG` entry above the pubspec version when ready to cut the first release
+  - [x] **Published.** Live on pub.dev at `0.1.0` since `2026-08-13T17:16:17Z` (verified against the pub.dev API, not inferred). The equal pubspec/changelog versions are therefore the *correct* up-to-date state — bumping the changelog entry now would republish an already-released version
 - [x] Write a testing documentation page
   - Of the 98 pages under `doc-site/content/`, **zero** covered testing; `TestServer` appeared nowhere in the docs
   - Done: `content/revali/testing.md`, linked as a top-level `Testing` nav item. Covers the `TestServer` pattern, why `createServer` must be awaited, the `/api` prefix and `{"data": ...}` wrapper, header assertions with `expectRecentHttpDate`, streaming via `connect`, and when to bind a real socket instead
@@ -23,7 +23,7 @@ re-discovered.
 - [x] Make `revali_mcp` publishable (also `publish_to: none`)
   - `README.md` shipped a Cursor config telling users to run `dart run revali_mcp`; that could not resolve outside this repo
   - Done: pub metadata, `CHANGELOG.md`, `LICENSE`, a `0.1.0` entry in `LATEST_CHANGELOG.md`, and install instructions for both a dev dependency and `dart pub global activate`. `dart pub publish --dry-run` reports **0 warnings**
-  - [ ] **Still to do — actually publish it.** Same as `revali_test`: pubspec version equals the changelog version, so the release script skips it. Bump the changelog entry when ready
+  - [x] **Published.** Live on pub.dev at `0.1.0` since `2026-08-13T17:16:14Z`. Same correction as `revali_test`: equal versions mean already-published, not skipped-by-mistake
 - [x] **Bug found while prepping it: stdio framing counted characters, not bytes**
   - `Content-Length` is a byte count, but the server buffered `stdin.transform(utf8.decoder)` output and compared decoded character counts against it. `é` is two bytes and one code unit, so *any* non-ASCII message body left the server waiting on data that had already arrived — it never replied
   - The write side had the mirror fault: the header announced `utf8.encode(payload).length` while the body went out via `stdout.write`, which re-encodes using `Stdout.encoding`

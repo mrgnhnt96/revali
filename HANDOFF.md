@@ -14,11 +14,16 @@ working tree clean, **nothing published**.
 
 Three things will bite you before anything else does.
 
-### 1. Nothing is published, and the release is armed
+### 1. Nothing is published, and the release is staged
 
 Eight packages are staged in `LATEST_CHANGELOG.md` and will publish the next
-time someone runs `sip run publish`. `prep_for_publish.dart` runs
-`pub publish --force` with **no confirmation step**.
+time someone runs `sip run publish`.
+
+> **Updated 2026-08-13.** `prep_for_publish.dart` used to run
+> `pub publish --force` with **no confirmation step**. It now prints a full
+> release plan and asks before publishing, refusing outright when no terminal is
+> attached. `--yes` is the deliberate opt-out for CI. The eight packages below
+> are still staged and still unpublished.
 
 | Package | Current | Staged | Note |
 |---|---|---|---|
@@ -34,20 +39,32 @@ time someone runs `sip run publish`. `prep_for_publish.dart` runs
 To hold the release, revert the version headings in `LATEST_CHANGELOG.md`. The
 code is independent of them.
 
-### 2. A publishing trap that already caught two packages
+### 2. A publishing trap that hides in the skip path
+
+> **Corrected 2026-08-13.** This section originally claimed `revali_test` and
+> `revali_mcp` were "stuck" and needed a changelog bump. They are not: both are
+> live on pub.dev at `0.1.0` (published `17:16Z`, hours before this handoff was
+> written). Bumping them as originally instructed would have republished
+> already-released packages. `todo.md` carried the same error and is fixed too.
 
 `prep_for_publish.dart` publishes a package **only when its
 `LATEST_CHANGELOG.md` version differs from its `pubspec.yaml` version.** Equal
-versions mean *skipped*, silently.
+versions mean *skipped*, and until now that happened silently.
 
-`revali_test` and `revali_mcp` are stuck in exactly this state today — both sit
-at `0.1.0` in both files, both are documented in `todo.md` as "still to do —
-actually publish it", and both will keep being skipped until someone bumps the
-changelog entry above the pubspec.
+Equal is the *normal* state: after a successful publish the pubspec is bumped to
+match the changelog, so every package not being released sits equal. The defect
+was never that equal-means-skip is wrong — it is that "correctly up to date" and
+"someone forgot to bump the changelog, so this release did nothing" produced
+identical output, namely none, while the run still exited 0.
 
-`revali_redis` was staged the same way and would never have reached pub.dev. Its
-pubspec now starts at `0.0.0` so the `0.1.0` entry differs. **If you add a
-package, check this.**
+A brand-new package is the sharp edge: its first version appears in both files,
+so it is skipped forever and never reaches the registry. `revali_redis` works
+around this by starting its pubspec at `0.0.0`.
+
+**This is now fixed.** The script asks pub.dev what is actually published and
+prints a plan covering *every* package, so "equal" splits into `current`
+(registry has it) and a loud `MISSING` (registry does not). A new package no
+longer depends on anyone remembering the `0.0.0` trick.
 
 ### 3. `sip test` and `dart test` disagree
 
