@@ -105,6 +105,7 @@
 - Speaks RESP over a socket with no third-party client, so the package has no dependency beyond `revali_core`. The decoder returns null on an incomplete reply and the connection buffers across packets, because a reply split across two packets is routine for a large `XREADGROUP` batch and decoding it as if whole desynchronises the connection rather than failing outright.
 - Acknowledges only on success, leaving a failed handler's entry pending for redelivery. Creates its consumer group with `MKSTREAM` so a consumer may start before anything was ever published, and tolerates `BUSYGROUP` so the second start is not fatal. Each subscription gets its own connection, since `XREADGROUP` blocks and sharing one would stall every publish behind a consumer waiting for work.
 - Delivery is **at least once**; handlers must be idempotent. That is the broker contract, not a limitation of this implementation.
+- Integration tests against a real Redis, skipped by default so a machine without one still gets a green suite. Run them with `dart test --run-skipped --tags integration`, pointing at a server with `REDIS_TEST_HOST` / `REDIS_TEST_PORT`.
 
 <!-- CONSTRUCTS -->
 

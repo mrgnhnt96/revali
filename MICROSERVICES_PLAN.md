@@ -551,10 +551,18 @@ a guard exists to reject a caller, and a queue message has none.
   code against `ConsumerRegistry`. The annotation is sugar over exactly that,
   but it needs a visitor, a meta model and a maker in the generator — a
   self-contained piece of work rather than a detail of this one.
-- **A real-Redis integration test.** Everything here is tested against a fake
-  connection and a thoroughly tested RESP codec; nothing has yet talked to a
-  running Redis. The compose work from Gap 7 is the natural place to stand one
-  up.
+- ~~**A real-Redis integration test.**~~ **Done.** 10 tests against a running
+  server, skipped by default so a machine without Redis still gets a green
+  suite (`dart test --run-skipped --tags integration`). Several assert against
+  Redis itself rather than the adapter's own bookkeeping: `XPENDING` is 1 after
+  a handler throws and 0 after one succeeds. Also covers a payload containing
+  CRLF and multi-byte characters, which is what would expose a length-prefix
+  bug in the RESP codec.
+
+  Worth recording plainly: **this one passed first try.** Every other feature
+  this session had a bug that only a real run found, so the honest read is that
+  the fake-connection tests happened to cover the right things here — not that
+  integration tests stopped being necessary.
 - **Reconnection.** A dropped connection backs off and retries the read loop;
   it does not re-establish the consumer group or replay pending entries with
   `XAUTOCLAIM`.
