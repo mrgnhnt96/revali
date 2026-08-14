@@ -483,10 +483,29 @@ from the manifest.
 
 ## Gap 7 — Multi-service repo ergonomics
 
-Five services means five packages and five `revali dev` processes with no
-shared status board. `revali_docker` emits one Dockerfile per app and no
-compose file. Neither blocks anything; both are friction that scales linearly
-with service count.
+**Status: PARTIALLY SHIPPED.** `revali` 3.3.0.
+
+- `ServiceDiscovery` finds every service in a repo, keyed on a `routes/`
+  directory *plus* a dependency on the framework.
+- `revali services` lists them; `revali compose` generates a
+  `docker-compose.yaml` for all of them, wiring ports through `PORT` so
+  `AppConfig.fromEnv` picks them up — the two features feed each other.
+- 16 tests, plus a real run over this repo (37 services) and a YAML-parse
+  check of the output.
+
+**A bug found only by running it for real.** Three services in `examples/` are
+all named `hello`. Compose keys are YAML mapping keys, so duplicates do not
+error — the later entry silently replaces the earlier one and a service
+disappears from the file. Colliding names now fall back to a path-derived key.
+The unit tests all passed before this was fixed; pointing it at a real
+repository is what surfaced it.
+
+**Still open: the orchestrated dev loop.** Running five services locally is
+still five `revali dev` processes in five terminals. That is the larger half —
+process supervision, interleaved output, hot reload across N processes, port
+allocation — and worth doing only once someone is actually living with the
+five-terminal problem.
+
 
 ---
 
@@ -509,7 +528,7 @@ framework.
 | **2** | ~~Gap 4 (client resilience)~~ **done** | Breaking signature change — done early, while `HeaderInterceptor` was the only in-repo implementer |
 | **3** | ~~Gap 3 (env config)~~ **done** | Small, but an API-surface decision worth taking deliberately |
 | **4** | Gap 5 (drift detection) **done**; client-from-manifest **dropped**; ~~Gap 6~~ **done** | The `routes.json` completeness gate was checked and **failed**: no return types, no type structure. Drift detection shipped; generation needs distribution, not a richer manifest |
-| **5** | Gap 7, Gap 8 | Friction and reach, not correctness |
+| **5** | Gap 7 discovery + compose **done** (orchestrated dev still open); Gap 8 next, with a Redis adapter | Friction and reach, not correctness |
 
 Phase 1 is the one that changes whether Revali can honestly claim microservice
 support. Everything after it is refinement.
