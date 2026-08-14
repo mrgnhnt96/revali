@@ -160,7 +160,7 @@ class RedisBroker implements MessageBroker {
       claimAfter: claimAfter,
       maxDeliveries: maxDeliveries,
       deadLetterTopic: '$topic$deadLetterSuffix',
-      ensureGroup: () => _ensureGroup(topic, group),
+      ensureGroup: () => _ensureGroup(topic, group, from: '0'),
     );
 
     _subscriptions.add(subscription);
@@ -174,9 +174,25 @@ class RedisBroker implements MessageBroker {
   /// `MKSTREAM` so a consumer may start before anything has ever been
   /// published — otherwise the first deploy order between two services
   /// decides whether either of them works.
-  Future<void> _ensureGroup(String topic, String group) async {
+  ///
+  /// [from] is where a NEW group starts reading. `\$` — only what arrives
+  /// next — is right on first subscribe: a consumer joining an existing
+  /// stream should not replay its whole history.
+  ///
+  /// It is wrong when RE-creating a group a server restart destroyed. The
+  /// stream is gone too, so recovery races the next publish: if a message
+  /// lands before the group is back, `\$` starts *after* it and that message
+  /// is never delivered to anyone. Nothing reports it — the publish succeeded
+  /// and the consumer is healthy. Recreating from `0` reads the rebuilt
+  /// stream from its start, which is only ever what arrived after the
+  /// restart, since the restart is what emptied it.
+  Future<void> _ensureGroup(
+    String topic,
+    String group, {
+    String from = r'$',
+  }) async {
     try {
-      await _control.send(['XGROUP', 'CREATE', topic, group, r'$', 'MKSTREAM']);
+      await _control.send(['XGROUP', 'CREATE', topic, group, from, 'MKSTREAM']);
     } on RedisError catch (e) {
       if (!e.isBusyGroup) {
         rethrow;
