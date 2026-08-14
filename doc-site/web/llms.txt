@@ -12,6 +12,7 @@ Install the framework, configure your app, and run the CLI.
 - [Run the Server](https://docs.revali.dev/revali/getting-started/run-the-server): `revali dev`, and what it does on the way up.
 - [Debug the Server](https://docs.revali.dev/revali/getting-started/debug-server): Attach a debugger and set breakpoints in your handlers.
 - [Hot Reload](https://docs.revali.dev/revali/getting-started/hot-reload): Edit a handler and see it live without a restart.
+- [Messaging](https://docs.revali.dev/revali/messaging): Consume queue messages with @Consumes, backed by a broker.
 - [Testing](https://docs.revali.dev/revali/testing): Drive your server in-process with `revali_test`.
 - [Overview](https://docs.revali.dev/revali/app-configuration): Everything an app can declare, in one place.
 - [Create an App](https://docs.revali.dev/revali/app-configuration/create-an-app): Declare the `@App()` that owns host, port and prefix.
@@ -23,6 +24,9 @@ Install the framework, configure your app, and run the CLI.
 - [HTTPS in Development](https://docs.revali.dev/revali/app-configuration/https): Serve TLS locally without a proxy in front.
 - [Compression](https://docs.revali.dev/revali/app-configuration/compression): Gzip responses for clients that ask for them.
 - [Graceful Shutdown](https://docs.revali.dev/revali/app-configuration/graceful-shutdown): Finish in-flight requests before the process exits.
+- [Health Probes](https://docs.revali.dev/revali/app-configuration/health-probes): Liveness and readiness, and why they are not one check.
+- [Request Tracing](https://docs.revali.dev/revali/app-configuration/tracing): Carry a request id and W3C trace context across a hop.
+- [Error Responses](https://docs.revali.dev/revali/app-configuration/error-responses): Structured errors that survive a service-to-service call.
 - [revali dev](https://docs.revali.dev/revali/cli/dev): Run the server with code generation and hot reload.
 - [revali build](https://docs.revali.dev/revali/cli/build): Produce the compiled server for deployment.
 - [revali up](https://docs.revali.dev/revali/cli/up): Run every service in the repository at once.
@@ -92,6 +96,7 @@ The packages that generate your server, client, docs and Dockerfile.
 - [Interceptors](https://docs.revali.dev/constructs/revali_client/getting-started/http-interceptors): Intercept HTTP requests and responses
 - [Return Types](https://docs.revali.dev/constructs/revali_client/getting-started/return-types): Support for custom return types
 - [Generated Code](https://docs.revali.dev/constructs/revali_client/generated-code): The structure of the generated client code
+- [Timeouts & Retries](https://docs.revali.dev/constructs/revali_client/resilience): Give up, try again, and intercept — safely.
 - [get_it Integration](https://docs.revali.dev/constructs/revali_client/integrations/get_it): Use dependency injection with get_it
 - [Overview](https://docs.revali.dev/constructs/revali_swagger): Generate OpenAPI documentation from your Revali routes automatically
 - [Installation](https://docs.revali.dev/constructs/revali_swagger/getting-started/installation): Add revali_swagger to your Revali project

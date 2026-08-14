@@ -154,6 +154,11 @@ const _revali = NavSection(
       ],
     ),
     NavItem(
+      'Messaging',
+      '/revali/messaging',
+      summary: 'Consume queue messages with @Consumes, backed by a broker.',
+    ),
+    NavItem(
       'Testing',
       '/revali/testing',
       summary: 'Drive your server in-process with `revali_test`.',
@@ -212,6 +217,21 @@ const _revali = NavSection(
           'Graceful Shutdown',
           '/revali/app-configuration/graceful-shutdown',
           summary: 'Finish in-flight requests before the process exits.',
+        ),
+        NavItem(
+          'Health Probes',
+          '/revali/app-configuration/health-probes',
+          summary: 'Liveness and readiness, and why they are not one check.',
+        ),
+        NavItem(
+          'Request Tracing',
+          '/revali/app-configuration/tracing',
+          summary: 'Carry a request id and W3C trace context across a hop.',
+        ),
+        NavItem(
+          'Error Responses',
+          '/revali/app-configuration/error-responses',
+          summary: 'Structured errors that survive a service-to-service call.',
         ),
       ],
     ),
@@ -432,6 +452,11 @@ const _constructs = NavSection(
           ],
         ),
         NavItem('Generated Code', '/constructs/revali_client/generated-code'),
+        NavItem(
+          'Timeouts & Retries',
+          '/constructs/revali_client/resilience',
+          summary: 'Give up, try again, and intercept — safely.',
+        ),
         NavItem('get_it Integration', '/constructs/revali_client/integrations/get_it'),
       ],
     ),

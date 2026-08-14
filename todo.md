@@ -87,6 +87,29 @@ re-discovered.
   - [x] Resolved by collapsing the two interfaces into one. `Observer.see` now takes a single `ObservedRequest` carrying the request plus futures for the response and the summary — so an observer wanting only the finished picture awaits `observed.summary` instead of implementing a second type. `RequestObserver` and the `RequestListener` marker are gone
   - [x] Also fixed `revali create observer`, whose template still generated `ReadOnlyRequest`/`ReadOnlyResponse` — removed in the context consolidation — so scaffolded observers did not compile
 
+## Found while documenting revali_redis (8.14.26)
+
+Three findings from the docs pass, each verified against source before being
+written into the page rather than taken from the brief.
+
+- [ ] **`maxDeliveries` is inert unless `claimAfter` is set.** `_deadLetter` is
+  reachable only from `_reclaim` (`redis_broker.dart:386`), and `_reclaim`
+  returns immediately when `claimAfter` is null. So a default-configured broker
+  never dead-letters and a poison message retries forever — the opposite of
+  what `maxDeliveries` reads like it promises. Either gate the docs on it
+  (done) or run the dead-letter check on the normal delivery path too.
+- [ ] **`RedisBroker.connect()` cannot configure reclaiming.** It exposes only
+  `host`, `port` and `consumerName`, so using `claimAfter` / `maxDeliveries`
+  means constructing `RedisBroker` directly and building the connections
+  yourself. The docs say so rather than showing an example that will not
+  compile, but the factory should probably forward them.
+- [ ] **Consumers register in every isolate.** The generated `registerConsumers`
+  block is not gated on `isWorker` (`server_file_maker.dart:320-329`), so
+  `AppConfig.workers > 1` has every worker subscribe under the *same*
+  `consumerName` — which is precisely the collision that field exists to
+  prevent, per its own dartdoc. Either gate registration to the parent or
+  suffix the consumer name per isolate.
+
 ## Tier 4 — Internal quality
 
 - [ ] Close the worst test-coverage gaps (`revali_router` is fine at 39 tests / 93 lib files; these are not)

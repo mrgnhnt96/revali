@@ -4,8 +4,8 @@ description: Finish in-flight requests before the process exits
 ---
 
 Container runtimes and process supervisors stop a process by sending
-`SIGTERM`. Revali catches it, stops accepting new connections, waits for the
-requests already being served, and only then exits.
+`SIGTERM`. Revali catches it, reports itself unready, stops accepting new
+connections, waits for the requests already being served, and only then exits.
 
 Without that, every deploy and every scale-down truncates whatever responses
 happened to be mid-flight — the client sees a dropped connection rather than
@@ -15,12 +15,16 @@ You get this by default. There is nothing to enable.
 
 ## What happens on `SIGTERM`
 
-1. The server stops accepting new connections. Anything that connects after
-   this point is refused.
-2. Requests already in flight keep running and send their responses.
-3. [`onServerStopped`](#releasing-resources) runs, so the app can release what
+1. Readiness starts reporting `503` immediately, while the server is **still
+   accepting**. See [`drainDelay`](#draindelay) — this window exists so a load
+   balancer can notice and steer away, and requests arriving during it are
+   served and tracked normally rather than refused.
+2. Once the window closes the listening socket does, so no new connection is
+   taken.
+3. Requests already in flight keep running and send their responses.
+4. [`onServerStopped`](#releasing-resources) runs, so the app can release what
    it owns.
-4. The process exits with status `0`.
+5. The process exits with status `0`.
 
 If requests are still running when [`shutdownTimeout`](#shutdowntimeout)
 elapses, the wait is abandoned and shutdown continues — a stuck handler cannot
