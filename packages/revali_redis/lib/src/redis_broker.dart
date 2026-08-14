@@ -39,15 +39,27 @@ class RedisBroker implements MessageBroker {
   }) async {
     final connections = <SocketRedisConnection>[];
 
-    final control = await SocketRedisConnection.connect(host, port);
-    connections.add(control);
+    // Opened eagerly so a bad host or port fails here rather than on the first
+    // publish, but held behind a reconnecting wrapper: a server restart kills
+    // the control connection exactly as it kills the consumers', and a
+    // publish must not throw forever afterwards.
+    final first = await SocketRedisConnection.connect(host, port);
+    connections.add(first);
+
+    final control = ReconnectingRedisConnection(() async {
+      final opened = await SocketRedisConnection.connect(host, port);
+      connections.add(opened);
+
+      return opened;
+    }, initial: first);
 
     return RedisBroker(
       connection: control,
       consumerName: consumerName,
       openConnection: () {
-        // Opened lazily and awaited by the caller; see [_LazyConnection].
-        final connection = _LazyConnection(() async {
+        // Opened lazily and awaited by the caller; see
+        // [ReconnectingRedisConnection].
+        final connection = ReconnectingRedisConnection(() async {
           final opened = await SocketRedisConnection.connect(host, port);
           connections.add(opened);
 
@@ -148,6 +160,7 @@ class RedisBroker implements MessageBroker {
       claimAfter: claimAfter,
       maxDeliveries: maxDeliveries,
       deadLetterTopic: '$topic$deadLetterSuffix',
+      ensureGroup: () => _ensureGroup(topic, group),
     );
 
     _subscriptions.add(subscription);
@@ -196,8 +209,10 @@ class _RedisSubscription implements BrokerSubscription {
     required this.claimAfter,
     required this.maxDeliveries,
     required this.deadLetterTopic,
+    required Future<void> Function() ensureGroup,
   }) : _connection = connection,
-       _onMessage = onMessage;
+       _onMessage = onMessage,
+       _ensureGroup = ensureGroup;
 
   @override
   final String topic;
@@ -206,6 +221,9 @@ class _RedisSubscription implements BrokerSubscription {
   final String consumerName;
   final RedisConnection _connection;
   final MessageHandler _onMessage;
+
+  /// Recreates the consumer group after a server restart loses it.
+  final Future<void> Function() _ensureGroup;
   final Duration blockFor;
   final int batchSize;
   final Duration? claimAfter;
@@ -242,6 +260,36 @@ class _RedisSubscription implements BrokerSubscription {
           topic,
           '>',
         ]);
+      } on RedisError catch (e) {
+        if (_cancelled) {
+          return;
+        }
+
+        if (!e.isNoGroup) {
+          rethrow;
+        }
+
+        // The server came back without our group -- a restart with no
+        // persistence is the ordinary cause. The connection is healthy, so
+        // nothing else here would ever notice: every read from now on fails
+        // this same way, and the consumer is silently dead while looking
+        // fine. Recreate it and carry on.
+        try {
+          await _ensureGroup();
+        } catch (_) {
+          // Racing another replica doing the same thing is expected; the next
+          // read finds the group either way.
+        }
+
+        // Backed off deliberately. If recreating the group does not stick --
+        // the server is still coming up, or another replica is racing -- the
+        // next read fails NOGROUP again, and without a pause this becomes a
+        // tight XGROUP CREATE loop against a server that is already
+        // struggling. It also keeps the loop yielding to timers rather than
+        // spinning on microtasks alone.
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+
+        continue;
       } catch (_) {
         if (_cancelled) {
           return;
@@ -548,25 +596,3 @@ Map<String, String> _decodeHeaders(String? raw) {
 /// `subscribe` needs a connection synchronously but opening a socket is
 /// asynchronous, so the first command waits for the connect rather than the
 /// caller doing so.
-class _LazyConnection implements RedisConnection {
-  _LazyConnection(this._open);
-
-  final Future<RedisConnection> Function() _open;
-  Future<RedisConnection>? _opened;
-
-  Future<RedisConnection> get _connection => _opened ??= _open();
-
-  @override
-  Future<Object?> send(List<String> command) async {
-    final connection = await _connection;
-
-    return connection.send(command);
-  }
-
-  @override
-  Future<void> close() async {
-    if (_opened case final opened?) {
-      await (await opened).close();
-    }
-  }
-}

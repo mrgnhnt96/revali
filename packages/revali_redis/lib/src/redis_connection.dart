@@ -25,8 +25,23 @@ class SocketRedisConnection implements RedisConnection {
     _subscription = _socket.listen(
       _onData,
       onError: _failAll,
-      onDone: () =>
-          _failAll(const SocketException('Redis closed the connection')),
+      onDone: () {
+        _broken = true;
+        _failAll(const SocketException('Redis closed the connection'));
+      },
+    );
+
+    // A socket's *write* errors do not arrive on the read stream: they surface
+    // on `done`. When Redis restarts, the next write lands on a dead socket
+    // and, with nothing observing this future, the failure escapes as an
+    // unhandled async error and takes the process down. Observed as
+    // "SocketException: Connection reset by peer" killing a running consumer.
+    _socket.done.then<void>(
+      (_) => _broken = true,
+      onError: (Object error, StackTrace stackTrace) {
+        _broken = true;
+        _failAll(error, stackTrace);
+      },
     );
   }
 
@@ -48,6 +63,15 @@ class SocketRedisConnection implements RedisConnection {
 
   var _buffer = Uint8List(0);
   var _closed = false;
+  var _broken = false;
+
+  /// Whether this connection is unusable and should be replaced.
+  ///
+  /// Distinct from [_closed]: closed means we ended it, broken means the peer
+  /// or the network did. A caller that can reconnect needs to tell those
+  /// apart — reopening a connection the application deliberately closed would
+  /// resurrect a shut-down broker.
+  bool get isBroken => _broken;
 
   @override
   Future<Object?> send(List<String> command) {
@@ -55,10 +79,25 @@ class SocketRedisConnection implements RedisConnection {
       return Future.error(const SocketException('Connection is closed'));
     }
 
+    if (_broken) {
+      return Future.error(
+        const SocketException('Connection to Redis was lost'),
+      );
+    }
+
     final completer = Completer<Object?>();
     _pending.add(completer);
 
-    _socket.add(encodeCommand(command));
+    try {
+      _socket.add(encodeCommand(command));
+    } catch (e, st) {
+      // Writing to a dead socket throws synchronously on some platforms and
+      // asynchronously on others. Either way the command has no chance of a
+      // reply, so it fails here rather than waiting out a completer nothing
+      // will ever complete.
+      _broken = true;
+      _failAll(e, st);
+    }
 
     return completer.future;
   }
@@ -120,5 +159,105 @@ class SocketRedisConnection implements RedisConnection {
     _socket.destroy();
 
     _failAll(const SocketException('Connection closed'));
+  }
+}
+
+/// Opens a connection on first use and replaces it when the peer goes away.
+///
+/// Reconnection is not an optimisation here. A Redis restart kills every
+/// socket at once; without this the broker holds a dead one forever, so a
+/// consumer stops receiving and a publish throws, while the server it needs
+/// is up and healthy again.
+///
+/// Recreating the consumer group is deliberately *not* done here. A restart
+/// that lost the group leaves the socket perfectly healthy, so the failure
+/// surfaces as a `NOGROUP` reply on the next read rather than as a broken
+/// link — and it is handled where the topic and group are known, in the
+/// subscription's read loop.
+class ReconnectingRedisConnection implements RedisConnection {
+  ReconnectingRedisConnection(this._open, {RedisConnection? initial})
+    : _opened = initial == null ? null : Future.value(initial);
+
+  final Future<RedisConnection> Function() _open;
+
+  Future<RedisConnection>? _opened;
+  var _closed = false;
+
+  /// The current connection, opening one if there is none.
+  ///
+  /// The cache is cleared when opening *fails*. Holding the rejected future
+  /// instead would be permanent: a restart leaves a window of a second or two
+  /// where the server refuses connections, and a single attempt landing in it
+  /// would be replayed to every later caller, so the consumer never recovers
+  /// even though Redis is back. That is exactly the failure this class exists
+  /// to prevent, and caching made it worse than not reconnecting at all.
+  Future<RedisConnection> get _connection async {
+    if (_opened case final existing?) {
+      return existing;
+    }
+
+    final opening = _open();
+    _opened = opening;
+
+    try {
+      return await opening;
+    } catch (_) {
+      if (identical(_opened, opening)) {
+        _opened = null;
+      }
+
+      rethrow;
+    }
+  }
+
+  @override
+  Future<Object?> send(List<String> command) async {
+    if (_closed) {
+      throw const SocketException('Connection is closed');
+    }
+
+    final connection = await _connection;
+
+    try {
+      return await connection.send(command);
+    } on RedisError {
+      // A protocol-level error is the server answering, not the link failing.
+      // Reconnecting would hide a real reply -- including NOGROUP, which the
+      // caller must see in order to recreate the group.
+      rethrow;
+    } catch (_) {
+      if (_closed) rethrow;
+
+      // Anything else means the link is gone. One reconnect and one retry: if
+      // the second attempt fails too, the error is the caller's to handle,
+      // and the read loop already backs off before trying again.
+      return _reconnectAndRetry(connection, command);
+    }
+  }
+
+  Future<Object?> _reconnectAndRetry(
+    RedisConnection dead,
+    List<String> command,
+  ) async {
+    try {
+      await dead.close();
+    } catch (_) {
+      // Already gone; closing is best-effort.
+    }
+
+    _opened = null;
+
+    final fresh = await _connection;
+
+    return fresh.send(command);
+  }
+
+  @override
+  Future<void> close() async {
+    _closed = true;
+
+    if (_opened case final opened?) {
+      await (await opened).close();
+    }
   }
 }

@@ -14,6 +14,14 @@ class RedisError implements Exception {
   /// not a failure.
   bool get isBusyGroup => message.startsWith('BUSYGROUP');
 
+  /// Whether the stream or consumer group has gone.
+  ///
+  /// Redis answers `NOGROUP` when a group `XREADGROUP` names no longer
+  /// exists. A server restart without persistence is the ordinary way that
+  /// happens: the connection comes back fine, so nothing looks broken, and
+  /// every subsequent read fails against a group nobody will recreate.
+  bool get isNoGroup => message.startsWith('NOGROUP');
+
   @override
   String toString() => 'RedisError: $message';
 }
