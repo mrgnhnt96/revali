@@ -6,6 +6,7 @@ import 'package:revali/clis/revali_runner/commands/dev_command.dart';
 import 'package:revali/clis/revali_runner/commands/doctor_command.dart';
 import 'package:revali/clis/revali_runner/commands/routes_command.dart';
 import 'package:revali/clis/revali_runner/commands/services_command.dart';
+import 'package:revali/clis/revali_runner/commands/up_command.dart';
 import 'package:revali/clis/shared/commands/revali_command_runner.dart';
 import 'package:revali/handlers/construct_entrypoint_handler.dart';
 import 'package:revali/server/cli/commands/create/create_command.dart';
@@ -39,6 +40,7 @@ class RevaliRunner extends RevaliCommandRunner {
       DoctorCommand(fs: fs, logger: logger, generator: entrypointHandler),
     );
     addCommand(ServicesCommand(fs: fs, logger: logger));
+    addCommand(UpCommand(fs: fs, logger: logger));
     addCommand(ComposeCommand(fs: fs, logger: logger));
     addCommand(CreateCommand(fs: fs, logger: logger));
     addCommand(AiCommand(fs: fs, logger: logger));

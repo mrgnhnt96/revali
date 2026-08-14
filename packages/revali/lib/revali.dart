@@ -45,6 +45,7 @@ export 'server/utils/safe_property.dart';
 export 'server/utils/substitute_type.dart';
 export 'services/compose_maker.dart';
 export 'services/service_discovery.dart';
+export 'services/service_plan.dart';
 export 'utils/extensions/directory_extensions.dart';
 export 'utils/kernel_cache.dart';
 export 'utils/mixins/directories_mixin.dart';
