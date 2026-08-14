@@ -198,25 +198,37 @@ class UpCommand extends Command<int> {
     });
   }
 
+  /// Writes [command] to one service's `.revali_cmd`.
+  ///
+  /// Addressing a single service is the half a broadcast cannot express:
+  /// reloading the one service being worked on should not restart the other
+  /// four as collateral.
+  ///
+  /// Public so a test can drive it without starting real processes.
+  void sendCommand(ServicePlan plan, String command) {
+    final file = fs.file(
+      p.join(plan.service.directory.path, _devCommandFileName),
+    );
+
+    try {
+      // Newline-terminated: the reader splits on line breaks, and a bare
+      // token with nothing after it is one `readAsString` race away from
+      // being read half-written.
+      file.writeAsStringSync('$command\n', flush: true);
+    } catch (e) {
+      // One unwritable directory must not stop the other services from
+      // getting the command -- so this is caught here, per service, rather
+      // than around the loop in [broadcastCommand].
+      logger.detail('Could not signal ${plan.label}: $e');
+    }
+  }
+
   /// Writes [command] to every service's `.revali_cmd`.
   ///
   /// Public so a test can drive it without starting real processes.
   void broadcastCommand(List<ServicePlan> plans, String command) {
     for (final plan in plans) {
-      final file = fs.file(
-        p.join(plan.service.directory.path, _devCommandFileName),
-      );
-
-      try {
-        // Newline-terminated: the reader splits on line breaks, and a bare
-        // token with nothing after it is one `readAsString` race away from
-        // being read half-written.
-        file.writeAsStringSync('$command\n', flush: true);
-      } catch (e) {
-        // One unwritable directory must not stop the other services from
-        // getting the command.
-        logger.detail('Could not signal ${plan.label}: $e');
-      }
+      sendCommand(plan, command);
     }
   }
 

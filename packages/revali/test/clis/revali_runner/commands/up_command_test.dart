@@ -51,6 +51,29 @@ void main() {
             .readAsStringSync()
       : '<missing>';
 
+  test('a command can be addressed to one service, leaving the rest alone', () {
+    final orders = planFor('orders');
+    final billing = planFor('billing', port: 8081);
+
+    command.sendCommand(orders, 'reload');
+
+    expect(cmdFileOf(orders), 'reload\n');
+
+    // The whole point of addressing one service: reloading `orders` must not
+    // restart `billing` as collateral. A broadcast cannot express this.
+    expect(
+      cmdFileOf(billing),
+      '<missing>',
+      reason: 'billing was not addressed and should not have been signalled',
+    );
+
+    // The converse still holds: a broadcast reaches the ones a send skipped.
+    command.broadcastCommand([orders, billing], 'quit');
+
+    expect(cmdFileOf(orders), 'quit\n');
+    expect(cmdFileOf(billing), 'quit\n');
+  });
+
   test('a command reaches every service, not just the first', () {
     final plans = [planFor('orders'), planFor('billing'), planFor('users')];
 
