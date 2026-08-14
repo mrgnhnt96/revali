@@ -483,7 +483,7 @@ from the manifest.
 
 ## Gap 7 — Multi-service repo ergonomics
 
-**Status: PARTIALLY SHIPPED.** `revali` 3.3.0.
+**Status: SHIPPED.** `revali` 3.3.0.
 
 - `ServiceDiscovery` finds every service in a repo, keyed on a `routes/`
   directory *plus* a dependency on the framework.
@@ -500,11 +500,24 @@ disappears from the file. Colliding names now fall back to a path-derived key.
 The unit tests all passed before this was fixed; pointing it at a real
 repository is what surfaced it.
 
-**Still open: the orchestrated dev loop.** Running five services locally is
-still five `revali dev` processes in five terminals. That is the larger half —
-process supervision, interleaved output, hot reload across N processes, port
-allocation — and worth doing only once someone is actually living with the
-five-terminal problem.
+**The orchestrated dev loop shipped too**, on the argument that deferring it
+had it backwards: if you cannot run the system while developing, you cannot
+trust it to work deployed. `revali up` starts every service, assigns ports
+through `PORT`, merges output under a stable coloured prefix, supports `--only`
+for a subset, and forwards `SIGTERM` on `Ctrl-C` so each child drains through
+the graceful-shutdown path rather than being killed.
+
+**A second bug that only a real run could find.** Child processes redraw
+progress with a bare carriage return. Piped through unchanged, the `\r` returns
+the cursor to column 0 and overwrites the very prefix that says which service a
+line came from — so the merged output was unreadable exactly when several
+services were starting at once, which is the only time it matters. Carriage
+returns are now treated as line breaks. Verified with two real services: both
+served on their assigned ports, and one `Ctrl-C` drained and stopped the fleet.
+
+**Still open:** hot-reload keystrokes (`r`, `c`, `q`) do not reach children,
+since their stdin is not a terminal under the runner. The documented
+`.revali_cmd` file works per service.
 
 
 ---
@@ -528,7 +541,7 @@ framework.
 | **2** | ~~Gap 4 (client resilience)~~ **done** | Breaking signature change — done early, while `HeaderInterceptor` was the only in-repo implementer |
 | **3** | ~~Gap 3 (env config)~~ **done** | Small, but an API-surface decision worth taking deliberately |
 | **4** | Gap 5 (drift detection) **done**; client-from-manifest **dropped**; ~~Gap 6~~ **done** | The `routes.json` completeness gate was checked and **failed**: no return types, no type structure. Drift detection shipped; generation needs distribution, not a richer manifest |
-| **5** | Gap 7 discovery + compose **done** (orchestrated dev still open); Gap 8 next, with a Redis adapter | Friction and reach, not correctness |
+| **5** | ~~Gap 7~~ **done** (discovery, compose, `revali up`); Gap 8 next, with a Redis adapter | Friction and reach, not correctness |
 
 Phase 1 is the one that changes whether Revali can honestly claim microservice
 support. Everything after it is refinement.
