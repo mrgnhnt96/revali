@@ -14,6 +14,7 @@ export 'src/binds.dart';
 export 'src/body.dart';
 export 'src/catches.dart';
 export 'src/combines.dart';
+export 'src/consumes.dart';
 export 'src/controller.dart';
 export 'src/cookie.dart';
 export 'src/dep.dart';

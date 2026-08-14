@@ -19,3 +19,6 @@ environment:
 dependencies:
     meta: ^1.16.0
     revali_core: ^3.0.0
+
+dev_dependencies:
+  test: ^1.25.15

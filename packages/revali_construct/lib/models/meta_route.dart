@@ -1,5 +1,6 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:revali_annotations/revali_annotations.dart';
+import 'package:revali_construct/models/meta_consumer.dart';
 import 'package:revali_construct/models/meta_method.dart';
 import 'package:revali_construct/models/meta_param.dart';
 import 'package:revali_construct/types/annotation_getter.dart';
@@ -15,6 +16,7 @@ class MetaRoute {
     required this.annotationsFor,
     required this.element,
     required this.type,
+    this.consumers = const [],
   });
 
   final String path;
@@ -22,6 +24,9 @@ class MetaRoute {
   final String className;
   final String constructorName;
   final List<MetaMethod> methods;
+
+  /// Methods annotated with `@Consumes` on this class.
+  final List<MetaConsumer> consumers;
   final List<MetaParam> params;
   final AnnotationMapper annotationsFor;
   final ClassElement element;

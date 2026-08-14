@@ -130,6 +130,16 @@ abstract base class AppConfig {
   /// `const HealthSettings.disabled()`.
   HealthSettings get health => const HealthSettings();
 
+  /// The broker `@Consumes` handlers subscribe to.
+  ///
+  /// Returns null by default, which is what makes messaging opt-in: an app
+  /// with no broker registers no consumers, even if handlers are annotated.
+  /// Connecting is async, so this is a method rather than a getter.
+  ///
+  /// The returned broker is owned by the framework from here on — it is
+  /// drained and closed as part of shutdown.
+  Future<MessageBroker?> createBroker() async => null;
+
   /// Whether the server stops itself on `SIGTERM` / `SIGINT`.
   ///
   /// Container runtimes and process supervisors stop a process by sending

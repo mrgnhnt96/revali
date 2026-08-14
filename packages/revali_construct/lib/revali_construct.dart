@@ -33,6 +33,7 @@ export 'models/hot_reload_data/hot_reload_data.dart';
 export 'models/hot_reload_data/hot_reload_files_changed.dart';
 export 'models/iterable_type.dart';
 export 'models/meta_app_config.dart';
+export 'models/meta_consumer.dart';
 export 'models/meta_from_json.dart';
 export 'models/meta_method.dart';
 export 'models/meta_middleware.dart';
