@@ -864,6 +864,79 @@ void main() {
     });
   });
 
+  group('the announced address', () {
+    test('is null until the service says where it is listening', () {
+      final it = session();
+      write(it, ['⠋ Retrieving dependencies...\n', 'Building...\n']);
+
+      expect(it.baseUrl, isNull);
+    });
+
+    test('is read off the serving line', () {
+      final it = session();
+      write(it, ['Serving at http://0.0.0.0:8080/api\n']);
+
+      expect(it.baseUrl, 'http://0.0.0.0:8080/api');
+    });
+
+    test('is read through the colour the child wrapped it in', () {
+      final it = session();
+      write(it, ['\x1B[92mServing at http://0.0.0.0:8080/api\x1B[0m\n']);
+
+      expect(it.baseUrl, 'http://0.0.0.0:8080/api');
+    });
+
+    test('carries the app prefix, which the port alone does not', () {
+      // The reason it is read from the child at all: `revali up` assigns the
+      // port and has no idea the app mounts itself under `/api`.
+      final it = session();
+      write(it, ['Serving at http://0.0.0.0:8080/api/v2\n']);
+
+      expect(it.baseUrl, endsWith('/api/v2'));
+    });
+
+    test('survives a reload that has not re-announced yet', () {
+      // The child clears and rebuilds. In the gap the old address is still the
+      // best answer there is, and nearly always still the right one.
+      final it = session();
+      write(it, ['Serving at http://0.0.0.0:8080/api\n']);
+
+      write(it, ['$kClearScreen\n', '⠋ Reloading...\n']);
+
+      expect(it.baseUrl, 'http://0.0.0.0:8080/api');
+    });
+
+    test('moves when the child announces a different one', () {
+      final it = session();
+      write(it, ['Serving at http://0.0.0.0:8080/api\n']);
+      write(it, ['Serving at http://0.0.0.0:8081/api\n']);
+
+      expect(it.baseUrl, 'http://0.0.0.0:8081/api');
+    });
+
+    test('is not cleared by a serving line with no parsable address', () {
+      // `serving` with no way to reach it is the state this avoids.
+      final it = session();
+      write(it, ['Serving at http://0.0.0.0:8080/api\n']);
+      write(it, ['Serving at \n']);
+
+      expect(it.baseUrl, 'http://0.0.0.0:8080/api');
+    });
+
+    test('is left alone by a clear, which only empties the screen', () {
+      final it = session();
+      write(it, ['Serving at http://0.0.0.0:8080/api\n']);
+
+      it.clear();
+
+      expect(
+        it.baseUrl,
+        'http://0.0.0.0:8080/api',
+        reason: 'emptying the pane does not move the service',
+      );
+    });
+  });
+
   group('the scroll position', () {
     /// Feeds [count] whole lines, one per write.
     void fill(ServiceSession it, int count, {int from = 0}) {

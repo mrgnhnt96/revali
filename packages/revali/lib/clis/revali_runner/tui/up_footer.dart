@@ -11,6 +11,12 @@ import 'package:nocterm/nocterm.dart';
 /// place they exist to be found. The wheel is not listed: it needs no
 /// discovering, and a legend that named every way in would be longer than the
 /// screen is wide.
+///
+/// Clicking is not listed either, and for the wheel's reason turned around: an
+/// underlined URL already advertises itself where it is, which is a better
+/// place to say it than a legend eight hints along. A roster row has no mark —
+/// but a click there only moves the selection `↑`/`↓` already moves, so nothing
+/// is unreachable if it is never discovered.
 class UpFooter extends StatelessComponent {
   const UpFooter({super.key});
 

@@ -7,6 +7,7 @@ import 'package:mason_logger/mason_logger.dart';
 // which would collide with `mason_logger`'s.
 import 'package:nocterm/nocterm.dart' hide Logger, isEmpty, isNotEmpty;
 import 'package:path/path.dart' as p;
+import 'package:platform/platform.dart';
 import 'package:revali/clis/revali_runner/commands/up_command.dart';
 // Prefixed for the same reason `up_command.dart` prefixes it: the TUI's
 // `UpCommand` key constants share their name with the command class.
@@ -263,6 +264,66 @@ void main() {
 
         expect(cmdFileOf(orders.plan), '$word\n');
       }
+    });
+  });
+
+  group('opening a clicked link', () {
+    /// All three branches from one machine. Two of them are unreachable on any
+    /// given developer's laptop and would otherwise be found broken by a user.
+    ///
+    /// Destructured rather than compared as a record: a record's `==` compares
+    /// its fields with `==`, and two equal `List`s are not `==`.
+    void expectOpener(
+      String os, {
+      required String executable,
+      required List<String> arguments,
+    }) {
+      final (actualExecutable, actualArguments) = UpCommand.openerFor(
+        'http://localhost:8080/api',
+        platform: FakePlatform(operatingSystem: os),
+      );
+
+      expect(actualExecutable, executable);
+      expect(actualArguments, arguments);
+    }
+
+    test('macOS opens with `open`', () {
+      expectOpener(
+        'macos',
+        executable: 'open',
+        arguments: ['http://localhost:8080/api'],
+      );
+    });
+
+    test('Linux opens with `xdg-open`', () {
+      expectOpener(
+        'linux',
+        executable: 'xdg-open',
+        arguments: ['http://localhost:8080/api'],
+      );
+    });
+
+    test('Windows goes through `cmd /c start` with an empty title', () {
+      // `start` is a shell builtin, not an executable, and without the empty
+      // title argument it reads the URL as the window title and opens nothing.
+      expectOpener(
+        'windows',
+        executable: 'cmd',
+        arguments: ['/c', 'start', '', 'http://localhost:8080/api'],
+      );
+    });
+
+    test('the screen the runner builds has an opener wired to it', () async {
+      // The seam is only worth having if the real screen actually carries it:
+      // a null `onOpenUrl` makes every link inert AND unmarked, which would
+      // read in a test exactly like a link that was never found.
+      final billing = ServiceSession(planFor('billing'))
+        ..ingest('Serving at http://0.0.0.0:8080/api\n', isError: false);
+
+      expect(
+        command.buildApp([billing.plan], [billing]).onOpenUrl,
+        isNotNull,
+      );
     });
   });
 

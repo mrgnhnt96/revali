@@ -27,6 +27,7 @@ class ServiceList extends StatelessComponent {
   const ServiceList({
     required this.sessions,
     required this.focusedIndex,
+    this.onSelect,
     super.key,
   });
 
@@ -34,6 +35,14 @@ class ServiceList extends StatelessComponent {
 
   /// Which row carries the marker, and whose lines the log pane below shows.
   final int focusedIndex;
+
+  /// Called with the fleet index of a clicked row.
+  ///
+  /// The index into [sessions], not into the visible window. Which row is which
+  /// service is settled by the loop that builds them — the same loop that
+  /// already knows [windowStart] — so a scrolled roster cannot select the wrong
+  /// one, and there is no second place that would have to be kept in step.
+  final void Function(int index)? onSelect;
 
   /// The first row of the visible window.
   ///
@@ -78,12 +87,25 @@ class ServiceList extends StatelessComponent {
       mainAxisSize: MainAxisSize.min,
       children: [
         for (var index = start; index < end; index++)
-          ServiceRow(
-            session: sessions[index],
-            index: index,
-            focused: index == focusedIndex,
-            nameWidth: nameWidth,
-          ),
+          if (onSelect case final onSelect?)
+            // Wrapped rather than given an `onTap` of its own, so a row built
+            // without a handler is the same widget it always was.
+            GestureDetector(
+              onTap: () => onSelect(index),
+              child: ServiceRow(
+                session: sessions[index],
+                index: index,
+                focused: index == focusedIndex,
+                nameWidth: nameWidth,
+              ),
+            )
+          else
+            ServiceRow(
+              session: sessions[index],
+              index: index,
+              focused: index == focusedIndex,
+              nameWidth: nameWidth,
+            ),
         if (sessions.length > kVisibleServiceRows)
           RosterScrollHint(
             start: start,
