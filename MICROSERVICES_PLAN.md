@@ -370,6 +370,40 @@ external users.
 
 ## Gap 5 — Contract drift is undetectable
 
+**Status: PARTIALLY SHIPPED — and the original design was wrong.** `revali`
+3.3.0.
+
+**The gating premise was false.** This section proposed generating a client
+from `routes.json`, flagged as needing verification first. Verified: the
+manifest carried **no return type at all**, and parameter types were bare name
+strings with no fields, no nested types, no serialisation strategy and no
+package origin. It is a route *table* — its own doc comment says so — not a
+type model. Generating a typed client from it was never possible, and making
+it possible would mean serialising the whole `ClientServer` type graph, which
+duplicates `revali_client_gen` rather than reusing it.
+
+**What shipped instead is the half that carries the value.** Drift *detection*
+needs the route surface, not enough to generate code:
+
+- `routes.json` gains `returns` / `returnsNullable`, version 2.
+- `checkContract` compares a pinned manifest against a current one and
+  classifies each difference from the caller's side.
+- `revali routes --check <pinned.json>` exits non-zero on a breaking change,
+  so it is usable as a CI gate.
+- 18 tests, and an end-to-end run: identical pin exits 0, drifted pin prints
+  both severities and exits 1.
+
+**Still open, and now correctly scoped.** Generating a client *from a manifest*
+requires a type model the manifest does not have. Two honest options remain,
+neither started: enrich the manifest into a real type contract (large, and
+duplicative of `revali_client_gen`), or publish generated client packages to a
+registry and let consumers depend on them by version (smaller, and it makes
+the existing generator the source of truth). **The second looks right** — the
+generator already emits a whole package with a pubspec, so the missing piece
+is distribution, not description.
+
+**Original analysis follows.**
+
 ### Evidence
 
 The client is generated *for* the service that owns the routes. `ServerClient`
@@ -441,7 +475,7 @@ framework.
 | **1a** | ~~Broadcast shutdown to worker isolates~~ **done** | Fallout from Gap 2: readiness and `drainDelay` were per-isolate. Closed, so both now hold at any `workers` count |
 | **2** | ~~Gap 4 (client resilience)~~ **done** | Breaking signature change — done early, while `HeaderInterceptor` was the only in-repo implementer |
 | **3** | ~~Gap 3 (env config)~~ **done** | Small, but an API-surface decision worth taking deliberately |
-| **4** | Gap 5 → Gap 6 (contracts, then typed errors) | Largest surface; Gap 6 depends on Gap 5. Gate on verifying `routes.json` completeness first |
+| **4** | Gap 5 (drift detection) **done**; client-from-manifest **dropped**, Gap 6 still open | The `routes.json` completeness gate was checked and **failed**: no return types, no type structure. Drift detection shipped; generation needs distribution, not a richer manifest |
 | **5** | Gap 7, Gap 8 | Friction and reach, not correctness |
 
 Phase 1 is the one that changes whether Revali can honestly claim microservice
