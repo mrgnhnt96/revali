@@ -109,8 +109,8 @@ List<String> _labelsFor(List<RevaliService> services) {
 List<String> prefixLines(String chunk, String label) {
   return [
     for (final line in chunk.split('\n'))
-      if (_lastFrame(line) case final frame
-          when frame.isNotEmpty && !_isUnfinished(frame))
+      if (lastFrame(line) case final frame
+          when frame.isNotEmpty && !isUnfinished(frame))
         '$label | $frame',
   ];
 }
@@ -126,7 +126,12 @@ List<String> prefixLines(String chunk, String label) {
 /// same line is about to be redrawn, and the redraw ends in `✓` or `✗`, which
 /// is the part worth keeping. Anything a child prints that does *not* animate
 /// passes through untouched.
-bool _isUnfinished(String frame) =>
+///
+/// Public so a renderer that owns its own region — a per-service pane, which
+/// can redraw in place rather than only appending — can hold an unfinished
+/// frame instead of dropping it. A second copy of this test would drift from
+/// this one.
+bool isUnfinished(String frame) =>
     frame.isNotEmpty && _spinnerGlyphs.contains(frame.codeUnitAt(0));
 
 /// The braille cells `mason_logger` cycles through while a task runs.
@@ -155,15 +160,37 @@ const _spinnerGlyphs = {
 ///
 /// A carriage return means *replace what I just drew*. So only the text after
 /// the last one survives, which is that line's finished state.
-String _lastFrame(String line) {
-  // A *trailing* carriage return is the other half of a CRLF line ending, not
-  // a redraw. Treating it as one would discard the whole line on Windows.
-  final text = line.endsWith('\r') ? line.substring(0, line.length - 1) : line;
-
+String lastFrame(String line) {
+  final text = _withoutLineEnding(line);
   final lastReturn = text.lastIndexOf('\r');
 
   return (lastReturn == -1 ? text : text.substring(lastReturn + 1)).trim();
 }
+
+/// [line] with everything an earlier redraw already painted over discarded.
+///
+/// The same rule as [lastFrame], but it keeps the carriage return and the
+/// surrounding whitespace, so the result can be fed back in as the still
+/// unterminated tail of a line that is being drawn right now.
+///
+/// A caller buffering a partial line needs this: a spinner running for the
+/// length of a build writes a frame every 80ms and never a newline, so a tail
+/// kept verbatim grows for as long as the step takes, to hold frames that
+/// were painted over seconds ago.
+String collapseRedraws(String line) {
+  final cut = _withoutLineEnding(line).lastIndexOf('\r');
+
+  // `cut == 0` is already collapsed; re-slicing it would be a no-op.
+  return cut <= 0 ? line : line.substring(cut);
+}
+
+/// [line] without a *trailing* carriage return.
+///
+/// That one is the other half of a CRLF line ending, not a redraw. Treating
+/// it as one would discard the whole line on Windows. It is written once,
+/// here, because two copies of this rule would drift apart.
+String _withoutLineEnding(String line) =>
+    line.endsWith('\r') ? line.substring(0, line.length - 1) : line;
 
 /// A stable colour per service, so a given prefix keeps its colour for the
 /// life of the run.
