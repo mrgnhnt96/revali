@@ -5,6 +5,7 @@ import 'dart:io' as io;
 import 'package:args/command_runner.dart';
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
+import 'package:path/path.dart' as p;
 import 'package:revali/services/service_discovery.dart';
 import 'package:revali/services/service_plan.dart';
 
@@ -130,6 +131,7 @@ class UpCommand extends Command<int> {
     // ports and in-flight requests, and the generated server already knows
     // how to drain on SIGTERM.
     final signals = _listenForShutdown();
+    final keys = _listenForKeystrokes(plans);
 
     await Future.wait(exits);
 
@@ -137,8 +139,107 @@ class UpCommand extends Command<int> {
       await subscription.cancel();
     }
 
+    await _restoreStdin(keys);
+
     return _stopping ? 0 : 1;
   }
+
+  /// Forwards `r` / `c` / `q` to every child service.
+  ///
+  /// The keys cannot simply be passed through. A child's stdin is a pipe, not
+  /// a terminal, so `revali dev` inside it takes its headless path and never
+  /// reads keystrokes at all — which is why pressing `r` under `revali up`
+  /// used to do nothing while file-watching reload worked fine.
+  ///
+  /// `revali dev` already has the answer: without a TTY it watches a
+  /// `.revali_cmd` file in the project root for `reload` / `clear` / `quit`.
+  /// So this translates the keypress into that file rather than inventing a
+  /// second channel — one service per file, in its own directory.
+  ///
+  /// Returns null when there is no terminal to read (CI, a pipe), where there
+  /// are no keystrokes to forward in the first place.
+  StreamSubscription<List<int>>? _listenForKeystrokes(List<ServicePlan> plans) {
+    if (!io.stdin.hasTerminal) {
+      return null;
+    }
+
+    try {
+      // Raw mode, so a single key registers without waiting for Enter.
+      io.stdin
+        ..echoMode = false
+        ..lineMode = false;
+    } catch (_) {
+      // A pseudo-TTY can report hasTerminal and still refuse raw mode.
+      return null;
+    }
+
+    logger.info(
+      '${darkGray.wrap('Press ')}${yellow.wrap('r')}'
+      '${darkGray.wrap(' reload  ')}${yellow.wrap('c')}'
+      '${darkGray.wrap(' clear  ')}${yellow.wrap('q')}'
+      '${darkGray.wrap(' quit')}\n',
+    );
+
+    return io.stdin.listen((bytes) {
+      for (final key in utf8.decode(bytes, allowMalformed: true).split('')) {
+        switch (key.toLowerCase()) {
+          case 'r':
+            broadcastCommand(plans, 'reload');
+          case 'c':
+            broadcastCommand(plans, 'clear');
+          case 'q':
+            // The children are told to quit *and* the fleet stops: a child
+            // that is wedged badly enough to ignore its command file must not
+            // leave `revali up` waiting on it forever.
+            broadcastCommand(plans, 'quit');
+            _stop();
+        }
+      }
+    });
+  }
+
+  /// Writes [command] to every service's `.revali_cmd`.
+  ///
+  /// Public so a test can drive it without starting real processes.
+  void broadcastCommand(List<ServicePlan> plans, String command) {
+    for (final plan in plans) {
+      final file = fs.file(
+        p.join(plan.service.directory.path, _devCommandFileName),
+      );
+
+      try {
+        // Newline-terminated: the reader splits on line breaks, and a bare
+        // token with nothing after it is one `readAsString` race away from
+        // being read half-written.
+        file.writeAsStringSync('$command\n', flush: true);
+      } catch (e) {
+        // One unwritable directory must not stop the other services from
+        // getting the command.
+        logger.detail('Could not signal ${plan.label}: $e');
+      }
+    }
+  }
+
+  Future<void> _restoreStdin(StreamSubscription<List<int>>? keys) async {
+    if (keys == null) {
+      return;
+    }
+
+    await keys.cancel();
+
+    try {
+      // Leaving the terminal in raw mode makes the user's shell unusable
+      // afterwards — no echo, no line editing.
+      io.stdin
+        ..echoMode = true
+        ..lineMode = true;
+    } catch (_) {
+      // Nothing to restore if the mode never took.
+    }
+  }
+
+  /// The file `revali dev` watches when it has no terminal of its own.
+  static const _devCommandFileName = '.revali_cmd';
 
   /// Starts one service, appending its exit future to [exits].
   ///
