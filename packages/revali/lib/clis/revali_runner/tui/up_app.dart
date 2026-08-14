@@ -161,6 +161,25 @@ class _UpAppState extends State<UpApp> {
     final command = _commands[event.logicalKey];
     if (command == null) return false;
 
+    // Emptied here, on this side, rather than left to the child's own
+    // `ESC[2J` coming back up the pipe. The child writes that sequence on every
+    // reload as well, and a pane cannot tell the two apart — see
+    // [kRedrawDivider]. This side can: `c` is a keystroke, and a keystroke is
+    // only ever a request to clear.
+    //
+    // Before the callback, not after. The child answers by clearing its screen
+    // and reprinting its board, and that reprint must land in the pane this
+    // emptied rather than being emptied along with what it replaced.
+    if (command == UpCommand.clear) {
+      final targets = _isShifted(event)
+          ? component.sessions
+          : [if (_session case final session?) session];
+
+      for (final session in targets) {
+        session.clear();
+      }
+    }
+
     if (_isShifted(event)) {
       if (command == UpCommand.quit) {
         // `Q` stops the fleet too — the runner sends every child `quit` *and*

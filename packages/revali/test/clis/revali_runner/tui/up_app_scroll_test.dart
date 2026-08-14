@@ -361,28 +361,59 @@ void main() {
       expect(tester.terminalState, containsText('↓ 12 more'));
     });
 
-    test('output for the other service does not disturb a parked pane',
-        () async {
-      final billing = session('billing', 8080);
-      final orders = session('orders', 8081);
-      fill(billing, 60);
-      fill(orders, 60);
+    test(
+      'output for the other service does not disturb a parked pane',
+      () async {
+        final billing = session('billing', 8080);
+        final orders = session('orders', 8081);
+        fill(billing, 60);
+        fill(orders, 60);
 
-      final tester = await pumpApp([billing, orders]);
+        final tester = await pumpApp([billing, orders]);
 
-      for (var i = 0; i < 12; i++) {
-        await tester.sendKey(LogicalKey.keyK);
-      }
-      final parked = _topLineNumber(tester);
+        for (var i = 0; i < 12; i++) {
+          await tester.sendKey(LogicalKey.keyK);
+        }
+        final parked = _topLineNumber(tester);
 
-      fill(orders, 50, from: 60);
-      await tester.pump();
+        fill(orders, 50, from: 60);
+        await tester.pump();
 
-      expect(_topLineNumber(tester), parked);
-    });
+        expect(_topLineNumber(tester), parked);
+      },
+    );
   });
 
   group('clearing resets the position', () {
+    test(
+      'c empties the pane from this side, without waiting on the child',
+      () async {
+        // The key is what clears, not the `ESC[2J` the child sends back — that
+        // one is indistinguishable from the redraw it writes on every reload,
+        // so the pane cannot act on it. See `kRedrawDivider`.
+        final billing = session('billing', 8080);
+        fill(billing, 60);
+
+        final tester = await NoctermTester.create();
+        addTearDown(tester.dispose);
+
+        await tester.pumpComponent(
+          UpApp(
+            sessions: [billing],
+            // A child that never answers — killed, or too busy to notice.
+            onCommand: (_, _) {},
+            onCommandAll: (_) {},
+            onQuit: () {},
+          ),
+        );
+
+        await tester.sendKey(LogicalKey.keyC);
+
+        expect(billing.lines, isEmpty);
+        expect(tester.terminalState, isNot(containsText('line-')));
+      },
+    );
+
     test('c on a scrolled pane leaves it live, not blank', () async {
       final billing = session('billing', 8080);
       fill(billing, 60);
@@ -407,24 +438,62 @@ void main() {
       expect(tester.terminalState, containsText('line-60'));
     });
 
-    test('a child clearing its own screen resets it too', () async {
-      // What a reload does, without anyone pressing `c`.
-      final billing = session('billing', 8080);
-      fill(billing, 60);
+    test(
+      'a child clearing its own screen leaves a scrolled pane alone',
+      () async {
+        // What a reload does, without anyone pressing `c`. The reader is parked
+        // on something they went looking for; a redraw must not take it away,
+        // and snapping them to the live end is one of the ways to take it away.
+        final billing = session('billing', 8080);
+        fill(billing, 60);
 
-      final tester = await pumpApp([billing]);
+        final tester = await pumpApp([billing]);
 
-      for (var i = 0; i < 12; i++) {
-        await tester.sendKey(LogicalKey.keyK);
-      }
-      expect(billing.isLive, isFalse);
+        for (var i = 0; i < 12; i++) {
+          await tester.sendKey(LogicalKey.keyK);
+        }
+        expect(billing.isLive, isFalse);
+        final parked = billing.scrollTop;
 
-      billing.ingest('\x1b[2Jrebuilding\n', isError: false);
-      await tester.pump();
+        billing.ingest('\x1b[2Jrebuilding\n', isError: false);
+        await tester.pump();
 
-      expect(billing.isLive, isTrue);
-      expect(tester.terminalState, containsText('rebuilding'));
-    });
+        expect(billing.isLive, isFalse);
+        expect(billing.scrollTop, parked);
+        expect(tester.terminalState, containsText('line-40'));
+      },
+    );
+
+    test(
+      'the error behind `needs fix` is still on screen after a reload',
+      () async {
+        // The regression this group exists for, end to end through the app: a
+        // service fails to bind, `r` reloads it, and the reload starts by
+        // clearing. The line explaining the row has to still be reachable.
+        final billing = session('billing', 8080)
+          ..ingest(
+            'Failed to bind server: port 8080 already in use\n',
+            isError: true,
+          )
+          ..ingest('Dev server is still running\n', isError: true);
+
+        final tester = await pumpApp([billing]);
+
+        expect(billing.state, ServiceState.failed);
+        expect(tester.terminalState, containsText('Failed to bind server'));
+
+        // `r` goes to the child; the child clears and redraws.
+        await tester.sendKey(LogicalKey.keyR);
+        billing.ingest('\x1b[2J⠋ Reloading...\n', isError: false);
+        await tester.pump();
+
+        expect(
+          tester.terminalState,
+          containsText('Failed to bind server'),
+          reason: 'the reason for `needs fix` must survive the reload',
+        );
+      },
+    );
   });
 
   group('keys that are not scroll keys still do what they did', () {

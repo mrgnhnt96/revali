@@ -1,5 +1,11 @@
 import 'dart:io' as io;
 
+// `overrideAnsiOutput` is `package:io`'s, re-exported here. Taken from
+// `mason_logger` because `mason_logger` is what it has to agree with: the
+// override sets the zone value that `mason_logger`'s own `ansiOutputEnabled`
+// reads, and two copies of `package:io` in one program would not share it.
+import 'package:mason_logger/mason_logger.dart';
+
 /// The environment variable `revali up` sets on a service it is drawing a pane
 /// for, and `revali dev` reads to turn its colour back on.
 ///
@@ -18,32 +24,83 @@ const kForceAnsiEnvVar = 'REVALI_FORCE_ANSI';
 
 /// Whether the parent asked this process to dress its output for a terminal.
 ///
-/// The child half of the handshake, read in one place so the two things that
-/// depend on it cannot come to disagree: `runRevali` turns `mason_logger`'s
-/// colour on, and `progressCanAnimate` lets a progress line animate. They stay
-/// separate questions — a caller may animate onto a pipe without emitting
-/// colour, and the pane is why: it redraws frames in place whether or not they
-/// are coloured — but they are asked of the same signal, because the signal is
-/// one statement: *something is rendering my output as a terminal would*.
+/// The child half of the handshake, read in one place so the things that
+/// depend on it cannot come to disagree: `runRevali` and `runConstruct` turn
+/// `mason_logger`'s colour on, and `progressCanAnimate` lets a progress line
+/// animate. They stay separate questions — a caller may animate onto a pipe
+/// without emitting colour, and the pane is why: it redraws frames in place
+/// whether or not they are coloured — but they are asked of the same signal,
+/// because the signal is one statement: *something is rendering my output as a
+/// terminal would*.
+///
+/// There are two entrypoints and not one because `revali dev` is two programs:
+/// the `revali` CLI, and the constructs entrypoint it starts with
+/// `Isolate.spawnUri`. Read from the *environment* rather than passed down, and
+/// that is what makes the second one possible — an environment is process-wide,
+/// so it crosses an isolate boundary that a zone value does not.
 ///
 /// [environment] exists for tests. Anything real should let it default.
 bool ansiForcedByParent([Map<String, String>? environment]) =>
     (environment ?? io.Platform.environment)[kForceAnsiEnvVar] == '1';
+
+/// Runs [body] with `mason_logger`'s colour forced on, if the parent asked.
+///
+/// The *whole* of an entrypoint goes inside this rather than the colour being
+/// turned on somewhere: [overrideAnsiOutput] sets a zone value, a `Progress`
+/// frame is written from a timer, and a timer paints in the zone it was
+/// *created* in.
+///
+/// One function with two callers because a zone stops at an isolate boundary
+/// and `revali dev` crosses one. `runRevali` wraps the `revali` CLI;
+/// `runConstruct` wraps the constructs entrypoint that CLI starts with
+/// `Isolate.spawnUri`, which is where the status board, the key legend and the
+/// route table are actually printed. Wrapping only the first leaves all of that
+/// white, which is what it did.
+T withForcedAnsi<T>(T Function() body) =>
+    ansiForcedByParent() ? overrideAnsiOutput(true, body) : body();
 
 /// The screen clear a child writes when it redraws from the top.
 ///
 /// `revali dev` writes it from `_wipeOrDivide` — `print('\x1B[2J\x1B[0;0H')`,
 /// `vm_service_handler.dart` — on a reload and when the user presses `c`.
 ///
-/// Unlike every other non-SGR sequence here it is *obeyed* rather than
-/// dropped: `ServiceSession.ingest` empties that service's buffer when it
-/// arrives. Dropping it silently is what made `c` look broken — the child
-/// cleared its screen, and the pane kept every line it had.
+/// Unlike every other non-SGR sequence here it is *read* rather than dropped:
+/// `ServiceSession.ingest` turns it into a [kRedrawDivider], so a reader can
+/// see where the child started its screen over. It is not obeyed — see that
+/// constant for why a pane with scrollback must not empty itself on it.
 ///
 /// The cursor-home that follows it (`ESC[0;0H`) keeps being dropped, and
 /// should: a pane owns a region it redraws top-down and never addresses a
 /// cursor inside, so there is no position for it to mean anything about.
 const kClearScreen = '\x1B[2J';
+
+/// The rule a pane draws where a child cleared its own screen.
+///
+/// A child emitting [kClearScreen] is not a request to throw anything away. It
+/// is `revali dev` redrawing the screen it believes it owns — `_wipeOrDivide`
+/// in `vm_service_handler.dart` writes it on every reload, on every status
+/// board and on `c` — and the three are indistinguishable in the byte stream,
+/// because they are the same two bytes.
+///
+/// Obeying it cost a developer the one thing they needed. A service that fails
+/// to bind shows `needs fix`; pressing `r` reloads it; the reload's first act
+/// is to clear, and the bind error that explained the row went with it, leaving
+/// a pane that said only what the reload had managed so far.
+///
+/// So the sequence becomes a divider and the history stays. The pane scrolls
+/// now, which is what settles the argument: keeping the lines is not hoarding
+/// them off-screen, it is leaving them somewhere `k` and `PageUp` can reach.
+///
+/// A real clear still exists and still empties the pane —
+/// `ServiceSession.clear`, called from the `c` key. It is the only place it can
+/// live, and the reason is the paragraph above: `c` is a
+/// keystroke the *parent* handles, so the parent is the one side that can tell
+/// a clear someone asked for from a redraw nobody did.
+///
+/// Coloured here, at the source, rather than special-cased in the renderer: it
+/// travels as an ordinary line through an ordinary buffer, and a line that
+/// needed the pane to recognise it would be one the pane could get wrong.
+const kRedrawDivider = '\x1B[90m── redraw ──\x1B[0m';
 
 /// A run of text that shares one SGR state.
 ///

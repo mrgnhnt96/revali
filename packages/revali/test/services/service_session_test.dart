@@ -287,10 +287,11 @@ void main() {
       }
     });
 
-    test('a clear-screen sequence does not settle as a line', () {
-      // `revali dev`'s `_wipeOrDivide` prints this on every reload. The clear
-      // is acted on rather than stored, and the cursor-home behind it draws
-      // nothing, so neither leaves a row behind.
+    test('a clear-screen sequence does not settle as the child wrote it', () {
+      // `revali dev`'s `_wipeOrDivide` prints this on every reload. The
+      // sequence itself never reaches the pane — it becomes a divider, and on
+      // an empty pane not even that — and the cursor-home behind it draws
+      // nothing, so neither leaves the child's bytes behind.
       final it = session()
         ..ingest('\x1B[2J\x1B[0;0H\n', isError: false)
         ..ingest('after\n', isError: false);
@@ -301,46 +302,102 @@ void main() {
   });
 
   group('a clear-screen from the child', () {
-    // What `c` sends: the key reaches `revali dev`, `revali dev` clears the
-    // screen it thinks it owns, and the pane on the other end has to act on
-    // that or the user presses `c` and watches nothing happen.
+    // Not a request to throw anything away: `revali dev` writes this whenever
+    // it redraws the screen it believes it owns, which is every reload and
+    // every status board as well as `c`. The pane keeps the history and marks
+    // the spot — see [kRedrawDivider].
     const clear = '\x1B[2J\x1B[0;0H';
 
-    test('empties what the pane is showing', () {
+    test('divides what the pane is showing instead of emptying it', () {
       final it = session();
 
       write(it, ['one\n', 'two\n', '$clear\n']);
 
-      expect(texts(it), isEmpty);
+      expect(texts(it), ['one', 'two', kRedrawDivider]);
+    });
+
+    test('the error behind a failed start survives a reload', () {
+      // The whole reason this is a divider. A service fails to bind, the row
+      // says `needs fix`, and `r` reloads it — which starts by clearing. The
+      // line that explains the row has to still be in the pane afterwards, or
+      // there is nothing on screen saying why anything is wrong.
+      final it = session();
+
+      write(it, [
+        '⠋ Starting server...',
+        '\rFailed to bind server: port 8080 already in use\n',
+        'Dev server is still running\n',
+      ]);
+
+      expect(it.state, ServiceState.failed);
+
+      write(it, ['$clear\n⠋ Reloading...', '\r✓ Reloaded (1.2s)\n']);
+
+      expect(
+        texts(it),
+        containsAllInOrder([
+          'Failed to bind server: port 8080 already in use',
+          kRedrawDivider,
+          '✓ Reloaded (1.2s)',
+        ]),
+      );
     });
 
     test('keeps what followed it in the same chunk', () {
       // It arrives *in* the stream, not beside it. `revali dev` clears and
-      // reprints its status board in one breath, so a clear that took the
-      // whole chunk with it would wipe the board it was clearing *for*.
+      // reprints its status board in one breath, and both halves belong in the
+      // pane — the board under the rule, what it replaced above it.
       final it = session();
 
       write(it, [
         'one\n',
-        '${clear}\n[READY]\nServing at http://0.0.0.0:8080\n',
+        '$clear\n[READY]\nServing at http://0.0.0.0:8080\n',
       ]);
 
-      expect(texts(it), ['[READY]', 'Serving at http://0.0.0.0:8080']);
+      expect(texts(it), [
+        'one',
+        kRedrawDivider,
+        '[READY]',
+        'Serving at http://0.0.0.0:8080',
+      ]);
     });
 
-    test('takes the transient frame with it', () {
-      // A spinner mid-flight is drawn on the screen that just went away.
+    test('leaves a transient frame alone', () {
+      // A divider does not claim the screen went away, so a spinner that was
+      // mid-flight is still mid-flight and stays where the pane draws it.
       final it = session();
 
-      write(it, ['⠋ Generating server code...', '\n$clear\n']);
+      write(it, ['settled\n', '⠋ Generating server code...', '\n$clear\n']);
 
-      expect(it.lines, isEmpty);
+      expect(texts(it), [
+        'settled',
+        kRedrawDivider,
+        '⠋ Generating server code...',
+      ]);
+    });
+
+    test('draws nothing on a pane with nothing above it to divide', () {
+      // A service's very first status board arrives behind a clear, and a rule
+      // across the top of an empty pane divides nothing from nothing.
+      final it = session();
+
+      write(it, ['$clear\n[READY]\n']);
+
+      expect(texts(it), ['[READY]']);
+    });
+
+    test('two redraws with nothing between them draw one rule', () {
+      final it = session();
+
+      write(it, ['one\n', '$clear$clear\ntwo\n']);
+
+      expect(texts(it), ['one', kRedrawDivider, 'two']);
     });
 
     test('does not fire on a cursor-home on its own', () {
       // `ESC[0;0H` means *put the cursor at the top*, which is a statement
       // about a screen the child keeps writing down. Reading it as a clear
-      // would empty the pane every time a child homed the cursor.
+      // would rule the pane off every time a child homed the cursor.
       final it = session();
 
       write(it, ['one\n', 'two\n', '\x1B[0;0H\n', 'three\n']);
@@ -348,20 +405,23 @@ void main() {
       expect(texts(it), ['one', 'two', 'three']);
     });
 
-    test('two in one chunk clear once, and keep the tail', () {
+    test('keeps what stood between two clears in one chunk', () {
       final it = session();
 
-      write(it, ['one\n', '${clear}gone\n${clear}kept\n']);
+      write(it, ['one\n', '${clear}kept\n${clear}also kept\n']);
 
-      // Compared stripped: the cursor-home rides on the front of `kept` with
-      // no newline between them, and the session stores the bytes it was
+      // Compared stripped: the cursor-home rides on the front of each line
+      // with no newline between them, and the session stores the bytes it was
       // given. It is the renderer that drops it, which is where dropping it
       // belongs — the pane is the thing with no cursor to home.
-      expect([for (final text in texts(it)) stripAnsi(text)], ['kept']);
+      expect(
+        [for (final text in texts(it)) stripAnsi(text)],
+        ['one', '── redraw ──', 'kept', '── redraw ──', 'also kept'],
+      );
     });
 
     test('does not change what the row says the service is doing', () {
-      // A clear is about the screen. The service is still serving, and a row
+      // A redraw is about the screen. The service is still serving, and a row
       // that walked back to `starting` on every reload would say so.
       final it = session();
 
@@ -371,12 +431,77 @@ void main() {
     });
 
     test('does not eat the half-line the other stream is still writing', () {
-      // stderr is mid-way through a line when stdout clears. Dropping its
-      // buffered half would splice the rest onto nothing and corrupt it; the
-      // clear takes it off the screen, and the next chunk puts it back whole.
+      // stderr is mid-way through a line when stdout redraws. Dropping its
+      // buffered half would splice the rest onto nothing and corrupt it.
       final it = session()
         ..ingest('half a line', isError: true)
-        ..ingest('$clear\n', isError: false);
+        ..ingest('$clear\n', isError: false)
+        ..ingest(' and the rest\n', isError: true);
+
+      expect(texts(it), ['half a line and the rest']);
+    });
+  });
+
+  group('clear', () {
+    // What `c` does. The one thing that truly empties a pane, and it is driven
+    // from this side — the child's own `ESC[2J` cannot be told apart from the
+    // one it writes on every reload.
+    test('empties the pane', () {
+      final it = session();
+
+      write(it, ['one\n', 'two\n']);
+      it.clear();
+
+      expect(it.lines, isEmpty);
+    });
+
+    test('takes the transient frames with it', () {
+      final it = session()
+        ..ingest('⠋ Generating server code...', isError: false)
+        ..ingest('⠋ Compiling...', isError: true)
+        ..clear();
+
+      expect(it.lines, isEmpty);
+    });
+
+    test('resets the scroll position, so a stale anchor cannot blank it', () {
+      final it = session(maxLines: 100);
+
+      for (var i = 0; i < 60; i++) {
+        it.ingest('line-$i\n', isError: false);
+      }
+      it.scrollBy(-20, viewport: 10);
+      expect(it.isLive, isFalse);
+
+      it.clear();
+
+      expect(it.isLive, isTrue);
+    });
+
+    test('notifies its listeners', () {
+      var notified = 0;
+      session()
+        ..ingest('one\n', isError: false)
+        ..addListener(() => notified++)
+        ..clear();
+
+      expect(notified, 1);
+    });
+
+    test('does not change what the row says the service is doing', () {
+      final it = session()
+        ..ingest('Serving at http://0.0.0.0:8080\n', isError: false)
+        ..clear();
+
+      expect(it.state, ServiceState.serving);
+    });
+
+    test('leaves the half-line a stream is still writing', () {
+      // Same rule as a redraw: dropping half a line would splice the rest onto
+      // nothing when the next chunk lands.
+      final it = session()
+        ..ingest('half a line', isError: true)
+        ..clear();
 
       expect(it.lines, isEmpty);
 
@@ -854,10 +979,26 @@ void main() {
       fill(it, 20);
       it
         ..scrollBy(-3, viewport: 5)
-        ..ingest('\x1b[2J', isError: false);
+        ..clear();
 
       expect(it.isLive, isTrue);
       expect(it.lines, isEmpty);
+    });
+
+    test('a redraw from the child leaves it exactly where it was', () {
+      // The reader scrolled back to read something, and the reason a reload no
+      // longer wipes it is that they were going to read it. Snapping to the
+      // live end would take it away by a different route.
+      final it = session();
+      fill(it, 20);
+      it.scrollBy(-3, viewport: 5);
+      final parked = it.scrollTop;
+
+      it.ingest('\x1b[2Jrebuilding\n', isError: false);
+
+      expect(it.isLive, isFalse);
+      expect(it.scrollTop, parked);
+      expect([for (final line in it.lines) line.text], contains('line-0'));
     });
 
     test('notifies its listeners when the position changes', () {
