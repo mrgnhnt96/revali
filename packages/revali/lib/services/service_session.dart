@@ -19,7 +19,22 @@ enum ServiceState {
   /// Announced an address it is listening on.
   serving,
 
+  /// The server inside `revali dev` is down, but `revali dev` itself is not.
+  ///
+  /// Distinct from [crashed], and not a synonym for it: `revali dev` stays up
+  /// on purpose when its server process dies so the developer can fix the
+  /// cause and press `r`. A port collision lands here — nothing has exited, so
+  /// [ServiceSession.markExited] never fires, and without this the row keeps
+  /// whatever it said before, which is [generating].
+  ///
+  /// Recoverable, and the reason the distinction earns its keep: a reload from
+  /// here reaches [serving] again.
+  failed,
+
   /// Exited non-zero. Usually a compile error, and usually about to be fixed.
+  ///
+  /// The `revali dev` process itself is gone. Unlike [failed], nothing on this
+  /// side will bring it back.
   crashed,
 
   /// Exited zero.
@@ -171,11 +186,22 @@ class ServiceSession extends ChangeNotifier {
     if (_exitCode != null) return;
 
     if (frame.contains(_servingMarker)) {
+      // The only way out of `failed`, and it has to stay that way: a service
+      // that reached `failed` and then came back up must not be left there.
       _state = ServiceState.serving;
-    } else if (isUnfinished(frame)) {
+    } else if (_failureMarkers.any(frame.contains)) {
+      _state = ServiceState.failed;
+    } else if (isUnfinished(frame) && _state != ServiceState.failed) {
       // A spinner is a step in flight, by definition. After `serving` this
       // means a reload is rebuilding, which is worth showing as such — the
       // child re-announces its address when it comes back up.
+      //
+      // Not from `failed`, though. The progress the child was showing when the
+      // bind failed is never completed — `revali dev` only completes it on the
+      // server announcing itself — so it keeps animating for as long as the
+      // service stays broken. Letting a frame walk `failed` back would restore
+      // the exact `generating`-forever this state exists to replace, and the
+      // spinner of a genuine reload is indistinguishable from it here.
       _state = ServiceState.generating;
     }
   }
@@ -213,3 +239,30 @@ class _Stream {
 /// to `logger.success`, which wraps it in colour, so by the time it reaches
 /// this side it no longer begins with the `S`.
 const _servingMarker = 'Serving at ';
+
+/// What the child prints when its server is down and it is waiting for a fix.
+///
+/// Matched anywhere in the line, for the same reason [_servingMarker] is, and
+/// for two more: the handler hands these to `logger.err` and `logger.warn`,
+/// which prefix (`[WARN] `) as well as colour; and the stderr and stdout of the
+/// dead server are replayed indented by two spaces. Nothing here survives an
+/// anchor at the start of the line.
+///
+/// Any one of the three is enough — they are the same failure seen from
+/// different places, and the transcript can be cut short at any of them.
+const _failureMarkers = [
+  // The generated server could not get its socket, from `ServerFileMaker`.
+  // A port already in use is the everyday cause.
+  'Failed to bind server:',
+
+  // `VmServiceHandler`, on the server process exiting non-zero. If hot reload
+  // is off this is followed by `revali dev` stopping too, and [markExited]
+  // takes the state on to `crashed` — which is right, and why this one is not
+  // sufficient on its own to mean "still recoverable".
+  'Server process terminated unexpectedly with exit code:',
+
+  // The same handler, when hot reload is on. The clearest of the three: it
+  // says outright that the wrapper is alive and the next move is the
+  // developer's.
+  'Dev server is still running',
+];

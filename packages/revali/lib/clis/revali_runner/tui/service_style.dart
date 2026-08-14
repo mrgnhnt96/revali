@@ -29,22 +29,37 @@ const _byAnsiCode = {
 };
 
 /// The word shown in a row's state column.
+///
+/// [ServiceState.failed] is the one that does not reuse its own name. Beside
+/// `crashed` the word "failed" says nothing a developer can act on — the two
+/// look interchangeable in a column, and the whole point of the state is that
+/// they are not. `needs fix` says which of the two this is and what to do
+/// about it, in the nine characters the column already reserves.
 String stateLabel(ServiceState state) => switch (state) {
   ServiceState.starting => 'starting',
   ServiceState.generating => 'generating',
   ServiceState.serving => 'serving',
+  ServiceState.failed => 'needs fix',
   ServiceState.crashed => 'crashed',
   ServiceState.stopped => 'stopped',
 };
 
 /// The colour of a row's state column.
 ///
-/// Only [ServiceState.crashed] is loud. A fleet with one service still
-/// building is the ordinary case, and colouring every in-flight state leaves
-/// nothing left over for the one state a developer has to act on.
+/// Only [ServiceState.crashed] and [ServiceState.failed] are loud. A fleet
+/// with one service still building is the ordinary case, and colouring every
+/// in-flight state leaves nothing left over for the states a developer has to
+/// act on.
+///
+/// [ServiceState.failed] is as loud as [ServiceState.crashed] because it costs
+/// the same to ignore. It is quieter than a crash in every other way — the
+/// pane keeps scrolling, the spinner keeps turning, the process is still
+/// there — which is exactly why the row has to carry the weight instead. A
+/// crash announces itself; a service sitting on a taken port does not, and it
+/// is the one thing on the screen that will not resolve on its own.
 Color stateColor(ServiceState state) => switch (state) {
   ServiceState.serving => Colors.green,
-  ServiceState.crashed => Colors.red,
+  ServiceState.failed || ServiceState.crashed => Colors.red,
   ServiceState.stopped => Colors.grey,
   ServiceState.starting || ServiceState.generating => Colors.yellow,
 };
