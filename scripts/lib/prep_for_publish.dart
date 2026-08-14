@@ -8,6 +8,8 @@ import 'package:glob/list_local_fs.dart';
 import 'package:intl/intl.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart' as p;
+import 'package:scripts/src/registry.dart';
+import 'package:scripts/src/release_plan.dart';
 import 'package:yaml/yaml.dart';
 import 'package:yaml_edit/yaml_edit.dart';
 
@@ -18,7 +20,12 @@ final date = DateFormat('MM.dd.yy').format(DateTime.now());
 
 final logger = Logger();
 
-void main() async {
+void main(List<String> args) async {
+  // `--yes` is the only way to publish without a human answering the prompt.
+  // It exists for CI, and it has to be typed -- the previous behaviour was an
+  // unconditional `pub publish --force` with nothing to type at all.
+  final assumeYes = args.contains('--yes') || args.contains('-y');
+
   // check if git is clean
   if (!File(p.join(root, 'FAILED_PUSH.md')).existsSync()) {
     final gitStatus = await Process.run(
@@ -71,9 +78,59 @@ void main() async {
   changesProgress
       .complete('Found ${changedPackages.length} Packages to update');
 
-  for (final (package, _) in changedPackages) {
-    logger.info('  - ${package.name}');
+  // Ask the registry what is actually published before deciding anything.
+  // Without this, a package whose changelog and pubspec agree is skipped for
+  // two entirely different reasons -- up to date, or never released -- and
+  // the run says the same thing (nothing) about both.
+  final registryProgress = logger.progress('Asking pub.dev what is published');
+  final published = await fetchPublishedVersions(packages.map((p) => p.name));
+  registryProgress.complete('Checked ${published.length} packages on pub.dev');
+
+  final plan = planRelease(
+    packages: [
+      for (final package in packages)
+        PackageVersions(
+          name: package.name,
+          pubspecVersion: package.version,
+          changelogVersion: latestChangelog[package.name]!.version!,
+        ),
+    ],
+    registryVersions: published,
+  );
+
+  printReleasePlan(plan);
+
+  final suspicious = plan.where((p) => p.isSuspicious).toList();
+
+  if (suspicious.isNotEmpty) {
+    logger
+      ..err('')
+      ..err(
+        '${suspicious.length} package(s) will be SILENTLY SKIPPED despite not '
+        'being on the registry at that version:',
+      );
+
+    for (final entry in suspicious) {
+      logger.err('  - ${entry.name}: ${entry.reason}');
+    }
+
+    logger
+      ..err('')
+      ..err(
+        'To publish one of these, raise its heading in LATEST_CHANGELOG.md '
+        'above the version in its pubspec.yaml.',
+      );
   }
+
+  if (!confirmRelease(
+    plan: plan,
+    assumeYes: assumeYes,
+    hasSuspicious: suspicious.isNotEmpty,
+  )) {
+    logger.info('Aborted. Nothing was changed and nothing was published.');
+    exit(1);
+  }
+
   if (changedPackages.isNotEmpty) {
     logger.write('\n');
   }
@@ -176,6 +233,99 @@ void main() async {
     );
   } catch (e) {
     print('Failed to push: $e');
+  }
+}
+
+/// Shows every package's disposition, including the ones nothing will happen
+/// to.
+///
+/// Printing only the packages being published is what made a forgotten
+/// changelog bump invisible: the package you were expecting simply was not in
+/// a list, and an absence looks identical to not having read carefully.
+void printReleasePlan(List<PackagePlan> plan) {
+  final willPublish = plan.where((p) => p.action == ReleaseAction.publish);
+
+  logger
+    ..write('\n')
+    ..info('Release plan');
+
+  for (final entry in plan) {
+    final marker = switch (entry.action) {
+      ReleaseAction.publish => 'PUBLISH ',
+      ReleaseAction.upToDate => 'current ',
+      ReleaseAction.neverPublished => 'MISSING ',
+      ReleaseAction.unknown => 'unknown ',
+    };
+
+    final line = '  $marker ${entry.name.padRight(24)} '
+        '${entry.pubspecVersion} -> ${entry.changelogVersion}  '
+        '(${entry.reason})';
+
+    // Every line goes through `info` or louder. `detail` is hidden unless the
+    // logger is in verbose mode, so routing the skipped packages there would
+    // reproduce the exact defect this plan exists to fix -- the packages
+    // nothing is happening to are the ones you need to see.
+    if (entry.isSuspicious) {
+      logger.err(line);
+    } else {
+      logger.info(line);
+    }
+  }
+
+  logger
+    ..write('\n')
+    ..info('${willPublish.length} package(s) will be published to pub.dev.');
+}
+
+/// The gate between deciding to release and doing it.
+///
+/// Everything downstream is irreversible: `pub publish --force` cannot be
+/// undone, and the run also commits, tags and pushes. There was no prompt here
+/// at all before.
+bool confirmRelease({
+  required List<PackagePlan> plan,
+  required bool assumeYes,
+  required bool hasSuspicious,
+}) {
+  final count = plan.where((p) => p.action == ReleaseAction.publish).length;
+
+  final outcome = decideConfirmation(
+    publishCount: count,
+    assumeYes: assumeYes,
+    hasStdinTerminal: stdin.hasTerminal,
+    hasStdoutTerminal: stdout.hasTerminal,
+  );
+
+  switch (outcome) {
+    case ConfirmOutcome.nothingToPublish:
+      // Worth saying out loud: a release that quietly does nothing is the
+      // failure mode this whole plan exists to surface.
+      logger.info('Nothing to publish.');
+      return true;
+
+    case ConfirmOutcome.assumedYes:
+      logger.warn('--yes given: publishing $count package(s) without asking.');
+      return true;
+
+    case ConfirmOutcome.refuseNoTerminal:
+      logger
+        ..err('')
+        ..err(
+          'Refusing to publish $count package(s): no terminal is attached '
+          '(stdin: ${stdin.hasTerminal}, stdout: ${stdout.hasTerminal}), so '
+          'there is nothing to confirm on. Re-run with --yes if this is '
+          'intentional.',
+        );
+      return false;
+
+    case ConfirmOutcome.ask:
+      if (hasSuspicious) {
+        logger.warn('Some packages will be skipped silently -- see above.');
+      }
+
+      return logger.confirm(
+        'Publish $count package(s) to pub.dev? This cannot be undone.',
+      );
   }
 }
 
