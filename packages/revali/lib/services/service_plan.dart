@@ -146,6 +146,16 @@ bool isUnfinished(String frame) {
   return visible.isNotEmpty && _spinnerGlyphs.contains(visible.codeUnitAt(0));
 }
 
+/// Whether [frame] would draw nothing at all.
+///
+/// Emptiness measured in what a reader sees rather than in characters. A frame
+/// of nothing but escape sequences — the `ESC[0;0H` that trails a screen
+/// clear, a colour the child set and then wrote nothing in — settles as a row
+/// that paints blank, and a pane has a fixed number of rows to spend. A blank
+/// line the child wrote itself has always been dropped here for that reason;
+/// this only stops the same row costing more when it arrives dressed up.
+bool isBlank(String frame) => stripAnsi(frame).trim().isEmpty;
+
 /// The braille cells `mason_logger` cycles through while a task runs.
 const _spinnerGlyphs = {
   0x280b,

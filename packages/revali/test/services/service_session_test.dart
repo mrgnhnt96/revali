@@ -288,15 +288,101 @@ void main() {
     });
 
     test('a clear-screen sequence does not settle as a line', () {
-      // `revali dev`'s `_wipeOrDivide` prints this on every reload. It has no
-      // visible text, so there is nothing for the pane to show -- but the
-      // session settles it, because the session stores bytes.
+      // `revali dev`'s `_wipeOrDivide` prints this on every reload. The clear
+      // is acted on rather than stored, and the cursor-home behind it draws
+      // nothing, so neither leaves a row behind.
       final it = session()
         ..ingest('\x1B[2J\x1B[0;0H\n', isError: false)
         ..ingest('after\n', isError: false);
 
       expect(it.state, ServiceState.starting);
-      expect(texts(it), contains('after'));
+      expect(texts(it), ['after']);
+    });
+  });
+
+  group('a clear-screen from the child', () {
+    // What `c` sends: the key reaches `revali dev`, `revali dev` clears the
+    // screen it thinks it owns, and the pane on the other end has to act on
+    // that or the user presses `c` and watches nothing happen.
+    const clear = '\x1B[2J\x1B[0;0H';
+
+    test('empties what the pane is showing', () {
+      final it = session();
+
+      write(it, ['one\n', 'two\n', '$clear\n']);
+
+      expect(texts(it), isEmpty);
+    });
+
+    test('keeps what followed it in the same chunk', () {
+      // It arrives *in* the stream, not beside it. `revali dev` clears and
+      // reprints its status board in one breath, so a clear that took the
+      // whole chunk with it would wipe the board it was clearing *for*.
+      final it = session();
+
+      write(it, [
+        'one\n',
+        '${clear}\n[READY]\nServing at http://0.0.0.0:8080\n',
+      ]);
+
+      expect(texts(it), ['[READY]', 'Serving at http://0.0.0.0:8080']);
+    });
+
+    test('takes the transient frame with it', () {
+      // A spinner mid-flight is drawn on the screen that just went away.
+      final it = session();
+
+      write(it, ['⠋ Generating server code...', '\n$clear\n']);
+
+      expect(it.lines, isEmpty);
+    });
+
+    test('does not fire on a cursor-home on its own', () {
+      // `ESC[0;0H` means *put the cursor at the top*, which is a statement
+      // about a screen the child keeps writing down. Reading it as a clear
+      // would empty the pane every time a child homed the cursor.
+      final it = session();
+
+      write(it, ['one\n', 'two\n', '\x1B[0;0H\n', 'three\n']);
+
+      expect(texts(it), ['one', 'two', 'three']);
+    });
+
+    test('two in one chunk clear once, and keep the tail', () {
+      final it = session();
+
+      write(it, ['one\n', '${clear}gone\n${clear}kept\n']);
+
+      // Compared stripped: the cursor-home rides on the front of `kept` with
+      // no newline between them, and the session stores the bytes it was
+      // given. It is the renderer that drops it, which is where dropping it
+      // belongs — the pane is the thing with no cursor to home.
+      expect([for (final text in texts(it)) stripAnsi(text)], ['kept']);
+    });
+
+    test('does not change what the row says the service is doing', () {
+      // A clear is about the screen. The service is still serving, and a row
+      // that walked back to `starting` on every reload would say so.
+      final it = session();
+
+      write(it, ['Serving at http://0.0.0.0:8080\n', '$clear\n']);
+
+      expect(it.state, ServiceState.serving);
+    });
+
+    test('does not eat the half-line the other stream is still writing', () {
+      // stderr is mid-way through a line when stdout clears. Dropping its
+      // buffered half would splice the rest onto nothing and corrupt it; the
+      // clear takes it off the screen, and the next chunk puts it back whole.
+      final it = session()
+        ..ingest('half a line', isError: true)
+        ..ingest('$clear\n', isError: false);
+
+      expect(it.lines, isEmpty);
+
+      it.ingest(' and the rest\n', isError: true);
+
+      expect(texts(it), ['half a line and the rest']);
     });
   });
 

@@ -24,7 +24,7 @@ void runRevali(List<String> args) {
   // right on its own, and forcing it would put escape sequences into every
   // redirected build log in the world. See [kForceAnsiEnvVar] for why the
   // parent is the one that decides.
-  if (Platform.environment[kForceAnsiEnvVar] == '1') {
+  if (ansiForcedByParent()) {
     overrideAnsiOutput(true, () => _run(args));
 
     return;

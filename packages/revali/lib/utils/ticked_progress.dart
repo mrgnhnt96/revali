@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'dart:math' as math;
 
 import 'package:mason_logger/mason_logger.dart';
+import 'package:revali/services/ansi.dart';
 
 /// A progress line whose spinner is driven from a **sidecar isolate**.
 ///
@@ -156,17 +157,19 @@ class TickedProgress {
       // The message goes in as a spawn argument rather than over the port, so
       // the sidecar draws its first frame without waiting on a handshake that
       // main may be too busy to complete.
-      final spawned = Isolate.spawn(
-        _spinnerMain,
-        <Object>[
-          ready.sendPort,
-          _message,
-          tickInterval.inMilliseconds,
-          _quiet,
-          io.stdout.hasTerminal,
-        ],
-        debugName: 'ticked-progress',
-      );
+      final spawned = Isolate.spawn(_spinnerMain, <Object>[
+        ready.sendPort,
+        _message,
+        tickInterval.inMilliseconds,
+        _quiet,
+        io.stdout.hasTerminal,
+        // Read here, on main, because this is the only side that can answer
+        // it. `ansiOutputEnabled` is a *zone* value under `revali up` —
+        // `runRevali` overrides it — and a zone does not cross an isolate
+        // boundary. Asked again over there it would say `stdout` is a pipe
+        // and paint every frame plain, which is the pane's whole complaint.
+        ansiOutputEnabled,
+      ], debugName: 'ticked-progress');
 
       unawaited(
         spawned.then((isolate) {
@@ -211,84 +214,108 @@ class TickedProgress {
   String get _time => _timeFor(_stopwatch);
 
   /// Sidecar entry point. Owns the timer, and nothing else.
+  ///
+  /// The whole body runs inside [overrideAnsiOutput] rather than only the
+  /// `wrap` call: the frames are painted from a timer, and a timer paints in
+  /// the zone it was *created* in. Passing `true` where the main isolate is
+  /// already true changes nothing; the case it exists for is main being true
+  /// because of a zone override this isolate cannot see.
   static void _spinnerMain(List<Object> args) {
     final ready = args[0] as SendPort;
     var message = args[1] as String;
     final intervalMs = args[2] as int;
     final quiet = args[3] as bool;
     final hasTerminal = args[4] as bool;
+    final ansi = args[5] as bool;
 
     final commands = ReceivePort();
     ready.send(commands.sendPort);
 
-    var frame = 0;
-    var stopped = false;
-    final stopwatch = Stopwatch()..start();
+    overrideAnsiOutput(ansi, () {
+      var frame = 0;
+      var stopped = false;
+      final stopwatch = Stopwatch()..start();
 
-    String clamped() {
-      // A pipe has no width to ask for, and neither does a terminal we were
-      // told to animate onto without one.
-      final columns = hasTerminal ? io.stdout.terminalColumns : 80;
-      final width = math.max(columns - _padding, _padding);
+      String clamped() {
+        // A pipe has no width to ask for, and neither does a terminal we were
+        // told to animate onto without one.
+        final columns = hasTerminal ? io.stdout.terminalColumns : 80;
+        final width = math.max(columns - _padding, _padding);
 
-      return message.length > width ? message.substring(0, width) : message;
-    }
-
-    void paint({required bool advance}) {
-      if (stopped || quiet) return;
-
-      if (advance) frame++;
-
-      final glyph = lightGreen.wrap(_frames[frame % _frames.length]);
-      final disableWrap = hasTerminal ? _disableLineWrap : '';
-
-      io.stdout.write(
-        '$disableWrap${_clearLineFor(hasTerminal)}$glyph '
-        '${clamped()}$_trailing ${_timeFor(stopwatch)}',
-      );
-    }
-
-    paint(advance: false);
-
-    final ticker = Timer.periodic(
-      Duration(milliseconds: intervalMs),
-      (_) => paint(advance: true),
-    );
-
-    commands.listen((raw) {
-      final command = raw as List<Object>;
-
-      switch (command.first) {
-        case _SpinnerCommand.update:
-          message = command[1] as String;
-          paint(advance: false);
-        case _SpinnerCommand.stop:
-          stopped = true;
-          ticker.cancel();
-          commands.close();
+        return message.length > width ? message.substring(0, width) : message;
       }
+
+      void paint({required bool advance}) {
+        if (stopped || quiet) return;
+
+        if (advance) frame++;
+
+        final glyph = lightGreen.wrap(_frames[frame % _frames.length]);
+        final disableWrap = hasTerminal ? _disableLineWrap : '';
+
+        io.stdout.write(
+          '$disableWrap${_clearLineFor(hasTerminal)}$glyph '
+          '${clamped()}$_trailing ${_timeFor(stopwatch)}',
+        );
+      }
+
+      paint(advance: false);
+
+      final ticker = Timer.periodic(
+        Duration(milliseconds: intervalMs),
+        (_) => paint(advance: true),
+      );
+
+      commands.listen((raw) {
+        final command = raw as List<Object>;
+
+        switch (command.first) {
+          case _SpinnerCommand.update:
+            message = command[1] as String;
+            paint(advance: false);
+          case _SpinnerCommand.stop:
+            stopped = true;
+            ticker.cancel();
+            commands.close();
+        }
+      });
     });
   }
 }
 
 /// Whether progress lines may animate.
 ///
-/// **Seam.** Today this is `stdout.hasTerminal`, which is also what
-/// `mason_logger` uses, so a piped child draws one static frame and nothing
-/// moves. That is correct for CI, and it is what `revali up` already sees.
+/// `stdout.hasTerminal` alone — which is what `mason_logger` uses — is the
+/// answer for a program whose only reader is a terminal or a log file. It is
+/// the wrong one under `revali up`: the child's stdout is a pipe, so it says
+/// no, and the pane on the other end of that pipe is left redrawing a frame
+/// that never changes.
 ///
-/// A sibling change is landing a handshake that tells a `revali dev` child to
-/// emit ANSI even though its stdout is a pipe, because `ansiOutputEnabled` is
-/// false there and `wrap()` becomes a no-op. When it lands, the decision made
-/// here should follow that same signal rather than `hasTerminal` alone — a
-/// child told to dress its output for a terminal should animate it too. It has
-/// not landed on this base (`UpCommand._start` passes only `PORT`), so naming
-/// its mechanism here would be a guess.
+/// So it is either — a terminal of our own, or [ansiForcedByParent], the
+/// handshake in which the parent says it is rendering this output the way a
+/// terminal would. Neither, and nothing moves: that case is CI, where a log
+/// full of frames is a regression.
 ///
 /// Note the two questions are kept apart on purpose: [TickedProgress] takes
 /// `animate` separately from whether it emits ANSI, so forcing animation onto
-/// a pipe does not also force escape codes onto one.
-bool progressCanAnimate() => io.stdout.hasTerminal;
+/// a pipe does not also force escape codes onto one. What a frame is dressed
+/// in is `ansiOutputEnabled`'s answer, which `runRevali` sets from this same
+/// handshake — one signal, still two decisions.
+bool progressCanAnimate() => canAnimateProgress(
+  hasTerminal: io.stdout.hasTerminal,
+  forcedAnsi: ansiForcedByParent(),
+);
+
+/// [progressCanAnimate]'s decision, with its two inputs handed in.
+///
+/// Split out because neither input can be arranged from inside a test: a test
+/// process's `stdout.hasTerminal` is whatever the runner handed it, and the
+/// environment is read once at startup. The subprocess probe in
+/// `ticked_progress_test.dart` proves the bytes; this proves the branch.
+bool canAnimateProgress({
+  required bool hasTerminal,
+  required bool forcedAnsi,
+}) => hasTerminal || forcedAnsi;
 
 /// The braille cells `mason_logger` cycles through.
 ///
