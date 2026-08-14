@@ -5,9 +5,17 @@ import 'dart:io' as io;
 import 'package:args/command_runner.dart';
 import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
+// Narrowed on purpose: `package:nocterm` exports its own `Logger`, which would
+// collide with `mason_logger`'s the moment anything here said `Logger`.
+import 'package:nocterm/nocterm.dart' show runApp, shutdownApp;
 import 'package:path/path.dart' as p;
+// Prefixed because the TUI's `UpCommand` — the r/c/q key constants — shares its
+// name with the command class below. Unprefixed, the class would shadow it and
+// the constants would be unreachable from here.
+import 'package:revali/clis/revali_runner/tui/up_app.dart' as tui;
 import 'package:revali/services/service_discovery.dart';
 import 'package:revali/services/service_plan.dart';
+import 'package:revali/services/service_session.dart';
 
 /// Runs every service in the repository at once.
 ///
@@ -44,6 +52,13 @@ class UpCommand extends Command<int> {
   final _running = <String, io.Process>{};
 
   var _stopping = false;
+
+  /// Whether nocterm owns the screen.
+  ///
+  /// Decided once, before anything starts, because every write after it has to
+  /// respect the answer: with the alternate screen up, a `logger` line paints
+  /// over the frame nocterm is drawing.
+  var _useTui = false;
 
   @override
   String get name => 'up';
@@ -102,6 +117,11 @@ class UpCommand extends Command<int> {
         .map((p) => p.label.length)
         .reduce((a, b) => a > b ? a : b);
 
+    _useTui = canDrawTui();
+
+    // The summary prints either way. Under the TUI the alternate screen covers
+    // it a moment later and gives it back on exit, and it is what a developer
+    // sees if a service dies before the screen is even up.
     logger.info('Starting ${plans.length} service(s)\n');
     for (final (index, plan) in plans.indexed) {
       final color = colorFor(index);
@@ -113,12 +133,21 @@ class UpCommand extends Command<int> {
     logger.info('');
 
     final exits = <Future<void>>[];
+    final sessions = <ServiceSession>[];
 
     for (final (index, plan) in plans.indexed) {
+      // A session per service only where there is a pane to draw it in.
+      // Without one the flat path still owns the output, and a session nobody
+      // reads would be a ring buffer filling up for no one.
+      final session = _useTui ? ServiceSession(plan) : null;
+      if (session != null) {
+        sessions.add(session);
+      }
+
       // One service failing to start must not take the others down: the usual
       // cause is a compile error the developer is about to fix, and losing the
       // whole fleet for it makes the loop worse, not safer.
-      await _start(plan, colorFor(index), width, exits);
+      await _start(plan, colorFor(index), width, exits, session);
     }
 
     if (exits.isEmpty) {
@@ -131,7 +160,10 @@ class UpCommand extends Command<int> {
     // ports and in-flight requests, and the generated server already knows
     // how to drain on SIGTERM.
     final signals = _listenForShutdown();
-    final keys = _listenForKeystrokes(plans);
+
+    if (_useTui) {
+      return _runTui(plans, sessions, exits, signals);
+    }
 
     await Future.wait(exits);
 
@@ -139,66 +171,144 @@ class UpCommand extends Command<int> {
       await subscription.cancel();
     }
 
-    await _restoreStdin(keys);
+    return _stopping ? 0 : 1;
+  }
+
+  /// Holds the screen until the fleet is gone, drawing it as it goes.
+  ///
+  /// This is what replaces the flat path's `await Future.wait(exits)`: nocterm
+  /// runs its own event loop, so waiting on the children happens alongside it
+  /// rather than instead of it.
+  Future<int> _runTui(
+    List<ServicePlan> plans,
+    List<ServiceSession> sessions,
+    List<Future<void>> exits,
+    List<StreamSubscription<io.ProcessSignal>> signals,
+  ) async {
+    // A dead fleet must not leave the screen up: there is nothing left to
+    // watch and no key that would bring it down, since every command this
+    // screen offers is addressed to a process that no longer exists.
+    unawaited(
+      Future.wait(exits).then((_) => shutdownApp(_stopping ? 0 : 1)),
+    );
+
+    await runApp(
+      buildApp(plans, sessions),
+      // Nothing on this screen is worth reloading in place. The `r` key
+      // rebuilds the *services*; wiring a second, unrelated reload into the
+      // same session is a VM service connection `revali up` has no use for.
+      enableHotReload: false,
+    );
+
+    // Only reached if nocterm's loop ends without `shutdownApp` — that call
+    // restores the terminal and exits the process itself, so the lines below
+    // are the answer for the path where it never happens.
+    for (final subscription in signals) {
+      await subscription.cancel();
+    }
+
+    _restoreTerminalMode();
 
     return _stopping ? 0 : 1;
   }
 
-  /// Forwards `r` / `c` / `q` to every child service.
+  /// The screen, with its keys wired to the fleet.
   ///
-  /// The keys cannot simply be passed through. A child's stdin is a pipe, not
-  /// a terminal, so `revali dev` inside it takes its headless path and never
-  /// reads keystrokes at all — which is why pressing `r` under `revali up`
-  /// used to do nothing while file-watching reload worked fine.
+  /// [sessions] must line up with [plans] — the app hands a session back and
+  /// the command goes to that session's own plan, so a service can be
+  /// addressed without the app knowing what addressing one involves.
   ///
-  /// `revali dev` already has the answer: without a TTY it watches a
-  /// `.revali_cmd` file in the project root for `reload` / `clear` / `quit`.
-  /// So this translates the keypress into that file rather than inventing a
-  /// second channel — one service per file, in its own directory.
+  /// Public so a `NoctermTester` can press keys at it and watch the files
+  /// land. Wired inside `runApp` there is nothing between the keystroke and a
+  /// real terminal to assert on.
+  tui.UpApp buildApp(List<ServicePlan> plans, List<ServiceSession> sessions) {
+    return tui.UpApp(
+      sessions: sessions,
+      onCommand: (session, key) => _send(session.plan, key),
+      onCommandAll: (key) {
+        _sendAll(plans, key);
+
+        if (key == tui.UpCommand.quit) {
+          // The children are told to quit *and* the fleet stops: a child that
+          // is wedged badly enough to ignore its command file must not leave
+          // `revali up` waiting on it forever.
+          _stop();
+        }
+      },
+      onQuit: _quit,
+    );
+  }
+
+  /// `Ctrl+C`: stop the fleet, and on a second press stop waiting for it.
   ///
-  /// Returns null when there is no terminal to read (CI, a pipe), where there
-  /// are no keystrokes to forward in the first place.
-  StreamSubscription<List<int>>? _listenForKeystrokes(List<ServicePlan> plans) {
-    if (!io.stdin.hasTerminal) {
-      return null;
+  /// The first press is a SIGTERM to every child, not a kill, so each drains
+  /// through the same graceful path a `Ctrl+C` at its own terminal would take
+  /// — and the screen stays up while they do, which is what makes the drain
+  /// something you can watch rather than guess at. The rows going `stopped`
+  /// one by one is the acknowledgement; there is no line to print one on.
+  ///
+  /// The screen then comes down on its own once they are all gone. A second
+  /// press is the way out when one of them does not go: the screen must not be
+  /// the thing holding the user hostage.
+  void _quit() {
+    if (_stopping) {
+      // `shutdownApp` rather than `exit`: it restores the terminal on the way
+      // out, and a shell left in raw mode is worse than a wedged child.
+      shutdownApp(1);
+
+      return;
+    }
+
+    _stop();
+  }
+
+  /// Whether this run has a terminal that can carry the TUI.
+  ///
+  /// `revali up` in CI has no terminal at all, and flat prefixed output is the
+  /// whole of what it should produce there — so this is a seam, not a
+  /// preference.
+  ///
+  /// Raw mode is probed rather than assumed: a pseudo-TTY can report
+  /// [io.Stdin.hasTerminal] and still refuse it, and nocterm's backend
+  /// swallows that refusal, which would leave a screen drawn that cannot read
+  /// a key. Better to find out here, while flat output is still an option.
+  ///
+  /// Public so a test can stand where CI stands. Making the TUI unconditional
+  /// would delete the only output a pipeline ever gets, and it would do it
+  /// silently — nobody runs CI's path by hand.
+  bool canDrawTui() {
+    // Both halves: nocterm draws to stdout and reads keys from stdin, and
+    // either one redirected makes the screen wrong.
+    if (!io.stdin.hasTerminal || !io.stdout.hasTerminal) {
+      return false;
     }
 
     try {
-      // Raw mode, so a single key registers without waiting for Enter.
       io.stdin
         ..echoMode = false
         ..lineMode = false;
     } catch (_) {
-      // A pseudo-TTY can report hasTerminal and still refuse raw mode.
-      return null;
+      return false;
     }
 
-    logger.info(
-      '${darkGray.wrap('Press ')}${yellow.wrap('r')}'
-      '${darkGray.wrap(' reload  ')}${yellow.wrap('c')}'
-      '${darkGray.wrap(' clear  ')}${yellow.wrap('q')}'
-      '${darkGray.wrap(' quit')}\n',
-    );
+    // Put it straight back. nocterm sets raw mode itself when it starts, and
+    // a terminal left raw in the gap swallows the `Ctrl+C` of someone who
+    // changed their mind while the services were still spawning.
+    _restoreTerminalMode();
 
-    return io.stdin.listen((bytes) {
-      for (final key in utf8.decode(bytes, allowMalformed: true).split('')) {
-        switch (key.toLowerCase()) {
-          case 'r':
-            broadcastCommand(plans, 'reload');
-          case 'c':
-            broadcastCommand(plans, 'clear');
-          case 'q':
-            // The children are told to quit *and* the fleet stops: a child
-            // that is wedged badly enough to ignore its command file must not
-            // leave `revali up` waiting on it forever.
-            broadcastCommand(plans, 'quit');
-            _stop();
-        }
-      }
-    });
+    return true;
   }
 
   /// Writes [command] to one service's `.revali_cmd`.
+  ///
+  /// The file is the channel because a keypress cannot simply be passed
+  /// through. A child's stdin is a pipe, not a terminal, so `revali dev`
+  /// inside it takes its headless path and never reads keystrokes at all —
+  /// which is why pressing `r` under `revali up` used to do nothing while
+  /// file-watching reload worked fine. `revali dev` already had the answer:
+  /// without a TTY it watches a `.revali_cmd` file in its project root for
+  /// `reload` / `clear` / `quit`, so this writes that file rather than
+  /// inventing a second channel — one service per file, in its own directory.
   ///
   /// Addressing a single service is the half a broadcast cannot express:
   /// reloading the one service being worked on should not restart the other
@@ -232,13 +342,36 @@ class UpCommand extends Command<int> {
     }
   }
 
-  Future<void> _restoreStdin(StreamSubscription<List<int>>? keys) async {
-    if (keys == null) {
-      return;
+  /// Sends the keystroke [key] to one service.
+  void _send(ServicePlan plan, String key) =>
+      sendCommand(plan, wireWordFor(key));
+
+  /// Sends the keystroke [key] to the whole fleet.
+  void _sendAll(List<ServicePlan> plans, String key) =>
+      broadcastCommand(plans, wireWordFor(key));
+
+  /// The word that goes on the wire for a [tui.UpCommand] keystroke.
+  ///
+  /// See [_wireWords] for why there is a translation at all, and why it is the
+  /// word rather than the letter that travels.
+  ///
+  /// Public so a test can pin the two ends together: the reader drops a
+  /// command it does not recognise without saying so, which makes a mismatch
+  /// here indistinguishable from a key that simply does nothing.
+  String wireWordFor(String key) {
+    if (_wireWords[key] case final word?) {
+      return word;
     }
 
-    await keys.cancel();
+    // A key the TUI binds that this map has not caught up with. The bare
+    // letter is understood too, so it still works — but say so, because the
+    // reader will not: it drops what it does not recognise without a word.
+    logger.detail('No wire word for "$key"; sending the letter as-is');
 
+    return key;
+  }
+
+  void _restoreTerminalMode() {
     try {
       // Leaving the terminal in raw mode makes the user's shell unusable
       // afterwards — no echo, no line editing.
@@ -258,11 +391,15 @@ class UpCommand extends Command<int> {
   /// A service that cannot start adds nothing, so the fleet carries on without
   /// it. The label is padded *before* it is coloured: ANSI escapes count
   /// toward string length, so padding afterwards misaligns every prefix.
+  ///
+  /// [session] is the pane this service's output belongs to, or null on the
+  /// flat path where there are no panes.
   Future<void> _start(
     ServicePlan plan,
     AnsiCode color,
     int width,
     List<Future<void>> exits,
+    ServiceSession? session,
   ) async {
     final label = color.wrap(plan.label.padRight(width)) ?? plan.label;
 
@@ -280,21 +417,31 @@ class UpCommand extends Command<int> {
     } catch (e) {
       logger.err('${plan.label}: failed to start: $e');
 
+      if (session != null) {
+        // The reason belongs in the pane too: the line above scrolls away the
+        // moment the screen goes up, and a row that says `crashed` with
+        // nothing under it is a dead end. Ingested *before* the exit is
+        // recorded — a session that already knows it is gone ignores output,
+        // so that it cannot walk `crashed` back to `serving`.
+        session
+          ..ingest('failed to start: $e\n', isError: true)
+          ..markExited(1);
+      }
+
       return;
     }
 
     _running[plan.label] = process;
 
     void pipe(Stream<List<int>> stream, {required bool isError}) {
-      stream.transform(utf8.decoder).listen((chunk) {
-        for (final line in prefixLines(chunk, label)) {
-          if (isError) {
-            logger.err(line);
-          } else {
-            logger.write('$line\n');
-          }
-        }
-      });
+      stream.transform(utf8.decoder).listen(
+        (chunk) => routeOutput(
+          chunk,
+          label: label,
+          isError: isError,
+          session: session,
+        ),
+      );
     }
 
     pipe(process.stdout, isError: false);
@@ -303,6 +450,15 @@ class UpCommand extends Command<int> {
     exits.add(
       process.exitCode.then<void>((code) {
         _running.remove(plan.label);
+
+        if (session != null) {
+          // The row reports it, in place and permanently: `stopped` or
+          // `crashed`. A logger line as well would paint over the frame
+          // nocterm is drawing.
+          session.markExited(code);
+
+          return;
+        }
 
         if (_stopping) {
           return;
@@ -313,6 +469,39 @@ class UpCommand extends Command<int> {
         logger.err('${plan.label} exited ($code)');
       }),
     );
+  }
+
+  /// Sends one write from a child to wherever this run shows output.
+  ///
+  /// With a [session], the raw chunk goes to that service's pane. A pane owns
+  /// its region and can redraw a spinner frame in place, which is exactly what
+  /// [prefixLines] cannot do and why it drops unresolved frames instead.
+  ///
+  /// Without one — CI, a pipe, a terminal that refused raw mode — it is the
+  /// flat prefixed stream, unchanged. That path is the only reason
+  /// [prefixLines] still has a caller, and this is the one it has.
+  ///
+  /// Public so the flat path can be proved without spawning a process. It is
+  /// the branch nobody runs by hand, because it is the one CI takes.
+  void routeOutput(
+    String chunk, {
+    required String label,
+    required bool isError,
+    ServiceSession? session,
+  }) {
+    if (session != null) {
+      session.ingest(chunk, isError: isError);
+
+      return;
+    }
+
+    for (final line in prefixLines(chunk, label)) {
+      if (isError) {
+        logger.err(line);
+      } else {
+        logger.write('$line\n');
+      }
+    }
   }
 
   List<StreamSubscription<io.ProcessSignal>> _listenForShutdown() {
@@ -338,7 +527,12 @@ class UpCommand extends Command<int> {
     }
     _stopping = true;
 
-    logger.info('\nStopping ${_running.length} service(s)...');
+    if (!_useTui) {
+      // Under the TUI the rows flipping to `stopped` are the acknowledgement.
+      // A line printed here would land on top of the frame nocterm is drawing
+      // and be painted over by the next one anyway.
+      logger.info('\nStopping ${_running.length} service(s)...');
+    }
 
     for (final process in _running.values) {
       // kill() sends SIGTERM by default, which the generated server drains
@@ -347,3 +541,22 @@ class UpCommand extends Command<int> {
     }
   }
 }
+
+/// The word sent to `revali dev` for each key the TUI binds.
+///
+/// `_handleDevCommand` in `vm_service_handler.dart` accepts either form — `'r'`
+/// or `'reload'`, `'c'` or `'clear'`, `'q'`/`'quit'`/`'exit'` — and ignores
+/// anything else *silently*: an unrecognised command falls through to `null`
+/// and is dropped, not reported. Getting this wrong therefore looks exactly
+/// like a key that does nothing, so one form has to be chosen and held to.
+///
+/// The word is the one on the wire. It is what every existing call site and
+/// `up_command_test.dart` already assert, and it is the form that survives
+/// being read out of a `.revali_cmd` file by someone working out why a key did
+/// nothing. The TUI's constants stay single letters because that is the
+/// keystroke; the translation belongs here, at the edge that owns the file.
+const _wireWords = {
+  tui.UpCommand.reload: 'reload',
+  tui.UpCommand.clear: 'clear',
+  tui.UpCommand.quit: 'quit',
+};
