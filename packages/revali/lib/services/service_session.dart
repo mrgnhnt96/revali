@@ -124,10 +124,15 @@ class ServiceSession extends ChangeNotifier {
   ///
   /// Lives on the session, not the screen, for three reasons. Switching
   /// services keeps each pane's position for free, because it is the same
-  /// object. [_clearScreen] can reset it at the one place a clear actually
-  /// happens, which catches the child clearing its own screen on reload and
-  /// not just the `c` key. And it is meaningless without the buffer it indexes
-  /// into, so the two stay together and are clamped against each other.
+  /// object. [clear] can reset it in the same breath as it empties the buffer
+  /// the position indexes into, so the two cannot come apart. And it is
+  /// meaningless without that buffer anyway, so they stay together and are
+  /// clamped against each other.
+  ///
+  /// A reload leaves it exactly where it is. That is the point of
+  /// [kRedrawDivider]: the lines the reader was scrolled back to are still
+  /// there, so yanking them to the live end would take away the thing they had
+  /// gone looking for.
   int? _scrollTop;
 
   /// Where the pane's top visible row is, or null while it follows the tail.
@@ -214,17 +219,15 @@ class ServiceSession extends ChangeNotifier {
     final stream = isError ? _stderr : _stdout;
     var text = stream.pending + chunk;
 
-    // The one terminal instruction a pane can honour, and the reason `c` used
-    // to do nothing: the child cleared its own screen and this side dropped
-    // the sequence with the rest of the escapes, so the pane kept every line.
+    // A rule, not a truncation. See [kRedrawDivider] for why obeying this
+    // literally is wrong in a pane with scrollback, and [clear] for where a
+    // real clear comes from instead.
     //
-    // The *last* one, because a chunk carrying two clears has already had
-    // whatever was between them wiped. Everything before it goes; everything
-    // after it is output the child wrote onto the screen it just cleared, and
-    // falls through to be ingested normally.
-    if (text.lastIndexOf(kClearScreen) case final at when at != -1) {
-      text = text.substring(at + kClearScreen.length);
-      _clearScreen();
+    // Turned into a line of its own so it settles through the ordinary path
+    // below: the divider is a thing the pane shows, and the one place that
+    // decides what the pane shows is the loop that follows.
+    if (text.contains(kClearScreen)) {
+      text = text.replaceAll(kClearScreen, '\n$kRedrawDivider\n');
     }
 
     final segments = text.split('\n');
@@ -236,6 +239,11 @@ class ServiceSession extends ChangeNotifier {
     for (final segment in segments) {
       final frame = lastFrame(segment);
       if (isBlank(frame)) continue;
+
+      if (frame == kRedrawDivider) {
+        _divide();
+        continue;
+      }
 
       if (isUnfinished(frame)) {
         // A spinner frame that ended in a newline anyway. Still unresolved,
@@ -257,26 +265,49 @@ class ServiceSession extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Empties the pane, because the screen the child was drawing on is gone.
+  /// Empties the pane, because someone asked for it to be empty.
   ///
-  /// Only what is *shown* — the settled lines and each stream's current frame.
-  /// A stream's unterminated `pending` is deliberately left alone: it is the
-  /// line that stream is part way through writing, and dropping half of it
-  /// would splice the rest onto nothing when the next chunk lands. It is off
-  /// the screen until then, which is all a clear ever promised.
-  void _clearScreen() {
+  /// The `c` key, and nothing else. A child writing [kClearScreen] does *not*
+  /// reach here — see [kRedrawDivider].
+  ///
+  /// Only what is *shown* is dropped: the settled lines and each stream's
+  /// current frame. A stream's unterminated `pending` is deliberately left
+  /// alone — it is the line that stream is part way through writing, and
+  /// dropping half of it would splice the rest onto nothing when the next chunk
+  /// lands. It is off the screen until then, which is all a clear ever
+  /// promised.
+  void clear() {
     _settled.clear();
     _stdout.transient = null;
     _stderr.transient = null;
 
     // A scroll position into a buffer that no longer exists points at nothing,
     // and a pane holding one after a clear draws blank — which reads as the
-    // service having died rather than as the screen having been wiped.
-    //
-    // Here rather than on the `c` keypress because this is where a clear
-    // actually happens: `c` is only *asked* for, by writing to the child, and
-    // the child clears its own screen on reload without being asked at all.
+    // service having died rather than as the screen having been emptied.
     _scrollTop = null;
+
+    notifyListeners();
+  }
+
+  /// Draws [kRedrawDivider] under everything the pane is already showing.
+  ///
+  /// Suppressed in the two cases where a rule would divide nothing: an empty
+  /// pane — a service's first board is drawn onto a clear screen, and `c` is
+  /// immediately followed by the child clearing its own — and a divider already
+  /// on the bottom, which is a reload that printed nothing between two redraws.
+  ///
+  /// The transient frames are deliberately left where they are. A divider does
+  /// not claim the screen went away, so nothing that was on it goes away
+  /// either; a spinner that was mid-flight is still mid-flight, and the sidecar
+  /// repaints it in place either way.
+  void _divide() {
+    if (_settled.isEmpty) return;
+    if (_settled.last.text == kRedrawDivider) return;
+
+    // Never `isError`, whichever stream carried the sequence. The divider is
+    // the pane's own mark, not something the child said, and the stderr grey
+    // is a fallback for runs the child left uncoloured — which this is not.
+    _settle(const ServiceLogLine(kRedrawDivider, isError: false));
   }
 
   /// Records that the process is gone.

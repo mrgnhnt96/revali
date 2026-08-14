@@ -17,10 +17,13 @@ import 'package:test/test.dart';
 /// `ticked_progress_test.dart` uses one: the claim is about bytes on a pipe,
 /// and `mason_logger` writes to the process's `stdout` where no in-process
 /// capture can see them.
-Future<String> runProbe({Map<String, String> environment = const {}}) async {
+Future<String> runProbe({
+  Map<String, String> environment = const {},
+  List<String> args = const [],
+}) async {
   final process = await Process.start(
     'dart',
-    ['run', 'test/handlers/fixtures/status_board_probe.dart'],
+    ['run', 'test/handlers/fixtures/status_board_probe.dart', ...args],
     workingDirectory: Directory.current.path,
     environment: environment,
   );
@@ -89,6 +92,60 @@ void main() {
     );
   });
 
+  group('the handshake has to be made on the isolate that prints', () {
+    // Why the board was white under `revali up` while every check said it
+    // should not be. `revali dev` is two programs: the `revali` CLI, and the
+    // constructs entrypoint it starts with `Isolate.spawnUri`. Everything a
+    // developer reads on the board is printed by the second one.
+    //
+    // The probe above was run on one isolate, so it could not see this, and
+    // it passed — which is worth remembering when the next check passes.
+
+    test('a forced zone does NOT reach an isolate spawned from it', () async {
+      // The assumption that was false. `runRevali` forces the colour on and
+      // this still comes out plain, because a zone value is a fact about an
+      // isolate and `spawnUri` starts a new one.
+      final output = await runProbe(
+        environment: const {kForceAnsiEnvVar: '1'},
+        args: const ['--spawn', '--naked'],
+      );
+
+      printOnFailure(jsonEncode(output));
+
+      expect(output, contains('[READY]'));
+      expect(
+        output,
+        isNot(matches(RegExp(r'\x1B\[[0-9;]*m'))),
+        reason: 'the pane rendered exactly this, and drew it white',
+      );
+    });
+
+    test('so the spawned isolate asks for itself, and is coloured', () async {
+      // `runConstruct`'s half of the handshake, across the real boundary. It
+      // can ask because the signal is an environment variable, and an
+      // environment is process-wide where a zone is not.
+      final output = await runProbe(
+        environment: const {kForceAnsiEnvVar: '1'},
+        args: const ['--spawn'],
+      );
+
+      printOnFailure(jsonEncode(output));
+
+      expect(output, contains('\x1B[90m[READY]\x1B[0m'));
+      expect(output, contains('\x1B[33m'), reason: 'the yellow timestamp');
+    });
+
+    test('and stays plain across it without the handshake', () async {
+      // CI still gets a clean log, boundary or no boundary.
+      final output = await runProbe(args: const ['--spawn']);
+
+      printOnFailure(jsonEncode(output));
+
+      expect(output, contains('[READY]'));
+      expect(output, isNot(matches(RegExp(r'\x1B\[[0-9;]*m'))));
+    });
+  });
+
   group('the clear that `revali dev` sends before the board', () {
     test('is on the wire, ahead of the board it is clearing', () async {
       final output = await runProbe(environment: const {kForceAnsiEnvVar: '1'});
@@ -101,7 +158,7 @@ void main() {
       expect(output.indexOf(kClearScreen), lessThan(output.indexOf('[READY]')));
     });
 
-    test('empties the pane and leaves the board that followed it', () async {
+    test('rules the pane off and leaves the board that followed it', () async {
       final output = await runProbe(environment: const {kForceAnsiEnvVar: '1'});
 
       final it = session()
@@ -112,11 +169,21 @@ void main() {
 
       printOnFailure(texts.toString());
 
-      // The whole of defect 3, against the bytes the child really sends: the
-      // line from before is gone, and the board that arrived in the same
-      // chunk is not.
-      expect(texts, isNot(contains('an old line from before the clear')));
+      // Against the bytes the child really sends: what came before is still
+      // there, with a rule under it, and the board that arrived in the same
+      // chunk is below that.
+      expect(
+        texts,
+        containsAllInOrder([
+          'an old line from before the clear',
+          stripAnsi(kRedrawDivider),
+        ]),
+      );
       expect(texts.any((text) => text.contains('[READY]')), isTrue);
+      expect(
+        texts.indexOf(stripAnsi(kRedrawDivider)),
+        lessThan(texts.indexWhere((text) => text.contains('[READY]'))),
+      );
     });
   });
 }

@@ -2,9 +2,37 @@ import 'package:file/local.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:platform/platform.dart';
 import 'package:revali/revali.dart';
+import 'package:revali/services/ansi.dart';
 import 'package:revali_construct/revali_construct.dart';
 
+/// The constructs entrypoint, and the second half of `revali up`'s colour
+/// handshake.
+///
+/// The generated build script's `main` calls straight into this, and
+/// `ConstructEntrypointHandler.run` starts that script with `Isolate.spawnUri`
+/// — a *new isolate*, which begins in a fresh root zone. `runRevali` wrapping
+/// its own run in [withForcedAnsi] therefore does nothing for anything printed
+/// over here, and everything a developer reads while `revali dev` is up is
+/// printed over here: the status board, the `Press: r reload…` legend, the
+/// route table, and every `TickedProgress`.
+///
+/// That is why the board came out white under `revali up` while the
+/// `Retrieving constructs` / `Compiling constructs entrypoint` lines above it —
+/// the last things the outer process prints before this isolate takes over —
+/// came out coloured. One handshake, two programs; the zone reaches one of
+/// them, so the other has to ask for itself.
+///
+/// Reading the *environment* is what makes asking possible: an environment is
+/// process-wide, so it crosses the isolate boundary a zone value cannot.
 Future<int> runConstruct(
+  List<String> args, {
+  required List<ConstructMaker> constructs,
+  required String path,
+}) => withForcedAnsi(
+  () => _runConstruct(args, constructs: constructs, path: path),
+);
+
+Future<int> _runConstruct(
   List<String> args, {
   required List<ConstructMaker> constructs,
   required String path,
