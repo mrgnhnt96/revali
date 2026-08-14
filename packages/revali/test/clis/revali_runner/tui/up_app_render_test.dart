@@ -296,6 +296,126 @@ void main() {
       expect(tester.terminalState, isNot(containsText('⠙ Retrieving…')));
     });
 
+    test('paints a line in the colour the child asked for', () async {
+      // The bytes `mason_logger` writes for a completed step: the tick in
+      // `lightGreen` (92), the elapsed time in `darkGray` (90). Both are in
+      // the bright range, which is most of what a service prints.
+      final billing = session('billing', 8080)
+        ..ingest(
+          '\x1B[92m✓\x1B[0m Retrieved constructs \x1B[90m(52ms)\x1B[0m\n',
+          isError: false,
+        );
+
+      final tester = await pumpApp([billing]);
+
+      expect(
+        tester.terminalState,
+        hasStyledText('✓', const TextStyle(color: Colors.brightGreen)),
+      );
+      expect(
+        tester.terminalState,
+        hasStyledText('(52ms)', const TextStyle(color: Colors.brightBlack)),
+      );
+    });
+
+    test('renders the text of a coloured line, not its escapes', () async {
+      final billing = session('billing', 8080)
+        ..ingest(
+          '\x1B[92mServing at http://0.0.0.0:8080\x1B[0m\n',
+          isError: false,
+        );
+
+      final tester = await pumpApp([billing]);
+
+      expect(tester.terminalState, containsText('Serving at http://0.0.0.0'));
+      expect(tester.terminalState, isNot(containsText('[92m')));
+      expect(tester.terminalState, isNot(containsText('[0m')));
+    });
+
+    test('shows nothing at all for a control sequence', () async {
+      // `revali dev` clears its screen with these on every reload, and
+      // `mason_logger` brackets each spinner frame with `ESC[?7l ESC[2K`.
+      // They are addressed to a terminal that owns its screen; this pane is
+      // inside another program's frame and cannot obey them, so the only
+      // remaining answer is to drop them rather than print them.
+      final billing = session('billing', 8080)
+        ..ingest('\x1B[2J\x1B[0;0H\n', isError: false)
+        ..ingest('\x1B[?7l\x1B[2K\rafter the clear\n', isError: false);
+
+      final tester = await pumpApp([billing]);
+
+      expect(tester.terminalState, containsText('after the clear'));
+      expect(tester.terminalState, isNot(containsText('[2J')));
+      expect(tester.terminalState, isNot(containsText('0;0H')));
+      expect(tester.terminalState, isNot(containsText('[?7l')));
+      expect(tester.terminalState, isNot(containsText('[2K')));
+    });
+
+    test('leaves a line with no colour in it alone', () async {
+      final billing = session('billing', 8080)
+        ..ingest('plain output, no escapes\n', isError: false);
+
+      final tester = await pumpApp([billing]);
+
+      expect(tester.terminalState, containsText('plain output, no escapes'));
+    });
+
+    test('keeps the stderr grey where the child chose no colour', () async {
+      final orders = session('orders', 8080)
+        ..ingest('something on stderr\n', isError: true);
+
+      final tester = await pumpApp([orders]);
+
+      expect(
+        tester.terminalState,
+        hasStyledText(
+          'something on stderr',
+          const TextStyle(color: Colors.grey),
+        ),
+      );
+    });
+
+    test("lets the child's own colour win over the stderr grey", () async {
+      // stderr is where `logger.warn` and `logger.err` go, so the runs that
+      // most need their colour are exactly the ones the grey fallback would
+      // have flattened.
+      final orders = session('orders', 8080)
+        ..ingest(
+          '\x1B[91mFailed to bind server: address in use\x1B[0m\n',
+          isError: true,
+        );
+
+      final tester = await pumpApp([orders]);
+
+      expect(
+        tester.terminalState,
+        hasStyledText(
+          'Failed to bind server',
+          const TextStyle(color: Colors.brightRed),
+        ),
+      );
+    });
+
+    test('holds a colour-wrapped spinner frame the same way', () async {
+      // The half the colour change most easily breaks: the frame no longer
+      // starts with the glyph, so a spinner test reading the raw first
+      // character stops matching and every frame settles as its own line.
+      final billing = session('billing', 8080)
+        ..ingest('\x1B[92m⠋\x1B[0m Retrieving…', isError: false)
+        ..ingest('\r\x1B[92m⠙\x1B[0m Retrieving…', isError: false)
+        ..ingest('\r\x1B[92m⠹\x1B[0m Retrieving…', isError: false);
+
+      final tester = await pumpApp([billing]);
+
+      expect(billing.state, ServiceState.generating);
+      expect(tester.terminalState, containsText('⠹ Retrieving…'));
+      expect(tester.terminalState, isNot(containsText('⠋ Retrieving…')));
+      expect(tester.terminalState, isNot(containsText('⠙ Retrieving…')));
+
+      // And the roster's spinner column reads the same frame off it.
+      expect(tester.terminalState, containsText('generating ⠹'));
+    });
+
     test('shows the newest lines when there are more than fit', () async {
       final billing = session('billing', 8080);
       for (var i = 0; i < 40; i++) {

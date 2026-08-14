@@ -1,4 +1,5 @@
 import 'package:mason_logger/mason_logger.dart';
+import 'package:revali/services/ansi.dart';
 import 'package:revali/services/service_discovery.dart';
 
 /// One service, with everything the runner needs to start it.
@@ -127,12 +128,23 @@ List<String> prefixLines(String chunk, String label) {
 /// is the part worth keeping. Anything a child prints that does *not* animate
 /// passes through untouched.
 ///
+/// The glyph is looked for in the frame's *visible* text. A child that colours
+/// its output writes `ESC[92m⠋ESC[0m Retrieving…`, whose first code unit is the
+/// escape byte and not the glyph — so testing the raw string would stop
+/// matching the moment colour was turned on, and would do it silently: every
+/// frame becomes a settled line, the spinner column in the roster empties, and
+/// nothing anywhere reports an error. [stripAnsi] is what keeps this test about
+/// what the child drew rather than about how it drew it.
+///
 /// Public so a renderer that owns its own region — a per-service pane, which
 /// can redraw in place rather than only appending — can hold an unfinished
 /// frame instead of dropping it. A second copy of this test would drift from
 /// this one.
-bool isUnfinished(String frame) =>
-    frame.isNotEmpty && _spinnerGlyphs.contains(frame.codeUnitAt(0));
+bool isUnfinished(String frame) {
+  final visible = stripAnsi(frame).trim();
+
+  return visible.isNotEmpty && _spinnerGlyphs.contains(visible.codeUnitAt(0));
+}
 
 /// The braille cells `mason_logger` cycles through while a task runs.
 const _spinnerGlyphs = {

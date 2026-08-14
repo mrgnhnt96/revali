@@ -1,5 +1,6 @@
 import 'package:mason_logger/mason_logger.dart' show AnsiCode;
 import 'package:nocterm/nocterm.dart';
+import 'package:revali/services/ansi.dart';
 import 'package:revali/services/service_plan.dart';
 import 'package:revali/services/service_session.dart';
 
@@ -15,9 +16,24 @@ import 'package:revali/services/service_session.dart';
 /// stable part of an [AnsiCode] — the palette it resolves to is the terminal's
 /// business, on both sides.
 Color serviceColor(int index) =>
-    _byAnsiCode[colorFor(index).code] ?? Colors.white;
+    colorForSgr(colorFor(index).code) ?? Colors.white;
 
-/// Standard foreground SGR codes, which is all [colorFor] ever returns.
+/// The colour SGR foreground number [code] names, or null if it is not one
+/// this maps.
+///
+/// The second caller of [_byAnsiCode], and the reason it covers the bright
+/// range as well as the standard one: a service's own colour only ever comes
+/// from [colorFor], but a *line* of a child's output can carry any foreground
+/// the child felt like using, and `mason_logger` reaches for the bright ones
+/// constantly — `lightGreen` is 92 and `darkGray` is 90, which between them are
+/// most of what a progress line is made of.
+Color? colorForSgr(int code) => _byAnsiCode[code];
+
+/// Foreground SGR codes: the standard eight, then the bright eight.
+///
+/// One table, because the roster and the log pane have to agree on what `32`
+/// looks like — and because a service drawn in one green beside its own output
+/// drawn in another reads as two different services.
 const _byAnsiCode = {
   30: Colors.black,
   31: Colors.red,
@@ -26,6 +42,15 @@ const _byAnsiCode = {
   34: Colors.blue,
   35: Colors.magenta,
   36: Colors.cyan,
+  37: Colors.white,
+  90: Colors.brightBlack,
+  91: Colors.brightRed,
+  92: Colors.brightGreen,
+  93: Colors.brightYellow,
+  94: Colors.brightBlue,
+  95: Colors.brightMagenta,
+  96: Colors.brightCyan,
+  97: Colors.brightWhite,
 };
 
 /// The word shown in a row's state column.
@@ -71,11 +96,16 @@ Color stateColor(ServiceState state) => switch (state) {
 /// child owns the animation, and a second timer here would tick out of step
 /// with the thing it claims to be reporting. It moves when the child's output
 /// moves, which is the only honest cadence available.
+///
+/// Stripped before the glyph is taken, for the same reason [isUnfinished]
+/// strips: a coloured frame begins with the escape byte, and slicing the first
+/// character off the raw string would put that byte in the roster instead of
+/// the spinner.
 String? spinnerFrame(ServiceSession session) {
   final lines = session.lines;
   if (lines.isEmpty) return null;
 
-  final last = lines.last.text;
+  final visible = stripAnsi(lines.last.text).trim();
 
-  return isUnfinished(last) ? last.substring(0, 1) : null;
+  return isUnfinished(visible) ? visible.substring(0, 1) : null;
 }

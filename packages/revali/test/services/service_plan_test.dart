@@ -178,6 +178,40 @@ void main() {
     });
   });
 
+  group('isUnfinished', () {
+    test('spots a bare spinner glyph', () {
+      expect(isUnfinished('⠋ Retrieving constructs'), isTrue);
+      expect(isUnfinished('✓ Retrieved constructs'), isFalse);
+      expect(isUnfinished(''), isFalse);
+    });
+
+    test('spots one the child wrapped in colour', () {
+      // The exact bytes `mason_logger` writes for a frame once
+      // `ansiOutputEnabled` is on -- `lightGreen.wrap(glyph)`, then the
+      // elapsed time in `darkGray`. The raw string starts with the escape
+      // byte, not the glyph, so a test that reads `codeUnitAt(0)` off it
+      // fails here and does it silently: every frame settles as a permanent
+      // line and the roster's spinner column just goes empty.
+      expect(
+        isUnfinished('\x1B[92m⠙\x1B[0m Retrieving... \x1B[90m(83ms)\x1B[0m'),
+        isTrue,
+      );
+    });
+
+    test('still says no to a resolved frame that is coloured', () {
+      expect(
+        isUnfinished('\x1B[92m✓\x1B[0m Retrieved \x1B[90m(0.3s)\x1B[0m'),
+        isFalse,
+      );
+    });
+
+    test('says no to a line made only of escape sequences', () {
+      // `revali dev`'s clear-screen. It has no visible text at all, so there
+      // is no first character to mistake for a glyph.
+      expect(isUnfinished('\x1B[2J\x1B[0;0H'), isFalse);
+    });
+  });
+
   group('colorFor', () {
     test('is stable for an index', () {
       expect(colorFor(2), colorFor(2));

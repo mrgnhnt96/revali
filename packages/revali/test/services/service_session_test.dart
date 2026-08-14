@@ -1,4 +1,5 @@
 import 'package:file/memory.dart';
+import 'package:revali/services/ansi.dart';
 import 'package:revali/services/service_discovery.dart';
 import 'package:revali/services/service_plan.dart';
 import 'package:revali/services/service_session.dart';
@@ -200,6 +201,102 @@ void main() {
       ]);
 
       expect(texts(it), ['✓ Retrieved constructs', '✓ Generated server code']);
+    });
+  });
+
+  group('a colour-emitting child', () {
+    // Captured from `mason_logger` with `ansiOutputEnabled` forced on, which
+    // is what `revali up` gets once it sets REVALI_FORCE_ANSI on the child.
+    // Byte for byte, including the `ESC[?7l` / `ESC[2K` each frame is wrapped
+    // in -- those come out of `Progress` regardless of colour, and they are
+    // the reason a frame's last character is not the one the child drew.
+    const frames = [
+      '\x1B[?7l\x1B[2K\r\x1B[92m⠙\x1B[0m Retrieving... \x1B[90m(83ms)\x1B[0m',
+      '\x1B[?7l\x1B[2K\r\x1B[92m⠹\x1B[0m Retrieving... \x1B[90m(0.2s)\x1B[0m',
+      '\x1B[?7l\x1B[2K\r\x1B[92m⠸\x1B[0m Retrieving... \x1B[90m(0.2s)\x1B[0m',
+    ];
+
+    test('its spinner still animates in place rather than stacking', () {
+      final it = session();
+
+      for (final (index, frame) in frames.indexed) {
+        it.ingest(frame, isError: false);
+
+        expect(
+          it.lines,
+          hasLength(1),
+          reason: 'coloured frame ${index + 1} stacked instead of replacing',
+        );
+      }
+    });
+
+    test('its spinner still reads as a step in flight', () {
+      final it = session();
+
+      write(it, frames);
+
+      expect(it.state, ServiceState.generating);
+    });
+
+    test('its resolved step still settles', () {
+      final it = session();
+
+      write(it, [
+        ...frames,
+        '\x1B[?7h\x1B[2K\r\x1B[92m✓\x1B[0m Retrieved \x1B[90m(0.3s)\x1B[0m\n',
+      ]);
+
+      expect(it.lines, hasLength(1));
+      expect(it.state, ServiceState.generating);
+    });
+
+    test('the model keeps what the child sent, escapes and all', () {
+      // Parsing on the way in would leave nothing for a renderer to colour
+      // with. The session stores bytes; the pane decides what they mean.
+      final it = session();
+
+      write(it, ['\x1B[92mServing at http://0.0.0.0:8080\x1B[0m\n']);
+
+      expect(texts(it), ['\x1B[92mServing at http://0.0.0.0:8080\x1B[0m']);
+    });
+
+    test('every state marker still fires through the colour', () {
+      // The substring matches in `_note` were written for a child that
+      // already coloured *some* lines. Turning colour on for all of them adds
+      // an escape prefix to the rest, so each marker is re-proved here
+      // against the bytes `mason_logger` actually writes for it: `success` in
+      // lightGreen, `err` in lightRed, `warn` in yellow *and* bold, which is
+      // two SGR sequences before the first character of the marker.
+      const coloured = {
+        '\x1B[92mServing at http://0.0.0.0:8080\x1B[0m\n': ServiceState.serving,
+        '\x1B[91mFailed to bind server: address in use\x1B[0m\n':
+            ServiceState.failed,
+        '\x1B[33m\x1B[1m[WARN] Dev server is still running\x1B[22m\x1B[0m\n':
+            ServiceState.failed,
+        '\x1B[91mServer process terminated unexpectedly with exit '
+                'code: 255\x1B[0m\n':
+            ServiceState.failed,
+      };
+
+      for (final MapEntry(key: line, value: expected) in coloured.entries) {
+        expect(
+          (session()..ingest(line, isError: true)).state,
+          expected,
+          reason: 'the marker in ${stripAnsi(line).trim()} stopped matching',
+        );
+      }
+    });
+
+    test('a clear-screen sequence does not settle as a line', () {
+      // `revali dev`'s `_wipeOrDivide` prints this on every reload. It has no
+      // visible text, so there is nothing for the pane to show -- but the
+      // session settles it, because the session stores bytes.
+      final it = session()
+        ..ingest('\x1B[2J\x1B[0;0H\n', isError: false)
+        ..ingest('after\n', isError: false);
+
+      expect(it.state, ServiceState.starting);
+      expect(texts(it), contains('after'));
     });
   });
 
