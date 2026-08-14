@@ -90,10 +90,11 @@ re-discovered.
 ## Tier 4 — Internal quality
 
 - [ ] Close the worst test-coverage gaps (`revali_router` is fine at 39 tests / 93 lib files; these are not)
-  - [ ] `revali_annotations` — **0** tests, 42 lib files
-  - [ ] `revali_client` runtime — 1 test, 14 lib files; this is the HTTP client every consumer app depends on
-  - [ ] `revali_core` — 3 tests, 64 lib files
-  - [ ] `revali_mcp` — 0 tests
+  - Counts re-measured 2026-08-13 (test **files**, not test cases); the old numbers had drifted badly enough to mis-rank the work.
+  - [ ] `revali_annotations` — 1 test file, 43 lib files. Now the thinnest by far
+  - [ ] `revali_core` — 6 test files, 77 lib files. Everything published rests on this one
+  - [ ] `revali_mcp` — 1 test file. Its code is not under `lib/`, so measure it before ranking it
+  - [x] `revali_client` runtime — was 1 test / 14 lib files, now **8 test files / 16 lib files**, including retry and timeout over a real socket
 - [ ] Filter before resolving in `Analyzer._analyzeDirectory` (the last open item from 7.31.26)
   - `analyzer.dart:369-382` fully resolves **every** `.dart` file it walks via `await units.resolved()`, with no pre-filter
   - It already calls `getParsedUnit` first, so the parsed AST can be checked for `@Controller` / `@App` before paying for resolution — which is exactly the deferral `import_ozempic` does
@@ -168,7 +169,7 @@ mounted into the former. The split is fine; the flag duplication is not.
   - `access_control` — stale assertions: still expected `403` for a request with no `Origin`, which `3a3b7b92` deliberately changed without updating the tests
   - `revali_client/cookies` — **real bug**: `CookieParser` could not parse a comma-joined multi-cookie header at all, and stored `Path`/`Expires` as cookies. `TestHeaders.add` also overwrote instead of appending, so only the last cookie survived
   - `revali_client/default_custom_params` — **real bug**: generated code did not compile for a parameter whose wire form is a string but whose type is a custom class. Any app with such a parameter failed to build
-- [ ] 🔴 **`revali_router` is versioned `4.1.0` for a breaking change.**
+- [x] ✅ **Resolved: `revali_router` shipped `5.0.0`, a major.** Verified 2026-08-13 against `revali_router/revali_router/CHANGELOG.md`, whose 5.0.0 entry documents the `Observer.see` break and the `revali_core: ^3.0.0` bump. The pubspec reads `5.0.0`; `LATEST_CHANGELOG.md` stages `5.1.0`.
   - `revali_router.dart` re-exports `package:revali_core/revali_core.dart` hiding only `AppConfig`, `Body` and `LifecycleComponents` — so `Observer` is part of **revali_router's** public API, and `examples/hello` imports it from there
   - `Observer.see`'s signature changed, which is breaking for revali_router consumers. Shipping it as a minor breaks every dependent on `dart pub upgrade`
   - Same question for `revali` (`3.2.0`), which re-exports less but should be checked
@@ -176,7 +177,7 @@ mounted into the former. The split is fine; the flag duplication is not.
 
 ### Found while working Tier 3
 
-- [ ] **Pre-existing failures: `test_suite/constructs/revali_server/access_control` → `allow_origin_controller_test.dart`**
+- [x] ✅ **Fixed. Verified 2026-08-13 the way this entry demands** — regenerated with `dart run revali dev --generate-only --recompile`, then ran: `+43: All tests passed!`. Re-checking without regenerating first would have been the stale-`.revali` illusion this entry warns about, which is why the regenerate is recorded here rather than just the result.
   - Three tests expect `403` for a missing `Origin` and get `200`: "combined returns an error response when child nor parent origin are not present", and the "inherited" / "not-inherited" equivalents
   - Confirmed **not** caused by the Tier 3 work: stashed all local changes, regenerated on clean `main`, and it fails identically (`+40 -3`)
   - Like the `pre_interceptor_test` failure below, it only surfaces after a regenerate — which raises a separate question, since the pre-push hook runs the suite and passed. Worth checking whether the hook's suite run is testing stale `.revali` output
@@ -192,7 +193,7 @@ mounted into the former. The split is fine; the flag duplication is not.
 
 ### Found while cleaning up
 
-- [ ] **Pre-existing failure: `test_suite/constructs/revali_server/middleware` → `pre_interceptor_test.dart`**
+- [x] ✅ **Fixed. Verified 2026-08-13 after a full regenerate** (same protocol as `access_control` above): `+30: All tests passed!`.
   - "should throw if user is not added to the request" expects the debug body to *start with* `Error: MissingArgumentException: key: data, location: @data\n`, but the actual message now continues `, expected: User, actual: null` and is followed by a `Stack Trace:` block
   - `missing_argument_exception.dart:28,31` append `expected:` / `actual:` when known. Both the exception and the test were last touched by the same commit (`2630ff46`, 2026-07-31), so the expectation looks like it was written against output from before those fields were populated
   - Confirmed **not** caused by the cleanup: stashed all local changes, regenerated the package on clean `main`, and the test fails identically
@@ -315,7 +316,7 @@ In practice the second analysis pass on the same project dropped from ~85s → ~
     }
   ```
 
-- [ ] Think of ways to better support micro services
+- [x] ✅ **Done.** Eight gaps shipped — see [MICROSERVICES_PLAN.md](./MICROSERVICES_PLAN.md) for the analysis and [HANDOFF.md](./HANDOFF.md) for the state, including the four follow-ups that are now closed too.
 
 # 12.17.25
 

@@ -94,3 +94,56 @@ Package: [`packages/revali_mcp`](packages/revali_mcp). Example Cursor config (ru
 ```
 
 Tools: `list_routes`, `get_route`, `doctor`, `recent_requests`, `create_scaffold`.
+
+## Agent harnesses (game_loop / showrunner)
+
+Both live in gitignored directories, so **none of this survives a fresh clone** —
+it is per-developer tooling, not project source. Recorded here because the
+defaults are wrong for this repo in ways that fail quietly.
+
+Neither is required to work on Revali. Skip this section if you are not using them.
+
+### game_loop — the commit gate
+
+`.game_loop/verify.yaml` ships **empty**, and an empty manifest passes in silence
+on every path. It now carries one rule per source tree, each running
+`scripts/run_all_tests.sh --path <dir>`:
+
+| Glob | Check |
+|---|---|
+| `packages/**`, `constructs/**`, `revali_router/**`, `test_suite/**`, `scripts/**` | `./scripts/run_all_tests.sh --path <dir>` |
+| `hooks/**` | `dart analyze --fatal-infos --fatal-warnings hooks` |
+
+`hooks/` is analysis-only on purpose: it has no `test` dev_dependency, so a test
+run there discovers nothing and trips the script's own "ran nothing" floor.
+
+Never write a `sip test` rule. It exits 0 reporting "40 passed, 0 failed" where
+`dart test` exits 1 with 3 failures, and it ignores `dart_test.yaml` tag skips —
+a gate built on a runner that cannot go red is not a gate.
+
+Confirm the gate is real rather than trusting `--coverage`, which says outright
+it cannot tell a check from a tautology: break a test, `git add` it, run
+`./.game_loop/bin/verify`, and expect exit 1.
+
+### showrunner — parallel Crawlers
+
+Two settings in `.showrunner/config.json`, both wrong by default here:
+
+```json
+"checks":  [{ "name": "tests", "cmd": "./scripts/run_all_tests.sh" }],
+"harness": {
+  "installer":    "<path to>/game_loop/install.sh",
+  "install_args": ["--central", "--same-as", "{parent}", "{worktree}"]
+}
+```
+
+- `checks` ships as `echo 'configure me: your test command'` — a check that
+  cannot fail, so every `check` and `close` reports success.
+- `install_args` defaults to `--same-as` alone. This repo's game_loop is a
+  `--central` install (five dispatcher shims, no `*-impl.sh`), but `--same-as`
+  alone gives each worktree a full **local** copy — so parent and Crawler run
+  identical rules under different code, and `spawn` refuses. `--central` makes
+  all five scripts byte-identical.
+
+Then run `showrunner baseline` on a known-good tree; without it `check` cannot
+tell a new failure from a pre-existing one.
