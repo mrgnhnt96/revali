@@ -161,18 +161,41 @@ Not oversights — decisions, with reasons.
   a queue message has none. Consumers get DI scoping, tracing and shutdown.
 - **Client generation from `routes.json`.** See above.
 
-## What is genuinely unfinished
+## What was genuinely unfinished — now done
 
-- **Hot-reload keystrokes under `revali up`.** `r`/`c`/`q` don't reach children,
-  because their stdin isn't a terminal. File-watching reload works. Fix is
-  either forwarding stdin to a selected child or having the runner write
-  `.revali_cmd` per service.
-- **Redis reconnection depth.** A dropped *client* connection backs off and
-  retries. A *server* restart is not handled — the consumer group isn't
-  re-established.
-- **Retry/timeout against a real socket.** Tested against fake transports only.
-- **The SIGTERM drain under multiple workers** is verified only by a manual
-  three-worker run, not automated. Probably the most valuable remaining hole.
+All four are closed. Each was verified by running the real thing, and each has
+a test that fails when the behaviour alone is removed.
+
+- **Hot-reload keystrokes under `revali up`.** Done. The parent writes
+  `.revali_cmd` per service — the channel `revali dev` already watched when it
+  has no TTY. Not tested end to end: the listener needs a real terminal, which
+  the test runner has none of. The broadcast is covered.
+- **Redis reconnection depth.** Done, and the premise was understated. A server
+  restart did not merely leave the group unrecreated — it **killed the
+  process** with an unhandled `SocketException` from writing to a dead socket
+  whose `done` future nobody observed. Three fixes: observe `done`, reconnect
+  and retry once, and recreate a lost group on `NOGROUP`.
+- **Retry/timeout against a real socket.** Done. Seven cases through the real
+  `HttpPackageClient` against a real `HttpServer`, including a genuinely
+  refused connection and a peer that accepts and never answers.
+- **The SIGTERM drain under multiple workers.** Done, and this one needed the
+  most care — see below.
+
+### Two traps worth inheriting
+
+**The multi-worker drain test is deliberately clock-free.** The earlier attempt
+this handoff warned about passed against a broken build because every request
+took the same three seconds. A *second* attempt was flaky at 2 passes in 8, and
+its assertion was simply wrong rather than racy: it compared when the client
+finished reading against when the parent's drain returned, and those are
+scheduled independently. Handlers now block on a signal the parent controls, so
+"in flight during the drain" is a fact and no assertion contains a clock.
+
+**A stand-in that differs from the real thing in the one variable under test is
+worse than no test.** Two of these bit during this work: a terminal probe that
+did not redirect stdout gave the opposite answer from the real run, and a first
+version of the reconnect test drove a reimplementation of the logic rather than
+the shipping class.
 
 ---
 
