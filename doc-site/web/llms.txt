@@ -25,6 +25,7 @@ Install the framework, configure your app, and run the CLI.
 - [Graceful Shutdown](https://docs.revali.dev/revali/app-configuration/graceful-shutdown): Finish in-flight requests before the process exits.
 - [revali dev](https://docs.revali.dev/revali/cli/dev): Run the server with code generation and hot reload.
 - [revali build](https://docs.revali.dev/revali/cli/build): Produce the compiled server for deployment.
+- [revali up](https://docs.revali.dev/revali/cli/up): Run every service in the repository at once.
 - [revali routes](https://docs.revali.dev/revali/cli/routes): Print every route the generator found.
 - [revali doctor](https://docs.revali.dev/revali/cli/doctor): Check the project for the things that usually go wrong.
 - [revali ai](https://docs.revali.dev/revali/cli/ai): Install a Revali reference file for your AI coding assistant.

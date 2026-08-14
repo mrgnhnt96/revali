@@ -231,6 +231,11 @@ const _revali = NavSection(
           summary: 'Produce the compiled server for deployment.',
         ),
         NavItem(
+          'revali up',
+          '/revali/cli/up',
+          summary: 'Run every service in the repository at once.',
+        ),
+        NavItem(
           'revali routes',
           '/revali/cli/routes',
           summary: 'Print every route the generator found.',
