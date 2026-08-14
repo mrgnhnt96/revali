@@ -55,6 +55,9 @@ class RunCatchers {
             ? defaultResponses.badRequest
             : defaultResponses.internalServerError);
 
+    // Handled after the catcher loop below, not here: an app that registered a
+    // catcher for its own HttpError subtype should still win.
+
     if (e is! Exception) {
       return debugErrorResponse(
         fallback,
@@ -86,6 +89,23 @@ class RunCatchers {
           stackTrace: stackTrace,
         );
       }
+    }
+
+    // No catcher claimed it. A structured failure carries its own status and
+    // envelope, so the caller gets a code to branch on instead of a status
+    // and a sentence.
+    if (e is HttpError) {
+      return debugErrorResponse(
+        response
+          .._overrideWith(
+            statusCode: e.statusCode,
+            backupCode: e.statusCode,
+            headers: null,
+            body: e.toEnvelope(),
+          ),
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
 
     return debugErrorResponse(

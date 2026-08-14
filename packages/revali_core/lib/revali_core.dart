@@ -37,6 +37,7 @@ export 'di/disposable.dart';
 export 'di/request_scoped_di.dart';
 export 'di/request_scoped_registry.dart';
 export 'env/env.dart';
+export 'error/http_error.dart';
 export 'error/override_error_response.dart';
 export 'error/override_error_response_mixin.dart';
 export 'file/memory_file.dart';
