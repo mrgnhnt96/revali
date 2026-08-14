@@ -1,6 +1,7 @@
 import 'package:nocterm/nocterm.dart';
 import 'package:revali/clis/revali_runner/tui/service_list.dart';
 import 'package:revali/clis/revali_runner/tui/service_log.dart';
+import 'package:revali/clis/revali_runner/tui/shutdown_view.dart';
 import 'package:revali/clis/revali_runner/tui/up_footer.dart';
 import 'package:revali/services/service_session.dart';
 
@@ -53,10 +54,12 @@ class UpApp extends StatefulComponent {
   /// Called for a shifted `R`, `C` or `Q`, which act on the whole fleet.
   final FleetCommandCallback onCommandAll;
 
-  /// Called on `Ctrl+C`: tear the TUI down.
+  /// Called on `Ctrl+C`, every press.
   ///
-  /// Distinct from `Q`, which stops the services and leaves the decision about
-  /// the screen to whoever is holding it.
+  /// Two presses mean two different things, and telling them apart is the
+  /// runner's business rather than this component's: the first stops the fleet
+  /// and the second stops waiting for it. What the screen does with them is
+  /// separate — see [_UpAppState._stopping].
   final VoidCallback onQuit;
 
   @override
@@ -65,6 +68,20 @@ class UpApp extends StatefulComponent {
 
 class _UpAppState extends State<UpApp> {
   int _focused = 0;
+
+  /// Whether the fleet has been asked to go down.
+  ///
+  /// Kept here rather than read off the runner because it is a fact about what
+  /// this screen was told, and every way of telling it is a keystroke this
+  /// component already handles. Sourcing it from the runner would mean the
+  /// runner reaching back into the view, which is the one direction `tui/` does
+  /// not go — and it would put a second hand on `_stop()`, which owns the
+  /// shutdown and should keep owning all of it.
+  ///
+  /// One-way on purpose. There is no path back from a fleet that is draining:
+  /// the children have had their SIGTERM and the screen comes down on its own
+  /// once they are gone.
+  var _stopping = false;
 
   ServiceSession? get _session =>
       component.sessions.isEmpty ? null : component.sessions[_focused];
@@ -90,12 +107,26 @@ class _UpAppState extends State<UpApp> {
   bool _handleKey(KeyboardEvent event) {
     if (event.isControlPressed) {
       if (event.logicalKey == LogicalKey.keyC) {
+        // The screen swaps on the way *in* to the callback, so the second
+        // press — the one that ends the process from inside [onQuit] — is not
+        // relied on to come back and finish a `setState`.
+        _enterShutdown();
         component.onQuit();
+
         return true;
       }
 
       // Nothing else is bound with Ctrl held, and letting `Ctrl+r` fall
       // through to the plain `r` branch would reload on a chord nobody meant.
+      return false;
+    }
+
+    // Once the fleet is draining, `^C` is the only live key and the shutdown
+    // screen advertises nothing else. Letting `r` through would write a reload
+    // to a service that is on its way out — and swallowing it here is what
+    // makes "the keys stopped working" a thing the screen said rather than
+    // something the reader has to infer from nothing happening.
+    if (_stopping) {
       return false;
     }
 
@@ -119,7 +150,17 @@ class _UpAppState extends State<UpApp> {
     if (command == null) return false;
 
     if (_isShifted(event)) {
+      if (command == UpCommand.quit) {
+        // `Q` stops the fleet too — the runner sends every child `quit` *and*
+        // calls the same `_stop()` a `Ctrl+C` does. So it is the same drain to
+        // sit through, and it would be a strange screen that explained it for
+        // one of the two keys that starts it. Unshifted `q` is untouched: that
+        // one stops a single service and the fleet carries on.
+        _enterShutdown();
+      }
+
       component.onCommandAll(command);
+
       return true;
     }
 
@@ -130,10 +171,15 @@ class _UpAppState extends State<UpApp> {
     return true;
   }
 
+  /// Puts the screen into its shutdown state, once.
+  void _enterShutdown() {
+    if (_stopping) return;
+
+    setState(() => _stopping = true);
+  }
+
   @override
   Component build(BuildContext context) {
-    final session = _session;
-
     return Focusable(
       focused: true,
       onKeyEvent: _handleKey,
@@ -142,21 +188,34 @@ class _UpAppState extends State<UpApp> {
           border: BoxBorder.all(color: Colors.grey),
           title: const BorderTitle(text: ' revali up '),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ServiceList(sessions: component.sessions, focusedIndex: _focused),
-            const Divider(),
-            Expanded(
-              child: session == null
-                  ? const Text('No services.')
-                  : ServiceLog(session: session, index: _focused),
-            ),
-            const Divider(),
-            const UpFooter(),
-          ],
-        ),
+        // The frame is the same frame; what is inside it is not. The roster,
+        // the log pane and the key legend all describe a fleet that is still
+        // running, so the drain gets the whole screen rather than a line
+        // appended to one that has stopped being true.
+        child: _stopping
+            ? ShutdownView(sessions: component.sessions)
+            : _buildFleet(),
       ),
+    );
+  }
+
+  /// The running screen: the roster, the focused service's output, the legend.
+  Component _buildFleet() {
+    final session = _session;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ServiceList(sessions: component.sessions, focusedIndex: _focused),
+        const Divider(),
+        Expanded(
+          child: session == null
+              ? const Text('No services.')
+              : ServiceLog(session: session, index: _focused),
+        ),
+        const Divider(),
+        const UpFooter(),
+      ],
     );
   }
 }
