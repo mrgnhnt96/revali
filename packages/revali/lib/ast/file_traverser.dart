@@ -66,8 +66,15 @@ class FileTraverser {
       return null;
     }
 
-    final (:element, path: routePath, :constructor, :params, :methods, :type) =
-        classVisitor.values;
+    final (
+      :element,
+      path: routePath,
+      :constructor,
+      :params,
+      :methods,
+      :consumers,
+      :type,
+    ) = classVisitor.values;
 
     return MetaRoute(
       path: routePath,
@@ -78,6 +85,7 @@ class FileTraverser {
       constructorName:
           constructor.name ?? (throw Exception('Constructor name is null')),
       methods: methods,
+      consumers: consumers,
       type: type,
       annotationsFor:
           ({required List<OnMatch> onMatch, NonMatch? onNonMatch}) =>

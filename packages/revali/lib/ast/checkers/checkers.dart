@@ -13,3 +13,8 @@ final methodChecker = TypeChecker.fromName(
   '$Method',
   packageName: 'revali_annotations',
 );
+
+final consumesChecker = TypeChecker.fromName(
+  '$Consumes',
+  packageName: 'revali_annotations',
+);

@@ -1,6 +1,7 @@
 import 'package:code_builder/code_builder.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:revali/server/converters/server_server.dart';
+import 'package:revali/server/makers/part_files/consumers_file_maker.dart';
 import 'package:revali/server/makers/part_files/lifecycle_components_files_maker.dart';
 import 'package:revali/server/makers/part_files/public_file_maker.dart';
 import 'package:revali/server/makers/part_files/reflects_file_maker.dart';
@@ -38,6 +39,9 @@ class RevaliServerConstruct implements ServerConstruct {
           reflectsFileMaker(serverServer, format),
           publicFileMaker(serverServer, format),
           routesFileMaker(serverServer, format),
+          // Null when nothing is annotated, so an app without messaging
+          // gains no file and no wiring.
+          if (consumersFileMaker(serverServer, format) case final file?) file,
           for (final component in serverServer.lifecycleComponents)
             ...lifecycleComponentFilesMaker(component, format),
         ],

@@ -13,6 +13,12 @@ class MethodVisitor extends RecursiveElementVisitor2<void> {
   // Method name to method element
   Map<String, List<MetaMethod>> methods = {};
 
+  /// Methods annotated with `@Consumes`.
+  ///
+  /// Kept apart from [methods]: a consumer has no verb and no path, so it is
+  /// not a route and must not be registered as one.
+  final List<MetaConsumer> consumers = [];
+
   /// Dart method names already registered as routes.
   ///
   /// The controller's own methods are visited before its supertypes', so an
@@ -27,6 +33,12 @@ class MethodVisitor extends RecursiveElementVisitor2<void> {
   @override
   void visitMethodElement(MethodElement element) {
     super.visitMethodElement(element);
+
+    if (consumesChecker.hasAnnotationOf(element)) {
+      _visitConsumer(element);
+
+      return;
+    }
 
     if (!methodChecker.hasAnnotationOf(element)) {
       return;
@@ -87,6 +99,70 @@ class MethodVisitor extends RecursiveElementVisitor2<void> {
                   onMatch: onMatch,
                 ),
       ),
+    );
+  }
+
+  void _visitConsumer(MethodElement element) {
+    final name = element.name ?? (throw Exception('Method name is null'));
+
+    if (_registered.contains(name)) {
+      return;
+    }
+
+    if (methodChecker.hasAnnotationOf(element)) {
+      throw Exception(
+        'A method cannot be both a route and a consumer '
+        '(controller $controllerName, method $name)',
+      );
+    }
+
+    final annotations = consumesChecker.annotationsOf(element);
+
+    if (annotations.length > 1) {
+      // Several topics on one handler would each need their own group and
+      // their own registration; two annotations is ambiguous rather than
+      // additive.
+      throw Exception(
+        'Only one @Consumes per method is allowed '
+        '(controller $controllerName, method $name)',
+      );
+    }
+
+    final annotation = annotations.first;
+    final topic = annotation.getField('topic')?.toStringValue();
+    final group = annotation.getField('group')?.toStringValue();
+
+    if (topic == null || topic.isEmpty || group == null || group.isEmpty) {
+      throw Exception(
+        '@Consumes needs a topic and a group '
+        '(controller $controllerName, method $name)',
+      );
+    }
+
+    final params = getParams(element).toList();
+
+    if (params.length > 1) {
+      // Rejected here rather than emitting code that will not compile: the
+      // error names the method, which a build failure in generated output
+      // would not.
+      throw Exception(
+        'A consumer takes at most one parameter, a BrokerMessage '
+        '(controller $controllerName, method $name)',
+      );
+    }
+
+    if (params.isNotEmpty && params.first.type.name != 'BrokerMessage') {
+      throw Exception(
+        'A consumer parameter must be a BrokerMessage, got '
+        '${params.first.type.name} '
+        '(controller $controllerName, method $name)',
+      );
+    }
+
+    _registered.add(name);
+
+    consumers.add(
+      MetaConsumer(name: name, topic: topic, group: group, params: params),
     );
   }
 }

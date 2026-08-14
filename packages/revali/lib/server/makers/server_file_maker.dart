@@ -48,6 +48,19 @@ String serverFile(
 
   final isDebug = server.context.mode.isDebug;
 
+  /// Whether anything is annotated with `@Consumes`.
+  ///
+  /// Gates every piece of messaging wiring, so an app that uses none gets a
+  /// generated server byte-identical to before this existed.
+  final hasConsumers = server.routes.any((route) => route.consumers.isNotEmpty);
+
+  /// Emitted inside `drainThisIsolate` only when there are consumers.
+  ///
+  /// Consumers drain first: they pull *new* work, so leaving them running
+  /// while HTTP drains means the process keeps taking on messages it is about
+  /// to abandon.
+  const consumerDrainCall = '  await drainConsumers();\n\n';
+
   final main = Method(
     (b) => b
       ..name = 'main'
@@ -304,13 +317,35 @@ if (!isWorker && providedServer == null && app.workers > 1) {
                         .call([])
                         .statement,
                     const Code('\n'),
+                    if (hasConsumers)
+                      const Code('''
+// Messaging is opt-in: an app that supplies no broker registers no
+// consumers, even when handlers are annotated.
+ConsumerRegistry? consumers;
+if (await app.createBroker() case final broker?) {
+  consumers = ConsumerRegistry(broker: broker, di: di);
+  await registerConsumers(consumers, di);
+}
+'''),
+                    const Code('\n'),
                     // Only a server this function created and owns may install
                     // process-wide signal handlers. A provided server belongs
                     // to the caller (tests pass a TestServer), and a worker
                     // isolate is told when to drain by the parent instead.
-                    const Code(r'''
+                    if (hasConsumers)
+                      const Code('''
+Future<void> drainConsumers() async {
+  if (consumers case final registry?) {
+    await registry.drain(app.shutdownTimeout);
+    await registry.close();
+  }
+}
+'''),
+                    // The consumer drain is emitted only when there is one, so
+                    // an app without messaging gets no stub and no call.
+                    Code('''
 Future<void> drainThisIsolate(Duration drainDelay) async {
-  await shutdownServer(
+${hasConsumers ? consumerDrainCall : ''}  await shutdownServer(
     server: server,
     inFlight: inFlight,
     timeout: app.shutdownTimeout,
@@ -331,7 +366,7 @@ if (isWorker) {
   }
 } else if (providedServer == null && app.handleShutdownSignals) {
   listenForShutdown((signal) async {
-    print('Received $signal, shutting down...');
+    print('Received \$signal, shutting down...');
     // SIGINT is a human at a terminal who wants the process gone now.
     // SIGTERM is an orchestrator, which is who the delay exists for.
     final drainDelay = signal == ProcessSignal.sigterm

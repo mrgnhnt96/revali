@@ -21,6 +21,7 @@ class ServerParentRoute with ExtractImport implements ServerRoute, ServerClass {
     required this.annotations,
     required this.index,
     required this.type,
+    this.consumers = const [],
   });
 
   factory ServerParentRoute.fromMeta(MetaRoute parentRoute, int index) {
@@ -33,6 +34,7 @@ class ServerParentRoute with ExtractImport implements ServerRoute, ServerClass {
       annotations: ServerRouteAnnotations.fromParent(parentRoute),
       index: index,
       type: parentRoute.type,
+      consumers: parentRoute.consumers,
     );
   }
 
@@ -47,6 +49,9 @@ class ServerParentRoute with ExtractImport implements ServerRoute, ServerClass {
   @override
   final ServerRouteAnnotations annotations;
   final InstanceType type;
+
+  /// `@Consumes` handlers on this controller.
+  final List<MetaConsumer> consumers;
 
   final int index;
 

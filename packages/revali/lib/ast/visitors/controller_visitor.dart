@@ -15,6 +15,7 @@ class ControllerVisitor extends RecursiveElementVisitor2<void> {
   final _params = <MetaParam>[];
 
   final _methods = <MetaMethod>[];
+  final _consumers = <MetaConsumer>[];
 
   bool get hasController =>
       _controller != null && _path != null && _constructor != null;
@@ -25,6 +26,7 @@ class ControllerVisitor extends RecursiveElementVisitor2<void> {
     ConstructorElement constructor,
     List<MetaParam> params,
     List<MetaMethod> methods,
+    List<MetaConsumer> consumers,
     InstanceType type,
   })
   get values {
@@ -34,6 +36,7 @@ class ControllerVisitor extends RecursiveElementVisitor2<void> {
       constructor: _constructor!,
       params: _params,
       methods: _methods,
+      consumers: _consumers,
       type: _type!,
     );
   }
@@ -83,7 +86,11 @@ class ControllerVisitor extends RecursiveElementVisitor2<void> {
     for (final supertype in element.allSupertypes) {
       final superElement = supertype.element;
 
-      if (!superElement.methods.any(methodChecker.hasAnnotationOf)) {
+      final inherits =
+          superElement.methods.any(methodChecker.hasAnnotationOf) ||
+          superElement.methods.any(consumesChecker.hasAnnotationOf);
+
+      if (!inherits) {
         continue;
       }
 
@@ -101,5 +108,6 @@ class ControllerVisitor extends RecursiveElementVisitor2<void> {
     }
 
     _methods.addAll(methodVisitor.methods.values.expand((e) => e));
+    _consumers.addAll(methodVisitor.consumers);
   }
 }
