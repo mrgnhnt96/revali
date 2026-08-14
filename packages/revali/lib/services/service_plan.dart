@@ -108,13 +108,61 @@ List<String> _labelsFor(List<RevaliService> services) {
 /// they go and a test can look at them.
 List<String> prefixLines(String chunk, String label) {
   return [
-    // Split on carriage returns as well as newlines. Child processes redraw
-    // progress with a bare `\r`, and left in place it returns the cursor to
-    // column 0 — overwriting the very prefix that says which service the line
-    // came from.
-    for (final line in chunk.split(RegExp(r'[\r\n]+')))
-      if (line.trim().isNotEmpty) '$label | $line',
+    for (final line in chunk.split('\n'))
+      if (_lastFrame(line) case final frame
+          when frame.isNotEmpty && !_isUnfinished(frame))
+        '$label | $frame',
   ];
+}
+
+/// Whether this frame is a progress indicator that has not resolved yet.
+///
+/// Frames arrive one write at a time, so collapsing *within* a chunk is not
+/// enough: the first frame of a spinner lands in its own chunk and would be
+/// printed, leaving a stray `⠋ Generating…` above every `✓ Generated…`. With
+/// several services interleaved that is most of the output.
+///
+/// A frame still wearing a spinner glyph is unfinished by definition — the
+/// same line is about to be redrawn, and the redraw ends in `✓` or `✗`, which
+/// is the part worth keeping. Anything a child prints that does *not* animate
+/// passes through untouched.
+bool _isUnfinished(String frame) =>
+    frame.isNotEmpty && _spinnerGlyphs.contains(frame.codeUnitAt(0));
+
+/// The braille cells `mason_logger` cycles through while a task runs.
+const _spinnerGlyphs = {
+  0x280b,
+  0x2819,
+  0x2839,
+  0x2838,
+  0x283c,
+  0x2834,
+  0x2826,
+  0x2827,
+  0x2807,
+  0x280f,
+};
+
+/// The final state of a line that redrew itself in place.
+///
+/// A child process animates progress by returning to column 0 with a bare
+/// `\r` and painting over what it wrote. Left in the stream that would
+/// overwrite the prefix saying which service the line came from, so it cannot
+/// simply be passed through — but treating `\r` as a line break is the other
+/// extreme: every frame of the animation becomes a permanent line, and
+/// starting two services turns a single spinner into a wall of
+/// `⠋ Retrieving…`, `⠙ Retrieving…`, `✓ Retrieved`.
+///
+/// A carriage return means *replace what I just drew*. So only the text after
+/// the last one survives, which is that line's finished state.
+String _lastFrame(String line) {
+  // A *trailing* carriage return is the other half of a CRLF line ending, not
+  // a redraw. Treating it as one would discard the whole line on Windows.
+  final text = line.endsWith('\r') ? line.substring(0, line.length - 1) : line;
+
+  final lastReturn = text.lastIndexOf('\r');
+
+  return (lastReturn == -1 ? text : text.substring(lastReturn + 1)).trim();
 }
 
 /// A stable colour per service, so a given prefix keeps its colour for the

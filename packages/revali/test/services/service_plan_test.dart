@@ -135,13 +135,37 @@ void main() {
       expect(prefixLines('one\n\n  \ntwo', 'svc'), ['svc | one', 'svc | two']);
     });
 
-    test('treats a carriage return as a line break', () {
-      // Child processes redraw progress with a bare \r. Left in place it
-      // returns the cursor to column 0 and overwrites the prefix that says
-      // which service the line came from.
-      expect(prefixLines('one\r\u2713 done', 'svc'), [
-        'svc | one',
-        'svc | \u2713 done',
+    test('keeps only the final frame of a line that redrew itself', () {
+      // A bare \r means "replace what I just drew". Passing it through would
+      // return the cursor to column 0 and overwrite the prefix saying which
+      // service the line came from; treating it as a line break is the other
+      // extreme, and turns one spinner into a wall of frames.
+      expect(prefixLines('one\r\u2713 done', 'svc'), ['svc | \u2713 done']);
+    });
+
+    test('drops a spinner frame that has not resolved yet', () {
+      // Frames arrive one write at a time, so the first lands in its own
+      // chunk. Printing it leaves a stray line above every result, and with
+      // several services interleaved that is most of the output.
+      expect(prefixLines('\u280b Generating server code...', 'svc'), isEmpty);
+    });
+
+    test('keeps a line that does not animate', () {
+      expect(prefixLines('Serving at http://0.0.0.0:8080/api', 'svc'), [
+        'svc | Serving at http://0.0.0.0:8080/api',
+      ]);
+    });
+
+    test('collapses a whole spinner animation to its result', () {
+      // What `revali up` actually receives while a child generates code.
+      const spinner =
+          '\u280b Retrieving constructs...'
+          '\r\u2819 Retrieving constructs...'
+          '\r\u2839 Retrieving constructs...'
+          '\r\u2713 Retrieved constructs (61ms)';
+
+      expect(prefixLines(spinner, 'orders'), [
+        'orders | \u2713 Retrieved constructs (61ms)',
       ]);
     });
 
