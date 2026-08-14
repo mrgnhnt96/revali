@@ -1,3 +1,5 @@
+import 'dart:io' as io;
+
 /// The environment variable `revali up` sets on a service it is drawing a pane
 /// for, and `revali dev` reads to turn its colour back on.
 ///
@@ -13,6 +15,35 @@
 /// pipe on purpose — that is what CI reads — and colouring it would be a
 /// regression, so the parent decides and the child only obeys.
 const kForceAnsiEnvVar = 'REVALI_FORCE_ANSI';
+
+/// Whether the parent asked this process to dress its output for a terminal.
+///
+/// The child half of the handshake, read in one place so the two things that
+/// depend on it cannot come to disagree: `runRevali` turns `mason_logger`'s
+/// colour on, and `progressCanAnimate` lets a progress line animate. They stay
+/// separate questions — a caller may animate onto a pipe without emitting
+/// colour, and the pane is why: it redraws frames in place whether or not they
+/// are coloured — but they are asked of the same signal, because the signal is
+/// one statement: *something is rendering my output as a terminal would*.
+///
+/// [environment] exists for tests. Anything real should let it default.
+bool ansiForcedByParent([Map<String, String>? environment]) =>
+    (environment ?? io.Platform.environment)[kForceAnsiEnvVar] == '1';
+
+/// The screen clear a child writes when it redraws from the top.
+///
+/// `revali dev` writes it from `_wipeOrDivide` — `print('\x1B[2J\x1B[0;0H')`,
+/// `vm_service_handler.dart` — on a reload and when the user presses `c`.
+///
+/// Unlike every other non-SGR sequence here it is *obeyed* rather than
+/// dropped: `ServiceSession.ingest` empties that service's buffer when it
+/// arrives. Dropping it silently is what made `c` look broken — the child
+/// cleared its screen, and the pane kept every line it had.
+///
+/// The cursor-home that follows it (`ESC[0;0H`) keeps being dropped, and
+/// should: a pane owns a region it redraws top-down and never addresses a
+/// cursor inside, so there is no position for it to mean anything about.
+const kClearScreen = '\x1B[2J';
 
 /// A run of text that shares one SGR state.
 ///
@@ -60,8 +91,12 @@ class AnsiSpan {
 /// and `ESC[2K`, and `revali dev` clears the screen with `ESC[2J ESC[0;0H` —
 /// and they are instructions to a terminal, addressed to a screen the child
 /// believes it owns. A pane inside another program's frame is not that screen,
-/// so obeying them is not an option and printing them is why `[2J[0;0H` shows
-/// up as characters. Dropping them is the only remaining answer.
+/// so printing them is why `[2J[0;0H` shows up as characters.
+///
+/// Dropping them is the answer for all but one. [kClearScreen] says something
+/// a pane *can* act on, and by the time text reaches here it already has:
+/// `ServiceSession.ingest` acts on it and hands this only what survived. So a
+/// `ESC[2J` seen here is one nothing claimed, and dropping it is right.
 ///
 /// Adjacent runs with the same state are merged, so a line the child wrapped
 /// in a redundant reset does not become two spans that render identically.

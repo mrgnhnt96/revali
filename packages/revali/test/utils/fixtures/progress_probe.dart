@@ -4,6 +4,8 @@
 //
 // Usage: dart run <this> <impl> <mode>
 //
+// Set REVALI_FORCE_ANSI=1 on it to stand in for a child under `revali up`.
+//
 //   impl: mason      — mason_logger's own Progress
 //         ticked     — TickedProgress, animation left to `progressCanAnimate`
 //         ticked-on  — TickedProgress, animation forced on
@@ -17,11 +19,21 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:mason_logger/mason_logger.dart';
+import 'package:revali/services/ansi.dart';
 import 'package:revali/utils/ticked_progress.dart';
 
 const _frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
 
-Future<void> main(List<String> args) async {
+/// Stands in for a `revali dev` child, so it has to open the same way one
+/// does: `runRevali` puts the whole run inside [overrideAnsiOutput] when the
+/// parent asked for colour, and a `TickedProgress` reads that zone value to
+/// decide what its frames wear. Started without the handshake this is a plain
+/// `main`, which is the CI shape.
+Future<void> main(List<String> args) => ansiForcedByParent()
+    ? overrideAnsiOutput(true, () => _main(args))
+    : _main(args);
+
+Future<void> _main(List<String> args) async {
   final [impl, mode] = args;
 
   stderr.writeln('hasTerminal=${stdout.hasTerminal}');

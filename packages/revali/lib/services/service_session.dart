@@ -1,6 +1,7 @@
 import 'dart:collection';
 
 import 'package:nocterm/nocterm.dart';
+import 'package:revali/services/ansi.dart';
 import 'package:revali/services/service_plan.dart';
 
 /// Where a service is in its life, as far as its own output has said so.
@@ -126,7 +127,22 @@ class ServiceSession extends ChangeNotifier {
     if (chunk.isEmpty) return;
 
     final stream = isError ? _stderr : _stdout;
-    final segments = (stream.pending + chunk).split('\n');
+    var text = stream.pending + chunk;
+
+    // The one terminal instruction a pane can honour, and the reason `c` used
+    // to do nothing: the child cleared its own screen and this side dropped
+    // the sequence with the rest of the escapes, so the pane kept every line.
+    //
+    // The *last* one, because a chunk carrying two clears has already had
+    // whatever was between them wiped. Everything before it goes; everything
+    // after it is output the child wrote onto the screen it just cleared, and
+    // falls through to be ingested normally.
+    if (text.lastIndexOf(kClearScreen) case final at when at != -1) {
+      text = text.substring(at + kClearScreen.length);
+      _clearScreen();
+    }
+
+    final segments = text.split('\n');
 
     // The last segment has no newline after it yet, so the child may still be
     // drawing it.
@@ -134,7 +150,7 @@ class ServiceSession extends ChangeNotifier {
 
     for (final segment in segments) {
       final frame = lastFrame(segment);
-      if (frame.isEmpty) continue;
+      if (isBlank(frame)) continue;
 
       if (isUnfinished(frame)) {
         // A spinner frame that ended in a newline anyway. Still unresolved,
@@ -148,12 +164,25 @@ class ServiceSession extends ChangeNotifier {
       _note(frame);
     }
 
-    if (lastFrame(stream.pending) case final tail when tail.isNotEmpty) {
+    if (lastFrame(stream.pending) case final tail when !isBlank(tail)) {
       stream.transient = ServiceLogLine(tail, isError: isError);
       _note(tail);
     }
 
     notifyListeners();
+  }
+
+  /// Empties the pane, because the screen the child was drawing on is gone.
+  ///
+  /// Only what is *shown* — the settled lines and each stream's current frame.
+  /// A stream's unterminated `pending` is deliberately left alone: it is the
+  /// line that stream is part way through writing, and dropping half of it
+  /// would splice the rest onto nothing when the next chunk lands. It is off
+  /// the screen until then, which is all a clear ever promised.
+  void _clearScreen() {
+    _settled.clear();
+    _stdout.transient = null;
+    _stderr.transient = null;
   }
 
   /// Records that the process is gone.
