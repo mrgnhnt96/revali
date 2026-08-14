@@ -21,6 +21,18 @@ class FakeConnection implements RedisConnection {
   /// Set to fail the next XGROUP CREATE.
   RedisError? groupError;
 
+  /// Reply for XPENDING: `[id, consumer, idle, deliveries]` per entry.
+  ///
+  /// Acknowledged ids are filtered out, the way Redis stops reporting an
+  /// entry once it leaves the pending list. A fake that kept replaying them
+  /// would make a single dead-letter look like an infinite loop.
+  Object? pendingReply;
+
+  final _acked = <String>{};
+
+  /// Reply for XCLAIM, in stream-entry shape.
+  Object? claimReply;
+
   List<List<String>> of(String name) =>
       commands.where((c) => c.first == name).toList();
 
@@ -35,6 +47,21 @@ class FakeConnection implements RedisConnection {
         }
 
         return 'OK';
+      case 'XACK':
+        _acked.add(command.last);
+
+        return 1;
+      case 'XPENDING':
+        if (pendingReply case final List<Object?> entries) {
+          return [
+            for (final entry in entries)
+              if (entry is List && !_acked.contains(entry.first)) entry,
+          ];
+        }
+
+        return pendingReply ?? <Object?>[];
+      case 'XCLAIM':
+        return claimReply ?? <Object?>[];
       case 'XREADGROUP':
         if (_reads < batches.length) {
           return batches[_reads++];
@@ -344,6 +371,196 @@ void main() {
       await brokerWith(connection).close();
 
       expect(connection.closed, isTrue);
+    });
+  });
+
+  group('reclaiming', () {
+    Object pending(String id, int deliveries) => [
+      [id, 'dead-replica', 60000, deliveries],
+    ];
+
+    Object claimed(String id, String payload) => [
+      [
+        id,
+        ['payload', payload, 'headers', '{}'],
+      ],
+    ];
+
+    RedisBroker reclaimingBroker(
+      FakeConnection connection, {
+      int maxDeliveries = 5,
+    }) => RedisBroker(
+      connection: connection,
+      openConnection: () => connection,
+      blockFor: const Duration(milliseconds: 5),
+      claimAfter: const Duration(seconds: 30),
+      maxDeliveries: maxDeliveries,
+    );
+
+    test('is off by default', () async {
+      final connection = FakeConnection()..pendingReply = pending('1-0', 1);
+
+      final subscription = await brokerWith(
+        connection,
+      ).subscribe('orders', group: 'billing', onMessage: (_) {});
+
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await subscription.cancel();
+
+      // Reclaiming changes when a message is redelivered, so it stays opt-in.
+      expect(connection.of('XPENDING'), isEmpty);
+    });
+
+    test('takes over an entry another consumer left pending', () async {
+      final connection = FakeConnection()
+        ..pendingReply = pending('1-0', 1)
+        ..claimReply = claimed('1-0', 'stranded');
+
+      final seen = <String>[];
+      final subscription = await reclaimingBroker(connection).subscribe(
+        'orders',
+        group: 'billing',
+        onMessage: (m) => seen.add(m.payload),
+      );
+
+      await Future<void>.delayed(const Duration(milliseconds: 60));
+      await subscription.cancel();
+
+      // Redis tracks pending entries per consumer name, so without this a
+      // replica that died mid-message strands them where nobody looks.
+      expect(seen, contains('stranded'));
+      expect(connection.of('XCLAIM'), isNotEmpty);
+    });
+
+    test('acknowledges a reclaimed entry it handled', () async {
+      final connection = FakeConnection()
+        ..pendingReply = pending('1-0', 1)
+        ..claimReply = claimed('1-0', 'stranded');
+
+      final subscription = await reclaimingBroker(
+        connection,
+      ).subscribe('orders', group: 'billing', onMessage: (_) {});
+
+      await Future<void>.delayed(const Duration(milliseconds: 60));
+      await subscription.cancel();
+
+      expect(connection.of('XACK').map((c) => c.last), contains('1-0'));
+    });
+
+    test('only asks for entries idle beyond claimAfter', () async {
+      final connection = FakeConnection()..pendingReply = <Object?>[];
+
+      final subscription = await reclaimingBroker(
+        connection,
+      ).subscribe('orders', group: 'billing', onMessage: (_) {});
+
+      await Future<void>.delayed(const Duration(milliseconds: 60));
+      await subscription.cancel();
+
+      final command = connection.of('XPENDING').first;
+
+      expect(command[command.indexOf('IDLE') + 1], '30000');
+    });
+
+    test('dead-letters an entry that has failed too often', () async {
+      final connection = FakeConnection()
+        ..pendingReply = pending('1-0', 9)
+        ..claimReply = claimed('1-0', 'poison');
+
+      final subscription = await reclaimingBroker(
+        connection,
+      ).subscribe('orders', group: 'billing', onMessage: (_) {});
+
+      await Future<void>.delayed(const Duration(milliseconds: 60));
+      await subscription.cancel();
+
+      // Without this, a message that always fails is claimed, failed and
+      // claimed again forever -- reclaiming turns a stuck message into a
+      // retry storm.
+      final dead = connection
+          .of('XADD')
+          .where((c) => c[1] == 'orders.dead')
+          .toList();
+
+      expect(dead, hasLength(1));
+      expect(dead.single[dead.single.indexOf('payload') + 1], 'poison');
+    });
+
+    test('records why a message was dead-lettered', () async {
+      final connection = FakeConnection()
+        ..pendingReply = pending('1-0', 9)
+        ..claimReply = claimed('1-0', 'poison');
+
+      final subscription = await reclaimingBroker(
+        connection,
+      ).subscribe('orders', group: 'billing', onMessage: (_) {});
+
+      await Future<void>.delayed(const Duration(milliseconds: 60));
+      await subscription.cancel();
+
+      final dead = connection
+          .of('XADD')
+          .firstWhere((c) => c[1] == 'orders.dead');
+      final headers =
+          jsonDecode(dead[dead.indexOf('headers') + 1]) as Map<String, dynamic>;
+
+      // A dead letter nobody can explain is nearly as bad as a lost one.
+      expect(headers['x-dead-letter-reason'], contains('9'));
+      expect(headers['x-dead-letter-topic'], 'orders');
+    });
+
+    test('acknowledges a dead-lettered entry so the queue moves on', () async {
+      final connection = FakeConnection()
+        ..pendingReply = pending('1-0', 9)
+        ..claimReply = claimed('1-0', 'poison');
+
+      final subscription = await reclaimingBroker(
+        connection,
+      ).subscribe('orders', group: 'billing', onMessage: (_) {});
+
+      await Future<void>.delayed(const Duration(milliseconds: 60));
+      await subscription.cancel();
+
+      expect(connection.of('XACK').map((c) => c.last), contains('1-0'));
+    });
+
+    test('does not dead-letter an entry still within its allowance', () async {
+      final connection = FakeConnection()
+        ..pendingReply = pending('1-0', 5)
+        ..claimReply = claimed('1-0', 'retryable');
+
+      final subscription = await reclaimingBroker(
+        connection,
+      ).subscribe('orders', group: 'billing', onMessage: (_) {});
+
+      await Future<void>.delayed(const Duration(milliseconds: 60));
+      await subscription.cancel();
+
+      // Exactly at the limit is still allowed; past it is not.
+      expect(
+        connection.of('XADD').where((c) => c[1] == 'orders.dead'),
+        isEmpty,
+      );
+    });
+  });
+
+  group('parsePendingReply', () {
+    test('reads id and delivery count', () {
+      final entries = parsePendingReply([
+        ['1-0', 'consumer', 1000, 3],
+      ]);
+
+      expect(entries.single.id, '1-0');
+      expect(entries.single.deliveries, 3);
+    });
+
+    test('ignores a malformed entry rather than throwing', () {
+      expect(parsePendingReply([1, 'nope', <Object?>[]]), isEmpty);
+    });
+
+    test('returns nothing when there is nothing pending', () {
+      expect(parsePendingReply(null), isEmpty);
+      expect(parsePendingReply(<Object?>[]), isEmpty);
     });
   });
 }

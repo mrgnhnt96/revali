@@ -42,11 +42,23 @@ void main() {
 
   setUpAll(() async {
     available = await _reachable();
-
-    if (!available) {
-      printOnFailure('No Redis at $_host:$_port');
-    }
   });
+
+  /// Marks the current test skipped when no server is reachable.
+  ///
+  /// Checked inside each test rather than left to `dart_test.yaml`: the tag
+  /// config is honoured by `dart test` but not by every runner this repo
+  /// uses, and a suite that fails on a machine without Redis is a suite
+  /// people learn to ignore.
+  bool hasRedis() {
+    if (!available) {
+      markTestSkipped('No Redis at $_host:$_port');
+
+      return false;
+    }
+
+    return true;
+  }
 
   setUp(() {
     // A fresh stream per test, so nothing inherits another test's entries or
@@ -72,6 +84,8 @@ void main() {
 
   group('against a real Redis', () {
     test('round-trips a message through a stream', () async {
+      if (!hasRedis()) return;
+
       final broker = await connect();
       addTearDown(broker.close);
 
@@ -88,6 +102,8 @@ void main() {
     });
 
     test('carries headers across the wire', () async {
+      if (!hasRedis()) return;
+
       final broker = await connect();
       addTearDown(broker.close);
 
@@ -108,6 +124,8 @@ void main() {
     });
 
     test('delivers a message published before anyone subscribed', () async {
+      if (!hasRedis()) return;
+
       final broker = await connect();
       addTearDown(broker.close);
 
@@ -126,6 +144,8 @@ void main() {
     });
 
     test('separate groups each get their own copy', () async {
+      if (!hasRedis()) return;
+
       final broker = await connect();
       addTearDown(broker.close);
 
@@ -154,6 +174,8 @@ void main() {
     });
 
     test('one group shares work between its members', () async {
+      if (!hasRedis()) return;
+
       final broker = await connect(consumerName: 'a');
       final second = await connect(consumerName: 'b');
       addTearDown(broker.close);
@@ -184,6 +206,8 @@ void main() {
     });
 
     test('an unacknowledged message stays pending for redelivery', () async {
+      if (!hasRedis()) return;
+
       final broker = await connect(consumerName: 'flaky');
       addTearDown(broker.close);
 
@@ -217,6 +241,8 @@ void main() {
     });
 
     test('a handled message is acknowledged', () async {
+      if (!hasRedis()) return;
+
       final broker = await connect();
       addTearDown(broker.close);
 
@@ -244,6 +270,8 @@ void main() {
     });
 
     test('survives a payload with CRLF and multi-byte characters', () async {
+      if (!hasRedis()) return;
+
       final broker = await connect();
       addTearDown(broker.close);
 
@@ -261,6 +289,8 @@ void main() {
     });
 
     test('a consumer group survives a restart of the subscriber', () async {
+      if (!hasRedis()) return;
+
       final first = await connect();
       final subscription = await first.subscribe(
         topic,
@@ -289,6 +319,8 @@ void main() {
     });
 
     test('drains in-flight work through the ConsumerRegistry', () async {
+      if (!hasRedis()) return;
+
       final broker = await connect();
       final registry = ConsumerRegistry(broker: broker);
 
@@ -316,4 +348,127 @@ void main() {
       await registry.close();
     });
   });
+
+  group('reclaiming against a real Redis', () {
+    test('recovers an entry a dead consumer abandoned', () async {
+      if (!hasRedis()) return;
+
+      // A consumer that reads and never acks, then goes away -- exactly what
+      // a pod replacement looks like to Redis.
+      final dead = await RedisBroker.connect(
+        host: _host,
+        port: _port,
+        consumerName: 'dead-replica',
+      );
+      final read = <String>[];
+      await dead.subscribe(
+        topic,
+        group: 'billing',
+        onMessage: (m) {
+          read.add(m.payload);
+          throw StateError('never acknowledges');
+        },
+      );
+      await dead.publish(topic, 'stranded');
+      await until(() => read.isNotEmpty);
+      await dead.close();
+
+      // Redis tracks pending entries per consumer name, so nothing else would
+      // ever see this entry without reclaiming.
+      final live = RedisBroker(
+        connection: await SocketRedisConnection.connect(_host, _port),
+        openConnection: () => _LazyOpen(_host, _port),
+        consumerName: 'live-replica',
+        blockFor: const Duration(milliseconds: 100),
+        claimAfter: Duration.zero,
+      );
+      addTearDown(live.close);
+
+      final recovered = <String>[];
+      await live.subscribe(
+        topic,
+        group: 'billing',
+        onMessage: (m) => recovered.add(m.payload),
+      );
+
+      await until(() => recovered.isNotEmpty);
+
+      expect(recovered, contains('stranded'));
+    });
+
+    test('dead-letters a message that keeps failing', () async {
+      if (!hasRedis()) return;
+
+      final broker = RedisBroker(
+        connection: await SocketRedisConnection.connect(_host, _port),
+        openConnection: () => _LazyOpen(_host, _port),
+        consumerName: 'flaky',
+        blockFor: const Duration(milliseconds: 50),
+        claimAfter: Duration.zero,
+        maxDeliveries: 2,
+      );
+      addTearDown(broker.close);
+
+      var attempts = 0;
+      await broker.subscribe(
+        topic,
+        group: 'billing',
+        onMessage: (_) {
+          attempts++;
+          throw StateError('poison');
+        },
+      );
+      await broker.publish(topic, 'poison');
+
+      // Redis is the assertion: the message must end up on the dead-letter
+      // stream, and stop being retried.
+      final control = await SocketRedisConnection.connect(_host, _port);
+      addTearDown(control.close);
+
+      var deadLength = 0;
+      final deadline = DateTime.now().add(const Duration(seconds: 10));
+
+      while (deadLength == 0) {
+        if (DateTime.now().isAfter(deadline)) {
+          fail('nothing reached the dead-letter stream');
+        }
+
+        final length = await control.send(['XLEN', '$topic.dead']);
+        deadLength = length is int ? length : 0;
+
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+      }
+
+      expect(deadLength, 1);
+      expect(
+        attempts,
+        greaterThan(1),
+        reason: 'it was retried before giving up',
+      );
+    });
+  });
+}
+
+/// Opens a fresh connection per subscription, matching what
+/// `RedisBroker.connect` does internally.
+class _LazyOpen implements RedisConnection {
+  _LazyOpen(this._host, this._port);
+
+  final String _host;
+  final int _port;
+  Future<RedisConnection>? _opened;
+
+  Future<RedisConnection> get _connection =>
+      _opened ??= SocketRedisConnection.connect(_host, _port);
+
+  @override
+  Future<Object?> send(List<String> command) async =>
+      (await _connection).send(command);
+
+  @override
+  Future<void> close() async {
+    if (_opened case final opened?) {
+      await (await opened).close();
+    }
+  }
 }
