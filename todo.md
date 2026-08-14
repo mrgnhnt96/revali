@@ -92,12 +92,15 @@ re-discovered.
 Three findings from the docs pass, each verified against source before being
 written into the page rather than taken from the brief.
 
-- [ ] **`maxDeliveries` is inert unless `claimAfter` is set.** `_deadLetter` is
-  reachable only from `_reclaim` (`redis_broker.dart:386`), and `_reclaim`
-  returns immediately when `claimAfter` is null. So a default-configured broker
-  never dead-letters and a poison message retries forever — the opposite of
-  what `maxDeliveries` reads like it promises. Either gate the docs on it
-  (done) or run the dead-letter check on the normal delivery path too.
+- [x] ✅ **Fixed: `maxDeliveries` was inert unless `claimAfter` was set.** And
+  the consequence was worse than "retries forever": there is exactly one
+  `XREADGROUP`, reading `>`, which returns only messages never delivered to
+  anyone. Nothing re-read pending entries, so a failed message was never
+  redelivered *and* never dead-lettered — it stopped silently. Each pass now
+  scans this consumer's own pending entries and re-delivers with `XCLAIM`
+  (which is what increments Redis's delivery counter, so the cap can be
+  reached at all), dead-lettering past `maxDeliveries`. Independent of
+  `claimAfter`, which remains opt-in for *other* consumers' entries.
 - [ ] **`RedisBroker.connect()` cannot configure reclaiming.** It exposes only
   `host`, `port` and `consumerName`, so using `claimAfter` / `maxDeliveries`
   means constructing `RedisBroker` directly and building the connections

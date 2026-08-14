@@ -407,8 +407,13 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 50));
       await subscription.cancel();
 
-      // Reclaiming changes when a message is redelivered, so it stays opt-in.
-      expect(connection.of('XPENDING'), isEmpty);
+      // Reclaiming changes when ANOTHER consumer's message is redelivered, so
+      // it stays opt-in. The IDLE form is the reclaim scan; the consumer-scoped
+      // form is this consumer retrying its own failures, which is always on.
+      expect(
+        connection.of('XPENDING').where((c) => c.contains('IDLE')),
+        isEmpty,
+      );
     });
 
     test('takes over an entry another consumer left pending', () async {
@@ -457,7 +462,9 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 60));
       await subscription.cancel();
 
-      final command = connection.of('XPENDING').first;
+      final command = connection
+          .of('XPENDING')
+          .firstWhere((c) => c.contains('IDLE'));
 
       expect(command[command.indexOf('IDLE') + 1], '30000');
     });
@@ -562,5 +569,117 @@ void main() {
       expect(parsePendingReply(null), isEmpty);
       expect(parsePendingReply(<Object?>[]), isEmpty);
     });
+  });
+
+  group('own pending entries', () {
+    Object ownPending(String id, int deliveries) => [
+      [id, 'revali', 1000, deliveries],
+    ];
+
+    Object ownClaimed(String id, String payload) => [
+      [
+        id,
+        ['payload', payload, 'headers', '{}'],
+      ],
+    ];
+
+    // `XREADGROUP ... >` returns only messages never delivered to anyone, so a
+    // handler that threw left its entry pending and nothing read it again.
+    // Reclaiming was the only path that touched pending entries and it is off
+    // unless claimAfter is set -- so on a DEFAULT broker a failed message was
+    // never redelivered, never dead-lettered and never reported. It stopped,
+    // silently, which is worse than failing loudly.
+
+    test('a failed message is retried without claimAfter being set', () async {
+      final connection = FakeConnection()
+        ..pendingReply = ownPending('1-1', 1)
+        ..claimReply = ownClaimed('1-1', 'placed');
+
+      final seen = <String>[];
+      final broker = brokerWith(connection);
+      final subscription = await broker.subscribe(
+        'orders',
+        group: 'billing',
+        onMessage: (m) => seen.add(m.payload),
+      );
+
+      await Future<void>.delayed(const Duration(milliseconds: 60));
+      await subscription.cancel();
+
+      // No claimAfter anywhere in this test: redelivery must not depend on it.
+      expect(seen, contains('placed'));
+      expect(
+        connection.of('XPENDING').first,
+        contains('revali'),
+        reason:
+            'the pending scan must be scoped to this consumer -- entries '
+            'belonging to others are for reclaim, which waits claimAfter',
+      );
+    });
+
+    test(
+      'redelivery uses XCLAIM, so the delivery count actually climbs',
+      () async {
+        final connection = FakeConnection()
+          ..pendingReply = [
+            ['1-1', 'revali', 1000, 1],
+          ]
+          ..claimReply = [
+            ['1-1', 'payload', 'placed', 'headers', '{}'],
+          ];
+
+        final broker = brokerWith(connection);
+        final subscription = await broker.subscribe(
+          'orders',
+          group: 'billing',
+          onMessage: (_) {},
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 60));
+        await subscription.cancel();
+
+        // Reading own pending with `0` would NOT increment Redis's delivery
+        // counter, so maxDeliveries would never be reached and a poison message
+        // would retry forever -- the exact failure this path exists to end.
+        final claims = connection.of('XCLAIM');
+        expect(claims, isNotEmpty);
+        expect(
+          claims.first,
+          containsAllInOrder(<String>['XCLAIM', 'orders', 'billing', 'revali']),
+        );
+      },
+    );
+
+    test(
+      'a message past maxDeliveries is dead-lettered, not retried forever',
+      () async {
+        final connection = FakeConnection()
+          ..pendingReply = ownPending('1-1', 9)
+          ..claimReply = ownClaimed('1-1', 'poison');
+
+        final broker = RedisBroker(
+          connection: connection,
+          openConnection: () => connection,
+          blockFor: const Duration(milliseconds: 5),
+          maxDeliveries: 3,
+        );
+
+        final seen = <String>[];
+        final subscription = await broker.subscribe(
+          'orders',
+          group: 'billing',
+          onMessage: (m) => seen.add(m.payload),
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 60));
+        await subscription.cancel();
+
+        // Dead-lettering no longer depends on claimAfter either.
+        final dead = connection
+            .of('XADD')
+            .where((c) => c.contains('orders.dead'))
+            .toList();
+        expect(dead, isNotEmpty, reason: 'should have been dead-lettered');
+        expect(connection.of('XACK').map((c) => c.last), contains('1-1'));
+      },
+    );
   });
 }

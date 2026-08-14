@@ -327,10 +327,11 @@ class _RedisSubscription implements BrokerSubscription {
         await _handle(message);
       }
 
-      // Only when there was no fresh work: reclaiming is a repair path, and
-      // running it while messages are flowing would spend round trips on
-      // bookkeeping instead of the queue.
+      // Only when there was no fresh work: repair paths spend round trips on
+      // bookkeeping, and running them while messages are flowing would do
+      // that instead of draining the queue.
       if (messages.isEmpty) {
+        await _redeliverOwn();
         await _reclaim();
       }
     }
@@ -351,6 +352,89 @@ class _RedisSubscription implements BrokerSubscription {
 
   /// Takes over entries another consumer left pending, and dead-letters the
   /// ones that have failed too often.
+  /// Retries this consumer's own unacknowledged entries, and dead-letters the
+  /// ones that have failed too often.
+  ///
+  /// `XREADGROUP ... >` returns only messages never delivered to anyone, so a
+  /// handler that threw left its entry pending and **nothing read it again**.
+  /// Reclaiming was the only path that touched pending entries, and it is off
+  /// unless [claimAfter] is set — so on a default broker a failed message was
+  /// never redelivered, never dead-lettered and never reported. It simply
+  /// stopped, quietly, which is worse than failing loudly.
+  ///
+  /// Scoped to [consumerName]: entries belonging to *other* consumers are
+  /// [_reclaim]'s job, and it waits [claimAfter] before touching them
+  /// precisely so a live consumer's work is not taken out from under it.
+  /// There is no such risk with our own.
+  ///
+  /// Re-delivered with `XCLAIM` rather than a read at `0`, because reading
+  /// your own pending entries does not increment Redis's delivery counter —
+  /// [maxDeliveries] would never be reached and a poison message would retry
+  /// forever, which is the failure this is meant to end.
+  Future<void> _redeliverOwn() async {
+    if (_cancelled) {
+      return;
+    }
+
+    final List<PendingEntry> pending;
+    try {
+      pending = parsePendingReply(
+        await _connection.send([
+          'XPENDING',
+          topic,
+          group,
+          '-',
+          '+',
+          '$batchSize',
+          consumerName,
+        ]),
+      );
+    } catch (_) {
+      return;
+    }
+
+    if (pending.isEmpty) {
+      return;
+    }
+
+    final retryable = <String>[];
+
+    for (final entry in pending) {
+      if (entry.deliveries > maxDeliveries) {
+        await _deadLetter(entry);
+      } else {
+        retryable.add(entry.id);
+      }
+    }
+
+    if (retryable.isEmpty || _cancelled) {
+      return;
+    }
+
+    try {
+      // Min-idle-time 0: these are already ours, so there is nothing to wait
+      // out. The claim is what bumps the delivery count.
+      final claimed = await _connection.send([
+        'XCLAIM',
+        topic,
+        group,
+        consumerName,
+        '0',
+        ...retryable,
+      ]);
+
+      for (final message in parseEntries(claimed, topic)) {
+        if (_cancelled) {
+          return;
+        }
+
+        await _handle(message);
+      }
+    } catch (_) {
+      // Left pending; the next pass tries again.
+    }
+  }
+
   Future<void> _reclaim() async {
     final idle = claimAfter;
     if (idle == null || _cancelled) {
