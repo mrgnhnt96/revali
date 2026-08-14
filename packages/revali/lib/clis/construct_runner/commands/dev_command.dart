@@ -12,6 +12,7 @@ import 'package:revali/handlers/routes_handler.dart';
 import 'package:revali/handlers/vm_service_handler.dart';
 import 'package:revali/utils/extensions/directory_extensions.dart';
 import 'package:revali/utils/mixins/directories_mixin.dart';
+import 'package:revali/utils/ticked_progress.dart';
 import 'package:revali_construct/revali_construct.dart';
 
 class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
@@ -92,7 +93,10 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
     logger.detail('Hot reload exclude: $hotReloadExclude');
 
     if (profile || generateOnly) {
-      final progress = logger.progress('Generating server code');
+      final progress = TickedProgress(
+        'Generating server code',
+        level: logger.level,
+      );
 
       await generator.generate(logger.delayed);
 

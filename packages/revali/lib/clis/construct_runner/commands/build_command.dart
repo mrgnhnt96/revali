@@ -7,6 +7,7 @@ import 'package:revali/clis/construct_runner/generator/construct_generator.dart'
 import 'package:revali/clis/shared/commands/construct_flags.dart';
 import 'package:revali/handlers/routes_handler.dart';
 import 'package:revali/utils/mixins/directories_mixin.dart';
+import 'package:revali/utils/ticked_progress.dart';
 import 'package:revali_construct/revali_construct.dart';
 
 class BuildCommand extends Command<int>
@@ -63,7 +64,7 @@ class BuildCommand extends Command<int>
           generateConstructType: type,
         );
 
-    final progress = logger.progress('Building');
+    final progress = TickedProgress('Building', level: logger.level);
 
     await generator.generate(progress.update);
 

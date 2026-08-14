@@ -11,6 +11,7 @@ import 'package:file/file.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart' as p;
 import 'package:revali/dart_define/dart_define.dart';
+import 'package:revali/utils/ticked_progress.dart';
 import 'package:revali_construct/revali_construct.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:watcher/watcher.dart';
@@ -70,9 +71,9 @@ class VMServiceHandler {
   bool _enableHotReload = false;
   void Function()? _serveOnReady;
 
-  Progress? __progress;
-  Progress? get _progress => __progress;
-  set _progress(Progress? value) {
+  TickedProgress? __progress;
+  TickedProgress? get _progress => __progress;
+  set _progress(TickedProgress? value) {
     __progress?.cancel();
 
     __progress = value;
@@ -134,7 +135,7 @@ class VMServiceHandler {
 
   Future<void> _performReload() async {
     if (!isServerRunning) {
-      _progress = logger.progress('Restarting server');
+      _progress = TickedProgress('Restarting server', level: logger.level);
       try {
         await serve(enableHotReload: _enableHotReload, onReady: _serveOnReady);
       } finally {
@@ -143,7 +144,7 @@ class VMServiceHandler {
       return;
     }
 
-    _progress = logger.progress('Reloading');
+    _progress = TickedProgress('Reloading', level: logger.level);
 
     if (await checkForErrors()) {
       return;
@@ -522,7 +523,10 @@ class VMServiceHandler {
       throw Exception('Cannot start a dev server while already running.');
     }
 
-    final progress = logger.progress('Generating server code');
+    final progress = TickedProgress(
+      'Generating server code',
+      level: logger.level,
+    );
 
     final server = await codeGenerator(progress.update);
 
@@ -943,7 +947,7 @@ class VMServiceHandler {
         _vmServiceUri = _vmServiceUri.isEmpty
             ? message
             : '$_vmServiceUri\n$message';
-        _progress = logger.progress('Starting server');
+        _progress = TickedProgress('Starting server', level: logger.level);
       } else if (message.startsWith('Serving at ')) {
         _servingAt = message;
         // Board already printed without a URL (stdout raced past the wait).
