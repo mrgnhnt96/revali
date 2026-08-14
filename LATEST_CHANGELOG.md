@@ -106,6 +106,9 @@
 - Acknowledges only on success, leaving a failed handler's entry pending for redelivery. Creates its consumer group with `MKSTREAM` so a consumer may start before anything was ever published, and tolerates `BUSYGROUP` so the second start is not fatal. Each subscription gets its own connection, since `XREADGROUP` blocks and sharing one would stall every publish behind a consumer waiting for work.
 - Delivery is **at least once**; handlers must be idempotent. That is the broker contract, not a limitation of this implementation.
 - Integration tests against a real Redis, skipped by default so a machine without one still gets a green suite. Run them with `dart test --run-skipped --tags integration`, pointing at a server with `REDIS_TEST_HOST` / `REDIS_TEST_PORT`.
+- Reclaim entries a dead consumer left pending, via `claimAfter`. Redis tracks pending entries **per consumer name**, so a replica that dies mid-message strands them in a list nobody else reads — and a pod that is replaced rather than restarted never comes back to claim them. Off by default, since it changes when a message is redelivered. Set it well above the time a healthy handler takes, or a slow handler's work is taken from underneath it and processed twice.
+- Dead-letter a message that keeps failing, after `maxDeliveries` (default 5), onto `<topic>.dead` with headers recording why and where it came from. Reclaiming without this turns a message that always fails into a retry storm: claimed, failed, left pending, claimed again, forever. The entry is acknowledged only *after* the copy succeeds, so a failed copy leaves it pending rather than losing it.
+- Reclaiming runs only when a read came back with no fresh work, so it spends round trips on bookkeeping only when the queue is idle.
 
 <!-- CONSTRUCTS -->
 

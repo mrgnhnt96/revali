@@ -577,9 +577,24 @@ a guard exists to reject a caller, and a queue message has none.
   this session had a bug that only a real run found, so the honest read is that
   the fake-connection tests happened to cover the right things here — not that
   integration tests stopped being necessary.
-- **Reconnection.** A dropped connection backs off and retries the read loop;
-  it does not re-establish the consumer group or replay pending entries with
-  `XAUTOCLAIM`.
+- ~~**Reclaiming abandoned entries.**~~ **Done.** `claimAfter` takes over
+  entries another consumer left pending — Redis tracks them per consumer name,
+  so a replaced pod strands its messages where nothing looks. Off by default,
+  because it changes when a message is redelivered.
+
+  Shipping reclaim on its own would have been worse than not shipping it: a
+  message that always fails gets claimed, fails, and is claimed again forever.
+  So it comes with `maxDeliveries` and a `<topic>.dead` stream, and the entry
+  is acknowledged only after the dead-letter copy succeeds.
+
+  Verified against a real Redis, and confirmed non-vacuous: with `claimAfter`
+  removed, the stranded message is never recovered and the test fails.
+
+**Still open:** reconnection backs off and retries the read loop but does not
+re-establish the consumer group after a server restart; and `XAUTOCLAIM`
+itself is unused — reclaiming goes through `XPENDING` + `XCLAIM` instead,
+which is what gives access to the delivery count the poison-message guard
+needs.
 
 
 ---
