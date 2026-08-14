@@ -40,6 +40,7 @@ class UpApp extends StatefulComponent {
     required this.onCommand,
     required this.onCommandAll,
     required this.onQuit,
+    this.onOpenUrl,
     super.key,
   });
 
@@ -61,6 +62,17 @@ class UpApp extends StatefulComponent {
   /// and the second stops waiting for it. What the screen does with them is
   /// separate — see [_UpAppState._stopping].
   final VoidCallback onQuit;
+
+  /// Called with the URL of a clicked link in the log pane.
+  ///
+  /// A seam, and the reason the whole of this is provable headlessly: opening a
+  /// URL means starting a process, and a component that started one could not
+  /// be tested without a browser opening. The runner supplies the real opener;
+  /// a test supplies a list to append to and asserts the URL that WOULD have
+  /// been opened.
+  ///
+  /// Null makes every link inert *and* unmarked — see [ServiceLog.onOpenUrl].
+  final void Function(String url)? onOpenUrl;
 
   @override
   State<UpApp> createState() => _UpAppState();
@@ -291,7 +303,14 @@ class _UpAppState extends State<UpApp> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ServiceList(sessions: component.sessions, focusedIndex: _focused),
+        ServiceList(
+          sessions: component.sessions,
+          focusedIndex: _focused,
+          // Clicking a row lands in the same place `↑`/`↓` and `1`-`9` land, so
+          // there is one definition of what selecting a service means and a
+          // click cannot drift from a keypress.
+          onSelect: _select,
+        ),
         const Divider(),
         Expanded(
           child: session == null
@@ -305,6 +324,7 @@ class _UpAppState extends State<UpApp> {
                       session: session,
                       index: _focused,
                       height: height,
+                      onOpenUrl: component.onOpenUrl,
                     );
                   },
                 ),

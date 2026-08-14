@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import 'package:nocterm/nocterm.dart';
 import 'package:revali/services/ansi.dart';
+import 'package:revali/services/log_links.dart';
 import 'package:revali/services/service_plan.dart';
 
 /// Where a service is in its life, as far as its own output has said so.
@@ -190,6 +191,25 @@ class ServiceSession extends ChangeNotifier {
   /// The code the process exited with, or null while it is still running.
   int? get exitCode => _exitCode;
 
+  String? _baseUrl;
+
+  /// The address this service announced it is listening on, exactly as it
+  /// wrote it — or null until it has announced one.
+  ///
+  /// Taken from the child's own `Serving at …` line rather than rebuilt from
+  /// [port], because that line is the only place the app *prefix* appears.
+  /// `revali up` hands out the port; it has no idea the app mounts itself under
+  /// `/api`, and a base missing the prefix sends every route click to a 404.
+  ///
+  /// Null is meaningful and is left null on purpose: a route path clicked
+  /// before its service is serving has no base, and there is nothing to guess
+  /// from. Opening the wrong URL is worse than opening none.
+  ///
+  /// Kept across a reload. The child re-announces when it comes back up and
+  /// overwrites this; in the gap the old address is still the best answer there
+  /// is, and it is nearly always still the right one — the port does not move.
+  String? get baseUrl => _baseUrl;
+
   /// What the pane draws: the settled lines, then whatever each stream is
   /// part way through drawing.
   ///
@@ -352,6 +372,15 @@ class ServiceSession extends ChangeNotifier {
       // The only way out of `failed`, and it has to stay that way: a service
       // that reached `failed` and then came back up must not be left there.
       _state = ServiceState.serving;
+
+      // Read here, off the same line and in the same breath as the state it
+      // sets, so a session that says `serving` and a session that knows where
+      // cannot come apart. A line that matches the marker but carries no
+      // parsable address leaves the previous base alone rather than clearing
+      // it — `serving` with no way to reach it is the state this avoids.
+      if (servingAddress(frame) case final address?) {
+        _baseUrl = address;
+      }
     } else if (_failureMarkers.any(frame.contains)) {
       _state = ServiceState.failed;
     } else if (isUnfinished(frame) && _state != ServiceState.failed) {

@@ -9,6 +9,7 @@ import 'package:mason_logger/mason_logger.dart';
 // collide with `mason_logger`'s the moment anything here said `Logger`.
 import 'package:nocterm/nocterm.dart' show runApp, shutdownApp;
 import 'package:path/path.dart' as p;
+import 'package:platform/platform.dart';
 // Prefixed because the TUI's `UpCommand` — the r/c/q key constants — shares its
 // name with the command class below. Unprefixed, the class would shadow it and
 // the constants would be unreachable from here.
@@ -237,8 +238,58 @@ class UpCommand extends Command<int> {
         }
       },
       onQuit: _quit,
+      onOpenUrl: openUrl,
     );
   }
+
+  /// Hands [url] to whatever this platform opens URLs with.
+  ///
+  /// Fire and forget, and deliberately quiet. The screen is nocterm's, so there
+  /// is nowhere to print a failure that would not paint over the frame being
+  /// drawn — and a browser that did not open is a click the user can simply
+  /// make again, which is not worth taking the fleet down for. It goes to the
+  /// verbose log instead, which is where someone working out why nothing
+  /// happened will look.
+  ///
+  /// Public so a test can pin the argv without a browser opening: asserting the
+  /// URL that would be launched is the whole of what this side controls.
+  void openUrl(String url) {
+    final (executable, arguments) = openerFor(url);
+
+    try {
+      // Not awaited: a click must not block the render loop on a process
+      // start, and there is nothing in the result worth waiting for.
+      unawaited(
+        io.Process.run(executable, arguments).then((result) {
+          if (result.exitCode != 0) {
+            logger.detail('Could not open $url: ${result.stderr}');
+          }
+        }).catchError((Object e) {
+          logger.detail('Could not open $url: $e');
+        }),
+      );
+    } catch (e) {
+      logger.detail('Could not open $url: $e');
+    }
+  }
+
+  /// The command that opens a URL on this platform.
+  ///
+  /// Windows goes through `cmd /c start` because `start` is a shell builtin
+  /// rather than an executable, and the empty `""` is its title argument —
+  /// without it `start` reads the URL as the window title and opens nothing.
+  ///
+  /// Public, and takes the platform explicitly, so all three branches can be
+  /// proved from one machine. Two of them are unreachable on any given
+  /// developer's laptop and would otherwise be found broken by a user.
+  static (String, List<String>) openerFor(
+    String url, {
+    Platform platform = const LocalPlatform(),
+  }) => switch (platform) {
+    Platform(isMacOS: true) => ('open', [url]),
+    Platform(isWindows: true) => ('cmd', ['/c', 'start', '', url]),
+    _ => ('xdg-open', [url]),
+  };
 
   /// `Ctrl+C`: stop the fleet, and on a second press stop waiting for it.
   ///

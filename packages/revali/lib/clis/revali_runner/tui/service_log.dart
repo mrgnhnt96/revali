@@ -1,6 +1,7 @@
 import 'package:nocterm/nocterm.dart';
 import 'package:revali/clis/revali_runner/tui/service_style.dart';
 import 'package:revali/services/ansi.dart';
+import 'package:revali/services/log_links.dart';
 import 'package:revali/services/service_session.dart';
 
 /// The focused service's output, and nothing else's.
@@ -28,6 +29,7 @@ class ServiceLog extends StatelessComponent {
     required this.session,
     required this.index,
     required this.height,
+    this.onOpenUrl,
     super.key,
   });
 
@@ -35,6 +37,13 @@ class ServiceLog extends StatelessComponent {
 
   /// Position in the fleet, so the rail matches the row above.
   final int index;
+
+  /// Called with the URL of a clicked link, already launchable.
+  ///
+  /// Null makes every link inert — and it also stops them being underlined,
+  /// because a screen that advertises a click nothing is listening for is worse
+  /// than one that advertises nothing.
+  final void Function(String url)? onOpenUrl;
 
   /// Rows this pane may draw into, measured by the screen above it.
   ///
@@ -113,20 +122,7 @@ class ServiceLog extends StatelessComponent {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text('│ ', style: TextStyle(color: color)),
-                      RichText(
-                        text: TextSpan(
-                          children: [
-                            for (final span in parseAnsi(line.text))
-                              TextSpan(
-                                text: span.text,
-                                style: _styleFor(span, isError: line.isError),
-                              ),
-                          ],
-                        ),
-                        maxLines: 1,
-                        softWrap: false,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                      ..._runsOf(line),
                     ],
                   ),
                 if (top != null) _NotLive(below: below, color: color),
@@ -135,6 +131,93 @@ class ServiceLog extends StatelessComponent {
           ),
         );
       },
+    );
+  }
+
+  /// One line, as the widgets that draw it: the dead runs and the clickable
+  /// ones, side by side and in order.
+  ///
+  /// A clickable run gets its own [GestureDetector] rather than the whole line
+  /// getting one and the column being worked out afterwards. That is what makes
+  /// "resolve the click against what is CURRENTLY VISIBLE" true by construction
+  /// instead of by arithmetic: nocterm hit-tests by position against the
+  /// rendered tree, so the widget that hears a tap *is* the run under the
+  /// pointer. Scrolled up, cleared, or with a `── redraw ──` rule in the middle
+  /// of the buffer, there is no index to be off by — and a tap in the gap
+  /// between two runs reaches neither of them.
+  ///
+  /// Splitting a line across several widgets was measured against drawing it as
+  /// one `RichText` before it was relied on: the cell rows come out identical,
+  /// including for a line wider than the terminal. The text and the column
+  /// alignment are the contract here, so nothing about a link may change them —
+  /// which is also why the only mark a link carries is an underline. It is a
+  /// cell attribute, so it takes no columns, where a `[…]` or a trailing icon
+  /// would shift every route path in the table sideways from the one above it.
+  List<Component> _runsOf(ServiceLogLine line) {
+    final spans = parseAnsi(line.text);
+    final plain = spans.map((span) => span.text).join();
+
+    // No handler means nothing to open, so nothing is marked as openable.
+    final links = onOpenUrl == null
+        ? const <LogLink>[]
+        : findLinks(plain, baseUrl: session.baseUrl);
+
+    if (links.isEmpty) {
+      return [_run(spans, isError: line.isError)];
+    }
+
+    final runs = <Component>[];
+    var cursor = 0;
+
+    void emit(int end, {LogLink? link}) {
+      if (end <= cursor) return;
+
+      final run = _run(
+        _slice(spans, cursor, end),
+        isError: line.isError,
+        isLink: link != null,
+      );
+
+      runs.add(
+        link == null
+            ? run
+            : GestureDetector(
+                onTap: () => onOpenUrl?.call(link.url),
+                child: run,
+              ),
+      );
+
+      cursor = end;
+    }
+
+    for (final link in links) {
+      emit(link.start);
+      emit(link.end, link: link);
+    }
+    emit(plain.length);
+
+    return runs;
+  }
+
+  /// One run of a line, drawn exactly as it would be drawn on its own.
+  Component _run(
+    List<AnsiSpan> spans, {
+    required bool isError,
+    bool isLink = false,
+  }) {
+    return RichText(
+      text: TextSpan(
+        children: [
+          for (final span in spans)
+            TextSpan(
+              text: span.text,
+              style: _styleFor(span, isError: isError, isLink: isLink),
+            ),
+        ],
+      ),
+      maxLines: 1,
+      softWrap: false,
+      overflow: TextOverflow.ellipsis,
     );
   }
 
@@ -214,7 +297,18 @@ class _NotLive extends StatelessComponent {
 /// "quieter than the rest of this line", and grey is the nearest this pane can
 /// say. A dim run that *does* carry a colour keeps it — a dim red is still red,
 /// and dropping the red to say "dim" loses the louder half.
-TextStyle _styleFor(AnsiSpan span, {required bool isError}) {
+/// [isLink] adds an underline and nothing else.
+///
+/// The child's colour is left exactly where it was — a route table is colour
+/// coded by method and the `Serving at` line is green, and repainting either to
+/// say "clickable" would take away the thing the colour was already saying.
+/// Underline is the one mark that adds a channel rather than spending one, and
+/// it costs no columns.
+TextStyle _styleFor(
+  AnsiSpan span, {
+  required bool isError,
+  bool isLink = false,
+}) {
   final color = switch (span.color) {
     final code? => colorForSgr(code),
     _ => null,
@@ -223,5 +317,38 @@ TextStyle _styleFor(AnsiSpan span, {required bool isError}) {
   return TextStyle(
     color: color ?? (span.dim || isError ? Colors.grey : null),
     fontWeight: span.bold ? FontWeight.bold : null,
+    decoration: isLink ? TextDecoration.underline : null,
   );
+}
+
+/// The part of [spans] covering `[start, end)` of the text they spell out.
+///
+/// A link range is found over the joined plain text, so it pays no attention to
+/// where one SGR run stops and the next starts and may cut through the middle
+/// of one. Each piece keeps the style of the span it came from, which is what
+/// makes a link that straddles a colour change still render in both colours.
+List<AnsiSpan> _slice(List<AnsiSpan> spans, int start, int end) {
+  final sliced = <AnsiSpan>[];
+  var offset = 0;
+
+  for (final span in spans) {
+    final spanStart = offset;
+    final spanEnd = offset + span.text.length;
+    offset = spanEnd;
+
+    final from = spanStart < start ? start : spanStart;
+    final to = spanEnd > end ? end : spanEnd;
+    if (to <= from) continue;
+
+    sliced.add(
+      AnsiSpan(
+        span.text.substring(from - spanStart, to - spanStart),
+        color: span.color,
+        bold: span.bold,
+        dim: span.dim,
+      ),
+    );
+  }
+
+  return sliced;
 }
