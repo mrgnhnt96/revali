@@ -72,11 +72,22 @@ class ServiceSession extends ChangeNotifier {
   ServiceSession(this.plan, {this.maxLines = defaultMaxLines})
     : assert(maxLines > 0, 'a session with no room for a line shows nothing');
 
-  /// How many settled lines are kept per service.
+  /// How many settled lines are kept per service — the pane's **scrollback
+  /// depth**, since the oldest line reachable by scrolling is the oldest line
+  /// still kept.
   ///
-  /// Far enough back to hold a full stack trace and the build that preceded
-  /// it, which is as far as anyone scrolls before switching to the log file;
-  /// small enough that a fleet of ten idles in well under a megabyte.
+  /// This was an invisible default until the pane could scroll, and 500 is
+  /// deliberately left where it was. A full Dart stack trace runs well under a
+  /// hundred lines, so 500 holds one whole with the build that preceded it —
+  /// which is as far as anyone reads before switching to the log file. Raising
+  /// it trades a real cost for depth nobody reaches: the cap is per service and
+  /// `revali up` runs the whole fleet, so it multiplies by ten, and [lines]
+  /// copies the entire buffer on every rebuild — which is once per chunk of
+  /// child output, for every service at once.
+  ///
+  /// A service that scrolls to the very top and keeps printing will have lines
+  /// evicted out from under it; [_settle] keeps the view stationary while that
+  /// happens rather than letting it drift.
   static const defaultMaxLines = 500;
 
   final ServicePlan plan;
@@ -94,6 +105,80 @@ class ServiceSession extends ChangeNotifier {
 
   ServiceState _state = ServiceState.starting;
   ServiceState get state => _state;
+
+  /// Index into [lines] of the pane's top visible row, or null while the pane
+  /// is following the live end.
+  ///
+  /// Null is the whole stick/unstick rule rather than a flag beside it: a pane
+  /// with no anchor renders the tail, so new output keeps it pinned to the
+  /// newest line; a pane with one renders from that index, so new output lands
+  /// below the view and does not move it. There is no third state, and no way
+  /// to be both following and frozen.
+  ///
+  /// Anchored to the **top** of the window rather than measured back from the
+  /// end, because the end is the noisy side. A transient spinner frame appears
+  /// and disappears from the tail of [lines] between rebuilds, and every
+  /// settle appends there; all of that would have to be subtracted back out of
+  /// a distance-from-the-end. From the top, a settle changes nothing and only
+  /// eviction moves the anchor — which is one place, [_settle].
+  ///
+  /// Lives on the session, not the screen, for three reasons. Switching
+  /// services keeps each pane's position for free, because it is the same
+  /// object. [_clearScreen] can reset it at the one place a clear actually
+  /// happens, which catches the child clearing its own screen on reload and
+  /// not just the `c` key. And it is meaningless without the buffer it indexes
+  /// into, so the two stay together and are clamped against each other.
+  int? _scrollTop;
+
+  /// Where the pane's top visible row is, or null while it follows the tail.
+  int? get scrollTop => _scrollTop;
+
+  /// Whether the pane is following the live end.
+  bool get isLive => _scrollTop == null;
+
+  /// Moves the view by [delta] rows, freezing it away from the live end.
+  ///
+  /// [viewport] is how many rows the pane can draw, which only the pane knows.
+  /// Scrolling back down to the last row re-sticks rather than stopping one
+  /// short: a user who scrolls down to the newest line has said they want the
+  /// newest line, and leaving them frozen there would silently stop showing
+  /// output while looking exactly like a pane that is following it.
+  void scrollBy(int delta, {required int viewport}) {
+    if (viewport <= 0) return;
+
+    final total = lines.length;
+    final maxTop = total - viewport;
+
+    // Nothing is off-screen, so there is nowhere to go and no way to be
+    // anywhere but live.
+    if (maxTop <= 0) {
+      if (_scrollTop != null) {
+        _scrollTop = null;
+        notifyListeners();
+      }
+
+      return;
+    }
+
+    final next = (_scrollTop ?? maxTop) + delta;
+    final clamped = next.clamp(0, maxTop);
+
+    // Landing on the last window means the newest line is on screen, which is
+    // what following the tail means.
+    final resolved = clamped >= maxTop ? null : clamped;
+    if (resolved == _scrollTop) return;
+
+    _scrollTop = resolved;
+    notifyListeners();
+  }
+
+  /// Snaps the pane back to the newest line and re-sticks it there.
+  void scrollToLive() {
+    if (_scrollTop == null) return;
+
+    _scrollTop = null;
+    notifyListeners();
+  }
 
   int? _exitCode;
 
@@ -183,6 +268,15 @@ class ServiceSession extends ChangeNotifier {
     _settled.clear();
     _stdout.transient = null;
     _stderr.transient = null;
+
+    // A scroll position into a buffer that no longer exists points at nothing,
+    // and a pane holding one after a clear draws blank — which reads as the
+    // service having died rather than as the screen having been wiped.
+    //
+    // Here rather than on the `c` keypress because this is where a clear
+    // actually happens: `c` is only *asked* for, by writing to the child, and
+    // the child clears its own screen on reload without being asked at all.
+    _scrollTop = null;
   }
 
   /// Records that the process is gone.
@@ -205,6 +299,15 @@ class ServiceSession extends ChangeNotifier {
 
     while (_settled.length > maxLines) {
       _settled.removeFirst();
+
+      // Every line before the view just shifted up by one, so the anchor has
+      // to follow or the view slides forward a line per eviction — a pane
+      // scrolled to the top of a busy service would crawl toward the end
+      // without anyone touching it. At zero the view is already against the
+      // oldest line kept, and what falls off is genuinely gone.
+      if (_scrollTop case final top? when top > 0) {
+        _scrollTop = top - 1;
+      }
     }
   }
 

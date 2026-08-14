@@ -83,6 +83,16 @@ class _UpAppState extends State<UpApp> {
   /// once they are gone.
   var _stopping = false;
 
+  /// Rows the log pane was last given, so a key can scroll by what is actually
+  /// on screen.
+  ///
+  /// Only the layout knows this, and only at build time — the pane is whatever
+  /// is left after the roster, the rules and the legend have taken theirs.
+  /// Recorded on the way past rather than pushed through `setState`, because
+  /// nothing renders from it: it is read when a key arrives, which is always
+  /// after the build that set it.
+  var _paneHeight = 0;
+
   ServiceSession? get _session =>
       component.sessions.isEmpty ? null : component.sessions[_focused];
 
@@ -140,6 +150,8 @@ class _UpAppState extends State<UpApp> {
       return true;
     }
 
+    if (_handleScroll(event)) return true;
+
     final digit = _digitKeys.indexOf(event.logicalKey);
     if (digit != -1) {
       _select(digit);
@@ -170,6 +182,60 @@ class _UpAppState extends State<UpApp> {
 
     return true;
   }
+
+  /// Scrolls the focused pane, if this key is one of the ones that does.
+  ///
+  /// Returns whether the key was spent here, so a key that is not a scroll key
+  /// carries on to the roster and the commands untouched.
+  ///
+  /// `j`/`k` and `g` are plain unshifted letters on purpose. `↑`/`↓` and `1`-`9`
+  /// already move the *selection*, and `r`/`c`/`q` — with their shifted
+  /// fleet-wide forms — are spoken for; letters that arrive as ordinary
+  /// characters are also the ones this app has already proved a terminal
+  /// delivers, which `PageUp` and `PageDown` are not. Those two are bound as
+  /// well because they are what a hand reaches for first, but nothing depends
+  /// on them: every scroll action has a letter that does the same thing.
+  bool _handleScroll(KeyboardEvent event) {
+    final session = _session;
+    if (session == null) return false;
+
+    // Shifted means "the whole fleet" everywhere else on this screen, and
+    // there is no fleet-wide scroll. Letting `J` through would scroll one pane
+    // from a key that reads as acting on all of them.
+    if (_isShifted(event)) return false;
+
+    // A page keeps one row of overlap, so the line you were reading when you
+    // pressed it is still there to pick the thread back up from.
+    final page = (_scrollViewport - 1).clamp(1, _scrollViewport);
+
+    final delta = switch (event.logicalKey) {
+      LogicalKey.keyK => -1,
+      LogicalKey.keyJ => 1,
+      LogicalKey.pageUp => -page,
+      LogicalKey.pageDown => page,
+      LogicalKey.keyG => 0,
+      _ => null,
+    };
+
+    if (delta == null) return false;
+
+    if (delta == 0) {
+      session.scrollToLive();
+    } else {
+      session.scrollBy(delta, viewport: _scrollViewport);
+    }
+
+    return true;
+  }
+
+  /// Rows a scroll moves against.
+  ///
+  /// The pane gives its last row to the "not at the live end" marker the moment
+  /// it stops following, so this is the height minus that row — the same number
+  /// [ServiceLog] draws with once scrolled, which is the only state where the
+  /// anchor is read at all.
+  int get _scrollViewport =>
+      ServiceLog.viewportFor(_paneHeight, isLive: false).clamp(0, _paneHeight);
 
   /// Puts the screen into its shutdown state, once.
   void _enterShutdown() {
@@ -211,7 +277,18 @@ class _UpAppState extends State<UpApp> {
         Expanded(
           child: session == null
               ? const Text('No services.')
-              : ServiceLog(session: session, index: _focused),
+              : LayoutBuilder(
+                  builder: (context, constraints) {
+                    final height = constraints.maxHeight.floor();
+                    _paneHeight = height;
+
+                    return ServiceLog(
+                      session: session,
+                      index: _focused,
+                      height: height,
+                    );
+                  },
+                ),
         ),
         const Divider(),
         const UpFooter(),
