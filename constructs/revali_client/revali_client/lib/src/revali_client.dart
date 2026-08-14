@@ -174,9 +174,17 @@ class RevaliClient {
     };
 
     if (hasException) {
-      final body = await response.stream.transform(utf8.decoder).join();
+      // `cast`, because `transform` is generic on the stream's *runtime* type:
+      // a transport handing back a `Stream<Uint8List>` (which `package:http`
+      // does) cannot take a `StreamTransformer<List<int>, String>` and throws
+      // a TypeError instead of reading the body. Only the error path decodes
+      // a body here, which is why it went unnoticed.
+      final body = await response.stream
+          .cast<List<int>>()
+          .transform(utf8.decoder)
+          .join();
 
-      throw ServerException(
+      throw ServerException.fromBody(
         message: response.reasonPhrase ?? 'Unknown error',
         statusCode: response.statusCode,
         body: body,
