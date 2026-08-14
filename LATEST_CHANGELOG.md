@@ -16,28 +16,27 @@
 - `routes.json` gains `returns` and `returnsNullable`, and its `version` moves to `2`. It previously carried **no return type at all**, which is why the manifest could describe a route table but not a contract.
 - Add `revali routes --check <pinned.json>`, which compares the current manifest against one a consumer pinned and exits non-zero on a breaking change, so it works as a CI gate. Severity is judged from the caller's side: a removed route, a new required parameter, a parameter that became required, a changed type or location, a changed or newly-nullable return, and a changed transport all break callers; an added route, a new optional parameter and a relaxed requirement do not. A removed parameter is reported as compatible rather than breaking — the server still accepts callers that send it, it just ignores the value now. Parameters are matched on their **wire** name, so renaming a Dart argument while keeping `@Query('id')` reports nothing. Comparing against a version 1 pin says return types were not compared rather than silently treating absent as unchanged.
 - `routes.json` reports return types **unwrapped**: what a caller receives is the awaited value, so `Future<String>` and `String` are the same contract. Leaving the wrapper on flagged a breaking change the moment a handler became async, and read `returnsNullable` off `Future` rather than off what is actually returned — so `Future<String?>` claimed to be non-nullable and the nullability check could never fire for an async handler.
+- Generate consumer registration for methods annotated with `@Consumes(topic, group:)`. A `registerConsumers` function is emitted beside `routes`, constructing controllers the same way so a singleton controller is shared with its routes rather than rebuilt for messages. Handlers take a `BrokerMessage` or nothing; anything else is rejected at generation time, naming the method, rather than emitting code that will not compile. A method that is both a route and a consumer, or carries two `@Consumes`, is rejected for the same reason. Nothing at all is emitted when no handler is annotated — a server generated for an app without messaging is byte-identical to one generated before this existed.
+- Consumers drain **before** HTTP during shutdown: they pull *new* work, so leaving them running while requests drain means the process keeps taking on messages it is about to abandon.
 - Add `revali services`, which lists every Revali service in a repository — a package with a `routes/` directory that depends on the framework. The dependency check matters: `routes/` alone is a common enough directory name that a frontend router or a docs folder would otherwise be reported as a service. `--paths` prints one path per line for scripting.
 - Add `revali compose`, generating a `docker-compose.yaml` for every service found. `revali_docker` produces a Dockerfile per service, which is enough to ship one and not enough to *run the system* — and starting five services by hand is the point at which people stop running the whole thing locally and start testing one service against staging, which hides exactly the mismatches that splitting into services creates. Ports are assigned sequentially from `--base-port` and passed as `PORT`, which `AppConfig.fromEnv` reads. Services that share a package name — several examples can legitimately be called `hello` — are keyed by path instead, because a duplicate compose key does not error: the later entry silently replaces the earlier one and a service vanishes from the file meant to describe it. A service with no Dockerfile yet is emitted with a comment saying so rather than omitted, since a silent absence is harder to notice than a build that fails and explains why.
 - Add `revali up`, which runs every service in the repository at once. Five services is otherwise five `revali dev` processes in five terminals, which is the point at which people stop running the whole system locally and start developing one service against staging or mocks — and a system you cannot run is one you cannot trust to work deployed. Each service gets a port assigned from `--base-port` and passed as `PORT`, output is merged with a stable colour and an aligned per-service prefix, and `--only` runs a subset by name or path (an unknown name is refused rather than silently ignored, since a typo would otherwise look like a service that starts and does nothing). `Ctrl-C` sends `SIGTERM` to every child, so each drains through the graceful-shutdown path rather than being killed. A service that fails to start is reported and the rest carry on — the usual cause is a compile error the developer is about to fix, and losing the whole fleet for it makes the loop worse.
 
 # revali_annotations
 
-## 3.1.0
-
-### Fixes
-
-- Raise the `revali_core` floor to `^3.0.0`. Nothing in this package changed; it is re-released so the published set still resolves. `revali_core` 3.0.0 is a new major, and a dependent's constraint is only rewritten if that dependent is itself part of the release — leaving 3.0.0 behind on `revali_core: ^2.0.0` would make it unresolvable alongside every other package in this round.
-
-# revali_construct
-
-## 2.4.0
+## 3.2.0
 
 ### Features
 
-- Add `TargetOs`/`Arch` enums and `CompiledExecutable` to describe native executables compiled by `revali build`.
-- Add `RevaliBuildContext.compiledExecutables`, populated whenever `revali.yaml` has a `build:` section, so build-type constructs can package an already-compiled executable instead of compiling one themselves.
-- Add a `build:` section to `RevaliYaml` (`BuildSettingsConfig`) for `target_os`, `target_arch`, and `strip_debug_info`.
-- Allow `AnyFile` to carry binary content via a new `bytes` field, written with `writeAsBytes` instead of `writeAsString` when present.
+- Add `@Consumes(topic, group:)`, marking a method as the handler for messages on a topic. `group` is required rather than defaulted: a default would have to be derived from the package or class name, and a group name that changes when code is renamed silently re-reads a stream from scratch.
+
+# revali_construct
+
+## 2.5.0
+
+### Features
+
+- Add `MetaConsumer` and `MetaRoute.consumers`, describing methods annotated with `@Consumes` so constructs can generate against them. Kept separate from `MetaMethod` rather than folded into it: a consumer has no HTTP verb, no path and no request to bind from, so every field they would share is one that does not apply.
 
 # revali_core
 
@@ -56,6 +55,7 @@
 - Add `HttpError`, a failure that survives the hop. A status code alone tells a caller that something went wrong, not *what*: two different 404s are indistinguishable to the service calling you, so its only options are to give up or to match on a human-readable message that was never meant to be an API. `HttpError` carries a stable `code` alongside the status, plus a `message` for humans and optional machine-readable `details`, and serialises to `{"error": {...}}` — mirroring the `{"data": ...}` wrapper successful responses already use. Named constructors cover the usual statuses. Throwing it is **opt-in**: the framework's existing plain-text default responses are unchanged, so clients reading them today keep working.
 - Add the messaging contract: `MessageBroker`, `BrokerMessage`, `BrokerSubscription` and `ConsumerRegistry`, plus an `InMemoryBroker` for tests and local development. Revali does **not** run a broker — like a database it is infrastructure you deploy, and this is the client side. Implementations live in their own packages so the framework never picks a winner between brokers whose delivery and ordering guarantees genuinely differ.
 - `ConsumerRegistry` gives each message what a request already gets: its own `TraceContext`, seeded from the message headers, so an event published during a request stays on that request's trace when it is handled minutes later in another process; its own `RequestScopedDI` scope, disposed when the message ends; and a place in shutdown. Draining **pauses** subscriptions before waiting, rather than cancelling — cancelling abandons messages mid-handler, and on an at-least-once broker every one of them is then redelivered as a duplicate nobody needed.
+- Add `AppConfig.createBroker()`, returning null by default. This is what makes messaging opt-in: an app that supplies no broker registers no consumers even when handlers are annotated, and the broker it does supply is drained and closed as part of shutdown.
 
 # revali_test
 

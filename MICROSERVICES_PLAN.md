@@ -547,10 +547,24 @@ a guard exists to reject a caller, and a queue message has none.
 
 **Still open:**
 
-- **`@Consumes('order.placed')` codegen.** Today a consumer is registered in
-  code against `ConsumerRegistry`. The annotation is sugar over exactly that,
-  but it needs a visitor, a meta model and a maker in the generator — a
-  self-contained piece of work rather than a detail of this one.
+- ~~**`@Consumes('order.placed')` codegen.**~~ **Done.** `@Consumes(topic,
+  group:)` on a controller method generates a `registerConsumers` function
+  beside `routes`, constructing controllers the same way so a singleton
+  controller is shared with its routes rather than rebuilt for messages.
+  Handlers take a `BrokerMessage` or nothing; anything else is rejected at
+  generation time **naming the method**, rather than emitting code that will
+  not compile. 7 end-to-end tests in
+  `test_suite/constructs/revali_server/messaging`.
+
+  Consumers drain **before** HTTP on shutdown: they pull *new* work, so
+  leaving them running while requests drain means the process keeps taking on
+  messages it is about to abandon.
+
+  **A claim I made and then had to fix.** The code comment said an app without
+  messaging would generate identically. It did not — every server still got an
+  empty `drainConsumers()` stub and a call to it. Diffing a regenerated server
+  against the pre-messaging one is what caught it; the wiring is now genuinely
+  absent, verified by that diff coming back identical.
 - ~~**A real-Redis integration test.**~~ **Done.** 10 tests against a running
   server, skipped by default so a machine without Redis still gets a green
   suite (`dart test --run-skipped --tags integration`). Several assert against
