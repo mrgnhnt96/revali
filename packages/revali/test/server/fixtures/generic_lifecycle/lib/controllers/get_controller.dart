@@ -13,6 +13,25 @@ class GetController {
   }
 }
 
+@Controller('api/quote')
+class QuoteController {
+  const QuoteController();
+
+  /// Mirrors a route that lost three `@Query()` params to type-collapse:
+  /// two `double`s and three `int?`s, all of which must survive to the client.
+  @Get(':placeId')
+  Future<Map<String, Object?>> quote({
+    @Param() required String placeId,
+    @Query() required double latitude,
+    @Query() required double longitude,
+    @Query() int? downPaymentCents,
+    @Query() int? termPeriods,
+    @Query() int? unitIndex,
+  }) async {
+    return const {};
+  }
+}
+
 @Controller('api/lifecycle-components')
 class LifecycleComponentsGetController {
   const LifecycleComponentsGetController();

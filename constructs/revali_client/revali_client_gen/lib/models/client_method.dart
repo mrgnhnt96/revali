@@ -163,7 +163,7 @@ class ClientMethod with ExtractImport {
   bool get isWebsocket => websocketType != WebsocketType.none;
 
   List<ClientParam> get allParams {
-    final merged = <ClientParam>[];
+    final fromLifecycle = <ClientParam>[];
 
     for (final component in lifecycleComponents) {
       for (final param in component.allParams) {
@@ -171,31 +171,24 @@ class ClientMethod with ExtractImport {
           continue;
         }
 
-        merged.add(param);
+        // The endpoint declares the real signature, so a lifecycle param that
+        // binds to the same place is already covered by it.
+        if (parameters.any(param.conflictsWithClientParam)) {
+          continue;
+        }
+
+        if (fromLifecycle.any(param.conflictsWithClientParam)) {
+          continue;
+        }
+
+        fromLifecycle.add(param);
       }
     }
 
-    merged.addAll(parameters);
-
-    return _dedupeParamsByBinding(merged);
-  }
-
-  static List<ClientParam> _dedupeParamsByBinding(List<ClientParam> params) {
-    final deduped = <ClientParam>[];
-
-    for (final param in params) {
-      final index = deduped.indexWhere(
-        (existing) => existing.conflictsWithClientParam(param),
-      );
-
-      if (index >= 0) {
-        deduped[index] = param;
-      } else {
-        deduped.add(param);
-      }
-    }
-
-    return deduped;
+    // [parameters] is never deduped against itself. Two params of the same
+    // type share a binding but are still two distinct params, and dropping
+    // one would silently stop the client sending a value the server reads.
+    return [...fromLifecycle, ...parameters];
   }
 
   String get fullPath => [
