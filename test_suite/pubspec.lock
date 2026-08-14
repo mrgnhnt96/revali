@@ -377,6 +377,13 @@ packages:
       relative: true
     source: path
     version: "0.0.0"
+  revali_client_errors:
+    dependency: transitive
+    description:
+      path: "constructs/revali_client/errors/.revali/revali_client"
+      relative: true
+    source: path
+    version: "0.0.0"
   revali_client_gen:
     dependency: "direct overridden"
     description:
