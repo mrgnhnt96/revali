@@ -22,6 +22,9 @@ class RedisBroker implements MessageBroker {
     this.consumerName = 'revali',
     this.blockFor = const Duration(seconds: 2),
     this.batchSize = 16,
+    this.claimAfter,
+    this.maxDeliveries = 5,
+    this.deadLetterSuffix = '.dead',
   }) : _control = connection,
        _openConnection = openConnection;
 
@@ -73,6 +76,31 @@ class RedisBroker implements MessageBroker {
 
   final int batchSize;
 
+  /// How long an entry may sit unacknowledged before another consumer takes
+  /// it over.
+  ///
+  /// Redis tracks pending entries **per consumer name**, so a replica that
+  /// dies mid-message leaves its entries in a list nobody else reads. Without
+  /// this they are stranded until something restarts under the same name —
+  /// which never happens when a pod is replaced rather than restarted.
+  ///
+  /// Null disables reclaiming, which is the previous behaviour. Set it well
+  /// above the time a healthy handler takes, or a slow handler's work gets
+  /// taken from underneath it and processed twice.
+  final Duration? claimAfter;
+
+  /// How many deliveries an entry gets before it is dead-lettered.
+  ///
+  /// Reclaiming without this turns a message that always fails into a retry
+  /// storm: claimed, failed, left pending, claimed again, forever. Past this
+  /// count the entry is published to the dead-letter topic and acknowledged,
+  /// so the queue moves on and the message is still somewhere a human can
+  /// look at it.
+  final int maxDeliveries;
+
+  /// Appended to the topic name to form the dead-letter topic.
+  final String deadLetterSuffix;
+
   final _subscriptions = <_RedisSubscription>[];
   var _closed = false;
 
@@ -117,6 +145,9 @@ class RedisBroker implements MessageBroker {
       onMessage: onMessage,
       blockFor: blockFor,
       batchSize: batchSize,
+      claimAfter: claimAfter,
+      maxDeliveries: maxDeliveries,
+      deadLetterTopic: '$topic$deadLetterSuffix',
     );
 
     _subscriptions.add(subscription);
@@ -162,6 +193,9 @@ class _RedisSubscription implements BrokerSubscription {
     required MessageHandler onMessage,
     required this.blockFor,
     required this.batchSize,
+    required this.claimAfter,
+    required this.maxDeliveries,
+    required this.deadLetterTopic,
   }) : _connection = connection,
        _onMessage = onMessage;
 
@@ -174,6 +208,9 @@ class _RedisSubscription implements BrokerSubscription {
   final MessageHandler _onMessage;
   final Duration blockFor;
   final int batchSize;
+  final Duration? claimAfter;
+  final int maxDeliveries;
+  final String deadLetterTopic;
 
   var _paused = false;
   var _cancelled = false;
@@ -216,20 +253,141 @@ class _RedisSubscription implements BrokerSubscription {
         continue;
       }
 
-      for (final message in parseStreamReply(reply, topic)) {
+      final messages = parseStreamReply(reply, topic);
+
+      for (final message in messages) {
         if (_cancelled) {
           return;
         }
 
-        try {
-          await _onMessage(message);
-          // Acknowledged only on success: a handler that threw leaves the
-          // entry pending, which is what makes redelivery possible.
-          await _connection.send(['XACK', topic, group, message.id]);
-        } catch (_) {
-          // Left unacknowledged deliberately.
-        }
+        await _handle(message);
       }
+
+      // Only when there was no fresh work: reclaiming is a repair path, and
+      // running it while messages are flowing would spend round trips on
+      // bookkeeping instead of the queue.
+      if (messages.isEmpty) {
+        await _reclaim();
+      }
+    }
+  }
+
+  /// Runs the handler and acknowledges only on success.
+  ///
+  /// A handler that threw leaves the entry pending, which is what makes
+  /// redelivery possible at all.
+  Future<void> _handle(BrokerMessage message) async {
+    try {
+      await _onMessage(message);
+      await _connection.send(['XACK', topic, group, message.id]);
+    } catch (_) {
+      // Left unacknowledged deliberately.
+    }
+  }
+
+  /// Takes over entries another consumer left pending, and dead-letters the
+  /// ones that have failed too often.
+  Future<void> _reclaim() async {
+    final idle = claimAfter;
+    if (idle == null || _cancelled) {
+      return;
+    }
+
+    final List<PendingEntry> pending;
+    try {
+      pending = parsePendingReply(
+        await _connection.send([
+          'XPENDING',
+          topic,
+          group,
+          'IDLE',
+          '${idle.inMilliseconds}',
+          '-',
+          '+',
+          '$batchSize',
+        ]),
+      );
+    } catch (_) {
+      return;
+    }
+
+    if (pending.isEmpty) {
+      return;
+    }
+
+    final claimable = <String>[];
+
+    for (final entry in pending) {
+      if (entry.deliveries > maxDeliveries) {
+        await _deadLetter(entry);
+      } else {
+        claimable.add(entry.id);
+      }
+    }
+
+    if (claimable.isEmpty || _cancelled) {
+      return;
+    }
+
+    try {
+      final claimed = await _connection.send([
+        'XCLAIM',
+        topic,
+        group,
+        consumerName,
+        '${idle.inMilliseconds}',
+        ...claimable,
+      ]);
+
+      for (final message in parseEntries(claimed, topic)) {
+        if (_cancelled) {
+          return;
+        }
+
+        await _handle(message);
+      }
+    } catch (_) {
+      // The entries stay pending; the next pass tries again.
+    }
+  }
+
+  /// Moves an entry that has failed too often onto the dead-letter topic.
+  ///
+  /// Acknowledged afterwards so the queue moves on. Acknowledging *first*
+  /// would risk losing it entirely if the copy failed.
+  Future<void> _deadLetter(PendingEntry entry) async {
+    try {
+      final claimed = parseEntries(
+        await _connection.send([
+          'XCLAIM',
+          topic,
+          group,
+          consumerName,
+          '0',
+          entry.id,
+        ]),
+        topic,
+      );
+
+      for (final message in claimed) {
+        await _connection.send([
+          'XADD',
+          deadLetterTopic,
+          '*',
+          'payload',
+          message.payload,
+          'headers',
+          jsonEncode({
+            ...message.headers,
+            'x-dead-letter-reason': 'delivered ${entry.deliveries} times',
+            'x-dead-letter-topic': topic,
+          }),
+        ]);
+      }
+
+      await _connection.send(['XACK', topic, group, entry.id]);
+    } catch (_) {
+      // Left pending rather than dropped.
     }
   }
 
@@ -267,38 +425,102 @@ List<BrokerMessage> parseStreamReply(Object? reply, String topic) {
       continue;
     }
 
-    for (final entry in entries) {
-      if (entry is! List || entry.length < 2) {
-        continue;
-      }
-
-      final id = entry[0];
-      final fields = entry[1];
-      if (id is! String || fields is! List) {
-        continue;
-      }
-
-      final values = <String, String>{};
-      for (var i = 0; i + 1 < fields.length; i += 2) {
-        final key = fields[i];
-        final value = fields[i + 1];
-        if (key is String && value is String) {
-          values[key] = value;
-        }
-      }
-
-      messages.add(
-        BrokerMessage(
-          topic: topic,
-          id: id,
-          payload: values['payload'] ?? '',
-          headers: _decodeHeaders(values['headers']),
-        ),
-      );
-    }
+    messages.addAll(parseEntries(entries, topic));
   }
 
   return messages;
+}
+
+/// Turns a flat list of stream entries into messages.
+///
+/// `XCLAIM` replies with this shape directly, while `XREADGROUP` nests it one
+/// level deeper under each stream.
+List<BrokerMessage> parseEntries(Object? entries, String topic) {
+  if (entries is! List) {
+    return const [];
+  }
+
+  final messages = <BrokerMessage>[];
+
+  for (final entry in entries) {
+    if (entry is! List || entry.length < 2) {
+      continue;
+    }
+
+    final id = entry[0];
+    final fields = entry[1];
+    if (id is! String || fields is! List) {
+      continue;
+    }
+
+    final values = <String, String>{};
+    for (var i = 0; i + 1 < fields.length; i += 2) {
+      final key = fields[i];
+      final value = fields[i + 1];
+      if (key is String && value is String) {
+        values[key] = value;
+      }
+    }
+
+    messages.add(
+      BrokerMessage(
+        topic: topic,
+        id: id,
+        payload: values['payload'] ?? '',
+        headers: _decodeHeaders(values['headers']),
+      ),
+    );
+  }
+
+  return messages;
+}
+
+/// One entry from an `XPENDING` reply.
+class PendingEntry {
+  const PendingEntry({required this.id, required this.deliveries});
+
+  final String id;
+
+  /// How many times Redis has handed this entry to a consumer.
+  ///
+  /// The guard against a poison message: an entry that keeps failing has its
+  /// count climb, and past a threshold it is dead-lettered rather than
+  /// reclaimed forever.
+  final int deliveries;
+}
+
+/// Parses the extended `XPENDING` reply: `[id, consumer, idle, deliveries]`.
+List<PendingEntry> parsePendingReply(Object? reply) {
+  if (reply is! List) {
+    return const [];
+  }
+
+  final entries = <PendingEntry>[];
+
+  for (final entry in reply) {
+    if (entry is! List || entry.length < 4) {
+      continue;
+    }
+
+    final id = entry[0];
+    final deliveries = entry[3];
+
+    if (id is! String) {
+      continue;
+    }
+
+    entries.add(
+      PendingEntry(
+        id: id,
+        // Redis replies with an integer, but a string would still be a count.
+        deliveries: deliveries is int
+            ? deliveries
+            : int.tryParse('$deliveries') ?? 1,
+      ),
+    );
+  }
+
+  return entries;
 }
 
 Map<String, String> _decodeHeaders(String? raw) {
