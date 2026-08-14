@@ -218,6 +218,27 @@ Small. The state it needs to read already exists on `InFlightRequests`.
 
 ## Gap 3 — Config cannot come from the environment
 
+**Status: SHIPPED.** `revali_core` 3.1.0, `revali_router` 5.1.0. What landed:
+
+- `Env` — a runtime reader with `require`, `string`, `integer`, `boolean` and
+  `uri`. Empty counts as unset; present-but-unparseable throws rather than
+  falling back. Takes an explicit map in tests.
+- `AppConfig.fromEnv`, defaulting to `0.0.0.0` and `$PORT`, forwarded onto the
+  `revali_router` subclass apps actually extend.
+- 21 tests in `revali_core`, 2 in `revali_router`.
+
+**A bug the unit tests could not have caught.** The constructor was added only
+to the core `AppConfig`, where 21 tests passed — but `revali_router`
+re-exports `revali_core` with `AppConfig` hidden and defines its own subclass,
+which is what apps extend. Every real app failed to compile with "Superclass
+has no constructor named `AppConfig.fromEnv`". Found by running a generated
+app, and now covered by a test against the router's class rather than core's.
+
+Verified end to end: `PORT=8097` against a generated app logs
+`Serving at http://0.0.0.0:8097/api` and serves.
+
+**Original analysis follows.**
+
 ### Evidence
 
 `AppConfig` requires const `host` and `port`:
@@ -419,7 +440,7 @@ framework.
 | **1** | ~~Gap 2 (health/readiness)~~ **done**, ~~Gap 1 (context propagation)~~ **done** | Both are small, both depend only on machinery that already exists, and neither can be bolted on from user code. Gap 2 additionally fixed a real ordering defect in a feature already shipped |
 | **1a** | ~~Broadcast shutdown to worker isolates~~ **done** | Fallout from Gap 2: readiness and `drainDelay` were per-isolate. Closed, so both now hold at any `workers` count |
 | **2** | ~~Gap 4 (client resilience)~~ **done** | Breaking signature change — done early, while `HeaderInterceptor` was the only in-repo implementer |
-| **3** | Gap 3 (env config) | Small, but an API-surface decision worth taking deliberately |
+| **3** | ~~Gap 3 (env config)~~ **done** | Small, but an API-surface decision worth taking deliberately |
 | **4** | Gap 5 → Gap 6 (contracts, then typed errors) | Largest surface; Gap 6 depends on Gap 5. Gate on verifying `routes.json` completeness first |
 | **5** | Gap 7, Gap 8 | Friction and reach, not correctness |
 
