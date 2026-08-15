@@ -43,6 +43,7 @@ export 'error/override_error_response_mixin.dart';
 export 'file/memory_file.dart';
 export 'health/health_check.dart';
 export 'health/health_settings.dart';
+export 'isolate/isolate_identity.dart';
 export 'messaging/broker_message.dart';
 export 'messaging/consumer_registry.dart';
 export 'messaging/in_memory_broker.dart';
