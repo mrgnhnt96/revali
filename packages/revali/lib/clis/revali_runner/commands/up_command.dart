@@ -19,6 +19,21 @@ import 'package:revali/services/service_discovery.dart';
 import 'package:revali/services/service_plan.dart';
 import 'package:revali/services/service_session.dart';
 
+/// How one `revali dev` child is spawned.
+///
+/// A seam, and the only reason a restart can be proved without the suite
+/// starting real `dart run revali dev` processes on the machine running it.
+/// Narrower than `io.Process.start` on purpose — it names only the four things
+/// this command actually passes — and a tear-off of the real one still fits,
+/// since the extra parameters it has are all optional.
+typedef ProcessSpawner =
+    Future<io.Process> Function(
+      String executable,
+      List<String> arguments, {
+      String? workingDirectory,
+      Map<String, String>? environment,
+    });
+
 /// Runs every service in the repository at once.
 ///
 /// A system split across five services is five `revali dev` processes in five
@@ -27,7 +42,11 @@ import 'package:revali/services/service_session.dart';
 /// hide exactly the mismatches that splitting into services creates — and a
 /// system you cannot run is a system you cannot trust to work deployed.
 class UpCommand extends Command<int> {
-  UpCommand({required this.logger, required this.fs}) {
+  UpCommand({
+    required this.logger,
+    required this.fs,
+    ProcessSpawner spawn = io.Process.start,
+  }) : _spawn = spawn {
     argParser
       ..addOption(
         'root',
@@ -50,10 +69,45 @@ class UpCommand extends Command<int> {
   final Logger logger;
   final FileSystem fs;
 
+  final ProcessSpawner _spawn;
+
   /// Children, so a signal can reach all of them.
+  ///
+  /// Keyed by label, and the key is how a restart knows whether there is
+  /// already a process behind a service: the exit handler removes the entry, so
+  /// a label that is still in here has something running under it. Spawning a
+  /// second one would leave the first unreachable — nothing would hold its
+  /// handle, so `Ctrl+C` would not reach it and it would keep the port.
   final _running = <String, io.Process>{};
 
   var _stopping = false;
+
+  /// Children currently running, and whether anything has ever started.
+  ///
+  /// A count rather than the list of exit futures this used to wait on.
+  /// `Future.wait` iterates its argument once, when it is called, so an exit
+  /// future appended afterwards is never waited on at all — and a restart
+  /// appends one. The fleet would have been declared gone the moment the
+  /// *original* processes were all accounted for, taking the screen down while
+  /// a service someone had just asked for was still coming up.
+  var _alive = 0;
+  var _spawned = 0;
+
+  /// Completes when every child is gone and none has been brought back.
+  final _fleetGone = Completer<void>();
+
+  /// Whether [_fleetGone] is allowed to complete yet.
+  ///
+  /// The initial services are spawned one at a time, so [_alive] passes through
+  /// zero legitimately — a service that dies on the spot while the next one is
+  /// still being started would otherwise take the whole run down with it. The
+  /// gate is opened once, after the starting loop, and the check is run by hand
+  /// there for the case where they really are all already gone.
+  var _fleetArmed = false;
+
+  /// The width the roster's labels are padded to, so a restart lines its
+  /// prefixed output up with everything the service printed before it died.
+  var _labelWidth = 0;
 
   /// Whether nocterm owns the screen.
   ///
@@ -115,7 +169,7 @@ class UpCommand extends Command<int> {
   }
 
   Future<int> _runAll(List<ServicePlan> plans) async {
-    final width = plans
+    final width = _labelWidth = plans
         .map((p) => p.label.length)
         .reduce((a, b) => a > b ? a : b);
 
@@ -134,25 +188,9 @@ class UpCommand extends Command<int> {
     }
     logger.info('');
 
-    final exits = <Future<void>>[];
     final sessions = <ServiceSession>[];
 
-    for (final (index, plan) in plans.indexed) {
-      // A session per service only where there is a pane to draw it in.
-      // Without one the flat path still owns the output, and a session nobody
-      // reads would be a ring buffer filling up for no one.
-      final session = _useTui ? ServiceSession(plan) : null;
-      if (session != null) {
-        sessions.add(session);
-      }
-
-      // One service failing to start must not take the others down: the usual
-      // cause is a compile error the developer is about to fix, and losing the
-      // whole fleet for it makes the loop worse, not safer.
-      await _start(plan, colorFor(index), width, exits, session);
-    }
-
-    if (exits.isEmpty) {
+    if (!await startFleet(plans, sessions)) {
       logger.err('No service could be started.');
 
       return 1;
@@ -164,10 +202,10 @@ class UpCommand extends Command<int> {
     final signals = _listenForShutdown();
 
     if (_useTui) {
-      return _runTui(plans, sessions, exits, signals);
+      return _runTui(plans, sessions, signals);
     }
 
-    await Future.wait(exits);
+    await _fleetGone.future;
 
     for (final subscription in signals) {
       await subscription.cancel();
@@ -175,6 +213,70 @@ class UpCommand extends Command<int> {
 
     return _stopping ? 0 : 1;
   }
+
+  /// Starts every service in [plans], filling [sessions] as it goes.
+  ///
+  /// Returns whether anything started at all. A service that fails to start
+  /// must not take the others down: the usual cause is a compile error the
+  /// developer is about to fix, and losing the whole fleet for it makes the
+  /// loop worse, not safer.
+  ///
+  /// [sessions] is filled here rather than returned so it stays the same list
+  /// the caller hands to the screen — the screen is built from it before any of
+  /// this has finished, and a second list would leave the two able to disagree.
+  /// A session is made only where there is a pane to draw it in; on the flat
+  /// path one would be a ring buffer filling up for no one.
+  ///
+  /// Public so a test can stand a fleet up with an injected spawner, which is
+  /// the only way to reach [fleetGone] — the one thing a restart has to get
+  /// right and the one thing that is invisible until every service has died.
+  Future<bool> startFleet(
+    List<ServicePlan> plans,
+    List<ServiceSession> sessions,
+  ) async {
+    if (_labelWidth == 0) {
+      _labelWidth = plans
+          .map((p) => p.label.length)
+          .reduce((a, b) => a > b ? a : b);
+    }
+
+    for (final (index, plan) in plans.indexed) {
+      final session = _useTui ? ServiceSession(plan) : null;
+      if (session != null) {
+        sessions.add(session);
+      }
+
+      await _start(plan, colorFor(index), _labelWidth, session);
+    }
+
+    if (_spawned == 0) return false;
+
+    // Opened only now, for the reason [_fleetArmed] carries: until the loop
+    // above has finished, a zero here means "not started yet" as often as it
+    // means "all gone". Checked by hand in the same breath, because if they
+    // really did all die while starting there is no exit left to come and
+    // notice it.
+    _fleetArmed = true;
+    _noticeFleetGone();
+
+    return true;
+  }
+
+  /// Completes when every child is gone and none has been brought back.
+  ///
+  /// What decides the run is over, on both paths: the flat one awaits it and
+  /// the TUI takes the screen down on it.
+  Future<void> get fleetGone => _fleetGone.future;
+
+  /// How many children are running right now.
+  int get aliveCount => _alive;
+
+  /// Whether the TUI is in play, which decides whether services get panes.
+  ///
+  /// Settable only for a test: the real answer comes from [canDrawTui], and a
+  /// test has no terminal to give it.
+  // ignore: avoid_setters_without_getters
+  set useTui(bool value) => _useTui = value;
 
   /// Holds the screen until the fleet is gone, drawing it as it goes.
   ///
@@ -184,15 +286,18 @@ class UpCommand extends Command<int> {
   Future<int> _runTui(
     List<ServicePlan> plans,
     List<ServiceSession> sessions,
-    List<Future<void>> exits,
     List<StreamSubscription<io.ProcessSignal>> signals,
   ) async {
     // A dead fleet must not leave the screen up: there is nothing left to
-    // watch and no key that would bring it down, since every command this
-    // screen offers is addressed to a process that no longer exists.
-    unawaited(
-      Future.wait(exits).then((_) => shutdownApp(_stopping ? 0 : 1)),
-    );
+    // watch, and the one key that could have brought something back — `s` —
+    // needs a service to be *focused*, which means a screen, which means at
+    // least one other service still holding it up. So a fleet that is entirely
+    // gone is genuinely the end of the run, and this is where a restart stops
+    // being reachable: `s` recovers a crashed service out of a fleet, not the
+    // fleet itself. Bringing that back would mean a `revali up` that sits on an
+    // empty screen after everything has died, which is a worse default than
+    // exiting for every use that is not a person watching it.
+    unawaited(_fleetGone.future.then((_) => shutdownApp(_stopping ? 0 : 1)));
 
     await runApp(
       buildApp(plans, sessions),
@@ -239,7 +344,57 @@ class UpCommand extends Command<int> {
       },
       onQuit: _quit,
       onOpenUrl: openUrl,
+      onRestart: (session) => restart(session, plans).ignore(),
     );
+  }
+
+  /// Brings a dead service back with a fresh `revali dev` process.
+  ///
+  /// The half `r` cannot do. Reload travels by writing `.revali_cmd`, which
+  /// works only while the `revali dev` wrapper is alive to be watching it —
+  /// that is the `needs fix` case, where the wrapper stayed up on purpose after
+  /// its inner server died. Once the wrapper itself is gone there is nobody
+  /// reading the file, so `r` writes into the void; the only way back is
+  /// another [io.Process.start], which is this.
+  ///
+  /// Declines, quietly and on purpose, in three cases:
+  ///
+  /// * the fleet is draining. A `Ctrl+C` or `Q` has already gone out and every
+  ///   other child has had its SIGTERM; spawning one more would be starting a
+  ///   service into a shutdown, and it would not be in [_running] early enough
+  ///   for [_stop] to have reached it either.
+  /// * something is already running under this label. Guarded here as well as
+  ///   in the screen because this is the check that costs something to get
+  ///   wrong: a second process would take the first one's place in [_running]
+  ///   and leave it with no handle, so `Ctrl+C` could not reach it and it would
+  ///   sit on the port until it was killed by hand.
+  /// * the service is not dead. `needs fix` looks broken and is not gone, and
+  ///   `r` is what it wants.
+  ///
+  /// Quietly because the screen is nocterm's — there is nowhere to print that
+  /// would not paint over the frame — and because every one of these is a key
+  /// the legend already drew dim.
+  ///
+  /// Public so a test can drive it with an injected spawner.
+  Future<void> restart(ServiceSession session, List<ServicePlan> plans) async {
+    if (_stopping) return;
+    if (_fleetGone.isCompleted) return;
+    if (_running.containsKey(session.label)) return;
+    if (!session.isDead) return;
+
+    // By label rather than by identity, so a plan list rebuilt anywhere along
+    // the way still resolves. The index is also the service's colour, which is
+    // why it is wanted rather than just the plan.
+    final index = plans.indexWhere((plan) => plan.label == session.label);
+    if (index == -1) return;
+
+    // Before the spawn, so the pane is empty the instant the key is pressed
+    // rather than at whatever point the new child gets round to printing. If
+    // the spawn then fails, [_start] ingests the reason into a pane holding
+    // nothing but that reason.
+    session.markRestarted();
+
+    await _start(plans[index], colorFor(index), _labelWidth, session);
   }
 
   /// Hands [url] to whatever this platform opens URLs with.
@@ -260,13 +415,15 @@ class UpCommand extends Command<int> {
       // Not awaited: a click must not block the render loop on a process
       // start, and there is nothing in the result worth waiting for.
       unawaited(
-        io.Process.run(executable, arguments).then((result) {
-          if (result.exitCode != 0) {
-            logger.detail('Could not open $url: ${result.stderr}');
-          }
-        }).catchError((Object e) {
-          logger.detail('Could not open $url: $e');
-        }),
+        io.Process.run(executable, arguments)
+            .then((result) {
+              if (result.exitCode != 0) {
+                logger.detail('Could not open $url: ${result.stderr}');
+              }
+            })
+            .catchError((Object e) {
+              logger.detail('Could not open $url: $e');
+            }),
       );
     } catch (e) {
       logger.detail('Could not open $url: $e');
@@ -467,7 +624,7 @@ class UpCommand extends Command<int> {
     if (useTui) kForceAnsiEnvVar: '1',
   };
 
-  /// Starts one service, appending its exit future to [exits].
+  /// Starts one service and counts it into the fleet.
   ///
   /// A service that cannot start adds nothing, so the fleet carries on without
   /// it. The label is padded *before* it is coloured: ANSI escapes count
@@ -475,18 +632,21 @@ class UpCommand extends Command<int> {
   ///
   /// [session] is the pane this service's output belongs to, or null on the
   /// flat path where there are no panes.
+  ///
+  /// Called for the first start and for every restart, which is what makes a
+  /// brought-back service indistinguishable from an original one to everything
+  /// downstream — [_running], the liveness count, the pipes and the exit.
   Future<void> _start(
     ServicePlan plan,
     AnsiCode color,
     int width,
-    List<Future<void>> exits,
     ServiceSession? session,
   ) async {
     final label = color.wrap(plan.label.padRight(width)) ?? plan.label;
 
     final io.Process process;
     try {
-      process = await io.Process.start(
+      process = await _spawn(
         'dart',
         ['run', 'revali', 'dev'],
         workingDirectory: plan.service.directory.path,
@@ -510,24 +670,37 @@ class UpCommand extends Command<int> {
     }
 
     _running[plan.label] = process;
+    _alive++;
+    _spawned++;
 
     void pipe(Stream<List<int>> stream, {required bool isError}) {
-      stream.transform(utf8.decoder).listen(
-        (chunk) => routeOutput(
-          chunk,
-          label: label,
-          isError: isError,
-          session: session,
-        ),
-      );
+      stream
+          .transform(utf8.decoder)
+          .listen(
+            (chunk) => routeOutput(
+              chunk,
+              label: label,
+              isError: isError,
+              session: session,
+            ),
+          );
     }
 
     pipe(process.stdout, isError: false);
     pipe(process.stderr, isError: true);
 
-    exits.add(
+    unawaited(
       process.exitCode.then<void>((code) {
-        _running.remove(plan.label);
+        // Only if this is still the process behind that label. A restart that
+        // raced ahead of a late exit would otherwise have its own handle
+        // dropped by the dead one's callback, leaving the live child with
+        // nothing holding it for `Ctrl+C`.
+        if (identical(_running[plan.label], process)) {
+          _running.remove(plan.label);
+        }
+
+        _alive--;
+        _noticeFleetGone();
 
         if (session != null) {
           // The row reports it, in place and permanently: `stopped` or
@@ -580,6 +753,20 @@ class UpCommand extends Command<int> {
         logger.write('$line\n');
       }
     }
+  }
+
+  /// Completes [_fleetGone] if nothing is running any more.
+  ///
+  /// Re-asked on every exit rather than decided once, which is the whole
+  /// difference a restart makes: "the fleet is gone" stopped being a fact about
+  /// a fixed set of processes the moment a sixth one could appear after the
+  /// first five had been counted.
+  void _noticeFleetGone() {
+    if (!_fleetArmed) return;
+    if (_alive > 0) return;
+    if (_fleetGone.isCompleted) return;
+
+    _fleetGone.complete();
   }
 
   List<StreamSubscription<io.ProcessSignal>> _listenForShutdown() {

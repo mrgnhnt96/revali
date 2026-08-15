@@ -19,6 +19,20 @@ abstract final class UpCommand {
 
   /// Stop the service.
   static const quit = 'q';
+
+  /// Start a service whose process is gone.
+  ///
+  /// The one key here that is *not* forwarded to a running `revali dev`, and
+  /// could not be: there is nothing left to forward it to. It asks the runner
+  /// to spawn a new process, which is why it travels by its own callback
+  /// instead of joining the map that turns a keystroke into a word in a file.
+  ///
+  /// `s` for start. `r` is spoken for by reload — and deliberately not reused
+  /// for both, since the whole complaint this answers is that one key appeared
+  /// to mean two things and silently did nothing for one of them. Of the
+  /// letters left, `s` is the one that says what it does, and it collides with
+  /// nothing: `j`/`k`/`g` scroll, `r`/`c`/`q` are commands, and `1`-`9` select.
+  static const start = 's';
 }
 
 /// Signature for acting on one service.
@@ -41,6 +55,7 @@ class UpApp extends StatefulComponent {
     required this.onCommandAll,
     required this.onQuit,
     this.onOpenUrl,
+    this.onRestart,
     super.key,
   });
 
@@ -73,6 +88,23 @@ class UpApp extends StatefulComponent {
   ///
   /// Null makes every link inert *and* unmarked — see [ServiceLog.onOpenUrl].
   final void Function(String url)? onOpenUrl;
+
+  /// Called with the focused session when `s` is pressed and that service is
+  /// dead.
+  ///
+  /// A seam, for [onOpenUrl]'s reason and one more. Restarting means starting a
+  /// process, so a component that did it could not be pumped at without the
+  /// suite spawning `dart run revali dev`; and *which* process, with which port
+  /// and which environment, is a fact about the plan that this screen has
+  /// deliberately never held — it is handed sessions and hands sessions back.
+  ///
+  /// Only ever called for a session that is [ServiceSession.isDead]. The runner
+  /// checks again on its side; this check is here as well so the key and the
+  /// legend cannot disagree, since both are decided from the same place.
+  ///
+  /// Null takes the `s` hint off the legend entirely rather than dimming it —
+  /// see [UpFooter.showStart].
+  final void Function(ServiceSession session)? onRestart;
 
   @override
   State<UpApp> createState() => _UpAppState();
@@ -170,6 +202,8 @@ class _UpAppState extends State<UpApp> {
       return true;
     }
 
+    if (_handleStart(event)) return true;
+
     final command = _commands[event.logicalKey];
     if (command == null) return false;
 
@@ -209,6 +243,39 @@ class _UpAppState extends State<UpApp> {
 
     if (_session case final session?) {
       component.onCommand(session, command);
+    }
+
+    return true;
+  }
+
+  /// Brings the focused service back, if this is `s` and it is gone.
+  ///
+  /// Returns whether the key was spent here. `s` is spent whenever it arrives
+  /// unshifted — including at a service that is still running, where it does
+  /// nothing. That is the point: the key is bound, the legend says so, and
+  /// letting it fall through would leave it free to mean something else later
+  /// at exactly the services where it is most likely to be pressed by mistake.
+  ///
+  /// Deliberately not in [_commands]. Everything in that map has a shifted
+  /// fleet-wide form, and `S` for "start all of them" is not a thing this
+  /// screen offers: a fleet-wide restart is several spawns with no way to
+  /// report which of them failed, and the ones that were already running would
+  /// have to be silently skipped. `S` is left unbound, which is why the shifted
+  /// check here returns false rather than falling through to the unshifted
+  /// branch.
+  bool _handleStart(KeyboardEvent event) {
+    if (event.logicalKey != LogicalKey.keyS) return false;
+    if (_isShifted(event)) return false;
+
+    final onRestart = component.onRestart;
+    if (onRestart == null) return false;
+
+    // Checked here as well as in the runner. The legend draws `s` bright from
+    // this same answer, so a key that fired anyway would be the screen saying
+    // one thing and doing another — and firing it at a *live* service is the
+    // one outcome that would cost a second process.
+    if (_session case final session? when session.isDead) {
+      onRestart(session);
     }
 
     return true;
@@ -330,7 +397,22 @@ class _UpAppState extends State<UpApp> {
                 ),
         ),
         const Divider(),
-        const UpFooter(),
+        // Listening, not read once. The legend describes the focused service's
+        // *current* state, and the thing that changes that state is the child's
+        // output arriving — not a keystroke. Built off `session.state` at build
+        // time alone, the line would go on advertising `r reload` at a service
+        // that crashed until the next key was pressed, which is the stale
+        // legend this replaces wearing a different disguise.
+        if (session == null)
+          UpFooter(state: null, showStart: component.onRestart != null)
+        else
+          ListenableBuilder(
+            listenable: session,
+            builder: (context, _) => UpFooter(
+              state: session.state,
+              showStart: component.onRestart != null,
+            ),
+          ),
       ],
     );
   }
