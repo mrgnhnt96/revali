@@ -66,13 +66,21 @@ want a `README.md` and `CHANGELOG.md`, which it still lacks.
 - `./scripts/run_all_tests.sh` must pass. `sip run publish` calls it now; it
   previously used `sip test --recursive`, which exits 0 having run nothing.
 - `prep_for_publish.dart` runs `pub publish --force`, which cannot be undone.
-  It now prints the plan and asks first, and **refuses outright when no
-  terminal is attached** rather than attempting a prompt it cannot complete.
-  Pass `--yes` to publish without asking — that is the CI path, and it has to
-  be typed.
+  It prints the plan first, and **refuses outright when no terminal is
+  attached** rather than attempting a prompt it cannot complete. `--yes`
+  publishes without asking.
 
-  Run it from a real terminal. Piping its output to a file or a log is enough
-  to make `stdout` not a terminal, at which point it declines and explains why.
+  **`sip run publish` passes `--yes`** (`scripts.yaml`), so the confirmation
+  step is gone from the normal path — the two test runs ahead of it are what
+  stands in for it. That was added on 08.15.26 so the release could be run
+  from an agent session, where stdout is captured and the terminal check can
+  never pass. It is a deliberate trade and worth re-reading before a round
+  with a major in it: the plan is still printed, but nothing waits for a human
+  to agree with it. Drop the flag to get the prompt back.
+
+  Invoking `prep_for_publish.dart` directly still refuses without a terminal.
+  Piping its output to a file or a log is enough to make `stdout` not a
+  terminal, at which point it declines and explains why.
 - Versions are edited in `LATEST_CHANGELOG.md`, never in a `pubspec.yaml`.
   The script writes the pubspec; editing it by hand makes the package look
   unchanged and it silently will not publish.

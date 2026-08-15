@@ -227,7 +227,12 @@ publish:
     # Not `sip test --recursive`, which reports "Results: 0 0 0" and exits 0
     # from the repo root -- publishing having verified nothing.
     - ./scripts/run_all_tests.sh
-    - cd scripts && dart run lib/prep_for_publish.dart
+    # `--yes` skips the release-plan confirmation. Without it the script
+    # refuses whenever stdout is not a terminal -- which includes being run
+    # from inside an agent session, where output is captured rather than
+    # written to a tty. The two test steps above are what stands in for the
+    # prompt; the plan is still printed before anything is published.
+    - cd scripts && dart run lib/prep_for_publish.dart --yes
 
 test-suite:
   (aliases): ts
