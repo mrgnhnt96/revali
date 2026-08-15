@@ -15,6 +15,7 @@ import 'components/callout.dart';
 import 'components/cards.dart';
 import 'components/code_file.dart';
 import 'components/docs_sidebar.dart';
+import 'components/home_link.dart';
 import 'components/mermaid.dart';
 import 'components/search.dart';
 import 'components/section_tabs.dart';
@@ -70,6 +71,11 @@ void main() {
                 // pushes everything after it to the right of the header.
                 const SectionTabs(),
                 const DocsSearch(),
+                // The one link off this domain and back to the marketing site.
+                // Search engines otherwise see a one-way relationship: the
+                // landing page links here four times and gets nothing back, so
+                // nothing ties the two hosts together as one project.
+                const HomeLink(),
                 GitHubButton(repo: 'mrgnhnt96/revali'),
                 ThemeToggle(),
               ],
