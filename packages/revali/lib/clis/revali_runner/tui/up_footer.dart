@@ -1,8 +1,8 @@
 import 'package:nocterm/nocterm.dart';
 import 'package:revali/services/service_session.dart';
 
-/// The key legend along the bottom, dimmed to what the focused service can
-/// actually do right now.
+/// The key legend along the bottom, cut down to what can actually be pressed
+/// right now.
 ///
 /// Spells out the shifted forms rather than leaving them to be discovered:
 /// `R`/`C`/`Q` act on the whole fleet, and a developer who reaches for one by
@@ -20,33 +20,47 @@ import 'package:revali/services/service_session.dart';
 /// but a click there only moves the selection `↑`/`↓` already moves, so nothing
 /// is unreachable if it is never discovered.
 ///
-/// ## Why dim rather than hide
+/// ## Why omit rather than dim
 ///
-/// Every hint is drawn in every state, in the same order, at the same column;
-/// the ones that would do nothing are drawn dim. Hiding them, or moving the
-/// applicable one to the front, would make this line move under the reader's
-/// eyes exactly when they are looking something up — and a legend whose items
-/// are in a different place each time you read it is worse than one that is
-/// simply wrong. Dimming answers the actual complaint, which is not "`r` is
-/// missing" but "`r` is offered and does nothing, so the key must be broken":
-/// a dim `r reload` beside a bright `s start` says which one to press *and*
-/// that the other one still exists.
+/// A hint that would do nothing in the current state is not drawn at all. This
+/// line went the other way first — every hint in every state, the inapplicable
+/// ones greyed — on the reasoning that a legend whose items move under the
+/// reader's eye is harder to use than a static one. That was overruled, and the
+/// reasoning it rests on is the part that was wrong: dim is not a state most
+/// readers can distinguish from "available" at a glance in a terminal whose
+/// palette they chose themselves, so the dim `r reload` beside a bright
+/// `s start` did not stop reading as an offer. Advertising a key that does
+/// nothing is the worse failure of the two, and it is the complaint this line
+/// exists to answer.
 ///
-/// The fleet-wide keys and `^C` are never dimmed. They apply whatever the
-/// focused service is doing — `^C` especially, since it is the way out.
+/// So: do not restore dimming here. `enabled` is gone from [_Hint] deliberately
+/// — an absent hint is the design, not an oversight, and the argument for the
+/// old behaviour is preserved in this paragraph precisely so it does not get
+/// made again from scratch.
+///
+/// The keys that apply whatever the focused service is doing are still drawn
+/// unconditionally: the fleet-wide `R`/`C`/`Q`, `^C` — especially `^C`, since
+/// it is the way out — `c`, and the scroll keys, which address the log pane
+/// rather than the process and work at a corpse as well as at a live server.
 ///
 /// ## Why the gaps are one space
 ///
-/// Nine hints is 68 columns of text, and the frame leaves 78 on the 80-column
-/// terminal this screen is drawn for. Two spaces between them does not fit, and
-/// the version of this line before the start key was added already ran off the
-/// right border and clipped `^C exit` to `^C e`. One space fits with two to
-/// spare, and the separating work whitespace would have done is done instead by
-/// the alternation the hints already have: a bold key against a grey
-/// description. Dropping a hint to buy the wider gap was the alternative, and
-/// every one of them is a key someone has to be able to find.
+/// The widest this line can get is eight hints — the live-service state, with
+/// the fleet selectable — which is 68 columns of text against the 78 the frame
+/// leaves on the 80-column terminal this screen is drawn for. Two spaces
+/// between them does not fit at that width, and an earlier version of this line
+/// really did run off the right border and clip `^C exit` to `^C e`. One space
+/// fits with ten to spare, and the separating work whitespace would have done
+/// is done instead by the alternation the hints already have: a bold key
+/// against a grey description. Omitting hints only ever shortens the line, so
+/// no state reachable here is wider than that 68.
 class UpFooter extends StatelessComponent {
-  const UpFooter({required this.state, this.showStart = false, super.key});
+  const UpFooter({
+    required this.state,
+    this.showStart = false,
+    this.canSelect = false,
+    super.key,
+  });
 
   /// Where the focused service is, or null when there is no focused service.
   ///
@@ -58,13 +72,17 @@ class UpFooter extends StatelessComponent {
 
   /// Whether the runner wired a way to start a dead service.
   ///
-  /// False leaves the `s` hint off the line entirely rather than drawing it
-  /// dim, which is `UpApp.onOpenUrl`'s rule and for its reason: a key with
-  /// nothing behind it is not a key that is unavailable right now, it is a key
-  /// that does not exist, and advertising it dim would promise a state it can
-  /// never reach. This is fixed for the lifetime of the screen, so it moves
-  /// nothing as states change.
+  /// False leaves the `s` hint off the line whatever the focused service is
+  /// doing, which is `UpApp.onOpenUrl`'s rule: a key with nothing behind it is
+  /// not a key that is unavailable right now, it is a key that does not exist.
   final bool showStart;
+
+  /// Whether there is more than one service to move between.
+  ///
+  /// `↑`/`↓` wrap within the roster, so at a fleet of one they land back where
+  /// they started — see `_move` in `up_app.dart`, whose modulo is a no-op at a
+  /// count of one. A key that cannot move the selection is not offered.
+  final bool canSelect;
 
   /// Whether a keystroke addressed to the focused service would reach anything.
   ///
@@ -83,18 +101,17 @@ class UpFooter extends StatelessComponent {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Selecting and scrolling are always live. A dead service still has a
-        // row to move to and a pane to read, which is most of why its row is
-        // kept at all.
-        const _Hint('↑↓', 'select'),
+        if (canSelect) const _Hint('↑↓', 'select'),
+        // Scrolling is always live. A dead service still has a pane to read,
+        // which is most of why its row is kept at all.
         const _Hint('jk', 'scroll'),
         const _Hint('g', 'live'),
-        _Hint('r', 'reload', enabled: _reachable),
-        if (showStart) _Hint('s', 'start', enabled: _startable),
+        if (_reachable) const _Hint('r', 'reload'),
+        if (showStart && _startable) const _Hint('s', 'start'),
         // `c` empties the pane on this side before it forwards anything, so it
         // does something visible even for a service that will never answer.
         const _Hint('c', 'clear'),
-        _Hint('q', 'quit', enabled: _reachable),
+        if (_reachable) const _Hint('q', 'quit'),
         const _Hint('R/C/Q', 'all'),
         const _Hint('^C', 'exit', last: true),
       ],
@@ -103,42 +120,35 @@ class UpFooter extends StatelessComponent {
 }
 
 class _Hint extends StatelessComponent {
-  const _Hint(
-    this.keys,
-    this.description, {
-    this.enabled = true,
-    this.last = false,
-  });
+  const _Hint(this.keys, this.description, {this.last = false});
 
   final String keys;
   final String description;
 
-  /// Whether pressing this key right now would do anything.
-  final bool enabled;
-
   /// Whether this is the last hint, which is the one that does not pay for a
   /// gap after it — the column it would spend is the border's.
+  ///
+  /// Fixed rather than computed because the last hint is always `^C exit`: it
+  /// is drawn in every state, so no omission above it can leave a different
+  /// hint on the end holding a trailing space.
   final bool last;
 
   @override
   Component build(BuildContext context) {
-    // Dimmer than the grey a description is normally drawn in, so a disabled
-    // hint reads as *behind* the line rather than as another part of it. The
-    // key loses its weight as well: bold is what makes a key look pressable,
-    // and leaving it on a key that is not would be the legend arguing with
-    // itself.
-    final keyStyle = enabled
-        ? const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)
-        : const TextStyle(color: Colors.brightBlack);
-    final textStyle = TextStyle(
-      color: enabled ? Colors.grey : Colors.brightBlack,
-    );
-
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(keys, style: keyStyle),
-        Text(' $description${last ? '' : ' '}', style: textStyle),
+        Text(
+          keys,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          ' $description${last ? '' : ' '}',
+          style: const TextStyle(color: Colors.grey),
+        ),
       ],
     );
   }

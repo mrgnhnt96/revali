@@ -234,7 +234,9 @@ void main() {
 
       final tester = await pumpApp([billing]);
 
-      // `↓` alone is not a sentinel — the legend's `↑↓ select` carries one.
+      // `more` rather than `↓`: the word is the part of the indicator that
+      // appears nowhere else, and a bare arrow would go on matching if some
+      // other line grew one.
       expect(tester.terminalState, isNot(containsText('more')));
     });
 

@@ -13,7 +13,8 @@ import 'package:test/test.dart';
 /// file, so the key writes into the void and nothing happens — and the legend
 /// went on advertising it, which is how a developer concludes the key is
 /// broken rather than inapplicable. `s` is the key that actually brings the
-/// process back, and the legend now dims whichever of the two would do nothing.
+/// process back, and the legend now leaves whichever of the two would do
+/// nothing off the line entirely.
 void main() {
   late MemoryFileSystem fs;
 
@@ -213,50 +214,63 @@ void main() {
   });
 
   group('the legend', () {
-    test('offers reload and dims start while a service is serving', () async {
+    test('offers reload and omits start while a service is serving', () async {
       final billing = session('billing', 8080)
         ..ingest('Serving at http://0.0.0.0:8080/\n', isError: false);
       final tester = await pumpApp([billing]);
 
       expect(billing.state, ServiceState.serving);
 
-      expect(_isLive(tester, 'r reload'), isTrue);
-      expect(_isLive(tester, 'q quit'), isTrue);
+      expect(_legend(tester), contains('r reload'));
+      expect(_legend(tester), contains('q quit'));
       expect(
-        _isLive(tester, 's start'),
-        isFalse,
+        _legend(tester),
+        isNot(contains('s start')),
         reason: 'there is nothing to start; the process is right there',
       );
     });
 
-    test('offers start and dims reload once the process is gone', () async {
+    test('offers start and omits reload once the process is gone', () async {
       final tester = await pumpApp([crashed('billing', 8080)]);
 
-      expect(_isLive(tester, 's start'), isTrue);
+      expect(_legend(tester), contains('s start'));
       expect(
-        _isLive(tester, 'r reload'),
-        isFalse,
+        _legend(tester),
+        isNot(contains('r reload')),
         reason: 'reload writes .revali_cmd, which nothing is left to read',
       );
       expect(
-        _isLive(tester, 'q quit'),
-        isFalse,
+        _legend(tester),
+        isNot(contains('q quit')),
         reason: 'quit travels the same dead channel reload does',
       );
     });
 
-    test('keeps reload live at a service that only needs a fix', () async {
+    test('offers start and omits reload at a clean exit too', () async {
+      // `stopped` rather than `crashed`: a service the developer quit with `q`
+      // is as unreachable as one that fell over, and the line must say so the
+      // same way.
+      final stopped = session('billing', 8080)..markExited(0);
+      final tester = await pumpApp([stopped]);
+
+      expect(stopped.state, ServiceState.stopped);
+
+      expect(_legend(tester), contains('s start'));
+      expect(_legend(tester), isNot(contains('r reload')));
+    });
+
+    test('keeps reload on the line at a service that needs a fix', () async {
       final tester = await pumpApp([needsFix('billing', 8080)]);
 
       expect(
-        _isLive(tester, 'r reload'),
-        isTrue,
+        _legend(tester),
+        contains('r reload'),
         reason: '`needs fix` is the state a reload actually recovers',
       );
-      expect(_isLive(tester, 's start'), isFalse);
+      expect(_legend(tester), isNot(contains('s start')));
     });
 
-    test('never dims the fleet keys or the way out', () async {
+    test('never omits the fleet keys or the way out', () async {
       final serving = session('billing', 8080)
         ..ingest('Serving at http://0.0.0.0:8080/\n', isError: false);
 
@@ -269,8 +283,10 @@ void main() {
       ]) {
         await render(tester, sessions);
 
+        // The scroll keys are in here on purpose: they address the log pane,
+        // not the process, so they are exactly the ones an over-eager omission
+        // would take as collateral.
         const always = [
-          '↑↓ select',
           'jk scroll',
           'g live',
           'c clear',
@@ -280,8 +296,8 @@ void main() {
 
         for (final hint in always) {
           expect(
-            _isLive(tester, hint),
-            isTrue,
+            _legend(tester),
+            contains(hint),
             reason:
                 '"$hint" applies whatever the focused service is doing, '
                 'and ${sessions.single.state.name} is what it is doing',
@@ -290,7 +306,23 @@ void main() {
       }
     });
 
-    test('does not reorder or resize between states', () async {
+    test('keeps select on the line whenever the fleet has a second '
+        'service', () async {
+      final tester = await pumpApp([
+        session('billing', 8080),
+        crashed('orders', 8081),
+      ]);
+
+      expect(_legend(tester), contains('↑↓ select'));
+
+      // And drops it at a fleet of one, where `↑`/`↓` wrap back onto the row
+      // they started on and change nothing.
+      await render(tester, [session('billing', 8080)]);
+
+      expect(_legend(tester), isNot(contains('↑↓ select')));
+    });
+
+    test('keeps the surviving hints in their order between states', () async {
       final serving = session('billing', 8080)
         ..ingest('Serving at http://0.0.0.0:8080/\n', isError: false);
 
@@ -300,19 +332,56 @@ void main() {
       await render(tester, [crashed('billing', 8080)]);
       final dead = _legend(tester);
 
+      // The line is no longer identical between states — that is the point of
+      // omitting rather than dimming. What must not change is the running
+      // order of what is left: a reader who learned `c clear` sits between the
+      // service keys and the fleet keys still finds it there.
+      final aliveOrder = _order(alive, _hints);
+      final deadOrder = _order(dead, _hints);
+      final common = aliveOrder.where(deadOrder.contains).toList();
+
       expect(
-        dead,
-        alive,
-        reason:
-            'the legend may change colour between states and nothing '
-            'else — an item that moves is harder to use than a static one',
+        deadOrder.where(common.contains).toList(),
+        common,
+        reason: 'the hints that survive a state change keep their sequence',
       );
+      expect(common, isNotEmpty, reason: 'otherwise the check is vacuous');
 
       // And the whole line is on screen, which the version before the start
       // key was not: it ran off the right border and clipped `^C exit` to
       // `^C e`, which is the one hint that must never be unreadable.
       expect(alive, contains('^C exit'));
-      expect(alive.length, lessThanOrEqualTo(78));
+      expect(dead, contains('^C exit'));
+    });
+
+    test('fits an 80-column terminal in its widest state', () async {
+      // Widest = every conditional hint that can coexist. `r`/`q` need a
+      // reachable service and `↑↓` needs a second one, which rules `s start`
+      // out — it is only ever drawn at a service `r` and `q` are not.
+      final billing = session('billing', 8080)
+        ..ingest('Serving at http://0.0.0.0:8080/\n', isError: false);
+      final tester = await pumpApp([billing, session('orders', 8081)]);
+
+      final legend = _legend(tester);
+
+      for (final hint in [
+        '↑↓ select',
+        'jk scroll',
+        'g live',
+        'r reload',
+        'c clear',
+        'q quit',
+        'R/C/Q all',
+        '^C exit',
+      ]) {
+        expect(legend, contains(hint), reason: 'this is the widest state');
+      }
+
+      expect(
+        legend.length,
+        lessThanOrEqualTo(78),
+        reason: 'the frame leaves 78 columns of an 80-column terminal',
+      );
     });
 
     test('follows the focused service without a keypress', () async {
@@ -320,7 +389,7 @@ void main() {
         ..ingest('Serving at http://0.0.0.0:8080/\n', isError: false);
       final tester = await pumpApp([billing]);
 
-      expect(_isLive(tester, 'r reload'), isTrue);
+      expect(_legend(tester), contains('r reload'));
 
       // The child dies. Nobody presses anything — which is exactly the case a
       // legend read once at build time would get wrong, and it would keep
@@ -328,8 +397,8 @@ void main() {
       billing.markExited(1);
       await tester.pump();
 
-      expect(_isLive(tester, 'r reload'), isFalse);
-      expect(_isLive(tester, 's start'), isTrue);
+      expect(_legend(tester), isNot(contains('r reload')));
+      expect(_legend(tester), contains('s start'));
     });
 
     test('follows the selection between a live and a dead service', () async {
@@ -337,12 +406,12 @@ void main() {
         ..ingest('Serving at http://0.0.0.0:8080/\n', isError: false);
       final tester = await pumpApp([billing, crashed('orders', 8081)]);
 
-      expect(_isLive(tester, 'r reload'), isTrue);
+      expect(_legend(tester), contains('r reload'));
 
       await tester.sendKey(LogicalKey.arrowDown);
 
-      expect(_isLive(tester, 's start'), isTrue);
-      expect(_isLive(tester, 'r reload'), isFalse);
+      expect(_legend(tester), contains('s start'));
+      expect(_legend(tester), isNot(contains('r reload')));
     });
   });
 }
@@ -352,14 +421,29 @@ void main() {
 /// Found by content rather than by position. The pane above the legend is sized
 /// by whatever is left over, so the row moves with the terminal, and the frame
 /// means the line does not start at column zero.
+///
+/// Anchored on `^C exit` rather than on the `↑↓` this used to look for: the
+/// select hint is now drawn only when the fleet has a second service, so at a
+/// fleet of one — which most of these tests are — there is no `↑` to find. `^C`
+/// is the hint that is never omitted, which makes it the only safe anchor.
 ({int row, int column}) _legendAt(NoctermTester tester) {
   final buffer = tester.terminalState.buffer;
 
-  // From the bottom: the legend is the last thing inside the frame, and `↑↓`
-  // appears nowhere else on the screen.
+  // From the bottom: the legend is the last thing inside the frame.
   for (var y = buffer.height - 1; y >= 0; y--) {
+    final row = StringBuffer();
     for (var x = 0; x < buffer.width; x++) {
-      if (buffer.getCell(x, y).char == '↑') return (row: y, column: x);
+      row.write(buffer.getCell(x, y).char);
+    }
+
+    if (!row.toString().contains('^C exit')) continue;
+
+    // The legend starts at the first cell past the frame and its padding.
+    for (var x = 0; x < buffer.width; x++) {
+      final char = buffer.getCell(x, y).char;
+      if (char.trim().isEmpty || char == '│') continue;
+
+      return (row: y, column: x);
     }
   }
 
@@ -381,23 +465,24 @@ String _legend(NoctermTester tester) {
   return text.toString().replaceAll('│', ' ').trimRight();
 }
 
-/// Whether the hint beginning with [hint] is drawn as available.
+/// Every hint this legend can draw, in the order it draws them.
+const _hints = [
+  '↑↓ select',
+  'jk scroll',
+  'g live',
+  'r reload',
+  's start',
+  'c clear',
+  'q quit',
+  'R/C/Q all',
+  '^C exit',
+];
+
+/// The subset of [hints] present in [legend], in the order they are *rendered*.
 ///
-/// Read off the cell the hint's *key* occupies, which is the character a
-/// reader's eye lands on: a disabled hint is drawn in [Colors.brightBlack] and
-/// an enabled one in white. Asserted against the rendered buffer rather than
-/// against the component's inputs, because a legend that computed the right
-/// answer and painted the wrong one would satisfy every assertion made against
-/// the inputs alone.
-bool _isLive(NoctermTester tester, String hint) {
-  final legend = _legend(tester);
-  final offset = legend.indexOf(hint);
-  if (offset == -1) {
-    throw StateError('no "$hint" in the legend: $legend');
-  }
-
-  final (:row, :column) = _legendAt(tester);
-  final cell = tester.terminalState.buffer.getCell(column + offset, row);
-
-  return cell.style.color != Colors.brightBlack;
-}
+/// Sorted by where each one actually landed rather than trusting the order of
+/// [hints], so a legend that drew its hints in some other sequence produces a
+/// different list here — which is the only way this can catch a reorder.
+List<String> _order(String legend, List<String> hints) =>
+    hints.where(legend.contains).toList()
+      ..sort((a, b) => legend.indexOf(a).compareTo(legend.indexOf(b)));
