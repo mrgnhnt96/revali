@@ -93,3 +93,6 @@ FAILED_COMMIT.md
 
 # graphify: generated knowledge-graph cache, not project source
 graphify-out/
+
+# handoff: session scaffolding, not project documentation
+.claude/handoff/
