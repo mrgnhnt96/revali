@@ -4,7 +4,7 @@ Revali Router is designed to power the server code [Revali](https://pub.dev/pack
 
 ## Documentation
 
-The [Revali Server documentation](https://www.revali.dev/constructs/revali_server/overview) provides a comprehensive guide on the classes used within this package. The difference being that you'd be manually creating the server instance instead of using Revali to generate it for you.
+The [Revali Server documentation](https://www.revali.dev/constructs/revali_server) provides a comprehensive guide on the classes used within this package. The difference being that you'd be manually creating the server instance instead of using Revali to generate it for you.
 
 ## Example
 

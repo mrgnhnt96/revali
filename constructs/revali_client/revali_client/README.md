@@ -16,6 +16,6 @@ void main() async {
 
 ## Documentation
 
-Check out the [documentation](https://www.revali.dev/constructs/revali_client/overview) for more information on how to use Revali Client.
+Check out the [documentation](https://www.revali.dev/constructs/revali_client) for more information on how to use Revali Client.
 
 [revali]: https://pub.dev/packages/revali

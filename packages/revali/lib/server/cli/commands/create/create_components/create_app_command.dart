@@ -48,7 +48,7 @@ class CreateAppCommand extends CreateAComponentCommand {
       '''
 import 'package:revali_router/revali_router.dart';
 
-// Learn more about Apps at https://www.revali.dev/revali/app-configuration/overview
+// Learn more about Apps at https://www.revali.dev/revali/app-configuration
 @App(flavor: '$_flavor')
 final class ${_flavor.toPascalCase()}App extends AppConfig {
   const ${_flavor.toPascalCase()}App() : super(host: 'localhost', port: 8080);

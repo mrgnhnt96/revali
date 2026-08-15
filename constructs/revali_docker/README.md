@@ -4,4 +4,4 @@ A Revali build construct that generates production-ready, multi-stage Dockerfile
 
 ## Documentation
 
-See the [Revali Docker docs](https://www.revali.dev/constructs/revali_docker/overview) for installation and configuration.
+See the [Revali Docker docs](https://www.revali.dev/constructs/revali_docker) for installation and configuration.
