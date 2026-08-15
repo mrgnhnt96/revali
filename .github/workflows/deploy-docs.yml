@@ -148,7 +148,23 @@ jobs:
           trap 'rm -f "$key"' EXIT
 
           # Jaspr leaves build bookkeeping behind; it is not part of the site.
-          rm -rf .dart_tool .build.manifest
+          #
+          # `packages/` is 6MB across ~300 files that `build_web_compilers`
+          # emits for the debug `packages/` URL scheme — dev-dependency READMEs
+          # and fix_data.yaml files. The release dart2js bundle references none
+          # of it, and one of those files is `packages/test/…/browser/static/
+          # index.html`, a crawlable page on docs.revali.dev that has nothing to
+          # do with Revali.
+          #
+          # Checked, not assumed — unlike the landing site this app does have a
+          # client entrypoint, so the day the bundle needs `packages/` the grep
+          # fails the deploy instead of silently breaking hydration.
+          if grep -rqE '(src|href)="/?packages/' --include='*.html' . \
+              --exclude-dir=packages || grep -q '"packages/' main.client.dart.js; then
+            echo "::error::the site references packages/ — do not prune it"
+            exit 1
+          fi
+          rm -rf .dart_tool .build.manifest packages
 
           # REQUIRED, not boilerplate: a branch-source Pages site runs Jekyll by
           # default, which silently drops any path segment beginning with an
