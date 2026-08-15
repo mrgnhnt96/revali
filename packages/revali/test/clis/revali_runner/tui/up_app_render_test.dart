@@ -431,7 +431,12 @@ void main() {
 
   group('the footer', () {
     test('spells out the focused keys and the shifted fleet keys', () async {
-      final tester = await pumpApp([session('billing', 8080)]);
+      // Two services, so `↑↓ select` is on the line at all: it is drawn only
+      // when there is somewhere for the selection to move to.
+      final tester = await pumpApp([
+        session('billing', 8080),
+        session('orders', 8081),
+      ]);
 
       expect(tester.terminalState, containsText('↑↓ select'));
       expect(tester.terminalState, containsText('r reload'));

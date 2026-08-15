@@ -404,13 +404,18 @@ class _UpAppState extends State<UpApp> {
         // that crashed until the next key was pressed, which is the stale
         // legend this replaces wearing a different disguise.
         if (session == null)
-          UpFooter(state: null, showStart: component.onRestart != null)
+          UpFooter(
+            state: null,
+            showStart: component.onRestart != null,
+            canSelect: component.sessions.length > 1,
+          )
         else
           ListenableBuilder(
             listenable: session,
             builder: (context, _) => UpFooter(
               state: session.state,
               showStart: component.onRestart != null,
+              canSelect: component.sessions.length > 1,
             ),
           ),
       ],
