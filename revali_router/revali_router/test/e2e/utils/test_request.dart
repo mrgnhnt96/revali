@@ -36,7 +36,7 @@ Future<void> testRequest(
   final request = _MockHttpRequest()
     ..stub(
       method: route.method,
-      path: route.path,
+      path: route.requestPath ?? route.path,
       headers: route.headers,
     );
   final server = _MockServer();
@@ -153,6 +153,8 @@ class TestRoute extends Route {
     this.path = '',
     this.method = 'GET',
     this.headers = const {},
+    this.debug = false,
+    this.requestPath,
     super.routes,
     super.middlewares,
     super.requestWrappers,
@@ -174,11 +176,17 @@ class TestRoute extends Route {
 
   final List<Observer> observers;
   final Map<String, String> headers;
+  final bool debug;
+
+  /// Path to request, when it should differ from the path this route is
+  /// registered at -- the only way to drive a request that matches no route.
+  final String? requestPath;
 
   Router toRouter() {
     return Router(
       routes: [this],
       observers: observers,
+      debug: debug,
     );
   }
 
