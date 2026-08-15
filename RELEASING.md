@@ -84,6 +84,14 @@ want a `README.md` and `CHANGELOG.md`, which it still lacks.
 - Versions are edited in `LATEST_CHANGELOG.md`, never in a `pubspec.yaml`.
   The script writes the pubspec; editing it by hand makes the package look
   unchanged and it silently will not publish.
+- **Do not hand-write a package's own `CHANGELOG.md` either.** The script
+  prepends each package's `LATEST_CHANGELOG.md` section into it — that is the
+  `- ChangeLog` line under `Updating <package>`. A section written there by
+  hand as well is not detected or merged; it is simply duplicated, and the
+  duplicate goes out in the published archive, where it cannot be taken back.
+  This happened on 08.15.26 to all three of `revali` 3.3.1, `revali_core`
+  3.2.0 and `revali_redis` 0.2.0. `LATEST_CHANGELOG.md` is the *only* file a
+  release entry is written in.
 
 ## Common failure modes
 
@@ -97,3 +105,11 @@ Each of these has actually happened in this repo:
   for exactly this.
 - **The whole release aborts before publishing anything** because a
   discoverable package has no changelog entry at all (step 2 above).
+- **`Failed to publish <package>` for a package the plan called `current`.**
+  After the planned publishes, the script re-checks for "failed publishes" and
+  retries any package whose version it cannot find — and on 08.15.26 it
+  reported `Found 1 failed publishes`, tried `revali_docker`, and failed,
+  while the plan two screens above had already said
+  `current revali_docker 1.2.0 (published at 1.2.0)` and pub.dev agreed. The
+  retry is what is wrong, not the package. Treat this line as noise **only**
+  after checking the registry, because a genuine failure prints identically.
