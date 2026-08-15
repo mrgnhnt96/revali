@@ -14,29 +14,60 @@ redelivery until the message is acknowledged.
 
 ## Usage
 
-```dart
-final broker = await RedisBroker.connect(
-  host: 'localhost',
-  // Redis tracks pending entries per consumer name, so give each replica
-  // its own. Two sharing a name make each other's pending work invisible.
-  // Worker isolates within one process are suffixed automatically.
-  consumerName: Platform.environment['HOSTNAME'] ?? 'revali',
-  // Recover entries a replica stranded when it died mid-message.
-  claimAfter: const Duration(minutes: 2),
-);
+Return the broker from your app's `createBroker()`, and annotate handlers with
+`@Consumes`. Revali registers them, gives each message its own trace and
+request-scoped DI, and drains them on shutdown:
 
+```dart
+@App()
+final class MainApp extends AppConfig {
+  const MainApp() : super(host: '0.0.0.0', port: 8080);
+
+  @override
+  Future<MessageBroker?> createBroker() => RedisBroker.connect(
+        host: Env.current.string('REDIS_HOST', orElse: 'localhost'),
+        // Redis tracks pending entries per consumer name, so give each replica
+        // its own. Two sharing a name make each other's pending work
+        // invisible. Worker isolates within one process are suffixed
+        // automatically.
+        consumerName: Env.current.string('HOSTNAME', orElse: 'revali'),
+        // Recover entries a replica stranded when it died mid-message.
+        claimAfter: const Duration(minutes: 2),
+      );
+}
+
+@Controller('orders')
+class OrdersController {
+  const OrdersController();
+
+  @Consumes('order.placed', group: 'billing')
+  Future<void> onPlaced(BrokerMessage message) async {
+    // TraceContext.current is seeded from the message headers, so this stays
+    // on the trace of the request that published it.
+    await invoices.create(message.json);
+  }
+}
+```
+
+`connect` forwards every tuning knob the constructor takes — `consumerName`,
+`blockFor`, `batchSize`, `claimAfter`, `maxDeliveries`, `deadLetterSuffix` — so
+it is the whole API rather than the easy half of it.
+
+### Without `@Consumes`
+
+`ConsumerRegistry` is the layer underneath, for wiring a subscription by hand:
+
+```dart
 final consumers = ConsumerRegistry(broker: broker, di: di);
 
 await consumers.consume(
   'order.placed',
   group: 'billing',
-  onMessage: (message) async {
-    // TraceContext.current is seeded from the message headers, so this stays
-    // on the trace of the request that published it.
-    await invoices.create(message.json);
-  },
+  onMessage: (message) async => invoices.create(message.json),
 );
 ```
+
+A hand-rolled registry is yours to drain and close — see [Shutdown](#shutdown).
 
 Publishing is just:
 
@@ -60,7 +91,12 @@ be redelivered.
 
 ## Shutdown
 
-Register the drain so a deploy does not kill a consumer mid-message:
+A broker returned from `createBroker()` is owned by the framework: consumers
+drain before HTTP on `SIGTERM`, and the broker is closed for you. Do **not**
+also drain it in `onServerStopped`.
+
+A `ConsumerRegistry` you built yourself takes no part in that, so register its
+drain so a deploy does not kill a consumer mid-message:
 
 ```dart
 @override

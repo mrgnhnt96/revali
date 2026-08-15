@@ -31,10 +31,21 @@ To learn more about how Revali can help simplify your backend development workfl
 dart run revali --help
 
 dart run revali dev [--inspect] [--skip-if-fresh] [--recompile]
+dart run revali build
 dart run revali routes [--generate] [--json]   # .revali/server/routes.json
 dart run revali doctor [--json]
 dart run revali create controller|app|lifecycle-component|pipe|observer
+dart run revali ai
+
+# Multi-service repositories
+dart run revali services [--root <path>] [--paths]
+dart run revali up [--root <path>] [--only <name>] [--base-port <port>]
+dart run revali compose [--root <path>] [-o <path>] [--stdout]
 ```
+
+`revali up` runs every service in the repo on one screen — a roster, per-service
+log panes, and keys that drive one service or the whole fleet. Without a
+terminal (CI) it falls back to flat prefixed output.
 
 Server generation is built into `revali` — no separate construct package to install. Upgrading from an older version? See [MIGRATION.md](./MIGRATION.md) for the `revali_router_core` / `revali_router_annotations` / `revali_server` consolidation.
 

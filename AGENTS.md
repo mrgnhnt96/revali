@@ -43,7 +43,7 @@ Use **`LifecycleComponent`**: method return type selects the role (`MiddlewareRe
 
 Classic `implements Middleware` / `Guard` / `ExceptionCatcher` is advanced — avoid mixing styles in one feature.
 
-Built-in kits: `@RequestId()`, `@AllowOrigins(...)`.
+Built-in kits: `@RequestId()`, `@AllowOrigins(...)`, `@Throttle(...)` (`revali_router/lib/src/kits/`).
 
 ## CLI
 
@@ -52,9 +52,18 @@ dart run revali routes [--generate] [--json]
 dart run revali doctor [--json]
 dart run revali create controller|app|lifecycle-component|pipe|observer
 dart run revali dev [--inspect] [--skip-if-fresh] [--recompile]
+dart run revali build
+dart run revali ai <claude|cursor|copilot|windsurf|cline|all>
+
+# Multi-service repos
+dart run revali services [--root <path>] [--paths]
+dart run revali up [--root <path>] [--only <name>] [--base-port <port>]
+dart run revali compose [--root <path>] [-o <path>] [--stdout]
 ```
 
 `dev` hotkeys: `r` reload, `c` clear status board, `q` quit. Headless: write `reload`/`clear`/`quit` to `.revali_cmd`.
+
+`up` draws a TUI when it has a terminal (roster + per-service log pane + key legend: `↑↓`/`1`-`9` select, `j`/`k`/`g` scroll, `r`/`c`/`q` one service, `R`/`C`/`Q` the fleet, `s` restart a dead one). Redirected output falls back to flat name-prefixed lines — that fallback is what CI gets, so do not make the TUI unconditional. It reaches children through their `.revali_cmd` files, never stdin.
 
 `create` scaffolds app/controller/lifecycle-component/pipe/observer files in-process. Prefer MCP tools when configured (`list_routes`, `doctor`, `recent_requests`, `create_scaffold`).
 
