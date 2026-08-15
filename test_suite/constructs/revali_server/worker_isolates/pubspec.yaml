@@ -1,0 +1,14 @@
+name: revali_server_worker_isolates_test
+publish_to: none
+
+environment:
+  sdk: ">=3.8.0 <4.0.0"
+
+resolution: workspace
+
+dependencies:
+  revali_router:
+
+dev_dependencies:
+  revali:
+  test: ^1.25.15
