@@ -329,6 +329,92 @@ void main() {
     });
   });
 
+  group('consumer name per isolate', () {
+    // Restored rather than left set: `current` is process-wide, so a fake
+    // identity that outlives its test renames the consumer of every test that
+    // runs after it, and the failure looks like it came from somewhere else.
+    tearDown(
+      () => IsolateIdentity.setCurrentForGeneratedCode(IsolateIdentity.single),
+    );
+
+    test('leaves the parent isolate untouched', () {
+      IsolateIdentity.setCurrentForGeneratedCode(
+        const IsolateIdentity(index: 0, workerCount: 4),
+      );
+
+      // The upgrade-safety guard. Suffixing the parent too would rename the
+      // consumer of every app that upgrades, stranding whatever is pending
+      // under the old name.
+      final broker = RedisBroker(
+        connection: FakeConnection(),
+        openConnection: FakeConnection.new,
+        consumerName: 'orders',
+      );
+
+      expect(broker.consumerName, 'orders');
+    });
+
+    test('suffixes a worker isolate with its index', () {
+      IsolateIdentity.setCurrentForGeneratedCode(
+        const IsolateIdentity(index: 2, workerCount: 4),
+      );
+
+      final broker = RedisBroker(
+        connection: FakeConnection(),
+        openConnection: FakeConnection.new,
+        consumerName: 'orders',
+      );
+
+      expect(broker.consumerName, 'orders-2');
+    });
+
+    test('suffixes the default name too', () {
+      IsolateIdentity.setCurrentForGeneratedCode(
+        const IsolateIdentity(index: 1, workerCount: 2),
+      );
+
+      final broker = RedisBroker(
+        connection: FakeConnection(),
+        openConnection: FakeConnection.new,
+      );
+
+      expect(broker.consumerName, 'revali-1');
+    });
+
+    test('sends the suffixed name to Redis, not just reports it', () async {
+      IsolateIdentity.setCurrentForGeneratedCode(
+        const IsolateIdentity(index: 3, workerCount: 4),
+      );
+
+      final connection = FakeConnection();
+      final broker = RedisBroker(
+        connection: connection,
+        openConnection: () => connection,
+        consumerName: 'orders',
+        blockFor: const Duration(milliseconds: 5),
+        claimAfter: const Duration(seconds: 30),
+      );
+
+      final subscription = await broker.subscribe(
+        'orders',
+        group: 'billing',
+        onMessage: (_) {},
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 30));
+      await subscription.cancel();
+
+      // A getter that agrees with itself proves nothing: what matters is the
+      // name in the commands, since that is the one Redis keys pending
+      // entries on.
+      final read = connection.of('XREADGROUP').first;
+      expect(read[read.indexOf('GROUP') + 2], 'orders-3');
+
+      // And on the paths that scope work to *this* consumer, which are the
+      // ones the collision actually strands.
+      expect(connection.of('XPENDING').first.last, 'orders-3');
+    });
+  });
+
   group('parseStreamReply', () {
     test('returns nothing for the empty-block reply', () {
       // XREADGROUP replies null when its block expires with no work.
