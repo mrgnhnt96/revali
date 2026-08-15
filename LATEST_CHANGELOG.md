@@ -36,6 +36,11 @@
 - Roster rows, URLs and `GET` route paths are clickable. A row lands exactly where `↑↓` and `1`-`9` land, so a click cannot drift from a keypress. A route path opens the service's announced base plus that path, and the base is read off the child's own `Serving at http://0.0.0.0:8080/api` line rather than rebuilt from the assigned port, because that line is the only place the app **prefix** appears — `revali up` hands out the port and has no idea the app mounts itself under `/api`, and a base missing it sends every route click to a 404. A wildcard bind address is rewritten to `localhost` on the way out and left exactly as written on screen: `0.0.0.0` is the truth about what the service bound and a lie to a browser. Only `GET` rows, because a browser navigation is a GET whatever the row says — a clickable `POST` would offer to do the thing the line describes and then do something else to the same path — and a `:param` path is a template rather than an address. A path clicked before its service has announced anything opens nothing rather than a guess. The click resolves against what is **rendered** rather than against an index into the buffer: each clickable run is its own widget and nocterm hit-tests by position, so scrolled up, cleared, or with a `── redraw ──` rule part way through the buffer, there is no index to be off by. A link's only mark is an underline — a cell attribute, so it costs no columns, where a `[…]` or a trailing icon would shift every route path in the table sideways from the one above it.
 - The screen says what it is doing while the fleet drains. `Ctrl-C` sends every child a SIGTERM and each drains through its own graceful path, which takes as long as that service's in-flight work takes — seconds, on a fleet with real drain delays. For the whole of it the running screen went on advertising `r`, `c` and `q` while they did nothing, over a log pane that had stopped moving and rows that changed too slowly to read as progress, and there is nothing about that a developer can tell apart from a hang. So it is replaced rather than annotated, since every part of it had stopped being true: a sentence saying what is happening, one row per service whose state keeps moving as it actually goes down, and the `^C again to stop waiting` escape hatch — which has to be on the screen that makes you want it, because a child that ignores SIGTERM never exits. Only a service genuinely on its way down reads as `draining`: a `crashed` one exited before the signal was ever sent, and a `needs fix` one has had no server since it could not take its port, so calling either "draining" would claim `revali up` is waiting on something it is not, and would bury the compile error that is usually the reason for quitting. `Q` gets the same screen, since it is the same drain to sit through; unshifted `q` is untouched and the fleet carries on. The non-TTY path has no screen to replace and still gets the plain prefixed stream and its `Stopping N service(s)...` line.
 
+### Fixes
+
+- `revali build` regenerates constructs. It ran only the **build** phase, so the generated client — and every other non-build construct — was left at whatever `revali dev` last wrote, and a build in a clean checkout produced none at all. The consequence worth naming is not the stale file: a CI-shaped `build` could not reproduce a client-generation defect **of any kind**, because the artifact under test was never produced. That is how `revali_client_gen`'s `@Query()` collapse reached a published release and was found by a human noticing a parameter had gone missing. `build` now runs both phases, constructs first — the order is load-bearing, since the build phase compiles the `server/server.dart` that the constructs phase writes.
+- `--type` no longer defaults to a phase, and is no longer hidden. Defaulting to `build` is what skipped the constructs, and hiding it meant the value that sounded like a fix — `--type buildAndConstructs`, which did not work either — was undiscoverable. Omitting it now means both phases. Passing it still selects exactly one, which has to keep working: `revali_docker` writes `--type constructs` into the Dockerfiles it generates, and those live in users' repositories long after they are emitted. It is visible for that same reason — it appears in a file people read. Reported from two consuming repositories in the same afternoon.
+
 # revali_annotations
 
 ## 3.2.0
@@ -46,7 +51,11 @@
 
 # revali_construct
 
-## 2.5.0
+## 3.0.0
+
+### Breaking
+
+- Remove `GenerateConstructType.buildAndConstructs`. It could not honour its name: it reported `isBuild`, and the generator branches `if (isBuild) { build makers } else { server and other makers }`, so it took the build branch and silently skipped every construct — the opposite of "both". `revali build` passed it nowhere, but a hidden `--type buildAndConstructs` looked like the way to make a build regenerate the client, and quietly did nothing of the sort. The promote step had a matching `isBuild && isConstructs` branch written for the promise rather than the behaviour, replacing the whole `.revali` tree with outputs that phase never generated; it was unreachable and is gone too. The two remaining values are mutually exclusive, which is what the generator always assumed. Running both phases is the caller's job — `revali build` now does it explicitly, in order.
 
 ### Features
 
@@ -136,11 +145,11 @@
 
 # revali_docker
 
-## 1.1.0
+## 1.2.0
 
-### Features
+### Fixes
 
-- Automatically generate a minimal single-stage Dockerfile whenever `revali build` already compiled a native executable (via a `build:` section in `revali.yaml`), instead of the default multi-stage, compile-inside-Docker build. Supports multi-architecture images via `ARG TARGETARCH`. See [Cross-Compiling](https://www.revali.dev/constructs/revali_docker/overview#cross-compiling).
+- Raise the `revali_construct` floor to `^3.0.0`. Nothing in this package changed; it is re-released so the published set still resolves. `revali_construct` is a new major this round, and a dependent's constraint is only rewritten if that dependent is itself part of the release — leaving 1.1.0 behind on `^2.4.0` would make it unresolvable alongside it.
 
 <!-- SWAGGER -->
 
@@ -154,13 +163,11 @@
 
 # revali_swagger
 
-## 1.2.0
+## 1.3.0
 
 ### Fixes
 
-- Emit the spec deterministically. Paths, the operations within each path, and component schemas were written in whatever order the filesystem walk discovered controllers, so the same project produced `/complex` first on macOS and `/users` first on Linux. A spec that reorders itself per platform cannot be diffed, committed, or compared against a golden. All three are now sorted.
-
-- Depend on `revali_annotations ^3.0.0` (previously `revali_router_annotations ^2.2.0`). The router/annotations consolidation refactor already dropped this dependency in source, but the package version was never bumped, so pub.dev's 1.0.0 stayed pinned to `revali_router_annotations`, which pulls in `revali_router_core ^2.3.0` -> `revali_core ^1.6.0`, conflicting with `revali ^3.0.0`'s `revali_core ^2.0.0` requirement.
+- Raise the `revali_construct` floor to `^3.0.0`. Nothing in this package changed; it is re-released so the published set still resolves. `revali_construct` is a new major this round, and a dependent's constraint is only rewritten if that dependent is itself part of the release — leaving 1.2.0 behind on `^2.4.0` would make it unresolvable alongside it.
 
 <!-- REVALI CLIENT -->
 

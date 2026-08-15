@@ -134,17 +134,29 @@ written into the page rather than taken from the brief.
   (which is what increments Redis's delivery counter, so the cap can be
   reached at all), dead-lettering past `maxDeliveries`. Independent of
   `claimAfter`, which remains opt-in for *other* consumers' entries.
-- [ ] **`RedisBroker.connect()` cannot configure reclaiming.** It exposes only
-  `host`, `port` and `consumerName`, so using `claimAfter` / `maxDeliveries`
-  means constructing `RedisBroker` directly and building the connections
-  yourself. The docs say so rather than showing an example that will not
-  compile, but the factory should probably forward them.
-- [ ] **Consumers register in every isolate.** The generated `registerConsumers`
-  block is not gated on `isWorker` (`server_file_maker.dart:320-329`), so
-  `AppConfig.workers > 1` has every worker subscribe under the *same*
-  `consumerName` — which is precisely the collision that field exists to
-  prevent, per its own dartdoc. Either gate registration to the parent or
-  suffix the consumer name per isolate.
+- [x] **`RedisBroker.connect()` cannot configure reclaiming.** ~~It exposes only
+  `host`, `port` and `consumerName`~~ — done. The factory forwards `blockFor`,
+  `batchSize`, `claimAfter`, `maxDeliveries` and `deadLetterSuffix`, each
+  defaulting to the constructor's own default
+  (`packages/revali_redis/lib/src/redis_broker.dart:44-53`). Re-read 2026-08-15
+  against the source, not inferred from the changelog: the entry claiming this
+  and the open item contradicting it could not both be true, and the code is
+  what settles it.
+- [x] **Consumers register in every isolate.** Fixed by the *second* remedy this
+  item proposed — suffixing the name rather than gating registration.
+  `RedisBroker` scopes its own `consumerName` through `_isolateScopedName`, off
+  `IsolateIdentity.current.index`, leaving isolate 0 unsuffixed
+  (`redis_broker.dart:257-260`). Registration is deliberately still ungated
+  (`server_file_maker.dart:341-344`): for a Redis Streams consumer group, every
+  worker pulling work under its *own* name is the point, and gating to the
+  parent would have thrown the fleet's throughput away to fix a naming bug.
+  - [ ] Residual, and the reason this is not fully closed: the fix lives in
+    `RedisBroker`, not in registration, so a **third-party** `MessageBroker`
+    still collides unless it calls `IsolateIdentity` itself. `revali_core`
+    publishes the identity for every app and says nothing about the obligation.
+    Either document it on `AppConfig.createBroker()` / `MessageBroker`, or scope
+    the name in `ConsumerRegistry` so no broker can get it wrong. Not shipped
+    in this round — the published brokers are correct.
 
 ## Tier 4 — Internal quality
 

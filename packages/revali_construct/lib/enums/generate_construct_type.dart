@@ -1,16 +1,22 @@
+/// A single phase of generation.
+///
+/// The two are mutually exclusive by construction: `_generateIntoStaging`
+/// branches on [isBuild] and runs *either* the build makers *or* the server
+/// and other makers, never both. A combined `buildAndConstructs` value used to
+/// exist and could not honour its name — it reported `isBuild`, so it took the
+/// build branch and silently skipped every construct, which is why
+/// `revali build` never regenerated the client. Running both phases is now the
+/// caller's job: `revali build` generates [constructs] and then [build], in
+/// that order, because the build phase compiles the server that the constructs
+/// phase writes.
 enum GenerateConstructType {
   build,
-  constructs,
-  buildAndConstructs;
+  constructs;
 
-  bool get isBuild =>
-      this == GenerateConstructType.build ||
-      this == GenerateConstructType.buildAndConstructs;
+  bool get isBuild => this == GenerateConstructType.build;
   bool get isNotBuild => !isBuild;
 
-  bool get isConstructs =>
-      this == GenerateConstructType.constructs ||
-      this == GenerateConstructType.buildAndConstructs;
+  bool get isConstructs => this == GenerateConstructType.constructs;
   bool get isNotConstructs => !isConstructs;
 
   String get description {
@@ -19,8 +25,6 @@ enum GenerateConstructType {
         return 'Generates all build constructs';
       case GenerateConstructType.constructs:
         return 'Generates constructs without building';
-      case GenerateConstructType.buildAndConstructs:
-        return 'Generates all, including build, constructs';
     }
   }
 }

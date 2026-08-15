@@ -142,6 +142,31 @@ void main() {
       ]);
     });
 
+    test('--type has no default, so an unpassed build selects no phase', () {
+      // It used to default to `build`, which skips every construct, so a plain
+      // `revali build` never regenerated the client. Null is what tells the
+      // command to run both phases.
+      final parser = ArgParser();
+      sharedBuildFlags.declareAll(parser);
+
+      expect(parser.parse([])['type'], isNull);
+    });
+
+    test('--type takes a single phase, and rejects the removed one', () {
+      // `revali_docker` writes `--type constructs` into the Dockerfiles it
+      // generates, and `_compileServer` shells out with it. Both live outside
+      // this repo's control once emitted, so the value has to keep parsing.
+      final parser = ArgParser();
+      sharedBuildFlags.declareAll(parser);
+
+      expect(parser.parse(['--type=constructs'])['type'], 'constructs');
+      expect(parser.parse(['--type=build'])['type'], 'build');
+      expect(
+        () => parser.parse(['--type=buildAndConstructs']),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
     test('a false boolean flag is not forwarded', () {
       final results = outerDevParser().parse([]);
 

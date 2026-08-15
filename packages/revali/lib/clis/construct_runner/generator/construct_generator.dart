@@ -438,9 +438,12 @@ https://revali.dev/constructs#server-generation
     final revali = await rootDir.getRevali();
     final type = generateConstructType;
 
-    if (type.isBuild && type.isConstructs) {
-      await _replaceDirectory(revali, staging);
-    } else if (type.isConstructs) {
+    // The two phases are mutually exclusive, so there is no "promote both"
+    // case. There used to be a branch for one here, wiping and replacing the
+    // whole `.revali` tree — unreachable, because the only value that could
+    // satisfy it (`buildAndConstructs`) took the build branch during generation
+    // and never produced the construct outputs this promoted.
+    if (type.isConstructs) {
       // Never delete live outputs before the new tree is in place — a wipe
       // gap leaves `server/server.dart` missing and kills headless/AI reloads
       // that restart the child mid-promote.
@@ -610,14 +613,6 @@ https://revali.dev/constructs#server-generation
         await entity.delete();
       }
     }
-  }
-
-  Future<void> _replaceDirectory(Directory target, Directory source) async {
-    if (target.existsSync()) {
-      await target.delete(recursive: true);
-    }
-
-    await source.rename(target.path);
   }
 
   Future<T?> constructFromMaker<T extends Construct>(

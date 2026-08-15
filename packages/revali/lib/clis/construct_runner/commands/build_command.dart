@@ -41,32 +41,52 @@ class BuildCommand extends Command<int>
   late final flavor = argResults?['flavor'] as String?;
   late final release = argResults?['release'] as bool? ?? true;
   late final profile = argResults?['profile'] as bool? ?? false;
-  late final type = GenerateConstructType.values.byName(
-    argResults?['type'] as String,
-  );
+
+  /// The single phase `--type` selected, or null for both.
+  late final type = switch (argResults?['type'] as String?) {
+    final name? => GenerateConstructType.values.byName(name),
+    null => null,
+  };
+
+  /// The phases to run, constructs first.
+  ///
+  /// Order is load-bearing rather than stylistic: the build phase compiles
+  /// `server/server.dart`, and the constructs phase is what writes it.
+  List<GenerateConstructType> get _phases => switch (type) {
+    final phase? => [phase],
+    null => const [
+      GenerateConstructType.constructs,
+      GenerateConstructType.build,
+    ],
+  };
 
   @override
   Future<int> run() async {
     final root = await rootOf(rootPath);
 
-    final generator =
-        switch ((profile, release)) {
-          (true, _) => ConstructGenerator.profile,
-          _ => ConstructGenerator.release,
-        }(
-          flavor: flavor,
-          routesHandler: routesHandler,
-          makers: constructs,
-          logger: logger,
-          fs: fs,
-          rootPath: root.path,
-          dartDefines: defines,
-          generateConstructType: type,
-        );
+    final make = switch ((profile, release)) {
+      (true, _) => ConstructGenerator.profile,
+      _ => ConstructGenerator.release,
+    };
 
     final progress = TickedProgress('Building', level: logger.level);
 
-    await generator.generate(progress.update);
+    // A generator per phase. `generateConstructType` is final, and each phase
+    // stages and promotes its own outputs, so they cannot share an instance.
+    for (final phase in _phases) {
+      final generator = make(
+        flavor: flavor,
+        routesHandler: routesHandler,
+        makers: constructs,
+        logger: logger,
+        fs: fs,
+        rootPath: root.path,
+        dartDefines: defines,
+        generateConstructType: phase,
+      );
+
+      await generator.generate(progress.update);
+    }
 
     progress.complete('Build succeeded');
 

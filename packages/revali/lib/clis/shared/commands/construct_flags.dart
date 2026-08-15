@@ -223,11 +223,19 @@ final sharedBuildFlags = <ConstructFlag>[
         'Disables hot reload, debugger, and logger',
   ),
   _profile,
+  // No default, and that is the fix: it used to default to `build`, which
+  // skips every construct, so a plain `revali build` never regenerated the
+  // client and no CI-shaped build could reproduce a client-generation defect.
+  // Absent now means BOTH phases. Passing it still selects a single one, which
+  // `revali_docker` relies on — it writes `--type constructs` into the
+  // Dockerfiles it generates, and those live in users' repos long after they
+  // are generated. Visible for the same reason: it appears in a file people
+  // read.
   ConstructOption(
     name: 'type',
-    help: 'Which constructs to generate',
-    hide: true,
-    defaultsTo: GenerateConstructType.build.name,
+    help:
+        'Generate a single phase. '
+        'Omit to generate constructs and then build.',
     allowed: GenerateConstructType.values.map((e) => e.name),
     allowedHelp: {
       for (final type in GenerateConstructType.values)
