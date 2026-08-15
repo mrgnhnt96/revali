@@ -1,5 +1,25 @@
 # CHANGELOG
 
+## 3.0.0 | 08.15.26
+
+### Breaking Changes
+
+- `HttpInterceptor.onRequest` and `onResponse` return `FutureOr<HttpResponse?>` instead of `void`. Returning `null` — the common case — means "carry on"; returning a response from `onRequest` answers without sending anything, and from `onResponse` substitutes what arrived. The old signature made retries, caching and circuit breaking impossible to build **at all**, by us or by anyone else, which is why this changes now rather than after more code depends on it. Migration is mechanical: change the return type and add `return null`.
+- Interceptor errors are no longer swallowed. A throwing interceptor now fails the request instead of letting it continue in whatever half-prepared state it was left in — a failed auth interceptor previously put an unauthenticated request on the wire and surfaced as a puzzling `401` from the peer rather than an error where it actually broke.
+
+### Features
+
+- Add `RevaliClient.timeout`. Covers reaching the far side and getting its status back, not the time spent streaming a large body afterwards — a slow download is not the same failure as a peer that never answers. Null keeps the previous unbounded behaviour, which is a poor default in a service mesh: a peer that accepts connections and never replies otherwise holds the request forever.
+- Add `RetryPolicy` and `RevaliClient.retry`, **off by default**. Two rules keep it honest: only idempotent methods (`GET`, `HEAD`, `OPTIONS`, `PUT`, `DELETE`), because retrying a `POST` that reached the server and failed on the way back creates the resource twice; and only transient statuses (`502`, `503`, `504`), because a `400` will say the same thing next time and retrying it just multiplies load during an incident. A request with a streamed body is never retried at all — the stream is consumed as it is sent, so a second attempt would transmit nothing. Backoff is exponential and capped, and `Retry-After` overrides it when the server sends the delta-seconds form. Retried responses are drained, so the loop does not leak a socket per attempt.
+- Retry and timeout live in `RevaliClient`, above the transport, so a custom `HttpClient` gets both instead of having to reimplement them.
+- `ServerException` reads the error envelope. When the peer sent one, `code`, `reason` and `details` carry it and `isStructured` is true, so a caller can branch on `e.code == 'user_not_found'` instead of pattern-matching a body. When it did not — a plain-text response, an intermediary's HTML error page, a third-party API — those are null and the raw `body` is available exactly as before. Parsing is best-effort by design: a malformed body surfaces as the HTTP failure it already is, never as a `FormatException` from the client.
+- Add `HeaderInterceptor`, which computes headers per request instead of fixing them when the client is built. The motivating case is correlation: a server handling a request and calling a peer forwards its trace headers with `HeaderInterceptor(() => TraceContext.current?.outboundHeaders() ?? const {})`. It never overwrites a header the call site set explicitly. The callback is deliberately the coupling — `revali_client` runs on the web, where `dart:io` and so `revali_core` cannot follow, so a function of `Map<String, String>` connects the two without dragging a server-only dependency into a browser bundle.
+
+### Fixes
+
+- Build the outgoing request *after* the interceptors run, so one that rewrites the body or the encoding is reflected in what is actually sent rather than only its headers.
+- Stop the error path throwing a `TypeError` instead of reading the body. `response.stream.transform(utf8.decoder)` fails when the transport hands back a `Stream<Uint8List>` — which `package:http` does — because `transform` is generic on the stream's runtime type. Only the error path decodes a body this way, and no test exercised an error response through a generated client, so every structured failure surfaced as `type 'Utf8Decoder' is not a subtype of ...` rather than as a `ServerException`. Found by the new `test_suite/constructs/revali_client/errors` package.
+
 ## 2.1.0 | 08.13.26
 
 ### Features

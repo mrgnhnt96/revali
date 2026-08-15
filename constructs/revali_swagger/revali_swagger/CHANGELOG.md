@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.3.0 | 08.15.26
+
+### Fixes
+
+- Raise the `revali_construct` floor to `^3.0.0`. Nothing in this package changed; it is re-released so the published set still resolves. `revali_construct` is a new major this round, and a dependent's constraint is only rewritten if that dependent is itself part of the release — leaving 1.2.0 behind on `^2.4.0` would make it unresolvable alongside it.
+
 ## 1.2.0 | 08.13.26
 
 ### Fixes

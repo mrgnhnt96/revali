@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 3.2.0 | 08.15.26
+
+### Features
+
+- Add `@Consumes(topic, group:)`, marking a method as the handler for messages on a topic. `group` is required rather than defaulted: a default would have to be derived from the package or class name, and a group name that changes when code is renamed silently re-reads a stream from scratch.
+
 ## 3.1.0 | 08.13.26
 
 ### Fixes
