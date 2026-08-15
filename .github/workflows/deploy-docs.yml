@@ -107,15 +107,20 @@ jobs:
       - name: Generate the social cards
         run: dart run tool/gen_og_cards.dart
 
-      # `--sitemap-domain` is not optional decoration: web/robots.txt points
-      # crawlers at /sitemap.xml, and without this flag jaspr does not emit one,
-      # leaving robots.txt advertising a 404.
-      #
-      # The sidebar is server-rendered, so a crawler could in principle reach
-      # every page by following links. The sitemap is what makes the whole set
-      # legible at once — it is the file Search Console is subscribed to.
       - name: Build the site
-        run: dart run jaspr_cli:jaspr build --sitemap-domain "https://$DOCS_DOMAIN"
+        run: dart run jaspr_cli:jaspr build
+
+      # NOT `jaspr build --sitemap-domain`. That flag emits `<loc>$domain$route`
+      # with no hook to shape the URL, and GitHub Pages 301-redirects the
+      # no-slash form of every route — so it produced a sitemap of 111
+      # redirects. Owning the file is what lets one function
+      # (lib/src/canonical.dart) build both the sitemap `<loc>` and the page's
+      # own rel=canonical, which is the only way the two cannot drift.
+      #
+      # After the build, because `jaspr build` deletes build/jaspr on the way
+      # in; a sitemap written before it is silently thrown away.
+      - name: Generate the sitemap
+        run: dart run tool/build_sitemap.dart
 
       # After the build, so the anchor test can check every search result's
       # deep link against the HTML that is about to be published.
@@ -146,10 +151,17 @@ jobs:
           urls=$(grep -c "<loc>" sitemap.xml)
           [ "$urls" -ge 90 ] || {
             echo "::error::sitemap.xml lists only $urls URLs; expected one per page"; exit 1; }
-          # The domain is baked into every <loc> at build time, so a wrong
-          # --sitemap-domain ships a sitemap of URLs on someone else's host.
+          # The origin comes from content/_data/site.yaml, so a wrong value
+          # there ships a sitemap of URLs on someone else's host.
           grep -q "<loc>https://$DOCS_DOMAIN/" sitemap.xml || {
             echo "::error::sitemap.xml URLs are not on $DOCS_DOMAIN"; exit 1; }
+          # Every <loc> must end in a slash: that is the form Pages serves with
+          # a 200, and the bare form is a 301. `dart test` compares each one
+          # against its page's rel=canonical; this is the cheap blunt version
+          # of the same check, run against the artifact about to be published.
+          bare=$(grep -o "<loc>[^<]*</loc>" sitemap.xml | grep -vc "/</loc>" || true)
+          [ "$bare" -eq 0 ] || {
+            echo "::error::$bare sitemap URLs do not end in a slash; they will 301"; exit 1; }
           # Per-page dates actually reached the file. `dart test` proves git has
           # the history; this proves GitLastModDataLoader was wired in and used
           # it. Unwired, every page falls back to the build clock and lands on

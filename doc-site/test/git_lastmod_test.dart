@@ -7,8 +7,6 @@
 /// that a date is *plausible*, so it gets checked here.
 library;
 
-import 'dart:io';
-
 import 'package:revali_docs/src/git_lastmod.dart';
 import 'package:test/test.dart';
 
@@ -75,30 +73,21 @@ void main() {
 
   group('against this repository', () {
     // The unit tests above prove the parse; this proves the whole arrangement
-    // -- the format string, the `--relative` paths and the key the loader
+    // -- the format string, the `--relative` paths and the keys the generator
     // builds -- still agrees with the git that is actually installed. It is the
     // half that silently breaks if a flag is dropped, and it cannot be faked.
     test('dates real pages under content/', () {
-      final result = Process.runSync('git', [
-        'log',
-        '--format=%x00%cI',
-        '--name-only',
-        '--relative',
-        '--',
-        'content',
-      ]);
-
       // A CI checkout with `fetch-depth: 1` has one commit, so every page comes
       // back with the same date -- the failure this whole file guards against,
       // and it looks like success. Distinct dates is the evidence that history
       // is actually present.
-      final dates = parseGitLog(result.stdout as String);
+      final dates = gitDates();
 
       expect(dates, isNotEmpty, reason: 'no history for content/ -- is this a shallow clone?');
       expect(
         dates.keys,
         contains('content/index.md'),
-        reason: 'the paths git prints no longer match the keys the loader builds',
+        reason: 'the paths git prints no longer match the keys the generator builds',
       );
       expect(
         dates.values.toSet().length,

@@ -20,7 +20,7 @@ import 'components/mermaid.dart';
 import 'components/search.dart';
 import 'components/section_tabs.dart';
 import 'main.server.options.dart';
-import 'src/git_lastmod.dart';
+import 'src/canonical.dart';
 import 'src/grammars.dart';
 import 'src/navigation.dart';
 
@@ -28,68 +28,57 @@ void main() {
   Jaspr.initializeApp(options: defaultServerOptions);
 
   runApp(
-    // `ContentApp.custom` rather than `ContentApp`, for one reason: the plain
-    // constructor hardcodes `dataLoaders` to the filesystem one, and
-    // `GitLastModDataLoader` has to be added alongside it so the sitemap can
-    // carry a real per-page date. Everything below other than `loaders` and
-    // that second data loader is what `ContentApp` would have built anyway —
-    // `content/` and `content/_data` are its defaults, spelled out here because
-    // `custom` has no defaults to inherit.
-    ContentApp.custom(
-      loaders: [FilesystemLoader('content')],
-      configResolver: PageConfig.all(
-        dataLoaders: [FilesystemDataLoader('content/_data'), GitLastModDataLoader()],
-        templateEngine: MustacheTemplateEngine(),
-        parsers: [MarkdownParser()],
-        extensions: [HeadingAnchorsExtension(), TableOfContentsExtension()],
-        components: [
-          // Order matters. `Mermaid` claims `pre > code.language-mermaid` and
-          // has to be offered the node before `CodeBlock`, which would
-          // otherwise try to find a "mermaid" grammar and fail the build on a
-          // null assertion.
-          const Mermaid(),
-          CodeBlock(grammars: grammars),
-          const Callout(),
-          const CodeFile(),
-          // `CardGrid` before `Card`: `CustomComponentBase` matches the tag as
-          // a *prefix*, so a bare `Card` pattern would swallow `<CardGrid>`.
-          // Both patterns are anchored as well, but the order documents the
-          // hazard.
-          const CardGrid(),
-          const Card(),
-          const SectionCards(),
-          const Hero(),
-          Image(zoom: true),
-        ],
-        layouts: [
-          RevaliDocsLayout(
-            header: Header(
-              title: 'Revali',
-              logo: '/images/logo.svg',
-              items: [
-                // The section switcher sits first so its `margin-right: auto`
-                // pushes everything after it to the right of the header.
-                const SectionTabs(),
-                const DocsSearch(),
-                // The one link off this domain and back to the marketing site.
-                // Search engines otherwise see a one-way relationship: the
-                // landing page links here four times and gets nothing back, so
-                // nothing ties the two hosts together as one project.
-                const HomeLink(),
-                GitHubButton(repo: 'mrgnhnt96/revali'),
-                ThemeToggle(),
-              ],
-            ),
-            // The sidebar is generated from `src/navigation.dart` rather than
-            // written out here: a hand-written list drifts from `content/`
-            // silently — nothing fails when a page is added and not listed.
-            sidebar: const DocsSidebar(),
+    ContentApp(
+      templateEngine: MustacheTemplateEngine(),
+      parsers: [MarkdownParser()],
+      extensions: [HeadingAnchorsExtension(), TableOfContentsExtension()],
+      components: [
+        // Order matters. `Mermaid` claims `pre > code.language-mermaid` and
+        // has to be offered the node before `CodeBlock`, which would
+        // otherwise try to find a "mermaid" grammar and fail the build on a
+        // null assertion.
+        const Mermaid(),
+        CodeBlock(grammars: grammars),
+        const Callout(),
+        const CodeFile(),
+        // `CardGrid` before `Card`: `CustomComponentBase` matches the tag as
+        // a *prefix*, so a bare `Card` pattern would swallow `<CardGrid>`.
+        // Both patterns are anchored as well, but the order documents the
+        // hazard.
+        const CardGrid(),
+        const Card(),
+        const SectionCards(),
+        const Hero(),
+        Image(zoom: true),
+      ],
+      layouts: [
+        RevaliDocsLayout(
+          header: Header(
+            title: 'Revali',
+            logo: '/images/logo.svg',
+            items: [
+              // The section switcher sits first so its `margin-right: auto`
+              // pushes everything after it to the right of the header.
+              const SectionTabs(),
+              const DocsSearch(),
+              // The one link off this domain and back to the marketing site.
+              // Search engines otherwise see a one-way relationship: the
+              // landing page links here four times and gets nothing back, so
+              // nothing ties the two hosts together as one project.
+              const HomeLink(),
+              GitHubButton(repo: 'mrgnhnt96/revali'),
+              ThemeToggle(),
+            ],
           ),
-        ],
-        theme: ContentTheme(
-          primary: ThemeColor(ThemeColors.indigo.$600, dark: ThemeColors.indigo.$400),
-          background: ThemeColor(Colors.white, dark: ThemeColors.zinc.$950),
+          // The sidebar is generated from `src/navigation.dart` rather than
+          // written out here: a hand-written list drifts from `content/`
+          // silently — nothing fails when a page is added and not listed.
+          sidebar: const DocsSidebar(),
         ),
+      ],
+      theme: ContentTheme(
+        primary: ThemeColor(ThemeColors.indigo.$600, dark: ThemeColors.indigo.$400),
+        background: ThemeColor(Colors.white, dark: ThemeColors.zinc.$950),
       ),
     ),
   );
@@ -122,7 +111,12 @@ final class RevaliDocsLayout extends DocsLayout {
     final base = site['url'] is String ? site['url']! as String : '';
 
     if (base.isNotEmpty) {
-      final canonical = page.url == '/' ? base : '$base${page.url}';
+      // Via `canonicalUrl`, never by concatenation: Pages serves every page at
+      // a trailing slash and 301s the bare form, so `'$base${page.url}'` names
+      // a URL this page is not served at. `tool/build_sitemap.dart` builds its
+      // `<loc>` with the same function, and `test/sitemap_test.dart` asserts
+      // the two come out byte-identical.
+      final canonical = canonicalUrl(base, page.url);
       yield link(rel: 'canonical', href: canonical);
       yield meta(attributes: {'property': 'og:url'}, content: canonical);
     }
@@ -141,11 +135,13 @@ final class RevaliDocsLayout extends DocsLayout {
     // Absolute, not root-relative: every scraper that reads og:image fetches it
     // out of context, and a relative one resolves against their host.
     if (pageData['image'] == null) {
-      final card = '/images/og/${ogCardSlug(page.url)}.png';
-      yield meta(attributes: {'property': 'og:image'}, content: '$base$card');
+      // `assetUrl`, not `canonicalUrl`: a file is served at exactly its path,
+      // and a trailing slash here would point every social card at a 404.
+      final card = assetUrl(base, '/images/og/${ogCardSlug(page.url)}.png');
+      yield meta(attributes: {'property': 'og:image'}, content: card);
       // Twitter reads its own tag first and falls back to og:image; naming it
       // explicitly keeps the two from drifting.
-      yield meta(name: 'twitter:image', content: '$base$card');
+      yield meta(name: 'twitter:image', content: card);
     }
     if (site['keywords'] case final List<Object?> keywords when pageData['keywords'] == null) {
       yield meta(name: 'keywords', content: keywords.join(', '));

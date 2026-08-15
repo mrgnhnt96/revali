@@ -26,6 +26,10 @@ dev_dependencies:
   test: ^1.26.0
   # Build-time only: tool/gen_og_cards.dart renders the per-page social cards.
   crypto: ^3.0.6
+  # Build-time only: tool/build_sitemap.dart reads the site origin out of
+  # content/_data/site.yaml. A real parser rather than a regex over `url:`,
+  # because that value is the origin of every URL the site publishes.
+  yaml: ^3.1.2
   og_card:
     path: ../packages/og_card
 
