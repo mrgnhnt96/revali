@@ -13,6 +13,16 @@ Revali is a modern, fast, and powerful Dart API framework that makes building ro
 - **Highly Extendable**: Create custom constructs or use community packages
 - **Rapid Development**: Minimal setup and configuration required
 - **Hot Reload**: Instant development feedback with hot reload support
+- **Production-Ready**: [Health probes](/revali/app-configuration/health-probes), [graceful shutdown](/revali/app-configuration/graceful-shutdown), [request tracing](/revali/app-configuration/tracing) and [worker isolates](/revali/app-configuration/workers) come with the framework
+
+## More Than One Service
+
+A system split across several services is several servers to run, wire together and deploy. Revali treats them as one system:
+
+- **[Messaging](/revali/messaging)** — consume queue messages with `@Consumes`, backed by a broker you deploy
+- **[`revali up`](/revali/cli/up)** — run every service in the repository at once, on one screen
+- **[`revali compose`](/revali/cli/compose)** — a `docker-compose.yaml` for the same set
+- **[Error Responses](/revali/app-configuration/error-responses)** — structured errors that survive a service-to-service call
 
 ## How does it work?
 

@@ -23,6 +23,7 @@ Install the framework, configure your app, and run the CLI.
 - [Environment Variables](https://docs.revali.dev/revali/app-configuration/env-vars): Read configuration from the environment, type-safely.
 - [HTTPS in Development](https://docs.revali.dev/revali/app-configuration/https): Serve TLS locally without a proxy in front.
 - [Compression](https://docs.revali.dev/revali/app-configuration/compression): Gzip responses for clients that ask for them.
+- [Worker Isolates](https://docs.revali.dev/revali/app-configuration/workers): Several isolates on one port, and what they do not share.
 - [Graceful Shutdown](https://docs.revali.dev/revali/app-configuration/graceful-shutdown): Finish in-flight requests before the process exits.
 - [Health Probes](https://docs.revali.dev/revali/app-configuration/health-probes): Liveness and readiness, and why they are not one check.
 - [Request Tracing](https://docs.revali.dev/revali/app-configuration/tracing): Carry a request id and W3C trace context across a hop.
@@ -30,6 +31,8 @@ Install the framework, configure your app, and run the CLI.
 - [revali dev](https://docs.revali.dev/revali/cli/dev): Run the server with code generation and hot reload.
 - [revali build](https://docs.revali.dev/revali/cli/build): Produce the compiled server for deployment.
 - [revali up](https://docs.revali.dev/revali/cli/up): Run every service in the repository at once.
+- [revali services](https://docs.revali.dev/revali/cli/services): List the Revali services in this repository.
+- [revali compose](https://docs.revali.dev/revali/cli/compose): Generate a docker-compose.yaml for every service.
 - [revali routes](https://docs.revali.dev/revali/cli/routes): Print every route the generator found.
 - [revali doctor](https://docs.revali.dev/revali/cli/doctor): Check the project for the things that usually go wrong.
 - [revali ai](https://docs.revali.dev/revali/cli/ai): Install a Revali reference file for your AI coding assistant.

@@ -76,12 +76,25 @@ graph TD
     E --> Q[Production]
 ```
 
-## Quick Start
+## Everything in This Section
 
-1. **[Create an App](/revali/app-configuration/create-an-app)**: Set up your basic app configuration
-2. **[Configure Dependencies](/revali/app-configuration/configure-dependencies)**: Register services and repositories
-3. **[Environment Variables](/revali/app-configuration/env-vars)**: Handle configuration across environments
-4. **[Flavors](/revali/app-configuration/flavors)**: Create environment-specific configurations
+Start at the top; the rest are worth reading when you hit what they solve.
+
+| Page | What it covers |
+|---|---|
+| [Create an App](/revali/app-configuration/create-an-app) | The `@App()` that owns host, port and prefix |
+| [Configure Dependencies](/revali/app-configuration/configure-dependencies) | Register services once and inject them anywhere |
+| [Request-Scoped Dependencies](/revali/app-configuration/request-scoped-dependencies) | One instance per request, disposed when it ends |
+| [Flavors](/revali/app-configuration/flavors) | One codebase, several environments |
+| [Environment Variables](/revali/app-configuration/env-vars) | `Env`, `AppConfig.fromEnv`, and compile-time defines |
+| [Default Responses](/revali/app-configuration/default-responses) | The body returned for 404s and 500s |
+| [Error Responses](/revali/app-configuration/error-responses) | Structured errors that survive a service-to-service call |
+| [HTTPS in Development](/revali/app-configuration/https) | Serve TLS locally without a proxy in front |
+| [Compression](/revali/app-configuration/compression) | Gzip responses for clients that ask for them |
+| [Worker Isolates](/revali/app-configuration/workers) | Several isolates on one port, and what they don't share |
+| [Graceful Shutdown](/revali/app-configuration/graceful-shutdown) | Finish in-flight requests before the process exits |
+| [Health Probes](/revali/app-configuration/health-probes) | Liveness and readiness, and why they are not one check |
+| [Request Tracing](/revali/app-configuration/tracing) | Carry a request id and W3C trace context across a hop |
 
 ## Best Practices
 
@@ -114,3 +127,4 @@ graph TD
 - **[Create an App](/revali/app-configuration/create-an-app)**: Learn how to create your first app configuration
 - **[Configure Dependencies](/revali/app-configuration/configure-dependencies)**: Set up dependency injection
 - **[Environment Variables](/revali/app-configuration/env-vars)**: Handle configuration across environments
+- **[Health Probes](/revali/app-configuration/health-probes)**: Make the server answer for its own readiness before you deploy it

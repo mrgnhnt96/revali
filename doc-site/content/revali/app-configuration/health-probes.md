@@ -320,8 +320,10 @@ Note the absence of a prefix on either path — probes are served outside it.
 
 - [Graceful Shutdown](/revali/app-configuration/graceful-shutdown) — the full
   `SIGTERM` sequence, `shutdownTimeout`, and `onServerStopped`
+- [Worker Isolates](/revali/app-configuration/workers) — what `workers` changes,
+  and what each isolate does and does not share
 - [Create an App](/revali/app-configuration/create-an-app) — the rest of
-  `AppConfig`, including `workers`
+  `AppConfig`
 
 <!-- The default probe paths, which are conventions rather than English words. -->
 

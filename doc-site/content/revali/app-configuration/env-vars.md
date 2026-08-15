@@ -95,39 +95,101 @@ dart run revali dev
 
 ## Accessing Environment Variables
 
-There are two different ways to access environment variables in Dart, depending on how they were set:
+### `Env` — the runtime reader
 
-### Variables Set with `.env` or `--dart-define`
-
-Variables set using `.env` files or `--dart-define` flags are accessed using Dart's compile-time constants:
+Revali ships `Env` for reading the process environment. Prefer it over `Platform.environment`: it parses, it validates, and it fails loudly at startup rather than quietly at the first request that needed the value.
 
 ```dart
-// Accessing variables set with --dart-define or .env files
-const String dbHost = String.fromEnvironment('DB_HOST', defaultValue: 'localhost');
-const int dbPort = int.fromEnvironment('DB_PORT', defaultValue: 5432);
+final port = Env.current.integer('PORT', orElse: 8080);
+final users = Env.current.uri('USERS_SERVICE_URL');
+final apiKey = Env.current.require('STRIPE_API_KEY');
+final tracing = Env.current.boolean('ENABLE_TRACING', orElse: false);
+```
+
+| Method | Returns | When unset | When invalid |
+|---|---|---|---|
+| `env['NAME']` | `String?` | `null` | — |
+| `env.has('NAME')` | `bool` | `false` | — |
+| `env.string('NAME', orElse: …)` | `String` | `orElse` | — |
+| `env.require('NAME')` | `String` | **throws** | — |
+| `env.integer('NAME', orElse: …)` | `int` | `orElse` | **throws** |
+| `env.boolean('NAME', orElse: …)` | `bool` | `orElse` | **throws** |
+| `env.uri('NAME', orElse: …)` | `Uri` | `orElse`, or **throws** without one | **throws** |
+
+Two behaviors are worth knowing about, because both exist to catch a specific way deployments go wrong:
+
+- **An empty value counts as unset.** Orchestrators and CI systems routinely inject `""` for a variable nobody configured, and treating that as a real value is how an app ends up connecting to nothing.
+- **A value that is present but malformed throws** rather than falling back. Someone set `PORT=eighty` on purpose; listening on `8080` instead is worse than not starting.
+
+`boolean` accepts `true`/`1`/`yes`/`on` and `false`/`0`/`no`/`off`, case-insensitively. Anything else throws — a feature flag set to `"maybe"` should be a deployment error, not a silent no.
+
+<Callout type="tip">
+
+`Env` takes an explicit map, so a test never has to mutate the real process environment:
+
+```dart
+final env = Env({'PORT': '9000', 'ENABLE_TRACING': 'true'});
+```
+
+</Callout>
+
+### `AppConfig.fromEnv` — host and port from the environment
+
+An app that reads its own address from the environment does not need to be rebuilt to be deployed somewhere else:
+
+<CodeFile name="routes/main_app.dart">
+
+```dart
+@App()
+final class MainApp extends AppConfig {
+  MainApp() : super.fromEnv();
+}
+```
+
+</CodeFile>
+
+Two of its defaults differ from the ordinary constructor deliberately:
+
+- **Host is `0.0.0.0`, not `localhost`.** A server bound to `localhost` inside a container accepts only connections originating in that same container, so every request from outside is refused — with the process looking perfectly healthy.
+- **Port comes from `PORT`.** Cloud Run, Heroku, Render and Fly all assign a port this way and route to it. So do [`revali up`](/revali/cli/up) and [`revali compose`](/revali/cli/compose), which is why a service that hard-codes its port ignores the one it was given.
+
+The variable names and defaults are all overridable:
+
+```dart
+MainApp()
+    : super.fromEnv(
+        hostVariable: 'BIND_HOST',
+        portVariable: 'HTTP_PORT',
+        defaultPort: 3000,
+        prefix: '/api',
+      );
+```
+
+<Callout type="important">
+
+`fromEnv` is **not** `const` — it reads the process environment, which is only knowable at runtime — so the app class cannot have a `const` constructor either. That is the whole point: a port baked in at compile time is a port the platform running the image cannot change.
+
+</Callout>
+
+### Compile-Time Constants
+
+Variables set with `--dart-define` or `--dart-define-from-file` are baked into the binary and read with Dart's `fromEnvironment` constructors:
+
+```dart
+const String appName = String.fromEnvironment('APP_NAME', defaultValue: 'MyApp');
 const bool isDebug = bool.fromEnvironment('DEBUG', defaultValue: false);
-const String apiKey = String.fromEnvironment('STRIPE_API_KEY', defaultValue: '');
 ```
 
-### System Environment Variables
-
-Variables set as system environment variables are accessed using `Platform.environment`:
-
-```dart
-import 'dart:io';
-
-// Accessing system environment variables
-final String dbHost = Platform.environment['DB_HOST'] ?? 'localhost';
-final int dbPort = int.parse(Platform.environment['DB_PORT'] ?? '5432');
-final String apiKey = Platform.environment['STRIPE_API_KEY'] ?? '';
-```
+These are genuine compile-time constants, so they can be used where a `const` is required — which is also their limitation: changing one means rebuilding.
 
 ### Key Differences
 
 | Method                   | Access Pattern             | When Available | Use Case                 |
 | ------------------------ | -------------------------- | -------------- | ------------------------ |
 | `.env` / `--dart-define` | `String.fromEnvironment()` | Compile time   | Build-time configuration |
-| System Environment       | `Platform.environment`     | Runtime        | Runtime configuration    |
+| System Environment       | `Env.current`              | Runtime        | Runtime configuration    |
+
+Reach for compile-time constants when the value belongs to the *build*, and `Env` when it belongs to the *deployment*. A container image promoted from staging to production is the same build told different things by its environment, so anything that differs between the two has to be read at runtime.
 
 ### In Your App Configuration
 
@@ -136,36 +198,28 @@ Here's how to use both methods in your `AppConfig`:
 <CodeFile name="routes/main_app.dart">
 
 ```dart
-import 'dart:io';
-
 @App()
 final class MainApp extends AppConfig {
-  MainApp() : super(
-    // Use compile-time constants for build configuration
-    host: const String.fromEnvironment('HOST', defaultValue: 'localhost'),
-    port: const int.fromEnvironment('PORT', defaultValue: 8080),
-    prefix: const String.fromEnvironment('API_PREFIX', defaultValue: '/api'),
-  );
+  // Host and port come from the environment.
+  MainApp() : super.fromEnv(prefix: '/api');
 
   @override
   Future<void> configureDependencies(DI di) async {
-    // Use runtime environment variables for dynamic configuration
+    final env = Env.current;
+
     di.registerLazySingleton<DatabaseConnection>(
       () => DatabaseConnection(
-        host: Platform.environment['DB_HOST'] ?? 'localhost',
-        port: int.parse(Platform.environment['DB_PORT'] ?? '5432'),
-        database: Platform.environment['DB_NAME'] ?? 'myapp',
-        username: Platform.environment['DB_USER'] ?? 'postgres',
-        password: Platform.environment['DB_PASSWORD'] ?? '',
+        host: env.string('DB_HOST', orElse: 'localhost'),
+        port: env.integer('DB_PORT', orElse: 5432),
+        database: env.string('DB_NAME', orElse: 'myapp'),
+        username: env.string('DB_USER', orElse: 'postgres'),
+        // No sensible default for a password: fail at startup, by name.
+        password: env.require('DB_PASSWORD'),
       ),
     );
 
-    // Mix both approaches as needed
     di.registerLazySingleton<StripeService>(
-      () => StripeService(
-        apiKey: Platform.environment['STRIPE_API_KEY'] ??
-                const String.fromEnvironment('STRIPE_API_KEY', defaultValue: ''),
-      ),
+      () => StripeService(apiKey: env.require('STRIPE_API_KEY')),
     );
   }
 }
@@ -196,10 +250,12 @@ const int maxConnections = int.fromEnvironment('MAX_CONNECTIONS', defaultValue: 
 
 ```dart
 // Good for runtime configuration
-final String dbPassword = Platform.environment['DB_PASSWORD'] ?? '';
-final String jwtSecret = Platform.environment['JWT_SECRET'] ?? '';
-final String redisUrl = Platform.environment['REDIS_URL'] ?? 'redis://localhost:6379';
+final String dbPassword = Env.current.require('DB_PASSWORD');
+final String jwtSecret = Env.current.require('JWT_SECRET');
+final Uri redisUrl = Env.current.uri('REDIS_URL', orElse: Uri.parse('redis://localhost:6379'));
 ```
+
+`require` over a `?? ''` fallback: a missing secret should stop the process at startup, naming the variable, rather than reaching the database as an empty password and failing somewhere that does not mention configuration at all.
 
 ## Environment Variable Best Practices
 

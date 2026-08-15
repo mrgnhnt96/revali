@@ -214,6 +214,11 @@ const _revali = NavSection(
           summary: 'Gzip responses for clients that ask for them.',
         ),
         NavItem(
+          'Worker Isolates',
+          '/revali/app-configuration/workers',
+          summary: 'Several isolates on one port, and what they do not share.',
+        ),
+        NavItem(
           'Graceful Shutdown',
           '/revali/app-configuration/graceful-shutdown',
           summary: 'Finish in-flight requests before the process exits.',
@@ -254,6 +259,16 @@ const _revali = NavSection(
           'revali up',
           '/revali/cli/up',
           summary: 'Run every service in the repository at once.',
+        ),
+        NavItem(
+          'revali services',
+          '/revali/cli/services',
+          summary: 'List the Revali services in this repository.',
+        ),
+        NavItem(
+          'revali compose',
+          '/revali/cli/compose',
+          summary: 'Generate a docker-compose.yaml for every service.',
         ),
         NavItem(
           'revali routes',

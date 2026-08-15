@@ -151,6 +151,46 @@ final class MainApp extends AppConfig {
 
 </CodeFile>
 
+### Reading Host and Port from the Environment
+
+A deployed app is usually told its address rather than deciding it. `AppConfig.fromEnv` reads `HOST` and `PORT`, defaulting to `0.0.0.0` and `8080`:
+
+<CodeFile name="routes/main_app.dart">
+
+```dart
+@App()
+final class MainApp extends AppConfig {
+  // Not const: it reads the environment, which is a runtime fact.
+  MainApp() : super.fromEnv(prefix: '/api');
+}
+```
+
+</CodeFile>
+
+See [Environment Variables](/revali/app-configuration/env-vars) for the variable names, the defaults, and why they differ from the ones above.
+
+### Worker Isolates
+
+`workers` runs the server in several isolates, all bound to the same port:
+
+<CodeFile name="routes/main_app.dart">
+
+```dart
+@App()
+final class MainApp extends AppConfig {
+  const MainApp() : super(
+    host: '0.0.0.0',
+    port: 8080,
+    workers: 4,   // isolates accepting connections on 8080
+    backlog: 0,   // listen backlog; 0 means the OS default
+  );
+}
+```
+
+</CodeFile>
+
+Isolates share no memory, so a cache or a counter in a field becomes one per isolate. See [Worker Isolates](/revali/app-configuration/workers) before turning this up.
+
 ### Trusted Proxy
 
 When your server sits behind a reverse proxy or load balancer, override `trustedProxy` so `request.ip` and `@Ip()` resolve the real client from proxy headers instead of the proxy's TCP address:

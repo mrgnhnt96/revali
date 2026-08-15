@@ -15,7 +15,12 @@
         {
           "h": "Key Features",
           "a": "key-features",
-          "b": "Type-Safe: Built on Dart's strong typing system for compile-time safety Annotation-Driven: Define APIs using simple, intuitive annotations Highly Extendable: Create custom constructs or use community packages Rapid Development: Minimal setup and configuration required Hot Reload: Instant development feedback with hot reload support"
+          "b": "Type-Safe: Built on Dart's strong typing system for compile-time safety Annotation-Driven: Define APIs using simple, intuitive annotations Highly Extendable: Create custom constructs or use community packages Rapid Development: Minimal setup and configuration required Hot Reload: Instant development feedback with hot reload support Production-Ready: Health probes, graceful shutdown, request tracing and worker isolates come with the framework"
+        },
+        {
+          "h": "More Than One Service",
+          "a": "more-than-one-service",
+          "b": "A system split across several services is several servers to run, wire together and deploy. Revali treats them as one system: Messaging — consume queue messages with @Consumes, backed by a broker you deploy revali up — run every service in the repository at once, on one screen revali compose — a docker-compose.yaml for the same set Error Responses — structured errors that survive a service-to-service call"
         },
         {
           "h": "How does it work?",
@@ -396,12 +401,12 @@
         {
           "h": "Name your replicas",
           "a": "name-your-replicas",
-          "b": "Redis tracks unacknowledged entries per consumer name. Two replicas sharing one name make each other's pending work invisible, so the default 'revali' is a placeholder you should replace — a pod name or hostname is the usual choice. This applies per isolate, not per process. The generated createServer registers consumers in every isolate it runs in, so an app with AppConfig.workers greater than 1 has each worker connect and subscribe under the same consumerName."
+          "b": "Redis tracks unacknowledged entries per consumer name. Two replicas sharing one name make each other's pending work invisible, so the default 'revali' is a placeholder you should replace — a pod name or hostname is the usual choice. Worker isolates are told apart for you. Consumers register in every isolate, so an app with AppConfig.workers greater than 1 would otherwise have every worker subscribe under the same name and hide the others' pending entries — the exact failure this section is about, reached without doing anything wrong. The generated server publishes which isolate it is, and RedisBroker appends that index: the parent keeps the name you configured, and the workers become orders-7f4c-1, orders-7f4c-2, and so on. The parent is deliberately left alone rather than becoming -0, so upgrading an existing deployment does not rename its consumer and strand whatever was pending under "
         },
         {
           "h": "Reclaiming what a dead replica left behind",
           "a": "reclaiming-what-a-dead-replica-left-behind",
-          "b": "Because pending entries are tracked per consumer name, a replica that dies mid-message strands its entries in a list nobody else reads. A pod that is replaced rather than restarted never comes back to claim them, so they sit there forever. claimAfter fixes that: an entry idle longer than that duration is taken over by another consumer. RedisBroker( connection: connection, openConnection: openConnection, consumerName: 'orders-7f4c', claimAfter: const Duration(minutes: 2), maxDeliveries: 5, ); RedisBroker.connect() takes only host, port and consumerName. To set claimAfter, maxDeliveries, blockFor, batchSize or deadLetterSuffix, construct RedisBroker directly with a ReconnectingRedisConnection for the control link and a factory that opens one per subscription — each subscription needs its own connection, because a blocking read on a shared one would stall every publish behind a consumer wai"
+          "b": "Because pending entries are tracked per consumer name, a replica that dies mid-message strands its entries in a list nobody else reads. A pod that is replaced rather than restarted never comes back to claim them, so they sit there forever. claimAfter fixes that: an entry idle longer than that duration is taken over by another consumer. await RedisBroker.connect( host: Env.current.string('REDIS_HOST', orElse: 'localhost'), consumerName: 'orders-7f4c', claimAfter: const Duration(minutes: 2), maxDeliveries: 5, ); connect() takes every option the constructor does — blockFor, batchSize, claimAfter, maxDeliveries and deadLetterSuffix — each with the same default. Constructing RedisBroker directly is still supported, but it means supplying a ReconnectingRedisConnection for the control link and a factory that opens one per subscription, which is the wiring connect() exists to do: each subscripti"
         },
         {
           "h": "Dead letters",
@@ -526,9 +531,9 @@
           "b": "graph TD A[AppConfig] --> B[Server Settings] A --> C[Dependencies] A --> E[Environment] B --> F[Host & Port] B --> G[Global Prefix] B --> H[CORS Settings] C --> I[Services] C --> J[Repositories] C --> K[External APIs] E --> O[Development] E --> P[Staging] E --> Q[Production]"
         },
         {
-          "h": "Quick Start",
-          "a": "quick-start",
-          "b": "1. Create an App: Set up your basic app configuration 2. Configure Dependencies: Register services and repositories 3. Environment Variables: Handle configuration across environments 4. Flavors: Create environment-specific configurations"
+          "h": "Everything in This Section",
+          "a": "everything-in-this-section",
+          "b": "Start at the top; the rest are worth reading when you hit what they solve. Page What it covers Create an App The @App() that owns host, port and prefix Configure Dependencies Register services once and inject them anywhere Request-Scoped Dependencies One instance per request, disposed when it ends Flavors One codebase, several environments Environment Variables Env, AppConfig.fromEnv, and compile-time defines Default Responses The body returned for 404s and 500s Error Responses Structured errors that survive a service-to-service call HTTPS in Development Serve TLS locally without a proxy in front Compression Gzip responses for clients that ask for them Worker Isolates Several isolates on one port, and what they don't share Graceful Shutdown Finish in-flight requests before the process exits Health Probes Liveness and readiness, and why they are not one check Request Tracing Carry a reque"
         },
         {
           "h": "Best Practices",
@@ -558,7 +563,7 @@
         {
           "h": "Next Steps",
           "a": "next-steps",
-          "b": "Create an App: Learn how to create your first app configuration Configure Dependencies: Set up dependency injection Environment Variables: Handle configuration across environments"
+          "b": "Create an App: Learn how to create your first app configuration Configure Dependencies: Set up dependency injection Environment Variables: Handle configuration across environments Health Probes: Make the server answer for its own readiness before you deploy it"
         }
       ]
     },
@@ -625,6 +630,16 @@
           "h": "Global Prefix",
           "a": "global-prefix",
           "b": "Add a global prefix to all your API routes: @App() final class MainApp extends AppConfig { const MainApp() : super( host: 'localhost', port: 8080, prefix: '/api/v1', // All routes will be prefixed with /api/v1 ); }"
+        },
+        {
+          "h": "Reading Host and Port from the Environment",
+          "a": "reading-host-and-port-from-the-environment",
+          "b": "A deployed app is usually told its address rather than deciding it. AppConfig.fromEnv reads HOST and PORT, defaulting to 0.0.0.0 and 8080: @App() final class MainApp extends AppConfig { // Not const: it reads the environment, which is a runtime fact. MainApp() : super.fromEnv(prefix: '/api'); } See Environment Variables for the variable names, the defaults, and why they differ from the ones above."
+        },
+        {
+          "h": "Worker Isolates",
+          "a": "worker-isolates",
+          "b": "workers runs the server in several isolates, all bound to the same port: @App() final class MainApp extends AppConfig { const MainApp() : super( host: '0.0.0.0', port: 8080, workers: 4, // isolates accepting connections on 8080 backlog: 0, // listen backlog; 0 means the OS default ); } Isolates share no memory, so a cache or a counter in a field becomes one per isolate. See Worker Isolates before turning this up."
         },
         {
           "h": "Trusted Proxy",
@@ -1069,32 +1084,37 @@
         {
           "h": "Accessing Environment Variables",
           "a": "accessing-environment-variables",
-          "b": "There are two different ways to access environment variables in Dart, depending on how they were set:"
+          "b": ""
         },
         {
-          "h": "Variables Set with .env or --dart-define",
-          "a": "variables-set-with-env-or---dart-define",
-          "b": "Variables set using .env files or --dart-define flags are accessed using Dart's compile-time constants: // Accessing variables set with --dart-define or .env files const String dbHost = String.fromEnvironment('DB_HOST', defaultValue: 'localhost'); const int dbPort = int.fromEnvironment('DB_PORT', defaultValue: 5432); const bool isDebug = bool.fromEnvironment('DEBUG', defaultValue: false); const String apiKey = String.fromEnvironment('STRIPE_API_KEY', defaultValue: '');"
+          "h": "Env — the runtime reader",
+          "a": "env--the-runtime-reader",
+          "b": "Revali ships Env for reading the process environment. Prefer it over Platform.environment: it parses, it validates, and it fails loudly at startup rather than quietly at the first request that needed the value. final port = Env.current.integer('PORT', orElse: 8080); final users = Env.current.uri('USERS_SERVICE_URL'); final apiKey = Env.current.require('STRIPE_API_KEY'); final tracing = Env.current.boolean('ENABLE_TRACING', orElse: false); Method Returns When unset When invalid env['NAME'] String? null — env.has('NAME') bool false — env.string('NAME', orElse: …) String orElse — env.require('NAME') String throws — env.integer('NAME', orElse: …) int orElse throws env.boolean('NAME', orElse: …) bool orElse throws env.uri('NAME', orElse: …) Uri orElse, or throws without one throws Two behaviors are worth knowing about, because both exist to catch a specific way deployments go wrong: An empty "
         },
         {
-          "h": "System Environment Variables",
-          "a": "system-environment-variables",
-          "b": "Variables set as system environment variables are accessed using Platform.environment: import 'dart:io'; // Accessing system environment variables final String dbHost = Platform.environment['DB_HOST'] ?? 'localhost'; final int dbPort = int.parse(Platform.environment['DB_PORT'] ?? '5432'); final String apiKey = Platform.environment['STRIPE_API_KEY'] ?? '';"
+          "h": "AppConfig.fromEnv — host and port from the environment",
+          "a": "appconfigfromenv--host-and-port-from-the-environment",
+          "b": "An app that reads its own address from the environment does not need to be rebuilt to be deployed somewhere else: @App() final class MainApp extends AppConfig { MainApp() : super.fromEnv(); } Two of its defaults differ from the ordinary constructor deliberately: Host is 0.0.0.0, not localhost. A server bound to localhost inside a container accepts only connections originating in that same container, so every request from outside is refused — with the process looking perfectly healthy. Port comes from PORT. Cloud Run, Heroku, Render and Fly all assign a port this way and route to it. So do revali up and revali compose, which is why a service that hard-codes its port ignores the one it was given. The variable names and defaults are all overridable: MainApp() : super.fromEnv( hostVariable: 'BIND_HOST', portVariable: 'HTTP_PORT', defaultPort: 3000, prefix: '/api', ); fromEnv is not const — i"
+        },
+        {
+          "h": "Compile-Time Constants",
+          "a": "compile-time-constants",
+          "b": "Variables set with --dart-define or --dart-define-from-file are baked into the binary and read with Dart's fromEnvironment constructors: const String appName = String.fromEnvironment('APP_NAME', defaultValue: 'MyApp'); const bool isDebug = bool.fromEnvironment('DEBUG', defaultValue: false); These are genuine compile-time constants, so they can be used where a const is required — which is also their limitation: changing one means rebuilding."
         },
         {
           "h": "Key Differences",
           "a": "key-differences",
-          "b": "Method Access Pattern When Available Use Case .env / --dart-define String.fromEnvironment() Compile time Build-time configuration System Environment Platform.environment Runtime Runtime configuration"
+          "b": "Method Access Pattern When Available Use Case .env / --dart-define String.fromEnvironment() Compile time Build-time configuration System Environment Env.current Runtime Runtime configuration Reach for compile-time constants when the value belongs to the build, and Env when it belongs to the deployment. A container image promoted from staging to production is the same build told different things by its environment, so anything that differs between the two has to be read at runtime."
         },
         {
           "h": "In Your App Configuration",
           "a": "in-your-app-configuration",
-          "b": "Here's how to use both methods in your AppConfig: import 'dart:io'; @App() final class MainApp extends AppConfig { MainApp() : super( // Use compile-time constants for build configuration host: const String.fromEnvironment('HOST', defaultValue: 'localhost'), port: const int.fromEnvironment('PORT', defaultValue: 8080), prefix: const String.fromEnvironment('API_PREFIX', defaultValue: '/api'), ); @override Future configureDependencies(DI di) async { // Use runtime environment variables for dynamic configuration di.registerLazySingleton ( () => DatabaseConnection( host: Platform.environment['DB_HOST'] ?? 'localhost', port: int.parse(Platform.environment['DB_PORT'] ?? '5432'), database: Platform.environment['DB_NAME'] ?? 'myapp', username: Platform.environment['DB_USER'] ?? 'postgres', password: Platform.environment['DB_PASSWORD'] ?? '', ), ); // Mix both approaches as needed di.registerLazyS"
+          "b": "Here's how to use both methods in your AppConfig: @App() final class MainApp extends AppConfig { // Host and port come from the environment. MainApp() : super.fromEnv(prefix: '/api'); @override Future configureDependencies(DI di) async { final env = Env.current; di.registerLazySingleton ( () => DatabaseConnection( host: env.string('DB_HOST', orElse: 'localhost'), port: env.integer('DB_PORT', orElse: 5432), database: env.string('DB_NAME', orElse: 'myapp'), username: env.string('DB_USER', orElse: 'postgres'), // No sensible default for a password: fail at startup, by name. password: env.require('DB_PASSWORD'), ), ); di.registerLazySingleton ( () => StripeService(apiKey: env.require('STRIPE_API_KEY')), ); } }"
         },
         {
           "h": "Best Practices for Variable Access",
           "a": "best-practices-for-variable-access",
-          "b": "Use Compile-Time Constants For Build Configuration: Host, port, API prefix Feature Flags: Enable/disable features at build time Static Values: Values that don't change at runtime // Good for compile-time configuration const String appName = String.fromEnvironment('APP_NAME', defaultValue: 'MyApp'); const bool enableDebugMode = bool.fromEnvironment('DEBUG', defaultValue: false); const int maxConnections = int.fromEnvironment('MAX_CONNECTIONS', defaultValue: 100); Use Runtime Environment For Secrets: API keys, passwords, tokens Database Configuration: Connection strings, credentials Dynamic Values: Values that might change without rebuilding // Good for runtime configuration final String dbPassword = Platform.environment['DB_PASSWORD'] ?? ''; final String jwtSecret = Platform.environment['JWT_SECRET'] ?? ''; final String redisUrl = Platform.environment['REDIS_URL'] ?? 'redis://localhost:63"
+          "b": "Use Compile-Time Constants For Build Configuration: Host, port, API prefix Feature Flags: Enable/disable features at build time Static Values: Values that don't change at runtime // Good for compile-time configuration const String appName = String.fromEnvironment('APP_NAME', defaultValue: 'MyApp'); const bool enableDebugMode = bool.fromEnvironment('DEBUG', defaultValue: false); const int maxConnections = int.fromEnvironment('MAX_CONNECTIONS', defaultValue: 100); Use Runtime Environment For Secrets: API keys, passwords, tokens Database Configuration: Connection strings, credentials Dynamic Values: Values that might change without rebuilding // Good for runtime configuration final String dbPassword = Env.current.require('DB_PASSWORD'); final String jwtSecret = Env.current.require('JWT_SECRET'); final Uri redisUrl = Env.current.uri('REDIS_URL', orElse: Uri.parse('redis://localhost:6379')); "
         },
         {
           "h": "Environment Variable Best Practices",
@@ -1221,6 +1241,52 @@
       ]
     },
     {
+      "u": "/revali/app-configuration/workers",
+      "t": "Worker Isolates",
+      "d": "Several isolates on one port, and what they do not share.",
+      "g": "Revali",
+      "s": [
+        {
+          "b": "A Dart isolate runs on one thread. A handler that spends its time waiting — on a database, on another service — leaves that thread free and one isolate is plenty. A handler that spends its time computing does not, and every other request waits behind it however many cores the machine has. workers is the answer to the second case: @App() final class MainApp extends AppConfig { const MainApp() : super( host: '0.0.0.0', port: 8080, workers: 4, ); } Four isolates, all bound to port 8080 with shared: true, and the OS distributes incoming connections across them. Defaults to 1. Match workers to the cores you actually have. The container in production rarely has the core count your laptop does, so it is usually worth reading rather than baking in — which means giving up const: MainApp() : super.fromEnv( workers: Env.current.integer('WORKERS', orElse: 1), ); See Environment Variables."
+        },
+        {
+          "h": "What Each Isolate Gets",
+          "a": "what-each-isolate-gets",
+          "b": "Every isolate runs the whole boot: it builds its own AppConfig, runs its own configureDependencies, and opens its own connections. Nothing is shared between them, because Dart isolates share no memory at all. That is the part worth internalizing before turning workers up, because it changes what some perfectly ordinary code means: With workers: 1 With workers: 4 An in-memory cache One cache Four caches, each with a quarter of the traffic and none of the others' entries A rate-limit counter in a Map Counts every request Counts a quarter of them, four times over A database pool of 10 10 connections 40 connections A static field One value Four independent values Anything that has to be counted, shared, or agreed on across the fleet belongs somewhere the isolates can all see — Redis, the database — not in a field. The rest is a straight win. backlog sets the listen backlog passed to HttpServ"
+        },
+        {
+          "h": "Which Isolate Am I?",
+          "a": "which-isolate-am-i",
+          "b": "Isolates being identical is the point, and also the problem: some things a server talks to identify their clients by name, and four isolates announcing the same name is four clients an external system believes are one. IsolateIdentity.current tells them apart: final me = IsolateIdentity.current; me.index; // 0 for the parent, 1..workerCount - 1 for a worker me.workerCount; // what workers was set to me.isWorker; // index > 0 Read it from anywhere, including code that has no way to be handed configuration — an AppConfig.createBroker override takes no arguments, and neither does configureDependencies know which isolate it is being run in. The common use is work that must happen once for the process, not once per isolate: @override Future configureDependencies(DI di) async { di.registerLazySingleton (OrderRepository.new); // Four isolates would otherwise run this on four schedules. if (!Iso"
+        },
+        {
+          "h": "What Is Already Handled",
+          "a": "what-is-already-handled",
+          "b": "Two things that would otherwise break under workers greater than 1 are handled for you, and both are worth knowing about because both are silent when they go wrong elsewhere."
+        },
+        {
+          "h": "Consumers register in every isolate",
+          "a": "consumers-register-in-every-isolate",
+          "b": "Redis tracks unacknowledged entries per consumer name. Four isolates sharing one name means each isolate's pending messages are invisible to the others. RedisBroker appends the isolate index for you: the parent keeps the name you configured, and the workers become -1, -2, and so on. See Messaging."
+        },
+        {
+          "h": "Every isolate reports 503 while draining",
+          "a": "every-isolate-reports-503-while-draining",
+          "b": "SIGTERM reaches the parent only, and each isolate keeps its own in-flight request set. Left alone, a readiness probe balanced onto a worker would answer 200 for a process on its way out. So the parent does not drain alone: it tells every worker to drain and drains itself concurrently, so probes report 503 across the whole fleet at once. See Health Probes."
+        },
+        {
+          "h": "During Development",
+          "a": "during-development",
+          "b": "revali dev binds with shared: true regardless, so hot reload keeps working. On reload the parent kills the previous generation of worker isolates before spawning the new one — otherwise every restart would leave another four behind, still holding the port."
+        },
+        {
+          "h": "What's next?",
+          "a": "whats-next",
+          "b": "Health Probes — how readiness behaves across the fleet Graceful Shutdown — the drain every isolate takes part in Messaging — consumers, and the names they register under"
+        }
+      ]
+    },
+    {
       "u": "/revali/app-configuration/graceful-shutdown",
       "t": "Graceful Shutdown",
       "d": "Finish in-flight requests before the process exits.",
@@ -1323,7 +1389,7 @@
         {
           "h": "What's next?",
           "a": "whats-next",
-          "b": "Graceful Shutdown — the full SIGTERM sequence, shutdownTimeout, and onServerStopped Create an App — the rest of AppConfig, including workers"
+          "b": "Graceful Shutdown — the full SIGTERM sequence, shutdownTimeout, and onServerStopped Worker Isolates — what workers changes, and what each isolate does and does not share Create an App — the rest of AppConfig"
         }
       ]
     },
@@ -1633,7 +1699,7 @@
       "g": "Revali",
       "s": [
         {
-          "b": "The revali up command starts every Revali service in a repository together, with merged output and one set of keystrokes driving all of them. Five services is otherwise five revali dev processes in five terminals. That is the point at which people stop running the whole system locally and start developing one service against staging or mocks — which hides exactly the mismatches that splitting into services creates."
+          "b": "The revali up command starts every Revali service in a repository together, on one screen, with one set of keystrokes driving all of them. Five services is otherwise five revali dev processes in five terminals. That is the point at which people stop running the whole system locally and start developing one service against staging or mocks — which hides exactly the mismatches that splitting into services creates."
         },
         {
           "h": "Basic Usage",
@@ -1651,29 +1717,121 @@
           "b": "Flag Meaning --root Directory to search from. Defaults to the working directory. --only Run just these services, by package name or path. Repeatable. --base-port First port to assign; services take one each in order. Defaults to 8080. An unknown --only name is refused rather than ignored — a typo would otherwise look like a service that starts and does nothing."
         },
         {
-          "h": "Keystrokes",
-          "a": "keystrokes",
-          "b": "While revali up is running, press: Key Effect r Regenerate and restart every service c Clear and reprint each status board q Quit the fleet These reach the children through each service's .revali_cmd file rather than through stdin. A child process's stdin is a pipe, not a terminal, so revali dev inside it takes its headless path and never reads keystrokes at all — the same file-based channel revali dev documents for CI and agents. One file is written per service, in that service's own directory. q also stops the fleet, so a service wedged badly enough to ignore its command file cannot leave revali up waiting on it forever. File-watching reload works independently of the keys, so saving a file still reloads the service that owns it."
+          "h": "The Screen",
+          "a": "the-screen",
+          "b": "With a terminal attached, revali up takes the alternate screen and draws three regions: ┌──────────────────────────────────────────────────────────────┐ │ ▸ orders http://localhost:8080 serving │ │ billing http://localhost:8081 generating ⠹ │ │ users http://localhost:8082 needs fix │ ├──────────────────────────────────────────────────────────────┤ │ orders Server running on http://localhost:8080 │ │ orders GET /api/orders 200 │ │ 12-40/318 │ ├──────────────────────────────────────────────────────────────┤ │ ↑↓ select jk scroll g live r reload c clear q quit R/C/Q all │ └──────────────────────────────────────────────────────────────┘ The roster. One row per service — name, address, state — with ▸ on the focused one. Three rows are visible at a time however large the fleet is, and the window follows the selection; the log pane below is why revali up exists, and a roster that grew with the "
         },
         {
-          "h": "Output",
-          "a": "output",
-          "b": "Each service's output is prefixed with its name in a stable color, aligned across the fleet: orders Server running on http://localhost:8080 billing Server running on http://localhost:8081 orders GET /api/orders 200 Child processes that redraw their line with a bare \\r cannot overwrite the prefix, so it stays readable when several services start at once."
+          "h": "Service States",
+          "a": "service-states",
+          "b": "State Meaning starting Spawned, and has not yet said anything more specific. generating A build or retrieve step is in flight. serving Announced an address it is listening on. needs fix The server is down but revali dev is not — a port collision, typically. Recoverable with r. crashed The revali dev process exited non-zero. Bring it back with s. stopped The revali dev process exited zero. needs fix and crashed are the two the roster colors loudly, because they are the two that cost something to miss."
+        },
+        {
+          "h": "Keystrokes",
+          "a": "keystrokes",
+          "b": "Key Effect ↑ / ↓ Move the selection, wrapping at both ends 1–9 Select that service directly, even one scrolled out of the roster j / k Scroll the focused pane a line at a time PageUp / PageDown Scroll a screen, keeping one row of overlap g Jump the pane back to live output r Regenerate and restart the focused service c Clear the focused pane q Stop the focused service; the rest of the fleet carries on s Start a service whose process is gone R / C / Q The same three, applied to every service Ctrl-C Stop the fleet. Press again to stop waiting for it. The mouse works too: click a roster row to focus it, click a URL or a route path in the pane to open it in a browser, and scroll the wheel over the pane. A clickable run is underlined; a route path resolves against the address its service announced, so a click before a service is listening does nothing rather than opening a guess. r, c and q r"
+        },
+        {
+          "h": "Without a Terminal",
+          "a": "without-a-terminal",
+          "b": "In CI, or with stdout or stdin redirected, there is no screen. revali up prints each service's output flat, prefixed with its name in a stable color and aligned across the fleet: orders Server running on http://localhost:8080 billing Server running on http://localhost:8081 orders GET /api/orders 200 Raw mode is probed rather than assumed — a pseudo-TTY can claim to be a terminal and still refuse it — so a pipeline gets flat output rather than a screen it cannot type at. Child processes that redraw their line with a bare \\r cannot overwrite the prefix, so it stays readable when several services start at once."
         },
         {
           "h": "Shutdown",
           "a": "shutdown",
-          "b": "Ctrl-C sends SIGTERM to every child, so each drains through the graceful shutdown path rather than being killed — in-flight requests finish and readiness reports 503 while they do."
+          "b": "Ctrl-C and Q both send SIGTERM to every child, so each drains through the graceful shutdown path rather than being killed — in-flight requests finish and readiness reports 503 while they do. The screen swaps to a shutdown view while that happens, listing each service as it drains. A fleet with real drain delays takes seconds to go down, and the whole point of the swap is that a developer can tell \"draining\" from \"wedged\". If a child ignores SIGTERM entirely, a second Ctrl-C stops waiting for it."
         },
         {
           "h": "When a Service Fails to Start",
           "a": "when-a-service-fails-to-start",
-          "b": "It is reported and the rest carry on. The usual cause is a compile error the developer is about to fix, and losing the whole fleet for one makes the loop worse rather than safer: billing exited (254) If no service starts, revali up exits non-zero rather than sitting there with nothing running."
+          "b": "It is reported and the rest carry on. The usual cause is a compile error the developer is about to fix, and losing the whole fleet for one makes the loop worse rather than safer. Its row stays in the roster reading crashed, its pane keeps the output that explains why, and s brings it back once the cause is fixed. If no service starts, revali up exits non-zero rather than sitting there with nothing running."
         },
         {
           "h": "Related",
           "a": "related",
-          "b": "revali dev — one service, with the same keystrokes revali services — list what would run revali compose — generate a docker-compose.yaml for the same set"
+          "b": "revali dev — one service, with the same keystrokes revali services — list what would run revali compose — a docker-compose.yaml for the same set"
+        }
+      ]
+    },
+    {
+      "u": "/revali/cli/services",
+      "t": "revali services",
+      "d": "List the Revali services in this repository.",
+      "g": "Revali",
+      "s": [
+        {
+          "b": "The revali services command prints every Revali service it can find, without starting anything. It answers the question the rest of the multi-service tooling depends on: what counts as \"the system\"? revali up and revali compose both run the same discovery, so if a service is missing from one of them, this is where to look first."
+        },
+        {
+          "h": "Basic Usage",
+          "a": "basic-usage",
+          "b": "dart run revali services 3 service(s) orders services/orders billing services/billing users services/users (no Dockerfile yet) The (no Dockerfile yet) marker means revali build has not run in that package. It matters for revali compose, whose generated file builds each service from .revali/build/Dockerfile."
+        },
+        {
+          "h": "What Counts as a Service",
+          "a": "what-counts-as-a-service",
+          "b": "A directory is a service when both are true: 1. It has a pubspec.yaml and a routes/ directory. 2. Its pubspec.yaml depends on the framework. The dependency check is the load-bearing half. routes/ is a common enough directory name that a frontend router, a docs folder, or a fixture would otherwise be reported as a service you were expected to run. Discovery stops descending once it finds a service — a service does not contain another service — and skips .revali, .dart_tool, .git, build, node_modules, and any dotted directory. Results are sorted by path, so the order is stable between runs, and that same order is what assigns ports in revali up and revali compose."
+        },
+        {
+          "h": "Options",
+          "a": "options",
+          "b": "Flag Meaning --root Directory to search from. Defaults to the working directory. --paths Print only paths, one per line, for scripting. --paths writes nothing else — no count, no header, no color — so it can be piped: for service in $(dart run revali services --paths); do (cd \"$service\" && dart run revali build) done"
+        },
+        {
+          "h": "Exit Codes",
+          "a": "exit-codes",
+          "b": "Code Meaning 0 At least one service was found. 1 The --root directory does not exist, or no service was found under it. Finding nothing is an error rather than an empty list on purpose: in a script, an empty list reads as \"there is nothing to do\" and a wrong --root looks exactly the same."
+        },
+        {
+          "h": "Related",
+          "a": "related",
+          "b": "revali up — run everything this lists revali compose — generate a docker-compose.yaml for it revali build — produce the Dockerfile a service is missing"
+        }
+      ]
+    },
+    {
+      "u": "/revali/cli/compose",
+      "t": "revali compose",
+      "d": "Generate a docker-compose.yaml for every service.",
+      "g": "Revali",
+      "s": [
+        {
+          "b": "The revali compose command writes a docker-compose.yaml covering every Revali service in the repository. revali_docker produces a Dockerfile per service, which is enough to ship one of them and not enough to run the system. This is the other half: one file that brings the whole fleet up together."
+        },
+        {
+          "h": "Basic Usage",
+          "a": "basic-usage",
+          "b": "dart run revali compose ✓ Wrote 3 service(s) to /repo/docker-compose.yaml Then: docker compose up"
+        },
+        {
+          "h": "What It Generates",
+          "a": "what-it-generates",
+          "b": "Generated by revali compose. Safe to edit — regenerating overwrites, so keep hand-written additions in an override file (compose.override.yaml). Each service is given its port via the PORT environment variable, which AppConfig.fromEnv() reads. A service that hard-codes its port will ignore this and the mapping below will point at nothing. services: orders: build: context: services/orders dockerfile: .revali/build/Dockerfile environment: PORT: '8080' ports: '8080:8080' restart: unless-stopped billing: build: context: services/billing dockerfile: .revali/build/Dockerfile environment: PORT: '8081' ports: '8081:8081' restart: unless-stopped Ports are assigned sequentially from --base-port, in the same path order revali services lists — so a service keeps its port between revali up and docker compose up. The port is passed as PORT, and only AppConfig.fromEnv reads it. A service that hard-code"
+        },
+        {
+          "h": "Services Without a Dockerfile",
+          "a": "services-without-a-dockerfile",
+          "b": "A service that has not been built yet is still written out, with a comment saying so, and the command warns: ⚠ 1 service(s) have no Dockerfile yet. Run revali build in: services/users Omitting it would have been quieter and worse: a service silently missing from the compose file is harder to notice than one that fails to build."
+        },
+        {
+          "h": "Regenerating",
+          "a": "regenerating",
+          "b": "The file is overwritten every run. Keep hand-written additions — a database, a Redis instance, a volume — in compose.override.yaml, which Docker Compose merges automatically: services: redis: image: redis:7-alpine ports: '6379:6379' orders: environment: REDIS_URL: redis://redis:6379"
+        },
+        {
+          "h": "Options",
+          "a": "options",
+          "b": "Flag Meaning --root Directory to search from. Defaults to the working directory. --output, -o Where to write. Defaults to docker-compose.yaml at the root. --base-port First host port to assign; services take one each in order. Defaults to 8080. --stdout Print instead of writing a file."
+        },
+        {
+          "h": "Duplicate Service Names",
+          "a": "duplicate-service-names",
+          "b": "Compose keys are YAML mapping keys, and package names are not unique across a repository — several example services can legitimately be called hello. A duplicate key does not error in YAML: the later entry silently replaces the earlier one and a service vanishes from the system it was meant to describe. So colliding names fall back to a key derived from the service's path, which is unique by construction: services: services-orders-hello: ... examples-hello: ..."
+        },
+        {
+          "h": "Related",
+          "a": "related",
+          "b": "revali services — what will be included revali up — run the same set without containers revali_docker — the Dockerfile each service builds from"
         }
       ]
     },
