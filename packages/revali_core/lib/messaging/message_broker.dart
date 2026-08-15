@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:revali_core/isolate/isolate_identity.dart';
 import 'package:revali_core/messaging/broker_message.dart';
 
 /// What a handler does with a message.
@@ -32,6 +33,21 @@ abstract interface class BrokerSubscription {
 /// once, which means a message that was handled but whose acknowledgement was
 /// lost will arrive again. That is not a bug to be engineered away at this
 /// layer — it is the contract.
+///
+/// ## Implementing one
+///
+/// If the broker identifies this client to the server **by name** — a Redis
+/// Streams consumer, a Kafka `group.instance.id`, a NATS durable — run that
+/// name through [IsolateIdentity.scopeName] before sending it. `createBroker`
+/// runs in every isolate of an app with `AppConfig.workers` above 1, so a name
+/// passed through untouched makes every worker claim to be the same client.
+/// On a broker that tracks unacknowledged work per client that is not a
+/// cosmetic collision: each worker's pending messages become invisible to the
+/// others, and the app looks healthy while work sits unretried.
+///
+/// The framework cannot do this for you. It never sees the name — the
+/// implementation builds it — so this is an obligation of the implementation,
+/// and the reason [IsolateIdentity.scopeName] is public.
 abstract interface class MessageBroker {
   /// Sends [payload] to [topic].
   ///

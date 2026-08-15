@@ -138,6 +138,13 @@ abstract base class AppConfig {
   ///
   /// The returned broker is owned by the framework from here on — it is
   /// drained and closed as part of shutdown.
+  ///
+  /// **This runs in every isolate**, not once for the process: with [workers]
+  /// above 1 each isolate calls it and gets its own broker, which is what lets
+  /// every worker pull its share of the queue. A broker that names itself to
+  /// the server must therefore distinguish that name per isolate — see
+  /// [IsolateIdentity.scopeName] and [MessageBroker]. `RedisBroker` already
+  /// does; a broker from elsewhere may not, and the collision is silent.
   Future<MessageBroker?> createBroker() async => null;
 
   /// Whether the server stops itself on `SIGTERM` / `SIGINT`.

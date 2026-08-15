@@ -44,6 +44,50 @@ void main() {
     });
   });
 
+  group('scopeName', () {
+    // Public so a broker written outside this repository can be correct. The
+    // framework never sees the name a broker registers -- the broker builds
+    // it -- so this cannot be enforced anywhere else, and a broker that skips
+    // it has every worker claiming to be the same consumer.
+
+    test('leaves the parent isolate alone', () {
+      IsolateIdentity.setCurrentForGeneratedCode(
+        const IsolateIdentity(index: 0, workerCount: 4),
+      );
+
+      // Suffixing the parent too would rename the consumer of every app that
+      // upgrades, stranding whatever was pending under the old name.
+      expect(IsolateIdentity.scopeName('orders'), 'orders');
+    });
+
+    test('suffixes a worker with its index', () {
+      IsolateIdentity.setCurrentForGeneratedCode(
+        const IsolateIdentity(index: 2, workerCount: 4),
+      );
+
+      expect(IsolateIdentity.scopeName('orders'), 'orders-2');
+    });
+
+    test('is unique across the fleet, which is the whole point', () {
+      final names = <String>{};
+
+      for (var index = 0; index < 8; index++) {
+        IsolateIdentity.setCurrentForGeneratedCode(
+          IsolateIdentity(index: index, workerCount: 8),
+        );
+        names.add(IsolateIdentity.scopeName('orders'));
+      }
+
+      expect(names, hasLength(8));
+    });
+
+    test('returns the name unchanged before an identity is set', () {
+      // A unit test, a `dart test` run, or an app that never spawns workers
+      // observes something true without configuring anything.
+      expect(IsolateIdentity.scopeName('orders'), 'orders');
+    });
+  });
+
   // The claim the doc comment rests on: statics are per-isolate, so what the
   // parent sets is not what a spawned isolate reads. If this ever stopped
   // holding, every isolate would report the parent's identity and naming
