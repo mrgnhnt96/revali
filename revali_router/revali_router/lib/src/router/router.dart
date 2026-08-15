@@ -223,8 +223,22 @@ class Router extends Equatable {
     required Object error,
     required StackTrace stackTrace,
   }) {
+    // A server error is the operator's problem, so it reaches the log on every
+    // path -- including the non-debug one below, which answers with a bare
+    // `internalServerError` and, without this, would leave the access log's
+    // status code as the only record that anything went wrong. An exception no
+    // catcher claims ends up here, so this is the only place it is ever seen.
+    //
+    // Client errors stay quiet: a 404, a blocked CORS origin, a guard
+    // refusing a caller are routine and expected, and the access log already
+    // records them.
+    final isServerError = response.statusCode >= 500;
+    if (isServerError) {
+      _logServerError(error, stackTrace);
+    }
+
     if (!debug) {
-      if (response.statusCode >= 500) {
+      if (isServerError) {
         return defaultResponses.internalServerError;
       }
 
@@ -242,6 +256,17 @@ class Router extends Equatable {
         stackTrace: stackTrace,
       ),
     );
+  }
+
+  /// Writes a server error where the operator will see it.
+  ///
+  /// Deliberately the same shape as the root catch in `handleRouterRequests`,
+  /// which logs the exceptions that escape the pipeline entirely. The two are
+  /// mutually exclusive -- an error handled here never reaches that catch --
+  /// so a request produces at most one of these lines.
+  void _logServerError(Object error, StackTrace stackTrace) {
+    // ignore: avoid_print
+    print('Request failed: $error\n${Trace.format(stackTrace)}');
   }
 
   Future<ResponseHandler> responseHandler(RequestContext context) async {
