@@ -349,10 +349,7 @@ void main() {
       // pane — the board under the rule, what it replaced above it.
       final it = session();
 
-      write(it, [
-        'one\n',
-        '$clear\n[READY]\nServing at http://0.0.0.0:8080\n',
-      ]);
+      write(it, ['one\n', '$clear\n[READY]\nServing at http://0.0.0.0:8080\n']);
 
       expect(texts(it), [
         'one',
@@ -1099,6 +1096,129 @@ void main() {
       it.scrollBy(-3, viewport: 0);
 
       expect(it.isLive, isTrue);
+    });
+  });
+
+  group('markRestarted', () {
+    /// Settles [count] numbered lines, the way a chatty child would.
+    void fill(ServiceSession it, int count) {
+      for (var i = 0; i < count; i++) {
+        it.ingest('line-$i\n', isError: false);
+      }
+    }
+
+    test('empties the pane a new process is about to write into', () {
+      final it = session();
+      write(it, ['boot\n', 'Unhandled exception: boom\n']);
+      it.markExited(1);
+
+      expect(texts(it), isNotEmpty);
+
+      it.markRestarted();
+
+      expect(texts(it), isEmpty);
+    });
+
+    test('drops the dead process’s half-written tail as well', () {
+      final it = session();
+
+      // No newline: a line the dead child was part way through writing. `c`
+      // deliberately keeps this, because the same stream will finish it. A
+      // restart must not — the stream that would have finished it is gone, and
+      // holding it splices a dead child's fragment onto the front of the new
+      // child's first chunk.
+      write(it, ['half a li']);
+      it
+        ..markExited(1)
+        ..markRestarted()
+        ..ingest('Serving at http://0.0.0.0:8080/\n', isError: false);
+
+      expect(texts(it), ['Serving at http://0.0.0.0:8080/']);
+    });
+
+    test('holds each stream’s tail separately from the other', () {
+      final it = session();
+      write(it, ['out frag']);
+      write(it, ['err frag'], isError: true);
+      it
+        ..markExited(1)
+        ..markRestarted();
+
+      write(it, ['fresh out\n']);
+      write(it, ['fresh err\n'], isError: true);
+
+      expect(texts(it), ['fresh out', 'fresh err']);
+    });
+
+    test('goes back to starting and forgets the exit code', () {
+      final it = session()..markExited(1);
+
+      expect(it.state, ServiceState.crashed);
+      expect(it.isDead, isTrue);
+
+      it.markRestarted();
+
+      expect(it.state, ServiceState.starting);
+      expect(it.isDead, isFalse);
+      expect(it.exitCode, isNull);
+    });
+
+    test('lets the new process move the state again', () {
+      // A session that still believed it had exited would drop every frame:
+      // `_note` returns early while an exit code is recorded, so the row would
+      // sit on `starting` however much the new child printed.
+      final it = session()
+        ..markExited(1)
+        ..markRestarted()
+        ..ingest('Serving at http://0.0.0.0:8080/\n', isError: false);
+
+      expect(it.state, ServiceState.serving);
+    });
+
+    test('unfreezes the scroll', () {
+      final it = session();
+      fill(it, 40);
+      it
+        ..scrollBy(-10, viewport: 5)
+        ..markExited(1);
+
+      expect(it.isLive, isFalse);
+
+      it.markRestarted();
+
+      expect(
+        it.isLive,
+        isTrue,
+        reason:
+            'an anchor into a buffer that no longer exists draws a blank '
+            'pane, which reads as the restart having failed',
+      );
+    });
+
+    test('keeps the address the service announced', () {
+      final it = session()
+        ..ingest('Serving at http://0.0.0.0:8080/api\n', isError: false)
+        ..markExited(1)
+        ..markRestarted();
+
+      expect(
+        it.baseUrl,
+        'http://0.0.0.0:8080/api',
+        reason:
+            'the port does not move across a restart, and the new child '
+            're-announces and overwrites this in a moment anyway',
+      );
+    });
+
+    test('tells the pane it changed', () {
+      final it = session()..markExited(1);
+
+      var notifications = 0;
+      it
+        ..addListener(() => notifications++)
+        ..markRestarted();
+
+      expect(notifications, 1);
     });
   });
 }

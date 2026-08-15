@@ -43,6 +43,23 @@ enum ServiceState {
   stopped,
 }
 
+/// Whether the `revali dev` process behind a service in this state is gone.
+///
+/// The distinction the whole restart key turns on, and the reason it is one
+/// definition rather than a `crashed || stopped` written out at each site: the
+/// footer decides what to advertise from it, the app decides whether to fire
+/// the callback from it, and the runner decides whether to spawn from it. Three
+/// readings that disagreed would be a key the legend offers and the runner
+/// declines, which is the exact complaint this leaf exists to answer.
+///
+/// [ServiceState.failed] is deliberately NOT dead. `revali dev` is still up and
+/// still watching `.revali_cmd`; a reload from there reaches `serving` again
+/// without anything new being spawned.
+extension ServiceStateLife on ServiceState {
+  bool get isDead =>
+      this == ServiceState.crashed || this == ServiceState.stopped;
+}
+
 /// One line of a service's output, and which stream it came from.
 class ServiceLogLine {
   const ServiceLogLine(this.text, {required this.isError});
@@ -106,6 +123,9 @@ class ServiceSession extends ChangeNotifier {
 
   ServiceState _state = ServiceState.starting;
   ServiceState get state => _state;
+
+  /// Whether the process behind this service is gone. See [ServiceStateLife].
+  bool get isDead => _state.isDead;
 
   /// Index into [lines] of the pane's top visible row, or null while the pane
   /// is following the live end.
@@ -341,6 +361,58 @@ class ServiceSession extends ChangeNotifier {
 
     _flush(_stdout);
     _flush(_stderr);
+
+    notifyListeners();
+  }
+
+  /// Puts the session back to how it looked before its first line, because a
+  /// new process is about to write into it.
+  ///
+  /// The pane is emptied, and that is the decision rather than an accident of
+  /// implementation. The output explaining why a service died is worth keeping
+  /// right up to the moment someone asks for the service back — and the key
+  /// that asks for it back is the point at which they have said they are done
+  /// with it. Carrying it over would mean a pane where a stack trace from the
+  /// dead process sits above the boot of the live one with nothing but a rule
+  /// between them, and every question about it ("is this still broken?") is
+  /// answered by scrolling past history the reader did not ask to keep.
+  ///
+  /// This is the third and last thing that empties a pane, and the three are
+  /// deliberately kept apart:
+  ///
+  /// * the child writing [kClearScreen] while it redraws — a [kRedrawDivider]
+  ///   rule, and the history stays;
+  /// * `c` — [clear], the settled lines go, the unterminated tails stay;
+  /// * `s` on a dead service — here, where everything goes.
+  ///
+  /// Unlike [clear], each stream's unterminated `pending` is dropped too. That
+  /// tail belongs to a process that no longer exists, and holding it would
+  /// splice the dead child's half-written line onto the front of the new
+  /// child's first chunk.
+  ///
+  /// [_exitCode] going back to null is what makes the session listen again:
+  /// [_note] ignores every frame once a session knows it has exited, so a
+  /// restarted service would otherwise sit on `starting` forever however much
+  /// it printed.
+  ///
+  /// [baseUrl] is deliberately kept, for the reason a reload keeps it: the port
+  /// does not move, the new child re-announces and overwrites it in a moment,
+  /// and in the gap the old address is the best answer there is.
+  void markRestarted() {
+    _settled.clear();
+
+    for (final stream in [_stdout, _stderr]) {
+      stream
+        ..pending = ''
+        ..transient = null;
+    }
+
+    // For [clear]'s reason: an anchor into a buffer that no longer exists draws
+    // a blank pane, which reads as the restart having failed.
+    _scrollTop = null;
+
+    _exitCode = null;
+    _state = ServiceState.starting;
 
     notifyListeners();
   }
