@@ -322,12 +322,22 @@ Redis tracks unacknowledged entries **per consumer name**. Two replicas sharing
 one name make each other's pending work invisible, so the default `'revali'` is
 a placeholder you should replace — a pod name or hostname is the usual choice.
 
-<Callout type="important">
+<Callout type="note">
 
-This applies per *isolate*, not per process. The generated `createServer`
-registers consumers in every isolate it runs in, so an app with
-`AppConfig.workers` greater than 1 has each worker connect and subscribe under
-the same `consumerName`.
+Worker isolates are told apart for you. Consumers register in every isolate, so
+an app with `AppConfig.workers` greater than 1 would otherwise have every worker
+subscribe under the same name and hide the others' pending entries — the exact
+failure this section is about, reached without doing anything wrong. The
+generated server publishes which isolate it is, and `RedisBroker` appends that
+index: the parent keeps the name you configured, and the workers become
+`orders-7f4c-1`, `orders-7f4c-2`, and so on.
+
+The parent is deliberately left alone rather than becoming `-0`, so upgrading an
+existing deployment does not rename its consumer and strand whatever was pending
+under the old name.
+
+You still have to give each **replica** its own name; nothing outside the process
+can be guessed from inside it.
 
 </Callout>
 
@@ -342,25 +352,21 @@ there forever.
 by another consumer.
 
 ```dart
-RedisBroker(
-  connection: connection,
-  openConnection: openConnection,
+await RedisBroker.connect(
+  host: Env.current.string('REDIS_HOST', orElse: 'localhost'),
   consumerName: 'orders-7f4c',
   claimAfter: const Duration(minutes: 2),
   maxDeliveries: 5,
 );
 ```
 
-<Callout type="note">
-
-`RedisBroker.connect()` takes only `host`, `port` and `consumerName`. To set
-`claimAfter`, `maxDeliveries`, `blockFor`, `batchSize` or `deadLetterSuffix`,
-construct `RedisBroker` directly with a `ReconnectingRedisConnection` for the
-control link and a factory that opens one per subscription — each subscription
-needs its own connection, because a blocking read on a shared one would stall
-every publish behind a consumer waiting for work.
-
-</Callout>
+`connect()` takes every option the constructor does — `blockFor`, `batchSize`,
+`claimAfter`, `maxDeliveries` and `deadLetterSuffix` — each with the same
+default. Constructing `RedisBroker` directly is still supported, but it means
+supplying a `ReconnectingRedisConnection` for the control link and a factory that
+opens one per subscription, which is the wiring `connect()` exists to do: each
+subscription needs its own connection, because a blocking read on a shared one
+would stall every publish behind a consumer waiting for work.
 
 `claimAfter` is **off by default**, because it changes when a message is
 redelivered. Set it well above the time a healthy handler takes: too low and a

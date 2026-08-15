@@ -19,7 +19,10 @@ final broker = await RedisBroker.connect(
   host: 'localhost',
   // Redis tracks pending entries per consumer name, so give each replica
   // its own. Two sharing a name make each other's pending work invisible.
+  // Worker isolates within one process are suffixed automatically.
   consumerName: Platform.environment['HOSTNAME'] ?? 'revali',
+  // Recover entries a replica stranded when it died mid-message.
+  claimAfter: const Duration(minutes: 2),
 );
 
 final consumers = ConsumerRegistry(broker: broker, di: di);
@@ -83,8 +86,10 @@ REDIS_TEST_HOST=... REDIS_TEST_PORT=... dart test --run-skipped --tags integrati
 
 ## Known limitations
 
-- Reconnection backs off and retries the read loop, but does not reclaim
-  another consumer's abandoned entries with `XAUTOCLAIM`.
+- Reclaiming scans with `XPENDING` and takes entries over with `XCLAIM` rather
+  than using `XAUTOCLAIM`, so it costs a round trip per pass. It runs only when
+  a read came back empty, so that cost lands on an idle queue rather than a
+  busy one.
 - No TLS or `AUTH` support yet.
 
 [broker]: https://pub.dev/packages/revali_core
