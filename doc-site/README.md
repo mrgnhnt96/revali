@@ -32,24 +32,50 @@ web/
   robots.txt          points crawlers at /sitemap.xml
 ```
 
-`sitemap.xml` is **not** in `web/` — it lists all 111 routes, so it can only be
-written once they have been generated. `jaspr build --sitemap-domain` emits it
-into `build/jaspr/`, which is why the deploy passes that flag and why a plain
-`jaspr build` produces a site whose `robots.txt` advertises a 404. Pass the flag
-locally too if you are checking the sitemap.
+`sitemap.xml` is **not** in `web/` and **not** from `jaspr build
+--sitemap-domain`. `tool/build_sitemap.dart` writes it into `build/jaspr/`
+after the build:
+
+```sh
+dart run jaspr_cli:jaspr build && dart run tool/build_sitemap.dart
+dart run tool/build_sitemap.dart --check   # fail if stale
+```
+
+The order matters — `jaspr build` deletes `build/jaspr/` on the way in, so a
+sitemap written before it is thrown away.
+
+### Why not the built-in flag
+
+**Every URL on this site ends in a slash.** GitHub Pages serves
+`foo/index.html` at `/foo/` and 301-redirects `/foo`, while `page.url` and the
+sidebar hrefs never carry one. `--sitemap-domain` emits `<loc>$domain$route`
+with no hook to shape that, so it published 111 redirects — and the
+`rel=canonical` tags, built by their own string concatenation, named the same
+redirecting URLs. The two agreed with each other and with neither reality. That
+has no symptom: nothing 404s and nothing contradicts anything.
+
+So `lib/src/canonical.dart` owns the conversion, and it is the **only** way to
+build a published URL. `canonicalUrl` for pages, `assetUrl` for files (which
+must *not* get a slash — `og:image` would 404). Both the sitemap and
+`buildHead` go through it, and `test/sitemap_test.dart` asserts every sitemap
+`<loc>` is byte-identical to that page's rendered `rel=canonical`, reporting a
+missing tag as `(none)` rather than skipping it.
+
+### lastmod needs full git history
 
 Each entry's `<lastmod>` comes from `src/git_lastmod.dart`, which dates a page
-by the last commit that touched its markdown. **This needs full git history** —
-the deploy checks out with `fetch-depth: 0` for exactly this reason. Against a
-shallow clone every page resolves to the one commit that was fetched, so the
-sitemap looks fine and says nothing. `dart test` fails on that, and the deploy
-re-checks it against the built file.
+by the last commit that touched its markdown. The deploy checks out with
+`fetch-depth: 0` for exactly this reason. Against a shallow clone every page
+resolves to the one commit that was fetched, so the dates collapse to a single
+value and the sitemap looks fine while saying nothing. `dart test` fails on
+that, and the deploy re-checks it against the built file.
 
 ## Commands
 
 ```sh
 dart run tool/build_search_index.dart          # regenerate the index + llms.txt
 dart run tool/build_search_index.dart --check  # fail if stale (CI, tests)
+dart run tool/build_sitemap.dart               # sitemap.xml (run AFTER a build)
 dart run jaspr_cli:jaspr serve                 # http://localhost:8080
 dart run jaspr_cli:jaspr build                 # -> build/jaspr/
 dart analyze --fatal-infos
