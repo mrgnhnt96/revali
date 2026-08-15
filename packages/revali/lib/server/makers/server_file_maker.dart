@@ -90,7 +90,8 @@ String serverFile(
 
   // Worker entry sets a per-isolate flag so createServer keeps its positional
   // signature (used by tests as createServer(httpServer)), and stashes the
-  // port the parent uses to tell this isolate to drain.
+  // port the parent uses to tell this isolate to drain plus the index the
+  // parent spawned it under.
   final workerEntrypoint = Method(
     (b) => b
       ..name = '_revaliWorkerMain'
@@ -105,6 +106,7 @@ String serverFile(
       ..body = const Code('''
 _revaliIsWorker = true;
 _revaliWorkerRegistration = boot[1] as SendPort;
+_revaliIsolateIndex = boot[2] as int;
 createServer(null, (boot[0] as List).cast<String>());
 '''),
   );
@@ -140,6 +142,10 @@ createServer(null, (boot[0] as List).cast<String>());
           'workerRegistration',
         ).assign(refer('_revaliWorkerRegistration')).statement,
         refer('_revaliWorkerRegistration').assign(literalNull).statement,
+        declareFinal(
+          'isolateIndex',
+        ).assign(refer('_revaliIsolateIndex')).statement,
+        refer('_revaliIsolateIndex').assign(literalNum(0)).statement,
         declareFinal('args')
             .assign(
               refer((Args).name).newInstanceNamed('parse', [refer('rawArgs')]),
@@ -149,6 +155,16 @@ createServer(null, (boot[0] as List).cast<String>());
           'app',
           type: refer((AppConfig).name),
         ).assign(createApp(app)).statement,
+        // Emitted for every app, not just one with consumers: which isolate
+        // this is, is a general fact about the isolate. It has to be published
+        // before `runStartup` below, because `createBroker()` runs in there
+        // and a broker that names itself from the identity would otherwise
+        // read the unset default and call every worker isolate 0.
+        const Code('''
+IsolateIdentity.setCurrentForGeneratedCode(
+  IsolateIdentity(index: isolateIndex, workerCount: app.workers),
+);
+'''),
         const Code('''
 if (!isWorker && providedServer == null && app.workers > 1) {
   for (final isolate in _revaliWorkerIsolates) {
@@ -162,7 +178,7 @@ if (!isWorker && providedServer == null && app.workers > 1) {
     _revaliWorkerIsolates.add(
       await Isolate.spawn(
         _revaliWorkerMain,
-        <Object>[rawArgs, registration],
+        <Object>[rawArgs, registration, i],
       ),
     );
   }
@@ -424,6 +440,12 @@ if (isWorker) {
       '_revaliWorkerRegistration',
       type: refer('${(SendPort).name}?'),
     ).statement,
+    // 0 on the parent, and on a worker until `_revaliWorkerMain` unpacks the
+    // index the parent spawned it under.
+    declareVar(
+      '_revaliIsolateIndex',
+      type: refer('int'),
+    ).assign(literalNum(0)).statement,
     createBindServerMethod(),
     workerEntrypoint,
     main,
