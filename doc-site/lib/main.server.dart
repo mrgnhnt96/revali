@@ -19,6 +19,7 @@ import 'components/mermaid.dart';
 import 'components/search.dart';
 import 'components/section_tabs.dart';
 import 'main.server.options.dart';
+import 'src/git_lastmod.dart';
 import 'src/grammars.dart';
 import 'src/navigation.dart';
 
@@ -26,50 +27,63 @@ void main() {
   Jaspr.initializeApp(options: defaultServerOptions);
 
   runApp(
-    ContentApp(
-      templateEngine: MustacheTemplateEngine(),
-      parsers: [MarkdownParser()],
-      extensions: [HeadingAnchorsExtension(), TableOfContentsExtension()],
-      components: [
-        // Order matters. `Mermaid` claims `pre > code.language-mermaid` and has
-        // to be offered the node before `CodeBlock`, which would otherwise try
-        // to find a "mermaid" grammar and fail the build on a null assertion.
-        const Mermaid(),
-        CodeBlock(grammars: grammars),
-        const Callout(),
-        const CodeFile(),
-        // `CardGrid` before `Card`: `CustomComponentBase` matches the tag as a
-        // *prefix*, so a bare `Card` pattern would swallow `<CardGrid>`. Both
-        // patterns are anchored as well, but the order documents the hazard.
-        const CardGrid(),
-        const Card(),
-        const SectionCards(),
-        const Hero(),
-        Image(zoom: true),
-      ],
-      layouts: [
-        RevaliDocsLayout(
-          header: Header(
-            title: 'Revali',
-            logo: '/images/logo.svg',
-            items: [
-              // The section switcher sits first so its `margin-right: auto`
-              // pushes everything after it to the right of the header.
-              const SectionTabs(),
-              const DocsSearch(),
-              GitHubButton(repo: 'mrgnhnt96/revali'),
-              ThemeToggle(),
-            ],
+    // `ContentApp.custom` rather than `ContentApp`, for one reason: the plain
+    // constructor hardcodes `dataLoaders` to the filesystem one, and
+    // `GitLastModDataLoader` has to be added alongside it so the sitemap can
+    // carry a real per-page date. Everything below other than `loaders` and
+    // that second data loader is what `ContentApp` would have built anyway —
+    // `content/` and `content/_data` are its defaults, spelled out here because
+    // `custom` has no defaults to inherit.
+    ContentApp.custom(
+      loaders: [FilesystemLoader('content')],
+      configResolver: PageConfig.all(
+        dataLoaders: [FilesystemDataLoader('content/_data'), GitLastModDataLoader()],
+        templateEngine: MustacheTemplateEngine(),
+        parsers: [MarkdownParser()],
+        extensions: [HeadingAnchorsExtension(), TableOfContentsExtension()],
+        components: [
+          // Order matters. `Mermaid` claims `pre > code.language-mermaid` and
+          // has to be offered the node before `CodeBlock`, which would
+          // otherwise try to find a "mermaid" grammar and fail the build on a
+          // null assertion.
+          const Mermaid(),
+          CodeBlock(grammars: grammars),
+          const Callout(),
+          const CodeFile(),
+          // `CardGrid` before `Card`: `CustomComponentBase` matches the tag as
+          // a *prefix*, so a bare `Card` pattern would swallow `<CardGrid>`.
+          // Both patterns are anchored as well, but the order documents the
+          // hazard.
+          const CardGrid(),
+          const Card(),
+          const SectionCards(),
+          const Hero(),
+          Image(zoom: true),
+        ],
+        layouts: [
+          RevaliDocsLayout(
+            header: Header(
+              title: 'Revali',
+              logo: '/images/logo.svg',
+              items: [
+                // The section switcher sits first so its `margin-right: auto`
+                // pushes everything after it to the right of the header.
+                const SectionTabs(),
+                const DocsSearch(),
+                GitHubButton(repo: 'mrgnhnt96/revali'),
+                ThemeToggle(),
+              ],
+            ),
+            // The sidebar is generated from `src/navigation.dart` rather than
+            // written out here: a hand-written list drifts from `content/`
+            // silently — nothing fails when a page is added and not listed.
+            sidebar: const DocsSidebar(),
           ),
-          // The sidebar is generated from `src/navigation.dart` rather than
-          // written out here: a hand-written list drifts from `content/`
-          // silently — nothing fails when a page is added and not listed.
-          sidebar: const DocsSidebar(),
+        ],
+        theme: ContentTheme(
+          primary: ThemeColor(ThemeColors.indigo.$600, dark: ThemeColors.indigo.$400),
+          background: ThemeColor(Colors.white, dark: ThemeColors.zinc.$950),
         ),
-      ],
-      theme: ContentTheme(
-        primary: ThemeColor(ThemeColors.indigo.$600, dark: ThemeColors.indigo.$400),
-        background: ThemeColor(Colors.white, dark: ThemeColors.zinc.$950),
       ),
     ),
   );
