@@ -178,22 +178,19 @@ Not blockers — make a call and write it down.
 
 ## Release state
 
-**Nothing is published.** The release is staged and held for this work:
+**That round shipped on 08.15.26** — this section said "nothing is published"
+and was stale by the time anyone read it; `revali` 3.3.0, `revali_core` 3.1.0
+and `revali_redis` 0.1.0 are all on pub.dev now. Verified against the registry,
+not against this file.
 
-| Package | Current | Staged |
-|---|---|---|
-| `revali` | 3.2.0 | 3.3.0 |
-| `revali_annotations` | 3.1.0 | 3.2.0 |
-| `revali_construct` | 2.4.0 | 2.5.0 |
-| `revali_core` | 3.0.0 | 3.1.0 |
-| `revali_router` | 5.0.0 | 5.1.0 |
-| `revali_client` | 2.1.0 | 3.0.0 (breaking) |
-| `revali_client_gen` | 2.4.0 | 2.5.0 |
-| `revali_redis` | 0.0.0 | 0.1.0 (new) |
+So the TUI is a **fast follow**, not a held release. `revali up` already ships
+in `revali` 3.3.0 without it, which is the version a first user touches.
 
-`revali up` ships in `revali` 3.3.0, so the TUI belongs in this release or a
-fast follow — it is the headline feature of the multi-service work and is the
-part a first user touches.
+A second round is staged in `LATEST_CHANGELOG.md`: `revali_core` 3.2.0 and
+`revali_redis` 0.2.0, carrying the delivery-semantics fixes (see `todo.md`).
+The TUI can ride that one. `revali` itself is not in it, so the `revali up`
+entry in `LATEST_CHANGELOG.md` still reads `3.3.0` — bump it when the TUI
+lands, or the release skips the package silently.
 
 When ready: `sip run publish`, **from a real terminal**. It prints a plan for
 every package and refuses when no terminal is attached. Add the TUI to

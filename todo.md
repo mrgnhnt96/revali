@@ -164,6 +164,17 @@ written into the page rather than taken from the brief.
 
 ## Found while closing out revali_redis delivery semantics (8.15.26)
 
+Staged as a second round in `LATEST_CHANGELOG.md`: `revali_core` **3.2.0** and
+`revali_redis` **0.2.0**. The 08.15.26 release had already published 3.1.0 and
+0.1.0 — `TUI_HANDOFF.md` claimed otherwise and was wrong; pub.dev settled it.
+
+- [ ] `revali` is **not** in that round, so the `revali ai` reference file it
+  generates (`ai_templates.dart`) describes `retryAfter` and
+  `IsolateIdentity.scopeName` while sitting at 3.3.0, which has neither. Bump
+  `revali` in `LATEST_CHANGELOG.md` whenever it next ships, or the text stays
+  unpublished. Harmless until then — nobody reads it from pub.dev.
+
+
 Three defects the earlier pass left behind, each proved against a **real
 Redis** rather than the fake — Redis owns the delivery counter and the idle
 clock, so a fake cannot settle either question. Each fix was mutation-tested:
