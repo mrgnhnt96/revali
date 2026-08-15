@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 3.3.1 | 08.15.26
+
+### Fixes
+
+- The `revali ai` reference now describes `revali_redis`'s retry behaviour — `retryAfter`, and `maxDeliveries` counting the first delivery — and tells anyone writing their own `MessageBroker` to put its consumer name through `IsolateIdentity.scopeName`. The reference is what an assistant reads to answer "how do I make this retry", so a version of it that predates the options is a confidently wrong answer rather than a missing one. Nothing else in the CLI changed; this ships so the text lands with the `revali_core` 3.2.0 and `revali_redis` 0.2.0 it describes.
+
 ## 3.3.0 | 08.15.26
 
 ### Features

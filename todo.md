@@ -110,15 +110,22 @@ re-discovered.
   - [x] Resolved by collapsing the two interfaces into one. `Observer.see` now takes a single `ObservedRequest` carrying the request plus futures for the response and the summary — so an observer wanting only the finished picture awaits `observed.summary` instead of implementing a second type. `RequestObserver` and the `RequestListener` marker are gone
   - [x] Also fixed `revali create observer`, whose template still generated `ReadOnlyRequest`/`ReadOnlyResponse` — removed in the context consolidation — so scaffolded observers did not compile
 
-## `revali up` needs a TUI — RELEASE IS HELD FOR THIS (8.14.26)
+## `revali up` needs a TUI — DONE, and it shipped (8.14.26)
 
-- [ ] **Build the `revali up` TUI with nocterm.** Full plan, design, file map,
-  traps and verification approach in [TUI_HANDOFF.md](./TUI_HANDOFF.md).
-  Two services merged into one flat stream cannot render a spinner, cannot
-  address one service with `r`/`c`/`q`, and cannot show per-service state.
-  `523bcce6` patched the spinner noise, which is worth keeping but is a patch
-  on the wrong layer. nocterm ships `NoctermTester`, so this is verifiable
-  headlessly — no excuse for shipping it eyeballed.
+- [x] **Build the `revali up` TUI with nocterm.** Built and released in
+  `revali` **3.3.0** — the commit is an ancestor of the publish commit, checked
+  rather than assumed. Six components under
+  `packages/revali/lib/clis/revali_runner/tui/` (service list, log pane,
+  footer, shutdown view, styles, `up_app`), with **118 tests** across six files
+  driven headlessly by `NoctermTester`, so it was not shipped eyeballed.
+  Non-TTY keeps the flat prefixed output — `canDrawTui()` probes raw mode
+  rather than trusting `hasTerminal`, since a pseudo-TTY reports one and
+  refuses the other.
+  - Both this heading and [TUI_HANDOFF.md](./TUI_HANDOFF.md) went on saying the
+    release was *held* for this for a day after it shipped. Two documents
+    describing the same finished work as outstanding is what made a later
+    session start rebuilding it; the registry and `git merge-base` settled it
+    in seconds, and neither document could have.
 
 ## Found while documenting revali_redis (8.14.26)
 

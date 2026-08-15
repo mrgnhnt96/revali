@@ -1,7 +1,27 @@
-# `revali up` TUI — handoff
+# `revali up` TUI — SHIPPED in revali 3.3.0
 
-Written for whoever picks this up next. The release is **held** for it: see
-[Release state](#release-state) before doing anything else.
+**This work is done.** Kept for the traps and the verification approach, which
+are still true of the code — not as a plan for anyone to pick up.
+
+Built under `packages/revali/lib/clis/revali_runner/tui/`: service list, log
+pane, footer, shutdown view, styles and `up_app`. **118 tests** across six
+files in `packages/revali/test/clis/revali_runner/tui/`, all driven headlessly
+through `NoctermTester`, which is what the "How to verify it" section below
+demanded and got.
+
+It went further than the plan in three places worth knowing about:
+
+- `s` **restarts a dead service** by spawning a fresh `revali dev`. The plan
+  only had `r`, which travels by `.revali_cmd` and therefore needs the wrapper
+  still alive to read it — useless once the wrapper itself is gone.
+- **Clicking** is wired (`up_app_click_test.dart`), including opening a
+  service's URL.
+- **Shutdown is its own screen**, because draining a fleet with worker isolates
+  and a drain delay takes real seconds and a frozen frame reads as a hang.
+
+Everything below this line was written before any of it existed. The plan and
+the file map still describe the code accurately; the *release state* section at
+the bottom did not, twice, and is now corrected.
 
 ## The problem, in one screenshot
 
@@ -183,19 +203,17 @@ and was stale by the time anyone read it; `revali` 3.3.0, `revali_core` 3.1.0
 and `revali_redis` 0.1.0 are all on pub.dev now. Verified against the registry,
 not against this file.
 
-So the TUI is a **fast follow**, not a held release. `revali up` already ships
-in `revali` 3.3.0 without it, which is the version a first user touches.
+And the TUI shipped **in** that round — `revali` 3.3.0 contains it. I said
+above it "ships without it"; that was wrong too, and wrong in the same way:
+read off this file rather than off the repository. `git merge-base --is-ancestor`
+against the publish commit is what settled it.
 
-A second round is staged in `LATEST_CHANGELOG.md`: `revali_core` 3.2.0 and
-`revali_redis` 0.2.0, carrying the delivery-semantics fixes (see `todo.md`).
-The TUI can ride that one. `revali` itself is not in it, so the `revali up`
-entry in `LATEST_CHANGELOG.md` still reads `3.3.0` — bump it when the TUI
-lands, or the release skips the package silently.
+A second round is staged in `LATEST_CHANGELOG.md`: `revali_core` 3.2.0,
+`revali_redis` 0.2.0 (the delivery-semantics fixes — see `todo.md`) and
+`revali` 3.3.1 (the `revali ai` reference catching up with both).
 
 When ready: `sip run publish`, **from a real terminal**. It prints a plan for
-every package and refuses when no terminal is attached. Add the TUI to
-`revali`'s `LATEST_CHANGELOG.md` entry before publishing — that file is the
-release notes, and today's entry describes `revali up` without it.
+every package and refuses when no terminal is attached.
 
 ## Also still open, unrelated to the TUI
 
