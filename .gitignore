@@ -79,6 +79,11 @@ FAILED_COMMIT.md
 
 # machine-local hook config (absolute paths)
 .claude/settings.local.json
+# Local hook wiring differs per developer (game_loop / showrunner install here),
+# so a tracked copy shows up as a permanent uncommitted diff and blocks any
+# verb that needs a clean tree -- `showrunner integrate` rewinds with
+# `git reset --hard`, which is not a thing to run over someone's live edits.
+.claude/settings.json
 
 # game_loop: per-developer/per-session autonomy harness, not project source
 .game_loop/
