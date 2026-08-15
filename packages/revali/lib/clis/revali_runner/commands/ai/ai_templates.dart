@@ -455,7 +455,12 @@ For per-request state (a transaction, a session context), use `RequestScopedDI` 
 | --- | --- |
 | **Flavors** | `@App(flavor: 'development')` (case-sensitive) lets multiple `AppConfig`s coexist per environment; select with `revali dev --flavor=development` / `revali build --flavor=production`. |
 | **Default responses** | Override `defaultResponses` (a `DefaultResponses(...)`) on `AppConfig` to customize the `internalServerError`, `notFound`, `failedCorsOrigin`, and `failedCorsHeaders` `SimpleResponse`s. |
-| **Env vars** | `.env`/`--dart-define`/`--dart-define-from-file` values are compile-time (`String.fromEnvironment(...)`); OS-level vars are runtime (`Platform.environment[...]`). Use compile-time for host/port/feature flags, runtime for secrets/DB credentials. |
+| **Env vars** | Read runtime values with `Env.current` — `string(name, orElse:)`, `require(name)` (throws when unset), `integer`/`boolean`/`uri` (throw when set but malformed). An empty value counts as unset. `.env`/`--dart-define` values stay compile-time (`String.fromEnvironment(...)`) and are for build configuration only. |
+| **Address from env** | `super.fromEnv()` reads `HOST`/`PORT` at startup, defaulting to `0.0.0.0:8080` — what containers and `revali up`/`revali compose` expect. Not `const`, so the app class cannot be `const` either. |
+| **Workers** | `workers: N` on `AppConfig` runs N isolates bound to the same port (`shared: true`). Isolates share no memory: caches, counters and statics become one per isolate. `IsolateIdentity.current` (`.index`, `.workerCount`, `.isWorker`) tells them apart — use `!isWorker` to guard once-per-process work. `backlog` sets the listen backlog (`0` = OS default). |
+| **Health probes** | The `health` getter returns `HealthSettings` — `/healthz` (liveness, runs no checks) and `/readyz` (readiness, runs registered `HealthCheck`s), both served outside `prefix`. Override to move the paths, register checks, or `const HealthSettings.disabled()`. Every worker isolate reports `503` together while draining. |
+| **Graceful shutdown** | `SIGTERM` drains consumers, then in-flight requests, before exit; `drainDelay` (default zero) and `shutdownTimeout` (default 15s) on `AppConfig`, plus `onServerStopped()`. `SIGINT` skips the drain delay. |
+| **Compression** | Gzip is **on** by default via the `compression` getter; use `const CompressionSettings.disabled()` when a CDN or proxy in front already compresses. |
 | **HTTPS in dev** | `revali dev --cert path.pem --key key.pem` (no code change), or `AppConfig.secure(securityContext: ...)` for programmatic TLS / mutual TLS. Generate local certs with `mkcert`. |
 | **CORS (`@AllowOrigins`)** | All origins allowed by default; scope `@AllowOrigins({'https://myapp.com'})` at app/controller/endpoint level (inherits by default; `@AllowOrigins.noInherit(...)` opts out; `@AllowOrigins.all()` is an explicit wildcard). |
 
@@ -476,6 +481,45 @@ final class ProdApp extends AppConfig {
   }
 }
 ```
+
+## Messaging (`@Consumes`)
+
+Revali does not run a broker — it is infrastructure you deploy, like a database. The framework supplies the client side: a `MessageBroker` contract, an `@Consumes` annotation that turns a controller method into a handler, and the wiring that gives each message the same treatment a request gets.
+
+Messaging is opt-in in **both** directions, and forgetting either half fails quietly (compiles, starts, nothing arrives):
+
+1. Annotate a method with `@Consumes(topic, group:)`.
+2. Return a broker from `AppConfig.createBroker()` — it returns `null` by default, and a `null` broker registers no consumers even when handlers are annotated.
+
+```dart
+@Controller('orders')
+class OrdersController {
+  const OrdersController();
+
+  @Get()
+  String list() => 'ok';
+
+  @Consumes('order.placed', group: 'billing')
+  Future<void> onPlaced(BrokerMessage message) async {
+    await invoices.create(message.json);
+  }
+}
+
+// In the app:
+@override
+Future<MessageBroker?> createBroker() async => InMemoryBroker();
+```
+
+| Rule | Detail |
+| --- | --- |
+| **Handler signature** | One `BrokerMessage` parameter, or none at all. Anything else — extra parameters, a non-`BrokerMessage` parameter, two `@Consumes` on one method, an empty topic or group — is rejected at generation time by name. `message.json` decodes the payload (throws if it is not JSON); `message.payload` is the raw form. |
+| **Not both** | A method cannot be a route and a consumer; generation fails by name rather than emitting something ambiguous. |
+| **Guards & middleware do NOT run** | A message has no caller to reject. Authorization has to come from the payload — the publisher knew who the user was. |
+| **What a message does get** | Its own `TraceContext` (seeded from message headers) and its own `RequestScopedDI` scope, disposed when the message ends. |
+| **Groups** | Members of one group share the work (one delivery each); separate groups each get a copy. |
+| **Shutdown** | The broker is owned by the framework once returned — consumers drain first on `SIGTERM`, then HTTP. Do not close it in `onServerStopped`. |
+| **Publishing a trace** | Nothing forwards headers automatically: `broker.publish(topic, body, headers: TraceContext.current?.outboundHeaders() ?? const {})`. |
+| **Redis** | `revali_redis` provides `RedisBroker` (Redis Streams + consumer groups, not pub/sub). Give each **replica** its own `consumerName`; worker isolates are suffixed for you from `IsolateIdentity`. |
 
 ## Constructs
 
@@ -500,8 +544,13 @@ Constructs are either **Build Constructs** (run during `revali build`, generate 
 | `dart run revali doctor` | Diagnose SDK version, resolved `revali*` packages/constructs, construct kernel cache, and generated-output freshness. Flag: `--json`. |
 | `dart run revali create <component>` | Scaffold a `controller`, `app`, `lifecycle-component` (`lc`), `observer`, or `pipe` — interactive if no component is named. Output paths are customizable under `server.create_path` in `revali.yaml`. |
 | `dart run revali ai <tool>` | Install this reference doc for an AI coding assistant (`claude`, `cursor`, `copilot`, `windsurf`, `cline`, or `all`). Skips files that already exist unless `--force`. |
+| `dart run revali services` | List the Revali services in the repository (a package with `routes/` that depends on the framework). Flags: `--root <path>`, `--paths` (one path per line, for scripting). Exits non-zero when none are found. |
+| `dart run revali up` | Run **every** service at once, each on its own port from `--base-port` (passed as `PORT`, which `AppConfig.fromEnv` reads). Flags: `--root <path>`, `--only <name>` (repeatable), `--base-port <port>`. |
+| `dart run revali compose` | Generate a `docker-compose.yaml` covering every service, with the same port assignment. Flags: `--root <path>`, `--output`/`-o <path>`, `--base-port <port>`, `--stdout`. Regenerating overwrites — keep additions in `compose.override.yaml`. |
 
 While `revali dev` is running (with a TTY): press `r` to force regenerate + restart, `c` to clear/reprint the status board, `q` to quit. Without a TTY, write `reload`/`clear`/`quit` to a `.revali_cmd` file in the project root.
+
+`revali up` draws a TUI when it has a terminal: a roster of services, a log pane for the focused one, and a key legend. `↑`/`↓` and `1`-`9` select; `j`/`k`/`g` scroll the pane; `r`/`c`/`q` act on the focused service and `R`/`C`/`Q` on the whole fleet; `s` restarts one whose process has exited; `Ctrl-C` stops the fleet. Without a terminal (CI, redirected output) it prints each service's output flat, prefixed with its name. It reaches children through their `.revali_cmd` files, since a child's stdin is a pipe rather than a terminal.
 
 ## Database Integration
 
@@ -682,8 +731,13 @@ build:
 | `dart run revali doctor` | Diagnose SDK/construct/generated-output freshness (`--json`). |
 | `dart run revali create <component>` | Scaffold a `controller`, `app`, `lifecycle-component` (`lc`), `observer`, or `pipe`. |
 | `dart run revali ai <tool>` | Install this reference doc for an AI assistant (`claude`/`cursor`/`copilot`/`windsurf`/`cline`/`all`). |
+| `dart run revali services` | List the Revali services in the repo (`--root <path>`, `--paths` for scripting). |
+| `dart run revali up` | Run every service at once, ports assigned from `--base-port` and passed as `PORT` (`--root`, `--only <name>`). |
+| `dart run revali compose` | Generate a `docker-compose.yaml` for every service (`--root`, `-o <path>`, `--base-port`, `--stdout`). |
 
 While `revali dev` is running (TTY): `r` regenerate+restart, `c` clear status board, `q` quit. Without a TTY, write `reload`/`clear`/`quit` to `.revali_cmd`.
+
+`revali up` draws a TUI with a terminal: `↑`/`↓` and `1`-`9` select a service, `j`/`k`/`g` scroll its log pane, `r`/`c`/`q` act on it, `R`/`C`/`Q` on the whole fleet, `s` restarts a dead one, `Ctrl-C` stops everything. Without a terminal it prints flat, name-prefixed output.
 """,
   'revali-app.mdc': """
 ---
@@ -755,7 +809,10 @@ For per-request state (a transaction), use `RequestScopedDI` inside a request wr
 | --- | --- |
 | **Flavors** | `@App(flavor: 'development')`; select with `revali dev --flavor=development` / `revali build --flavor=production`. |
 | **Default responses** | Override `defaultResponses` for `internalServerError`, `notFound`, `failedCorsOrigin`, `failedCorsHeaders`. |
-| **Env vars** | `.env`/`--dart-define` = compile-time (`String.fromEnvironment`); OS vars = runtime (`Platform.environment`). |
+| **Env vars** | Runtime: `Env.current.string/require/integer/boolean/uri` (empty counts as unset; malformed throws). `super.fromEnv()` reads `HOST`/`PORT`, defaulting to `0.0.0.0:8080`. `.env`/`--dart-define` stay compile-time (`String.fromEnvironment`). |
+| **Workers** | `workers: N` runs N isolates on one port; they share no memory, so caches/counters/statics are per isolate. `IsolateIdentity.current.isWorker` guards once-per-process work. |
+| **Shutdown & probes** | `SIGTERM` drains consumers then HTTP (`drainDelay`, `shutdownTimeout`, `onServerStopped`); `/healthz` and `/readyz` come from the `health` getter. |
+| **Compression** | Gzip is on by default (`compression` getter); disable with `const CompressionSettings.disabled()`. |
 | **CORS** | All origins allowed by default; scope with `@AllowOrigins({'https://myapp.com'})` (`.noInherit(...)`, `.all()`). |
 
 ## Database Integration
