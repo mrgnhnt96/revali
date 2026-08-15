@@ -17,14 +17,23 @@
 ///
 /// Read it from anywhere, including code that has no way to be handed
 /// configuration — an `AppConfig.createBroker` override, for instance, takes
-/// no arguments:
+/// no arguments.
+///
+/// The common use is work that must happen once for the *process* rather than
+/// once per isolate:
 ///
 /// ```dart
 /// @override
-/// Future<MessageBroker?> createBroker() async => RedisBroker(
-///       consumerName: 'orders-${IsolateIdentity.current.index}',
-///     );
+/// Future<void> configureDependencies(DI di) async {
+///   if (!IsolateIdentity.current.isWorker) {
+///     di.registerSingleton<NightlyReport>(NightlyReport()..start());
+///   }
+/// }
 /// ```
+///
+/// Note that `RedisBroker` names its own consumers from this — appending
+/// [index] to the name it was given — so an app does *not* have to work the
+/// index into `consumerName` itself. Doing so anyway produces `orders-1-1`.
 ///
 /// Unset, it describes the parent of a single-isolate app: index `0`, not a
 /// worker, one isolate in total. So a unit test, a `dart test` run, or an app
