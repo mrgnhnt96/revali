@@ -24,8 +24,9 @@ class RedisBroker implements MessageBroker {
     this.batchSize = 16,
     this.claimAfter,
     this.maxDeliveries = 5,
+    this.retryAfter = const Duration(seconds: 5),
     this.deadLetterSuffix = '.dead',
-  }) : consumerName = _isolateScopedName(consumerName),
+  }) : consumerName = IsolateIdentity.scopeName(consumerName),
        _control = connection,
        _openConnection = openConnection;
 
@@ -36,9 +37,9 @@ class RedisBroker implements MessageBroker {
   ///
   /// Every tuning knob the constructor takes is forwarded here with the same
   /// default, so this is the whole API rather than the easy half of it — see
-  /// [consumerName], [blockFor], [batchSize], [claimAfter], [maxDeliveries]
-  /// and [deadLetterSuffix] for what each one does. [claimAfter] in
-  /// particular is how work stranded by a dead consumer gets recovered, and
+  /// [consumerName], [blockFor], [batchSize], [claimAfter], [maxDeliveries],
+  /// [retryAfter] and [deadLetterSuffix] for what each one does. [claimAfter]
+  /// in particular is how work stranded by a dead consumer gets recovered, and
   /// used to be reachable only by hand-wiring the connections this method
   /// exists to set up.
   static Future<RedisBroker> connect({
@@ -49,6 +50,7 @@ class RedisBroker implements MessageBroker {
     int batchSize = 16,
     Duration? claimAfter,
     int maxDeliveries = 5,
+    Duration retryAfter = const Duration(seconds: 5),
     String deadLetterSuffix = '.dead',
   }) async {
     final connections = <SocketRedisConnection>[];
@@ -74,6 +76,7 @@ class RedisBroker implements MessageBroker {
       batchSize: batchSize,
       claimAfter: claimAfter,
       maxDeliveries: maxDeliveries,
+      retryAfter: retryAfter,
       deadLetterSuffix: deadLetterSuffix,
       openConnection: () {
         // Opened lazily and awaited by the caller; see
@@ -100,9 +103,10 @@ class RedisBroker implements MessageBroker {
   ///
   /// Worker isolates are told apart automatically, so an app with
   /// `AppConfig.workers` above 1 does not hit that failure by simply running
-  /// the same `createBroker` override in every isolate — see
-  /// [_isolateScopedName]. This is the *effective* name, the one Redis sees,
-  /// not necessarily the one that was passed in.
+  /// the same `createBroker` override in every isolate — the name given is
+  /// put through [IsolateIdentity.scopeName], which suffixes a worker's index
+  /// and leaves the parent alone. This is the *effective* name, the one Redis
+  /// sees, not necessarily the one that was passed in.
   final String consumerName;
 
   /// How long `XREADGROUP` waits for work before returning empty.
@@ -126,14 +130,37 @@ class RedisBroker implements MessageBroker {
   /// taken from underneath it and processed twice.
   final Duration? claimAfter;
 
-  /// How many deliveries an entry gets before it is dead-lettered.
+  /// The most times an entry is delivered before it is dead-lettered.
   ///
-  /// Reclaiming without this turns a message that always fails into a retry
-  /// storm: claimed, failed, left pending, claimed again, forever. Past this
-  /// count the entry is published to the dead-letter topic and acknowledged,
-  /// so the queue moves on and the message is still somewhere a human can
-  /// look at it.
+  /// Counted the way Redis counts it, so this is the total including the
+  /// first delivery: at `5`, a handler that always throws runs five times and
+  /// the sixth pass dead-letters instead of retrying. Reclaiming without this
+  /// turns a message that always fails into a retry storm — claimed, failed,
+  /// left pending, claimed again, forever. Once the count is reached the entry
+  /// is published to the dead-letter topic and acknowledged, so the queue
+  /// moves on and the message is still somewhere a human can look at it.
   final int maxDeliveries;
+
+  /// How long a failed entry waits before this consumer retries it.
+  ///
+  /// Redelivery is otherwise as fast as the read loop, which spends
+  /// [maxDeliveries] attempts in a few seconds and dead-letters a message that
+  /// a downstream service, thirty seconds into a restart, would have handled
+  /// fine. The delay is what turns "retry" into a chance for the thing that
+  /// failed to come back.
+  ///
+  /// It **doubles with each delivery already made**, capped at 32× so a large
+  /// [maxDeliveries] cannot push the last retry days out: at the default, the
+  /// attempts land roughly 5s, 10s, 20s and 40s after the failure before the
+  /// entry is dead-lettered. Measured against Redis's own idle time for the
+  /// entry — the time since it was last delivered — so it survives a restart
+  /// of this consumer rather than resetting with the process.
+  ///
+  /// [Duration.zero] retries at the speed of the read loop, which is the
+  /// behaviour this defaulted to before it existed. Dead-lettering is not
+  /// delayed by it: an entry already past [maxDeliveries] has nothing left to
+  /// wait for.
+  final Duration retryAfter;
 
   /// Appended to the topic name to form the dead-letter topic.
   final String deadLetterSuffix;
@@ -184,6 +211,7 @@ class RedisBroker implements MessageBroker {
       batchSize: batchSize,
       claimAfter: claimAfter,
       maxDeliveries: maxDeliveries,
+      retryAfter: retryAfter,
       deadLetterTopic: '$topic$deadLetterSuffix',
       ensureGroup: () => _ensureGroup(topic, group, from: '0'),
     );
@@ -236,29 +264,6 @@ class RedisBroker implements MessageBroker {
 
     await _control.close();
   }
-
-  /// Distinguishes the consumer name of one isolate from the next.
-  ///
-  /// An app with `AppConfig.workers` above 1 runs the same program — and the
-  /// same `AppConfig.createBroker` override — in several isolates, so every
-  /// one of them would otherwise name itself identically and the isolates
-  /// would hide each other's pending entries in exactly the way
-  /// [consumerName] warns about.
-  ///
-  /// **The parent (index `0`) is deliberately left alone.** Suffixing it too
-  /// would be tidier, and it would also rename the consumer of every app that
-  /// upgrades: a single-worker deployment goes from `orders` to `orders-0`,
-  /// and everything still pending under the old name is stranded, because
-  /// nothing reads that name again. [claimAfter] recovers it only if it is
-  /// set, and it is off by default. Leaving the parent's name untouched means
-  /// an upgrade changes nothing for the apps that never spawn workers, and
-  /// only the newly added worker isolates take names that never existed
-  /// before. The asymmetry is the point.
-  static String _isolateScopedName(String consumerName) {
-    final index = IsolateIdentity.current.index;
-
-    return index == 0 ? consumerName : '$consumerName-$index';
-  }
 }
 
 class _RedisSubscription implements BrokerSubscription {
@@ -272,6 +277,7 @@ class _RedisSubscription implements BrokerSubscription {
     required this.batchSize,
     required this.claimAfter,
     required this.maxDeliveries,
+    required this.retryAfter,
     required this.deadLetterTopic,
     required Future<void> Function() ensureGroup,
   }) : _connection = connection,
@@ -292,11 +298,15 @@ class _RedisSubscription implements BrokerSubscription {
   final int batchSize;
   final Duration? claimAfter;
   final int maxDeliveries;
+  final Duration retryAfter;
   final String deadLetterTopic;
 
   var _paused = false;
   var _cancelled = false;
   Future<void>? _loop;
+
+  /// Time since the repair paths last ran, so a busy queue cannot starve them.
+  final _sinceRepair = Stopwatch()..start();
 
   void start() => _loop = _read();
 
@@ -375,15 +385,37 @@ class _RedisSubscription implements BrokerSubscription {
         await _handle(message);
       }
 
-      // Only when there was no fresh work: repair paths spend round trips on
-      // bookkeeping, and running them while messages are flowing would do
-      // that instead of draining the queue.
-      if (messages.isEmpty) {
+      if (_shouldRepair(idle: messages.isEmpty)) {
+        _sinceRepair.reset();
+
         await _redeliverOwn();
         await _reclaim();
       }
     }
   }
+
+  /// Whether this pass runs the repair paths.
+  ///
+  /// They spend round trips on bookkeeping, so an idle loop is where they
+  /// belong: running them between every batch would do that instead of
+  /// draining the queue.
+  ///
+  /// But "only when idle" was a promise the busy case broke. A queue with
+  /// work always waiting never returns an empty read, so a message this
+  /// consumer failed on was never retried and never dead-lettered for as long
+  /// as the load lasted — the exact silent stall the retry path exists to
+  /// end, reappearing under the one condition nobody had thought to test. So
+  /// there is a floor: however busy it gets, the repairs run once per
+  /// [_repairFloor].
+  bool _shouldRepair({required bool idle}) =>
+      idle || _sinceRepair.elapsed >= _repairFloor;
+
+  /// The longest a busy loop may go without running the repair paths.
+  ///
+  /// [retryAfter] is the interval that matters — nothing is due for retry
+  /// sooner — and [blockFor] is the floor under it, so a zero [retryAfter]
+  /// asks for repairs at the read cadence rather than on every batch.
+  Duration get _repairFloor => retryAfter > blockFor ? retryAfter : blockFor;
 
   /// Runs the handler and acknowledges only on success.
   ///
@@ -419,6 +451,11 @@ class _RedisSubscription implements BrokerSubscription {
   /// your own pending entries does not increment Redis's delivery counter —
   /// [maxDeliveries] would never be reached and a poison message would retry
   /// forever, which is the failure this is meant to end.
+  ///
+  /// An entry younger than its [retryAfter] backoff is left alone. Without
+  /// that, redelivery runs as fast as the read loop and the whole
+  /// [maxDeliveries] allowance is spent in seconds — a downstream service
+  /// halfway through a restart takes the message down with it.
   Future<void> _redeliverOwn() async {
     if (_cancelled) {
       return;
@@ -446,12 +483,30 @@ class _RedisSubscription implements BrokerSubscription {
     }
 
     final retryable = <String>[];
+    var minIdle = 0;
 
     for (final entry in pending) {
-      if (entry.deliveries > maxDeliveries) {
+      if (entry.deliveries >= maxDeliveries) {
         await _deadLetter(entry);
-      } else {
-        retryable.add(entry.id);
+
+        continue;
+      }
+
+      final backoff = _backoffFor(entry.deliveries);
+      if (entry.idle < backoff) {
+        // Not yet due. A later pass finds it older.
+        continue;
+      }
+
+      retryable.add(entry.id);
+
+      // The claim below is one command for the whole batch, so its
+      // min-idle-time has to be one that every entry in the batch satisfies.
+      // The smallest of their backoffs is that bound: anything larger would
+      // silently refuse the entries that are due on a shorter one.
+      final ms = backoff.inMilliseconds;
+      if (retryable.length == 1 || ms < minIdle) {
+        minIdle = ms;
       }
     }
 
@@ -460,14 +515,17 @@ class _RedisSubscription implements BrokerSubscription {
     }
 
     try {
-      // Min-idle-time 0: these are already ours, so there is nothing to wait
-      // out. The claim is what bumps the delivery count.
+      // Min-idle-time is the backoff rather than 0. These entries are already
+      // ours, so it is not about waiting anyone out — it is that the entry may
+      // have been redelivered between the scan and here, and claiming on a
+      // stale reading would restart a handler that is running. Redis refuses
+      // the claim instead. The claim is also what bumps the delivery count.
       final claimed = await _connection.send([
         'XCLAIM',
         topic,
         group,
         consumerName,
-        '0',
+        '$minIdle',
         ...retryable,
       ]);
 
@@ -481,6 +539,24 @@ class _RedisSubscription implements BrokerSubscription {
     } catch (_) {
       // Left pending; the next pass tries again.
     }
+  }
+
+  /// How long an entry delivered [deliveries] times already must sit idle
+  /// before this consumer retries it.
+  ///
+  /// Doubles per delivery, so a failure that clears itself costs one short
+  /// wait while a failure that does not stops hammering whatever it is
+  /// failing against. Capped at 32× [retryAfter]: without a ceiling a large
+  /// [maxDeliveries] puts the last retry days out, which is indistinguishable
+  /// from the message being lost.
+  Duration _backoffFor(int deliveries) {
+    if (retryAfter == Duration.zero) {
+      return Duration.zero;
+    }
+
+    final doublings = (deliveries - 1).clamp(0, 5);
+
+    return retryAfter * (1 << doublings);
   }
 
   Future<void> _reclaim() async {
@@ -514,7 +590,7 @@ class _RedisSubscription implements BrokerSubscription {
     final claimable = <String>[];
 
     for (final entry in pending) {
-      if (entry.deliveries > maxDeliveries) {
+      if (entry.deliveries >= maxDeliveries) {
         await _deadLetter(entry);
       } else {
         claimable.add(entry.id);
@@ -673,16 +749,28 @@ List<BrokerMessage> parseEntries(Object? entries, String topic) {
 
 /// One entry from an `XPENDING` reply.
 class PendingEntry {
-  const PendingEntry({required this.id, required this.deliveries});
+  const PendingEntry({
+    required this.id,
+    required this.deliveries,
+    this.idle = Duration.zero,
+  });
 
   final String id;
 
   /// How many times Redis has handed this entry to a consumer.
   ///
   /// The guard against a poison message: an entry that keeps failing has its
-  /// count climb, and past a threshold it is dead-lettered rather than
+  /// count climb, and at a threshold it is dead-lettered rather than
   /// reclaimed forever.
   final int deliveries;
+
+  /// How long since the entry was last delivered.
+  ///
+  /// Redis's own clock rather than the consumer's, which is what makes a
+  /// retry backoff outlive the process that scheduled it: a consumer that
+  /// restarts reads the same idle time the old one would have, instead of
+  /// starting every entry's wait over.
+  final Duration idle;
 }
 
 /// Parses the extended `XPENDING` reply: `[id, consumer, idle, deliveries]`.
@@ -699,6 +787,7 @@ List<PendingEntry> parsePendingReply(Object? reply) {
     }
 
     final id = entry[0];
+    final idle = entry[2];
     final deliveries = entry[3];
 
     if (id is! String) {
@@ -712,6 +801,11 @@ List<PendingEntry> parsePendingReply(Object? reply) {
         deliveries: deliveries is int
             ? deliveries
             : int.tryParse('$deliveries') ?? 1,
+        // Milliseconds. An unreadable one reads as zero — "due now" — because
+        // the alternative is an entry no backoff ever releases.
+        idle: Duration(
+          milliseconds: idle is int ? idle : int.tryParse('$idle') ?? 0,
+        ),
       ),
     );
   }

@@ -34,6 +34,12 @@ class FakeConnection implements RedisConnection {
   /// Reply for XCLAIM, in stream-entry shape.
   Object? claimReply;
 
+  /// Replayed for every XREADGROUP once [batches] runs out.
+  ///
+  /// Keeps the read loop permanently busy, which is the only way to observe
+  /// what the loop does when it never sees an idle pass.
+  Object? repeatingBatch;
+
   List<List<String>> of(String name) =>
       commands.where((c) => c.first == name).toList();
 
@@ -72,7 +78,7 @@ class FakeConnection implements RedisConnection {
         // Give the read loop somewhere to yield rather than spinning hot.
         await Future<void>.delayed(const Duration(milliseconds: 5));
 
-        return null;
+        return repeatingBatch;
       default:
         return 'OK';
     }
@@ -620,7 +626,7 @@ void main() {
 
     test('does not dead-letter an entry still within its allowance', () async {
       final connection = FakeConnection()
-        ..pendingReply = pending('1-0', 5)
+        ..pendingReply = pending('1-0', 4)
         ..claimReply = claimed('1-0', 'retryable');
 
       final subscription = await reclaimingBroker(
@@ -630,10 +636,32 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 60));
       await subscription.cancel();
 
-      // Exactly at the limit is still allowed; past it is not.
+      // Four deliveries of an allowance of five leaves one, so this is a
+      // retry rather than a dead letter.
       expect(
         connection.of('XADD').where((c) => c[1] == 'orders.dead'),
         isEmpty,
+      );
+    });
+
+    test('dead-letters on the delivery that reaches maxDeliveries', () async {
+      final connection = FakeConnection()
+        ..pendingReply = pending('1-0', 5)
+        ..claimReply = claimed('1-0', 'spent');
+
+      final subscription = await reclaimingBroker(
+        connection,
+      ).subscribe('orders', group: 'billing', onMessage: (_) {});
+
+      await Future<void>.delayed(const Duration(milliseconds: 60));
+      await subscription.cancel();
+
+      // `maxDeliveries: 5` means five deliveries, not five and then one more.
+      // Redis has already made all five here, so there is no allowance left
+      // to spend and retrying would be the sixth.
+      expect(
+        connection.of('XADD').where((c) => c[1] == 'orders.dead'),
+        hasLength(1),
       );
     });
   });
@@ -648,6 +676,32 @@ void main() {
       expect(entries.single.deliveries, 3);
     });
 
+    test('reads the idle time the backoff is measured against', () {
+      final entries = parsePendingReply([
+        ['1-0', 'consumer', 12000, 3],
+      ]);
+
+      expect(entries.single.idle, const Duration(seconds: 12));
+    });
+
+    test('reads an idle time replied as a string', () {
+      final entries = parsePendingReply([
+        ['1-0', 'consumer', '12000', 3],
+      ]);
+
+      expect(entries.single.idle, const Duration(seconds: 12));
+    });
+
+    test('treats an unreadable idle time as due now', () {
+      final entries = parsePendingReply([
+        ['1-0', 'consumer', null, 3],
+      ]);
+
+      // Zero means "retry it" -- the alternative is an entry that no backoff
+      // ever releases, which is the stall this whole path exists to end.
+      expect(entries.single.idle, Duration.zero);
+    });
+
     test('ignores a malformed entry rather than throwing', () {
       expect(parsePendingReply([1, 'nope', <Object?>[]]), isEmpty);
     });
@@ -659,8 +713,8 @@ void main() {
   });
 
   group('own pending entries', () {
-    Object ownPending(String id, int deliveries) => [
-      [id, 'revali', 1000, deliveries],
+    Object ownPending(String id, int deliveries, {int idleMs = 1000}) => [
+      [id, 'revali', idleMs, deliveries],
     ];
 
     Object ownClaimed(String id, String payload) => [
@@ -669,6 +723,20 @@ void main() {
         ['payload', payload, 'headers', '{}'],
       ],
     ];
+
+    /// A broker that retries the moment it notices, which is what these tests
+    /// about *whether* redelivery happens want. The backoff is the subject of
+    /// its own group, and leaving it on here would only mean sleeping.
+    RedisBroker eagerBroker(
+      FakeConnection connection, {
+      int maxDeliveries = 5,
+    }) => RedisBroker(
+      connection: connection,
+      openConnection: () => connection,
+      blockFor: const Duration(milliseconds: 5),
+      retryAfter: Duration.zero,
+      maxDeliveries: maxDeliveries,
+    );
 
     // `XREADGROUP ... >` returns only messages never delivered to anyone, so a
     // handler that threw left its entry pending and nothing read it again.
@@ -683,7 +751,7 @@ void main() {
         ..claimReply = ownClaimed('1-1', 'placed');
 
       final seen = <String>[];
-      final broker = brokerWith(connection);
+      final broker = eagerBroker(connection);
       final subscription = await broker.subscribe(
         'orders',
         group: 'billing',
@@ -715,7 +783,7 @@ void main() {
             ['1-1', 'payload', 'placed', 'headers', '{}'],
           ];
 
-        final broker = brokerWith(connection);
+        final broker = eagerBroker(connection);
         final subscription = await broker.subscribe(
           'orders',
           group: 'billing',
@@ -770,6 +838,208 @@ void main() {
     );
   });
 
+  group('retry backoff', () {
+    // Redelivery used to run at the speed of the read loop: fail, notice,
+    // claim, fail again. A handler whose dependency is thirty seconds into a
+    // restart spent its entire maxDeliveries allowance inside that window and
+    // dead-lettered a message that would have succeeded on the next attempt.
+    // The wait is what makes a retry a second chance rather than a second
+    // reading of the same instant.
+
+    Object pendingAt(String id, int deliveries, int idleMs) => [
+      [id, 'revali', idleMs, deliveries],
+    ];
+
+    Object claimedEntry(String id) => [
+      [
+        id,
+        ['payload', 'placed', 'headers', '{}'],
+      ],
+    ];
+
+    RedisBroker backoffBroker(
+      FakeConnection connection, {
+      Duration retryAfter = const Duration(seconds: 5),
+      int maxDeliveries = 5,
+    }) => RedisBroker(
+      connection: connection,
+      openConnection: () => connection,
+      blockFor: const Duration(milliseconds: 5),
+      retryAfter: retryAfter,
+      maxDeliveries: maxDeliveries,
+    );
+
+    Future<FakeConnection> run(
+      Object pending, {
+      Duration retryAfter = const Duration(seconds: 5),
+      int maxDeliveries = 5,
+    }) async {
+      final connection = FakeConnection()
+        ..pendingReply = pending
+        ..claimReply = claimedEntry('1-1');
+
+      final subscription = await backoffBroker(
+        connection,
+        retryAfter: retryAfter,
+        maxDeliveries: maxDeliveries,
+      ).subscribe('orders', group: 'billing', onMessage: (_) {});
+
+      await Future<void>.delayed(const Duration(milliseconds: 60));
+      await subscription.cancel();
+
+      return connection;
+    }
+
+    test('leaves an entry alone until retryAfter has passed', () async {
+      final connection = await run(pendingAt('1-1', 1, 1000));
+
+      expect(
+        connection.of('XCLAIM'),
+        isEmpty,
+        reason: 'one second idle against a five second backoff is not due',
+      );
+    });
+
+    test('retries an entry idle longer than retryAfter', () async {
+      final connection = await run(pendingAt('1-1', 1, 6000));
+
+      expect(connection.of('XCLAIM'), isNotEmpty);
+    });
+
+    test('doubles the wait with each delivery already made', () async {
+      // Three deliveries in, the wait is 4x — twenty seconds, not five.
+      final tooSoon = await run(pendingAt('1-1', 3, 15000));
+      expect(tooSoon.of('XCLAIM'), isEmpty);
+
+      final due = await run(pendingAt('1-1', 3, 25000));
+      expect(due.of('XCLAIM'), isNotEmpty);
+    });
+
+    test('caps the wait at 32x', () async {
+      // Without a ceiling this entry's wait would be 2^19 seconds — six days,
+      // which is indistinguishable from the message being lost.
+      final connection = await run(
+        pendingAt('1-1', 20, 32000),
+        retryAfter: const Duration(seconds: 1),
+        maxDeliveries: 50,
+      );
+
+      expect(connection.of('XCLAIM'), isNotEmpty);
+    });
+
+    test('claims with the backoff as min-idle-time, not zero', () async {
+      final connection = await run(pendingAt('1-1', 1, 6000));
+
+      // The entry may have been redelivered between the scan and the claim.
+      // Claiming on a stale reading would restart a handler that is running;
+      // a real min-idle-time makes Redis refuse instead.
+      final claim = connection.of('XCLAIM').first;
+      expect(claim[4], '5000');
+    });
+
+    test('dead-letters without waiting out the backoff', () async {
+      final connection = await run(pendingAt('1-1', 5, 0));
+
+      // An entry with no allowance left has nothing to wait for — the wait
+      // exists to give a retry a better chance, and there is no retry.
+      expect(
+        connection.of('XADD').where((c) => c[1] == 'orders.dead'),
+        hasLength(1),
+      );
+    });
+
+    test('Duration.zero retries at the speed of the read loop', () async {
+      final connection = await run(
+        pendingAt('1-1', 1, 0),
+        retryAfter: Duration.zero,
+      );
+
+      final claim = connection.of('XCLAIM').first;
+      expect(claim[4], '0');
+    });
+  });
+
+  group('repairs under load', () {
+    // The repair paths used to run only on a pass that read nothing. A queue
+    // with work always waiting never has one, so for as long as the load
+    // lasted a failed message was never retried and never dead-lettered --
+    // the silent stall the retry path exists to end, back again under the one
+    // condition nobody thinks to test.
+
+    RedisBroker busyBroker(
+      FakeConnection connection, {
+      required Duration retryAfter,
+      required Duration blockFor,
+    }) => RedisBroker(
+      connection: connection,
+      openConnection: () => connection,
+      blockFor: blockFor,
+      retryAfter: retryAfter,
+    );
+
+    FakeConnection busyConnection() => FakeConnection()
+      ..repeatingBatch = streamReply('orders', [
+        ('9-9', {'payload': 'busy', 'headers': '{}'}),
+      ])
+      ..pendingReply = [
+        ['1-1', 'revali', 60000, 1],
+      ]
+      ..claimReply = [
+        [
+          '1-1',
+          ['payload', 'stalled', 'headers', '{}'],
+        ],
+      ];
+
+    test('scans pending entries even while messages keep arriving', () async {
+      final connection = busyConnection();
+
+      final seen = <String>[];
+      final subscription =
+          await busyBroker(
+            connection,
+            retryAfter: Duration.zero,
+            blockFor: const Duration(milliseconds: 5),
+          ).subscribe(
+            'orders',
+            group: 'billing',
+            onMessage: (m) => seen.add(m.payload),
+          );
+
+      await Future<void>.delayed(const Duration(milliseconds: 80));
+      await subscription.cancel();
+
+      expect(
+        seen,
+        contains('busy'),
+        reason: 'the queue must actually be busy for this to mean anything',
+      );
+      expect(
+        connection.of('XPENDING'),
+        isNotEmpty,
+        reason: 'a busy queue must not starve the retry path',
+      );
+      expect(seen, contains('stalled'));
+    });
+
+    test('does not do the bookkeeping on every busy pass', () async {
+      final connection = busyConnection();
+
+      // The floor is a floor, not a schedule. Draining the queue is still the
+      // priority, so repairs stay off the hot path until one is due.
+      final subscription = await busyBroker(
+        connection,
+        retryAfter: const Duration(seconds: 30),
+        blockFor: const Duration(seconds: 30),
+      ).subscribe('orders', group: 'billing', onMessage: (_) {});
+
+      await Future<void>.delayed(const Duration(milliseconds: 80));
+      await subscription.cancel();
+
+      expect(connection.of('XPENDING'), isEmpty);
+    });
+  });
+
   group('connect', () {
     // A socket that accepts and then says nothing. `connect` opens a
     // connection eagerly but sends no command until the first publish or
@@ -798,6 +1068,7 @@ void main() {
       int? batchSize,
       Duration? claimAfter,
       int? maxDeliveries,
+      Duration? retryAfter,
       String? deadLetterSuffix,
     }) async {
       final broker = await RedisBroker.connect(
@@ -808,6 +1079,7 @@ void main() {
         batchSize: batchSize ?? 16,
         claimAfter: claimAfter,
         maxDeliveries: maxDeliveries ?? 5,
+        retryAfter: retryAfter ?? const Duration(seconds: 5),
         deadLetterSuffix: deadLetterSuffix ?? '.dead',
       );
       addTearDown(broker.close);
@@ -822,6 +1094,7 @@ void main() {
         batchSize: 64,
         claimAfter: const Duration(seconds: 30),
         maxDeliveries: 9,
+        retryAfter: const Duration(seconds: 45),
         deadLetterSuffix: '.parked',
       );
 
@@ -830,6 +1103,7 @@ void main() {
       expect(broker.batchSize, 64);
       expect(broker.claimAfter, const Duration(seconds: 30));
       expect(broker.maxDeliveries, 9);
+      expect(broker.retryAfter, const Duration(seconds: 45));
       expect(broker.deadLetterSuffix, '.parked');
     });
 
@@ -855,6 +1129,7 @@ void main() {
         expect(broker.batchSize, reference.batchSize);
         expect(broker.claimAfter, reference.claimAfter);
         expect(broker.maxDeliveries, reference.maxDeliveries);
+        expect(broker.retryAfter, reference.retryAfter);
         expect(broker.deadLetterSuffix, reference.deadLetterSuffix);
       },
     );

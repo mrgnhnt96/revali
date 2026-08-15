@@ -202,12 +202,16 @@ release notes, and today's entry describes `revali up` without it.
 
 ## Also still open, unrelated to the TUI
 
-From `todo.md`, found while documenting `revali_redis` — decide before
-publishing, since both affect a brand-new package:
+**Both `revali_redis` items listed here are now closed** (8.15.26) — this
+section is kept only so the history reads straight:
 
-- `RedisBroker.connect()` cannot configure `claimAfter` / `maxDeliveries`; you
-  must construct `RedisBroker` directly.
-- Consumers register in **every** isolate, so `workers > 1` plus `@Consumes`
-  has every worker subscribe under one `consumerName` — the collision that
-  field exists to prevent. `/tmp/revali-demo/billing` runs one worker because
-  of this.
+- `RedisBroker.connect()` forwards every constructor option, `claimAfter`,
+  `maxDeliveries` and `retryAfter` among them.
+- Consumers still register in every isolate, which is correct for a Redis
+  Streams consumer group — every worker pulling under its *own* name is the
+  point. The name is what was wrong, and it is scoped by isolate index now
+  (`IsolateIdentity.scopeName`), so `/tmp/revali-demo/billing` no longer has a
+  reason to be pinned to one worker.
+
+See `todo.md` for what came out of closing them: `maxDeliveries` was off by
+one, retries had no backoff, and the repair paths starved under load.

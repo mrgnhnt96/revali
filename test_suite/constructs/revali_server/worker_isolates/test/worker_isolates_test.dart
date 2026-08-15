@@ -58,9 +58,12 @@ void main() {
     );
 
     // The point of the index is that something keying on a name can tell the
-    // isolates apart. Derived the way `RedisBroker` derives its consumer name,
-    // without depending on `revali_redis` — the naming rule is unit-tested
-    // there; what is unproven is that the index feeding it differs at all.
+    // isolates apart. Derived here the way `IsolateIdentity.scopeName` derives
+    // it, rather than by calling it: `scopeName` reads the *current* identity,
+    // which in this process is the parent's, so calling it on another
+    // isolate's index is not something it can be asked to do. The rule itself
+    // is unit-tested in `revali_core`; what is unproven there is that the
+    // index feeding it differs at all, which is this test's job.
     expect(
       reports.map((r) => 'worker-${r.index}').toSet(),
       hasLength(TestApp.workerCount),

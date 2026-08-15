@@ -339,6 +339,25 @@ under the old name.
 You still have to give each **replica** its own name; nothing outside the process
 can be guessed from inside it.
 
+**Writing your own broker?** This is not something the framework can do for
+you — it never sees the name, because your implementation builds it. Run it
+through `IsolateIdentity.scopeName` and you get the same behaviour:
+
+```dart
+class MyBroker implements MessageBroker {
+  MyBroker({String consumerName = 'my-service'})
+      : consumerName = IsolateIdentity.scopeName(consumerName);
+
+  final String consumerName;
+  // ...
+}
+```
+
+`createBroker()` runs in **every** isolate, so a broker that passes its
+configured name through untouched has every worker claiming to be the same
+client — and on any broker that tracks unacknowledged work per client, that
+collision is silent.
+
 </Callout>
 
 ### Reclaiming what a dead replica left behind
@@ -361,8 +380,8 @@ await RedisBroker.connect(
 ```
 
 `connect()` takes every option the constructor does — `blockFor`, `batchSize`,
-`claimAfter`, `maxDeliveries` and `deadLetterSuffix` — each with the same
-default. Constructing `RedisBroker` directly is still supported, but it means
+`claimAfter`, `maxDeliveries`, `retryAfter` and `deadLetterSuffix` — each with
+the same default. Constructing `RedisBroker` directly is still supported, but it means
 supplying a `ReconnectingRedisConnection` for the control link and a factory that
 opens one per subscription, which is the wiring `connect()` exists to do: each
 subscription needs its own connection, because a blocking read on a shared one
@@ -372,19 +391,52 @@ would stall every publish behind a consumer waiting for work.
 redelivered. Set it well above the time a healthy handler takes: too low and a
 slow handler's work is taken out from under it and processed twice.
 
-Reclaiming runs only when a read came back with no fresh work, as does the
-retry of your own pending entries. Both are repair paths, and running them
-while messages are flowing would spend round trips on bookkeeping instead of
-on the queue.
+Reclaiming prefers a read that came back with no fresh work, as does the retry
+of your own pending entries. Both are repair paths, and running them between
+every batch would spend round trips on bookkeeping instead of on the queue.
+
+That preference has a floor, though, because "only when idle" is a promise the
+busy case breaks: a queue with work always waiting never *has* an idle pass, so
+for as long as the load lasted a failed message was never retried and never
+dead-lettered. However busy it gets, the repair paths now run at least once per
+`retryAfter` (or per `blockFor`, whichever is longer) — nothing can come due
+sooner than that anyway.
+
+### Backing off between retries
+
+`retryAfter` (default 5 seconds) is how long a failed entry waits before this
+consumer tries it again.
+
+Without it, redelivery runs as fast as the read loop: fail, notice, claim, fail
+again. A handler whose dependency is thirty seconds into a restart spends its
+entire `maxDeliveries` allowance inside that window, and a message that would
+have succeeded on the next attempt is dead-lettered instead. The wait is what
+makes a retry a second chance rather than a second reading of the same instant.
+
+The wait **doubles with each delivery already made**, capped at 32× so a large
+`maxDeliveries` cannot push the last attempt days out. At the default the
+attempts land roughly 5s, 10s, 20s and 40s after the first failure.
+
+It is measured against Redis's own idle time for the entry — the time since it
+was last delivered — not against a timer in the process. A consumer that
+restarts therefore reads the same schedule the old one was working to, instead
+of starting every entry's wait over.
+
+`Duration.zero` retries at the speed of the read loop. Dead-lettering is never
+delayed by the backoff: an entry with no allowance left has nothing to wait for.
 
 ### Dead letters
 
 Reclaiming on its own turns a message that *always* fails into a retry storm:
 claimed, failed, left pending, claimed again, forever. `maxDeliveries` (default
-5) is the escape hatch. Once Redis's delivery count for an entry passes it, the
-message is copied to `<topic>.dead` — `order.placed.dead` for `order.placed` —
-with headers recording why and where it came from, and only then acknowledged
-on the original topic.
+5) is the escape hatch.
+
+It is the **total** number of deliveries, counted the way Redis counts them and
+including the first: at `5`, a handler that always throws runs five times and
+the sixth pass dead-letters instead of retrying. The message is copied to
+`<topic>.dead` — `order.placed.dead` for `order.placed` — with headers
+recording why and where it came from, and only then acknowledged on the
+original topic.
 
 Acknowledging *after* the copy, rather than before, means a failed copy leaves
 the entry pending rather than losing it.

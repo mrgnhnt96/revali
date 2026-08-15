@@ -150,13 +150,42 @@ written into the page rather than taken from the brief.
   (`server_file_maker.dart:341-344`): for a Redis Streams consumer group, every
   worker pulling work under its *own* name is the point, and gating to the
   parent would have thrown the fleet's throughput away to fix a naming bug.
-  - [ ] Residual, and the reason this is not fully closed: the fix lives in
-    `RedisBroker`, not in registration, so a **third-party** `MessageBroker`
-    still collides unless it calls `IsolateIdentity` itself. `revali_core`
-    publishes the identity for every app and says nothing about the obligation.
-    Either document it on `AppConfig.createBroker()` / `MessageBroker`, or scope
-    the name in `ConsumerRegistry` so no broker can get it wrong. Not shipped
-    in this round — the published brokers are correct.
+  - [x] Residual, now closed (8.15.26): a **third-party** `MessageBroker` used
+    to collide unless it called `IsolateIdentity` itself. Of the two remedies
+    this item proposed, scoping in `ConsumerRegistry` is the wrong one — the
+    registry never sees a consumer name, because the broker builds it, so
+    there is nothing there to scope. What shipped is the other: the rule now
+    exists once, as `IsolateIdentity.scopeName` in `revali_core`, which
+    `RedisBroker` calls instead of its own private copy, and it is documented
+    on `MessageBroker` and `AppConfig.createBroker()` — the two places an
+    implementer is actually reading. Still an obligation rather than an
+    enforcement; the framework cannot see a name it never receives, and
+    `scopeName`'s doc says so.
+
+## Found while closing out revali_redis delivery semantics (8.15.26)
+
+Three defects the earlier pass left behind, each proved against a **real
+Redis** rather than the fake — Redis owns the delivery counter and the idle
+clock, so a fake cannot settle either question. Each fix was mutation-tested:
+reverting it makes exactly the intended test fail, and nothing else.
+
+- [x] **`maxDeliveries` allowed one more delivery than it named.** The check
+  was `deliveries > maxDeliveries`, so `maxDeliveries: 3` ran the handler four
+  times. Now `>=`. The integration test asserts `attempts == 3` against
+  Redis's own counter; reverting the operator makes it report `4`.
+- [x] **Retries had no backoff.** `_redeliverOwn` claimed with min-idle `0` on
+  every idle pass, so the whole allowance was spent at the read cadence — a
+  downstream service thirty seconds into a restart took the message down with
+  it. New `retryAfter` (default 5s), doubling per delivery and capped at 32×,
+  measured against Redis's idle time rather than a timer in the process, so it
+  survives a restart of the consumer. Measured: 137ms between attempts
+  without it, ≥1.9s with it.
+- [x] **The repair paths starved under load.** They ran only when a read came
+  back empty, and a queue with work always waiting never has such a pass — so
+  for the length of the load a failed message was neither retried nor
+  dead-lettered, which is the same silent stall the retry path was added to
+  end. They now also run once per `retryAfter`/`blockFor`, whichever is
+  longer.
 
 ## Tier 4 — Internal quality
 

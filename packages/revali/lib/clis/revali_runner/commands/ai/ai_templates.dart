@@ -519,7 +519,8 @@ Future<MessageBroker?> createBroker() async => InMemoryBroker();
 | **Groups** | Members of one group share the work (one delivery each); separate groups each get a copy. |
 | **Shutdown** | The broker is owned by the framework once returned — consumers drain first on `SIGTERM`, then HTTP. Do not close it in `onServerStopped`. |
 | **Publishing a trace** | Nothing forwards headers automatically: `broker.publish(topic, body, headers: TraceContext.current?.outboundHeaders() ?? const {})`. |
-| **Redis** | `revali_redis` provides `RedisBroker` (Redis Streams + consumer groups, not pub/sub). Give each **replica** its own `consumerName`; worker isolates are suffixed for you from `IsolateIdentity`. |
+| **Redis** | `revali_redis` provides `RedisBroker` (Redis Streams + consumer groups, not pub/sub). Give each **replica** its own `consumerName`; worker isolates are suffixed for you from `IsolateIdentity`. A failed message is retried after `retryAfter` (default 5s, doubling per attempt) and dead-lettered to `<topic>.dead` once `maxDeliveries` (default 5, counting the first) is reached. |
+| **Writing your own broker** | `createBroker()` runs in **every** isolate, so a broker that names itself to its server must pass that name through `IsolateIdentity.scopeName` — otherwise every worker claims to be the same client and their unacknowledged work is hidden from each other. The framework never sees the name, so it cannot do this for you. |
 
 ## Constructs
 

@@ -406,6 +406,10 @@ void main() {
         blockFor: const Duration(milliseconds: 50),
         claimAfter: Duration.zero,
         maxDeliveries: 2,
+        // The backoff has its own tests below; here it would only mean
+        // sleeping, and a ten-second deadline it barely clears is a flake
+        // waiting to happen.
+        retryAfter: Duration.zero,
       );
       addTearDown(broker.close);
 
@@ -444,6 +448,94 @@ void main() {
         attempts,
         greaterThan(1),
         reason: 'it was retried before giving up',
+      );
+    });
+
+    test('delivers exactly maxDeliveries times, then stops', () async {
+      if (!hasRedis()) return;
+
+      // Redis owns the delivery counter, so this is the only place the
+      // arithmetic can actually be checked. `maxDeliveries: 3` has to mean
+      // three attempts -- it used to mean four, because the check fired one
+      // delivery past the number it was named for.
+      final broker = RedisBroker(
+        connection: await SocketRedisConnection.connect(_host, _port),
+        openConnection: () => _LazyOpen(_host, _port),
+        consumerName: 'counted',
+        blockFor: const Duration(milliseconds: 50),
+        maxDeliveries: 3,
+        retryAfter: Duration.zero,
+      );
+      addTearDown(broker.close);
+
+      var attempts = 0;
+      await broker.subscribe(
+        topic,
+        group: 'billing',
+        onMessage: (_) {
+          attempts++;
+          throw StateError('poison');
+        },
+      );
+      await broker.publish(topic, 'poison');
+
+      final control = await SocketRedisConnection.connect(_host, _port);
+      addTearDown(control.close);
+
+      final deadline = DateTime.now().add(const Duration(seconds: 10));
+      var dead = 0;
+
+      while (dead == 0) {
+        if (DateTime.now().isAfter(deadline)) {
+          fail('nothing reached the dead-letter stream');
+        }
+
+        final length = await control.send(['XLEN', '$topic.dead']);
+        dead = length is int ? length : 0;
+
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+      }
+
+      // Settled: nothing may pick it up again once it is dead-lettered.
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+
+      expect(attempts, 3);
+    });
+
+    test('waits out retryAfter before redelivering', () async {
+      if (!hasRedis()) return;
+
+      // Redis's own idle clock is what the backoff is measured against, so a
+      // fake cannot show this holding. Without it, redelivery runs at the
+      // speed of the read loop -- here, every 50ms.
+      final broker = RedisBroker(
+        connection: await SocketRedisConnection.connect(_host, _port),
+        openConnection: () => _LazyOpen(_host, _port),
+        consumerName: 'patient',
+        blockFor: const Duration(milliseconds: 50),
+        retryAfter: const Duration(seconds: 2),
+      );
+      addTearDown(broker.close);
+
+      final attempts = <DateTime>[];
+      await broker.subscribe(
+        topic,
+        group: 'billing',
+        onMessage: (_) {
+          attempts.add(DateTime.now());
+          throw StateError('poison');
+        },
+      );
+      await broker.publish(topic, 'poison');
+
+      await until(() => attempts.length >= 2);
+
+      final gap = attempts[1].difference(attempts[0]);
+
+      expect(
+        gap,
+        greaterThanOrEqualTo(const Duration(milliseconds: 1900)),
+        reason: 'the retry must wait, not fire on the next read',
       );
     });
   });
