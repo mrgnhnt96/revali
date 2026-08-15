@@ -98,8 +98,15 @@ jobs:
       - name: Generate the social cards
         run: dart run tool/gen_og_cards.dart
 
+      # `--sitemap-domain` is not optional decoration: web/robots.txt points
+      # crawlers at /sitemap.xml, and without this flag jaspr does not emit one,
+      # leaving robots.txt advertising a 404.
+      #
+      # The sidebar is server-rendered, so a crawler could in principle reach
+      # every page by following links. The sitemap is what makes the whole set
+      # legible at once — it is the file Search Console is subscribed to.
       - name: Build the site
-        run: dart run jaspr_cli:jaspr build
+        run: dart run jaspr_cli:jaspr build --sitemap-domain "https://$DOCS_DOMAIN"
 
       # After the build, so the anchor test can check every search result's
       # deep link against the HTML that is about to be published.
@@ -119,6 +126,21 @@ jobs:
           pages=$(find . -name index.html | wc -l)
           [ "$pages" -ge 90 ] || {
             echo "::error::only $pages pages rendered; expected the full site"; exit 1; }
+          # robots.txt advertises this; a missing one is an advertised 404, and
+          # Search Console reports the subscribed sitemap as "couldn't fetch"
+          # rather than falling back to crawling.
+          test -s robots.txt || { echo "::error::robots.txt was not published"; exit 1; }
+          test -s sitemap.xml || { echo "::error::sitemap.xml was not generated"; exit 1; }
+          # A sitemap listing one route is what a build that lost its routes
+          # produces, and it is still perfectly valid XML — so count them. The
+          # bound matches the page count above: every rendered page is a URL.
+          urls=$(grep -c "<loc>" sitemap.xml)
+          [ "$urls" -ge 90 ] || {
+            echo "::error::sitemap.xml lists only $urls URLs; expected one per page"; exit 1; }
+          # The domain is baked into every <loc> at build time, so a wrong
+          # --sitemap-domain ships a sitemap of URLs on someone else's host.
+          grep -q "<loc>https://$DOCS_DOMAIN/" sitemap.xml || {
+            echo "::error::sitemap.xml URLs are not on $DOCS_DOMAIN"; exit 1; }
           # Every page names its own card in og:image, so a missing directory
           # would leave 97 previews pointing at a 404 -- and nothing else here
           # would notice, since the HTML is perfectly valid either way.
