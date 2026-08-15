@@ -107,11 +107,7 @@ class ServiceList extends StatelessComponent {
               nameWidth: nameWidth,
             ),
         if (sessions.length > kVisibleServiceRows)
-          RosterScrollHint(
-            start: start,
-            end: end,
-            total: sessions.length,
-          ),
+          RosterScrollHint(start: start, end: end, total: sessions.length),
       ],
     );
   }

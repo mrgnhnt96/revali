@@ -320,10 +320,7 @@ void main() {
       final billing = ServiceSession(planFor('billing'))
         ..ingest('Serving at http://0.0.0.0:8080/api\n', isError: false);
 
-      expect(
-        command.buildApp([billing.plan], [billing]).onOpenUrl,
-        isNotNull,
-      );
+      expect(command.buildApp([billing.plan], [billing]).onOpenUrl, isNotNull);
     });
   });
 
@@ -405,11 +402,8 @@ void main() {
 
     test('without a pane, stderr still goes to stderr', () {
       final result = captured(
-        (command) => command.routeOutput(
-          'boom\n',
-          label: 'orders',
-          isError: true,
-        ),
+        (command) =>
+            command.routeOutput('boom\n', label: 'orders', isError: true),
       );
 
       // Styled red on the way out, so the prefix is what can be asserted on.
@@ -474,10 +468,7 @@ void main() {
       // is still painting is worth holding — dropping it, as the flat path
       // must, would leave the pane looking idle mid-build.
       expect(session.lines, [
-        const ServiceLogLine(
-          '⠋ Generating server code...',
-          isError: false,
-        ),
+        const ServiceLogLine('⠋ Generating server code...', isError: false),
       ]);
     });
 

@@ -80,10 +80,7 @@ void main() {
     const base = 'http://0.0.0.0:8080/api';
 
     test('a GET row resolves to the base plus the path', () {
-      final links = findLinks(
-        'GET       -> /billing/invoices',
-        baseUrl: base,
-      );
+      final links = findLinks('GET       -> /billing/invoices', baseUrl: base);
 
       expect(links, hasLength(1));
       expect(links.single.url, 'http://localhost:8080/api/billing/invoices');
@@ -95,8 +92,10 @@ void main() {
       const line = 'GET       -> /billing/invoices';
       final links = findLinks(line, baseUrl: base);
 
-      expect(line.substring(links.single.start, links.single.end),
-          '/billing/invoices');
+      expect(
+        line.substring(links.single.start, links.single.end),
+        '/billing/invoices',
+      );
     });
 
     test('without a base there is nothing to resolve against', () {
@@ -107,8 +106,10 @@ void main() {
 
     test('a POST row is not clickable', () {
       // A browser navigation is a GET whatever the row says.
-      expect(findLinks('POST      -> /billing/invoices', baseUrl: base),
-          isEmpty);
+      expect(
+        findLinks('POST      -> /billing/invoices', baseUrl: base),
+        isEmpty,
+      );
     });
 
     test('every non-GET method is left alone', () {
@@ -124,8 +125,10 @@ void main() {
         'WS',
       ]) {
         expect(
-          findLinks('${method.padRight(10)}-> /billing/invoices',
-              baseUrl: base),
+          findLinks(
+            '${method.padRight(10)}-> /billing/invoices',
+            baseUrl: base,
+          ),
           isEmpty,
           reason: '$method must not be clickable',
         );
@@ -150,18 +153,20 @@ void main() {
 
     test('a base with no prefix still joins cleanly', () {
       expect(
-        findLinks('GET       -> /health', baseUrl: 'http://0.0.0.0:8080')
-            .single
-            .url,
+        findLinks(
+          'GET       -> /health',
+          baseUrl: 'http://0.0.0.0:8080',
+        ).single.url,
         'http://localhost:8080/health',
       );
     });
 
     test('a trailing slash on the base does not double up', () {
       expect(
-        findLinks('GET       -> /health', baseUrl: 'http://0.0.0.0:8080/api/')
-            .single
-            .url,
+        findLinks(
+          'GET       -> /health',
+          baseUrl: 'http://0.0.0.0:8080/api/',
+        ).single.url,
         'http://localhost:8080/api/health',
       );
     });

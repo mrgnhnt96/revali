@@ -217,8 +217,13 @@ void main() {
       // The contract: only the behaviour changes. Same text, same columns.
       final (tester, _) = await pumpApp([serving()]);
 
-      expect(tester.terminalState, containsText('GET       -> '
-          '/billing/invoices'));
+      expect(
+        tester.terminalState,
+        containsText(
+          'GET       -> '
+          '/billing/invoices',
+        ),
+      );
     });
 
     test('a POST row opens nothing', () async {
@@ -306,36 +311,39 @@ void main() {
   });
 
   group('a click resolves against what is on screen', () {
-    test('scrolled up, it opens the visible line and not the buffer index',
-        () async {
-      // The regression this whole design exists to make impossible. Every line
-      // carries a DIFFERENT URL, so resolving against the wrong row opens a
-      // provably wrong address rather than coincidentally the right one.
-      final billing = session('billing', 8080)
-        ..ingest('Serving at http://0.0.0.0:8080/api\n', isError: false);
+    test(
+      'scrolled up, it opens the visible line and not the buffer index',
+      () async {
+        // The regression this whole design exists to make impossible. Every
+        // line carries a DIFFERENT URL, so resolving against the wrong row
+        // opens a provably wrong address rather than coincidentally the right
+        // one.
+        final billing = session('billing', 8080)
+          ..ingest('Serving at http://0.0.0.0:8080/api\n', isError: false);
 
-      for (var i = 0; i < 60; i++) {
-        billing.ingest('GET       -> /route-$i\n', isError: false);
-      }
+        for (var i = 0; i < 60; i++) {
+          billing.ingest('GET       -> /route-$i\n', isError: false);
+        }
 
-      final (tester, opened) = await pumpApp([billing]);
+        final (tester, opened) = await pumpApp([billing]);
 
-      // At the live end the newest lines are on screen.
-      expect(tester.terminalState, containsText('/route-59'));
+        // At the live end the newest lines are on screen.
+        expect(tester.terminalState, containsText('/route-59'));
 
-      for (var i = 0; i < 12; i++) {
-        await tester.sendKey(LogicalKey.keyK);
-      }
+        for (var i = 0; i < 12; i++) {
+          await tester.sendKey(LogicalKey.keyK);
+        }
 
-      // Some earlier route is now the one on screen. Whichever it is, the
-      // click must open THAT one.
-      const target = '/route-40';
-      expect(tester.terminalState, containsText(target));
+        // Some earlier route is now the one on screen. Whichever it is, the
+        // click must open THAT one.
+        const target = '/route-40';
+        expect(tester.terminalState, containsText(target));
 
-      await tester.tap(_columnOf(tester, target), _rowOf(tester, target));
+        await tester.tap(_columnOf(tester, target), _rowOf(tester, target));
 
-      expect(opened, ['http://localhost:8080/api$target']);
-    });
+        expect(opened, ['http://localhost:8080/api$target']);
+      },
+    );
 
     test('a redraw rule in the buffer does not shift the target', () async {
       // up-board: a child's own `ESC[2J` becomes a `── redraw ──` LINE and the
@@ -459,7 +467,8 @@ void main() {
       final buffer = tester.terminalState.buffer;
 
       expect(
-        buffer.getCell(_columnOf(tester, 'http://0.0.0.0'), row)
+        buffer
+            .getCell(_columnOf(tester, 'http://0.0.0.0'), row)
             .style
             .decoration,
         isNotNull,
@@ -538,8 +547,13 @@ void main() {
 
       final (tester, opened) = await pumpApp([billing]);
 
-      expect(tester.terminalState, containsText('GET       -> '
-          '/billing/invoices'));
+      expect(
+        tester.terminalState,
+        containsText(
+          'GET       -> '
+          '/billing/invoices',
+        ),
+      );
 
       await tester.tap(
         _columnOf(tester, '/billing/invoices'),

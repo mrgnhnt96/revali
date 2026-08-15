@@ -67,11 +67,7 @@ final class TestApp extends AppConfig {
   /// Not `const`: [IsolateReport.port] is read from the environment at
   /// runtime, so neither this constructor nor the generated call to it can be.
   TestApp()
-    : super(
-        host: '127.0.0.1',
-        port: IsolateReport.port,
-        workers: workerCount,
-      );
+    : super(host: '127.0.0.1', port: IsolateReport.port, workers: workerCount);
 
   /// Above 1, or the generated server spawns nothing and the test is vacuous.
   /// Three rather than two, so a fleet that numbers itself `0, 1, 1` fails.

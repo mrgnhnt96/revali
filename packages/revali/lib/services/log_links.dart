@@ -134,9 +134,7 @@ Iterable<LogLink>? _routePath(String line, {required String? baseUrl}) {
   // The pattern is anchored at both ends and the path is its tail, so the path
   // runs to the end of the line. `Match` exposes no per-group offsets, and
   // searching for the path text again could find an earlier copy of it.
-  return [
-    LogLink(start: match.end - path.length, end: match.end, url: url),
-  ];
+  return [LogLink(start: match.end - path.length, end: match.end, url: url)];
 }
 
 /// [raw] as something a browser can be pointed at, or null if it is not a URL.
@@ -189,8 +187,7 @@ String? servingAddress(String line) {
 String _withoutTrailingSlash(String url) =>
     url.endsWith('/') ? url.substring(0, url.length - 1) : url;
 
-int _count(String text, String char) =>
-    text.split(char).length - 1;
+int _count(String text, String char) => text.split(char).length - 1;
 
 /// See `ServiceSession`'s own marker — the same string, matched anywhere in the
 /// line for the same reason: the child hands it to `logger.success`, which
