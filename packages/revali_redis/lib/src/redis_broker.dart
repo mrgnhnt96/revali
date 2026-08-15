@@ -19,13 +19,14 @@ class RedisBroker implements MessageBroker {
   RedisBroker({
     required RedisConnection connection,
     required RedisConnection Function() openConnection,
-    this.consumerName = 'revali',
+    String consumerName = 'revali',
     this.blockFor = const Duration(seconds: 2),
     this.batchSize = 16,
     this.claimAfter,
     this.maxDeliveries = 5,
     this.deadLetterSuffix = '.dead',
-  }) : _control = connection,
+  }) : consumerName = _isolateScopedName(consumerName),
+       _control = connection,
        _openConnection = openConnection;
 
   /// Connects to a Redis server.
@@ -92,10 +93,16 @@ class RedisBroker implements MessageBroker {
   final RedisConnection _control;
   final RedisConnection Function() _openConnection;
 
-  /// Identifies this process within a consumer group.
+  /// Identifies this isolate within a consumer group.
   ///
   /// Redis tracks unacknowledged messages per consumer name, so two replicas
   /// sharing one name makes each other's pending entries invisible.
+  ///
+  /// Worker isolates are told apart automatically, so an app with
+  /// `AppConfig.workers` above 1 does not hit that failure by simply running
+  /// the same `createBroker` override in every isolate — see
+  /// [_isolateScopedName]. This is the *effective* name, the one Redis sees,
+  /// not necessarily the one that was passed in.
   final String consumerName;
 
   /// How long `XREADGROUP` waits for work before returning empty.
@@ -228,6 +235,29 @@ class RedisBroker implements MessageBroker {
     _subscriptions.clear();
 
     await _control.close();
+  }
+
+  /// Distinguishes the consumer name of one isolate from the next.
+  ///
+  /// An app with `AppConfig.workers` above 1 runs the same program — and the
+  /// same `AppConfig.createBroker` override — in several isolates, so every
+  /// one of them would otherwise name itself identically and the isolates
+  /// would hide each other's pending entries in exactly the way
+  /// [consumerName] warns about.
+  ///
+  /// **The parent (index `0`) is deliberately left alone.** Suffixing it too
+  /// would be tidier, and it would also rename the consumer of every app that
+  /// upgrades: a single-worker deployment goes from `orders` to `orders-0`,
+  /// and everything still pending under the old name is stranded, because
+  /// nothing reads that name again. [claimAfter] recovers it only if it is
+  /// set, and it is off by default. Leaving the parent's name untouched means
+  /// an upgrade changes nothing for the apps that never spawn workers, and
+  /// only the newly added worker isolates take names that never existed
+  /// before. The asymmetry is the point.
+  static String _isolateScopedName(String consumerName) {
+    final index = IsolateIdentity.current.index;
+
+    return index == 0 ? consumerName : '$consumerName-$index';
   }
 }
 
