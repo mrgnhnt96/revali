@@ -32,10 +32,23 @@ class RedisBroker implements MessageBroker {
   ///
   /// Each subscription gets its own connection, because `XREADGROUP` blocks:
   /// sharing one would stall every publish behind a consumer waiting for work.
+  ///
+  /// Every tuning knob the constructor takes is forwarded here with the same
+  /// default, so this is the whole API rather than the easy half of it — see
+  /// [consumerName], [blockFor], [batchSize], [claimAfter], [maxDeliveries]
+  /// and [deadLetterSuffix] for what each one does. [claimAfter] in
+  /// particular is how work stranded by a dead consumer gets recovered, and
+  /// used to be reachable only by hand-wiring the connections this method
+  /// exists to set up.
   static Future<RedisBroker> connect({
     String host = 'localhost',
     int port = 6379,
     String consumerName = 'revali',
+    Duration blockFor = const Duration(seconds: 2),
+    int batchSize = 16,
+    Duration? claimAfter,
+    int maxDeliveries = 5,
+    String deadLetterSuffix = '.dead',
   }) async {
     final connections = <SocketRedisConnection>[];
 
@@ -56,6 +69,11 @@ class RedisBroker implements MessageBroker {
     return RedisBroker(
       connection: control,
       consumerName: consumerName,
+      blockFor: blockFor,
+      batchSize: batchSize,
+      claimAfter: claimAfter,
+      maxDeliveries: maxDeliveries,
+      deadLetterSuffix: deadLetterSuffix,
       openConnection: () {
         // Opened lazily and awaited by the caller; see
         // [ReconnectingRedisConnection].

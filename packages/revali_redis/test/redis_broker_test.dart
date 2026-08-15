@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:revali_core/revali_core.dart';
 import 'package:revali_redis/revali_redis.dart';
@@ -679,6 +680,96 @@ void main() {
             .toList();
         expect(dead, isNotEmpty, reason: 'should have been dead-lettered');
         expect(connection.of('XACK').map((c) => c.last), contains('1-1'));
+      },
+    );
+  });
+
+  group('connect', () {
+    // A socket that accepts and then says nothing. `connect` opens a
+    // connection eagerly but sends no command until the first publish or
+    // subscribe, so this is enough to exercise it without a Redis — which
+    // matters, because the settings below are otherwise only reachable
+    // through a test that a machine without a server would skip.
+    late ServerSocket server;
+    final accepted = <Socket>[];
+
+    setUp(() async {
+      server = (await ServerSocket.bind(InternetAddress.loopbackIPv4, 0))
+        ..listen(accepted.add);
+    });
+
+    tearDown(() async {
+      for (final socket in accepted) {
+        socket.destroy();
+      }
+      accepted.clear();
+      await server.close();
+    });
+
+    Future<RedisBroker> connect({
+      String consumerName = 'revali',
+      Duration? blockFor,
+      int? batchSize,
+      Duration? claimAfter,
+      int? maxDeliveries,
+      String? deadLetterSuffix,
+    }) async {
+      final broker = await RedisBroker.connect(
+        host: server.address.host,
+        port: server.port,
+        consumerName: consumerName,
+        blockFor: blockFor ?? const Duration(seconds: 2),
+        batchSize: batchSize ?? 16,
+        claimAfter: claimAfter,
+        maxDeliveries: maxDeliveries ?? 5,
+        deadLetterSuffix: deadLetterSuffix ?? '.dead',
+      );
+      addTearDown(broker.close);
+
+      return broker;
+    }
+
+    test('forwards every setting to the broker', () async {
+      final broker = await connect(
+        consumerName: 'worker-3',
+        blockFor: const Duration(milliseconds: 250),
+        batchSize: 64,
+        claimAfter: const Duration(seconds: 30),
+        maxDeliveries: 9,
+        deadLetterSuffix: '.parked',
+      );
+
+      expect(broker.consumerName, 'worker-3');
+      expect(broker.blockFor, const Duration(milliseconds: 250));
+      expect(broker.batchSize, 64);
+      expect(broker.claimAfter, const Duration(seconds: 30));
+      expect(broker.maxDeliveries, 9);
+      expect(broker.deadLetterSuffix, '.parked');
+    });
+
+    test(
+      'defaults match the constructor, so existing callers are unchanged',
+      () async {
+        // The point of the change was to widen `connect`'s signature without
+        // moving anything underneath a caller that passes nothing. Compared
+        // against a constructor-built broker rather than against literals, so
+        // a future edit to one default fails here instead of drifting quietly.
+        final reference = RedisBroker(
+          connection: FakeConnection(),
+          openConnection: FakeConnection.new,
+        );
+        final broker = await RedisBroker.connect(
+          host: server.address.host,
+          port: server.port,
+        );
+        addTearDown(broker.close);
+
+        expect(broker.consumerName, reference.consumerName);
+        expect(broker.blockFor, reference.blockFor);
+        expect(broker.batchSize, reference.batchSize);
+        expect(broker.claimAfter, reference.claimAfter);
+        expect(broker.maxDeliveries, reference.maxDeliveries);
+        expect(broker.deadLetterSuffix, reference.deadLetterSuffix);
       },
     );
   });
