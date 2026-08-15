@@ -29,7 +29,21 @@ tool/
 web/
   search-index.json   generated, and committed
   CNAME               docs.revali.dev
+  robots.txt          points crawlers at /sitemap.xml
 ```
+
+`sitemap.xml` is **not** in `web/` — it lists all 111 routes, so it can only be
+written once they have been generated. `jaspr build --sitemap-domain` emits it
+into `build/jaspr/`, which is why the deploy passes that flag and why a plain
+`jaspr build` produces a site whose `robots.txt` advertises a 404. Pass the flag
+locally too if you are checking the sitemap.
+
+Each entry's `<lastmod>` comes from `src/git_lastmod.dart`, which dates a page
+by the last commit that touched its markdown. **This needs full git history** —
+the deploy checks out with `fetch-depth: 0` for exactly this reason. Against a
+shallow clone every page resolves to the one commit that was fetched, so the
+sitemap looks fine and says nothing. `dart test` fails on that, and the deploy
+re-checks it against the built file.
 
 ## Commands
 
