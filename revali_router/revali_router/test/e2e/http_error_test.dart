@@ -56,6 +56,16 @@ void main() {
             },
           ),
           Route(
+            'internal',
+            method: 'GET',
+            handler: (context) async {
+              throw const HttpError.internal(
+                code: 'saturated',
+                message: 'write queue is saturated',
+              );
+            },
+          ),
+          Route(
             'boom',
             method: 'GET',
             handler: (context) async => throw StateError('unexpected'),
@@ -112,6 +122,21 @@ void main() {
       final error = (jsonDecode(body) as Map)['error'] as Map;
 
       expect(error.containsKey('details'), isFalse);
+    });
+
+    // This router runs the way a released build does -- `debug` unset -- so a
+    // 5xx envelope has to survive here or the `code` this exists to give the
+    // caller never reaches them.
+    test('delivers a 5xx envelope', () async {
+      await serve();
+
+      final (status, body) = await get('/internal');
+
+      expect(status, HttpStatus.internalServerError);
+      expect((jsonDecode(body) as Map)['error'], {
+        'code': 'saturated',
+        'message': 'write queue is saturated',
+      });
     });
 
     test('leaves an ordinary exception on the default response', () async {

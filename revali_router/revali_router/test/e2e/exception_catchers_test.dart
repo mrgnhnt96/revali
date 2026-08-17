@@ -126,6 +126,51 @@ void main() {
         },
       );
     });
+
+    // Every test above returns a bare `handled()`, so the generic 500 they
+    // assert is the right answer -- the catcher said nothing about the
+    // response. These cover the other half: a catcher that did. `debug` is
+    // absent from a released build, and a 5xx the app wrote is not a crash to
+    // be hidden.
+    group('with overrides of its own', () {
+      test('keeps the status it chose', () async {
+        final catcher = _ShedCatcher();
+
+        await testRequest(
+          TestRoute(
+            catchers: [catcher],
+            handler: (context) async {
+              throw _TestException();
+            },
+          ),
+          verifyResponse: (response, context) {
+            expect(catcher.wasCalled, isTrue);
+
+            expect(response.statusCode, HttpStatus.serviceUnavailable);
+            expect(response.body.data, {'error': 'shedding'});
+          },
+        );
+      });
+
+      test('keeps a body it wrote under the fallback status', () async {
+        final catcher = _BodyOnlyCatcher();
+
+        await testRequest(
+          TestRoute(
+            catchers: [catcher],
+            handler: (context) async {
+              throw _TestException();
+            },
+          ),
+          verifyResponse: (response, context) {
+            expect(catcher.wasCalled, isTrue);
+
+            expect(response.statusCode, HttpStatus.internalServerError);
+            expect(response.body.data, {'error': 'saturated'});
+          },
+        );
+      });
+    });
   });
 }
 
@@ -141,6 +186,39 @@ base class _Catcher extends ExceptionCatcher<_TestException> {
   ) {
     wasCalled = true;
     return const ExceptionCatcherResult.handled();
+  }
+}
+
+/// Sheds load with a status of its own -- the shape that used to be replaced.
+base class _ShedCatcher extends ExceptionCatcher<_TestException> {
+  bool wasCalled = false;
+
+  @override
+  ExceptionCatcherResult<_TestException> catchException(
+    _TestException exception,
+    Context context,
+  ) {
+    wasCalled = true;
+    return const ExceptionCatcherResult.handled(
+      statusCode: HttpStatus.serviceUnavailable,
+      body: {'error': 'shedding'},
+    );
+  }
+}
+
+/// Writes an envelope but leaves the status to the framework.
+base class _BodyOnlyCatcher extends ExceptionCatcher<_TestException> {
+  bool wasCalled = false;
+
+  @override
+  ExceptionCatcherResult<_TestException> catchException(
+    _TestException exception,
+    Context context,
+  ) {
+    wasCalled = true;
+    return const ExceptionCatcherResult.handled(
+      body: {'error': 'saturated'},
+    );
   }
 }
 

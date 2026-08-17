@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:revali_core/revali_core.dart';
 import 'package:test/test.dart';
@@ -105,6 +106,20 @@ void main() {
       },
     );
 
+    // `TestRoute` runs at `debug: false`, the way a released build does. A
+    // middleware shedding load writes a 5xx on purpose; it is not a crash to
+    // be replaced with the generic 500.
+    requestTest(
+      'keeps a 5xx it stopped with',
+      TestRoute(
+        middlewares: const [_ShedMiddleware()],
+      ),
+      verifyResponse: (response, context) {
+        expect(response.statusCode, HttpStatus.serviceUnavailable);
+        expect(response.body.data, {'error': 'shedding'});
+      },
+    );
+
     test('does not execute subsequent middleware if halted', () async {
       final successMiddleware = _SuccessMiddleware();
 
@@ -159,6 +174,18 @@ class _ModifyingMiddleware implements Middleware {
     context.request.headers['hello'] = 'world';
 
     return const MiddlewareResult.next();
+  }
+}
+
+class _ShedMiddleware implements Middleware {
+  const _ShedMiddleware();
+
+  @override
+  Future<MiddlewareResult> use(Context context) async {
+    return const MiddlewareResult.stop(
+      statusCode: HttpStatus.serviceUnavailable,
+      body: {'error': 'shedding'},
+    );
   }
 }
 

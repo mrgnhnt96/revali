@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:revali_core/components/guard.dart';
 import 'package:revali_core/context/context.dart';
@@ -97,6 +98,20 @@ void main() {
       },
     );
 
+    // `TestRoute` runs at `debug: false`, the way a released build does. A
+    // guard that blocks with a 5xx wrote that status on purpose; it is not a
+    // crash to be replaced with the generic 500.
+    requestTest(
+      'keeps a 5xx it blocked with',
+      TestRoute(
+        guards: const [_ShedGuard()],
+      ),
+      verifyResponse: (response, context) {
+        expect(response.statusCode, HttpStatus.serviceUnavailable);
+        expect(response.body.data, {'error': 'shedding'});
+      },
+    );
+
     test('does not execute subsequent guards if halted', () async {
       final successGuard = _SuccessGuard();
 
@@ -150,6 +165,18 @@ class _ModifyingGuard implements Guard {
     context.response.headers['guard'] = 'active';
 
     return const GuardResult.pass();
+  }
+}
+
+class _ShedGuard implements Guard {
+  const _ShedGuard();
+
+  @override
+  Future<GuardResult> protect(Context context) async {
+    return const GuardResult.block(
+      statusCode: HttpStatus.serviceUnavailable,
+      body: {'error': 'shedding'},
+    );
   }
 }
 
