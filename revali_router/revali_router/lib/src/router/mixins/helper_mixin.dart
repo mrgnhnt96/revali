@@ -15,7 +15,12 @@ mixin HelperMixin {
   Data get data;
   MetaScope get meta;
   Reflect get reflectHandler;
+
+  /// Formats a failure the app never spoke for; substitutes a 5xx in release.
   DebugErrorResponse get debugErrorResponse;
+
+  /// Formats a failure the app authored; delivers a 5xx as written.
+  DebugErrorResponse get authoredErrorResponse;
   DefaultResponses get defaultResponses;
   bool get debugResponses;
   List<Observer> get observers;

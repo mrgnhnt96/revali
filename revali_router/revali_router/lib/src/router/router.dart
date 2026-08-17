@@ -218,6 +218,17 @@ class Router extends Equatable {
     return await handle(context);
   }
 
+  /// The response for a failure the application never spoke for: an exception
+  /// no catcher claimed, a missing handler, a payload that would not parse.
+  ///
+  /// Whatever such a response carries came from the framework or from the
+  /// crash itself, so outside of [debug] a server error is answered with the
+  /// generic [DefaultResponses.internalServerError] rather than risk telling
+  /// a client what went wrong inside.
+  ///
+  /// For the responses an app wrote on purpose, see [_authoredResponse] --
+  /// substituting those loses a status and an envelope the caller was meant
+  /// to branch on.
   Response _debugResponse(
     Response response, {
     required Object error,
@@ -245,6 +256,39 @@ class Router extends Equatable {
       return response;
     }
 
+    return _withErrorDetail(response, error: error, stackTrace: stackTrace);
+  }
+
+  /// The response for a failure the application decided the answer to: a
+  /// catcher that supplied a status or an envelope of its own, a thrown
+  /// [HttpError], a guard or middleware that stopped the request with a body.
+  ///
+  /// Nothing here is a crash leaking outward -- the app chose every part of
+  /// it -- so it is delivered as written whether or not [debug] is on. Only
+  /// the debug detail differs, which is the one thing this and
+  /// [_debugResponse] still share.
+  Response _authoredResponse(
+    Response response, {
+    required Object error,
+    required StackTrace stackTrace,
+  }) {
+    if (response.statusCode >= 500) {
+      _logServerError(error, stackTrace);
+    }
+
+    if (!debug) {
+      return response;
+    }
+
+    return _withErrorDetail(response, error: error, stackTrace: stackTrace);
+  }
+
+  /// Copies [response], appending the debug view of what went wrong.
+  Response _withErrorDetail(
+    Response response, {
+    required Object error,
+    required StackTrace stackTrace,
+  }) {
     final Response(:body, :headers, :statusCode) = response;
 
     return SimpleResponse(

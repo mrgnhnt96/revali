@@ -14,6 +14,7 @@ class Helper with HelperMixin, ContextMixin {
     globalComponents = router._globalComponents ?? LifecycleComponentsImpl();
     reflectHandler = Reflect(router._reflects);
     debugErrorResponse = router._debugResponse;
+    authoredErrorResponse = router._authoredResponse;
     debugResponses = router.debug;
     defaultResponses = router.defaultResponses;
 
@@ -51,6 +52,9 @@ class Helper with HelperMixin, ContextMixin {
 
   @override
   late final DebugErrorResponse debugErrorResponse;
+
+  @override
+  late final DebugErrorResponse authoredErrorResponse;
 
   @override
   late final bool debugResponses;

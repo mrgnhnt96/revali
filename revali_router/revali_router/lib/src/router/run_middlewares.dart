@@ -12,6 +12,7 @@ class RunMiddlewares {
       :middlewares,
       :response,
       :debugErrorResponse,
+      :authoredErrorResponse,
       context: ContextMixin(main: context),
     ) = helper;
 
@@ -19,10 +20,16 @@ class RunMiddlewares {
       final result = await middleware.use(context);
 
       if (result.isStop) {
-        final (statusCode, headers, body) =
-            result.asStop.getResponseOverrides();
+        final overrides = result.asStop.getResponseOverrides();
+        final (statusCode, headers, body) = overrides;
 
-        return debugErrorResponse(
+        // A middleware that stopped with a status or a body of its own wrote
+        // this response deliberately -- shedding load, say -- so it survives a
+        // released build.
+        final formatResponse =
+            overrides.areAuthored ? authoredErrorResponse : debugErrorResponse;
+
+        return formatResponse(
           response
             .._overrideWith(
               statusCode: statusCode,

@@ -45,6 +45,7 @@ class RunCatchers {
       :catchers,
       :response,
       :debugErrorResponse,
+      :authoredErrorResponse,
       :defaultResponses,
       context: ContextMixin(main: context),
     ) = helper;
@@ -74,10 +75,15 @@ class RunCatchers {
       final result = catcher.catchException(e, context);
 
       if (result.isHandled) {
-        final (statusCode, headers, body) =
-            result.asHandled.getResponseOverrides();
+        final overrides = result.asHandled.getResponseOverrides();
+        final (statusCode, headers, body) = overrides;
 
-        return debugErrorResponse(
+        // A catcher that wrote a status or an envelope decided this response;
+        // one that returned a bare `handled()` left it to the fallback below.
+        final formatResponse =
+            overrides.areAuthored ? authoredErrorResponse : debugErrorResponse;
+
+        return formatResponse(
           response
             .._overrideWith(
               statusCode: statusCode,
@@ -95,7 +101,7 @@ class RunCatchers {
     // envelope, so the caller gets a code to branch on instead of a status
     // and a sentence.
     if (e is HttpError) {
-      return debugErrorResponse(
+      return authoredErrorResponse(
         response
           .._overrideWith(
             statusCode: e.statusCode,

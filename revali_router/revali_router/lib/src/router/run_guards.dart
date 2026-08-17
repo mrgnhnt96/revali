@@ -13,16 +13,22 @@ class RunGuards {
       :response,
       context: ContextMixin(main: context),
       :debugErrorResponse,
+      :authoredErrorResponse,
     ) = helper;
 
     for (final guard in guards) {
       final result = await guard.protect(context);
 
       if (result.isBlock) {
-        final (statusCode, headers, body) =
-            result.asBlock.getResponseOverrides();
+        final overrides = result.asBlock.getResponseOverrides();
+        final (statusCode, headers, body) = overrides;
 
-        return debugErrorResponse(
+        // A guard that blocked with a status or a body of its own wrote this
+        // response deliberately, so it survives a released build.
+        final formatResponse =
+            overrides.areAuthored ? authoredErrorResponse : debugErrorResponse;
+
+        return formatResponse(
           response
             .._overrideWith(
               statusCode: statusCode,
