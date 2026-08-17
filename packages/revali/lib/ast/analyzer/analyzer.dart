@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io' as io;
-import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
@@ -32,6 +31,15 @@ const _byteStoreMaxSizeBytes = 256 * 1024 * 1024;
 
 /// ~64 MiB in-process LRU in front of the on-disk store.
 const _memoryCacheMaxSizeBytes = 64 * 1024 * 1024;
+
+/// How many files may be read into the overlay at once.
+///
+/// Each in-flight [File.readAsBytes] holds a file descriptor, so an unbounded
+/// fan-out over a workspace plus the SDK — thousands of files — exhausts the
+/// process limit (256 by default on macOS, 1024 on most Linux distros). The
+/// reads are dominated by I/O, not by the count of workers, so a small pool
+/// costs nothing in wall-clock.
+const _readConcurrency = 64;
 
 class Analyzer implements AnalyzerChanges {
   Analyzer({
@@ -545,37 +553,116 @@ class Analyzer implements AnalyzerChanges {
 
     _memoryProvider = MemoryResourceProvider();
 
-    final futures = <Future<(String, Uint8List?)>>[];
-
-    for (final file in files) {
-      futures.add(() async {
-        try {
-          final content = await fs.file(file).readAsBytes();
-          return (file, content as Uint8List?);
-        } catch (_) {
-          return (file, null as Uint8List?);
-        }
-      }());
+    // A workspace file that cannot be read degrades analysis of that file. An
+    // SDK file that cannot be read invalidates every result — without
+    // `dart:core` the analyzer reports the whole project as broken — so the
+    // two are surfaced differently.
+    final unreadable = await _mirrorFiles(files);
+    if (unreadable.isNotEmpty) {
+      logger.err(
+        'Could not read ${unreadable.length} workspace '
+        '${unreadable.length == 1 ? 'file' : 'files'}; '
+        'analysis of them will be incomplete.',
+      );
+      _logUnreadable(unreadable);
     }
 
-    final sdkFiles = await find.file('*', workingDirectory: await sdkPath);
-
-    for (final file in sdkFiles) {
-      futures.add(() async {
-        try {
-          final bytes = await fs.file(file).readAsBytes();
-          return (file, bytes as Uint8List?);
-        } catch (_) {
-          return (file, null as Uint8List?);
-        }
-      }());
+    final sdkFailures = await _mirrorFiles(await _sdkSourceFiles());
+    if (sdkFailures.isNotEmpty) {
+      _logUnreadable(sdkFailures);
+      throw Exception(
+        'Could not read ${sdkFailures.length} Dart SDK '
+        '${sdkFailures.length == 1 ? 'file' : 'files'} from '
+        '${await sdkPath}. Analysis cannot proceed against a partial SDK.',
+      );
     }
+  }
 
-    final results = await Future.wait(futures);
-    for (final (path, bytes) in results) {
-      if (bytes != null) {
-        _memoryProvider.newFileWithBytes(fs.path.normalize(path), bytes);
+  /// The SDK files the analyzer is able to read.
+  ///
+  /// `FolderBasedDartSdk` resolves exactly two paths through the resource
+  /// provider: `<sdk>/lib` and `<sdk>/version`. Mirroring the whole SDK also
+  /// pulls in `bin/` — the VM, the AOT snapshots and the bundled DevTools
+  /// assets — which no analysis ever touches. `lib/_internal/*.dill` is kernel
+  /// for the VM and the web compilers, not an analyzer summary, and is skipped
+  /// for the same reason; on a current SDK those eleven files alone outweigh
+  /// every Dart source in `lib/` by roughly nine to one.
+  Future<List<String>> _sdkSourceFiles() async {
+    final root = await sdkPath;
+
+    final libFiles = await find.file(
+      '*',
+      workingDirectory: fs.path.join(root, 'lib'),
+    );
+
+    return [
+      for (final file in libFiles)
+        if (fs.path.extension(file) != '.dill') file,
+      // Absent on some SDK builds; the analyzer falls back to a default
+      // version, and a missing file is not treated as a read failure.
+      fs.path.join(root, 'version'),
+    ];
+  }
+
+  /// Reads [paths] into the memory overlay, at most [_readConcurrency] at a
+  /// time, and returns the paths that could not be read.
+  ///
+  /// A path that no longer exists is skipped: callers pass the results of a
+  /// filesystem walk, which races with ordinary edits. Every *other* failure
+  /// is returned rather than swallowed — collapsing "the read failed" into
+  /// "the file was not there" is what lets descriptor exhaustion masquerade as
+  /// a project that genuinely lacks the file.
+  Future<List<(String, Object)>> _mirrorFiles(List<String> paths) async {
+    final failures = <(String, Object)>[];
+    var next = 0;
+
+    Future<void> read() async {
+      while (true) {
+        final index = next++;
+        if (index >= paths.length) {
+          return;
+        }
+
+        final path = paths[index];
+        try {
+          final bytes = await fs.file(path).readAsBytes();
+          _memoryProvider.newFileWithBytes(fs.path.normalize(path), bytes);
+        } on io.FileSystemException catch (e) {
+          if (!_isMissing(e)) {
+            failures.add((path, e));
+          }
+        } catch (e) {
+          failures.add((path, e));
+        }
       }
+    }
+
+    final workers = paths.length < _readConcurrency
+        ? paths.length
+        : _readConcurrency;
+
+    await Future.wait([for (var i = 0; i < workers; i++) read()]);
+
+    return failures;
+  }
+
+  /// Whether [e] reports a path that does not exist, as opposed to one that
+  /// exists but could not be read.
+  bool _isMissing(io.FileSystemException e) {
+    // ENOENT on POSIX; ERROR_FILE_NOT_FOUND / ERROR_PATH_NOT_FOUND on Windows.
+    return switch (e.osError?.errorCode) {
+      2 => true,
+      3 => platform.isWindows,
+      _ => false,
+    };
+  }
+
+  void _logUnreadable(List<(String, Object)> failures) {
+    for (final (path, error) in failures.take(5)) {
+      logger.err('  $path: $error');
+    }
+    if (failures.length > 5) {
+      logger.err('  ... and ${failures.length - 5} more');
     }
   }
 
@@ -674,6 +761,7 @@ class Analyzer implements AnalyzerChanges {
     Severity? severity = Severity.error,
   }) async {
     final futures = <Future<SomeErrorsResult?>>[];
+    final unchecked = <(String, Object)>[];
     AnalysisContext context;
     for (final file in files) {
       if (!fs.path.basename(file).endsWith('.dart')) {
@@ -682,13 +770,15 @@ class Analyzer implements AnalyzerChanges {
 
       try {
         context = analysisCollection.contextFor(file);
-      } catch (_) {
+      } catch (e) {
+        unchecked.add((file, e));
         continue;
       }
       futures.add(() async {
         try {
           return await context.currentSession.getErrors(file);
-        } catch (_) {
+        } catch (e) {
+          unchecked.add((file, e));
           return null;
         }
       }());
@@ -702,6 +792,18 @@ class Analyzer implements AnalyzerChanges {
           final sev => found.where((e) => e.severity == sev),
         });
       }
+    }
+
+    // An empty result reads as "this project is clean", and callers gate code
+    // generation on it. A file that could not be checked must not contribute
+    // to that verdict silently.
+    if (unchecked.isNotEmpty) {
+      logger.err(
+        'Could not check ${unchecked.length} '
+        '${unchecked.length == 1 ? 'file' : 'files'} for analysis errors; '
+        'the result below is incomplete.',
+      );
+      _logUnreadable(unchecked);
     }
 
     return errors;
