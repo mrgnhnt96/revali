@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 3.3.2 | 08.16.26
+
+### Fixes
+
+- **A file the analyzer could not read was recorded as a file that did not exist.** Setting up the analysis workspace mirrored every file in the project, its dependencies and the whole Dart SDK through a single unbounded `Future.wait`, each branch ending in `catch (_) { return null }`, and a null was then skipped when populating the overlay. Every in-flight read holds a file descriptor, so on a default limit — 256 on macOS, 1024 on most Linux distributions — the fan-out exhausted it and every read that lost was silently dropped: measured against this repository's own test suite, 2772 of 3787 files at a 1024 limit, among them every SDK source and the `libraries.dart` that tells the analyzer what `dart:core` is. The SDK is mirrored last, so it does not lose a coin toss, it loses every time — which is why the symptom presented as a corrupt SDK or an inexplicable `Target of URI doesn't exist` rather than as an I/O limit, and why it followed the machine rather than the project. Reads are now bounded, so descriptor use no longer scales with the size of the workspace. A path that genuinely does not exist is still skipped, since these lists come from a filesystem walk that races with ordinary edits; every other failure is reported, and a failed **SDK** read now aborts initialization outright instead of proceeding against a partial SDK and blaming the result on your code.
+- Mirror only the part of the SDK the analyzer can read — `lib/` and `version`, excluding `*.dill`, which is kernel for the VM and the web compilers rather than an analyzer summary. The previous walk pulled in `bin/` as well: the VM itself, the AOT snapshots and the bundled DevTools assets, none of which any analysis has ever opened. That is 610 files and 550.4 MiB reduced to 459 and 8.1 MiB, and because the overlay never evicts, the difference was resident for the entire life of a `revali dev` session rather than momentary. Initializing against this repository's test suite now peaks at roughly 4.5 GB where it previously peaked at roughly 6.7 GB.
+- Say so when a file cannot be checked for analysis errors. The same `catch (_)` sat on the error scan, whose empty result is what gates code generation — so a file that could not be analyzed was indistinguishable from a file with nothing wrong with it, and a run that had checked almost nothing reported a clean project and generated against it.
+
 ## 3.3.1 | 08.15.26
 
 ### Fixes
