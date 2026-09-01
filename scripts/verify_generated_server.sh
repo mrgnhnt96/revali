@@ -24,7 +24,19 @@
 # skipping it, delete the script instead, because what is left is the gate that
 # already failed.
 #
-# Usage: scripts/verify_generated_server.sh [--min N]
+# Discovery is by directory, not by a list. That is the point: the three suites
+# lifecycle/, messaging/ and worker_isolates/ existed, had routes and tests, and
+# were simply never added to the hand-written `test-suite:revali_server`
+# enumeration in scripts.yaml -- so nothing ever generated them and their tests
+# could not compile. A gate that reads the same list the generator reads cannot
+# see a package missing from that list.
+#
+# Usage: scripts/verify_generated_server.sh [--min N] [--generate-only]
+#
+# --generate-only stops after regeneration instead of delegating to
+# run_all_tests.sh. It exists for callers that already run the suite afterwards
+# (the pre-push hook, CI) so the tests are not run twice. It does NOT skip
+# regeneration -- see above.
 
 set -uo pipefail
 
@@ -32,10 +44,12 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 MIN_PACKAGES=10
+GENERATE_ONLY=0
 
 while [ $# -gt 0 ]; do
   case "$1" in
     --min) MIN_PACKAGES="$2"; shift 2 ;;
+    --generate-only) GENERATE_ONLY=1; shift ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
 done
@@ -95,6 +109,12 @@ if [ "$generated" -lt "$MIN_PACKAGES" ]; then
   echo "FAIL: only $generated package(s) regenerated, expected at least $MIN_PACKAGES."
   echo "Something stopped discovering them. That is a broken gate, not a pass."
   exit 1
+fi
+
+if [ "$GENERATE_ONLY" -eq 1 ]; then
+  echo
+  echo "OK: every package under $SUITE regenerated."
+  exit 0
 fi
 
 echo

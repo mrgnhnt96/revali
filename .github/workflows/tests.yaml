@@ -46,6 +46,14 @@ jobs:
       - name: Resolve remaining dependencies
         run: sip pub get --recursive --no-version-check
 
+      # The generate step above walks the hand-written
+      # `test-suite:revali_server` list in scripts.yaml, so a suite that exists
+      # on disk but is missing from that list never gets generated and its
+      # tests cannot compile. This discovers packages by looking for `routes/`
+      # instead. `--generate-only` because the step below runs the suite.
+      - name: Verify every server suite generates
+        run: ./scripts/verify_generated_server.sh --generate-only
+
       # Runs `dart test` per package, and fails when fewer packages ran than
       # expected -- so a run that discovers nothing cannot report success.
       - name: Run all tests

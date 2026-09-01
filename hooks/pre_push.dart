@@ -18,6 +18,23 @@ Hook main() {
               'cd test_suite && dart pub get',
             ],
           ),
+          ShellTask.always(
+            name: 'Verify Generated Server',
+            commands: (files) {
+              // The generate step above walks the hand-written
+              // `test-suite:revali_server` list in scripts.yaml. A suite that
+              // exists on disk but was never added to that list is invisible
+              // to it -- which is how lifecycle/, messaging/ and
+              // worker_isolates/ reached main with no generated server and
+              // tests that could not compile.
+              //
+              // This script discovers packages by looking for `routes/`
+              // instead, so the list cannot be the thing that decides what
+              // gets checked. `--generate-only` because 'Run All Tests' below
+              // already runs the suite.
+              return ['./scripts/verify_generated_server.sh --generate-only'];
+            },
+          ),
           ParallelTasks(
             exclude: [Glob('**/example/**.dart')],
             tasks: [
