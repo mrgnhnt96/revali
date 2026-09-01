@@ -19,20 +19,20 @@ Hook main() {
             ],
           ),
           ShellTask.always(
-            name: 'Verify Generated Server',
+            name: 'Verify Generated Suites',
             commands: (files) {
               // The generate step above walks the hand-written
-              // `test-suite:revali_server` list in scripts.yaml. A suite that
-              // exists on disk but was never added to that list is invisible
-              // to it -- which is how lifecycle/, messaging/ and
-              // worker_isolates/ reached main with no generated server and
-              // tests that could not compile.
+              // `test-suite:revali_server` and `test-suite:revali_client`
+              // lists in scripts.yaml. A suite that exists on disk but was
+              // never added to one of them is invisible to it -- which is how
+              // lifecycle/, messaging/ and worker_isolates/ reached main with
+              // no generated server and tests that could not compile.
               //
               // This script discovers packages by looking for `routes/`
               // instead, so the list cannot be the thing that decides what
               // gets checked. `--generate-only` because 'Run All Tests' below
               // already runs the suite.
-              return ['./scripts/verify_generated_server.sh --generate-only'];
+              return ['./scripts/verify_generated_suites.sh --generate-only'];
             },
           ),
           ParallelTasks(
