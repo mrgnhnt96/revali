@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 5.1.2 | 09.01.26
+
+### Fixes
+
+- **Refusing a request cost more than serving one.** A `5xx` the application authored on purpose — the `503` a catcher sheds load with, an `HttpError.internal` thrown deliberately, a guard's `.block()` or a middleware's `.stop()` at or above `500` — was logged with its full stack trace, unconditionally, through a bare `print`. `Trace.format` parses every frame and `print` is synchronous, so the line cost about 2ms per response in an AOT build against roughly a third of a millisecond to serve a successful request, and it was paid on exactly the path whose volume peaks when the server has the least to spare. An app with a bounded write queue measured a clean knee at its bound: successful throughput fell ~50× one step past it, and the server completed *fewer* requests in total above the knee than below, because shedding fed the saturation it was meant to relieve. There was no logger, level or switch to turn it off; the only workaround was to throw every expected `5xx` with `StackTrace.empty`, which is impossible where the throw site is not the app's. The component that chose the status already knows why, so an authored `5xx` is now logged only when `debug` is on — under `revali dev`, where the console is what the developer is watching — and delivered silently in a released build, the same way a `4xx` always was. This reverses the 5.1.1 note that a `5xx` reaches the operator on both paths: an exception no catcher claimed, a bare `ExceptionCatcherResult.handled()` that authored nothing, and every other crash still log with their trace, since that is the case the log exists for. Independently, the log line no longer parses a trace that has no frames, so an app that already throws with `StackTrace.empty` gets the cheap path too.
+
 ## 5.1.1 | 08.17.26
 
 ### Fixes
