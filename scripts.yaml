@@ -217,7 +217,10 @@ unit-test:
 spell_check: cspell "./doc-site/content/**/*" --config ".github/cspell/cspell.json"
 
 publish:
-  (bail):
+  # Not a bare `(bail):` -- an empty YAML value is null, which sip reads as
+  # false, so every step ran regardless of the one before it and a red
+  # run_all_tests.sh published anyway. `sip validate` flags the bare form.
+  (bail): true
   (env):
     vars:
       GEN_ONLY: true
