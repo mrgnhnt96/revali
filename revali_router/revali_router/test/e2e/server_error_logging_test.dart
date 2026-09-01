@@ -144,6 +144,123 @@ void main() {
       expect(printed, isEmpty);
     });
   });
+
+  // A 5xx the app wrote is not a crash: the component that chose the status
+  // knows why, and a trace per response is paid on the path whose volume is
+  // highest exactly when the server has the least to spare.
+  group('authored server errors stay quiet', () {
+    test('a catcher shedding load with a 503 is not logged', () async {
+      late Response response;
+
+      final printed = await capturePrints(() async {
+        await testRequest(
+          TestRoute(
+            catchers: [_SheddingCatcher()],
+            handler: (context) async {
+              throw _AppException();
+            },
+          ),
+          verifyResponse: (r, context) => response = r,
+        );
+      });
+
+      // The response the app authored is still delivered as written...
+      expect(response.statusCode, HttpStatus.serviceUnavailable);
+      expect(response.body.data, {'error': 'shedding'});
+      // ...and costs the operator nothing: no line, so no frames formatted.
+      expect(printed, isEmpty);
+    });
+
+    test('an uncaught HttpError carrying a 5xx is not logged', () async {
+      late Response response;
+
+      final printed = await capturePrints(() async {
+        await testRequest(
+          TestRoute(
+            handler: (context) async {
+              throw const HttpError.internal(
+                code: 'upstream_down',
+                message: 'try later',
+              );
+            },
+          ),
+          verifyResponse: (r, context) => response = r,
+        );
+      });
+
+      expect(response.statusCode, HttpStatus.internalServerError);
+      expect(printed, isEmpty);
+    });
+
+    test('a bare handled() still owes the operator a trace', () async {
+      // Claiming an exception without writing a status or a body authors
+      // nothing, so the generic 500 that results is still a crash to log.
+      final printed = await capturePrints(() async {
+        await testRequest(
+          TestRoute(
+            catchers: [_BareCatcher()],
+            handler: (context) async {
+              throw _AppException();
+            },
+          ),
+          verifyResponse: (r, context) {
+            expect(r.statusCode, HttpStatus.internalServerError);
+          },
+        );
+      });
+
+      expect(printed, hasLength(1));
+      expect(printed.single, contains('server_error_logging_test.dart'));
+    });
+
+    test('debug: true still logs it, alongside the body detail', () async {
+      // Under `revali dev` the console is where the developer is looking, and
+      // dev throughput is nobody's bottleneck.
+      final printed = await capturePrints(() async {
+        await testRequest(
+          TestRoute(
+            debug: true,
+            catchers: [_SheddingCatcher()],
+            handler: (context) async {
+              throw _AppException();
+            },
+          ),
+          verifyResponse: (r, context) {
+            expect(r.statusCode, HttpStatus.serviceUnavailable);
+          },
+        );
+      });
+
+      expect(printed, hasLength(1));
+      expect(printed.single, startsWith('Request failed: '));
+    });
+  });
+
+  group('an empty stack trace', () {
+    test('is logged as the error alone, with no frames parsed', () async {
+      // An app that throws with `StackTrace.empty` has made that path cheap
+      // on purpose; parsing an empty string is not free and formats nothing.
+      final printed = await capturePrints(() async {
+        await testRequest(
+          TestRoute(
+            handler: (context) async {
+              Error.throwWithStackTrace(
+                StateError('no frames'),
+                StackTrace.empty,
+              );
+            },
+          ),
+          verifyResponse: (r, context) {
+            expect(r.statusCode, HttpStatus.internalServerError);
+          },
+        );
+      });
+
+      expect(printed, hasLength(1));
+      // Exactly the error line: no trailing newline, no frames after it.
+      expect(printed.single, 'Request failed: Bad state: no frames');
+    });
+  });
 }
 
 class _AppException implements Exception {}
@@ -157,6 +274,29 @@ base class _AppCatcher extends ExceptionCatcher<_AppException> {
       const ExceptionCatcherResult.handled(
         statusCode: HttpStatus.unauthorized,
       );
+}
+
+/// Writes a status and an envelope of its own: an authored response.
+base class _SheddingCatcher extends ExceptionCatcher<_AppException> {
+  @override
+  ExceptionCatcherResult<_AppException> catchException(
+    _AppException exception,
+    Context context,
+  ) =>
+      const ExceptionCatcherResult.handled(
+        statusCode: HttpStatus.serviceUnavailable,
+        body: {'error': 'shedding'},
+      );
+}
+
+/// Claims the exception but writes nothing, leaving the status to the router.
+base class _BareCatcher extends ExceptionCatcher<_AppException> {
+  @override
+  ExceptionCatcherResult<_AppException> catchException(
+    _AppException exception,
+    Context context,
+  ) =>
+      const ExceptionCatcherResult.handled();
 }
 
 class _BlockingGuard implements Guard {
