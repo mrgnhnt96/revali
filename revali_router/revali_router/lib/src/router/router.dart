@@ -242,7 +242,7 @@ class Router extends Equatable {
     //
     // Client errors stay quiet: a 404, a blocked CORS origin, a guard
     // refusing a caller are routine and expected, and the access log already
-    // records them.
+    // records them. So is a 5xx the app authored -- see [_authoredResponse].
     final isServerError = response.statusCode >= 500;
     if (isServerError) {
       _logServerError(error, stackTrace);
@@ -264,20 +264,25 @@ class Router extends Equatable {
   /// [HttpError], a guard or middleware that stopped the request with a body.
   ///
   /// Nothing here is a crash leaking outward -- the app chose every part of
-  /// it -- so it is delivered as written whether or not [debug] is on. Only
-  /// the debug detail differs, which is the one thing this and
-  /// [_debugResponse] still share.
+  /// it -- so it is delivered as written whether or not [debug] is on, and
+  /// it is not logged unless [debug] is on. The component that wrote the
+  /// status already knows why, so a trace here tells an operator nothing it
+  /// could not have logged itself, and it is paid per response on the one
+  /// path whose volume peaks when the server has the least to spare: a `503`
+  /// shed under load was costing more to refuse than a request cost to
+  /// serve, which turns load shedding into a source of load. Only the debug
+  /// detail is shared with [_debugResponse].
   Response _authoredResponse(
     Response response, {
     required Object error,
     required StackTrace stackTrace,
   }) {
-    if (response.statusCode >= 500) {
-      _logServerError(error, stackTrace);
-    }
-
     if (!debug) {
       return response;
+    }
+
+    if (response.statusCode >= 500) {
+      _logServerError(error, stackTrace);
     }
 
     return _withErrorDetail(response, error: error, stackTrace: stackTrace);
@@ -309,8 +314,15 @@ class Router extends Equatable {
   /// mutually exclusive -- an error handled here never reaches that catch --
   /// so a request produces at most one of these lines.
   void _logServerError(Object error, StackTrace stackTrace) {
+    // Parsing the frames is most of what this line costs. A trace with none
+    // -- `StackTrace.empty`, which an app throws with on purpose to make a
+    // path cheap -- has nothing to parse, so it is not sent to the parser.
+    final frames = stackTrace.toString();
+    final detail =
+        frames.trim().isEmpty ? '' : '\n${Trace.parse(frames).terse}';
+
     // ignore: avoid_print
-    print('Request failed: $error\n${Trace.format(stackTrace)}');
+    print('Request failed: $error$detail');
   }
 
   Future<ResponseHandler> responseHandler(RequestContext context) async {
