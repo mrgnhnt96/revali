@@ -96,3 +96,8 @@ graphify-out/
 
 # handoff: session scaffolding, not project documentation
 .claude/handoff/
+
+# Added by saggar — local files that shouldn't be committed
+.saggar/**/*.local.*
+.saggar/scratchpad.md
+.saggar/jobs/
