@@ -429,6 +429,9 @@ test-suite:
       - (+) {$test-suite:revali_server:sse}
       - (+) {$test-suite:revali_server:sse_custom}
       - (+) {$test-suite:revali_server:meta-reflect}
+      - (+) {$test-suite:revali_server:lifecycle}
+      - (+) {$test-suite:revali_server:messaging}
+      - (+) {$test-suite:revali_server:worker-isolates}
     _package: |
       TEST_DIR=test_suite/constructs/revali_server/$DIR
       if [ -n "{--test}" ]; then
@@ -476,6 +479,15 @@ test-suite:
       {$test-suite:revali_server:_package}
     meta-reflect: |
       DIR=meta_reflect
+      {$test-suite:revali_server:_package}
+    lifecycle: |
+      DIR=lifecycle
+      {$test-suite:revali_server:_package}
+    messaging: |
+      DIR=messaging
+      {$test-suite:revali_server:_package}
+    worker-isolates: |
+      DIR=worker_isolates
       {$test-suite:revali_server:_package}
 
   revali_swagger:
