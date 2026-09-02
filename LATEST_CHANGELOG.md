@@ -6,6 +6,13 @@
 
 # revali
 
+## 3.3.3
+
+### Fixes
+
+- **`dart run revali dev --generate-only` exited 0 no matter what happened.** It emitted a server against source that does not even parse and reported success: appending one line of invalid Dart to a route file printed 14 analysis errors, wrote the server anyway, and exited 0. Anything reading that exit code as the verdict — a CI step, a pre-push hook, a script that regenerates before running the suite — was reading a constant, and the real failure only surfaced later as a compile error in whatever consumed the generated output, at which point it no longer points at the generator. Generation now stops on analysis errors and reports them, which is what the watch path already did on every reload and file change.
+- Propagate the construct runner's exit code. `ConstructEntrypointHandler.run` collected the value the constructs isolate reported and then returned void, so `revali dev`, `revali build` and `revali routes --generate` each awaited it and returned a literal 0 — no failure inside the construct runner could reach the shell. Two smaller holes in the same path went with it: the error listener's guard never fired, because it tested for `0` on a field that is null until the isolate reports something, so an isolate that errored before sending anything read as success; and `revali routes --generate` went on to read the manifest after a failed generation, reporting on whatever the previous run had left on disk.
+
 ## 3.3.2
 
 ### Fixes
