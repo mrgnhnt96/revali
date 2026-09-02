@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 3.0.1 | 09.01.26
+
+### Fixes
+
+- **Percent-encode query keys and values.** `RevaliClient.request` wrote every key and value into the URL verbatim and handed the result to `Uri.parse`, so any character that means something in a query string was read as syntax rather than data: a `#` truncated the value and silently moved the rest into the URI fragment, an `&` truncated it and left the remainder as a bogus extra parameter, and a `+` arrived as a space. The expensive part is where it surfaces — the client sends a request that looks fine and exits 0, and the failure appears two packages away as a deserialization error from the server, which decodes with `Uri.queryParametersAll` and so is reading exactly what it was sent. A record id containing `#` inside a JSON-encoded query parameter cut the JSON mid-string and came back as a `400` complaining about the wrong Dart type, nowhere near the call site that supplied the id. Keys and values now go through `Uri.encodeQueryComponent`, which is the exact inverse of the router's decode.
+- Stop emitting an empty pair after a list or a null. The list branch wrote a `&` after *every* element while the outer loop added its own separator between entries, so `{'a': [1, 2], 'b': 3}` produced `?a=1&a=2&&b=3`; a null value skipped its pair but still got a separator. Pairs are now collected and joined, so exactly one `&` sits between them.
+- Stop swallowing a `jsonEncode` failure. A value `jsonEncode` could not represent was caught and replaced with its `toString()`, putting `Instance of 'Foo'` on the wire as though it were the value and turning a mistake at the call site into a puzzling server-side error. The error now propagates.
+
 ## 3.0.0 | 08.15.26
 
 ### Breaking Changes
