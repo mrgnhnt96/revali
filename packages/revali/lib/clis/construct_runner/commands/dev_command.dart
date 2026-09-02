@@ -71,6 +71,11 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
       mode: mode,
     );
 
+    // Nothing below this point applies to a run that stops after generating.
+    if (profile || generateOnly) {
+      return _generateOnce(generator);
+    }
+
     final root = await generator.root;
     final revaliConfig = await generator.revaliConfig;
 
@@ -91,19 +96,6 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
     ];
 
     logger.detail('Hot reload exclude: $hotReloadExclude');
-
-    if (profile || generateOnly) {
-      final progress = TickedProgress(
-        'Generating server code',
-        level: logger.level,
-      );
-
-      await generator.generate(logger.delayed);
-
-      progress.complete('Generated server code');
-
-      return 0;
-    }
 
     final serverHandler = VMServiceHandler(
       root: root,
@@ -126,5 +118,53 @@ class DevCommand extends Command<int> with DirectoriesMixin, DartDefinesMixin {
 
     await serverHandler.start(enableHotReload: !runInRelease);
     return serverHandler.exitCode;
+  }
+
+  /// Generates once, and reports whether the project it generated from
+  /// actually analyses.
+  ///
+  /// This used to `return 0` unconditionally. `dart run revali dev
+  /// --generate-only` emitted a server against source that does not even
+  /// parse and still exited 0, so every caller that reads the exit code as the
+  /// verdict -- scripts/verify_generated_suites.sh, CI, the pre-push hook --
+  /// took "the generator produced a server" to mean "the project is sound".
+  /// The failure surfaced much later, as a compile error in whatever consumed
+  /// the output, at which point it no longer points at the generator.
+  ///
+  /// The check runs BEFORE generating, which is what the watch path already
+  /// does on every reload and file change (see `checkForErrors` in
+  /// vm_service_handler.dart). Output written from source that does not
+  /// analyse is not output anyone should act on, and it is the same reason
+  /// `_generate` discards its staging directory rather than publishing a
+  /// half-built one: leaving the previous generation in place is the more
+  /// honest state on disk.
+  Future<int> _generateOnce(ConstructGenerator generator) async {
+    final errors = await routesHandler.errors();
+
+    if (errors.isNotEmpty) {
+      final count = errors.fold(0, (sum, e) => sum + e.$2.length);
+
+      logger.err('Found $count ${count == 1 ? 'error' : 'errors'}');
+      for (final (path, errors) in errors) {
+        logger.write('\n${yellow.wrap(path)}\n');
+        for (final error in errors) {
+          logger.write('${red.wrap('  -')} ${error.message}\n');
+        }
+      }
+      logger.write('\n');
+
+      return 1;
+    }
+
+    final progress = TickedProgress(
+      'Generating server code',
+      level: logger.level,
+    );
+
+    await generator.generate(logger.delayed);
+
+    progress.complete('Generated server code');
+
+    return 0;
   }
 }
