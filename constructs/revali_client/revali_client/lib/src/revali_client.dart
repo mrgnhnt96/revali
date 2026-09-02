@@ -59,7 +59,7 @@ class RevaliClient {
         return '';
       }
 
-      final buffer = StringBuffer();
+      final pairs = <String>[];
 
       void write(String key, dynamic value) {
         if (value == null) return;
@@ -67,31 +67,33 @@ class RevaliClient {
         if (value is List) {
           for (final e in value) {
             write(key, e);
-            buffer.write('&');
           }
-        } else {
-          buffer.write('$key=');
-          try {
-            switch (value) {
-              case String():
-                buffer.write(value);
-              case _:
-                buffer.write(jsonEncode(value));
-            }
-          } catch (_) {
-            buffer.write('$value');
-          }
+          return;
         }
+
+        // Percent encoded because the far side decodes: the router reads
+        // `Uri.queryParametersAll`, so anything written raw here is read as
+        // syntax there. A `#` in a value truncates the request at the client
+        // and surfaces as a deserialization error on the server, which is a
+        // long way from the call site that supplied the value.
+        //
+        // jsonEncode is allowed to throw: a value it cannot represent is a
+        // mistake at the call site, and its `toString()` would be sent as if
+        // it were the value.
+        final encoded = switch (value) {
+          String() => value,
+          _ => jsonEncode(value),
+        };
+
+        pairs.add(
+          '${Uri.encodeQueryComponent(key)}'
+          '=${Uri.encodeQueryComponent(encoded)}',
+        );
       }
 
-      for (final (index, MapEntry(:key, value: rawValue))
-          in query.entries.indexed) {
-        write(key, rawValue);
+      query.forEach(write);
 
-        if (index < query.length - 1) {
-          buffer.write('&');
-        }
-      }
+      final buffer = pairs.join('&');
 
       if (buffer.isEmpty) {
         return '';
