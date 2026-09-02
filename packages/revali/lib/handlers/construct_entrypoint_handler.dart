@@ -491,7 +491,15 @@ ${result.stderr}''');
     return kernel;
   }
 
-  Future<void> run(Iterable<String> args) async {
+  /// Runs the constructs entrypoint and returns the exit code it reported.
+  ///
+  /// This used to return `void`. Every piece of the plumbing already existed --
+  /// the generated `main` sends its result over the message port, and the
+  /// listener below stores it in `scriptExitCode` -- and then the value was
+  /// dropped on the floor, so `dart run revali dev --generate-only` exited 0
+  /// no matter what the construct runner decided. Callers reading the exit
+  /// code as the verdict were reading a constant.
+  Future<int> run(Iterable<String> args) async {
     ReceivePort? exitPort;
     ReceivePort? errorPort;
     ReceivePort? messagePort;
@@ -536,7 +544,10 @@ ${result.stderr}''');
           ..info('--------')
           ..info('$error')
           ..info(trace.toString());
-        if (scriptExitCode == 0) scriptExitCode = 1;
+        // `scriptExitCode` is null until the isolate reports one, so the
+        // original `== 0` guard never fired: an isolate that errored before
+        // sending anything left it null, and null read as success.
+        if ((scriptExitCode ?? 0) == 0) scriptExitCode = 1;
       });
       try {
         await Isolate.spawnUri(
@@ -602,6 +613,8 @@ ${result.stderr}''');
     await exitPort?.first;
     await errorListener?.cancel();
     await exitCodeListener?.cancel();
+
+    return scriptExitCode ?? 0;
   }
 
   String entrypointContent(

@@ -141,8 +141,9 @@ $args''';
 
     logger.write('\n');
 
-    await _generator.run(constructRunnerArgs);
-
-    return 0;
+    // The construct runner's own exit code, not a constant: it is what says
+    // whether generation actually succeeded, and for a real `dev` run it is
+    // the server's exit code.
+    return _generator.run(constructRunnerArgs);
   }
 }

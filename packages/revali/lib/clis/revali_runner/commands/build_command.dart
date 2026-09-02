@@ -52,8 +52,6 @@ class BuildCommand extends Command<int> with ConstructRunnerArgs {
 
     logger.write('\n');
 
-    await _generator.run(constructRunnerArgs);
-
-    return 0;
+    return _generator.run(constructRunnerArgs);
   }
 }

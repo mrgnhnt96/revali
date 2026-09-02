@@ -50,7 +50,14 @@ class RoutesCommand extends Command<int> {
       try {
         final shouldRun = await _generator.generate();
         if (shouldRun) {
-          await _generator.run(const ['dev', '--generate-only']);
+          final code = await _generator.run(const ['dev', '--generate-only']);
+
+          // Reading the manifest after a failed generation reports on
+          // whatever the previous run left behind, which is the stale answer
+          // this command exists to avoid.
+          if (code != 0) {
+            return code;
+          }
         }
       } catch (e) {
         logger.err('Failed to generate: $e');
