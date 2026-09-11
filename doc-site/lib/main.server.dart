@@ -149,6 +149,17 @@ final class RevaliDocsLayout extends DocsLayout {
     yield meta(attributes: {'property': 'og:type'}, content: 'website');
     yield meta(attributes: {'property': 'og:site_name'}, content: 'Revali');
     yield meta(name: 'twitter:card', content: 'summary_large_image');
+
+    // Analytics goes here, and NOT in a `Document.head` inside a component the
+    // way `Callout` and `DocsSidebar` inject their `Style`. `buildHead` is
+    // called from `PageLayoutBase.buildLayout`, which is the only place
+    // jaspr_content builds a `Document` at all -- so it runs exactly once per
+    // page, on every page. A component runs once per *instance*, and Jaspr
+    // only merges duplicate head children that carry an `id`, or that are
+    // `<title>`/`<base>`/`<meta name=...>`; everything else is appended
+    // verbatim each time it appears. A `<script>` is none of those, so the
+    // component route would load PostHog once per callout on the page.
+    yield script(content: _posthogSnippet);
   }
 
   @override
@@ -212,6 +223,35 @@ final class RevaliDocsLayout extends DocsLayout {
     ]);
   }
 }
+
+/// PostHog's published install snippet, followed by this site's `init` call.
+///
+/// The minified stub is copied from PostHog verbatim and is deliberately not
+/// reformatted or hand-edited. It does two things that look incidental and are
+/// not: it queues any call made before `array.js` finishes loading, and it
+/// derives the static asset host from `api_host` by string replacement --
+/// `https://us.i.posthog.com` becomes `https://us-assets.i.posthog.com`. Edit
+/// the shape of either and the other stops working.
+///
+/// Raw, not escaped: `script(content:)` wraps its content in a `RawText`, which
+/// is what keeps `n<o.length` from rendering as `n&lt;o.length`. An escaped
+/// snippet is still valid HTML and simply never executes, so this is a failure
+/// that only shows up as silence in the dashboard.
+///
+/// `phc_...` is the *public* project key, not a secret. The `phc_` prefix marks
+/// it write-only and client-side; it is designed to ship in client HTML, so it
+/// is committed in plain source rather than routed through an environment
+/// variable or a build-time substitution.
+///
+/// Two settings are deliberate:
+/// - `disable_session_recording: true` -- the free plan's 5k/month replay
+///   budget is shared across every Revali site, and docs pageviews are not
+///   what it should be spent on.
+/// - persistence is left at its cookie default. Switching it to `'memory'`
+///   would make the unique-visitor count meaningless, since every page load
+///   would be a new visitor.
+const _posthogSnippet =
+    r'''!function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);posthog.init('phc_JvQSPxWXO7nPNdqPEp1i1341AblCBRWZRpS0kKWRheu',{api_host:'https://us.i.posthog.com',disable_session_recording:true});''';
 
 /// Previous/next links along the reading order defined in [flatNavigation].
 final class _PageNav extends StatelessComponent {
