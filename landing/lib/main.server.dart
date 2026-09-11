@@ -40,21 +40,34 @@ class _Site extends StatelessComponent {
       title: _title,
       lang: 'en',
       viewport: 'width=device-width, initial-scale=1',
+      // Everything in this map renders as `name=`, which is why no `og:` tag is
+      // in it — see the block in `head:` below.
       meta: {
         'description': _description,
         'theme-color': '#07080c',
-        'og:type': 'website',
-        'og:site_name': 'Revali',
-        'og:title': _title,
-        'og:description': _description,
-        'og:url': _url,
-        'og:image': _image,
+        // `twitter:*` genuinely is a `name=` vocabulary, per X's card spec, so
+        // these belong here and not with the og tags.
         'twitter:card': 'summary_large_image',
         'twitter:title': _title,
         'twitter:description': _description,
         'twitter:image': _image,
       },
       head: [
+        // Open Graph is RDFa, so it is only valid — and only parsed — as
+        // `property="og:…"`. Jaspr's `meta:` map cannot express that: it builds
+        // every entry as `{'name': key, 'content': value}` and the attribute
+        // name is not a function of the key, so an `og:` entry in the map above
+        // emits `name="og:image"`, which a parser normalising on `property`
+        // reads as no og:image at all. That is what dropped the image from the
+        // X link card and demoted it to the small `summary` layout. Do not
+        // "tidy" these back into the map. `doc-site/lib/main.server.dart` emits
+        // its per-page og tags the same way for the same reason.
+        meta(attributes: {'property': 'og:type'}, content: 'website'),
+        meta(attributes: {'property': 'og:site_name'}, content: 'Revali'),
+        meta(attributes: {'property': 'og:title'}, content: _title),
+        meta(attributes: {'property': 'og:description'}, content: _description),
+        meta(attributes: {'property': 'og:url'}, content: _url),
+        meta(attributes: {'property': 'og:image'}, content: _image),
         link(rel: 'icon', href: '/favicon.png', attributes: {'type': 'image/png'}),
         link(rel: 'canonical', href: _url),
         link(rel: 'stylesheet', href: '/styles.css'),
