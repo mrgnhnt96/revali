@@ -93,9 +93,14 @@ abstract class CommonHeadersMixin extends Headers {
     return get(HttpHeaders.acceptRangesHeader);
   }
 
+  /// The `Origin` request header.
+  ///
+  /// Never falls back to `Access-Control-Allow-Origin`: that is a response
+  /// header, and a client that sends one could otherwise claim an allowed
+  /// origin to `@AllowOrigins`.
   @override
   String? get origin {
-    return get(HttpHeaders.accessControlAllowOriginHeader) ?? get('origin');
+    return get('origin');
   }
 
   @override

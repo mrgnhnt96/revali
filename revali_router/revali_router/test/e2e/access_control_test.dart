@@ -99,6 +99,28 @@ void main() {
         );
       });
 
+      test('a client-sent Access-Control-Allow-Origin is not read as the '
+          'origin', () async {
+        await startServer(
+          routes: [
+            endpoint(
+              'data',
+              allowedOrigins: const AllowOrigins({'https://myapp.com'}),
+            ),
+          ],
+        );
+
+        final response = await send(
+          'data',
+          headers: {
+            'origin': 'https://evil.io',
+            'access-control-allow-origin': 'https://myapp.com',
+          },
+        );
+
+        expect(response.statusCode, 403);
+      });
+
       test('a plain origin still admits itself exactly', () async {
         expect(
           await statusFor({'https://myapp.com'}, 'https://myapp.com'),
