@@ -100,11 +100,6 @@ abstract interface class Pipe<T, R> {
 
 - When the parameter is a `List`, the pipe runs once per element and receives single values.
 - If the parameter has a default value, the default is used when the raw value is `null` or the pipe throws.
-
-<Callout type="caution">
-
-Query values are type-coerced before the pipe sees them: `?id=42` arrives as the `int` `42`, not `"42"`. A `Pipe<String, T>` on a query value then fails with an `ArgumentError`. For query values that may look numeric or boolean, declare the input as `Object` (or `Object?`) and convert inside the pipe. Path, header and cookie values are always `String`.
-
-</Callout>
+- A pipe whose input type is `String` (or `String?`) on a query value receives the raw string exactly as sent: `?id=42` arrives as `"42"` and `?id=1.50` as `"1.50"`. A pipe with any other input type, such as `Object`, receives the type-coerced value (`?id=42` arrives as the `int` `42`). Path, header and cookie values are always `String`.
 
 Next: [Binding](/constructs/revali_server/core/binding) · [Request](/constructs/revali_server/request)
