@@ -55,7 +55,7 @@ Map<String, Object?> _routeEntry(
     // The name only. This manifest describes a route *surface*, not a type
     // model: it carries no fields, no nested types and no serialisation
     // strategy, so it can tell a consumer that a response changed shape at
-    // the top level and cannot generate a client. See MICROSERVICES_PLAN.md.
+    // the top level and cannot generate a client.
     //
     // Reported unwrapped: what a caller receives is the awaited value, so
     // `Future<String>` and `String` are the same contract. Leaving the wrapper
