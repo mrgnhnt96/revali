@@ -52,7 +52,16 @@ class Find {
             return orderCompare;
           }
 
-          return a.path.compareTo(b.path);
+          final pathCompare = a.path.compareTo(b.path);
+          if (pathCompare != 0) {
+            return pathCompare;
+          }
+
+          // A route declared for this exact method beats GET answering
+          // HEAD, regardless of declaration order.
+          int methodOrder(BaseRoute route) => route.method == method ? 0 : 1;
+
+          return methodOrder(a).compareTo(methodOrder(b));
         });
 
       for (final route in sorted) {

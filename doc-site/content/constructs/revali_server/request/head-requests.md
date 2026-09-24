@@ -34,10 +34,6 @@ class ExportsController {
 }
 ```
 
-<Callout type="caution">
-
-The router does not define which route wins when a `@Head` route and a `@Get` route share the same path. Use `@Head` on paths without a `GET`, or rely on the automatic handling.
-
-</Callout>
+When a `@Head` route and a `@Get` route share a path, the `@Head` route answers `HEAD` requests and the `@Get` route answers `GET`, whichever is declared first. The automatic handling applies only to `GET` routes with no `@Head` on the same path.
 
 `GET` routes also list `HEAD` in the `Allow` header of [OPTIONS](/constructs/revali_server/request/options-requests) responses.

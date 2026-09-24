@@ -275,6 +275,36 @@ void main() {
           expect(response.statusCode, isNot(HttpStatus.notFound));
         });
 
+        for (final headFirst in [true, false]) {
+          final order =
+              headFirst ? 'HEAD declared first' : 'GET declared first';
+
+          test('explicit HEAD route beats GET for HEAD ($order)', () async {
+            var invoked = '';
+            final get = Route(
+              'ping',
+              method: 'GET',
+              handler: (_) async => invoked = 'get',
+            );
+            final head = Route(
+              'ping',
+              method: 'HEAD',
+              handler: (_) async => invoked = 'head',
+            );
+            final router = Router(
+              routes: [
+                Route('api', routes: headFirst ? [head, get] : [get, head]),
+              ],
+            );
+
+            final context = _MockRequest()..stub('api/ping', method: 'HEAD');
+            final response = await router.handle(context);
+
+            expect(response.statusCode, HttpStatus.ok);
+            expect(invoked, 'head');
+          });
+        }
+
         test('still resolves dynamic routes when static misses', () async {
           final context = _MockRequest()..stub('api/42');
           final response = await router.handle(context);

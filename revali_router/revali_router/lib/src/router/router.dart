@@ -135,7 +135,9 @@ class Router extends Equatable {
         final method = route.method!;
         _staticRoutes['$method $path'] = route;
         if (method == 'GET') {
-          _staticRoutes['HEAD $path'] = route;
+          // GET answers HEAD only when no explicit HEAD route exists; an
+          // explicit one wins whichever order the two were declared in.
+          _staticRoutes.putIfAbsent('HEAD $path', () => route);
         }
       }
     }

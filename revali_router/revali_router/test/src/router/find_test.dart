@@ -24,6 +24,75 @@ void main() {
       expect(result?.route, getter);
     });
 
+    group('explicit HEAD route alongside GET on the same path', () {
+      for (final headFirst in [true, false]) {
+        final order = headFirst ? 'HEAD declared first' : 'GET declared first';
+
+        test('HEAD request prefers the HEAD route ($order)', () {
+          final getter = Route('user', method: 'GET', handler: (_) async {});
+          final header = Route('user', method: 'HEAD', handler: (_) async {});
+          final router = Router(
+            routes: headFirst ? [header, getter] : [getter, header],
+          );
+
+          final head = Find(
+            segments: ['user'],
+            routes: router.routes,
+            method: 'HEAD',
+          ).run();
+          final get = Find(
+            segments: ['user'],
+            routes: router.routes,
+            method: 'GET',
+          ).run();
+
+          expect(head?.route, header);
+          expect(get?.route, getter);
+        });
+
+        test(
+            'HEAD request prefers the HEAD route on a dynamic path '
+            '($order)', () {
+          final getter = Route(':id', method: 'GET', handler: (_) async {});
+          final header = Route(':id', method: 'HEAD', handler: (_) async {});
+          final router = Router(
+            routes: headFirst ? [header, getter] : [getter, header],
+          );
+
+          final head = Find(
+            segments: ['1'],
+            routes: router.routes,
+            method: 'HEAD',
+          ).run();
+
+          expect(head?.route, header);
+        });
+
+        test(
+            'HEAD request prefers the HEAD route on the controller path '
+            '($order)', () {
+          final getter = Route('', method: 'GET', handler: (_) async {});
+          final header = Route('', method: 'HEAD', handler: (_) async {});
+          final router = Router(
+            routes: [
+              Route(
+                'user',
+                routes: headFirst ? [header, getter] : [getter, header],
+              ),
+            ],
+          );
+
+          final head = Find(
+            segments: ['user'],
+            routes: router.routes,
+            method: 'HEAD',
+          ).run();
+
+          expect(head?.route, header);
+        });
+      }
+    });
+
     test('should return null if no routes are provided', () {
       final result = const Find(
         segments: [],
