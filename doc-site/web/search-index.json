@@ -1128,7 +1128,7 @@
         {
           "h": "Applying a pipe",
           "a": "applying-a-pipe",
-          "b": "Source Pipe only Name / key path and pipe Path @Param.pipe(P) @Param('id', P) Query @Query.pipe(P) @Query('id', P) Query, all values @Query.allPipe(P) @Query.all('id', P) Header @Header.pipe(P) @Header('X-Id', P) Header, all values @Header.allPipe(P) @Header.all('X-Id', P) Cookie @Cookie.pipe(P) @Cookie('id', P) Body @Body.pipe(P) @Body(['user', 'id'], P) Client IP @Ip.pipe(P) When the parameter is a List, the pipe runs once per element and receives single values. If the parameter has a default value, the default is used when the raw value is null or the pipe throws. Query values are type-coerced before the pipe sees them: ?id=42 arrives as the int 42, not \"42\". A Pipe<String, T> on a query value then fails with an ArgumentError. For query values that may look numeric or boolean, declare the input as Object (or Object?) and convert inside the pipe. Path, header and cookie values are alwa"
+          "b": "Source Pipe only Name / key path and pipe Path @Param.pipe(P) @Param('id', P) Query @Query.pipe(P) @Query('id', P) Query, all values @Query.allPipe(P) @Query.all('id', P) Header @Header.pipe(P) @Header('X-Id', P) Header, all values @Header.allPipe(P) @Header.all('X-Id', P) Cookie @Cookie.pipe(P) @Cookie('id', P) Body @Body.pipe(P) @Body(['user', 'id'], P) Client IP @Ip.pipe(P) When the parameter is a List, the pipe runs once per element and receives single values. If the parameter has a default value, the default is used when the raw value is null or the pipe throws. A pipe whose input type is String (or String?) on a query value receives the raw string exactly as sent: ?id=42 arrives as \"42\" and ?id=1.50 as \"1.50\". A pipe with any other input type, such as Object, receives the type-coerced value (?id=42 arrives as the int 42). Path, header and cookie values are always String. Next: Bind"
         }
       ]
     },
@@ -1258,7 +1258,7 @@
         {
           "h": "@Head",
           "a": "head",
-          "b": "@Head([path]) declares a HEAD endpoint explicitly. Its handler runs like any other endpoint; set headers through the implied Headers parameter. Any body is dropped. import 'package:revali_router/revali_router.dart'; @Controller('exports') class ExportsController { const ExportsController(); @Head('latest') void latest(Headers headers) { headers.set('X-Export-Version', '42'); } } The router does not define which route wins when a @Head route and a @Get route share the same path. Use @Head on paths without a GET, or rely on the automatic handling. GET routes also list HEAD in the Allow header of OPTIONS responses."
+          "b": "@Head([path]) declares a HEAD endpoint explicitly. Its handler runs like any other endpoint; set headers through the implied Headers parameter. Any body is dropped. import 'package:revali_router/revali_router.dart'; @Controller('exports') class ExportsController { const ExportsController(); @Head('latest') void latest(Headers headers) { headers.set('X-Export-Version', '42'); } } When a @Head route and a @Get route share a path, the @Head route answers HEAD requests and the @Get route answers GET, whichever is declared first. The automatic handling applies only to GET routes with no @Head on the same path. GET routes also list HEAD in the Allow header of OPTIONS responses."
         }
       ]
     },
@@ -1290,7 +1290,7 @@
       "g": "Constructs",
       "s": [
         {
-          "b": "An endpoint's return value becomes the response body. Revali picks the wire format from the return type: most values are JSON-encoded and wrapped as {\"data\": ...}, while StringContent, bytes and streams are sent raw. To change the status code, headers or body from a lifecycle component, use the Response object."
+          "b": "An endpoint's return value becomes the response body. Revali picks the wire format from the return type: most values are JSON-encoded and wrapped as {\"data\": ...}, while StringContent, bytes, streams, File and MemoryFile are sent raw. To change the status code, headers or body from a lifecycle component, use the Response object."
         },
         {
           "h": "Minimal example",
@@ -1300,7 +1300,7 @@
         {
           "h": "Return types",
           "a": "return-types",
-          "b": "Return type Body Content-Type void, Future Empty, status 200 none String, int, double, bool {\"data\": value} application/json Map, List, Set, Iterable {\"data\": [...]} / {\"data\": {...}} application/json Class with toJson() {\"data\": toJson()} application/json Record (a, b) {\"data\": [a, b]} application/json Record ({a, b}) {\"data\": {\"a\": ..., \"b\": ...}} application/json Record (a, {b}) {\"data\": [a, {\"b\": ...}]} application/json StringContent The raw string text/plain List The raw bytes application/octet-stream Stream Each event written as it is produced; each event is encoded by the rules above application/octet-stream Future Same as T same as T Nested custom types are converted too: List , Map<String, User> and records containing User all call User.toJson(). class User { const User({required this.name}); final String name; Map<String, dynamic> toJson() => {'name': name}; } @Get('users') Lis"
+          "b": "Return type Body Content-Type void, Future Empty, status 200 none String, int, double, bool {\"data\": value} application/json Map, List, Set, Iterable {\"data\": [...]} / {\"data\": {...}} application/json Class with toJson() {\"data\": toJson()} application/json Record (a, b) {\"data\": [a, b]} application/json Record ({a, b}) {\"data\": {\"a\": ..., \"b\": ...}} application/json Record (a, {b}) {\"data\": [a, {\"b\": ...}]} application/json StringContent The raw string text/plain List The raw bytes application/octet-stream File (dart:io) The file's contents, as when assigning body from the file's extension MemoryFile The in-memory bytes, as when assigning body the given MIME type Stream Each event written as it is produced; each event is encoded by the rules above application/octet-stream Future Same as T same as T Nested custom types are converted too: List , Map<String, User> and records containing Use"
         },
         {
           "h": "Errors",
@@ -1310,7 +1310,7 @@
         {
           "h": "The Response object",
           "a": "the-response-object",
-          "b": "Response is available as an implied parameter in endpoints and lifecycle components, and as context.response. Member Type Use statusCode int (read/write) See Status code. headers Headers See Headers. headers.setCookies SetCookies See Cookies. body Body; setter takes any supported value Read with body.data, replace with body = value, add a key to a JSON body with body['key'] = value. Assigning body accepts the same values as a return type, plus dart:io File and MemoryFile. A File is streamed with Content-Type from its extension, Content-Disposition: attachment; filename=\"...\", Last-Modified, and Range support. A MemoryFile sends in-memory bytes with a given MIME type and file name: import 'dart:io'; @Get('report') void report(Response response) { response.body = File('reports/latest.pdf'); } @Get('export') void export(Response response) { response.body = MemoryFile.from( 'id,name\\n1,Ada\\n"
+          "b": "Response is available as an implied parameter in endpoints and lifecycle components, and as context.response. Member Type Use statusCode int (read/write) See Status code. headers Headers See Headers. headers.setCookies SetCookies See Cookies. body Body; setter takes any supported value Read with body.data, replace with body = value, add a key to a JSON body with body['key'] = value. Assigning body accepts the same values as a return type, including dart:io File and MemoryFile. A File is streamed with Content-Type from its extension, Content-Disposition: attachment; filename=\"...\", Last-Modified, and Range support. A MemoryFile sends in-memory bytes with a given MIME type and file name: import 'dart:io'; @Get('report') void report(Response response) { response.body = File('reports/latest.pdf'); } @Get('export') void export(Response response) { response.body = MemoryFile.from( 'id,name\\n1,"
         }
       ]
     },

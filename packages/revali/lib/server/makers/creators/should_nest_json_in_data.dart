@@ -13,5 +13,9 @@ bool shouldNestJsonInData(ServerType type) {
     return false;
   }
 
+  if (type.isFile) {
+    return false;
+  }
+
   return true;
 }

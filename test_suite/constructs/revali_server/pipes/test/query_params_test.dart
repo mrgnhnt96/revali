@@ -41,6 +41,48 @@ void main() {
       });
     });
 
+    test('user receives the raw string for numeric-looking values', () async {
+      final response = await server.send(
+        method: 'GET',
+        path: '/api/query/user?data=1.50',
+      );
+
+      expect(response.statusCode, HttpStatus.ok);
+      expect(response.body, {'data': '1.50'});
+    });
+
+    test('user receives the raw string for boolean values', () async {
+      final response = await server.send(
+        method: 'GET',
+        path: '/api/query/user?data=true',
+      );
+
+      expect(response.statusCode, HttpStatus.ok);
+      expect(response.body, {'data': 'true'});
+    });
+
+    test('list-user receives raw strings for coercible values', () async {
+      final response = await server.send(
+        method: 'GET',
+        path: '/api/query/list-user?data=42&data=false',
+      );
+
+      expect(response.statusCode, HttpStatus.ok);
+      expect(response.body, {
+        'data': ['42', 'false'],
+      });
+    });
+
+    test('optional-user receives the raw string for int values', () async {
+      final response = await server.send(
+        method: 'GET',
+        path: '/api/query/optional-user?data=42',
+      );
+
+      expect(response.statusCode, HttpStatus.ok);
+      expect(response.body, {'data': '42'});
+    });
+
     test('optional-user', () async {
       final response = await server.send(
         method: 'GET',

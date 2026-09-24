@@ -218,5 +218,27 @@ void main() {
       );
       expect(response.body, 'Hello world!');
     });
+
+    test('memory-file', () async {
+      final response = await server.send(
+        method: 'GET',
+        path: '/api/literals/memory-file',
+      );
+
+      expect(response.statusCode, 200);
+      expect(response.headers.contentType?.mimeType, 'text/plain');
+      expect(response.body, 'Hello world!');
+    });
+
+    test('file', () async {
+      final response = await server.send(
+        method: 'GET',
+        path: '/api/literals/file',
+      );
+
+      expect(response.statusCode, 200);
+      expect(response.headers.contentType?.mimeType, 'text/plain');
+      expect(response.body, 'Hello world!');
+    });
   });
 }

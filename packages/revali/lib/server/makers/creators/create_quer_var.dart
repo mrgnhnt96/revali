@@ -13,6 +13,12 @@ Expression createQueryVar(
 
   var queryVar = refer('context').property('request');
 
+  // Query values are coerced (`?id=42` arrives as `42`). A pipe that declares
+  // a `String` input must receive the value exactly as it was sent.
+  if (annotation.pipe?.convertFrom.nonNullName == 'String') {
+    queryVar = queryVar.property('uri');
+  }
+
   if (annotation.all) {
     queryVar = queryVar.property('queryParametersAll');
   } else {
