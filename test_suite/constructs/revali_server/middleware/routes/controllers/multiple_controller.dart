@@ -5,7 +5,7 @@ import 'package:revali_server_middleware_test/components/lifecycle_components/mi
 import 'package:revali_server_middleware_test/components/lifecycle_components/post_interceptor.dart';
 import 'package:revali_server_middleware_test/components/lifecycle_components/pre_interceptor.dart';
 
-// Learn more about Controllers at https://www.revali.dev/constructs/revali_server/core/controllers
+// Learn more about Controllers at https://docs.revali.dev/constructs/revali_server/core/controllers/
 @Controller('multiple')
 class MultipleController {
   const MultipleController();

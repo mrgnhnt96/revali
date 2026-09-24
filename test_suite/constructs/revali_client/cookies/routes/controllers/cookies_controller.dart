@@ -1,7 +1,7 @@
 import 'package:revali_client_cookies_test/components/add_cookies.dart';
 import 'package:revali_router/revali_router.dart';
 
-// Learn more about Controllers at https://www.revali.dev/constructs/revali_server/core/controllers
+// Learn more about Controllers at https://docs.revali.dev/constructs/revali_server/core/controllers/
 @Controller('cookies')
 class CookiesController {
   const CookiesController();

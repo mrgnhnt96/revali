@@ -1,7 +1,7 @@
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_server_custom_params_test/models/user.dart';
 
-// Learn more about Controllers at https://www.revali.dev/constructs/revali_server/core/controllers
+// Learn more about Controllers at https://docs.revali.dev/constructs/revali_server/core/controllers/
 @Controller('null')
 class NullController {
   const NullController();

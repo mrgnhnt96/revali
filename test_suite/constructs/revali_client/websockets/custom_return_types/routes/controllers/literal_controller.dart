@@ -1,7 +1,7 @@
 import 'package:revali_client_websocket_custom_return_types_test/models/user.dart';
 import 'package:revali_router/revali_router.dart';
 
-// Learn more about Controllers at https://www.revali.dev/constructs/revali_server/core/controllers
+// Learn more about Controllers at https://docs.revali.dev/constructs/revali_server/core/controllers/
 @Controller('literal')
 class LiteralController {
   const LiteralController();

@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:revali_router/revali_router.dart';
 
-// Learn more about Apps at https://www.revali.dev/revali/app-configuration/overview
+// Learn more about Apps at https://docs.revali.dev/revali/app-configuration/
 @App(flavor: 'test')
 final class TestApp extends AppConfig {
   // Port 0 → ephemeral; avoids colliding with other local listeners on 8080

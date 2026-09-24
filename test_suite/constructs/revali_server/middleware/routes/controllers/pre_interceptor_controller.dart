@@ -3,7 +3,7 @@ import 'package:revali_server_middleware_test/components/lifecycle_components/pr
 import 'package:revali_server_middleware_test/domain/auth_token.dart';
 import 'package:revali_server_middleware_test/domain/user.dart';
 
-// Learn more about Controllers at https://www.revali.dev/constructs/revali_server/core/controllers
+// Learn more about Controllers at https://docs.revali.dev/constructs/revali_server/core/controllers/
 @Controller('pre/interceptor')
 class PreInterceptorController {
   const PreInterceptorController();

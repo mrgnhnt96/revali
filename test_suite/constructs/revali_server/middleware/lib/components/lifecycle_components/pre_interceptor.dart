@@ -2,7 +2,7 @@ import 'package:revali_router/revali_router.dart';
 import 'package:revali_server_middleware_test/domain/auth_token.dart';
 import 'package:revali_server_middleware_test/domain/user.dart';
 
-// Learn more about Lifecycle Components at https://www.revali.dev/constructs/revali_server/lifecycle-components/components
+// Learn more about Lifecycle Components at https://docs.revali.dev/constructs/revali_server/lifecycle-components/components/
 class AddToData implements LifecycleComponent {
   const AddToData({this.addAuthToData = true});
 

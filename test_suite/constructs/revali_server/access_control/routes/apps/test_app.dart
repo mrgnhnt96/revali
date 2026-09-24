@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:revali_router/revali_router.dart';
 
-// Learn more about Apps at https://www.revali.dev/revali/app-configuration/overview
+// Learn more about Apps at https://docs.revali.dev/revali/app-configuration/
 @AllowOrigins({'https://hyrule.com'})
 @PreventHeaders({'X-App-Header'})
 @App(flavor: 'test')

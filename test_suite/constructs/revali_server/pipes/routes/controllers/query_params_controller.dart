@@ -3,7 +3,7 @@ import 'package:revali_server_pipes_test/components/pipes/optional_user_pipe.dar
 import 'package:revali_server_pipes_test/components/pipes/user_pipe.dart';
 import 'package:revali_server_pipes_test/domain/user.dart';
 
-// Learn more about Controllers at https://www.revali.dev/constructs/revali_server/core/controllers
+// Learn more about Controllers at https://docs.revali.dev/constructs/revali_server/core/controllers/
 @Controller('query')
 class QueryParamsController {
   const QueryParamsController();

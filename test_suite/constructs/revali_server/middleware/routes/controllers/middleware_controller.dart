@@ -1,7 +1,7 @@
 import 'package:revali_router/revali_router.dart';
 import 'package:revali_server_middleware_test/components/lifecycle_components/middleware.dart';
 
-// Learn more about Controllers at https://www.revali.dev/constructs/revali_server/core/controllers
+// Learn more about Controllers at https://docs.revali.dev/constructs/revali_server/core/controllers/
 @Controller('middleware')
 class MiddlewareController {
   const MiddlewareController();
