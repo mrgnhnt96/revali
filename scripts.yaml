@@ -496,4 +496,29 @@ test-suite:
   revali_swagger:
     (aliases): swagger
     (command):
-      - cd constructs/revali_swagger/revali_swagger && dart test
+      - |
+        # revali_swagger has nothing to generate, so a generate-only run has
+        # nothing to do here. Its tests still run -- run_all_tests.sh picks the
+        # package up like any other.
+        if [ "$GEN_ONLY" = "true" ] || [ -n "{--gen-only}" ]; then
+          exit 0
+        fi
+
+        cd constructs/revali_swagger/revali_swagger || exit 1
+
+        # Resolve in its own process before `dart test`. Left to `dart test`,
+        # the implicit resolution runs pub in-process twice (once to find a
+        # package config, again to locate `test:test`), and pub closes its
+        # process-global HTTP client after the first. If the second has to
+        # touch the network it dies with "Bad state: Attempting to send
+        # request on closed client" -- exit 70, with the real problem, if any,
+        # never printed. That crash is what failed CI from 2026-08-15 on.
+        if ! dart pub get {--offline}; then
+          echo "revali_swagger: dart pub get failed" >&2
+          exit 1
+        fi
+
+        if ! dart test; then
+          echo "revali_swagger: dart test failed" >&2
+          exit 1
+        fi
