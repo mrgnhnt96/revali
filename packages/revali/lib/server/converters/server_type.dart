@@ -27,6 +27,7 @@ class ServerType with ExtractImport {
     this.isNullable = false,
     this.isPrimitive = false,
     this.isStringContent = false,
+    this.isFile = false,
     this.hasToJsonMember = false,
     this.isMap = false,
     this.isDynamic = false,
@@ -50,6 +51,7 @@ class ServerType with ExtractImport {
     required this.isNullable,
     required this.isPrimitive,
     required this.isStringContent,
+    required this.isFile,
     required this.hasToJsonMember,
     required this.isMap,
     required this.isDynamic,
@@ -87,6 +89,13 @@ class ServerType with ExtractImport {
               ),
         _ => false,
       },
+      isFile: switch (type.element) {
+        final ClassElement element => [
+          element.thisType,
+          ...element.allSupertypes,
+        ].any(_isFileType),
+        _ => false,
+      },
       hasToJsonMember: type.element?.hasToJsonMember ?? false,
       isMap: type.isMap,
       typeArguments: type.typeArguments.map(ServerType.fromMeta).toList(),
@@ -111,6 +120,10 @@ class ServerType with ExtractImport {
   final bool isNullable;
   final bool isPrimitive;
   final bool isStringContent;
+
+  /// Whether this is a `dart:io` `File` or a revali `MemoryFile` (or a
+  /// subtype), which the router sends as the raw response body.
+  final bool isFile;
   final bool isEnum;
   final bool hasToJsonMember;
   final bool isRecord;
@@ -200,4 +213,15 @@ class ServerType with ExtractImport {
 
     return extract(this);
   }
+}
+
+bool _isFileType(InterfaceType type) {
+  final element = type.element;
+  final uri = element.library.uri.toString();
+
+  return switch (element.name) {
+    'File' => uri == 'dart:io',
+    'MemoryFile' => uri.startsWith('package:revali_core/'),
+    _ => false,
+  };
 }

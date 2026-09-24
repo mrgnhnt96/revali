@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:revali_router/revali_router.dart';
 
@@ -90,5 +91,21 @@ class LiteralsController {
   @Get('bytes')
   List<int> bytes() {
     return utf8.encode('Hello world!');
+  }
+
+  @Get('memory-file')
+  MemoryFile memoryFile() {
+    return MemoryFile.from(
+      'Hello world!',
+      mimeType: 'text/plain',
+      basename: 'hello',
+      extension: 'txt',
+    );
+  }
+
+  @Get('file')
+  File file() {
+    final dir = Directory.systemTemp.createTempSync('revali_file_return');
+    return File('${dir.path}/hello.txt')..writeAsStringSync('Hello world!');
   }
 }

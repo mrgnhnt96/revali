@@ -91,4 +91,14 @@ class FutureController {
   Future<List<int>> bytes() async {
     return utf8.encode('Hello world!');
   }
+
+  @Get('memory-file')
+  Future<MemoryFile> memoryFile() async {
+    return MemoryFile.from(
+      'Hello world!',
+      mimeType: 'text/plain',
+      basename: 'hello',
+      extension: 'txt',
+    );
+  }
 }

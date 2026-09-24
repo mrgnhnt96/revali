@@ -3,7 +3,7 @@ title: Response
 description: How an endpoint's return value becomes the HTTP response, and how to change the body, status and headers
 ---
 
-An endpoint's return value becomes the response body. Revali picks the wire format from the return type: most values are JSON-encoded and wrapped as `{"data": ...}`, while `StringContent`, bytes and streams are sent raw. To change the status code, headers or body from a [lifecycle component](/constructs/revali_server/lifecycle-components), use the `Response` object.
+An endpoint's return value becomes the response body. Revali picks the wire format from the return type: most values are JSON-encoded and wrapped as `{"data": ...}`, while `StringContent`, bytes, streams, `File` and `MemoryFile` are sent raw. To change the status code, headers or body from a [lifecycle component](/constructs/revali_server/lifecycle-components), use the `Response` object.
 
 ## Minimal example
 
@@ -49,6 +49,8 @@ curl -i http://localhost:8080/api/greeting/text
 | Record `(a, {b})` | `{"data": [a, {"b": ...}]}` | `application/json` |
 | `StringContent` | The raw string | `text/plain` |
 | `List<int>` | The raw bytes | `application/octet-stream` |
+| `File` (`dart:io`) | The file's contents, as when [assigning `body`](#the-response-object) | from the file's extension |
+| `MemoryFile` | The in-memory bytes, as when [assigning `body`](#the-response-object) | the given MIME type |
 | `Stream<T>` | Each event written as it is produced; each event is encoded by the rules above | `application/octet-stream` |
 | `Future<T>` | Same as `T` | same as `T` |
 
@@ -107,7 +109,7 @@ See [Error responses](/revali/app-configuration/default-responses#httperror) for
 | `headers.setCookies` | `SetCookies` | See [Cookies](/constructs/revali_server/response/cookies). |
 | `body` | `Body`; setter takes any supported value | Read with `body.data`, replace with `body = value`, add a key to a JSON body with `body['key'] = value`. |
 
-Assigning `body` accepts the same values as a return type, plus `dart:io` `File` and `MemoryFile`. A `File` is streamed with `Content-Type` from its extension, `Content-Disposition: attachment; filename="..."`, `Last-Modified`, and `Range` support. A `MemoryFile` sends in-memory bytes with a given MIME type and file name:
+Assigning `body` accepts the same values as a return type, including `dart:io` `File` and `MemoryFile`. A `File` is streamed with `Content-Type` from its extension, `Content-Disposition: attachment; filename="..."`, `Last-Modified`, and `Range` support. A `MemoryFile` sends in-memory bytes with a given MIME type and file name:
 
 ```dart
 import 'dart:io';
