@@ -196,7 +196,7 @@ class MyController {
 
 <Callout type="note">
 
-If one declaration mixes classic components (`@MyGuard()` on a class that `implements Guard`) with `LifecycleComponent`s, the classic ones run first. Use one style per feature and this never comes up.
+Source order holds only within one style. If one declaration mixes styles, each role runs classic instances first (`@MyGuard()` on a class that `implements Guard`), then classic components applied by type (`@Guards([MyGuard])`), then `LifecycleComponent`s, whatever order the annotations are written in. Use one style per feature and this never comes up.
 
 </Callout>
 

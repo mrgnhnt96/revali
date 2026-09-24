@@ -72,14 +72,28 @@ mixin HelperMixin {
       return 0;
     });
 
+  /// Whether the app-level value reaches [route]: true unless the endpoint
+  /// or one of its parents opted out with `noInherit` (or `.all()`).
+  bool _inheritsFromApp(bool? Function(BaseRoute) inheritOf) {
+    for (BaseRoute? current = route;
+        current != null;
+        current = current.parent) {
+      if (inheritOf(current) == false) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   Set<String> get allowedOrigins => {
-        if (route.allowedOrigins?.inherit case final inherit? when inherit)
+        if (_inheritsFromApp((r) => r.allowedOrigins?.inherit))
           ...?globalComponents.allowedOrigins?.origins,
         ...route.allAllowedOrigins,
       };
 
   Set<String> get preventedHeaders => {
-        if (route.preventedHeaders?.inherit case final inherit? when inherit)
+        if (_inheritsFromApp((r) => r.preventedHeaders?.inherit))
           ...?globalComponents.preventedHeaders?.headers,
         ...route.allPreventedHeaders,
       };
