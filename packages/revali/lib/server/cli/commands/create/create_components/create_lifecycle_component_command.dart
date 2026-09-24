@@ -53,7 +53,7 @@ class CreateLifecycleComponentCommand extends CreateAComponentCommand {
       '''
 import 'package:revali_router/revali_router.dart';
 
-// Learn more about Lifecycle Components at https://www.revali.dev/constructs/revali_server/lifecycle-components/components
+// Learn more about Lifecycle Components at https://docs.revali.dev/constructs/revali_server/lifecycle-components/components/
 class ${_name.toPascalCase()} implements LifecycleComponent {
   const ${_name.toPascalCase()}();
 

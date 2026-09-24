@@ -285,7 +285,7 @@ constructs:
 There are no Server Constructs in the project.
 
 Check out the documentation for more information on how to add a Server Construct:
-https://revali.dev/constructs#server-generation
+https://docs.revali.dev/constructs/#server-generation
       ''');
       throw Exception('There are no Server Constructs in the project.');
     }

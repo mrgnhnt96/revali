@@ -47,7 +47,7 @@ class CreateObserverCommand extends CreateAComponentCommand {
       '''
 import 'package:revali_router/revali_router.dart';
 
-// Learn more about Observers at https://www.revali.dev/constructs/revali_server/lifecycle-components/observer
+// Learn more about Observers at https://docs.revali.dev/constructs/revali_server/lifecycle-components/observer/
 class ${_name.toPascalCase()}Observer implements Observer {
   const ${_name.toPascalCase()}Observer();
 
