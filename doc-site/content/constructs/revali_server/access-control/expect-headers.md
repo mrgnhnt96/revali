@@ -57,13 +57,10 @@ class ApiController {
 
 There is no `noInherit` variant, because the nearest annotation already replaces the ones above it.
 
-<Callout type="caution" title="Browser preflights">
-
-The check also runs on `OPTIONS` preflight requests. A browser preflight lists the headers it wants to send in `Access-Control-Request-Headers`, but does not send the headers themselves, so an endpoint with `@ExpectHeaders` answers a real browser preflight with `403`. If browsers call the endpoint cross-origin, check the header in a guard instead.
-
-</Callout>
+Browser preflights (`OPTIONS` with `Access-Control-Request-Method`) are not checked, because a preflight only names the headers in `Access-Control-Request-Headers` without sending them. The real request that follows is checked. See [Preflight Requests][preflight].
 
 [lifecycle-order]: /constructs/revali_server/lifecycle-components#lifecycle-order
 [guards]: /constructs/revali_server/lifecycle-components/advanced/guards
 [cors-headers]: /constructs/revali_server/access-control/allow-origins#cors-response-headers
+[preflight]: /constructs/revali_server/access-control/allow-origins#preflight-requests
 [default-responses]: /revali/app-configuration/default-responses

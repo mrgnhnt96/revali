@@ -31,19 +31,15 @@ class AdminController {
 
 To change the `403` body, see [Default Responses][default-responses].
 
-<Callout type="important" title="Write header names in lowercase">
-
-Unlike `@ExpectHeaders`, this comparison is case-sensitive. Dart's HTTP server delivers incoming header names in lowercase, so list them in lowercase (`'x-debug'`, not `'X-Debug'`) or they will never match. `TestServer` keeps header names exactly as you pass them, so send them in lowercase in tests too.
-
-</Callout>
+Header names are matched case-insensitively, so `'X-Debug'` and `'x-debug'` are the same. Browser preflights are not checked, since they only name the headers the real request will send; a prevented header is left out of the preflight's `Access-Control-Allow-Headers`. See [Preflight Requests][preflight].
 
 ## Variants and Scoping
 
-`@PreventHeaders` can go on a controller or an endpoint, and the lists combine from the outside in.
+`@PreventHeaders` can go on the app, a controller, or an endpoint, and the lists combine from the outside in.
 
 | Annotation | Blocks |
 | --- | --- |
-| `@PreventHeaders({...})` | These headers, plus the headers blocked by the enclosing controller |
+| `@PreventHeaders({...})` | These headers, plus the headers blocked by the enclosing controller and app |
 | `@PreventHeaders.noInherit({...})` | Only these headers. The parent's list is ignored. |
 
 ```dart
@@ -65,9 +61,7 @@ class ThingsController {
 }
 ```
 
-As with [`@AllowOrigins`][allow-origins-app], a `@PreventHeaders` on the `@App()` class is currently merged only into endpoints that declare their own `@PreventHeaders`. Put it on controllers instead.
-
 [lifecycle-order]: /constructs/revali_server/lifecycle-components#lifecycle-order
 [client-ip]: /constructs/revali_server/request/client-ip
 [default-responses]: /revali/app-configuration/default-responses
-[allow-origins-app]: /constructs/revali_server/access-control/allow-origins#variants
+[preflight]: /constructs/revali_server/access-control/allow-origins#preflight-requests

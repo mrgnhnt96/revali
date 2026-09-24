@@ -63,25 +63,26 @@ class ApiController {
 }
 ```
 
-<Callout type="caution" title="Put it on controllers or endpoints">
-
-An `@AllowOrigins` on the `@App()` class is currently merged only into endpoints that declare their own `@AllowOrigins`. On its own it restricts nothing. Put the annotation on each controller that needs it.
-
-</Callout>
+An `@AllowOrigins` on the `@App()` class applies to every route. A controller or endpoint `@AllowOrigins` adds to it, and a `.noInherit` or `.all()` anywhere between the app and the endpoint drops it.
 
 ## Matching
 
-Each entry is compared with the request's `Origin` in three ways. It matches if it is `*`, if it equals the origin exactly, or if it matches the origin **as a regular expression**.
+Each entry is compared with the request's `Origin` in one of three ways:
 
-<Callout type="warning">
-
-The regular expression is not anchored. `'https://myapp.com'` also matches `https://myapp.com.attacker.io`, because the pattern appears inside that string. For a strict allowlist, write anchored patterns with escaped dots:
+| Entry | Matches |
+| --- | --- |
+| `*` | Any origin |
+| An origin, such as `'https://myapp.com'` | Only that exact origin. It is not a pattern: `https://myapp.com.attacker.io` and `https://myappxcom` do not match. |
+| A regular expression starting with `^` | Origins the expression matches **in full**. The match is always anchored at both ends, so `$` is optional. |
 
 ```dart
-@AllowOrigins({r'^https://myapp\.com$', r'^https://([a-z]+\.)?myapp\.com$'})
+@AllowOrigins({
+  'https://myapp.com',
+  r'^https://[a-z]+\.myapp\.com', // any single-level subdomain
+})
 ```
 
-</Callout>
+Escape the dots in a regular expression (`\.`). An unescaped `.` matches any character.
 
 ## CORS Response Headers
 
@@ -98,8 +99,10 @@ Every request that passes the check gets these headers, whether or not you use `
 
 Browsers send an `OPTIONS` preflight before most cross-origin requests that are not "simple": for example, requests that send JSON, send a custom header, or use `PUT`, `PATCH`, or `DELETE`. Revali answers it automatically, and you don't write an `OPTIONS` endpoint:
 
-1. The origin and header rules ([`@ExpectHeaders`][expect-headers], [`@PreventHeaders`][prevent-headers]) are checked. A failure returns `403`.
+1. The origin is checked against `@AllowOrigins`. A failure returns `403`.
 2. Otherwise the response is `200` with an empty body and the CORS headers above.
+
+A preflight is an `OPTIONS` request with an `Access-Control-Request-Method` header. It only names the headers the real request will send, so [`@ExpectHeaders`][expect-headers] and [`@PreventHeaders`][prevent-headers] are not checked on it. They are checked on the real request that follows. A prevented header is left out of the preflight's `Access-Control-Allow-Headers`. A plain `OPTIONS` request, without `Access-Control-Request-Method`, is checked like any other request.
 
 No lifecycle components run for an `OPTIONS` request. See [OPTIONS Requests][options] for more on how the allowed methods are worked out.
 

@@ -166,5 +166,33 @@ void main() {
         );
       });
     });
+
+    test(
+      'a browser preflight is not rejected for the missing headers',
+      () async {
+        // A preflight names the headers in Access-Control-Request-Headers but
+        // never sends them.
+        final response = await server.send(
+          method: 'OPTIONS',
+          path: '/api/expect-headers',
+          headers: {
+            'access-control-request-method': 'GET',
+            'access-control-request-headers': 'x-my-header',
+          },
+        );
+
+        expect(response.statusCode, 200);
+      },
+    );
+
+    test('matches a lowercased header', () async {
+      final response = await server.send(
+        method: 'GET',
+        path: '/api/expect-headers',
+        headers: {'x-my-header': 'test'},
+      );
+
+      expect(response.statusCode, 200);
+    });
   });
 }

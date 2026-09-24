@@ -177,5 +177,72 @@ void main() {
         expect(response.statusCode, 200);
       });
     });
+
+    // dart:io lowercases incoming header names, while the annotation spells
+    // them `X-Parent-Header`; TestServer keeps whatever case it is given, so
+    // these send the lowercase names production actually delivers.
+    group('header name case', () {
+      test('matches a lowercased header', () async {
+        final response = await server.send(
+          method: 'GET',
+          path: '/api/prevent-headers/inherited',
+          headers: {'x-parent-header': 'test'},
+        );
+
+        expect(response.statusCode, 403);
+      });
+    });
+
+    group('app-level', () {
+      test('applies to a controller that declares its own', () async {
+        final response = await server.send(
+          method: 'GET',
+          path: '/api/prevent-headers/inherited',
+          headers: {'x-app-header': 'test'},
+        );
+
+        expect(response.statusCode, 403);
+      });
+
+      test('is dropped by noInherit', () async {
+        final response = await server.send(
+          method: 'GET',
+          path: '/api/prevent-headers/not-inherited',
+          headers: {'x-app-header': 'test'},
+        );
+
+        expect(response.statusCode, 200);
+      });
+
+      test('applies to a controller that declares none', () async {
+        final response = await server.send(
+          method: 'GET',
+          path: '/api/expect-headers',
+          headers: {'x-app-header': 'test', 'x-my-header': 'test'},
+        );
+
+        expect(response.statusCode, 403);
+      });
+    });
+
+    test(
+      'a preflight is not rejected for a requested prevented header',
+      () async {
+        final response = await server.send(
+          method: 'OPTIONS',
+          path: '/api/prevent-headers/inherited',
+          headers: {
+            'access-control-request-method': 'GET',
+            'access-control-request-headers': 'x-parent-header, content-type',
+          },
+        );
+
+        expect(response.statusCode, 200);
+        expect(
+          response.headers.values['access-control-allow-headers'],
+          'content-type',
+        );
+      },
+    );
   });
 }
