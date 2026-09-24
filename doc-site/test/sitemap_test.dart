@@ -13,6 +13,7 @@ library;
 
 import 'dart:io';
 
+import 'package:revali_docs/src/redirects.dart';
 import 'package:test/test.dart';
 
 import 'support/docs_root.dart';
@@ -57,23 +58,22 @@ void main() {
     test('lists every page, and nothing that is not one', () {
       expect(locs, isNotEmpty);
       // One <loc> per rendered page. `packages/` is build_web_compilers output
-      // that the deploy prunes, so it is not a page and must not be listed.
+      // that the deploy prunes, and redirect stubs are not pages, so neither
+      // is listed.
+      final stubs = {for (final from in redirects.keys) '${build.path}$from/index.html'};
       final rendered = build
           .listSync(recursive: true)
           .whereType<File>()
           .where((f) => f.path.endsWith('index.html'))
           .where((f) => !f.path.contains('/packages/'))
+          .where((f) => !stubs.contains(f.path))
           .length;
       expect(locs.length, rendered);
     }, skip: _skipReason(build, sitemapFile));
 
-    test(
-      'every URL ends in a slash, which is what GitHub Pages serves',
-      () {
-        expect(locs.where((loc) => !loc.endsWith('/')), isEmpty);
-      },
-      skip: _skipReason(build, sitemapFile),
-    );
+    test('every URL ends in a slash, which is what GitHub Pages serves', () {
+      expect(locs.where((loc) => !loc.endsWith('/')), isEmpty);
+    }, skip: _skipReason(build, sitemapFile));
 
     test('every URL matches that page rel=canonical byte for byte', () {
       final mismatches = <String>[];

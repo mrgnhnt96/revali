@@ -76,6 +76,7 @@ that, and the deploy re-checks it against the built file.
 dart run tool/build_search_index.dart          # regenerate the index + llms.txt
 dart run tool/build_search_index.dart --check  # fail if stale (CI, tests)
 dart run tool/build_sitemap.dart               # sitemap.xml (run AFTER a build)
+dart run tool/build_redirects.dart             # stubs for removed pages (AFTER a build)
 dart run jaspr_cli:jaspr serve                 # http://localhost:8080
 dart run jaspr_cli:jaspr build                 # -> build/jaspr/
 dart analyze --fatal-infos
@@ -95,6 +96,13 @@ index (regenerate it by hand) or edits to `navigation.dart` (restart).
 
 Skipping step 2 is a build failure, not a silently unreachable page — that is
 what `navigation.dart` is for.
+
+## Removing or merging a page
+
+Add its old route to `lib/src/redirects.dart`, mapped to where the content went
+(`#anchor` allowed). `tool/build_redirects.dart` writes a meta-refresh stub
+there after the build, because GitHub Pages cannot send a 301, and
+`test/redirects_test.dart` fails if a target or anchor stops existing.
 
 ## Things that fail silently
 

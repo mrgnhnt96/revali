@@ -122,6 +122,12 @@ jobs:
       - name: Generate the sitemap
         run: dart run tool/build_sitemap.dart
 
+      # Stubs at the routes of deleted or merged pages (lib/src/redirects.dart),
+      # so old links land on the content's new home. After the build, which
+      # wipes build/jaspr/, and before Test, which checks every stub exists.
+      - name: Write the redirects
+        run: dart run tool/build_redirects.dart
+
       # After the build, so the anchor test can check every search result's
       # deep link against the HTML that is about to be published.
       - name: Test
