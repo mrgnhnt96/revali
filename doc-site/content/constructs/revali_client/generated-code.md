@@ -1,531 +1,202 @@
 ---
 title: Generated Code
-description: The structure of the generated client code
+description: The files revali_client generates, the Server class, how endpoints map to client methods, supported types and errors
 ---
 
-The Revali Client generates well-structured, idiomatic Dart code designed to interact with your Revali server. All generated code adheres to SOLID principles, promoting separation of concerns, testability, and long-term maintainability.
+What `revali_client` writes into `.revali/revali_client/`, and how each server endpoint turns into a client method. The directory is regenerated on every run, so never edit it by hand.
 
-## Overview
+## Layout
 
-At the heart of the client lies the `Server` class — the primary entry point for accessing backend functionality. For each server-side controller, a corresponding _data source_ is generated on the client side. This includes:
-
-- An **interface** that defines the available methods and types
-- An **implementation** that handles request construction, network calls, and response parsing
-
-This architecture ensures your client code is type-safe, testable, and follows clean architecture patterns.
-
----
-
-## Project Structure
-
-Generated files are stored under the `.revali/revali_client/` directory and follow a clean modular structure:
-
-```text
-.revali/
-└── revali_client/
-    ├── lib/
-    │   ├── client.dart           # All generated implementations
-    │   ├── interfaces.dart       # All generated interfaces
-    │   └── src/
-    │       ├── server.dart       # The main Server class
-    │       ├── impls/
-    │       │   ├── user_data_source_impl.dart
-    │       │   ├── post_data_source_impl.dart
-    │       │   └── auth_data_source_impl.dart
-    │       └── interfaces/
-    │           ├── user_data_source.dart
-    │           ├── post_data_source.dart
-    │           └── auth_data_source.dart
-    └── pubspec.yaml
+```tree
+.revali/revali_client/
+├── pubspec.yaml                 # name: <package_name>
+└── lib/
+    ├── <package_name>.dart      # Server + implementations
+    ├── interfaces.dart          # interfaces, re-exports Storage
+    └── src/
+        ├── server.dart
+        ├── impls/
+        │   └── user_data_source_impl.dart
+        └── interfaces/
+            └── user_data_source.dart
 ```
 
-### Import Structure
+The generated `pubspec.yaml` depends on `http`, `revali_client`, `web_socket_channel` (only if you have WebSocket endpoints), `get_it` (only with the [get_it integration](/constructs/revali_client/integrations/get_it)), and every package that a type in an endpoint signature is imported from.
 
-You only need to import two files to use the generated code:
+## The `Server` class
 
-```dart
-import 'package:revali_client/client.dart';      // For implementations
-import 'package:revali_client/interfaces.dart';  // For type definitions
-```
+`Server` (renamed with `server_name`) is the entry point. It has one field per controller, typed as that controller's interface:
 
-The `client.dart` file exports:
-
-- The `Server` class
-- All data source implementations
-- The underlying HTTP client
-
-The `interfaces.dart` file exports:
-
-- All data source interface definitions
-- Shared models and types
-
----
-
-## The Server Class
-
-The `Server` class is the main entry point for your client. It exposes a field for each data source, one per controller. Each field:
-
-- Is typed using the interface (e.g., `UserDataSource`)
-- Returns the implementation (e.g., `UserDataSourceImpl`)
-
-This design inverts the dependency flow and enables client code to depend on abstractions — not implementations.
-
-### Basic Example
+<CodeFile name=".revali/revali_client/lib/src/server.dart">
 
 ```dart
-import 'package:revali_client/client.dart';
-import 'package:revali_client/interfaces.dart';
+class Server {
+  Server({HttpClient? client, Storage? storage, Uri? baseUrl})
+    : storage = storage ?? SessionStorage() {
+    final url = baseUrl?.toString() ?? "http://localhost:8080/api";
 
-void main() async {
-  // Create the server instance
-  final server = Server();
-
-  // Access data sources through interfaces
-  final UserDataSource users = server.user;
-  final PostDataSource posts = server.post;
-
-  // Make type-safe API calls
-  final allUsers = await users.getAll();
-  final user = await users.getById(id: '123');
-}
-```
-
-### Server Class Initialization
-
-The `Server` class can be customized during initialization:
-
-```dart
-final server = Server(
-  // Provide custom storage for cookies and session data
-  storage: MyCustomStorage(),
-
-  // Point at a different host at runtime (e.g. a LAN IP for testing from a
-  // physical device, or an environment-specific API URL)
-  baseUrl: Uri.parse('https://api.example.com'),
-
-  // Provide a custom HTTP client -- interceptors are configured here, not
-  // on Server directly (see HTTP Interceptors below)
-  client: HttpPackageClient(
-    interceptors: [
-      LoggingInterceptor(),
-      AuthInterceptor(),
-    ],
-  ),
-);
-```
-
-<Callout type="tip">
-
-Learn more about [Storage](/constructs/revali_client/getting-started/storage) and [HTTP Interceptors](/constructs/revali_client/getting-started/http-interceptors).
-
-</Callout>
-
----
-
-## Data Sources
-
-For each controller in your server, Revali Client generates a corresponding data source consisting of an interface and implementation.
-
-### Naming Convention
-
-Data sources follow a predictable naming pattern based on the controller name:
-
-| Controller Name  | Interface Name   | Implementation Name  | Server Property |
-| ---------------- | ---------------- | -------------------- | --------------- |
-| `UserController` | `UserDataSource` | `UserDataSourceImpl` | `server.user`   |
-| `PostController` | `PostDataSource` | `PostDataSourceImpl` | `server.post`   |
-| `AuthController` | `AuthDataSource` | `AuthDataSourceImpl` | `server.auth`   |
-
-The server property name is the camelCase version of the controller name without the "Controller" suffix.
-
-### Generated Interface
-
-Given this server controller:
-
-<CodeFile name="routes/user_controller.dart">
-
-```dart
-@Controller('users')
-class UserController {
-  @Get()
-  Future<List<User>> getAll() async {
-    return await userService.getAllUsers();
+    this.client = RevaliClient(
+      client: client ?? HttpPackageClient(),
+      baseUrl: url,
+      storage: this.storage,
+    );
+    // ...
   }
 
-  @Get(':id')
-  Future<User> getById(@Param('id') String id) async {
-    return await userService.getUserById(id);
-  }
+  late final RevaliClient client;
+  late final Storage storage;
 
-  @Post()
-  Future<User> create(@Body() User user) async {
-    return await userService.createUser(user);
-  }
-
-  @Delete(':id')
-  Future<void> delete(@Param('id') String id) async {
-    await userService.deleteUser(id);
-  }
+  late final UserDataSource user = UserDataSourceImpl(
+    client: client,
+    storage: storage,
+  );
 }
 ```
 
 </CodeFile>
 
-Revali Client generates this interface:
+| Constructor argument | Default | Use it for |
+| --- | --- | --- |
+| `baseUrl` | `<scheme>://<host>:<port>/<prefix>` from your `AppConfig` at generation time | Any deployed or non-local server. Include the prefix, e.g. `https://api.example.com/api`. |
+| `client` | `HttpPackageClient()` | Registering [interceptors](/constructs/revali_client/resilience#interceptors), or swapping the transport. |
+| `storage` | `SessionStorage()` (in memory) | Persisting cookies across restarts. See [Storage](/constructs/revali_client/storage). |
+| `websocket` | `WebSocketChannel.connect` | Only generated when the API has `@WebSocket` endpoints. Replace it to control how sockets are opened. |
 
-<CodeFile name=".revali/revali_client/lib/src/interfaces/user_data_source.dart">
+`Server` does not take a timeout or retry policy. To set those, build a `RevaliClient` yourself. See [Configuring a generated client](/constructs/revali_client/resilience#configuring-a-generated-client).
+
+## Naming
+
+| Server | Client interface | Client implementation | `Server` field |
+| --- | --- | --- | --- |
+| `UserController` | `UserDataSource` | `UserDataSourceImpl` | `user` |
+| `OrderItemsController` | `OrderItemsDataSource` | `OrderItemsDataSourceImpl` | `orderItems` |
+
+Client methods keep the Dart method name of the server handler.
+
+## Parameters
+
+Given:
+
+<CodeFile name="routes/controllers/shop_controller.dart">
 
 ```dart
-abstract class UserDataSource {
-  /// GET /api/users
-  Future<List<User>> getAll();
+@Controller('shops/:shopId')
+class ShopController {
+  const ShopController();
 
-  /// GET /api/users/:id
-  Future<User> getById({required String id});
-
-  /// POST /api/users
-  Future<User> create(User user);
-
-  /// DELETE /api/users/:id
-  Future<void> delete({required String id});
+  @Post('products')
+  Future<Product> create(
+    @Param() String shopId,
+    @Query('dry_run') bool? dryRun,
+    @Header('X-Request-Id') String requestId,
+    @Body() Product product,
+    @Cookie('session') String session,
+  ) async => ...;
 }
 ```
 
 </CodeFile>
 
-### Generated Implementation
-
-The corresponding implementation handles all the HTTP details:
-
-<CodeFile name=".revali/revali_client/lib/src/impls/user_data_source_impl.dart">
+the generated interface is:
 
 ```dart
-class UserDataSourceImpl implements UserDataSource {
-  const UserDataSourceImpl(this._client);
+abstract interface class ShopDataSource {
+  const ShopDataSource();
 
-  final RevaliClient _client;
-
-  @override
-  Future<List<User>> getAll() async {
-    final request = HttpRequest(
-      method: 'GET',
-      path: '/api/users',
-    );
-
-    final response = await _client.send(request);
-
-    if (response.statusCode != 200) {
-      throw ServerException.fromResponse(response);
-    }
-
-    return (response.body as List)
-        .map((e) => User.fromJson(e as Map<String, dynamic>))
-        .toList();
-  }
-
-  @override
-  Future<User> getById({required String id}) async {
-    final request = HttpRequest(
-      method: 'GET',
-      path: '/api/users/$id',
-    );
-
-    final response = await _client.send(request);
-
-    if (response.statusCode != 200) {
-      throw ServerException.fromResponse(response);
-    }
-
-    return User.fromJson(response.body as Map<String, dynamic>);
-  }
-
-  @override
-  Future<User> create(User user) async {
-    final request = HttpRequest(
-      method: 'POST',
-      path: '/api/users',
-      body: user.toJson(),
-    );
-
-    final response = await _client.send(request);
-
-    if (response.statusCode != 200) {
-      throw ServerException.fromResponse(response);
-    }
-
-    return User.fromJson(response.body as Map<String, dynamic>);
-  }
-
-  @override
-  Future<void> delete({required String id}) async {
-    final request = HttpRequest(
-      method: 'DELETE',
-      path: '/api/users/$id',
-    );
-
-    final response = await _client.send(request);
-
-    if (response.statusCode != 204) {
-      throw ServerException.fromResponse(response);
-    }
-  }
-}
-```
-
-</CodeFile>
-
-<Callout type="note">
-
-The implementation is fully generated and should not be modified manually. Any changes will be overwritten on the next build.
-
-</Callout>
-
----
-
-## Method Parameters
-
-Revali Client correctly maps all parameter types from your server endpoints:
-
-### Path Parameters
-
-Path parameters are converted to named parameters:
-
-```dart
-// Server
-@Get(':id')
-Future<User> getUser(@Param('id') String id) async { ... }
-
-// Generated Client
-Future<User> getUser({required String id});
-```
-
-### Query Parameters
-
-Query parameters are also mapped to named parameters:
-
-```dart
-// Server
-@Get()
-Future<List<User>> search(@Query('name') String? name) async { ... }
-
-// Generated Client
-Future<List<User>> search({String? name});
-```
-
-### Request Body
-
-Body parameters are passed as positional parameters:
-
-```dart
-// Server
-@Post()
-Future<User> create(@Body() User user) async { ... }
-
-// Generated Client
-Future<User> create(User user);
-```
-
-### Headers
-
-Headers are mapped to named parameters:
-
-```dart
-// Server
-@Get()
-Future<User> getCurrent(@Header('Authorization') String token) async { ... }
-
-// Generated Client
-Future<User> getCurrent({required String authorization});
-```
-
----
-
-## Error Handling
-
-All generated methods automatically handle HTTP errors by throwing a `ServerException`:
-
-```dart
-try {
-  final user = await server.user.getById(id: '123');
-} on ServerException catch (e) {
-  print('Error ${e.statusCode}: ${e.message}');
-  print('Body: ${e.body}');
-}
-```
-
-The `ServerException` class provides:
-
-- `statusCode`: The HTTP status code (e.g., 404, 500)
-- `message`: A human-readable error message
-- `body`: The raw response body
-- `headers`: Response headers
-
-### Custom Error Handling
-
-You can use HTTP interceptors to customize error handling globally:
-
-```dart
-class ErrorInterceptor implements HttpInterceptor {
-  @override
-  FutureOr<void> onResponse(HttpResponse response) async {
-    if (response.statusCode >= 400) {
-      // Log error, show notification, etc.
-      print('API Error: ${response.statusCode}');
-    }
-  }
-}
-
-final server = Server(
-  client: HttpPackageClient(interceptors: [ErrorInterceptor()]),
-);
-```
-
----
-
-## Testing with Generated Code
-
-The interface-based design makes testing straightforward. You can easily create mock implementations:
-
-### Creating a Mock
-
-```dart
-class MockUserDataSource implements UserDataSource {
-  @override
-  Future<List<User>> getAll() async {
-    return [
-      User(id: '1', name: 'Test User 1'),
-      User(id: '2', name: 'Test User 2'),
-    ];
-  }
-
-  @override
-  Future<User> getById({required String id}) async {
-    return User(id: id, name: 'Test User');
-  }
-
-  @override
-  Future<User> create(User user) async {
-    return user.copyWith(id: 'generated-id');
-  }
-
-  @override
-  Future<void> delete({required String id}) async {
-    // Mock implementation
-  }
-}
-```
-
-### With Dependency Injection
-
-```dart
-class UserRepository {
-  UserRepository(this.dataSource);
-
-  final UserDataSource dataSource;
-
-  Future<List<User>> getAllUsers() => dataSource.getAll();
-}
-
-void main() {
-  test('repository uses data source', () async {
-    final repository = UserRepository(MockUserDataSource());
-    final users = await repository.getAllUsers();
-
-    expect(users, isNotEmpty);
+  Future<Product> create({
+    required String shopId,
+    required Product product,
+    bool? dryRun,
+    required String requestId,
   });
 }
 ```
 
----
+- Path, query, header and body parameters become **named** arguments, named after the Dart parameter rather than the header or query key. Nullable parameters and parameters with a default value are optional.
+- `@Header.all` and `@Query.all` become `List<T>` arguments.
+- `@Body(['name'])` parameters are sent together as a JSON object, one key per parameter.
+- `@Cookie` parameters are not arguments. The client reads them from `Storage` and sends them in a `Cookie` header. A required cookie that is missing from storage throws before the request is sent.
+- Parameters the server fills from its own context (dependencies, `SetCookies`, WebSocket senders and so on) do not appear on the client.
 
-## Type Safety and Serialization
+## Return types
 
-### Automatic Serialization
+| Server handler returns | Client method returns |
+| --- | --- |
+| `T` or `Future<T>` | `Future<T>` |
+| `void` / `Future<void>` | `Future<void>` |
+| `Stream<T>`, or any `@SSE` handler | `Stream<T>` |
+| `@WebSocket` handler with `@Body() T` | `Stream<R>`, taking `required Stream<T> data` |
 
-The generated code automatically handles JSON serialization and deserialization:
+`T` can be `String`, `int`, `double`, `bool`, `List`, `Set`, `Iterable`, `Map`, positional, named or mixed records, enums, custom classes, `List<int>` (bytes), and any nullable or nested combination of these.
+
+The client unwraps the server's `{"data": ...}` envelope for you. If the response body does not match the declared type, the method throws `Exception('Invalid response')`.
+
+### Custom types
+
+A custom class used as a parameter or return type needs:
+
+- a `fromJson` factory taking a `Map<String, dynamic>`, and
+- a `toJson()` method returning a `Map<String, dynamic>`.
+
+Enums are sent and read by `name`. An enum with its own `static fromJson(String)` and `toJson()` uses those instead.
 
 ```dart
-// Request body serialization
-final user = User(name: 'Alice', email: 'alice@example.com');
-await server.user.create(user); // Automatically calls user.toJson()
+class User {
+  const User({required this.name});
 
-// Response deserialization
-final users = await server.user.getAll(); // Automatically parses JSON to List<User>
+  factory User.fromJson(Map<String, dynamic> json) =>
+      User(name: json['name'] as String);
+
+  final String name;
+
+  Map<String, dynamic> toJson() => {'name': name};
+}
 ```
 
-### Requirements for Custom Types
+### Sharing types
 
-For custom types to work with the generated client, they must:
+The generated package imports each custom type from the package it is declared in, and adds that package to its `pubspec.yaml`. If a model lives in the server package, the client ends up depending on the whole server. Put shared models in their own package that both the server and the app depend on:
 
-1. Have a `fromJson` factory constructor:
+```tree
+my_project/
+├── models/        # User, Product, ... (depends on neither side)
+├── my_server/     # depends on models
+└── my_app/        # depends on models and on my_server/.revali/revali_client
+```
 
-   ```dart
-   factory User.fromJson(Map<String, dynamic> json) => User(...);
-   ```
+## Errors
 
-2. Have a `toJson` method:
+Any non-2xx response throws `ServerException`:
 
-   ```dart
-   Map<String, dynamic> toJson() => {...};
-   ```
+```dart
+try {
+  await server.user.getById(id: '123');
+} on ServerException catch (e) {
+  if (e.code == 'user_not_found') {
+    // ...
+  }
+}
+```
 
-<Callout type="tip">
+| Field | Meaning |
+| --- | --- |
+| `statusCode` | HTTP status. |
+| `message` | The HTTP reason phrase. |
+| `body` | Raw response body, when there was one. |
+| `code`, `reason`, `details` | Read from a `{"error": {"code", "message", "details"}}` body, which [`HttpError`](/revali/app-configuration/default-responses#httperror) produces. `null` otherwise. |
+| `isStructured` | `true` when `code` was present. |
 
-Learn more about sharing custom types in the [Return Types](/constructs/revali_client/getting-started/return-types) guide.
+Transport failures (connection refused, timeouts) surface as the underlying exception, not `ServerException`.
 
-</Callout>
+## Testing against the interfaces
 
----
+Code that depends on `UserDataSource` rather than `Server` can be tested with a fake:
 
-## Benefits of This Architecture
+```dart
+class FakeUsers implements UserDataSource {
+  const FakeUsers();
 
-### 🧪 **Testability**
-
-The interface-implementation split makes it trivial to:
-
-- Create mock implementations for testing
-- Swap implementations without changing client code
-- Test business logic in isolation
-
-### 🔒 **Type Safety**
-
-Every API call is:
-
-- Fully type-checked at compile time
-- Protected against typos and parameter errors
-- Backed by your server's actual implementation
-
-### 🧹 **Clean Code**
-
-The generated code:
-
-- Follows SOLID principles
-- Maintains clear separation of concerns
-- Enables dependency injection
-- Promotes clean architecture patterns
-
-### 🔄 **Automatic Synchronization**
-
-When you change your server:
-
-- Client code automatically regenerates
-- Type errors appear at compile time
-- No manual updates needed
-
-### 📦 **Zero Boilerplate**
-
-You never write:
-
-- HTTP request construction
-- URL path building
-- JSON serialization/deserialization
-- Error parsing
-
----
-
-## Next Steps
-
-- **[Return Types](/constructs/revali_client/getting-started/return-types)** - Learn about custom data types
-- **[HTTP Interceptors](/constructs/revali_client/getting-started/http-interceptors)** - Add request/response handling
-- **[Storage](/constructs/revali_client/getting-started/storage)** - Persist cookies and session data
-- **[get_it Integration](/constructs/revali_client/integrations/get_it)** - Use with dependency injection
+  @override
+  Future<User> getById({required String id}) async => User(name: 'test');
+}
+```

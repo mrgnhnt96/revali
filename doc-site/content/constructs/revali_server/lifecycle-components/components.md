@@ -1,242 +1,144 @@
 ---
-title: Components
+title: Writing a LifecycleComponent
+description: The rules for a LifecycleComponent class - which methods become which role, what their parameters can bind, and how the constructor gets its values.
 ---
 
-Similar to creating a controller and endpoints using a class and methods, you can create lifecycle components. By using a class, you can group related lifecycle components together and reuse them across different controllers/endpoints.
+A `LifecycleComponent` is a class whose public methods become middleware, guards, interceptors, catchers, or request wrappers, depending on each method's return type. It is the recommended way to write lifecycle code. For when components run and where to apply them, see the [overview][overview].
 
-Components are short-lived classes. They are created when the server is executing a particular piece of middleware, and they are destroyed when the middleware is done executing. New instances of the component are created for each request.
-
-<Callout type="warning">
-
-You may be tempted to "share" data between method calls by storing it in a component. Not only is this **NOT recommended**, but it is very likely to cause **bugs** 🐛 in your application.
-
-</Callout>
-
-## Group Lifecycle Components
-
-To create a group of lifecycle components, create a class that implements the `LifecycleComponent` class.
-
-<CodeFile name="lib/components/my_component.dart">
-
-```dart
-class MyComponent implements LifecycleComponent {
-  const MyComponent();
-}
-```
-
-</CodeFile>
-
-<Callout type="tip">
-
-Try using the [`create` cli][create-cli] to generate the components for you!
-
-```bash
-dart run revali create lifecycle-component
-```
-
-</Callout>
-
-You may add fields to this class as you need, such as classes from your [dependencies][di] or values that are specific to the component. You can use [binding annotations][binding] to inject these dependencies into the component.
-
-<CodeFile name="lib/components/my_component.dart">
+<CodeFile name="lib/components/load_user.dart">
 
 ```dart
 import 'package:revali_router/revali_router.dart';
 
-class MyComponent implements LifecycleComponent {
-  const MyComponent(
-    this.myService, {
-        @Data() required this.role,
-    });
+class LoadUser implements LifecycleComponent {
+  const LoadUser(this.users); // UserService comes from DI
 
-  final MyService myService;
-  final Role role;
-}
-```
+  final UserService users;
 
-</CodeFile>
+  // Middleware: runs first and loads the user into request data
+  Future<MiddlewareResult> load(@Header('Authorization') String? auth, Data data) async {
+    if (auth != null) {
+      if (await users.fromToken(auth) case final user?) {
+        data.add<User>(user);
+      }
+    }
 
-<Callout type="note">
-
-The `@Dep` annotation (used to retrieve data from your [dependencies][di]) is assumed for parameters in the constructor of a `LifecycleComponent`. This means that you do not need to add the `@Dep` annotation. All other annotations, such as `@Data`, etc. must be added to the constructor parameters.
-
-</Callout>
-
-<Callout type="tip">
-
-Learn more about the [data handler][data-sharing]
-
-</Callout>
-
-## Define a Lifecycle Component
-
-Now that you have a class to group your lifecycle components, you can create a lifecycle component by adding methods to the class. The method's return type is what determines which lifecycle component it associated with.
-
-| Return Type                         | Lifecycle Type                         | `Future` Support |
-| ----------------------------------- | -------------------------------------- | ---------------- |
-| `WrapperResult`                     | [Request Wrapper][wrapper]             | ✅               |
-| `GuardResult`                       | [Guard][guard]                         | ✅               |
-| `MiddlewareResult`                  | [Middleware][middleware]               | ✅               |
-| `InterceptorPreResult`              | [Interceptor (pre)][interceptor-pre]   | ✅               |
-| `InterceptorPostResult`             | [Interceptor (post)][interceptor-post] | ✅               |
-| `ExceptionCatcherResult<Exception>` | [Exception Catcher][exception-catcher] | ❌               |
-
-<CodeFile name="lib/components/my_component.dart">
-
-```dart
-class MyComponent implements LifecycleComponent {
-  const MyComponent();
-
-   GuardResult getAuth() {
-    // Perform authentication logic
+    return const MiddlewareResult.next();
   }
 
-  Future<MiddlewareResult> getRole() async {
-    // Get role logic
-  }
-
-  Future<GuardResult> verifyRole() async {
-    // Perform role verification logic
-  }
-}
-```
-
-</CodeFile>
-
-<Callout type="tip">
-
-You can define as many lifecycle components as you need in a single class.
-
-</Callout>
-
-### Binding
-
-Similar in endpoints, you can [bind][binding] values to the parameters of the lifecycle component methods. Values such as the request, context, dependencies, or other lifecycle components.
-
-<CodeFile name="lib/components/my_component.dart">
-
-```dart
-class MyComponent implements LifecycleComponent {
-  const MyComponent();
-
-  GuardResult getAuth(@Body() Map<String, dynamic> body) {
-    // Perform authentication logic
-  }
-
-  Future<GuardResult> verifyRole(@Param('id', UserPipe) User user) async {
-    // Perform role verification logic
-  }
-}
-```
-
-</CodeFile>
-
-### Context
-
-Every Lifecycle Component method has access to the same [`Context`][context], regardless of its role (Guard, Middleware, Interceptor, Exception Catcher, or Request Wrapper). There isn't a different context type per role -- `Context` exposes `data`, `meta`, `route`, `request`, `response`, and `reflect`, and each of those fields can be [bound implicitly][implied-binding] as its own parameter, so you don't need to add an annotation to bind it:
-
-<CodeFile name="lib/components/my_component.dart">
-
-```dart
-class MyComponent implements LifecycleComponent {
-  const MyComponent();
-
-  GuardResult getAuth(Data data) {
-    final user = data.get<User>();
-
-    if (user == null) {
-      return const GuardResult.block(statusCode: 401);
+  // Guard: runs after all middleware
+  GuardResult requireUser(Data data) {
+    if (!data.has<User>()) {
+      return const GuardResult.block(statusCode: 401, body: 'Sign in first');
     }
 
     return const GuardResult.pass();
   }
-
-  Future<GuardResult> verifyRole(Request request) async {
-    // Perform role verification logic using request.pathParameters, etc.
-    return const GuardResult.pass();
-  }
 }
 ```
 
 </CodeFile>
 
----
+<CodeFile name="routes/controllers/me_controller.dart">
 
-In addition to the [base implied bindings][binding], here's a comprehensive list of the implicit bindings available to every Lifecycle Component method:
+```dart
+import 'package:revali_router/revali_router.dart';
 
-| Implicit Binding      | Resolves To                                 |
-| --------------------- | -------------------------------------------- |
-| `Context`             | The full context                             |
-| `DI`                  | The app's dependency injection container     |
-| `Request`             | `context.request`                            |
-| `RequestHeaders`      | `context.request.headers`                    |
-| `RequestCookies`      | `context.request.headers.cookies`            |
-| `Response`            | `context.response`                           |
-| `Headers`             | `context.response.headers`                   |
-| `ResponseHeaders`     | `context.response.headers`                   |
-| `Cookies`             | `context.response.headers.cookies`           |
-| `ResponseCookies`     | `context.response.headers.cookies`           |
-| `SetCookies`          | `context.response.headers.setCookies`        |
-| `Body` / `PayloadBody`| `context.response.body`                      |
-| `Meta` / `MetaScope`  | `context.meta`                               |
-| `RouteEntry`          | `context.route`                              |
-| `Data`                | `context.data` (see [Data Sharing][data-sharing]) |
-| `Reflect`             | `context.reflect`                            |
-| `CleanUp`             | A cleanup handle sourced from `context.data` |
+@LifecycleComponents([LoadUser])
+@Controller('me')
+class MeController {
+  const MeController();
 
-`NextResponse` is the one binding that **is** role-specific: a parameter typed `NextResponse` is what marks a method as a [Request Wrapper][wrapper] (its return type must be `WrapperResult`).
+  @Get()
+  String name(@Data() User user) => user.name;
+}
+```
 
-<Callout type="important">
+</CodeFile>
 
-While you can bind the context object itself, it is recommended to scope your needs as much as possible. This can help declare your intent and make your code more readable. Consequently, it can also help you test your code more effectively.
+`GET /api/me` with a valid `Authorization` header returns `200 {"data":"Ada"}`, and without one returns `401 Sign in first`. The component is applied as a type (`@LifecycleComponents([LoadUser])`) because its constructor needs a service from DI. See [Registering Components][registering].
+
+<Callout type="tip">
+
+`dart run revali create lifecycle-component` scaffolds a class with one method for each role. Delete the ones you don't need.
 
 </Callout>
 
-## Register the Lifecycle Component
+## Methods
 
-To register the lifecycle component, annotate your `LifecycleComponent` class on the app, controller, or endpoint level.
+Only **public, non-static** methods with one of these return types are used. Every other method is ignored, so you can keep private helpers on the class.
 
-<CodeFile name="routes/controllers/my_controller.dart">
+| Return type | Role | Async form |
+| --- | --- | --- |
+| `MiddlewareResult` | [Middleware][middleware] | `Future<MiddlewareResult>` |
+| `GuardResult` | [Guard][guards] | `Future<GuardResult>` |
+| `InterceptorPreResult` | [Interceptor (pre)][interceptors] | Mark the method `async` and keep the return type |
+| `InterceptorPostResult` | [Interceptor (post)][interceptors] | Mark the method `async` and keep the return type |
+| `ExceptionCatcherResult<T>` | [Exception catcher][catchers] for exceptions of type `T` | **Not supported.** Catchers must be synchronous. |
+| `WrapperResult` | [Request wrapper][wrapper]. Also needs a `NextResponse` parameter. | Already a `Future<Response>` |
+
+`InterceptorPreResult` and `InterceptorPostResult` are aliases for `FutureOr<void>`, so an interceptor returns nothing. Write the alias rather than `void`, because Revali uses the return type to recognize the role.
+
+A class can have any number of methods, including several for the same role. They run in declaration order.
+
+## Method Parameters
+
+Method parameters are bound the same way as endpoint parameters:
+
+- **Binding annotations**: `@Header()`, `@Query()`, `@Param()`, `@Body()`, `@Cookie()`, `@Data()`, `@Dep()`, and custom binds. See [Binding][binding].
+- **Implied types** need no annotation: `Context`, `Request`, `Response`, `Headers`, `Data`, `MetaScope`, `Reflect`, `DI`, and more. The full list is in [Binding: Implied binding][context-bindings].
+- **The exception**: in an exception catcher, a parameter of type `T` receives the exception that was thrown.
+- **`NextResponse`**: in a request wrapper, it continues the rest of the pipeline.
+
+A required binding that is missing, such as `@Header('X-Key') String key` when the header is absent, throws a `MissingArgumentException`. Revali turns that into a `400` unless a catcher handles it. Make the parameter nullable (`String? key`) when the value is optional.
+
+<Callout type="important">
+
+Ask for the narrowest type you need (`Request`, `Data`, `Headers`) instead of `Context`. The signature then shows what the method depends on, and the method is easier to test.
+
+</Callout>
+
+## Constructor Parameters
+
+The constructor's values come from one of two places, depending on how the component is applied:
+
+| Applied as | Constructor values come from |
+| --- | --- |
+| An instance: `@LoadUser(...)` | The arguments written in the annotation, which must be constants |
+| A type: `@LifecycleComponents([LoadUser])` | [Dependency injection][di]. `@Dep()` is implied, so you don't write it. |
+
+With a type reference, you can also bind request values into the constructor with binding annotations such as `@Data()` or `@Header()`. They are resolved per request:
 
 ```dart
-import 'package:revali_router/revali_router.dart';
+class RequireRole implements LifecycleComponent {
+  const RequireRole(this.roles, {@Data() required this.user});
 
-// highlight-next-line
-@MyComponent()
-@Get('')
-Future<void> myEndpoint() {
-    ...
+  final RoleService roles; // from DI
+  final User user;         // from request data
+
+  GuardResult check() =>
+      roles.isAdmin(user) ? const GuardResult.pass() : const GuardResult.block();
 }
 ```
 
-</CodeFile>
+To mix constant configuration with a DI dependency in one annotation, see [Registering Components][registering].
 
-### Register as Type Reference
+## Components Are Per-Request
 
-<CodeFile name="routes/controllers/my_controller.dart">
+A new instance is created for every request, and for each role it runs in. Do not keep state in fields between method calls: the middleware and the guard of the same class do not share an instance. Pass values between methods, and between components, through [`Data`][data-sharing].
 
-```dart
-import 'package:revali_router/revali_router.dart';
+## Classic Style
 
-// highlight-next-line
-@LifecycleComponents([MyComponent])
-@Get('')
-Future<void> myEndpoint() {
-    ...
-}
-```
+The per-role pages also document the classic interfaces (`implements Middleware`, `implements Guard`, and so on), where one class has one fixed method (`use`, `protect`, ...) and receives the whole `Context`. They still work and are useful for reusable library code, but they are the advanced option. Pick one style per feature.
 
-</CodeFile>
-
-[di]: /revali/app-configuration/configure-dependencies
-[binding]: /constructs/revali_server/core/binding
-[data-sharing]: /constructs/revali_server/context/data-sharing
-[wrapper]: /constructs/revali_server/lifecycle-components/advanced/wrapper
-[context]: /constructs/revali_server/context
-[guard]: /constructs/revali_server/lifecycle-components/advanced/guards
+[overview]: /constructs/revali_server/lifecycle-components
+[registering]: /constructs/revali_server/lifecycle-components#registering-components
 [middleware]: /constructs/revali_server/lifecycle-components/advanced/middleware
-[interceptor-pre]: /constructs/revali_server/lifecycle-components/advanced/interceptors#pre
-[interceptor-post]: /constructs/revali_server/lifecycle-components/advanced/interceptors#post
-[exception-catcher]: /constructs/revali_server/lifecycle-components/advanced/exception-catchers
-[implied-binding]: /constructs/revali_server/core/implied_binding
-[create-cli]: /constructs/revali_server/getting-started/cli#code-generation-made-easy
+[guards]: /constructs/revali_server/lifecycle-components/advanced/guards
+[interceptors]: /constructs/revali_server/lifecycle-components/advanced/interceptors
+[catchers]: /constructs/revali_server/lifecycle-components/advanced/exception-catchers
+[wrapper]: /constructs/revali_server/lifecycle-components/advanced/wrapper
+[binding]: /constructs/revali_server/core/binding
+[context-bindings]: /constructs/revali_server/core/binding#implied-binding
+[data-sharing]: /constructs/revali_server/context/data-sharing
+[di]: /revali/app-configuration/configure-dependencies

@@ -37,7 +37,7 @@ dart run revali compose
 `revali up` runs every service in the repository together — a roster, a log
 pane per service, and keys that drive one of them or all of them — falling back
 to flat prefixed output where there is no terminal. See
-[`revali up`](https://www.revali.dev/revali/cli/up).
+[`revali up`](https://docs.revali.dev/revali/cli/up).
 
 See the [root README](https://github.com/mrgnhnt96/revali#readme) and
 [AGENTS.md](https://github.com/mrgnhnt96/revali/blob/main/AGENTS.md) for
@@ -46,4 +46,4 @@ routes/doctor/create, HTTP 400 binding errors, `@RequestId()`, and the
 
 ## Documentation
 
-Check out the [documentation](https://www.revali.dev/) for more information on how to use Revali.
+Check out the [documentation](https://docs.revali.dev) for more information on how to use Revali.

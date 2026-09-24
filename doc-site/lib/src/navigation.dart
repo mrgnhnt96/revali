@@ -129,27 +129,17 @@ const _revali = NavSection(
         NavItem(
           'Installation',
           '/revali/getting-started/installation',
-          summary: 'Install the Revali CLI and add it to a Dart project.',
+          summary: 'The SDK, the two packages, and the `routes/` directory.',
         ),
         NavItem(
           'Create Your First Endpoint',
           '/revali/getting-started/create-your-first-endpoint',
-          summary: 'Write a controller and get a route out of it.',
+          summary: 'A controller, request binding, and the exact responses.',
         ),
         NavItem(
           'Run the Server',
           '/revali/getting-started/run-the-server',
-          summary: '`revali dev`, and what it does on the way up.',
-        ),
-        NavItem(
-          'Debug the Server',
-          '/revali/getting-started/debug-server',
-          summary: 'Attach a debugger and set breakpoints in your handlers.',
-        ),
-        NavItem(
-          'Hot Reload',
-          '/revali/getting-started/hot-reload',
-          summary: 'Edit a handler and see it live without a restart.',
+          summary: '`revali dev`, hot reload, debugging, and what gets generated.',
         ),
       ],
     ),
@@ -184,19 +174,9 @@ const _revali = NavSection(
           summary: 'Register services once and inject them anywhere.',
         ),
         NavItem(
-          'Request-Scoped Dependencies',
-          '/revali/app-configuration/request-scoped-dependencies',
-          summary: 'One instance per request, disposed when it ends.',
-        ),
-        NavItem(
-          'Flavors',
-          '/revali/app-configuration/flavors',
-          summary: 'One codebase, several environments.',
-        ),
-        NavItem(
-          'Default Responses',
+          'Error Responses',
           '/revali/app-configuration/default-responses',
-          summary: 'Set the body Revali returns for 404s and 500s.',
+          summary: 'Default 400/404/500 bodies, and `HttpError` for error codes.',
         ),
         NavItem(
           'Environment Variables',
@@ -233,11 +213,6 @@ const _revali = NavSection(
           '/revali/app-configuration/tracing',
           summary: 'Carry a request id and W3C trace context across a hop.',
         ),
-        NavItem(
-          'Error Responses',
-          '/revali/app-configuration/error-responses',
-          summary: 'Structured errors that survive a service-to-service call.',
-        ),
       ],
     ),
     NavGroup(
@@ -249,6 +224,11 @@ const _revali = NavSection(
           'revali dev',
           '/revali/cli/dev',
           summary: 'Run the server with code generation and hot reload.',
+        ),
+        NavItem(
+          'revali create',
+          '/revali/cli/create',
+          summary: 'Scaffold controllers, apps, components, observers and pipes.',
         ),
         NavItem(
           'revali build',
@@ -300,19 +280,14 @@ const _revali = NavSection(
       summary: 'Longer walkthroughs that put the pieces together.',
       entries: [
         NavItem(
-          'Middleware',
+          'Middleware and Guards',
           '/revali/tutorials/middleware',
-          summary: 'Run code before and after every request.',
+          summary: 'Log every request, and protect endpoints with a guard.',
         ),
         NavItem(
           'Error Handling',
           '/revali/tutorials/error-handling',
           summary: 'Turn thrown exceptions into the responses you meant.',
-        ),
-        NavItem(
-          'Authentication',
-          '/revali/tutorials/authentication',
-          summary: 'Guard endpoints and identify the caller.',
         ),
         NavItem(
           'Database Integration',
@@ -343,24 +318,11 @@ const _constructs = NavSection(
       entries: [
         NavItem('Overview', '/constructs/revali_server'),
         NavGroup(
-          'Getting Started',
-          entries: [
-            NavItem('Installation', '/constructs/revali_server/getting-started/installation'),
-            NavItem('CLI', '/constructs/revali_server/getting-started/cli'),
-            NavItem(
-              'Create Your First Endpoint',
-              '/constructs/revali_server/getting-started/create-your-first-endpoint',
-            ),
-            NavItem('Run the Server', '/constructs/revali_server/getting-started/run-the-server'),
-          ],
-        ),
-        NavGroup(
           'Core',
           entries: [
             NavItem('Controllers', '/constructs/revali_server/core/controllers'),
             NavItem('HTTP Methods', '/constructs/revali_server/core/methods'),
             NavItem('Binding', '/constructs/revali_server/core/binding'),
-            NavItem('Implied Binding', '/constructs/revali_server/core/implied_binding'),
             NavItem('Pipes', '/constructs/revali_server/core/pipes'),
           ],
         ),
@@ -369,7 +331,6 @@ const _constructs = NavSection(
           entries: [
             NavItem('Overview', '/constructs/revali_server/request'),
             NavItem('Body', '/constructs/revali_server/request/body'),
-            NavItem('Headers', '/constructs/revali_server/request/headers'),
             NavItem('Client IP', '/constructs/revali_server/request/client-ip'),
             NavItem('Redirect', '/constructs/revali_server/request/redirect'),
             NavItem('HEAD Requests', '/constructs/revali_server/request/head-requests'),
@@ -380,7 +341,6 @@ const _constructs = NavSection(
           'Response',
           entries: [
             NavItem('Overview', '/constructs/revali_server/response'),
-            NavItem('Body', '/constructs/revali_server/response/body'),
             NavItem('Headers', '/constructs/revali_server/response/headers'),
             NavItem('Status Code', '/constructs/revali_server/response/status-code'),
             NavItem('Cookies', '/constructs/revali_server/response/cookies'),
@@ -398,14 +358,17 @@ const _constructs = NavSection(
             NavItem('Reflect', '/constructs/revali_server/context/reflect'),
           ],
         ),
-        // The Docusaurus tree had these seven under a further "Advanced"
-        // category. Flattened: they are the components most readers come here
-        // for, and a third nesting level pushed the links off the column.
+        // The role pages live under `advanced/` in content/ for URL stability;
+        // flattened here because a third nesting level pushes links off the
+        // column.
         NavGroup(
           'Lifecycle Components',
           entries: [
             NavItem('Overview', '/constructs/revali_server/lifecycle-components'),
-            NavItem('Components', '/constructs/revali_server/lifecycle-components/components'),
+            NavItem(
+              'Writing a Component',
+              '/constructs/revali_server/lifecycle-components/components',
+            ),
             NavItem('Observer', '/constructs/revali_server/lifecycle-components/observer'),
             NavItem('Throttle', '/constructs/revali_server/lifecycle-components/kits/throttle'),
             NavItem(
@@ -420,10 +383,6 @@ const _constructs = NavSection(
             NavItem(
               'Interceptors',
               '/constructs/revali_server/lifecycle-components/advanced/interceptors',
-            ),
-            NavItem(
-              'Combine Components',
-              '/constructs/revali_server/lifecycle-components/advanced/combine-components',
             ),
             NavItem(
               'Exception Catchers',
@@ -441,13 +400,8 @@ const _constructs = NavSection(
             NavItem('Allow Origins', '/constructs/revali_server/access-control/allow-origins'),
             NavItem('Expect Headers', '/constructs/revali_server/access-control/expect-headers'),
             NavItem('Prevent Headers', '/constructs/revali_server/access-control/prevent-headers'),
-            NavItem(
-              'Pre-flight Requests',
-              '/constructs/revali_server/access-control/pre-flight-requests',
-            ),
           ],
         ),
-        NavItem('Tid Bits', '/constructs/revali_server/tidbits'),
       ],
     ),
     NavGroup(
@@ -456,21 +410,12 @@ const _constructs = NavSection(
       summary: 'A type-safe Dart client generated from the same annotations.',
       entries: [
         NavItem('Overview', '/constructs/revali_client'),
-        NavGroup(
-          'Getting Started',
-          entries: [
-            NavItem('Installation', '/constructs/revali_client/getting-started/installation'),
-            NavItem('Configure', '/constructs/revali_client/getting-started/configure'),
-            NavItem('Storage', '/constructs/revali_client/getting-started/storage'),
-            NavItem('Interceptors', '/constructs/revali_client/getting-started/http-interceptors'),
-            NavItem('Return Types', '/constructs/revali_client/getting-started/return-types'),
-          ],
-        ),
+        NavItem('Storage & Cookies', '/constructs/revali_client/storage'),
         NavItem('Generated Code', '/constructs/revali_client/generated-code'),
         NavItem(
-          'Timeouts & Retries',
+          'Interceptors & Retries',
           '/constructs/revali_client/resilience',
-          summary: 'Give up, try again, and intercept — safely.',
+          summary: 'Add headers and logging, give up, try again — safely.',
         ),
         NavItem('get_it Integration', '/constructs/revali_client/integrations/get_it'),
       ],
@@ -481,8 +426,6 @@ const _constructs = NavSection(
       summary: 'An OpenAPI document, inferred from your types.',
       entries: [
         NavItem('Overview', '/constructs/revali_swagger'),
-        NavItem('Installation', '/constructs/revali_swagger/getting-started/installation'),
-        NavItem('Configuration', '/constructs/revali_swagger/getting-started/configuration'),
         NavItem('Annotations', '/constructs/revali_swagger/annotations'),
         NavItem('Type Inference', '/constructs/revali_swagger/type-inference'),
       ],
@@ -493,8 +436,6 @@ const _constructs = NavSection(
       summary: 'A Dockerfile for your server, and somewhere to run it.',
       entries: [
         NavItem('Overview', '/constructs/revali_docker'),
-        NavItem('Installation', '/constructs/revali_docker/installation'),
-        NavItem('Deploying', '/constructs/revali_docker/deploy'),
         NavItem('Fly.io', '/constructs/revali_docker/deploy/fly-io'),
       ],
     ),
@@ -513,18 +454,10 @@ const _createConstructs = NavSection(
       '/create-constructs',
       summary: 'What a construct can generate, and when to write one.',
     ),
-    NavGroup(
+    NavItem(
       'Getting Started',
-      icon: NavIcons.rocket,
+      '/create-constructs/getting-started',
       summary: 'A construct package that Revali will actually run.',
-      entries: [
-        NavItem('Create Construct Package', '/create-constructs/getting-started/create-package'),
-        NavItem('Install Dependencies', '/create-constructs/getting-started/install-dependencies'),
-        NavItem('Create Entrypoint', '/create-constructs/getting-started/create-entrypoint'),
-        NavItem('Construct Config', '/create-constructs/getting-started/construct-config'),
-        NavItem('Add as Dependency', '/create-constructs/getting-started/add-as-dependency'),
-        NavItem('Run New Construct', '/create-constructs/getting-started/run-new-construct'),
-      ],
     ),
     NavGroup(
       'Core',
@@ -533,13 +466,12 @@ const _createConstructs = NavSection(
       entries: [
         NavItem('Construct Lifecycle', '/create-constructs/core/construct-lifecycle'),
         NavItem('Build Construct', '/create-constructs/core/build-construct'),
-        NavItem('Generic Construct', '/create-constructs/core/generic-construct'),
       ],
     ),
     NavItem(
-      'Tips and Tricks',
+      'Debugging',
       '/create-constructs/tips-and-tricks',
-      summary: 'Debugging a construct, and the shortcuts worth knowing.',
+      summary: 'Step through your construct with a debugger.',
     ),
   ],
 );

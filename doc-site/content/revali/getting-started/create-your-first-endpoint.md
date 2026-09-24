@@ -1,149 +1,157 @@
 ---
 title: Create Your First Endpoint
-description: Create a new controller and endpoint
+description: Write a controller, bind request data, and know exactly what the response looks like.
 ---
 
-This guide will walk you through creating your first API endpoint using Revali's approach.
+An endpoint is a method on a **controller**: a class annotated with
+`@Controller` in a file under `routes/`. Revali finds it, generates the routing
+code into `.revali/`, and serves it.
 
-<Callout type="tip">
-
-This guide covers the core concepts of Revali. For a complete server implementation, check out the [Revali Server](/constructs/revali_server) guide.
-
-</Callout>
-
-## Project Structure
-
-First, let's set up the basic project structure. Create a `routes` directory in your project root:
+## Project layout
 
 ```tree
-.
-├── lib/
-│   └── main.dart
-├── routes/
-│   └── (your controllers will go here)
-└── pubspec.yaml
+my_api/
+├── pubspec.yaml
+├── lib/                       # your models, services, components
+└── routes/
+    ├── controllers/
+    │   └── hello_controller.dart
+    └── apps/
+        └── main_app.dart      # optional — see "Configure the app" below
 ```
 
-## Create a Controller
+Revali's rules for `routes/`:
 
-Controllers define the endpoints that your application will expose. Create a new file called `hello_controller.dart` in the `routes` directory:
+- A controller file must end in `_controller.dart` or `.controller.dart`.
+- An app file must be named `app.dart`, `*_app.dart` or `*.app.dart`.
+- Subdirectories are fine; the directory names do **not** affect URLs.
 
-<CodeFile name="routes/hello_controller.dart">
+## Write a controller
+
+Create it by hand, or scaffold it with
+[`dart run revali create controller`](/revali/cli/create):
+
+<CodeFile name="routes/controllers/hello_controller.dart">
 
 ```dart
-import 'package:revali_annotations/revali_annotations.dart';
+import 'package:revali_router/revali_router.dart';
 
 @Controller('hello')
 class HelloController {
-  // Your endpoints will go here
-}
-```
+  const HelloController();
 
-</CodeFile>
-
-<Callout type="important">
-
-**File Naming Requirements:**
-
-- Controller files must end with `_controller.dart` or `.controller.dart`
-
-- Files must be placed in the `routes` directory (can be nested in subdirectories)
-
-</Callout>
-
-## Add Your First Endpoint
-
-Now let's add a simple endpoint that returns "Hello, World!":
-
-<CodeFile name="routes/hello_controller.dart">
-
-```dart
-import 'package:revali_annotations/revali_annotations.dart';
-
-@Controller('hello')
-class HelloController {
   @Get()
-  String hello() {
-    return 'Hello, World!';
-  }
+  String hello() => 'Hello, World!';
+
+  @Get(':name')
+  String greet(@Param() String name) => 'Hello, $name!';
+
+  @Get('count')
+  int count(@Query() int times) => times;
 }
 ```
 
 </CodeFile>
 
-## Understanding the Code
+The URL is `/{prefix}/{controller path}/{method path}`. The prefix defaults to
+`api`. The **method name is never part of the URL**: `@Get()` with no argument
+serves the controller path itself.
 
-Let's break down what we just created:
+| Request | Response |
+| --- | --- |
+| `GET /api/hello` | `200` `{"data": "Hello, World!"}` |
+| `GET /api/hello/Ada` | `200` `{"data": "Hello, Ada!"}` |
+| `GET /api/hello/count?times=3` | `200` `{"data": 3}` |
+| `GET /api/hello/count` | `400` — the required `times` query parameter is missing |
 
-- **`@Controller('hello')`**: Defines a controller with the base path `/hello`
-- **`@Get()`**: Marks the method as a GET endpoint
-- **`String hello()`**: The method that handles the request and returns a response
+## Responses
 
-## Endpoint URL
+- A return value (string, number, map, list, record, or your own class) is
+  JSON-encoded and wrapped in `{"data": ...}` with
+  `Content-Type: application/json`.
+- To send a body unwrapped, return `StringContent('...')` for plain text, or
+  set `response.body` yourself.
+- `Future<T>` and `Stream<T>` returns are awaited or streamed.
 
-With this setup, your endpoint will be available at:
+Details and overrides: [Response](/constructs/revali_server/response).
 
-```text
-GET http://localhost:8080/api/hello
-```
+## Bind request data
 
-The URL structure is: `{host}:{port}{prefix}/{controller}/{method}`
+Parameters are filled from the request by annotation:
 
-- **Host**: `localhost` (default)
-- **Port**: `8080` (default)
-- **Prefix**: `/api` (default)
-- **Controller**: `/hello` (from `@Controller('hello')`)
-- **Method**: `/hello` (method name)
+| Annotation | Reads from | Example |
+| --- | --- | --- |
+| `@Param()` | A `:name` segment of the path | `@Param() String id` |
+| `@Query()` | The query string | `@Query() int page` |
+| `@Body()` | The request body (a key path with `@Body(['user', 'name'])`) | `@Body() User user` |
+| `@Header('X-Name')` | A request header | `@Header('Authorization') String? auth` |
 
-## Add More Endpoints
+The parameter name is the key unless you pass one (`@Param('id') String userId`).
+A nullable type makes the value optional. A missing or unparseable required
+value produces `400 Bad Request` without your method running.
 
-You can add multiple endpoints to the same controller:
+Your own classes work in bodies and responses when they have a
+`fromJson` factory and a `toJson` method:
 
-<CodeFile name="routes/hello_controller.dart">
+<CodeFile name="lib/models/user.dart">
 
 ```dart
-import 'package:revali_annotations/revali_annotations.dart';
+class User {
+  const User({required this.name});
 
-@Controller('hello')
-class HelloController {
-  @Get()
-  String hello() {
-    return 'Hello, World!';
-  }
+  factory User.fromJson(Map<String, dynamic> json) =>
+      User(name: json['name'] as String);
 
-  @Get('greet')
-  String greet() {
-    return 'Greetings!';
-  }
+  final String name;
 
-  @Post('echo')
-  String echo(String message) {
-    return 'Echo: $message';
-  }
+  Map<String, dynamic> toJson() => {'name': name};
 }
 ```
 
 </CodeFile>
 
-This creates three endpoints:
+<CodeFile name="routes/controllers/users_controller.dart">
 
-- `GET /api/hello/hello`
-- `GET /api/hello/greet`
-- `POST /api/hello/echo`
+```dart
+import 'package:my_api/models/user.dart';
+import 'package:revali_router/revali_router.dart';
 
-## Next Steps
+@Controller('users')
+class UsersController {
+  const UsersController();
 
-<Callout type="tip">
+  @Post()
+  User create(@Body() User user) => user;
+}
+```
 
-Ready to see your API in action? Check out the [Run the Server](/revali/getting-started/run-the-server) guide to start your development server.
+</CodeFile>
 
-</Callout>
+`POST /api/users` with `{"name": "Ada"}` returns `200` and
+`{"data": {"name": "Ada"}}`.
 
-For more advanced features like:
+The full binding reference, including cookies, custom binders and
+dependency injection, is in [Binding](/constructs/revali_server/core/binding).
 
-- Request/response handling
-- Middleware and guards
-- Error handling
-- Database integration
+## Configure the app
 
-Check out the [Revali Server](/constructs/revali_server) documentation.
+Without an app file, Revali logs a warning and serves on `localhost:8080`
+with the `/api` prefix. To choose the host, port or prefix, or to register
+dependencies, add an app:
+
+<CodeFile name="routes/apps/main_app.dart">
+
+```dart
+import 'package:revali_router/revali_router.dart';
+
+@App()
+final class MainApp extends AppConfig {
+  const MainApp() : super(host: 'localhost', port: 8080, prefix: 'api');
+}
+```
+
+</CodeFile>
+
+See [Create an App](/revali/app-configuration/create-an-app) for every option.
+
+Next: [Run the server](/revali/getting-started/run-the-server).

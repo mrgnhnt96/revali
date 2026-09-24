@@ -1,143 +1,85 @@
 ---
 title: Client IP
-description: Resolve the client IP from the connection or trusted proxy headers
+description: Read the client IP with @Ip() or request.ip, and resolve it from trusted proxy headers
 ---
 
-Revali exposes the client IP on every request via `request.ip`. You can inject it into endpoints with `@Ip`, or read it from the `Request` object in lifecycle components.
+Every request exposes the client IP as `request.ip`. By default it is the TCP remote address. When the app runs behind a reverse proxy (load balancer, CDN, ingress), override `trustedProxy` on your app so the IP is read from a proxy header such as `X-Forwarded-For` instead.
 
-By default, the IP comes from the TCP connection's remote address. When your app runs behind a reverse proxy (load balancer, CDN, ingress), override `trustedProxy` on your app configuration so `request.ip` is resolved from proxy headers instead.
+## Minimal example
 
-## `@Ip()` - Endpoint Binding
-
-Inject the resolved client IP into an endpoint parameter:
+<CodeFile name="routes/controllers/whoami_controller.dart">
 
 ```dart
-@Controller('analytics')
-class AnalyticsController {
-  @Post('event')
-  String trackEvent(
-    @Body() AnalyticsEvent event,
-    @Ip() String? clientIp,
-  ) {
-    return 'Tracked ${event.name} from $clientIp';
-  }
+import 'package:revali_router/revali_router.dart';
+
+@Controller('whoami')
+class WhoamiController {
+  const WhoamiController();
+
+  @Get()
+  String? ip(@Ip() String? clientIp) => clientIp;
 }
 ```
 
-The value is the same as `request.ip` for that request. It is `null` when no address can be determined.
+</CodeFile>
 
-Use `@Ip.pipe(MyPipe)` when you need to transform or validate the IP with a [pipe](/constructs/revali_server/core/pipes).
-
-## Accessing via `Request`
-
-```dart
-@Get('debug')
-String debug(Request request) {
-  return 'Client IP: ${request.ip}';
-}
+```bash
+curl http://localhost:8080/api/whoami
+# {"data":"127.0.0.1"}
 ```
 
-In lifecycle components:
+| Where | How |
+| ----- | --- |
+| Endpoint | `@Ip() String? ip`, or `@Ip.pipe(MyPipe)` to transform it with a [pipe](/constructs/revali_server/core/pipes) |
+| Lifecycle component / `Request` | `request.ip` or `context.request.ip` |
+
+The value is `null` when no address can be determined.
+
+## Trusted proxy
+
+Override `trustedProxy` in your [app](/revali/app-configuration/create-an-app):
+
+<CodeFile name="routes/apps/main_app.dart">
 
 ```dart
-final ip = context.request.ip;
-```
+import 'package:revali_router/revali_router.dart';
 
-<Callout type="tip">
-
-Prefer `@Ip()` in endpoints over passing `Request` only for the IP — it keeps handlers focused and easier to test. See [binding](/constructs/revali_server/core/binding#ip---client-ip) for details.
-
-</Callout>
-
-## Trusted Proxy Configuration
-
-Configure which headers to trust in your app class by overriding `trustedProxy`:
-
-<CodeFile name="routes/main_app.dart">
-
-```dart
 @App()
 final class MainApp extends AppConfig {
   const MainApp() : super(host: 'localhost', port: 8080);
 
   @override
   TrustedProxy get trustedProxy => const TrustedProxy(
-    headers: ['X-Forwarded-For'],
-  );
+        headers: ['X-Forwarded-For'],
+      );
 }
 ```
 
 </CodeFile>
 
-Common header names:
+| `TrustedProxy` option | Default | Behavior |
+| --------------------- | ------- | -------- |
+| `headers` | `[]` | Header names to check, in order. The first header that yields a valid IP wins. Empty means proxy headers are ignored and the TCP address is used. |
+| `useLeftmostIp` | `false` | `false`: take the **rightmost** valid IP in the comma-separated list (the one your proxy appended). `true`: take the leftmost. |
 
-| Header | Typical source |
-| ------ | -------------- |
-| `X-Forwarded-For` | nginx, HAProxy, many load balancers |
-| `X-Real-IP` | nginx |
-| `CF-Connecting-IP` | Cloudflare |
+Resolution details:
 
-Headers are checked in list order. The first header that yields a valid IP wins.
+- If a header is sent more than once, only the **last** line is used.
+- Ports are stripped (`203.0.113.1:5000` and `[2001:db8::1]:443` both work). Values that are not IPs are skipped.
+- If no configured header yields an IP, the TCP remote address is used.
 
-### Default: rightmost IP
+| `X-Forwarded-For` | `useLeftmostIp: false` | `useLeftmostIp: true` |
+| ----------------- | ---------------------- | --------------------- |
+| `203.0.113.1, 198.51.100.178` | `198.51.100.178` | `203.0.113.1` |
 
-With the default settings, each comma-separated value is scanned from **right to left**. The rightmost valid IP is the one your proxy appended — the client as seen by the proxy chain.
-
-```dart
-// X-Forwarded-For: 203.0.113.1, 198.51.100.178
-// request.ip → 198.51.100.178
-const TrustedProxy(headers: ['X-Forwarded-For']);
-```
-
-### Leftmost IP
-
-If your deployment expects the original client at the **left** of the list, set `useLeftmostIp`:
-
-```dart
-@override
-TrustedProxy get trustedProxy => const TrustedProxy(
-  headers: ['X-Forwarded-For'],
-  useLeftmostIp: true,
-);
-```
-
-```dart
-// X-Forwarded-For: 203.0.113.1, 198.51.100.178
-// request.ip → 203.0.113.1
-```
-
-### No trusted headers
-
-When `headers` is empty (the default), proxy headers are **ignored** and only the TCP remote address is used. This is the safe default when the app is reached directly by clients.
-
-```dart
-// X-Forwarded-For present but ignored
-const TrustedProxy(); // same as TrustedProxy(headers: [])
-```
-
-### Duplicate header lines
-
-If a header appears more than once, only the **last** line is used (matching typical proxy behavior).
+Common headers: `X-Forwarded-For` (nginx, HAProxy, most load balancers), `X-Real-IP` (nginx), `CF-Connecting-IP` (Cloudflare).
 
 ## Security
 
-Only enable `trustedProxy` when **all** traffic reaches your app through proxies you control. Otherwise clients can send `X-Forwarded-For` (or similar) and spoof `request.ip`.
+Only configure `trustedProxy` when **all** traffic reaches the app through proxies you control. Otherwise a client can send `X-Forwarded-For` itself and choose its own `request.ip`.
 
-For sensitive routes, combine trusted-proxy configuration with [`@PreventHeaders`](/constructs/revali_server/access-control/prevent-headers) so clients cannot send forwarding headers themselves:
+A proxy header is only trustworthy if your proxy **overwrites** it (or appends to it, with `useLeftmostIp: false`). If the proxy passes a header through untouched, do not list it in `headers`.
 
-```dart
-@PreventHeaders({'X-Forwarded-For', 'X-Real-IP', 'X-Original-IP'})
-@Controller('admin')
-class AdminController {
-  @Get('audit')
-  String auditLog(@Ip() String? ip) {
-    return 'Action from $ip';
-  }
-}
-```
+[`@PreventHeaders`](/constructs/revali_server/access-control/prevent-headers) rejects any request that carries the named headers, including headers your own proxy adds. Use it to block forwarding headers only on apps or routes that are reached directly, without a proxy.
 
-## What's Next?
-
-- **[Binding](/constructs/revali_server/core/binding)** — All request data annotations including `@Ip`
-- **[Prevent Headers](/constructs/revali_server/access-control/prevent-headers)** — Block spoofed proxy headers from clients
-- **[App Configuration](/revali/app-configuration/create-an-app)** — Where to override `trustedProxy`
+The same IP is used by [`@Throttle`](/constructs/revali_server/lifecycle-components/kits/throttle).

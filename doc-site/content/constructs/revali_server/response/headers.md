@@ -1,232 +1,113 @@
 ---
-title: Headers
-description: Set HTTP headers to send additional information to the client
+title: Response Headers
+description: Headers Revali sets automatically, and setting your own with @SetHeader or the Headers object
 ---
 
-> Access via: `context.response.headers`
+Revali sets content headers (`Content-Type`, `Content-Length`, ...) from the response body. Add your own with `@SetHeader(name, value)` when the value is fixed, or through the response `Headers` object when it is computed per request.
 
-HTTP headers provide additional information about the response. Revali automatically sets many headers for you, but you can customize them as needed.
+## Minimal example
 
-## Automatic Headers
-
-Revali automatically sets these headers based on your response:
-
-### Content-Type
-
-- **JSON objects/arrays**: `application/json`
-- **Strings**: `text/plain`
-- **Files**: Based on file extension
-- **Streams**: `application/octet-stream`
-
-### Content-Length
-
-- Automatically calculated for most response types
-- Set manually only when needed
-
-### Other Headers
-
-- **Date**: Current timestamp
-- **Server**: Revali server information
-- **Transfer-Encoding**: For streaming responses
-
-## Setting Headers
-
-### Via Annotations (Recommended)
-
-Set headers statically using annotations:
+<CodeFile name="routes/controllers/data_controller.dart">
 
 ```dart
-@Controller('api')
-class ApiController {
-  @Get('data')
+import 'package:revali_router/revali_router.dart';
+
+@Controller('data')
+class DataController {
+  const DataController();
+
   @SetHeader('Cache-Control', 'max-age=3600')
-  @SetHeader('X-Custom-Header', 'value')
-  String getData() {
-    return 'Cached data';
+  @Get()
+  String cached() => 'cached';
+
+  @Get('traced')
+  String traced(Headers headers) {
+    headers.set('X-Trace-Id', 'abc123');
+    return 'traced';
   }
 }
 ```
 
-### Via Lifecycle Components
+</CodeFile>
 
-Set headers dynamically in middleware, guards, or interceptors:
+```bash
+curl -i http://localhost:8080/api/data
+# cache-control: max-age=3600
+# content-type: application/json
+# {"data":"cached"}
+
+curl -i http://localhost:8080/api/data/traced
+# x-trace-id: abc123
+# {"data":"traced"}
+```
+
+## Automatic headers
+
+| Header | Set when |
+| ------ | -------- |
+| `Content-Type` | Always, from the body: `application/json`, `text/plain` (`StringContent`), `application/octet-stream` (bytes, streams), the file's type for `File`, the given type for `MemoryFile`. See [Response](/constructs/revali_server/response#return-types). |
+| `Content-Length` | Body length when known. Otherwise the response is sent with `Transfer-Encoding: chunked`. |
+| `Content-Disposition` | `attachment; filename="..."` for `File` and `MemoryFile` bodies. |
+| `Last-Modified`, `Accept-Ranges` | `File` bodies. |
+| `Date` | Always, unless you set it. |
+| `Content-Encoding`, `Vary` | When [compression](/revali/app-configuration/compression) applies. |
+| `Access-Control-*`, `Allow` | CORS headers ([Access control](/constructs/revali_server/access-control/allow-origins)). |
+
+## Setting headers
+
+| Method | Scope | Use when |
+| ------ | ----- | -------- |
+| `@SetHeader(name, value)` | App class, controller class, or endpoint method | The value is constant. |
+| `Headers` / `ResponseHeaders` endpoint parameter | One endpoint | The value is computed in the handler. |
+| `response.headers` in a lifecycle component | Wherever the component is applied | The value is computed and shared by many endpoints. |
 
 ```dart
 class SecurityHeaders implements LifecycleComponent {
-  MiddlewareResult processRequest(Response response) {
-    response.headers.set('X-Content-Type-Options', 'nosniff');
-    response.headers.set('X-Frame-Options', 'DENY');
-    response.headers.set('X-XSS-Protection', '1; mode=block');
+  const SecurityHeaders();
+
+  MiddlewareResult apply(Response response) {
+    response.headers
+      ..set('X-Content-Type-Options', 'nosniff')
+      ..set('X-Frame-Options', 'DENY');
 
     return const MiddlewareResult.next();
   }
 }
 ```
 
-### Via Binding
+`Headers` methods for writing:
 
-Access headers directly in endpoint methods:
+| Method | Effect |
+| ------ | ------ |
+| `set(name, value, {expose})` / `headers[name] = value` | Replace the header. |
+| `add(name, value, {expose})` | Add another value. |
+| `remove(name)` | Remove the header. |
+| `addAll(map)` | Set several headers. |
+| `mimeType`, `contentType`, `contentLength`, `filename`, `lastModified` setters | Typed shortcuts for common headers. |
+
+Header names are case-insensitive.
+
+## Exposing headers to browser JavaScript
+
+Cross-origin `fetch`/XHR code can only read a few response headers unless the others are listed in `Access-Control-Expose-Headers`. Pass `expose: true` to add the header there too:
 
 ```dart
-@Controller('api')
-class ApiController {
-  @Get('data')
-  String getData(ResponseHeaders headers) {
-    headers.set('Cache-Control', 'no-cache');
-    headers.set('X-Response-Time', DateTime.now().toIso8601String());
-
-    return 'Data';
-  }
+@Get('item')
+String item(Headers headers) {
+  headers.set('X-Request-Id', 'req-1', expose: true);
+  return 'ok';
 }
 ```
 
-## Exposing Headers to the Client (CORS)
+The response then carries `X-Request-Id: req-1` and `Access-Control-Expose-Headers: X-Request-Id`.
 
-Browsers only expose a small default set of response headers to cross-origin JavaScript (`fetch`/`XHR`) — anything else needs an explicit `Access-Control-Expose-Headers` entry, or the browser hides it from your client code even though it's present on the wire.
+| Call | Effect on `Access-Control-Expose-Headers` |
+| ---- | ----------------------------------------- |
+| `set(name, value, expose: true)` | Adds `name`. |
+| `set(name, value, expose: false)` | Removes `name` (the header value is still set). |
+| `set(name, value)` | Unchanged. |
+| `expose(name)` / `unexpose(name)` | Add / remove without touching the value. |
 
-Pass `expose: true` to `set`/`add` to have Revali manage that header for you:
+`@SetHeader` has no `expose` option; use the `Headers` object.
 
-```dart
-@Controller('api')
-class ApiController {
-  @Get('data')
-  String getData(ResponseHeaders headers) {
-    headers.set('X-Request-Id', requestId, expose: true);
-
-    return 'Data';
-  }
-}
-```
-
-This does two things in one call: sets `X-Request-Id` on the response, and adds `X-Request-Id` to `Access-Control-Expose-Headers` so cross-origin client code can actually read `response.headers.get('X-Request-Id')`. Pass `expose: false` to remove a header from that list without touching its value; omit `expose` to leave exposure unchanged.
-
-You can also manage exposure independently of setting a value:
-
-```dart
-headers.expose('X-Request-Id');   // add to Access-Control-Expose-Headers
-headers.unexpose('X-Request-Id'); // remove it
-```
-
-<Callout type="note">
-
-`expose` isn't available on the `@SetHeader(...)` annotation — only on the `Headers`/`ResponseHeaders` binding shown above, since exposure is usually decided per-request rather than statically.
-
-</Callout>
-
-## Common Headers
-
-### Caching
-
-```dart
-// Cache for 1 hour
-@SetHeader('Cache-Control', 'max-age=3600')
-
-// No cache
-@SetHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
-
-// Cache with validation
-@SetHeader('Cache-Control', 'max-age=3600, must-revalidate')
-@SetHeader('ETag', '"abc123"')
-```
-
-### CORS
-
-These are automatically handled by revali's [allow origins](/constructs/revali_server/access-control/allow-origins) feature.
-
-```dart
-@SetHeader('Access-Control-Allow-Origin', '*')
-@SetHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE')
-@SetHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-```
-
-### Security
-
-```dart
-@SetHeader('X-Content-Type-Options', 'nosniff')
-@SetHeader('X-Frame-Options', 'DENY')
-@SetHeader('X-XSS-Protection', '1; mode=block')
-@SetHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
-```
-
-### Content Type
-
-These are automatically handled by revali's [body](/constructs/revali_server/response/body) feature.
-
-```dart
-// Override automatic content type
-@SetHeader('Content-Type', 'application/xml')
-
-// For file downloads
-@SetHeader('Content-Disposition', 'attachment; filename="file.pdf"')
-```
-
-## File Headers
-
-When returning files, Revali automatically sets appropriate headers:
-
-```dart
-@Controller('files')
-class FileController {
-  @Get('download')
-  File downloadFile(Headers headers) {
-    return File('path/to/document.pdf');
-  }
-}
-```
-
-**Automatic headers for files:**
-
-- `Content-Type`: Based on file extension
-- `Content-Disposition`: `attachment; filename="my-document.pdf"`
-- `Content-Length`: File size
-
-## Best Practices
-
-### Use Annotations for Static Headers
-
-```dart
-// ✅ Good - Clear and static
-@Get('data')
-@SetHeader('Cache-Control', 'max-age=3600')
-String getData() {
-  return 'Data';
-}
-
-// ❌ Avoid - Unnecessary complexity for static values
-@Get('data')
-String getData(Headers headers) {
-  headers.set('Cache-Control', 'max-age=3600');
-  return 'Data';
-}
-```
-
-### Use Lifecycle Components for Dynamic Headers
-
-```dart
-// ✅ Good - Dynamic based on conditions
-class SecurityHeaders implements LifecycleComponent {
-  MiddlewareResult processRequest(Response response) {
-    response.headers.set('X-Content-Type-Options', 'nosniff');
-    return const MiddlewareResult.next();
-  }
-}
-```
-
-### Avoid Magic Strings
-
-```dart
-// ✅ Good - Use constants
-import 'dart:io';
-
-@SetHeader(HttpHeaders.cacheControlHeader, 'max-age=3600')
-
-// ❌ Avoid - Magic strings
-@SetHeader('Cache-Control', 'max-age=3600')
-```
-
-## What's Next?
-
-- Learn about [response body](/constructs/revali_server/response/body) for setting response data
-- Explore [status codes](/constructs/revali_server/response/status-code) for HTTP status codes
-- See [cookies](/constructs/revali_server/response/cookies) for session management
-- Check out [WebSockets](/constructs/revali_server/response/websockets) for real-time communication
+Related: [Cookies](/constructs/revali_server/response/cookies) · [Status code](/constructs/revali_server/response/status-code) · [Request headers](/constructs/revali_server/request#headers)

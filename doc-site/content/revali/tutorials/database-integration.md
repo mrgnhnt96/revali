@@ -3,7 +3,7 @@ title: Database Integration
 description: Connect to your data layer with a repository and DI
 ---
 
-This tutorial connects an endpoint to a real database using [`sqlite3`](https://pub.dev/packages/sqlite3), registered through Revali's [dependency injection][configure-dependencies]. The same repository pattern applies to any database driver (Postgres, MySQL, etc.) -- swap the driver-specific calls inside the repository and everything else stays the same.
+In this tutorial you connect endpoints to a database with [`sqlite3`](https://pub.dev/packages/sqlite3). You register the connection and a repository through [dependency injection][configure-dependencies]. The pattern works the same with any driver (Postgres, MySQL and others): only the code inside the repository changes. The examples assume your package is named `my_app`.
 
 ## Add the driver
 
@@ -18,7 +18,7 @@ dependencies:
 
 ## Write a repository
 
-The repository owns all database-specific code. Nothing outside it needs to know it's backed by SQLite:
+The repository holds all of the database-specific code:
 
 <CodeFile name="lib/repos/todo_repository.dart">
 
@@ -56,19 +56,18 @@ class TodoRepository {
 
 ## Register the connection and repository
 
-Open the database once and register both it and the repository as lazy singletons in `configureDependencies`. Because `TodoRepository`'s constructor takes a dependency, register it with a closure that resolves `Database` from `di` -- a bare `TodoRepository.new` tear-off only works for constructors that take no arguments:
+Register the database and the repository as lazy singletons, so each is created once, the first time it's used. `TodoRepository`'s constructor takes an argument, so register it with a closure that calls `di.get<Database>()`:
 
-<CodeFile name="routes/main_app.dart">
+<CodeFile name="routes/apps/main_app.dart">
 
 ```dart
+import 'package:my_app/repos/todo_repository.dart';
 import 'package:revali_router/revali_router.dart';
 import 'package:sqlite3/sqlite3.dart';
 
-import '../lib/repos/todo_repository.dart';
-
 @App()
 final class MainApp extends AppConfig {
-  MainApp() : super(host: 'localhost', port: 8080);
+  const MainApp() : super(host: 'localhost', port: 8080);
 
   @override
   Future<void> configureDependencies(DI di) async {
@@ -83,22 +82,17 @@ final class MainApp extends AppConfig {
 
 </CodeFile>
 
-<Callout type="tip">
-
-`sqlite3.openInMemory()` is used here so the tutorial has zero setup -- the database lives for the life of the server process. For a persisted database, use `sqlite3.open('path/to/file.db')` instead; everything else in this tutorial is unchanged.
-
-</Callout>
+`sqlite3.openInMemory()` needs no setup, and the data lasts only as long as the server process. To keep the data on disk, use `sqlite3.open('todos.db')` instead.
 
 ## Inject the repository into a controller
 
-Controller constructor parameters are resolved from DI automatically. Mark them with `@Dep()`:
+Revali resolves controller constructor parameters from DI automatically. `@Dep()` is optional here:
 
 <CodeFile name="routes/controllers/todo_controller.dart">
 
 ```dart
+import 'package:my_app/repos/todo_repository.dart';
 import 'package:revali_router/revali_router.dart';
-
-import '../../lib/repos/todo_repository.dart';
 
 @Controller('todos')
 class TodoController {
@@ -119,11 +113,16 @@ class TodoController {
 
 </CodeFile>
 
-`POST /todos` with body `{"title": "Buy milk"}` inserts a row and returns `{"id": 1, "title": "Buy milk"}`. `GET /todos` lists every row inserted so far -- the same `Database` instance is reused across requests because it's registered as a lazy singleton, not recreated per request.
+```bash
+curl -X POST http://localhost:8080/api/todos -H 'Content-Type: application/json' -d '{"title": "Buy milk"}'
+# {"data":{"id":1,"title":"Buy milk"}}
 
-## What's next?
+curl http://localhost:8080/api/todos
+# {"data":[{"id":1,"title":"Buy milk"}]}
+```
 
-- [Configure Dependencies][configure-dependencies] — registration methods (`registerSingleton`, `registerFactory`, `registerLazySingleton`), the `Inject` marker for DI values inside annotations, and request-scoped dependencies for per-request state like transactions
-- [Body](/constructs/revali_server/request/body) — binding and validating request bodies beyond a single field
+`@Body(['title'])` reads the `title` field from the JSON body. If it's missing, the request gets a 400. Every request uses the same `Database`, because it's a singleton.
+
+Next: [Configure Dependencies][configure-dependencies] (including request-scoped transactions) · [Body binding](/constructs/revali_server/request/body) · [Testing](/revali/testing)
 
 [configure-dependencies]: /revali/app-configuration/configure-dependencies

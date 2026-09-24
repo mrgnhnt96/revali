@@ -1,200 +1,178 @@
 ---
 title: Request Body
-description: The payload of the request from the client
+description: How request bodies are decoded by Content-Type, read with @Body, read in lifecycle components, and extended with custom parsers
 ---
 
-The body of the request is the data that is sent by the client to the server. The body can be in many different formats, such as JSON or plain text. The body is read-only, meaning that you cannot modify the body of the request.
+The request body is decoded according to its `Content-Type` header and bound to an endpoint parameter with `@Body()`. This page covers which Dart value each content type produces, file uploads, reading the body outside an endpoint, and adding parsers for other content types. The `@Body()` annotation itself is documented under [Binding](/constructs/revali_server/core/binding#body---request-body).
 
-When the request is received by the server, the body's type is a `Stream` of bytes. Streams are a way to read data in chunks, which is useful for reading large files or data that is not fully available at once. Most of the time, you will not need to read the body as a stream, and you can read the body as a string or JSON object.
+## Minimal example
 
-## Determining the Body Type
-
-As the developer, you get to decide how you expect the body to be formatted. The body can be in many different formats, such as JSON, plain text, or binary data. You can determine whether you want to support multiple body types or only one.
-
-<Callout type="tip">
-
-If you support multiple body types, you can determine the body type by looking at the `Content-Type` header of the request. The `Content-Type` header tells the server what type of data is being sent in the body.
-
-</Callout>
-
-## Reading the Body
-
-The request's body is lazy-loaded, meaning that the body is not read/resolved until you access it. This is useful because you may not need to read the body for every request, and you can save resources by not reading the body if it is not needed.
-
-### In the Endpoint Handler
-
-When you use the body within the your endpoint handler, Revali Server will automatically resolve the body for you. The body will be resolved as a string, JSON object, stream, etc, depending on the body's type. The value will be passed to your endpoint handler as an argument as long as the body type and the parameter type match.
+<CodeFile name="routes/controllers/notes_controller.dart">
 
 ```dart
-@Get()
-Future<void> saveUser(
-    // highlight-next-line
-    @Body() Map<String, dynamic> data,
-) async {
-    ...
+import 'package:revali_router/revali_router.dart';
+
+@Controller('notes')
+class NotesController {
+  const NotesController();
+
+  @Post()
+  Map<String, dynamic> create(@Body() Map<String, dynamic> note) {
+    return {'received': note};
+  }
 }
 ```
 
-<Callout type="important">
+</CodeFile>
 
-If the body type and the parameter type do not match, a `MissingArgumentException` will be thrown.
+```bash
+curl -X POST http://localhost:8080/api/notes \
+  -H 'Content-Type: application/json' \
+  -d '{"title": "hi", "pinned": true}'
+# {"data":{"received":{"title":"hi","pinned":true}}}
+```
 
-<Callout type="tip">
+If the decoded body does not fit the parameter type, or a required body is missing, the client gets **400** (`MissingArgumentException`).
 
-Learn how to [handle exceptions][exception-catchers]
+## Content types
 
-</Callout>
+| `Content-Type` | Decoded value | Typical parameter |
+| -------------- | ------------- | ----------------- |
+| `application/json` | `Map<String, dynamic>` or `List<dynamic>` (empty body gives `{}`) | a class with `fromJson`, `Map<String, dynamic>`, `List<T>` |
+| `text/plain` | `String` | `String` |
+| `application/x-www-form-urlencoded` | `Map<String, dynamic>`, values type-coerced | `Map<String, dynamic>`, or `@Body(['field'])` |
+| `multipart/form-data` | `Map<String, dynamic>`, fields coerced, files as maps (below) | `Map<String, dynamic>` |
+| `application/octet-stream` | `List<int>` | `List<int>` |
+| none | Tried in order: JSON, url-encoded form, number/bool, then `String` | |
+| any other | Raw byte stream, unless a [custom parser](#custom-content-types) is registered | `Stream<List<int>>` |
 
-</Callout>
+Type-coerced means `"1"` becomes `1` and `"true"` becomes `true`; JSON values are kept as sent.
 
-### Outside the Endpoint Handler
+## File uploads
 
-If you need to read the body within a Lifecycle Component, you can access the body using the `Request` object from the context.
+Each file part of a `multipart/form-data` body becomes a map:
 
-The body needs to be resolved before you can access it. You can resolve the body by calling the `resolvePayload` method on the `Request` object.
-
-<Callout type="warning">
-
-If you try to access the body without resolving it first, an `UnresolvedPayloadException` will be thrown.
-
-</Callout>
+| Key | Value |
+| --- | ----- |
+| `filename` | The client's file name. |
+| `bytes` | `List<int>` file contents. |
+| `content` | Contents decoded as a string. |
 
 ```dart
-class MyComponent implements Middleware {
-    const MyComponent();
-
-    @override
-    Future<void> use(MiddlewareContext context) async {
-        // highlight-next-line
-        await context.request.resolvePayload();
-
-        final body = context.request.body;
-    }
+@Post('upload')
+Map<String, dynamic> upload(@Body() Map<String, dynamic> form) {
+  final file = form['file'] as Map<String, dynamic>;
+  return {
+    'filename': file['filename'],
+    'size': (file['bytes'] as List).length,
+    'count': form['count'],
+  };
 }
 ```
 
-<Callout type="note">
+```bash
+curl -X POST http://localhost:8080/api/notes/upload \
+  -F 'file=@notes.txt' -F 'count=1'
+# {"data":{"filename":"notes.txt","size":19,"count":1}}
+```
 
-Calling `resolvePayload` multiple times will not re-read the body, the body will be resolved and cached in memory the first time `reservePayload` is called.
+Multipart parts are buffered in memory. For large uploads, send the file as `application/octet-stream` and bind the unbuffered stream:
 
-<Callout type="important" title="FYI">
+```dart
+@Post('raw')
+Future<int> raw(@Body() Stream<List<int>> bytes) async {
+  var size = 0;
+  await for (final chunk in bytes) {
+    size += chunk.length;
+  }
+  return size;
+}
+```
 
-There are no limits to how many times you can access the body
+`@Body() Stream<List<int>>` cannot take a key path.
 
-</Callout>
+## Reading the body in lifecycle components
 
-</Callout>
+The body is decoded lazily. Outside an endpoint, call `resolvePayload()` before reading `request.body`; otherwise an `UnresolvedPayloadException` is thrown. Resolving twice does not re-read the stream.
 
-Resolving the payload will check the `Content-Type` header and resolve the body as the appropriate type.
+```dart
+import 'package:revali_router/revali_router.dart';
 
-## Builtin Body Types
+class LogBody implements LifecycleComponent {
+  const LogBody();
 
-### String
+  Future<MiddlewareResult> logBody(Request request) async {
+    await request.resolvePayload();
+    print(request.body.data);
 
-Content-Type: `text/plain`
-Dart Type: `StringBodyData`
+    return const MiddlewareResult.next();
+  }
+}
+```
 
-### JSON
+## Custom content types
 
-Content-Type: `application/json`
-Dart Type: `JsonBodyData`
-
-### Form Data
-
-Content-Type: `application/x-www-form-urlencoded`
-Dart Type: `FormDataBodyData`
-
-### Multipart Form Data
-
-Content-Type: `multipart/form-data`
-Dart Type: `FormDataBodyData`
-
-### Binary Data
-
-Content-Type: `application/octet-stream`
-Dart Type: `BinaryBodyData`
-
-## Custom Body Types
-
-If you need to support a custom body type, you can create a class that extends the `BodyData` class. Once you have created your custom body type, you'll need to register it with the `PayloadImpl`.
-
-### Create Body Type
+Register a `BodyParser` for a MIME type to decode it yourself. The parser returns a `BodyData`:
 
 ```dart
 import 'dart:convert';
 
 import 'package:revali_router/revali_router.dart';
 
-base class MyBodyData extends BodyData {
-  MyBodyData(
-    this._bytes,
-    this._encoding,
-    this._headers,
-  );
-
-  final Stream<List<int>> _bytes;
-  final Encoding _encoding;
-  final ReadOnlyHeaders _headers;
+final class CsvBodyData extends BodyData {
+  CsvBodyData(this.data);
 
   @override
-  Stream<List<int>> get data => _bytes;
+  final List<List<String>> data;
 
   @override
-  ReadOnlyHeaders headers(ReadOnlyHeaders? requestHeaders) {
-    return requestHeaders ?? EmptyHeaders();
-  }
+  String? get mimeType => 'text/csv';
 
   @override
   bool get isNull => false;
 
   @override
-  Stream<List<int>>? read() {
-    throw UnimplementedError();
-  }
+  Stream<List<int>>? read() => Stream.value(
+        utf8.encode(data.map((row) => row.join(',')).join('\n')),
+      );
 
   @override
-  String? get mimeType => 'binary/octet-stream';
+  Headers headers(Headers? requestHeaders) =>
+      requestHeaders ?? EmptyHeaders();
 }
-```
 
-### Create Body Parser
-
-You will also need to create a class that extends the `BodyParser` class. The `BodyParser` class is responsible for parsing the body data and returning the body as a `BodyData` object.
-
-```dart
-import 'dart:convert';
-
-import 'package:revali_router/revali_router.dart';
-
-base class MyBodyParser extends BodyParser {
-  const MyBodyParser(super.mimeType);
+final class CsvBodyParser extends BodyParser {
+  const CsvBodyParser() : super('text/csv');
 
   @override
   Future<BodyData> parse(
     Encoding encoding,
     Stream<List<int>> data,
-    ReadOnlyHeaders headers,
+    Headers headers,
   ) async {
-    return MyBodyData(data, encoding, headers);
+    final text = await encoding.decodeStream(data);
+    return CsvBodyData([
+      for (final line in LineSplitter.split(text)) line.split(','),
+    ]);
   }
 }
 ```
 
-### Register
+Register it in your [app](/revali/app-configuration/create-an-app) constructor:
 
-You can register your custom body type within the constructor of your [AppConfig][create-an-app]
+<CodeFile name="routes/apps/main_app.dart">
 
 ```dart
 import 'package:revali_router/revali_router.dart';
 
 @App()
-final class MyApp extends AppConfig {
-  MyApp() : super(host: 'localhost', port: 8083) {
-    PayloadImpl.additionalParsers['binary/octet-stream'] =
-        MyBodyParser('binary/octet-stream');
+final class MainApp extends AppConfig {
+  MainApp() : super(host: 'localhost', port: 8080) {
+    PayloadImpl.additionalParsers['text/csv'] = const CsvBodyParser();
   }
 }
 ```
 
-[exception-catchers]: /constructs/revali_server/lifecycle-components/advanced/exception-catchers
-[create-an-app]: /revali/app-configuration/create-an-app
+</CodeFile>
+
+Requests sent with `Content-Type: text/csv` are now decoded by `CsvBodyParser`, and `@Body()` receives `CsvBodyData.data`.

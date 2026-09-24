@@ -1,57 +1,46 @@
 ---
 title: Construct Lifecycle
-description: How a construct fits into the Revali code generation process
+description: How Revali discovers, compiles, caches and runs constructs, and when to pass --recompile
 ---
 
-It's helpful to understand the lifecycle of a construct and how it fits into the Revali's code generation process. This section will walk you through the lifecycle of a construct and how it interacts with the Revali CLI.
+What happens between `dart run revali dev` and your construct's `generate` being called. Knowing this explains why an edit to a construct sometimes does not show up.
 
-## Running a Construct
+## 1. Discovery
 
-When you run a construct using the Revali CLI, the following steps are executed:
+Revali reads the server's `pubspec.yaml` and, for each **`dev_dependencies`** entry, looks for a `construct.yaml` next to that package's `pubspec.yaml`. Packages without one are skipped. Each listed construct's entrypoint (`lib/<path>`) must exist, or the run fails with `Failed to find the entrypoint for construct <name>`. The built-in server construct from `revali` is always added.
 
-### Package Discovery
+## 2. The construct runner
 
-The Revali CLI consumes your server project's `pubspec.yaml` file to peek into the project's `dev_dependencies` and discover the Revali Construct packages that are being used. It can determine the constructs that are available by looking for the `construct.yaml` file in the package's root directory. If the package is not a Revali Construct package, it will be ignored. The Revali CLI will then check the `construct.yaml` file to retrieve the construct's configuration: name, method, etc.
-
-### Cache Check
-
-If this is the first time you are running the Revali CLI, the Revali CLI will create a file to save the Construct's configuration. This file is located in the `.dart_tool` directory
+Revali writes a Dart program that imports every construct's entrypoint and compiles it to a kernel file:
 
 ```tree
-.
-└── .dart_tool
-    └── revali
-        └── revali.assets.json
+.dart_tool/revali/
+├── revali.dart          # generated runner: one ConstructMaker per construct
+├── revali.dart.dill     # compiled runner
+└── revali.assets.json   # cached construct configuration
 ```
 
-If the `revali.assets.json` file already exists, then the Revali CLI will check if the construct's configuration has changed. If the configuration has changed, the Revali CLI will re-cache the construct's configuration.
+Compiling is the slow part, so the kernel is reused between runs. It is rebuilt when:
 
-This caching step is important because it allows the Revali CLI to skip compiling the root construct's entrypoint file if the configuration has not changed. This has the potential to save a lot of time when running the Revali CLI.
+- the set of constructs or their `construct.yaml` configuration changes, or
+- any `.dart` file under a construct package's `lib/`, or under `lib/` of a path-dependency `revali` / `revali_*` package, is newer than the kernel.
 
-### Root Construct Compilation
-
-The root construct's entrypoint file is where all the constructs are imported and prepared for execution. This file will contain a list of all the constructs that are being used in the server project, along with their configurations from their `construct.yaml` file. This file is located within the `.dart_tool` directory
-
-```tree
-.
-└── .dart_tool
-    └── revali
-        └── revali.dart
-```
-
-When the Revali CLI compiles the root construct's entrypoint file, it will generate a `revali.dart.dill` file. This file is an executable file that contains the compiled code of the root construct's entrypoint file. This step is important because it allows the Revali CLI to spin up a VM isolate and execute the root construct's entrypoint file without having to recompile the code every time. In addition, this step also allows for you to tap into the Dart VM's debugging capabilities.
-
-<Callout type="important">
-
-When you make modifications to your constructs, the `revali.assets.json` file will not be updated automatically, since there are no apparent changes to the construct's configuration or package dependencies. When this happens, you **_WILL NOT_** see the changes reflected in the generated code.
-
-To force the Revali CLI to re-cache and therefore recompile the root construct's entrypoint file, you can pass the `--recompile` flag to the [`revali dev`][revali-dev] and [`revali build`][revali-build] commands.
+Pass `--recompile` to `revali dev` or `revali build` to force a rebuild, for example after changing a dependency of your construct that is not itself a construct package:
 
 ```bash
 dart run revali dev --recompile
 ```
 
-</Callout>
+## 3. Running
 
-[revali-dev]: /revali/cli/dev
-[revali-build]: /revali/cli/build
+The runner analyzes the server into a `MetaServer`, then for each construct:
+
+1. Reads its entry in `revali.yaml`. A construct with `enabled: false` is skipped, and so is an `opt_in` construct without `enabled: true`.
+2. Calls your entrypoint function with the entry's `options`.
+3. Calls `generate` and writes the returned files.
+
+Output is written to a staging directory and swapped into `.revali/` after every construct has finished. Each construct's directory is replaced as a whole, so files you stopped returning disappear, and `.revali/build/` is replaced as a whole on every `revali build`. Directories in `.revali/` that no construct produced this run (other than `build/`) are removed.
+
+An exception in a generic or build construct is logged and the run continues without that construct's output. An exception in server generation fails the run and leaves the previous `.revali/` untouched.
+
+See [Debugging](/create-constructs/tips-and-tricks) to step through this in a debugger.

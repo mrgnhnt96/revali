@@ -1,209 +1,73 @@
 ---
 title: Prevent Headers
-description: Block specific headers from being used in requests
+description: Reject requests that carry specific headers with 403, before any lifecycle component runs.
 ---
 
-## What Are Prevent Headers?
+`@PreventHeaders` rejects a request with `403` if it carries any of the listed headers. The check runs with the other [access-control checks][lifecycle-order], before any middleware or guard. Use it to refuse headers that clients should never send to a route, such as internal debugging headers or forwarding headers on routes that sit behind a [trusted proxy][client-ip].
 
-Prevent Headers is a security mechanism that blocks specific headers from being used in HTTP requests. Unlike CORS headers that allow certain headers, Prevent Headers explicitly denies the use of specified headers, providing an additional layer of security for your API.
+## Example
 
-### Why Use Prevent Headers?
-
-Prevent Headers help protect your API by:
-
-- **Blocking sensitive headers** that could expose internal information
-- **Preventing header injection attacks** by denying malicious headers
-- **Controlling client behavior** by restricting which headers can be sent
-- **Adding security layers** beyond standard CORS protection
-
-### How Prevent Headers Work
-
-When a client sends a request with a header that's in the prevent list, the server will reject the request. This happens before any endpoint logic is executed, providing early protection against unwanted header usage.
-
-## Using Prevent Headers
-
-### Basic Usage
-
-Use the `@PreventHeaders` annotation to block specific headers:
+<CodeFile name="routes/controllers/admin_controller.dart">
 
 ```dart
 import 'package:revali_router/revali_router.dart';
 
-@PreventHeaders({'X-Sensitive-Header', 'X-Internal-Data'})
-@Controller('api')
-class ApiController {
-  @Get('data')
-  String getData() {
-    return 'Data without sensitive headers';
-  }
-}
-```
-
-### Scoping
-
-Prevent Headers can be applied at different levels:
-
-- **App level** - Applies to all controllers and endpoints
-- **Controller level** - Applies to all endpoints in the controller
-- **Endpoint level** - Applies only to specific endpoints
-
-```dart
-@PreventHeaders({'X-Global-Blocked'})
-@App()
-class MyApp {
-  // All controllers inherit X-Global-Blocked prevention
-}
-
-@PreventHeaders({'X-Controller-Blocked'})
-@Controller('users')
-class UsersController {
-  // Inherits X-Global-Blocked and adds X-Controller-Blocked
-
-  @PreventHeaders({'X-Endpoint-Blocked'})
-  @Get('profile')
-  String getProfile() {
-    // Blocks X-Global-Blocked, X-Controller-Blocked, and X-Endpoint-Blocked
-  }
-}
-```
-
-<Callout type="tip">
-
-Learn more about [scoping in lifecycle components](/constructs/revali_server/lifecycle-components#scoping).
-
-</Callout>
-
-### Inheritance
-
-By default, `@PreventHeaders` is inherited by child controllers and endpoints. This means that headers blocked at the app level will also be blocked in all controllers and endpoints within that app.
-
-```dart
-@PreventHeaders({'X-Parent-Header'})
-@Controller('prevent-headers')
-class PreventHeadersController {
-  const PreventHeadersController();
-
-  @Get('inherited')
-  String inherited() {
-    // This endpoint blocks X-Parent-Header (inherited from controller)
-    return 'Hello world!';
-  }
-}
-```
-
-### Disabling Inheritance
-
-Use `@PreventHeaders.noInherit()` to prevent inheritance of parent-level blocked headers:
-
-```dart
-@PreventHeaders({'X-Parent-Header'})
-@Controller('prevent-headers')
-class PreventHeadersController {
-  const PreventHeadersController();
-
-  @PreventHeaders.noInherit({'X-My-Header'})
-  @Get('not-inherited')
-  String notInherited() {
-    // This endpoint only blocks X-My-Header
-    // X-Parent-Header is NOT blocked (inheritance disabled)
-    return 'Hello world!';
-  }
-}
-```
-
-### Combining Headers
-
-You can combine inherited and local blocked headers:
-
-```dart
-@PreventHeaders({'X-Parent-Header'})
-@Controller('prevent-headers')
-class PreventHeadersController {
-  const PreventHeadersController();
-
-  @PreventHeaders({'X-My-Header'})
-  @Get('combined')
-  String combined() {
-    // This endpoint blocks both X-Parent-Header (inherited) and X-My-Header (local)
-    return 'Hello world!';
-  }
-}
-```
-
-## Common Use Cases
-
-### Blocking Sensitive Headers
-
-```dart
-@PreventHeaders({'X-Internal-Data', 'X-Debug-Info', 'X-Secret-Key'})
-@Controller('api')
-class ApiController {
-  @Get('public-data')
-  String getPublicData() {
-    return 'Safe public data';
-  }
-}
-```
-
-### Preventing Header Injection
-
-Block clients from sending forwarding headers on routes where you rely on a trusted proxy for the client IP. Configure [`trustedProxy`](/revali/app-configuration/create-an-app#trusted-proxy) at the app level so `request.ip` and [`@Ip()`](/constructs/revali_server/core/binding#ip---client-ip) read headers your proxy sets, not values clients supply.
-
-```dart
-@PreventHeaders({'X-Forwarded-For', 'X-Real-IP', 'X-Original-IP'})
+@PreventHeaders({'x-debug', 'x-internal-token'})
 @Controller('admin')
 class AdminController {
-  @Get('sensitive')
-  String getSensitiveData(@Ip() String? ip) {
-    return 'Admin data from $ip';
-  }
+  const AdminController();
+
+  @Get()
+  String index() => 'admin';
 }
 ```
 
-See [Client IP](/constructs/revali_server/request/client-ip) for how IP resolution and header blocking work together.
+</CodeFile>
 
-### API Version Control
+| Request | Response |
+| --- | --- |
+| Neither header present | `200 {"data":"admin"}` |
+| `x-debug: 1` | `403 CORS policy does not allow access with these headers.` |
 
-```dart
-@PreventHeaders({'X-API-Version-1', 'X-Deprecated-Header'})
-@Controller('v2')
-class V2Controller {
-  @Get('data')
-  String getData() {
-    return 'V2 API response';
-  }
-}
-```
+To change the `403` body, see [Default Responses][default-responses].
 
-## Error Handling
+<Callout type="important" title="Write header names in lowercase">
 
-When a client sends a request with a blocked header, the server will:
-
-1. **Reject the request** before it reaches your endpoint
-2. **Return an appropriate error response** (typically 400 Bad Request)
-
-<Callout type="tip">
-
-Configure custom error responses for blocked headers in your [app configuration](/revali/app-configuration/default-responses).
+Unlike `@ExpectHeaders`, this comparison is case-sensitive. Dart's HTTP server delivers incoming header names in lowercase, so list them in lowercase (`'x-debug'`, not `'X-Debug'`) or they will never match. `TestServer` keeps header names exactly as you pass them, so send them in lowercase in tests too.
 
 </Callout>
 
-## Best Practices
+## Variants and Scoping
 
-### Block at the Right Level
+`@PreventHeaders` can go on a controller or an endpoint, and the lists combine from the outside in.
+
+| Annotation | Blocks |
+| --- | --- |
+| `@PreventHeaders({...})` | These headers, plus the headers blocked by the enclosing controller |
+| `@PreventHeaders.noInherit({...})` | Only these headers. The parent's list is ignored. |
 
 ```dart
-// ✅ Good - Block sensitive headers globally
-@PreventHeaders({'X-Secret-Key'})
-@App()
-class MyApp {
-  // All endpoints block X-Secret-Key
-}
+@PreventHeaders({'x-parent'})
+@Controller('things')
+class ThingsController {
+  const ThingsController();
 
-// ✅ Good - Block specific headers per controller
-@PreventHeaders({'X-Debug-Info'})
-@Controller('debug')
-class DebugController {
-  // Only debug endpoints block X-Debug-Info
+  @Get('inherited') // blocks x-parent
+  String inherited() => 'ok';
+
+  @PreventHeaders({'x-mine'}) // blocks x-parent and x-mine
+  @Get('combined')
+  String combined() => 'ok';
+
+  @PreventHeaders.noInherit({'x-mine'}) // blocks only x-mine
+  @Get('not-inherited')
+  String notInherited() => 'ok';
 }
 ```
+
+As with [`@AllowOrigins`][allow-origins-app], a `@PreventHeaders` on the `@App()` class is currently merged only into endpoints that declare their own `@PreventHeaders`. Put it on controllers instead.
+
+[lifecycle-order]: /constructs/revali_server/lifecycle-components#lifecycle-order
+[client-ip]: /constructs/revali_server/request/client-ip
+[default-responses]: /revali/app-configuration/default-responses
+[allow-origins-app]: /constructs/revali_server/access-control/allow-origins#variants

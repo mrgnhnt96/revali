@@ -1,150 +1,47 @@
 ---
 title: Overview
-description: Create Server-Side Code with Revali Server
+description: The server reference — controllers, binding, requests, responses and the request lifecycle.
 ---
 
-Revali Server generates comprehensive server-side code for Revali applications — built into `revali` itself, no separate package to install. It provides a powerful, type-safe way to build HTTP APIs using annotations, inspired by modern frameworks like NestJS.
+Revali Server is the code generator that turns your controllers into an HTTP
+server. It is built into `revali`, so there is nothing extra to install. To
+set up a project, start with [Getting Started](/revali/getting-started/installation).
+This section is the reference for everything you write in `routes/` and
+`lib/components/`.
 
-## What is Revali Server?
+## Request lifecycle
 
-Revali Server is the [server generation](/constructs#server-generation) that comes with `revali`, producing the complete server implementation for your Revali application. It handles:
-
-- **HTTP Request Routing**: Automatic route generation from your controllers
-- **Middleware Support**: Request/response processing pipeline
-- **Type Safety**: Compile-time type checking for all endpoints
-- **Hot Reload**: Instant development feedback
-- **Error Handling**: Comprehensive error management
-- **Request/Response Processing**: Automatic serialization and validation
-
-## Key Features
-
-### 🚀 **Rapid Development**
-
-- Define APIs using simple annotations
-- Automatic route generation
-- Hot reload for instant feedback
-- Minimal boilerplate required
-
-### 🛡️ **Type Safety**
-
-- Compile-time type checking
-- Automatic request/response validation
-- IntelliSense support for all endpoints
-- Runtime type safety
-
-### 🔧 **Extensible Architecture**
-
-- Middleware support for cross-cutting concerns
-- Guards for authentication and authorization
-- Interceptors for request/response transformation
-- Pipes for data validation and transformation
-
-### 📦 **Rich Feature Set**
-
-- Support for all HTTP methods (GET, POST, PUT, DELETE, etc.)
-- Request body parsing and validation
-- Query parameter handling
-- Header management
-- Client IP resolution (`@Ip`, `request.ip`, trusted proxy headers)
-- Cookie support
-- File upload capabilities
-- WebSocket support
-- Server-Sent Events (SSE)
-
-## Getting Started
-
-Ready to build your first server? Follow these steps:
-
-1. **[Installation](/constructs/revali_server/getting-started/installation)** - Set up Revali Server
-2. **[Create Your First Endpoint](/constructs/revali_server/getting-started/create-your-first-endpoint)** - Build a simple API endpoint
-3. **[Run the Server](/constructs/revali_server/getting-started/run-the-server)** - Start your development server
-
-## Architecture Overview
-
-Revali Server follows a layered architecture:
+Each request passes through these stages in order. Every stage is optional
+and can be scoped to the whole app, a controller or a single endpoint.
 
 ```mermaid
-graph TD;
-    A[HTTP Request] --> B[Pre-processing];
-    B --> C[Controller];
-    C --> D[Post-processing];
-    D --> E[HTTP Response];
-
-    %% Pre-processing details
-    subgraph PreFlow [ ]
-        B1[Observer ⟮pre⟯] --> B2[Middleware] --> B3[Guards] --> B4[Interceptors ⟮pre⟯] --> B5[Pipes];
-    end
-    B -.-> B1;
-
-    %% Post-processing details
-    subgraph PostFlow [ ]
-        D1[Interceptors ⟮post⟯] --> D2[Observer ⟮post⟯];
-    end
-    D -.-> D1;
+graph LR;
+    A[Request] --> B[Observer]
+    B --> C[Middleware]
+    C --> D[Guards]
+    D --> E[Interceptors pre]
+    E --> F[Pipes + binding]
+    F --> G[Your endpoint]
+    G --> H[Interceptors post]
+    H --> I[Response]
 ```
 
-### Components
+An exception thrown at any stage goes to the nearest matching
+[exception catcher](/constructs/revali_server/lifecycle-components). See
+[Lifecycle Components](/constructs/revali_server/lifecycle-components) for the
+execution order in full and how to write each component.
 
-- **Controllers**: Define your API endpoints
-- **Middleware**: Process requests before they reach controllers
-- **Guards**: Handle authentication and authorization
-- **Interceptors**: Transform requests and responses
-- **Pipes**: Validate and transform data
-- **Exception Catchers**: Handle errors gracefully
+## Where to find things
 
-## Example: Simple API
-
-Here's a quick example of what you can build with Revali Server:
-
-<CodeFile name="routes/users_controller.dart">
-
-```dart
-import 'package:revali_router/revali_router.dart';
-
-@Controller('users')
-class UsersController {
-  @Get()
-  Future<List<User>> getUsers() async {
-    return await userService.getAllUsers();
-  }
-
-  @Post()
-  Future<User> createUser(@Body() User user) async {
-    return await userService.createUser(user);
-  }
-
-  @Get(':id')
-  Future<User> getUser(@Param('id') String id) async {
-    return await userService.getUserById(id);
-  }
-}
-```
-
-</CodeFile>
-
-This creates a complete REST API with:
-
-- `GET /api/users` - Get all users
-- `POST /api/users` - Create a new user
-- `GET /api/users/:id` - Get a specific user
-
-## Why Choose Revali Server?
-
-- **Productivity**: Focus on business logic, not boilerplate
-- **Scalability**: Built for applications of any size
-- **Maintainability**: Clean, organized code structure
-- **Performance**: Optimized for high-throughput applications
-- **Developer Experience**: Excellent tooling and debugging support
-
-<Callout type="important">
-
-**Built In**: Server generation is part of `revali` itself — every Revali project gets it automatically, with no separate construct to install or choose between.
-
-</Callout>
-
-## Next Steps
-
-- **[Getting Started Guide](/constructs/revali_server/getting-started/installation)** - Complete setup tutorial
-- **[Core Concepts](/constructs/revali_server/core/controllers)** - Learn about controllers and routing
-- **[Advanced Features](/constructs/revali_server/lifecycle-components)** - Explore middleware, guards, and more
-- **[Request/Response Handling](/constructs/revali_server/request)** - Master request processing
+| You want to… | Read |
+| --- | --- |
+| Declare routes and HTTP methods | [Controllers](/constructs/revali_server/core/controllers), [HTTP Methods](/constructs/revali_server/core/methods) |
+| Read params, query, body, headers, cookies | [Binding](/constructs/revali_server/core/binding) |
+| Validate or convert bound values | [Pipes](/constructs/revali_server/core/pipes) |
+| Work with the raw request | [Request](/constructs/revali_server/request) |
+| Set status, headers, cookies, or stream a body | [Response](/constructs/revali_server/response) |
+| Serve SSE or WebSockets | [Server-Sent Events](/constructs/revali_server/response/server-sent-events), [WebSockets](/constructs/revali_server/response/websockets) |
+| Share data between components and endpoints | [Context](/constructs/revali_server/context) |
+| Add auth, logging, error mapping or rate limits | [Lifecycle Components](/constructs/revali_server/lifecycle-components) |
+| Configure CORS and required headers | [Access Control](/constructs/revali_server/access-control/allow-origins) |
+| Change host, port, prefix, DI or shutdown | [App Configuration](/revali/app-configuration) |

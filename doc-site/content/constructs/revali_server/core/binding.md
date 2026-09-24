@@ -1,669 +1,299 @@
 ---
 title: Binding
-description: Extract data from requests and inject dependencies
+description: Get path, query, header, cookie, body and injected values into endpoint parameters
 ---
 
-Binding is how you extract data from HTTP requests and inject dependencies into your endpoint methods. Instead of manually parsing request objects, Revali's binding system automatically extracts and converts data for you.
+Binding fills an endpoint's parameters from the request. Annotate a parameter with where the value comes from (`@Param()`, `@Query()`, `@Body()`, ...) and Revali extracts it, converts it to the parameter's type, and passes it in. A few framework types, such as `Request` or `Headers`, need no annotation at all (see [Implied binding](#implied-binding)).
 
-## What Is Data Binding?
+## Minimal example
 
-Think of binding as **automatic data extraction**:
-
-- **Path parameters** (`/users/:id`) → `@Param() String id`
-- **Query strings** (`?name=john&age=25`) → `@Query() String name`
-- **Request headers** (`Authorization: Bearer token`) → `@Header('Authorization') String auth`
-- **Client IP** → `@Ip() String? clientIp`
-- **Request body** (`{"name": "John"}`) → `@Body() User user`
-- **Dependencies** (services, repositories) → `@Dep() UserService service`
-
-## Available Binding Annotations
-
-| Annotation  | Purpose                   | Where to Use            | Example                         |
-| ----------- | ------------------------- | ----------------------- | ------------------------------- |
-| `@Param()`  | Extract path parameters   | Endpoints only          | `@Param() String id`            |
-| `@Query()`  | Extract query parameters  | Endpoints only          | `@Query() String? search`       |
-| `@Header()` | Extract headers           | Endpoints only          | `@Header() String auth`         |
-| `@Ip()`     | Client IP address         | Endpoints only          | `@Ip() String? clientIp`        |
-| `@Body()`   | Extract request body      | Endpoints only          | `@Body() User user`             |
-| `@Dep()`    | Inject dependencies       | Endpoints & Controllers | `@Dep() UserService service`    |
-| `@Data()`   | Extract from Data Handler | Endpoints & Controllers | `@Data() User currentUser`      |
-| `@Bind`     | Custom binding            | Endpoints & Controllers | `@CustomBind() CustomType data` |
-
-<Callout type="important">
-
-You can only use **one binding annotation per parameter**.
-
-</Callout>
-
-<Callout type="info">
-
-Some types don't need binding annotations - they're [automatically detected](/constructs/revali_server/core/implied_binding).
-
-</Callout>
-
-## `@Param()` - Path Parameters
-
-Extract values from URL path segments like `/users/:id` or `/shops/:shopId/products/:productId`.
-
-<Callout type="info">
-
-Path parameters are defined in your route paths using `:parameterName` syntax. Learn more about [creating path parameters in HTTP methods](/constructs/revali_server/core/methods#path-parameters).
-
-</Callout>
-
-### Basic Usage
-
-```dart
-@Controller('users')
-class UsersController {
-  @Get(':id')
-  String getUser(@Param() String id) {
-    return 'User ID: $id';
-  }
-}
-```
-
-**Request:** `GET /users/123`  
-**Result:** `id = "123"`
-
-### Multiple Path Parameters
-
-```dart
-@Controller('shops')
-class ShopsController {
-  @Get(':shopId/products/:productId')
-  String getProduct(
-    @Param() String shopId,
-    @Param() String productId,
-  ) {
-    return 'Shop: $shopId, Product: $productId';
-  }
-}
-```
-
-**Request:** `GET /shops/abc/products/xyz`  
-**Result:** `shopId = "abc"`, `productId = "xyz"`
-
-### Controller-Level Parameters
-
-```dart
-@Controller('shops/:shopId')
-class ShopController {
-  @Get('products')
-  String getProducts(@Param() String shopId) {
-    return 'Products for shop: $shopId';
-  }
-}
-```
-
-**Request:** `GET /shops/abc/products`  
-**Result:** `shopId = "abc"`
-
-### Custom Parameter Names
-
-When the parameter name doesn't match the path segment:
-
-```dart
-@Get(':userId')
-String getUser(@Param('userId') String id) {
-  return 'User ID: $id';
-}
-```
-
-### Path Parameter Characteristics
-
-- **Always strings**: Path parameters are always `String` type
-- **Required**: Missing path parameters cause 404 errors
-- **URL decoded**: Values are automatically URL decoded
-- **Case sensitive**: Parameter names are case sensitive
-
-<Callout type="caution">
-
-Path parameters are always `String` type. Use [pipes](/constructs/revali_server/core/pipes) to convert to other types.
-
-</Callout>
-
-## `@Query()` - Query Parameters
-
-Extract values from URL query strings like `?name=john&age=25&tags=dart,flutter`.
-
-### Basic Query Usage
-
-```dart
-@Controller('users')
-class UsersController {
-  @Get()
-  String searchUsers(@Query() String? search) {
-    return search != null ? 'Searching for: $search' : 'No search term';
-  }
-}
-```
-
-**Request:** `GET /users?search=john`  
-**Result:** `search = "john"`
-
-**Request:** `GET /users`  
-**Result:** `search = null`
-
-### Multiple Query Parameters
-
-```dart
-@Controller('products')
-class ProductsController {
-  @Get()
-  String getProducts(
-    @Query() String? category,
-    @Query() int? minPrice,
-    @Query() int? maxPrice,
-  ) {
-    return 'Category: $category, Price: $minPrice-$maxPrice';
-  }
-}
-```
-
-**Request:** `GET /products?category=electronics&minPrice=100&maxPrice=500`  
-**Result:** `category = "electronics"`, `minPrice = "100"`, `maxPrice = "500"`
-
-### Multiple Values
-
-When a query parameter appears multiple times:
-
-```dart
-@Controller('products')
-class ProductsController {
-  @Get()
-  String getProducts(@Query.all() List<String> tags) {
-    return 'Tags: ${tags.join(", ")}';
-  }
-}
-```
-
-**Request:** `GET /products?tags=dart&tags=flutter&tags=web`  
-**Result:** `tags = ["dart", "flutter", "web"]`
-
-<Callout type="warning">
-
-With `@Query()` (without `.all()`), if multiple values exist for the same key, only the last value is used:
-
-`?tags=dart&tags=flutter` → `tags = "flutter"`
-
-</Callout>
-
-### Custom Query Names
-
-```dart
-@Get()
-String search(@Query('q') String? query) {
-  return 'Query: $query';
-}
-```
-
-**Request:** `GET /search?q=revali`  
-**Result:** `query = "revali"`
-
-<Callout type="caution">
-
-Query parameters are always `String` type. Use [pipes](/constructs/revali_server/core/pipes) to convert to other types.
-
-</Callout>
-
-## `@Header()` - Request Headers
-
-Extract values from HTTP request headers like `Authorization: Bearer token` or `Content-Type: application/json`.
-
-### Basic Header Usage
-
-```dart
-@Controller('auth')
-class AuthController {
-  @Get('profile')
-  String getProfile(@Header('Authorization') String? auth) {
-    return auth != null ? 'Token: $auth' : 'No authorization';
-  }
-}
-```
-
-**Request:** `GET /auth/profile` with `Authorization: Bearer abc123`  
-**Result:** `auth = "Bearer abc123"`
-
-### Common Headers
-
-```dart
-@Controller('api')
-class ApiController {
-  @Post('data')
-  String processData(
-    @Header('Content-Type') String? contentType,
-    @Header('User-Agent') String? userAgent,
-  ) {
-    return 'Content-Type: $contentType, User-Agent: $userAgent';
-  }
-}
-```
-
-### Multiple Header Values
-
-When a header appears multiple times:
-
-```dart
-@Controller('api')
-class ApiController {
-  @Get()
-  String getHeaders(@Header.all('Accept') List<String> accept) {
-    return 'Accept headers: ${accept.join(", ")}';
-  }
-}
-```
-
-**Request:** `GET /api` with `Accept: application/json` and `Accept: text/html`  
-**Result:** `accept = ["application/json", "text/html"]`
-
-<Callout type="warning">
-
-Without `@Header.all()`, multiple values are joined with commas: `Accept: json, html` → `accept = "json, html"`
-
-</Callout>
-
-<Callout type="caution">
-
-Header values are always `String` type. Use [pipes](/constructs/revali_server/core/pipes) to convert to other types.
-
-</Callout>
-
-## `@Ip()` - Client IP
-
-Inject the client IP resolved for the current request. The value matches [`request.ip`](/constructs/revali_server/request/client-ip).
-
-```dart
-@Controller('users')
-class UsersController {
-  @Post('login')
-  String login(
-    @Body() LoginRequest credentials,
-    @Ip() String? clientIp,
-  ) {
-    return 'Login from $clientIp';
-  }
-}
-```
-
-By default the IP is the TCP remote address. Behind a reverse proxy, override `trustedProxy` on your [app configuration](/revali/app-configuration/create-an-app#trusted-proxy) so Revali reads headers such as `X-Forwarded-For`. See [Client IP](/constructs/revali_server/request/client-ip) for header order, `useLeftmostIp`, and security guidance.
-
-## `@Body()` - Request Body
-
-Extract data from the HTTP request body, typically JSON data from POST/PUT requests.
-
-### Basic Body Usage
-
-```dart
-@Controller('users')
-class UsersController {
-  @Post()
-  String createUser(@Body() Map<String, dynamic> body) {
-    return 'Received: $body';
-  }
-}
-```
-
-**Request:** `POST /users` with `{"name": "John", "email": "john@example.com"}`  
-**Result:** `body = {"name": "John", "email": "john@example.com"}`
-
-### Typed Objects
-
-```dart
-class CreateUserRequest {
-  final String name;
-  final String email;
-
-  CreateUserRequest({required this.name, required this.email});
-
-  factory CreateUserRequest.fromJson(Map<String, dynamic> json) {
-    return CreateUserRequest(
-      name: json['name'],
-      email: json['email'],
-    );
-  }
-}
-
-@Controller('users')
-class UsersController {
-  @Post()
-  String createUser(@Body() CreateUserRequest request) {
-    return 'Creating user: ${request.name} (${request.email})';
-  }
-}
-```
-
-**Request:** `POST /users` with `{"name": "John", "email": "john@example.com"}`  
-**Result:** `request = CreateUserRequest(name: "John", email: "john@example.com")`
-
-### Specific Fields
-
-Extract only specific fields from the request body:
-
-```dart
-@Controller('users')
-class UsersController {
-  @Post()
-  String createUser(@Body(['data', 'email']) String email) {
-    return 'Email: $email';
-  }
-}
-```
-
-**Request:** `POST /users` with:
-
-```json
-{
-  "data": {
-    "email": "john@example.com",
-    "password": "secret123"
-  }
-}
-```
-
-**Result:** `email = "john@example.com"` (password is ignored)
-
-<Callout type="warning">
-
-If the specified keys don't exist in the body, a runtime error occurs unless the parameter is nullable.
-
-</Callout>
-
-<Callout type="tip">
-
-Revali automatically detects `fromJson` constructors for type conversion!
-
-</Callout>
-
-## `@Dep()` - Dependency Injection
-
-Inject services, repositories, and other dependencies into your endpoints and controllers.
-
-### Controller Constructor (Recommended)
-
-```dart
-@Controller('users')
-class UsersController {
-  const UsersController(
-    @Dep() this._userService,
-    @Dep() this._logger,
-  );
-
-  final UserService _userService;
-  final Logger _logger;
-
-  @Get()
-  String getUsers() {
-    _logger.info('Fetching users');
-    return _userService.getAllUsers().toString();
-  }
-}
-```
-
-### Endpoint Parameters
-
-```dart
-@Controller('users')
-class UsersController {
-  @Get(':id')
-  String getUser(
-    @Param() String id,
-    @Dep() UserService userService,
-  ) {
-    return userService.getUserById(id).toString();
-  }
-}
-```
-
-<Callout type="tip">
-
-Learn how to [configure dependencies](/revali/app-configuration/configure-dependencies).
-
-If you need to pass a dependency inside a custom annotation argument (for example, a [`LifecycleComponent`](/constructs/revali_server/lifecycle-components)), use the [`Inject`](/revali/app-configuration/configure-dependencies#the-inject-marker-class) marker class instead of `@Dep()`.
-
-</Callout>
-
-<Callout type="warning">
-
-Missing dependencies cause runtime errors. Controllers are validated at startup, so issues are caught early.
-
-</Callout>
-
-## `@Data()` - Data Handler
-
-Extract values from the Data Handler, which stores data shared between components during a request.
-
-### Basic Data Usage
-
-```dart
-@Controller('users')
-class UsersController {
-  @Get('profile')
-  String getProfile(@Data() User currentUser) {
-    return 'Profile for: ${currentUser.name}';
-  }
-}
-```
-
-### Optional Data
-
-```dart
-@Controller('users')
-class UsersController {
-  @Get('settings')
-  String getSettings(@Data() UserSettings? settings) {
-    return settings != null
-      ? 'Settings: $settings'
-      : 'No settings found';
-  }
-}
-```
-
-<Callout type="warning">
-
-Missing data causes runtime errors unless the parameter is nullable.
-
-</Callout>
-
-<Callout type="tip">
-
-The [Data Handler](/constructs/revali_server/context/data-sharing) is useful for sharing data between middleware, guards, and endpoints.
-
-</Callout>
-
-## Custom Binding
-
-Create custom binding annotations for special cases like accessing the full request object or implementing complex data extraction logic.
-
-### Creating Custom Bindings
-
-<CodeFile name="lib/bindings/current_user_binding.dart">
+<CodeFile name="routes/controllers/search_controller.dart">
 
 ```dart
 import 'package:revali_router/revali_router.dart';
 
-class CurrentUserBinding extends Bind<User> {
-  const CurrentUserBinding();
+@Controller('shops/:shopId')
+class SearchController {
+  const SearchController();
 
-  @override
-  User bind(BindContext context) {
-    // Extract user from JWT token in Authorization header
-    final authHeader = context.request.headers['Authorization'];
-    final token = authHeader?.replaceFirst('Bearer ', '');
-
-    if (token == null) {
-      throw UnauthorizedException('No token provided');
-    }
-
-    return _decodeJwtToken(token);
-  }
-
-  User _decodeJwtToken(String token) {
-    // JWT decoding logic here
-    return User(id: '123', name: 'John Doe');
+  @Post('search')
+  Map<String, dynamic> search(
+    @Param() String shopId,
+    @Query() int? limit,
+    @Header('X-Client') String? client,
+    @Body(['term']) String term,
+  ) {
+    return {'shopId': shopId, 'limit': limit, 'client': client, 'term': term};
   }
 }
 ```
 
 </CodeFile>
 
-### Using Custom Bindings
+```bash
+curl -X POST 'http://localhost:8080/api/shops/abc/search?limit=5' \
+  -H 'X-Client: cli' \
+  -H 'Content-Type: application/json' \
+  -d '{"term": "shoes"}'
+# {"data":{"shopId":"abc","limit":5,"client":"cli","term":"shoes"}}
+```
+
+## Annotations
+
+| Annotation | Reads from | Default key | Value type before conversion |
+| ---------- | ---------- | ----------- | ---------------------------- |
+| `@Param([name])` | Path segment `:name` | parameter name | `String` (`List<String>` for `*name`) |
+| `@Query([name])` | Query string, last value wins | parameter name | Coerced: `int`, `double`, `bool`, JSON, else `String` |
+| `@Query.all([name])` | Query string, every value | parameter name | List of coerced values |
+| `@Header([name])` | Request header; repeated values joined with `, ` | parameter name | `String` |
+| `@Header.all([name])` | Request header, every value | parameter name | `List<String>` |
+| `@Cookie([name])` | Request cookie | parameter name | `String` |
+| `@Body([path])` | Request body, optionally a nested key path | whole body | Decoded by `Content-Type` ([Request body](/constructs/revali_server/request/body)) |
+| `@Ip()` | Client IP | n/a | `String?` |
+| `@Dep()` | Dependency injection container | n/a | registered instance |
+| `@Data()` | Request-scoped [data handler](/constructs/revali_server/context/data-sharing) | n/a | stored instance of the parameter's type |
+| Custom `Bind<T>` / `@Binds(Type)` | Your code | n/a | `T` |
+
+Every value-reading annotation also has a pipe form that runs a [pipe](/constructs/revali_server/core/pipes) on the raw value: `@Param.pipe(P)`, `@Query.pipe(P)`, `@Query.allPipe(P)`, `@Header.pipe(P)`, `@Header.allPipe(P)`, `@Cookie.pipe(P)`, `@Body.pipe(P)`, `@Ip.pipe(P)`. The long forms take both: `@Query('q', P)`, `@Body(['user'], P)`.
+
+One binding annotation per parameter.
+
+## Conversion and missing values
+
+After extraction Revali converts the value to the parameter type:
+
+- **Matching type**: passed through. `@Query() int limit` receives `5` for `?limit=5`, because query values are coerced.
+- **`String` parameter, coerced value**: stringified. `@Query() String id` receives `"5"` for `?id=5`; leading zeros are kept (`?id=007` gives `"007"`).
+- **`double` parameter, `int` value**: widened. `?n=5` gives `5.0`.
+- **Class with `fromJson`**: the value is passed to `fromJson` (a factory or static method with exactly one parameter).
+- **`Set<T>` parameter**: matched as an iterable and converted, since JSON has no sets.
+
+If the value is missing or has the wrong type:
+
+| Parameter | Result |
+| --------- | ------ |
+| Has a default value | The default is used. |
+| Nullable (`String?`) | `null` is passed. |
+| Required and non-nullable | `MissingArgumentException` is thrown and the client gets **HTTP 400**. |
+
+For `@Query() String name` on a request without `?name=`, the response is `400` with a plain-text body:
+
+```text
+Bad Request
+
+__DEBUG__:
+Error: MissingArgumentException: key: name, location: @query, expected: String ...
+```
+
+The `__DEBUG__` section is only included in debug builds. To change the body, use an [exception catcher](/constructs/revali_server/lifecycle-components/advanced/exception-catchers).
+
+## `@Param()` - Path parameters
+
+Reads a `:name` segment declared in the controller or method path ([path syntax](/constructs/revali_server/core/methods#path-syntax)).
 
 ```dart
-@Controller('users')
-class UsersController {
-  @Get('profile')
-  String getProfile(@CurrentUserBinding() User currentUser) {
-    return 'Hello, ${currentUser.name}!';
-  }
+@Controller('shop/:shopId')
+class ShopController {
+  const ShopController();
+
+  @Get('product/:productId')
+  String product(@Param('productId') String id) => id;
 }
 ```
 
-### Dynamic Bindings
+`GET /api/shop/123/product/456` returns `{"data":"456"}`.
 
-For bindings that need runtime arguments (e.g. `CurrentUserBinding(service: UserService())`):
+- Path values are always `String` and are not coerced. `@Param() int id` receives a `String` and responds `400`; use a [pipe](/constructs/revali_server/core/pipes) to convert.
+- A wildcard segment `*path` binds to `@Param() List<String> path`.
+
+## `@Query()` - Query parameters
 
 ```dart
-@Controller('users')
-class UsersController {
-  @Get('profile')
-  String getProfile(@Binds(CurrentUserBinding) User currentUser) {
-    return 'Hello, ${currentUser.name}!';
-  }
-}
+@Get('search')
+String search(
+  @Query('q') String term,
+  @Query() int? page,
+  @Query.all('tag') List<String>? tags,
+) => '$term $page $tags';
 ```
 
-<Callout type="important">
+| Request | `term` | `page` | `tags` |
+| ------- | ------ | ------ | ------ |
+| `?q=dart` | `"dart"` | `null` | `null` |
+| `?q=dart&page=2&tag=a&tag=b` | `"dart"` | `2` | `["a", "b"]` |
+| `?q=dart&q=flutter` | `"flutter"` (last wins) | `null` | `null` |
+| no `q` | 400 | | |
 
-Custom binding constructors must be `const` to work as annotations.
-
-</Callout>
-
-## Automatic Type Conversion
-
-Revali automatically converts data types when possible, making your code cleaner and more type-safe.
-
-### `fromJson` Detection
-
-When your class has a `fromJson` constructor, Revali uses it automatically:
+## `@Header()` - Request headers
 
 ```dart
-class User {
+@Get('profile')
+String profile(
+  @Header('Authorization') String? auth,
+  @Header.all('X-Tag') List<String>? tags,
+) => '$auth $tags';
+```
+
+- Header values are `String`s and are not coerced.
+- With `@Header()`, a header sent more than once is joined: `X-Tag: a` + `X-Tag: b` gives `"a, b"`.
+- Without a name, the parameter name is used as the header name, so name the header explicitly for anything containing `-`.
+
+## `@Cookie()` - Request cookies
+
+```dart
+@Get('me')
+String me(@Cookie('session') String? session) => session ?? 'anonymous';
+```
+
+Setting cookies is covered in [Cookies](/constructs/revali_server/response/cookies).
+
+## `@Ip()` - Client IP
+
+Injects the resolved client IP, the same value as [`request.ip`](/constructs/revali_server/request/client-ip).
+
+```dart
+@Post('login')
+String login(@Ip() String? clientIp) => 'login from $clientIp';
+```
+
+By default this is the TCP remote address. Behind a reverse proxy, override `trustedProxy` on your app so Revali reads `X-Forwarded-For` and similar headers; see [Client IP](/constructs/revali_server/request/client-ip).
+
+## `@Body()` - Request body
+
+`@Body()` binds the whole decoded body. `@Body(['a', 'b'])` binds the value at `body['a']['b']`.
+
+```dart
+class CreateUser {
+  const CreateUser({required this.name, required this.age});
+
+  factory CreateUser.fromJson(Map<String, dynamic> json) => CreateUser(
+        name: json['name'] as String,
+        age: json['age'] as int,
+      );
+
   final String name;
   final int age;
-
-  User({required this.name, required this.age});
-
-  factory User.fromJson(Map<String, dynamic> json) {
-    return User(
-      name: json['name'] as String,
-      age: json['age'] as int,
-    );
-  }
 }
 
 @Controller('users')
 class UsersController {
+  const UsersController();
+
   @Post()
-  String createUser(@Body() User user) {
-    return 'Created user: ${user.name} (age: ${user.age})';
+  String create(@Body() CreateUser user) => '${user.name} ${user.age}';
+
+  @Post('email')
+  String email(@Body(['data', 'email']) String email) => email;
+}
+```
+
+```bash
+curl -X POST http://localhost:8080/api/users \
+  -H 'Content-Type: application/json' -d '{"name": "Ada", "age": 36}'
+# {"data":"Ada 36"}
+
+curl -X POST http://localhost:8080/api/users/email \
+  -H 'Content-Type: application/json' -d '{"data": {"email": "ada@example.com"}}'
+# {"data":"ada@example.com"}
+```
+
+`@Body() Stream<List<int>>` receives the raw, unbuffered byte stream (no key path allowed). Content types, multipart uploads and custom parsers are on the [Request body](/constructs/revali_server/request/body) page.
+
+## `@Dep()` - Dependency injection
+
+Injects an instance registered in your app's [dependencies](/revali/app-configuration/configure-dependencies).
+
+```dart
+@Get(':id')
+Future<User> get(@Param() String id, @Dep() UserService users) => users.find(id);
+```
+
+- On endpoint parameters `@Dep()` is required. An unannotated, non-nullable service parameter fails the build.
+- On controller and lifecycle component constructors, `@Dep()` is implied and can be omitted.
+- To pass a dependency as an argument to an annotation (for example a lifecycle component), use the [`Inject`](/revali/app-configuration/configure-dependencies) marker class instead.
+
+## `@Data()` - Request-scoped data
+
+Reads a value that a middleware or guard stored with `data.add(value)`. Lookup is by type.
+
+```dart
+@Get('profile')
+String profile(@Data() User user) => user.name;
+```
+
+Missing data returns `400` unless the parameter is nullable. See [Data sharing](/constructs/revali_server/context/data-sharing).
+
+## Custom binding
+
+Implement `Bind<T>` when a value needs custom extraction logic.
+
+<CodeFile name="lib/bindings/current_user.dart">
+
+```dart
+import 'dart:async';
+
+import 'package:revali_router/revali_router.dart';
+
+class CurrentUser implements Bind<User> {
+  const CurrentUser();
+
+  @override
+  FutureOr<User> bind(BindContext context) {
+    final token = context.request.headers.get('Authorization');
+    return User.fromToken(token);
   }
 }
 ```
 
-**Request:** `POST /users` with `{"name": "John", "age": 25}`  
-**Result:** `user = User(name: "John", age: 25)`
+</CodeFile>
 
-<Callout type="important">
+Use it in one of two ways:
 
-The `fromJson` constructor must accept exactly one parameter.
+| Form | When | Construction |
+| ---- | ---- | ------------ |
+| `@CurrentUser() User user` | The class has a `const` constructor with constant arguments. | The annotation instance itself is used. |
+| `@Binds(CurrentUser) User user` | The constructor needs services. | Revali builds the class, resolving constructor parameters from DI. |
+
+`BindContext` exposes the full request [context](/constructs/revali_server/context) (`request`, `response`, `data`, `meta`, ...) plus `nameOfParameter` and `parameterType`.
+
+## Implied binding
+
+These parameter types are provided without an annotation, in endpoints and in [lifecycle component](/constructs/revali_server/lifecycle-components) methods:
+
+| Type | Value |
+| ---- | ----- |
+| `Request` | The incoming [request](/constructs/revali_server/request) |
+| `RequestHeaders` | Request headers |
+| `RequestCookies` | Request cookies |
+| `Response` | The outgoing [response](/constructs/revali_server/response) |
+| `Headers`, `ResponseHeaders` | **Response** headers (writable) |
+| `Cookies`, `ResponseCookies` | **Response** cookies |
+| `SetCookies` | Response `Set-Cookie` values ([Cookies](/constructs/revali_server/response/cookies)) |
+| `Body`, `PayloadBody` | Response body |
+| `Context` | The whole request [context](/constructs/revali_server/context) |
+| `Data` | [Data handler](/constructs/revali_server/context/data-sharing) |
+| `Meta`, `MetaScope` | Route [metadata](/constructs/revali_server/context/meta) |
+| `RouteEntry` | The matched route |
+| `Reflect` | [Reflection](/constructs/revali_server/context/reflect) data |
+| `CleanUp` | Register callbacks that run when the request closes |
+| `DI` | The [dependency injection](/revali/app-configuration/configure-dependencies) container |
+
+In [WebSocket](/constructs/revali_server/response/websockets) handlers, `AsyncWebSocketSender<T>` and `CloseWebSocket` are also implied.
+
+```dart
+@Get('debug')
+String debug(Request request, Headers headers) {
+  headers.set('X-Debug', 'true');
+  return '${request.method} ${request.uri.path}';
+}
+```
+
+<Callout type="caution">
+
+`Headers` and `Cookies` in an endpoint are the **response** headers and cookies. To read what the client sent, use `@Header()`, `@Cookie()`, `RequestHeaders` or `RequestCookies`.
 
 </Callout>
 
-### Using Pipes for Complex Conversion
+Prefer a binding annotation over reading `Request` by hand: the endpoint's inputs stay visible in its signature, and missing values produce a `400` automatically.
 
-For more complex transformations, use [pipes](/constructs/revali_server/core/pipes):
-
-```dart
-@Controller('users')
-class UsersController {
-  @Get(':id')
-  User getUser(@Param.pipe(UserPipe) User user) {
-    return user;
-  }
-}
-```
-
-## Best Practices
-
-### Use the Right Binding
-
-```dart
-// ✅ Good - path parameter
-@Get(':id')
-String getUser(@Param() String id) => userService.getUser(id);
-
-// ✅ Good - query parameter
-@Get()
-String searchUsers(@Query() String? search) => userService.search(search);
-
-// ✅ Good - request body
-@Post()
-String createUser(@Body() CreateUserRequest request) => userService.create(request);
-
-// ✅ Good - dependency injection
-@Get()
-String getUsers(@Dep() UserService userService) => userService.getAll();
-```
-
-### Keep Parameters Focused
-
-```dart
-// ✅ Good - focused parameters
-@Post()
-String createUser(
-  @Body() CreateUserRequest request,
-  @Dep() UserService userService,
-) {
-  return userService.create(request);
-}
-
-// ❌ Avoid - too many parameters
-@Post()
-String createUser(
-  @Body() CreateUserRequest request,
-  @Dep() UserService userService,
-  @Dep() EmailService emailService,
-  @Dep() NotificationService notificationService,
-  @Dep() AuditService auditService,
-  @Dep() CacheService cacheService,
-) {
-  // Too many dependencies in endpoint
-}
-```
-
-### Handle Optional Data
-
-```dart
-// ✅ Good - nullable for optional data
-@Get()
-String searchUsers(
-  @Query() String? search,
-  @Query() int? limit,
-  @Query() int? offset,
-) {
-  return userService.search(search, limit: limit, offset: offset);
-}
-```
-
-## What's Next?
-
-Now that you understand data binding, explore these related topics:
-
-1. **[Pipes](/constructs/revali_server/core/pipes)** - Transform and validate bound data
-2. **[Implied Binding](/constructs/revali_server/core/implied_binding)** - Types that don't need annotations
-3. **[HTTP Methods](/constructs/revali_server/core/methods)** - Define endpoint behavior
-4. **[Controllers](/constructs/revali_server/core/controllers)** - Organize your endpoints
-
-Ready to learn about data transformation? Let's explore pipes!
+Next: [Pipes](/constructs/revali_server/core/pipes) · [Request body](/constructs/revali_server/request/body)

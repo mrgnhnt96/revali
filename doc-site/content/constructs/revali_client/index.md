@@ -1,230 +1,151 @@
 ---
 title: Overview
-description: Create Client-Side Code with Revali Client
+description: Generate a typed Dart client package for your Revali API, then install, configure and use it
 ---
 
-Revali Client is a [Build Construct](/constructs#build-constructs) that generates type-safe, idiomatic Dart client code for consuming Revali Server APIs. It automatically creates clean, testable client libraries that mirror your server's endpoints, enabling seamless communication between your frontend and backend.
+`revali_client` generates a standalone Dart package that calls your Revali API: one typed method per endpoint, plus a `Server` class that ties them together. Use it when a Dart or Flutter app talks to your Revali server and you want the calls type-checked against the server's code.
 
-## What is Revali Client?
+It is a generic construct, so it regenerates on every `revali dev` run (and on `revali build`) into `.revali/revali_client/`.
 
-Revali Client analyzes your Revali Server routes and automatically generates corresponding client-side code. This ensures your client code stays in sync with your server implementation, provides compile-time type safety, and eliminates the need to manually write HTTP client code.
+## Installation
 
-**Key capabilities:**
+Two packages, both in the **server** project:
 
-- **Type-Safe API Calls**: Compile-time verification of all API requests and responses
-- **Automatic Code Generation**: Client code generated directly from server definitions
-- **Clean Architecture**: Interface-based design following SOLID principles
-- **Flexible Configuration**: HTTP interceptors, storage, and custom integrations
-- **Framework Agnostic**: Works with Flutter, web, or any Dart project
+| Package | Role | Section |
+| --- | --- | --- |
+| `revali_client_gen` | The construct (code generator) | `dev_dependencies` |
+| `revali_client` | Runtime library the generated code uses; also provides `@ExcludeFromClient` | `dependencies` |
 
-## Key Features
-
-### 🎯 **Type Safety**
-
-- Full compile-time type checking for requests and responses
-- IntelliSense support for all API endpoints
-- Automatic serialization and deserialization
-- No runtime type errors from API mismatches
-
-### 🏗️ **Clean Architecture**
-
-- **Interfaces**: Abstract definitions for each API resource
-- **Implementations**: Concrete HTTP client implementations
-- **Testability**: Easy mocking and dependency injection
-- **Maintainability**: Clear separation of concerns
-
-### 🔌 **Extensible**
-
-- **HTTP Interceptors**: Modify requests/responses globally
-- **Storage**: Built-in session and persistent storage
-- **Custom Headers**: Add authentication, logging, and more
-- **Error Handling**: Centralized exception management
-
-### 📦 **Developer Experience**
-
-- Automatic synchronization with server changes
-- Clean, readable generated code
-- Support for all HTTP methods
-- Query parameters, headers, and body handling
-- File upload support
-
-## Getting Started
-
-Ready to generate your first client? Follow these steps:
-
-1. **[Installation](/constructs/revali_client/getting-started/installation)** - Set up Revali Client
-2. **[Configure](/constructs/revali_client/getting-started/configure)** - Configure client generation
-3. **[Use the Client](/constructs/revali_client/generated-code)** - Learn about the generated code structure
-
-## Architecture Overview
-
-Revali Client generates a structured, modular client library:
-
-```mermaid
-graph TD;
-    A[Server Class] --> B[User Data Source];
-    A --> C[Post Data Source];
-    A --> D[Auth Data Source];
-
-    B --> B1[UserDataSource Interface];
-    C --> C1[PostDataSource Interface];
-    D --> D1[AuthDataSource Interface];
-
-    B1 --> B2[UserDataSourceImpl];
-    C1 --> C2[PostDataSourceImpl];
-    D1 --> D2[AuthDataSourceImpl];
-
-    B2 --> E[HTTP Client];
-    C2 --> E;
-    D2 --> E;
-
-    E --> F[Interceptors];
-    F --> G[Network];
+```bash
+dart pub add revali_client
+dart pub add --dev revali_client_gen
 ```
 
-### Components
+<CodeFile name="pubspec.yaml">
 
-- **Server Class**: Main entry point providing access to all data sources
-- **Data Source Interfaces**: Abstract definitions of available API methods
-- **Data Source Implementations**: Concrete HTTP client implementations
-- **HTTP Client**: Underlying HTTP transport layer
-- **Interceptors**: Request/response transformation pipeline
-- **Storage**: Session and persistent data management
+```yaml
+dependencies:
+  revali_client: ^3.0.1
 
-## Example: Simple Client Usage
+dev_dependencies:
+  revali: ^3.3.3
+  revali_client_gen: ^2.5.0
+```
 
-Here's a quick example of using a generated Revali Client:
+</CodeFile>
+
+No `revali.yaml` entry is required. Run the generator:
+
+```bash
+dart run revali dev
+```
+
+## Use the client in an app
+
+The generated package lives in the server project. Add it to the consuming app as a path dependency, together with `revali_client`:
+
+<CodeFile name="my_app/pubspec.yaml">
+
+```yaml
+dependencies:
+  client: # the generated package's name: `package_name`, default `client`
+    path: ../my_server/.revali/revali_client
+  revali_client: ^3.0.1
+```
+
+</CodeFile>
+
+Given a controller on the server:
+
+<CodeFile name="my_server/routes/controllers/user_controller.dart">
 
 ```dart
-import 'package:revali_client/client.dart';
-import 'package:revali_client/interfaces.dart';
+import 'package:revali_router/revali_router.dart';
 
-void main() async {
-  // Create the client instance
-  final server = Server();
+@Controller('users')
+class UserController {
+  const UserController();
 
-  // Type-safe API calls
-  final users = await server.user.getUsers();
-
-  // Create a new user
-  final newUser = await server.user.createUser(
-    User(name: 'Alice', email: 'alice@example.com'),
-  );
-
-  // Get a specific user by ID
-  final user = await server.user.getUser(id: newUser.id);
-
-  print('User: ${user.name}');
+  @Get(':id')
+  Future<User> getById(@Param() String id) async => ...;
 }
 ```
 
-This automatically:
+</CodeFile>
 
-- Constructs the correct HTTP requests
-- Serializes request bodies
-- Deserializes responses
-- Handles network errors
-- Provides type safety at every step
+call it from the app:
 
-## Generated Code Structure
-
-The client generates clean, organized code:
-
-```text
-.revali/
-└── revali_client/
-    ├── lib/
-    │   ├── client.dart           # All implementations
-    │   ├── interfaces.dart       # All interfaces
-    │   └── src/
-    │       ├── server.dart       # Main Server class
-    │       ├── impls/            # Implementation classes
-    │       │   └── user_data_source_impl.dart
-    │       └── interfaces/       # Interface definitions
-    │           └── user_data_source.dart
-    └── pubspec.yaml
-```
-
-### Interface-Based Design
-
-For each server controller, Revali Client generates:
-
-- **Interface**: Defines the contract (`UserDataSource`)
-- **Implementation**: Implements the HTTP calls (`UserDataSourceImpl`)
-
-This enables:
-
-- Easy testing with mocks
-- Dependency injection
-- Swappable implementations
-- Clean architecture adherence
-
-## Advanced Features
-
-### HTTP Interceptors
-
-Add global request/response handling:
+<CodeFile name="my_app/lib/main.dart">
 
 ```dart
-class AuthInterceptor implements HttpInterceptor {
-  @override
-  Future<HttpRequest> onRequest(HttpRequest request) async {
-    return request.copyWith(
-      headers: {...request.headers, 'Authorization': 'Bearer $token'},
-    );
-  }
+import 'package:client/client.dart';
+import 'package:client/interfaces.dart';
+
+Future<void> main() async {
+  final server = Server(baseUrl: Uri.parse('https://api.example.com/api'));
+
+  final UserDataSource users = server.user;
+  final user = await users.getById(id: '123');
 }
 ```
 
-[Learn more about HTTP Interceptors](/constructs/revali_client/getting-started/http-interceptors)
+</CodeFile>
 
-### Storage
+- `package:client/client.dart` (named after `package_name`) holds `Server` and the implementations.
+- `package:client/interfaces.dart` holds the `...DataSource` interfaces and re-exports `Storage`.
+- Path, query, header and body parameters become **named** arguments on the client method. `@Cookie` parameters are not arguments: the client reads them from [storage](/constructs/revali_client/storage).
 
-Built-in storage for session data and persistence:
+Without `baseUrl`, `Server()` calls `<scheme>://<host>:<port>/<prefix>` taken from your `AppConfig` at generation time, `http://localhost:8080/api` by default. Pass `baseUrl` for anything that is not local development. See [Generated Code](/constructs/revali_client/generated-code) for everything `Server` exposes.
 
-```dart
-// Access session storage
-server.session.set('userId', user.id);
-final userId = server.session.get('userId');
+Any custom type in a signature must be importable by the app, so keep request and response models in a package both sides depend on. See [Sharing types](/constructs/revali_client/generated-code#sharing-types).
 
-// Access persistent storage
-server.storage.set('theme', 'dark');
-final theme = server.storage.get('theme');
+## Configuration
+
+Options go under the construct's entry in the server's `revali.yaml`. All are optional.
+
+<CodeFile name="revali.yaml">
+
+```yaml
+constructs:
+  - name: revali_client
+    options:
+      package_name: my_api_client
+      server_name: ApiClient
+      scheme: https
+      integrations:
+        get_it: true
 ```
 
-[Learn more about Storage](/constructs/revali_client/getting-started/storage)
+</CodeFile>
 
-### Dependency Injection
+| Option | Type | Default | Effect |
+| --- | --- | --- | --- |
+| `package_name` | `String` | `client` | `name:` of the generated `pubspec.yaml` and of its main library, `lib/<package_name>.dart`. The output directory is always `.revali/revali_client/`. |
+| `server_name` | `String` | `Server` | Name of the generated entry class. Must not contain whitespace. |
+| `scheme` | `String` | `http` | Scheme of the default base URL. Has no effect when you pass `baseUrl`. |
+| `integrations.get_it` | `bool` | `false` | Adds `get_it` to the generated package and a `register(GetIt)` method to `Server`. See [get_it](/constructs/revali_client/integrations/get_it). |
 
-Integrate with popular DI frameworks:
+## Excluding endpoints
+
+`@ExcludeFromClient()` (or the constant `@excludeFromClient`) from `package:revali_client/revali_client.dart` removes a whole controller, or a single method, from the generated client. The server still serves it.
 
 ```dart
-// get_it integration
-GetIt.I.registerLazySingleton<UserDataSource>(
-  () => server.user,
-);
+import 'package:revali_client/revali_client.dart';
+import 'package:revali_router/revali_router.dart';
+
+@Controller('users')
+class UserController {
+  const UserController();
+
+  @Get()
+  Future<List<User>> getAll() async => ...;
+
+  @ExcludeFromClient()
+  @Get('internal/stats')
+  Future<UserStats> stats() async => ...;
+}
 ```
 
-[Learn more about get_it Integration](/constructs/revali_client/integrations/get_it)
+## More
 
-## Why Choose Revali Client?
-
-- **Productivity**: Eliminate boilerplate HTTP client code
-- **Type Safety**: Catch errors at compile-time, not runtime
-- **Maintainability**: Automatic updates when server changes
-- **Testability**: Built for clean architecture and testing
-- **Flexibility**: Customize every aspect of HTTP communication
-
-<Callout type="note">
-
-**Server Integration**: Revali Client is designed to work seamlessly with [Revali Server](/constructs/revali_server), but can be used with any REST API that follows similar conventions.
-
-</Callout>
-
-## Next Steps
-
-- **[Installation Guide](/constructs/revali_client/getting-started/installation)** - Set up Revali Client
-- **[Configuration](/constructs/revali_client/getting-started/configure)** - Configure client generation
-- **[Generated Code](/constructs/revali_client/generated-code)** - Understand the generated structure
-- **[HTTP Interceptors](/constructs/revali_client/getting-started/http-interceptors)** - Add request/response handling
-- **[Storage](/constructs/revali_client/getting-started/storage)** - Manage session and persistent data
+[Generated Code](/constructs/revali_client/generated-code) · [Storage & Cookies](/constructs/revali_client/storage) · [Interceptors, Timeouts & Retries](/constructs/revali_client/resilience) · [get_it](/constructs/revali_client/integrations/get_it)

@@ -1,52 +1,47 @@
 ---
 title: Type Inference
-description: How Dart types are converted to JSON Schema in the generated spec
+description: How revali_swagger turns Dart parameter and return types into JSON Schema, and when to override it with @ApiType
 ---
 
-Revali Swagger reads the static types of your parameters and return values at code-generation time and converts them to JSON Schema automatically. No annotations are required for supported types.
+`revali_swagger` reads the static types of handler parameters and return values and converts them to JSON Schema. This page lists the mapping, and what to do when a type cannot be mapped.
 
-## Supported Types
+## Mapping
 
-| Dart Type                 | OpenAPI Schema                                     |
-| ------------------------- | -------------------------------------------------- |
-| `String`                  | `{type: string}`                                   |
-| `int`                     | `{type: integer, format: int64}`                   |
-| `double`                  | `{type: number, format: double}`                   |
-| `num`                     | `{type: number}`                                   |
-| `bool`                    | `{type: boolean}`                                  |
-| `DateTime`                | `{type: string, format: date-time}`                |
-| `Uri`                     | `{type: string, format: uri}`                      |
-| `List<T>` / `Iterable<T>` | `{type: array, items: <T schema>}`                 |
-| `Set<T>`                  | `{type: array, items: <T schema>}`                 |
-| `Map<K, V>`               | `{type: object, additionalProperties: <V schema>}` |
-| Named record              | `{type: object, properties: {...}}`                |
-| Enum                      | `{type: string, enum: [values...]}`                |
-| Sealed class              | `{oneOf: [$ref to each subtype]}`                  |
-| Custom class              | `{$ref: '#/components/schemas/ClassName'}`         |
-| `T?` (nullable)           | schema + `nullable: true`                          |
-| `void` / `Future<void>`   | — (no response body emitted)                       |
+| Dart type | Schema |
+| --- | --- |
+| `String` | `{type: string}` |
+| `int` | `{type: integer, format: int64}` |
+| `double`, `num` | `{type: number, format: double}` |
+| `bool` | `{type: boolean}` |
+| `DateTime` | `{type: string, format: date-time}` |
+| `Uri` | `{type: string, format: uri}` |
+| `BigInt` | `{type: integer}` |
+| `List<T>`, `Set<T>`, `Iterable<T>` | `{type: array, items: <T>}` |
+| `Map<K, V>` | `{type: object, additionalProperties: <V>}`, or `additionalProperties: true` when `V` is `dynamic` |
+| Record | `{type: object, properties: ...}`. Positional fields are named `field0`, `field1`, ... |
+| Enum | `$ref` to `{type: string, enum: [<value names>]}` |
+| Custom class | `$ref` to an object schema built from its fields |
+| Sealed class | `$ref` to `{oneOf: [$ref to each direct subtype]}` |
+| `dynamic` | `{}` (any value) |
+| `void`, `Future<void>` | no response body |
+| `T?` | `T`'s schema plus `nullable: true` (wrapped in `allOf` for `$ref`s) |
 
-### Custom Classes
+`Future<T>` and `Stream<T>` are unwrapped to `T`.
 
-For custom classes, all non-static fields are included as properties. The construct walks up the superclass chain so inherited fields are included as well. Fields annotated with `@ApiHidden` or `apiHidden` are excluded.
+Enums, custom classes and sealed classes are registered once under `components/schemas` and referenced with `$ref`. Schemas that nothing references are removed.
 
-Required fields (non-nullable, no default value) are listed in the `required` array.
+## Custom classes
+
+The schema includes every non-static field of the class and its superclasses (stopping at SDK classes). Non-nullable fields are listed in `required`. Getters and constructor parameters are not considered, and the schema describes field names, not a custom `toJson` output.
 
 ```dart
 class CreateUserBody {
-  final String name;
-  final String email;
-  final String? bio;  // nullable → not required
+  const CreateUserBody({required this.name, this.bio});
 
-  const CreateUserBody({
-    required this.name,
-    required this.email,
-    this.bio,
-  });
+  final String name;
+  final String? bio;
 }
 ```
-
-Produces:
 
 ```yaml
 CreateUserBody:
@@ -54,103 +49,57 @@ CreateUserBody:
   properties:
     name:
       type: string
-    email:
-      type: string
     bio:
       type: string
       nullable: true
   required:
     - name
-    - email
 ```
 
-### Sealed Classes
+## Sealed classes
 
-Each concrete subtype becomes its own schema in `components/schemas`. The sealed class itself becomes a `oneOf` reference list:
+Each direct subtype declared in the same library becomes its own schema, and the sealed class becomes a `oneOf` over them:
 
 ```dart
 sealed class Shape {}
-class Circle extends Shape { final double radius; }
-class Rect extends Shape { final double width; final double height; }
-```
 
-Produces:
+class Circle extends Shape {
+  Circle(this.radius);
+  final double radius;
+}
+
+class Rect extends Shape {
+  Rect(this.width, this.height);
+  final double width;
+  final double height;
+}
+```
 
 ```yaml
 Shape:
   oneOf:
     - $ref: '#/components/schemas/Circle'
     - $ref: '#/components/schemas/Rect'
-Circle:
-  type: object
-  properties:
-    radius:
-      type: number
-      format: double
-  required:
-    - radius
-Rect:
-  type: object
-  ...
 ```
 
-### Enums
+## When @ApiType is needed
 
-Enum values are emitted as a string `enum` by default using the `.name` of each value:
+When a type has no reliable mapping, the generator picks a fallback and prints a warning to stderr:
+
+| Type | Fallback | Warning starts with |
+| --- | --- | --- |
+| `Duration` | `{type: string}` | `Type 'Duration' has no standard JSON serialization format.` |
+| Other SDK types (e.g. `RegExp`) | `{}` | `Unknown SDK type '...'` |
+| Types with nothing to introspect | `{type: object}` | `Type '...' has no introspectable element.` |
+
+Each line is prefixed with `[revali_swagger] WARNING:`. Also reach for `@ApiType` when a class serializes to something other than its fields, such as a value object sent as a plain string.
+
+Annotate the parameter or field with the schema it actually has on the wire:
 
 ```dart
-enum Status { active, inactive, suspended }
-```
-
-Produces:
-
-```yaml
-Status:
-  type: string
-  enum:
-    - active
-    - inactive
-    - suspended
-```
-
----
-
-## When @ApiType is Needed
-
-Some Dart types cannot be resolved to a JSON Schema automatically. When this happens, a warning is printed to stderr during generation:
-
-```txt
-[revali_swagger] Warning: cannot infer schema for type 'Duration'.
-Use @ApiType to specify the schema explicitly.
-```
-
-Common cases where `@ApiType` is required:
-
-- **`Duration`** — no standard JSON representation
-- **`Object` / `dynamic`** — too broad to infer
-- **External types** you don't control (e.g. from third-party packages)
-- **Types with custom serialization** where the wire format differs from the class fields
-
-Fix the warning by annotating the parameter or field with `@ApiType`:
-
-```dart
-// Before — generates a warning and emits {} for the schema.
-Future<void> schedule(@Query() Duration delay) async { ... }
-
-// After — emits {type: integer, format: int64}.
 Future<void> schedule(
-  @Query()
-  @ApiType(type: 'integer', format: 'int64')
-  Duration delay,
-) async { ... }
+  @Query() @ApiType('integer', format: 'int64') Duration delay,
+) async => ...;
 ```
 
-See the [Annotations](./annotations#apitype) page for a full list of common `@ApiType` use cases.
-
----
-
-## Schema Deduplication
-
-Complex types (custom classes, sealed classes, enums) are registered in `components/schemas` and referenced by `$ref` throughout the spec. If the same type appears in multiple routes, it is only defined once.
-
-Schemas that are never referenced from any path (after all routes are processed) are automatically pruned from `components/schemas` to keep the spec clean.
+See [@ApiType](/constructs/revali_swagger/annotations#apitype).

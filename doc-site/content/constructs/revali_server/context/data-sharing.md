@@ -1,192 +1,93 @@
 ---
 title: Data Sharing
-description: Share data between lifecycle components during request processing
+description: Pass values between lifecycle components and endpoints within one request, keyed by type.
 ---
 
-The `Data` object provides a way to share data between different [lifecycle components](/constructs/revali_server/lifecycle-components) during a single request. It uses type-based storage where the type serves as the key, allowing you to store and retrieve data by its class type.
+`Data` is a per-request store that lifecycle components and endpoints use to hand values to each other, such as a middleware that loads the current user for a guard and the endpoint to use. Values are keyed by their **type**, and each request starts with an empty store.
 
-## Storing Data
+## Example
 
-Use the `add` method to store data in the context. Each type can only have one instance stored at a time - adding a new instance of the same type will replace the previous one.
+A middleware stores the user, a guard checks it, and the endpoint receives it with `@Data()`:
 
-```dart
-// Store a user object
-data.add<User>(user);
-
-// Store a request ID
-data.add<String>('req-123');
-
-// Store a custom type
-data.add<RequestMetadata>(metadata);
-```
-
-<Callout type="tip">
-
-**Avoid storing primitive types directly.** Instead, create wrapper classes to make your data more meaningful and type-safe.
-
-```dart
-class UserId {
-  const UserId(this.value);
-  final String value;
-}
-
-data.add(UserId('1234'));
-final userId = data.get<UserId>();
-```
-
-</Callout>
-
-## Retrieving Data
-
-Use the `get` method to retrieve stored data. Returns `null` if no data of that type exists.
-
-```dart
-// Get a user object
-final user = data.get<User>();
-
-// Get a request ID
-final requestId = data.get<String>();
-
-// Check if data exists before using it
-final user = data.get<User>();
-if (user != null) {
-  print('User: ${user.name}');
-}
-```
-
-## Checking Data Existence
-
-Use the `has` method to check if data of a specific type exists, or `contains` to check for a specific value.
-
-```dart
-// Check if user data exists
-if (data.has<User>()) {
-  final user = data.get<User>();
-  // Process user data
-}
-
-// Check if a specific value is stored
-if (data.contains<String>('expected-value')) {
-  // Handle specific value case
-}
-```
-
-## Real-World Example
-
-Here's a common pattern: storing user data from a middleware and accessing it in a guard.
-
-### 1. Store User Data in Middleware
-
-<CodeFile name="lib/components/user_middleware.dart">
+<CodeFile name="lib/components/auth.dart">
 
 ```dart
 import 'package:revali_router/revali_router.dart';
 
-class UserMiddleware implements LifecycleComponent {
-  const UserMiddleware({required this.userService});
+class Auth implements LifecycleComponent {
+  const Auth(this.users); // from DI
 
-  final UserService userService;
+  final UserService users;
 
-  Future<MiddlewareResult> loadUser(
-    Request request,
-    Data data,
-  ) async {
-    final userId = request.pathParameters['userId'];
-
-    if (userId != null) {
-      final user = await userService.getUser(userId);
-      data.add<User>(user);
+  Future<MiddlewareResult> load(@Header('Authorization') String? token, Data data) async {
+    if (token != null) {
+      if (await users.fromToken(token) case final user?) {
+        data.add<User>(user);
+      }
     }
 
     return const MiddlewareResult.next();
   }
-}
-```
 
-</CodeFile>
-
-### 2. Access User Data in Guard
-
-<CodeFile name="lib/components/role_guard.dart">
-
-```dart
-import 'package:revali_router/revali_router.dart';
-
-class UserGuard implements LifecycleComponent {
-  const UserGuard();
-
-  GuardResult checkUser(Data data) {
-    final user = data.get<User>();
-
-    if (user == null) {
-      return const GuardResult.block(
-        statusCode: 401,
-        body: 'User not authenticated',
-      );
-    }
-
-    return const GuardResult.pass();
+  GuardResult require(Data data) {
+    return data.has<User>()
+        ? const GuardResult.pass()
+        : const GuardResult.block(statusCode: 401, body: 'Sign in first');
   }
 }
 ```
 
 </CodeFile>
 
-### 3. Use in Controller
-
-<CodeFile name="routes/controllers/admin_controller.dart">
+<CodeFile name="routes/controllers/me_controller.dart">
 
 ```dart
 import 'package:revali_router/revali_router.dart';
 
-@UserMiddleware()
-@UserGuard()
-@Controller('admin')
-class AdminController {
+@LifecycleComponents([Auth])
+@Controller('me')
+class MeController {
+  const MeController();
 
-  @Get('users')
-  // User data is available from the middleware
-  Future<List<User>> getUsers(@Data() User currentUser) async {
-    return await userService.getAllUsers();
-  }
+  @Get()
+  String me(@Data() User user) => user.name;
 }
 ```
 
 </CodeFile>
 
-## Best Practices
+`GET /api/me` with a valid token returns `200 {"data":"Ada"}`. Without a token, the guard returns `401 Sign in first`.
 
-### Use Meaningful Types
+## API
+
+| Method | Returns | Behavior |
+| --- | --- | --- |
+| `add<T>(T value)` | `void` | Stores `value` under type `T`, replacing any existing `T` |
+| `get<T>()` | `T?` | The stored `T`, or `null` |
+| `has<T>()` | `bool` | Whether a `T` is stored |
+| `contains<T>(T value)` | `bool` | Whether any stored value equals `value` |
+| `remove<T>()` | `bool` | Removes the stored `T`. Returns whether one was removed. |
+
+In a component or endpoint, take `Data` as a parameter to use this API. To receive a single value in an endpoint or component, use `@Data()` on a parameter of that type:
+
+| Parameter | When no value of that type is stored |
+| --- | --- |
+| `@Data() User user` | Throws `MissingArgumentException`, which Revali answers with `400 Bad Request` |
+| `@Data() User? user` | Receives `null` |
+
+## Use Your Own Types as Keys
+
+Since the type is the key, only one `String` can be stored per request, and any component that stores a `String` overwrites it. Wrap primitive values in a small class so each one has its own key:
 
 ```dart
-// ✅ Good - Clear, specific types
-data.add<User>(user);
-data.add<RequestId>(RequestId.generate());
-data.add<SessionData>(sessionData);
+class TenantId {
+  const TenantId(this.value);
 
-// ❌ Avoid - Generic or unclear types
-data.add<Object>(someObject); // Too generic
-data.add<Map<String, dynamic>>(dataMap); // Unclear structure
-```
-
-### Use Wrapper Classes for Primitives
-
-```dart
-// ✅ Good - Type-safe primitives
-class UserId {
-  const UserId(this.value);
   final String value;
 }
 
-class RequestId {
-  const RequestId(this.value);
-  final String value;
-}
-
-data.add(UserId('123'));
-data.add(RequestId('req-456'));
-
-// ❌ Avoid - Raw primitives
-data.add<String>('123'); // What kind of string?
-data.add<String>('req-456'); // Ambiguous
+data.add(TenantId('acme'));
+final tenant = data.get<TenantId>();
 ```
+
+The key is the static type `T`, which Dart infers from the argument. `data.add(user)` stores under the variable's declared type. If that is a supertype (such as `Object` or an interface) or a nullable type (`User?` is a different key from `User`), pass the type explicitly with `data.add<User>(user)`.

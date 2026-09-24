@@ -1,24 +1,16 @@
 ---
-title: Default Responses
-description: Customize the default responses returned by the server
+title: Error Responses
+description: Customize the default 400/404/500 responses, and throw HttpError for machine-readable error codes
 ---
 
-Default responses are the standardized responses that Revali returns during specific events in the request lifecycle. These responses provide consistent error handling and user experience across your application.
+When a request fails and no [exception catcher](/constructs/revali_server/lifecycle-components/advanced/exception-catchers) handles it, Revali sends one of two responses:
 
-## What are Default Responses?
+- **An `HttpError`** that your code throws is sent with its own status and a JSON body containing an error `code`. Use it when callers need to know *which* error happened.
+- **Anything else** gets a default response: plain text, and 500 for an unhandled exception. Override `defaultResponses` on your app to change these.
 
-Default responses handle common scenarios that occur during request processing:
+## Default Responses
 
-- **Error Handling**: Standardized error responses for different failure scenarios
-- **User Experience**: Consistent messaging across your API
-- **Security**: Controlled information disclosure in error responses
-- **Debugging**: Appropriate detail levels for different environments
-
-## Configuring Default Responses
-
-Override the `defaultResponses` getter in your `AppConfig` class:
-
-<CodeFile name="routes/main_app.dart">
+<CodeFile name="routes/apps/main_app.dart">
 
 ```dart
 import 'package:revali_router/revali_router.dart';
@@ -29,233 +21,116 @@ final class MainApp extends AppConfig {
 
   @override
   DefaultResponses get defaultResponses => DefaultResponses(
-    internalServerError: SimpleResponse(
-      statusCode: 500,
-      body: 'An unexpected error occurred. Please try again later.',
-    ),
-    notFound: SimpleResponse(
-      statusCode: 404,
-      body: 'The requested resource was not found.',
-    ),
-    failedCorsOrigin: SimpleResponse(
-      statusCode: 403,
-      body: 'Access denied: Origin not allowed.',
-    ),
-    failedCorsHeaders: SimpleResponse(
-      statusCode: 403,
-      body: 'Access denied: Headers not allowed.',
-    ),
-  );
+        notFound: SimpleResponse(404, body: {'error': 'not_found'}),
+        internalServerError: SimpleResponse(
+          500,
+          body: 'Something went wrong. Please try again later.',
+        ),
+      );
 }
 ```
 
 </CodeFile>
 
-## Response Types
+Any response you don't set keeps its default:
 
-### Internal Server Error (500)
+| Parameter | Sent when | Default |
+| --- | --- | --- |
+| `internalServerError` | An unhandled exception | `500 Internal Server Error` |
+| `notFound` | No route matches | `404 Not Found` |
+| `badRequest` | A binding is missing or invalid (`MissingArgumentException`) | `400 Bad Request` |
+| `failedCorsOrigin` | [`@AllowOrigins`](/constructs/revali_server/access-control/allow-origins) rejects the origin | `403 CORS policy does not allow access from this origin.` |
+| `failedCorsHeaders` | A CORS header check fails | `403 CORS policy does not allow access with these headers.` |
 
-Returned when an unhandled exception occurs:
+`SimpleResponse(statusCode, {headers, body})` takes the status code as a positional argument. A `Map` or `List` body is sent as JSON, and a `String` body as plain text.
 
-<CodeFile name="routes/main_app.dart">
+In [debug mode](/revali/cli/dev#debug-mode-default), error bodies also include a `__DEBUG__` block with the exception and stack trace. Profile and release builds leave it out.
+
+## `HttpError`
+
+Throw an `HttpError` to send a stable, machine-readable `code` along with the status. Two different 404s (an unknown user and an unknown organization) then look different to the caller:
+
+<CodeFile name="routes/controllers/user_controller.dart">
 
 ```dart
-@App()
-final class MainApp extends AppConfig {
-  @override
-  DefaultResponses get defaultResponses => DefaultResponses(
-    internalServerError: SimpleResponse(
-      statusCode: 500,
-      body: 'Something went wrong on our end. We\'re working to fix it!',
-    ),
-  );
+import 'package:revali_router/revali_router.dart';
+
+@Controller('users')
+class UserController {
+  const UserController(this._users);
+
+  final UserService _users;
+
+  @Get(':id')
+  Future<User> get(@Param() String id) async {
+    final user = await _users.find(id);
+
+    if (user == null) {
+      throw HttpError.notFound(
+        code: 'user_not_found',
+        message: 'No user with id $id',
+        details: {'id': id},
+      );
+    }
+
+    return user;
+  }
 }
 ```
 
 </CodeFile>
 
-**Default Response:**
+The response keeps the status, and the body is wrapped in `error`, the same way successful responses are wrapped in `data`:
 
-```dart
-SimpleResponse(
-  statusCode: 500,
-  body: 'Internal Server Error',
-)
-```
-
-### Not Found (404)
-
-Returned when no route matches the request:
-
-<CodeFile name="routes/main_app.dart">
-
-```dart
-@App()
-final class MainApp extends AppConfig {
-  @override
-  DefaultResponses get defaultResponses => DefaultResponses(
-    notFound: SimpleResponse(
-      statusCode: 404,
-      body: 'The page you\'re looking for doesn\'t exist.',
-    ),
-  );
+```json
+{
+  "error": {
+    "code": "user_not_found",
+    "message": "No user with id 7",
+    "details": {"id": "7"}
+  }
 }
 ```
 
-</CodeFile>
+| Field | Description |
+| --- | --- |
+| `statusCode` | The HTTP status. The named constructors set it for you. |
+| `code` | A stable identifier that callers branch on, such as `user_not_found`. Treat it as part of your API. `revali routes --check` doesn't detect changes to codes. |
+| `message` | A human-readable explanation. Callers should never parse it. |
+| `details` | Extra machine-readable context, sent to the caller. Defaults to `{}`, and is left out of the body when empty. |
 
-**Default Response:**
+| Constructor | Status |
+| --- | --- |
+| `HttpError.badRequest` | 400 |
+| `HttpError.unauthorized` | 401 |
+| `HttpError.forbidden` | 403 |
+| `HttpError.notFound` | 404 |
+| `HttpError.conflict` | 409 |
+| `HttpError.unprocessable` | 422 |
+| `HttpError.internal` | 500 |
+| `HttpError(statusCode: …)` | any |
+
+Every constructor is `const`.
+
+The `error` body is a fallback. Exception catchers run first, so a catcher registered for `HttpError`, or for a subtype of it, can send any shape it likes.
+
+## Reading It with `revali_client`
+
+A generated [`revali_client`](/constructs/revali_client) throws `ServerException` for any response that isn't 2xx:
 
 ```dart
-SimpleResponse(
-  statusCode: 404,
-  body: 'Not Found',
-)
-```
-
-### CORS Origin Failure (403)
-
-Returned when a request comes from an unauthorized origin:
-
-<CodeFile name="routes/main_app.dart">
-
-```dart
-@App()
-final class MainApp extends AppConfig {
-  @override
-  DefaultResponses get defaultResponses => DefaultResponses(
-    failedCorsOrigin: SimpleResponse(
-      statusCode: 403,
-      body: 'Access denied: Your origin is not authorized to access this resource.',
-    ),
-  );
+try {
+  await client.users.get(id: '1');
+} on ServerException catch (e) {
+  if (e.isStructured && e.code == 'user_not_found') return null;
+  rethrow;
 }
 ```
 
-</CodeFile>
+| Field | Value |
+| --- | --- |
+| `statusCode`, `message`, `body` | The HTTP status, the reason phrase, and the raw body. Always set. |
+| `code`, `reason`, `details` | The `code`, `message` and `details` from the `error` body, or `null` if the body isn't in that shape. |
+| `isStructured` | `true` when `code` is set |
 
-**Default Response:**
-
-```dart
-SimpleResponse(
-  statusCode: 403,
-  body: 'CORS policy does not allow access from this origin.',
-)
-```
-
-### CORS Headers Failure (403)
-
-Returned when a request contains unauthorized headers:
-
-<CodeFile name="routes/main_app.dart">
-
-```dart
-@App()
-final class MainApp extends AppConfig {
-  @override
-  DefaultResponses get defaultResponses => DefaultResponses(
-    failedCorsHeaders: SimpleResponse(
-      statusCode: 403,
-      body: 'Access denied: The request contains unauthorized headers.',
-    ),
-  );
-}
-```
-
-</CodeFile>
-
-**Default Response:**
-
-```dart
-SimpleResponse(
-  statusCode: 403,
-  body: 'CORS policy does not allow access with these headers.',
-)
-```
-
-## Response Best Practices
-
-### 🎯 **User Experience**
-
-- **Clear Messages**: Use clear, actionable error messages
-- **Consistent Format**: Maintain consistent response structure
-- **Appropriate Detail**: Provide appropriate detail for the environment
-- **Helpful Guidance**: Include guidance on how to resolve issues
-
-### 🔒 **Security**
-
-- **Information Disclosure**: Avoid exposing sensitive information in error responses
-- **Error Details**: Limit error details in production environments
-- **Logging**: Log detailed errors server-side for debugging
-
-### 🌐 **API Design**
-
-- **HTTP Status Codes**: Use appropriate HTTP status codes
-- **Response Format**: Maintain consistent response format across all endpoints
-- **Error Codes**: Include error codes for programmatic handling
-
-### 🛠️ **Development**
-
-- **Debug Information**: Include helpful debug information in development
-- **Request Tracking**: Include request IDs for tracking
-- **Environment Awareness**: Adapt responses based on environment
-
-## Common Response Patterns
-
-### Standard API Error Format
-
-```dart
-SimpleResponse(
-  statusCode: 500,
-  body: {
-    'success': false,
-    'error': {
-      'code': 'INTERNAL_SERVER_ERROR',
-      'message': 'An unexpected error occurred',
-      'details': isDevelopment ? exception.toString() : null,
-    },
-    'timestamp': DateTime.now().toIso8601String(),
-    'requestId': requestId,
-  },
-)
-```
-
-### Validation Error Format
-
-```dart
-SimpleResponse(
-  statusCode: 400,
-  body: {
-    'success': false,
-    'error': {
-      'code': 'VALIDATION_ERROR',
-      'message': 'Request validation failed',
-      'details': validationErrors,
-    },
-    'timestamp': DateTime.now().toIso8601String(),
-  },
-)
-```
-
-### Rate Limiting Error Format
-
-```dart
-SimpleResponse(
-  statusCode: 429,
-  body: {
-    'success': false,
-    'error': {
-      'code': 'RATE_LIMIT_EXCEEDED',
-      'message': 'Too many requests. Please try again later.',
-      'retryAfter': retryAfterSeconds,
-    },
-    'timestamp': DateTime.now().toIso8601String(),
-  },
-)
-```
-
-## Next Steps
-
-- **[Environment Variables](/revali/app-configuration/env-vars)**: Learn about environment variable configuration
-- **[Flavors](/revali/app-configuration/flavors)**: Create environment-specific configurations
-- **[Error Handling](/constructs/revali_server/lifecycle-components/advanced/exception-catchers)**: Advanced error handling techniques
+A body that isn't in the `error` shape (plain text, an HTML error page, another API's format) never throws a parse error. It leaves `code`, `reason` and `details` as `null`.

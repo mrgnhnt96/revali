@@ -1,11 +1,18 @@
 # Revali Swagger
 
-A Revali construct that generates OpenAPI 3.0.3 specs from your routes, parameters, and return types.
+A [Revali](https://pub.dev/packages/revali) construct that generates an OpenAPI 3.0.3 spec from your routes, parameters and return types.
 
-Use with [`revali_swagger_annotations`][revali-swagger-annotations] to customize summaries, tags, responses, and schema types.
+## Installation
+
+```bash
+dart pub add --dev revali_swagger
+dart pub add revali_swagger_annotations # optional
+```
+
+Run `dart run revali dev`. The spec is written to `.revali/revali_swagger/swagger.yaml` and `swagger.json`. Set `title`, `version` and `description` under `constructs:` in `revali.yaml`, and use [`revali_swagger_annotations`][revali-swagger-annotations] for summaries, tags, responses and schema overrides.
 
 ## Documentation
 
-See the [Revali Swagger docs](https://www.revali.dev/constructs/revali_swagger) for installation, configuration, and annotation reference.
+[docs.revali.dev/constructs/revali_swagger](https://docs.revali.dev/constructs/revali_swagger)
 
 [revali-swagger-annotations]: https://pub.dev/packages/revali_swagger_annotations

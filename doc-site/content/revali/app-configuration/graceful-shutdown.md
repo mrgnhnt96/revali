@@ -1,71 +1,22 @@
 ---
 title: Graceful Shutdown
-description: Finish in-flight requests before the process exits
+description: Finish in-flight requests on SIGTERM, and tune drainDelay and shutdownTimeout
 ---
 
-Container runtimes and process supervisors stop a process by sending
-`SIGTERM`. Revali catches it, reports itself unready, stops accepting new
-connections, waits for the requests already being served, and only then exits.
+On `SIGTERM` or `SIGINT`, Revali finishes the requests it is already serving before it exits. This is on by default. Tune it when you deploy behind a load balancer or an orchestrator such as Kubernetes.
 
-Without that, every deploy and every scale-down truncates whatever responses
-happened to be mid-flight — the client sees a dropped connection rather than
-the answer it was about to get.
-
-You get this by default. There is nothing to enable.
-
-## What happens on `SIGTERM`
-
-1. Readiness starts reporting `503` immediately, while the server is **still
-   accepting**. See [`drainDelay`](#draindelay) — this window exists so a load
-   balancer can notice and steer away, and requests arriving during it are
-   served and tracked normally rather than refused.
-2. Once the window closes the listening socket does, so no new connection is
-   taken.
-3. Requests already in flight keep running and send their responses.
-4. [`onServerStopped`](#releasing-resources) runs, so the app can release what
-   it owns.
-5. The process exits with status `0`.
-
-If requests are still running when [`shutdownTimeout`](#shutdowntimeout)
-elapses, the wait is abandoned and shutdown continues — a stuck handler cannot
-keep the process alive forever.
-
-`SIGINT` (Ctrl-C) follows the same path. A second signal while a shutdown is
-already running is ignored rather than starting a second one.
-
-## `shutdownTimeout`
-
-How long to wait for in-flight requests. Defaults to 15 seconds.
+<CodeFile name="routes/apps/main_app.dart">
 
 ```dart
 @App()
-final class MyApp extends AppConfig {
-  const MyApp() : super(host: 'localhost', port: 8080);
+final class MainApp extends AppConfig {
+  MainApp() : super.fromEnv();
 
   @override
-  Duration get shutdownTimeout => const Duration(seconds: 25);
-}
-```
+  Duration get drainDelay => const Duration(seconds: 10);
 
-<Callout type="important">
-
-Keep this **below** the grace period of whatever supervises the process.
-Kubernetes sends `SIGKILL` 30 seconds after `SIGTERM` by default, and being
-killed part-way through the drain defeats the point of draining at all.
-
-</Callout>
-
-## Releasing resources
-
-Override `onServerStopped` to close what the app owns — database pools,
-message consumers, file handles. It runs *after* in-flight requests have
-finished, so nothing still serving a request has its connection pulled out
-from under it.
-
-```dart
-@App()
-final class MyApp extends AppConfig {
-  const MyApp() : super(host: 'localhost', port: 8080);
+  @override
+  Duration get shutdownTimeout => const Duration(seconds: 15);
 
   @override
   Future<void> onServerStopped() async {
@@ -74,31 +25,39 @@ final class MyApp extends AppConfig {
 }
 ```
 
-Throwing from `onServerStopped` is logged and does not stop the shutdown.
+</CodeFile>
 
-## Owning signal handling yourself
+| Member | Default | Description |
+| --- | --- | --- |
+| `drainDelay` | `Duration.zero` | How long readiness reports `503` while the server still accepts connections. Applies to `SIGTERM` only. |
+| `shutdownTimeout` | 15 seconds | How long to wait for in-flight requests before giving up and exiting anyway. |
+| `onServerStopped()` | no-op | Runs after requests have drained. Close database pools and file handles here. If it throws, the error is logged and shutdown continues. |
+| `handleShutdownSignals` | `true` | Set to `false` to handle signals yourself. The server then stops listening for them, and exiting is up to you. |
 
-Set `handleShutdownSignals` to false if something else in your process
-already installs handlers, or you want to sequence shutdown differently:
+## What Happens on `SIGTERM`
 
-```dart
-@override
-bool get handleShutdownSignals => false;
-```
+1. If the app has [message consumers](/revali/messaging#shutdown-consumers-drain-before-http), they are paused and drained first, for up to `shutdownTimeout`.
+2. `/readyz` starts returning `503 {"status":"draining"}`, while the server keeps accepting and serving requests for `drainDelay`.
+3. The server stops accepting new connections.
+4. In-flight requests finish, for up to `shutdownTimeout`.
+5. `onServerStopped()` runs, and the process exits with code `0`.
 
-Nothing else changes — the server simply stops listening for signals, and
-exiting becomes your responsibility.
+`SIGINT` (Ctrl-C) follows the same steps but skips `drainDelay`. A second signal during shutdown is ignored.
+
+## `drainDelay`
+
+A load balancer doesn't notice a closed socket. It keeps sending traffic until its own readiness check fails. During `drainDelay`, readiness already reports `503` but requests are still served, so the load balancer has time to stop sending traffic before the socket closes.
+
+- Leave it at `0` when nothing load-balances in front of the server.
+- Otherwise, set it longer than the probe period multiplied by the failure threshold. Kubernetes defaults to 10s × 3.
+- Keep `drainDelay + shutdownTimeout` under the platform's kill grace period. Kubernetes sends `SIGKILL` after 30s by default. The consumer drain and the request drain each wait up to `shutdownTimeout`.
+
+## Worker Isolates
+
+With [`workers`](/revali/app-configuration/workers) greater than 1, the parent isolate tells every worker to drain at the same time as itself. Every isolate reports `503`, and the process exits once all of them have finished. That wait is bounded by `drainDelay + shutdownTimeout`. Workers never install their own signal handlers.
 
 <Callout type="note">
 
-Signal handlers are only installed for a server Revali created and owns. They
-are never installed when you pass your own `HttpServer` to `createServer`
-(which is what [`TestServer`](/revali/testing) does), nor in worker isolates,
-which share the parent process's signals.
+Signal handlers are installed only for a server that Revali binds itself. They aren't installed when you pass your own server to `createServer`, which is what [`TestServer`](/revali/testing) does.
 
 </Callout>
-
-## What's next?
-
-- [Create an App](/revali/app-configuration/create-an-app) — the rest of `AppConfig`
-- [`revali build`](/revali/cli/build) — produce the executable that receives these signals

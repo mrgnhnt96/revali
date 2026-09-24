@@ -1,233 +1,87 @@
 ---
 title: revali dev
-description: Start the server and develop your Revali application
+description: Generate and run the development server with hot reload
 ---
 
-The `revali dev` command is the primary development tool for Revali applications. It starts your development server with hot reload, debugging support, and automatic code generation.
-
-## What Does `revali dev` Do?
-
-When you run `revali dev`, Revali:
-
-1. **Analyzes Your Code**: Scans your `routes/` directory for controllers and app configurations
-2. **Generates Server Code**: Creates the necessary server implementation using constructs
-3. **Starts the Server**: Launches your API server with the configured host and port
-4. **Enables Hot Reload**: Monitors file changes and automatically reloads the server
-5. **Provides Debugging**: Starts a Dart VM service for debugging and profiling
-
-## Basic Usage
+`revali dev` generates your server into `.revali/`, starts it, and regenerates and reloads it whenever a watched file changes. Use it for local development. Run it from the package root, the directory that holds `pubspec.yaml` and `routes/`.
 
 ```bash
 dart run revali dev
 ```
 
-This starts your server with default settings:
-
-- **Host**: `localhost`
-- **Port**: `8080`
-- **API Prefix**: `/api`
-- **Mode**: Debug (with VM service)
+The URL comes from your [app configuration](/revali/app-configuration/create-an-app). With the default app it is `http://localhost:8080/api`.
 
 ## Options
 
-| Flag | Description |
-| --- | --- |
-| `--debug` / `--release` / `--profile` | Run mode (see [Run Modes](#run-modes) below). Defaults to debug. |
-| `--flavor`, `-f <name>` | The flavor to use for the app (case-sensitive). |
-| `--recompile` | Re-compiles the construct kernel. Needed to sync changes for a local construct. |
-| `--skip-if-fresh` | Skip kernel + construct generation when `.revali` outputs are newer than package sources. |
-| `--inspect` | Record recent requests to `.revali/inspect/requests.jsonl` for later inspection. |
-| `--dart-vm-service-port <port>` | Port for the Dart VM service. `0` (default) automatically assigns one. |
-| `--dart-define`, `-D <KEY=value>` | Additional key-value pairs available as compile-time constants. Repeatable. |
-| `--dart-define-from-file <path>` | A file (e.g. `.env`) containing additional key-value pairs available as constants. Repeatable. |
-| `--cert <path>` | Path to a TLS certificate chain (PEM). Binds over HTTPS. Must be passed together with `--key`. See [HTTPS in Development](/revali/app-configuration/https). |
-| `--key <path>` | Path to the TLS private key (PEM) matching `--cert`. Must be passed together with `--cert`. |
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--debug` / `--release` / `--profile` | `--debug` | Run mode. See [Run Modes](#run-modes). |
+| `--flavor`, `-f <name>` | none | Selects the [`@App(flavor:)`](/revali/app-configuration/create-an-app#flavors) to run. Case-sensitive. |
+| `--dart-define`, `-D <KEY=value>` | none | Compile-time constant, read with `String.fromEnvironment`. Repeatable. |
+| `--dart-define-from-file <path>` | none | A file (for example `.env`) of `KEY=value` pairs, passed as constants. Repeatable. |
+| `--dart-vm-service-port <port>` | `0` | Port for the Dart VM service. `0` picks a free port. |
+| `--recompile` | off | Recompiles the construct kernel. Use it after changing a local construct or a `revali_*` package. |
+| `--skip-if-fresh` | off | Skips kernel and construct generation when the `.revali` outputs are newer than the package sources. |
+| `--inspect` | off | Records recent requests to `.revali/inspect/requests.jsonl`. |
+| `--cert <path>` | none | TLS certificate chain (PEM). Serves HTTPS. Requires `--key`. See [HTTPS in Development](/revali/app-configuration/https). |
+| `--key <path>` | none | TLS private key (PEM) that matches `--cert`. Requires `--cert`. |
+
+Arguments after `--` are passed to your server. See [Server Arguments](#server-arguments).
 
 ## Run Modes
 
-Revali supports three different run modes, each optimized for different scenarios:
+The mode is passed to the server as the `kDebugMode`, `kProfileMode` and `kReleaseMode` constants, which `revali_router` exports.
 
 ### Debug Mode (Default)
 
-Debug mode provides the best development experience with full debugging capabilities:
-
 ```bash
-dart run revali dev --debug
+dart run revali dev
 ```
 
-**Features:**
-
-- ✅ Dart VM service enabled
-- ✅ Hot reload support
-- ✅ Debugger attachment
-- ✅ Stack traces in responses
-- ✅ Development optimizations
-
-**When to use:**
-
-- Local development
-- Debugging issues
-- Testing new features
+- Hot reload is on, and the Dart VM service is enabled so a debugger can attach.
+- Asserts are enabled.
+- Error responses include a `__DEBUG__` block with the exception and stack trace.
 
 ### Release Mode
-
-Release mode optimizes for performance and production-like behavior:
 
 ```bash
 dart run revali dev --release
 ```
 
-**Features:**
+- No hot reload, no VM service, and no asserts.
+- Error responses don't include `__DEBUG__` details.
 
-- ❌ No Dart VM service
-- ✅ Performance optimizations
-- ✅ Production-like behavior
-- ❌ No debugging support
-- ✅ Optimized code generation
-
-**When to use:**
-
-- Performance testing
-- Production simulation
-- Load testing
+Use it to check how the server behaves in production without building an executable.
 
 ### Profile Mode
-
-Profile mode balances performance with debugging information:
 
 ```bash
 dart run revali dev --profile
 ```
 
-**Features:**
-
-- ❌ No Dart VM service
-- ✅ Performance optimizations
-- ✅ Stack traces in responses
-- ✅ Debug information available
-- ✅ Profiling capabilities
-
-**When to use:**
-
-- Performance profiling
-- Production debugging
-- Performance optimization
-
-## Runtime Mode Detection
-
-You can detect the current run mode in your application:
-
-```dart
-class MyService {
-  void logMessage(String message) {
-    if (kDebugMode) {
-      print('DEBUG: $message');
-    } else if (kProfileMode) {
-      print('PROFILE: $message');
-    } else if (kReleaseMode) {
-      // Log to file or external service
-      _logToExternalService(message);
-    }
-  }
-}
-```
-
-## Command Arguments
-
-You can pass additional arguments to your application using the `--` separator:
-
-```bash
-dart run revali dev -- --port 8081 --host="0.0.0.0" --verbose
-```
-
-### Accessing Arguments in Your App
-
-Arguments are automatically parsed and available in your `AppConfig`:
-
-<CodeFile name="routes/main_app.dart">
+This generates the server in profile mode and then exits. It doesn't start the server. To produce a profile build, use [`revali build --profile`](/revali/cli/build#build-modes).
 
 ```dart
 import 'package:revali_router/revali_router.dart';
 
-@App()
-final class MainApp extends AppConfig {
-  MainApp(Args args) : super(
-    host: args['host'] ?? 'localhost',
-    port: int.parse(args['port'] ?? '8080'),
-  );
-
-  @override
-  Future<void> configureDependencies(DI di) async {
-    // Access verbose flag
-    final verbose = args['verbose'] == 'true';
-    di.registerSingleton<Logger>(Logger(verbose: verbose));
-  }
+void log(String message) {
+  if (kDebugMode) print('DEBUG: $message');
 }
 ```
 
-</CodeFile>
+## Hot Reload and Hotkeys
 
-### Args Object Structure
+Saving a file anywhere in the package, or in one of its path dependencies, regenerates the server and restarts it. These paths are never watched: `.revali/`, `bin/`, `test/` and `tool/`. To exclude more, see [`hot_reload.exclude`](/revali/revali-configuration#hot-reload).
 
-The `Args` object provides structured access to command-line arguments:
-
-```dart
-Args {
-  values: {
-    'port': '8081',
-    'host': '0.0.0.0',
-    'verbose': 'true',
-  },
-  flags: {
-    'verbose': true,
-    'debug': false,
-  },
-  rest: ['additional', 'arguments'],
-}
-```
-
-## Development Workflow
-
-### 1. Start Development Server
-
-```bash
-dart run revali dev
-```
-
-### 2. Make Changes
-
-Edit your controller files in the `routes/` directory:
-
-<CodeFile name="routes/user_controller.dart">
-
-```dart
-@Controller('/users')
-class UserController {
-  @Get('/')
-  Future<List<User>> getUsers() async {
-    return await userService.getAllUsers();
-  }
-
-  @Post('/')
-  Future<User> createUser(@Body() CreateUserRequest request) async {
-    return await userService.createUser(request);
-  }
-}
-```
-
-</CodeFile>
-
-### 3. Hot Reload & keyboard shortcuts
-
-Changes in `routes/` (and watched paths) reload automatically. While `revali dev` is running you can also press:
+While the server runs, these keys work:
 
 | Key | Action |
-|-----|--------|
-| `r` | Force regenerate + restart the server process |
-| `c` | Clear the console and reprint the status board (URL, routes, hotkeys) |
+| --- | --- |
+| `r` | Regenerate and restart the server |
+| `c` | Clear the console and reprint the status board |
 | `q` | Quit (same as Ctrl+C) |
 
-Without a TTY (CI / agents), write a command to `.revali_cmd` in the project root instead:
+Without a TTY (CI, scripts, AI agents), write the command to `.revali_cmd` in the project root:
 
 ```bash
 echo reload > .revali_cmd
@@ -235,7 +89,7 @@ echo clear > .revali_cmd
 echo quit > .revali_cmd
 ```
 
-After start or reload the console shows a stable status board:
+After each start or reload, the console prints a status board:
 
 ```text
 12:34:56 PM [READY]
@@ -246,44 +100,70 @@ Press: r reload, c clear, q quit
 GET -> /users/
 ```
 
-### 4. Debug Issues
+## Generate Without Running
 
-Connect your IDE debugger:
+```bash
+dart run revali dev --generate-only
+```
 
-- VS Code: `Ctrl+Shift+P` → `Dart: Attach to Process`
-- IntelliJ: `Run` → `Edit Configurations` → `Dart Remote Debug`
+This writes `.revali/server/server.dart` and `routes.json` and then exits. The exit code is non-zero when your routes fail analysis. Tests and [`revali routes`](/revali/cli/routes) need this output to exist. Add `--recompile` if you changed a construct or a `revali_*` package.
+
+## Server Arguments
+
+Everything after `--` is passed to your server process. Your app receives it as `Args` when its constructor declares an `Args` parameter:
+
+```bash
+dart run revali dev -- --port 8081 --verbose
+```
+
+<CodeFile name="routes/apps/main_app.dart">
+
+```dart
+import 'package:revali_router/revali_router.dart';
+
+@App()
+final class MainApp extends AppConfig {
+  MainApp(this.args)
+      : super(
+          host: 'localhost',
+          port: int.parse(args['port'] as String? ?? '8080'),
+        );
+
+  final Args args;
+
+  @override
+  Future<void> configureDependencies(DI di) async {
+    final verbose = args.flags['verbose'] ?? false;
+    // ...
+  }
+}
+```
+
+</CodeFile>
+
+`Args` follows these parsing rules:
+
+- `--key value` and `--key=value` give a `String`.
+- `--flag` gives `true`, and `--no-flag` gives `false`.
+- A repeated key gives a list.
+- Values that don't start with `--` go into `args.rest`.
+
+The members are `args['key']`, `args.get<T>('key')`, `args.wasParsed('key')`, `args.flags` (booleans only) and `args.values`.
+
+## Debugging
+
+In debug mode the status board prints the VM service URL. Attach to it from your IDE:
+
+- VS Code: **Dart: Attach to Dart Process**, then paste the URL.
+- IntelliJ / Android Studio: **Run → Attach to Process** (Dart remote debug).
+
+Set `--dart-vm-service-port` to keep the port the same between runs.
 
 ## Troubleshooting
 
-### Common Issues
-
-**Port Already in Use:**
-
-```bash
-# Find process using port
-lsof -i :8080
-
-# Kill process
-kill -9 <PID>
-
-# Or use different port
-dart run revali dev -- --port 8081
-```
-
-**Hot Reload Not Working:**
-
-- Ensure files are in `routes/` directory
-- Check file naming conventions
-- Verify no syntax errors
-- Press `r` to force a full regenerate
-
-**Debugger Not Connecting:**
-
-- Check VM service URL format
-- Verify IDE extensions are installed
-
-## Next Steps
-
-- **[Hot Reload](/revali/getting-started/hot-reload)**: Learn about automatic code reloading
-- **[Debug Server](/revali/getting-started/debug-server)**: Debug your server code
-- **[App Configuration](/revali/app-configuration)**: Configure your application settings
+| Symptom | Fix |
+| --- | --- |
+| Port already in use | Stop the other process (`lsof -i :8080`) or change `port` in your app. |
+| A controller doesn't reload | The file must be under `routes/` and end with `_controller.dart` or `.controller.dart`. Press `r` to force a regenerate. |
+| A change to a construct has no effect | Run again with `--recompile`. |
+| `No app found for flavor` | The `--flavor` value must match an `@App(flavor:)` exactly. |

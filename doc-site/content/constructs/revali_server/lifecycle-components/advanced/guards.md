@@ -1,156 +1,31 @@
 ---
 title: Guards
-description: Protect the execution of the endpoint
+description: Allow or deny a request before the endpoint runs - authentication, roles, permissions.
 ---
 
-A `Guard` is a Lifecycle Component that is used to protect the execution of the controller and endpoint.
-
-A guard can be used for checking if the user is authenticated, if the user has the correct permissions, or any other condition that needs to be met before the controller or endpoint is executed.
-
-## Execution
-
-Guards are executed after the middleware, before the interceptors.
-
-## Create a Guard
-
-To create a `Guard`, you need to implement the `Guard` class and implement the `protect` method.
-
-<CodeFile name="lib/components/guards/my_guard.dart">
-
-```dart
-import 'package:revali_router/revali_router.dart';
-
-class MyGuard implements Guard {
-    const MyGuard();
-
-    @override
-    Future<GuardResult> protect(Context context) async {
-        return const GuardResult.pass();
-    }
-}
-```
-
-</CodeFile>
-
-<Callout type="note">
-
-There's no limit to the number of guards that can be applied to a controller or endpoint. Guards are executed in the order they are registered.
-
-</Callout>
-
-### Possible Results
-
-The `GuardResult` has two possible results: `pass` and `block`. The `pass` result allows the request to continue to the controller or endpoint. The `block` result stops the request from continuing any further in the request flow.
-
-```dart
-const GuardResult.pass();
-```
-
-```dart
-const GuardResult.block(
-    statusCode: 403,
-    headers: {},
-    body: 'User does not have the correct role to access this resource.',
-);
-```
-
-An alternative to using the `GuardResult.block` method is to throw an exception. Create an [exception catcher][exception-catchers] to catch the exception and handle the error response.
-
-<Callout type="tip">
-
-Learn about [returning error responses][error-responses].
-
-<Callout type="important">
-
-If the `statusCode` is not set, the default status code will be 403.
-
-</Callout>
-
-</Callout>
-
-## Register the Guard
-
-To register the `Guard`, annotate your `Guard` class on the app, controller, or endpoint level.
-
-<CodeFile name="routes/controllers/my_controller.dart">
-
-```dart
-import 'package:revali_router/revali_router.dart';
-
-// highlight-next-line
-@MyGuard()
-@Get('')
-Future<void> myEndpoint() {
-    ...
-}
-```
-
-</CodeFile>
-
-### Register as Type Reference
-
-If you have a parameter that can not be provided at compile time, you can register the `Guard` as a type reference using the `@Guards()` annotation.
-
-<CodeFile name="routes/controllers/my_controller.dart">
-
-```dart
-import 'package:revali_router/revali_router.dart';
-
-// highlight-next-line
-@Guards([MyGuard])
-@Get('')
-Future<void> myEndpoint() {
-    ...
-}
-```
-
-</CodeFile>
-
-<Callout type="tip">
-
-Learn more about [type referencing][type-referencing].
-
-</Callout>
+A guard decides whether a request may reach the endpoint. Use one for authentication, role checks, and permissions. Guards run after all [middleware][middleware], so they can read anything middleware stored in [`Data`][data-sharing]. The example below uses the `LoadUser` middleware from [Writing a LifecycleComponent][components].
 
 ## Example
 
-In this example, we have a `RoleGuard` that checks if the user has the correct role to access a resource.
-
-<CodeFile name="lib/components/guards/role_guard.dart">
+<CodeFile name="lib/components/require_role.dart">
 
 ```dart
 import 'package:revali_router/revali_router.dart';
 
-class RoleGuard implements Guard {
-  const RoleGuard(this.role);
+class RequireRole implements LifecycleComponent {
+  const RequireRole(this.role);
 
   final String role;
 
-  @override
-  Future<GuardResult> protect(Context context) async {
-    var user = context.data.get<User?>();
+  GuardResult check(Data data) {
+    final user = data.get<User>();
 
     if (user == null) {
-      await context.request.resolvePayload();
-      final id = context.request.pathParameters['id']!;
-
-      user = await authService.getUser(id);
-
-      if (user == null) {
-        return const GuardResult.block(
-          statusCode: 404,
-          body: 'User not found.',
-        );
-      }
-
-      context.data.add(user);
+      return const GuardResult.block(statusCode: 401, body: 'Sign in first');
     }
 
     if (user.role != role) {
-      return const GuardResult.block(
-        statusCode: 403,
-        body: 'User does not have the correct role to access this resource.',
-      );
+      return GuardResult.block(body: 'Requires the $role role');
     }
 
     return const GuardResult.pass();
@@ -160,6 +35,79 @@ class RoleGuard implements Guard {
 
 </CodeFile>
 
-[exception-catchers]: /constructs/revali_server/lifecycle-components/advanced/exception-catchers
-[type-referencing]: /constructs/revali_server/tidbits#using-types-in-annotations
+<CodeFile name="routes/controllers/admin_controller.dart">
+
+```dart
+import 'package:revali_router/revali_router.dart';
+
+@LifecycleComponents([LoadUser]) // middleware that stores the User in Data
+@RequireRole('admin')
+@Controller('admin')
+class AdminController {
+  const AdminController();
+
+  @Get('stats')
+  String stats() => 'ok';
+}
+```
+
+</CodeFile>
+
+| Caller | Response |
+| --- | --- |
+| No user loaded | `401 Sign in first` |
+| A user without the `admin` role | `403 Requires the admin role` |
+| An admin | `200 {"data":"ok"}` |
+
+In debug mode, the blocked responses also have a `__DEBUG__` block appended.
+
+## Results
+
+| Result | Effect |
+| --- | --- |
+| `GuardResult.pass()` | Continue to the next guard, then to the interceptors and the endpoint. |
+| `GuardResult.block({statusCode, headers, body})` | End the request. The status defaults to `403`. |
+
+The method can be `async` and return `Future<GuardResult>`. `block` takes the same arguments as the other error results. See [Error Responses][error-responses].
+
+You can also throw an exception from a guard and map it to a response with an [exception catcher][catchers]. That keeps the error format in one place when several guards fail the same way.
+
+<Callout type="tip">
+
+[`@Throttle`][throttle] is a built-in guard that answers `429` when a caller sends too many requests.
+
+</Callout>
+
+## Classic Style
+
+As an alternative, implement `Guard` and its `protect` method:
+
+<CodeFile name="lib/components/admin_guard.dart">
+
+```dart
+import 'package:revali_router/revali_router.dart';
+
+class AdminGuard implements Guard {
+  const AdminGuard();
+
+  @override
+  Future<GuardResult> protect(Context context) async {
+    final user = context.data.get<User>();
+
+    return user?.role == 'admin'
+        ? const GuardResult.pass()
+        : const GuardResult.block();
+  }
+}
+```
+
+</CodeFile>
+
+Apply it with `@AdminGuard()`, or by type with `@Guards([AdminGuard])`.
+
+[components]: /constructs/revali_server/lifecycle-components/components
+[middleware]: /constructs/revali_server/lifecycle-components/advanced/middleware
+[catchers]: /constructs/revali_server/lifecycle-components/advanced/exception-catchers
+[data-sharing]: /constructs/revali_server/context/data-sharing
 [error-responses]: /constructs/revali_server/lifecycle-components#error-responses
+[throttle]: /constructs/revali_server/lifecycle-components/kits/throttle

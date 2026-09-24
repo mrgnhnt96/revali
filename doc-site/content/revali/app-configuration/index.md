@@ -1,130 +1,62 @@
 ---
 title: Overview
-description: "What's an AppConfig and how do I use it?"
+description: What an AppConfig is, and every setting it controls
 ---
 
-App configuration is the foundation of your Revali application. It defines how your server runs, what dependencies are available, and how requests are handled. Every revali app has at least one app configuration (even when you haven't created one yet).
+An app is a class annotated with `@App()` that extends `AppConfig`. It sets where the server listens (host, port, URL prefix), registers dependencies, and controls server behavior such as compression, health probes and shutdown. You override a getter or method to change one setting and leave the rest at their defaults.
 
-## What is an AppConfig?
-
-An `AppConfig` is a class that extends Revali's base configuration and defines:
-
-- **Server Settings**: Host, port, and global prefix
-- **Dependencies**: Services, repositories, and other injectable objects
-- **Environment**: Development, staging, or production settings
-
-## Key Concepts
-
-### 🏗️ **Application Entry Point**
-
-The app configuration serves as the entry point for your Revali application. It's where you define how your server should behave and what resources it needs.
-
-### 🔧 **Dependency Injection**
-
-Configure all your application's dependencies in one place. Revali's built-in dependency injection system makes it easy to manage services, repositories, and other components.
-
-### 🌍 **Environment Management**
-
-Create different configurations for different environments (development, staging, production) using [flavors](/revali/app-configuration/flavors).
-
-### ⚙️ **Centralized Configuration**
-
-All server settings and dependencies are configured in a single, well-organized location.
-
-## Default Configuration
-
-Revali provides sensible defaults that work out-of-the-box:
-
-<CodeFile name="routes/main_app.dart">
+<CodeFile name="routes/apps/main_app.dart">
 
 ```dart
 import 'package:revali_router/revali_router.dart';
 
 @App()
 final class MainApp extends AppConfig {
-  const MainApp()
-      : super(
-          host: 'localhost',
-          port: 8080,
-          prefix: '/api',
-        );
+  const MainApp() : super(host: 'localhost', port: 8080);
+
+  @override
+  Future<void> configureDependencies(DI di) async {
+    di.registerLazySingleton<UserRepository>(UserRepository.new);
+  }
 }
 ```
 
 </CodeFile>
 
-This means your API will be available at `http://localhost:8080/api/`
+This server listens on `http://localhost:8080/api`. If there's no `@App` class under `routes/`, Revali uses the same defaults: `localhost`, port `8080`, prefix `api`.
 
-## Configuration Hierarchy
+## Reference
 
-```mermaid
-graph TD
-    A[AppConfig] --> B[Server Settings]
-    A --> C[Dependencies]
-    A --> E[Environment]
+Constructor parameters. See [Create an App](/revali/app-configuration/create-an-app).
 
-    B --> F[Host & Port]
-    B --> G[Global Prefix]
-    B --> H[CORS Settings]
+| Parameter | Default | Description |
+| --- | --- | --- |
+| `host` | required | The address to bind. `localhost` is bound dual-stack on `::`, so both IPv4 and IPv6 clients can connect. `0.0.0.0` binds every IPv4 interface. |
+| `port` | required | The port to listen on. `0` picks a free port. |
+| `prefix` | `'api'` | The path prefix for every route. Write it without slashes. `null` or `''` means no prefix. |
+| `workers` | `1` | The number of isolates serving the port. See [Worker Isolates](/revali/app-configuration/workers). |
+| `backlog` | `0` | The listen backlog. `0` uses the OS default. |
 
-    C --> I[Services]
-    C --> J[Repositories]
-    C --> K[External APIs]
+Constructors:
 
-    E --> O[Development]
-    E --> P[Staging]
-    E --> Q[Production]
-```
+| Constructor | Use for |
+| --- | --- |
+| `AppConfig(...)` | Plain HTTP |
+| `AppConfig.fromEnv(...)` | Host and port read from `HOST` and `PORT`. See [Environment Variables](/revali/app-configuration/env-vars#appconfigfromenv). |
+| `AppConfig.secure(...)` | HTTPS with your own `SecurityContext`. See [HTTPS](/revali/app-configuration/https). |
 
-## Everything in This Section
+Members you can override:
 
-Start at the top; the rest are worth reading when you hit what they solve.
+| Member | Default | Page |
+| --- | --- | --- |
+| `configureDependencies(DI di)` | registers nothing | [Configure Dependencies](/revali/app-configuration/configure-dependencies) |
+| `defaultResponses` | plain-text 400/404/500 and CORS 403 | [Error Responses](/revali/app-configuration/default-responses) |
+| `compression` | gzip on, negotiated | [Compression](/revali/app-configuration/compression) |
+| `health` | `/healthz` and `/readyz` | [Health Probes](/revali/app-configuration/health-probes) |
+| `shutdownTimeout`, `drainDelay`, `handleShutdownSignals`, `onServerStopped()` | 15s, 0s, `true`, no-op | [Graceful Shutdown](/revali/app-configuration/graceful-shutdown) |
+| `createBroker()` | `null` (messaging off) | [Messaging](/revali/messaging) |
+| `trustedProxy` | proxy headers ignored | [Create an App](/revali/app-configuration/create-an-app#trusted-proxy) |
+| `onServerStarted(HttpServer server)` | prints `Serving at …` | |
+| `runStartup(start)` | calls `start()` | Wrap startup, for example in `runZoned`. |
 
-| Page | What it covers |
-|---|---|
-| [Create an App](/revali/app-configuration/create-an-app) | The `@App()` that owns host, port and prefix |
-| [Configure Dependencies](/revali/app-configuration/configure-dependencies) | Register services once and inject them anywhere |
-| [Request-Scoped Dependencies](/revali/app-configuration/request-scoped-dependencies) | One instance per request, disposed when it ends |
-| [Flavors](/revali/app-configuration/flavors) | One codebase, several environments |
-| [Environment Variables](/revali/app-configuration/env-vars) | `Env`, `AppConfig.fromEnv`, and compile-time defines |
-| [Default Responses](/revali/app-configuration/default-responses) | The body returned for 404s and 500s |
-| [Error Responses](/revali/app-configuration/error-responses) | Structured errors that survive a service-to-service call |
-| [HTTPS in Development](/revali/app-configuration/https) | Serve TLS locally without a proxy in front |
-| [Compression](/revali/app-configuration/compression) | Gzip responses for clients that ask for them |
-| [Worker Isolates](/revali/app-configuration/workers) | Several isolates on one port, and what they don't share |
-| [Graceful Shutdown](/revali/app-configuration/graceful-shutdown) | Finish in-flight requests before the process exits |
-| [Health Probes](/revali/app-configuration/health-probes) | Liveness and readiness, and why they are not one check |
-| [Request Tracing](/revali/app-configuration/tracing) | Carry a request id and W3C trace context across a hop |
-
-## Best Practices
-
-### 📁 **File Organization**
-
-- Place app files in the `routes/` directory
-- Use descriptive names like `main_app.dart` or `api_app.dart`
-- Follow the naming convention: `*_app.dart` or `*.app.dart`
-
-### 🔄 **Dependency Management**
-
-- Register dependencies in logical groups
-- Use interfaces for better testability
-- Prefer lazy singletons for expensive resources
-
-### 🌐 **Environment Configuration**
-
-- Use environment variables for sensitive data
-- Create separate flavors for different environments
-- Keep development and production configs separate
-
-### 🛡️ **Security**
-
-- Never hardcode secrets in configuration files
-- Use environment variables for API keys and passwords
-- Validate configuration values at startup
-
-## Next Steps
-
-- **[Create an App](/revali/app-configuration/create-an-app)**: Learn how to create your first app configuration
-- **[Configure Dependencies](/revali/app-configuration/configure-dependencies)**: Set up dependency injection
-- **[Environment Variables](/revali/app-configuration/env-vars)**: Handle configuration across environments
-- **[Health Probes](/revali/app-configuration/health-probes)**: Make the server answer for its own readiness before you deploy it
+Related pages: [Request Tracing](/revali/app-configuration/tracing) (on by default, nothing to configure) and [`revali.yaml`](/revali/revali-configuration), which configures the CLI rather than the app.

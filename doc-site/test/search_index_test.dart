@@ -36,7 +36,7 @@ void main() {
     });
 
     test('covers every page', () {
-      expect(index.length, greaterThanOrEqualTo(96));
+      expect(index.length, greaterThanOrEqualTo(80));
       for (final doc in index) {
         expect(doc.url, startsWith('/'));
         expect(doc.title, isNotEmpty);
@@ -53,7 +53,7 @@ void main() {
     test('keeps identifiers intact through markdown stripping', () {
       // A naive `replaceAll(RegExp(r'[`*_#]'), '')` turns `revali_server` into
       // `revaliserver` — exactly the token people search for.
-      for (final term in ['revali_server', 'revali_client', 'implied_binding', 'revali.yaml']) {
+      for (final term in ['revali_server', 'revali_client', 'get_it', 'revali.yaml']) {
         expect(
           searchIndex(index, term),
           isNotEmpty,
@@ -87,8 +87,8 @@ void main() {
       'exception catcher':
           '/constructs/revali_server/lifecycle-components/advanced/exception-catchers',
       'websockets': '/constructs/revali_server/response/websockets',
-      'hot reload': '/revali/getting-started/hot-reload',
-      'flavors': '/revali/app-configuration/flavors',
+      'hot reload': '/revali/cli/dev',
+      'flavors': '/revali/app-configuration/create-an-app',
       'revali doctor': '/revali/cli/doctor',
       'pipes': '/constructs/revali_server/core/pipes',
       'server sent events': '/constructs/revali_server/response/server-sent-events',

@@ -1,53 +1,29 @@
 ---
 title: Request Wrapper
-description: Wrap the entire request pipeline in setup and teardown logic
+description: Wrap the whole request pipeline in setup and teardown code, such as a Zone value, a transaction, or timing.
 ---
 
-A `RequestWrapper` is a Lifecycle Component that wraps the entire request pipeline. It runs setup logic before the rest of the lifecycle executes, calls `next()` to continue the pipeline, and runs teardown logic after the pipeline completes.
+A request wrapper runs code **around** the rest of the pipeline. It does its setup, calls `next()` to run middleware, guards, interceptors, and the endpoint, and then does its teardown with the finished `Response` available. Use it when something has to span the whole request, such as a `Zone` value, a database transaction, or a `try`/`finally` cleanup.
 
-Request wrappers are useful when you need to establish a scope that spans middleware, guards, interceptors, and the endpoint — for example, installing a [request-scoped DI container][request-scoped-di] or propagating values through a `Zone`.
+For the common case of one instance per request, [request-scoped dependencies][request-scoped] already give every request its own DI scope. You don't need a wrapper for that.
 
-## Execution
+## Example
 
-Request wrappers are the outermost Lifecycle Component. They run before [observers][observer], [middleware][middleware], [guards][guards], and [interceptors][interceptors].
-
-When multiple request wrappers are registered, they are nested like middleware: the first registered wrapper runs its setup first and its teardown last.
-
-```
-Wrapper A (pre)
-  Wrapper B (pre)
-    Observer (pre)
-    Middleware → Guard → Interceptor (pre) → Endpoint → Interceptor (post)
-  Wrapper B (post)
-Wrapper A (post)
-Observer (post)
-```
-
-<Callout type="note">
-
-Request wrappers are not applied to [WebSocket][websockets] routes.
-
-</Callout>
-
-## Create a Request Wrapper
-
-To create a `RequestWrapper`, implement the `RequestWrapper` class and implement the `wrap` method.
-
-<CodeFile name="lib/components/wrappers/my_wrapper.dart">
+<CodeFile name="lib/components/server_timing.dart">
 
 ```dart
 import 'package:revali_router/revali_router.dart';
 
-class MyWrapper implements RequestWrapper {
-  const MyWrapper();
+class ServerTiming implements LifecycleComponent {
+  const ServerTiming();
 
-  @override
-  Future<Response> wrap(Context context, NextResponse next) async {
-    // Setup before the pipeline runs
+  WrapperResult wrap(NextResponse next) async {
+    final watch = Stopwatch()..start();
+
     try {
       return await next();
     } finally {
-      // Teardown after the pipeline completes
+      print('request took ${watch.elapsedMilliseconds}ms');
     }
   }
 }
@@ -55,108 +31,45 @@ class MyWrapper implements RequestWrapper {
 
 </CodeFile>
 
-The `next` callback continues the execute pipeline: middleware → guards → interceptors → handler. Always invoke `next()` unless you intend to short-circuit the request and return a response directly.
+Apply it with `@ServerTiming()` on the app, a controller, or an endpoint. Every request it covers is timed, including requests that a guard blocks or that throw.
 
-<Callout type="tip">
+## Rules
 
-Try using the [`create` cli][create-cli] to generate a lifecycle component scaffold that includes a `wrap` method!
+- The method must return `WrapperResult` (an alias for `Future<Response>`) **and** take a `NextResponse` parameter. Without the `NextResponse` parameter, the method is not treated as a wrapper.
+- Call `next()` exactly once and return its `Response`. To short-circuit, return a `Response` without calling `next()`.
+- Other parameters bind like any other component method, for example `Request`, `Data`, or `DI`.
+- Several wrappers nest: the first one registered is the outermost. Its setup runs first and its teardown runs last. See [Lifecycle Order][order].
+- Wrappers run after the access-control checks and before observers are notified. They don't run for OPTIONS requests, redirects, or [WebSocket][websockets] routes.
 
-```bash
-dart run revali create lifecycle-component
-```
+## Classic Style
 
-</Callout>
+As an alternative, implement `RequestWrapper`:
 
-### As a Lifecycle Component
-
-You can also define a request wrapper as a method on a [Lifecycle Component][components] class. The method must return `WrapperResult` (or `Future<Response>`) and accept a `NextResponse` parameter.
-
-<CodeFile name="lib/components/request_scope.dart">
+<CodeFile name="lib/components/server_timing_wrapper.dart">
 
 ```dart
 import 'package:revali_router/revali_router.dart';
 
-class RequestScope implements LifecycleComponent {
-  const RequestScope();
+class ServerTimingWrapper implements RequestWrapper {
+  const ServerTimingWrapper();
 
-  WrapperResult wrap(NextResponse next, DI parentDi) {
-    final scoped = RequestScopedDI(parent: parentDi);
+  @override
+  WrapperResult wrap(Context context, NextResponse next) async {
+    final watch = Stopwatch()..start();
 
-    return runZoned(
-      () async {
-        try {
-          return await next();
-        } finally {
-          await scoped.dispose();
-        }
-      },
-      zoneValues: {RequestScopedDI.zoneKey: scoped},
-    );
+    try {
+      return await next();
+    } finally {
+      print('${context.request.uri} took ${watch.elapsedMilliseconds}ms');
+    }
   }
 }
 ```
 
 </CodeFile>
 
-Downstream lifecycle components and endpoints can then resolve dependencies from the request scope:
+Apply it with `@ServerTimingWrapper()`, or by type with `@Wrappers([ServerTimingWrapper])`.
 
-```dart
-final userService = RequestScopedDI.getFrom<UserService>(appDi);
-```
-
-<Callout type="tip">
-
-Learn more about [request-scoped dependencies][request-scoped-di].
-
-</Callout>
-
-## Register the Request Wrapper
-
-To register the `RequestWrapper`, annotate your class on the app, controller, or endpoint level.
-
-<CodeFile name="routes/controllers/my_controller.dart">
-
-```dart
-import 'package:revali_router/revali_router.dart';
-
-// highlight-next-line
-@RequestScope()
-@Get('')
-Future<void> myEndpoint() {
-    ...
-}
-```
-
-</CodeFile>
-
-### Register as Type Reference
-
-<CodeFile name="routes/controllers/my_controller.dart">
-
-```dart
-import 'package:revali_router/revali_router.dart';
-
-// highlight-next-line
-@Wrappers([RequestScope])
-@Get('')
-Future<void> myEndpoint() {
-    ...
-}
-```
-
-</CodeFile>
-
-<Callout type="tip">
-
-Learn about [middleware][middleware], which runs after the request wrapper.
-
-</Callout>
-
-[observer]: /constructs/revali_server/lifecycle-components/observer
-[middleware]: /constructs/revali_server/lifecycle-components/advanced/middleware
-[guards]: /constructs/revali_server/lifecycle-components/advanced/guards
-[interceptors]: /constructs/revali_server/lifecycle-components/advanced/interceptors
-[components]: /constructs/revali_server/lifecycle-components/components
+[request-scoped]: /revali/app-configuration/configure-dependencies#request-scoped-dependencies
+[order]: /constructs/revali_server/lifecycle-components#lifecycle-order
 [websockets]: /constructs/revali_server/response/websockets
-[create-cli]: /constructs/revali_server/getting-started/cli#code-generation-made-easy
-[request-scoped-di]: /revali/app-configuration/configure-dependencies#request-scoped-dependencies

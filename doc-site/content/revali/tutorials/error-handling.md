@@ -3,17 +3,13 @@ title: Error Handling
 description: Create custom error responses with ExceptionCatcher
 ---
 
-This tutorial builds a domain exception and an `ExceptionCatcher` that turns it into a consistent JSON error response.
+In this tutorial you turn one of your own exceptions into a consistent JSON error response with an exception catcher. If you only need a status and an error code, throwing [`HttpError`](/revali/app-configuration/default-responses#httperror) is simpler and needs no catcher.
 
-<Callout type="tip">
-
-`MissingArgumentException` (thrown when a `@Query`/`@Body`/… binding is missing or invalid) is already mapped to HTTP 400 automatically — you only need a custom catcher for your own exceptions. See the full [Exception Catchers reference][catchers-ref] for repetitive catchers and the default catch-all.
-
-</Callout>
+You don't need a catcher for missing or invalid bindings: Revali already turns `MissingArgumentException` into a 400.
 
 ## Define a domain exception
 
-Exceptions are plain Dart classes -- nothing framework-specific:
+An exception is a plain Dart class:
 
 <CodeFile name="lib/exceptions/not_found_exception.dart">
 
@@ -34,6 +30,7 @@ A `LifecycleComponent` method that returns `ExceptionCatcherResult<T>` catches e
 <CodeFile name="lib/components/not_found_catcher.dart">
 
 ```dart
+import 'package:my_app/exceptions/not_found_exception.dart';
 import 'package:revali_router/revali_router.dart';
 
 class NotFoundCatcher implements LifecycleComponent {
@@ -52,13 +49,15 @@ class NotFoundCatcher implements LifecycleComponent {
 
 </CodeFile>
 
-The exception instance itself is bound automatically by matching the method's exception-typed parameter -- no annotation needed.
+The parameter typed as the exception receives the thrown exception automatically, with no annotation needed.
 
 ## Throw it and register the catcher
 
 <CodeFile name="routes/controllers/widget_controller.dart">
 
 ```dart
+import 'package:my_app/components/not_found_catcher.dart';
+import 'package:my_app/exceptions/not_found_exception.dart';
 import 'package:revali_router/revali_router.dart';
 
 @Controller('widgets')
@@ -75,7 +74,7 @@ class WidgetController {
 
 </CodeFile>
 
-`GET /widgets/missing` now returns `404` with body `{"error": "Widget not found"}`, instead of an unhandled-exception `500`.
+`GET /api/widgets/missing` now returns `404` with the body `{"error": "Widget not found"}` instead of a `500`. A catcher's body is sent as written: it isn't wrapped in `data`.
 
 <Callout type="note">
 
@@ -83,16 +82,11 @@ In [debug mode][debug-mode] (the default for `revali dev`), the response body al
 
 </Callout>
 
-Register `@NotFoundCatcher()` once at the app or controller level (instead of per-endpoint) to cover every route underneath it -- see [Scoping][scoping].
+Register `@NotFoundCatcher()` once at the app or controller level (instead of on each endpoint) to cover every route under it. See [Scoping][scoping].
 
-## What's next?
-
-- [Authentication](/revali/tutorials/authentication) — block unauthorized requests with a `Guard`
-- [Exception Catchers reference][catchers-ref] — default catch-all, repetitive catchers, and non-JSON bodies
-- [Error Responses][error-responses] — the full `statusCode`/`headers`/`body` shape shared by Guards, Middleware, and Exception Catchers
+Next: [Middleware and Guards](/revali/tutorials/middleware) · [Exception Catchers reference][catchers-ref] · [Error Responses](/revali/app-configuration/default-responses)
 
 [catchers-ref]: /constructs/revali_server/lifecycle-components/advanced/exception-catchers
 [debug-mode]: /revali/cli/dev#debug-mode-default
 [run-modes]: /revali/cli/dev#run-modes
 [scoping]: /constructs/revali_server/lifecycle-components#scoping
-[error-responses]: /constructs/revali_server/lifecycle-components#error-responses

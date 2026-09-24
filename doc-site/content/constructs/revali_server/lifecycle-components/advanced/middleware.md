@@ -1,112 +1,105 @@
 ---
 title: Middleware
-description: React to incoming requests by modifying the request context
+description: Prepare a request before guards and the endpoint run - load data, set headers - or stop it early.
 ---
 
-A `Middleware` is a Lifecycle Component that is used to modify the request or response before it reaches the endpoint.
+Middleware runs before [guards][guards] and the endpoint. Use it to prepare the request, for example by loading the current user into [`Data`][data-sharing] or setting a response header. It can also stop the request early. If the only job is to allow or deny access, write a [guard][guards] instead.
 
-Middleware is useful for binding data to the request context, transforming the request or response, and other tasks that need to be executed before the guard or endpoint.
+## Example
 
-## Execution
-
-Middleware is executed before the guards, in the order they are registered.
-
-## Create a Middleware
-
-To create a `Middleware`, you need to implement the `Middleware` class and implement the `use` method.
-
-<CodeFile name="lib/components/middleware/my_middleware.dart">
+<CodeFile name="lib/components/tenant.dart">
 
 ```dart
 import 'package:revali_router/revali_router.dart';
 
-class MyMiddleware implements Middleware {
-    const MyMiddleware();
+class Tenant implements LifecycleComponent {
+  const Tenant();
 
-    @override
-    Future<MiddlewareResult> use(Context context) async {
-        return const MiddlewareResult.next();
+  MiddlewareResult resolve(@Header('X-Tenant') String? tenant, Data data) {
+    if (tenant == null) {
+      return const MiddlewareResult.stop(body: 'X-Tenant header is required');
     }
+
+    data.add(TenantId(tenant));
+
+    return const MiddlewareResult.next();
+  }
+}
+
+class TenantId {
+  const TenantId(this.value);
+
+  final String value;
 }
 ```
 
 </CodeFile>
 
-<Callout type="note">
-
-There's no limit to the number of middleware that can be applied to a controller or endpoint. Middleware is executed in the order they are registered.
-
-</Callout>
-
-### Possible Results
-
-The `MiddlewareResult` has two possible results: `next` and `stop`. The `next` result allows the request to continue to the next middleware or guard. The `stop` result stops the request from continuing any further in the request flow.
-
-```dart
-const MiddlewareResult.next();
-```
-
-```dart
-const MiddlewareResult.stop(
-    statusCode: 400,
-    headers: {},
-    body: 'Bad Request',
-);
-```
-
-<Callout type="tip">
-
-Learn about [returning error responses][error-responses].
-
-<Callout type="important">
-
-If the `statusCode` is not set, the default status code will be 400.
-
-</Callout>
-
-</Callout>
-
-## Register the Middleware
-
-To register the `Middleware`, annotate your `Middleware` class on the app, controller, or endpoint level.
-
-<CodeFile name="routes/controllers/my_controller.dart">
+<CodeFile name="routes/controllers/orders_controller.dart">
 
 ```dart
 import 'package:revali_router/revali_router.dart';
 
-// highlight-next-line
-@MyMiddleware()
-@Get('')
-Future<void> myEndpoint() {
-    ...
+@Tenant()
+@Controller('orders')
+class OrdersController {
+  const OrdersController();
+
+  @Get()
+  String list(@Data() TenantId tenant) => 'orders for ${tenant.value}';
 }
 ```
 
 </CodeFile>
 
-### Register as Type Reference
+```bash
+curl -H 'X-Tenant: acme' http://localhost:8080/api/orders
+# 200 {"data":"orders for acme"}
 
-<CodeFile name="routes/controllers/my_controller.dart">
+curl http://localhost:8080/api/orders
+# 400 X-Tenant header is required
+```
+
+In debug mode the `400` body also has a `__DEBUG__` block appended.
+
+## Results
+
+| Result | Effect |
+| --- | --- |
+| `MiddlewareResult.next()` | Continue to the next middleware, then to the guards. |
+| `MiddlewareResult.stop({statusCode, headers, body})` | End the request. The status defaults to `400`. |
+
+The method can be `async` and return `Future<MiddlewareResult>`. `stop` takes the same arguments as the other error results. See [Error Responses][error-responses].
+
+## Classic Style
+
+As an alternative, implement `Middleware` and its `use` method, which receives the whole `Context`:
+
+<CodeFile name="lib/components/tenant_middleware.dart">
 
 ```dart
 import 'package:revali_router/revali_router.dart';
 
-// highlight-next-line
-@Middlewares([MyMiddleware])
-@Get('')
-Future<void> myEndpoint() {
-    ...
+class TenantMiddleware implements Middleware {
+  const TenantMiddleware();
+
+  @override
+  Future<MiddlewareResult> use(Context context) async {
+    final tenant = context.request.headers.get('X-Tenant');
+    if (tenant == null) {
+      return const MiddlewareResult.stop();
+    }
+
+    context.data.add(TenantId(tenant));
+    return const MiddlewareResult.next();
+  }
 }
 ```
 
 </CodeFile>
 
-<Callout type="tip">
+Apply it with `@TenantMiddleware()`, or by type with `@Middlewares([TenantMiddleware])`.
 
-Learn about [guards].
-
-</Callout>
-
-[error-responses]: /constructs/revali_server/lifecycle-components#error-responses
 [guards]: /constructs/revali_server/lifecycle-components/advanced/guards
+[data-sharing]: /constructs/revali_server/context/data-sharing
+[error-responses]: /constructs/revali_server/lifecycle-components#error-responses

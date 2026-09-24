@@ -1,79 +1,59 @@
 ---
 title: Response Handler
-description: Customize how the response is sent to the client
+description: Replace how the final response is written to the HTTP connection.
 ---
 
-## Overview
-
-The Response Handler in Revali is a advanced feature that allows developers to customize how the response is sent to the client. For most use cases, the default response handler implementation should cover all scenarios. However, in certain specific circumstances, you may need to implement your own response handler to meet unique requirements.
+A response handler takes the finished `Response` and writes it to the underlying `HttpResponse`: the status, the headers, the transfer encoding, compression, and the body stream. Revali's `DefaultResponseHandler` covers normal HTTP responses, so you only need your own handler when you must control the bytes on the wire yourself.
 
 <Callout type="caution">
 
-This feature is intended for advanced use cases. For standard application development, we strongly recommend sticking with the default handler to ensure correct behavior and optimal performance.
+A custom handler replaces all of the default behavior for the routes it covers. That includes content-length and chunking, dropping content headers on `204` and `304`, and [compression][compression]. You have to reimplement whatever of that you still need.
 
 </Callout>
 
-## Default Response Handler
+## Example
 
-The default response handler implementation (`DefaultResponseHandler`) is responsible for processing different types of responses and ensuring they are properly formatted and sent to the client. This handler deals with various response scenarios, such as managing HTTP headers, determining transfer encoding, and flushing content to the client.
-
-### Key Responsibilities of DefaultResponseHandler
-
-1. **Headers Management**: Determines appropriate headers to send based on the response, and applies necessary modifications to ensure consistency.
-2. **Encoding and Chunking**: Manages the transfer encoding of responses to ensure compatibility with the underlying HTTP library, de-chunking if necessary.
-3. **Body Streaming**: Reads the response body (if present) and streams it to the client.
-4. **Handling Special Cases**: Removes content-related headers for certain status codes like `204 No Content` or `304 Not Modified`. Removes access control headers for status code `404 Not Found`.
-
-## Create a Custom Response Handler
-
-To create a custom response handler, you need to implement the `ResponseHandler` interface. This interface defines a single method, `handle`.
+<CodeFile name="lib/components/plain_response_handler.dart">
 
 ```dart
+import 'dart:io';
+
 import 'package:revali_router/revali_router.dart';
 
-class CustomResponseHandler implements ResponseHandler {
-  const CustomResponseHandler();
+class PlainResponseHandler implements ResponseHandler {
+  const PlainResponseHandler();
 
   @override
   Future<void> handle(
-    ReadOnlyResponse response,
+    Response response,
     RequestContext context,
     HttpResponse httpResponse,
   ) async {
-    // Custom response handling logic
+    httpResponse.statusCode = response.statusCode;
+    // write headers and body to httpResponse...
+    await httpResponse.close();
   }
 }
 ```
 
-## Register the Custom Response Handler
+</CodeFile>
 
-To register your custom response handler, annotation your class on the app, controller, or endpoint level.
+Apply it as an annotation on the app, a controller, or an endpoint:
 
 ```dart
-import 'package:revali_router/revali_router.dart';
-
+@PlainResponseHandler()
 @App()
-// highlight-next-line
-@CustomResponseHandler()
-class MyApp ...
+final class MyApp extends AppConfig {
+  // ...
+}
 ```
 
-<Callout type="warning">
+## Scoping
 
-WebSockets do not support custom response handlers. They will be ignored if registered.
+- Only **one** response handler can be applied per app, controller, or endpoint.
+- The handler closest to the endpoint wins: endpoint, then controller, then app, then `DefaultResponseHandler`.
+- [WebSocket][websockets] and [server-sent event][sse] routes use their own built-in handlers, so a handler set on the app or controller does not apply to them.
 
-</Callout>
-
-### Scoping
-
-The response handler can be registered at different levels of the application, however, the handler scope closest to the endpoint will take precedence.
-
-### Example of Response Handler Scoping
-
-The scope of a response handler determines where it will be applied within the application. Here are the different levels at which you can register a response handler:
-
-- **App Level**: If registered at the app level, the response handler will be used for all endpoints in the application.
-- **Controller Level**: If registered at the controller level, the response handler will be used for all endpoints within that specific controller.
-- **Endpoint Level**: If registered at the endpoint level, the response handler will be used only for that specific endpoint.
-
-The response handler registered closest to the endpoint will take precedence over those registered at higher levels.
+[compression]: /revali/app-configuration/compression
+[websockets]: /constructs/revali_server/response/websockets
+[sse]: /constructs/revali_server/response/server-sent-events

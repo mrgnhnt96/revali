@@ -1,12 +1,13 @@
 ---
 title: Throttle
-description: Reject callers that send too many requests
+description: Reject callers that send too many requests with 429 Too Many Requests.
 ---
 
-`@Throttle` rejects a caller that exceeds a request allowance with `429 Too
-Many Requests`. Apply it to an app, a controller, or a single endpoint:
+`@Throttle` is a built-in [guard][guards] that rejects a caller with `429 Too Many Requests` once it goes over a request allowance. Apply it to an app, a controller, or a single endpoint.
 
 ```dart
+import 'package:revali_router/revali_router.dart';
+
 @Throttle(max: 100, window: Duration(minutes: 1))
 @Controller('search')
 class SearchController {
@@ -17,20 +18,21 @@ class SearchController {
 }
 ```
 
-## What counts as one caller
+| Parameter | Default | Meaning |
+| --- | --- | --- |
+| `max` | `60` | Requests allowed per window. Must be greater than `0`. |
+| `window` | `Duration(minutes: 1)` | How long an allowance lasts |
+| `bucket` | The matched route | A name for a shared allowance. See below. |
 
-The client IP, resolved through `AppConfig.trustedProxy` — so behind a proxy
-or load balancer it counts the real client rather than the proxy that
-forwarded every request.
+## What Counts as One Caller
 
-## What counts as one allowance
+A caller is identified by client IP, resolved through `AppConfig.trustedProxy`. Behind a proxy or load balancer, this counts the real client instead of the proxy that forwarded every request. See [Client IP][client-ip].
 
-By default, the **matched route** — its registered path, not the concrete
-URL. `/api/users/:id` is one bucket, so a caller hitting `/api/users/1` and
-`/api/users/2` spends one allowance, not two.
+## What Counts as One Allowance
 
-Set `bucket` to pool several endpoints under a shared allowance, which is what
-you usually want for something like sign-in:
+By default, each **matched route** has its own allowance, keyed by its registered path rather than the concrete URL. `/api/users/:id` is one bucket, so a caller hitting `/api/users/1` and `/api/users/2` spends one allowance, not two.
+
+Set `bucket` to share one allowance across several endpoints. This is usually what you want for something like sign-in:
 
 ```dart
 @Throttle(max: 5, window: Duration(minutes: 15), bucket: 'auth')
@@ -42,34 +44,28 @@ Future<Session> login(@Body() Credentials body) => _login(body);
 Future<void> reset(@Body() Email body) => _reset(body);
 ```
 
-## The rejection
+## The Rejection
 
-A blocked request gets `429` with:
+A blocked request gets `429` with the body `Too Many Requests` and these headers:
 
 | Header | Meaning |
 | --- | --- |
-| `Retry-After` | Seconds until the allowance resets. Never `0` |
+| `Retry-After` | Seconds until the allowance resets. Never `0`. |
 | `X-RateLimit-Limit` | The configured `max` |
-| `X-RateLimit-Remaining` | `0`, since the caller is over |
+| `X-RateLimit-Remaining` | `0`, since the caller is over the limit |
 
-## Two limits worth knowing before you rely on it
+Throttle is a guard, so it runs after all middleware, and the response follows the usual [error response][error-responses] rules.
+
+## Limits
 
 <Callout type="caution">
 
-**It is a fixed window.** A caller can send up to `2 × max` across a window
-boundary — `max` at the end of one window and `max` at the start of the next.
-Choose `max` with that in mind, or reach for a proxy-level limiter if you need
-a strict sliding window.
+**It is a fixed window.** A caller can send up to `2 × max` requests across a window boundary: `max` at the end of one window and `max` at the start of the next. Choose `max` with that in mind, or use a proxy-level limiter if you need a strict sliding window.
 
-**State is per process.** Counters live in memory, so with
-`AppConfig.workers > 1`, or more than one instance behind a load balancer,
-each has its own and the effective limit multiplies by the number of
-processes. For a limit shared across instances, enforce it in front of the
-server or back it with an external store such as Redis.
+**State is kept in memory, per process.** With `AppConfig.workers > 1`, or more than one instance behind a load balancer, each process has its own counters, so the effective limit is multiplied by the number of processes. For a limit shared across instances, enforce it in front of the server or back it with an external store such as Redis.
 
 </Callout>
 
-## What's next?
-
-- [Lifecycle Components](/constructs/revali_server/lifecycle-components) — how kits are applied and ordered
-- [Client IP](/constructs/revali_server/request/client-ip) — configuring `trustedProxy` so the right caller is counted
+[guards]: /constructs/revali_server/lifecycle-components/advanced/guards
+[client-ip]: /constructs/revali_server/request/client-ip
+[error-responses]: /constructs/revali_server/lifecycle-components#error-responses

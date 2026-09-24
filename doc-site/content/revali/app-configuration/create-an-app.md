@@ -1,335 +1,142 @@
 ---
 title: Create an App
-description: Create an app and configure host & port
+description: Define the @App that sets host, port and prefix, and use flavors to switch between apps
 ---
 
-Creating an app configuration is the first step in setting up your Revali application. This guide will walk you through creating your first app configuration.
-
-<Callout type="tip">
-
-You can quickly create an app configuration using the CLI command:
+An app file sets where your server listens. Create one when the defaults (`localhost:8080`, prefix `api`) aren't what you want, or when you need to register dependencies.
 
 ```bash
-dart run revali create app
+dart run revali create app            # scaffolds an app file in routes/apps/
 ```
 
-</Callout>
+See [`revali create`](/revali/cli/create) for more.
 
-## Project Structure
-
-First, let's understand where to place your app configuration:
-
-```tree
-your_project/
-├── lib/
-│   └── <your-dart-files>
-├── routes/
-│   └── my_app.dart          # Your app configuration
-├── pubspec.yaml
-└── revali.yaml
-```
-
-<Callout type="important">
-
-**File Naming Requirements:**
-
-- App files must end with `_app.dart` or `.app.dart`
-- Files must be placed in the `routes/` directory
-- You can nest app files in subdirectories within `routes/`
-
-</Callout>
-
-## Step 1: Create the App File
-
-Create a new file in your `routes/` directory. Let's call it `main_app.dart`:
-
-<CodeFile name="routes/main_app.dart">
-
-```dart
-@App()
-final class MainApp extends AppConfig {
-  const MainApp() : super(host: 'localhost', port: 8080);
-}
-```
-
-</CodeFile>
-
-## Step 2: Understanding the Components
-
-### The `@App()` Annotation
-
-The `@App()` annotation tells Revali that this class is an application configuration. This annotation is required for Revali to recognize and process your app.
-
-### The `AppConfig` Base Class
-
-`AppConfig` is the base class that provides the foundation for your application configuration. It handles:
-
-- Server initialization
-- Dependency injection setup
-- Middleware configuration
-- Request/response processing
-
-### Constructor Parameters
-
-The `AppConfig` constructor requires two essential parameters:
-
-- **`host`**: The hostname where your server will listen (e.g., `'localhost'`, `'0.0.0.0'`)
-- **`port`**: The port number for your server (e.g., `8080`, `3000`)
-
-## Step 3: Basic Configuration Options
-
-### Host Configuration
-
-<CodeFile name="routes/main_app.dart">
-
-```dart
-@App()
-final class MainApp extends AppConfig {
-  // Listen on localhost only
-  const MainApp() : super(host: 'localhost', port: 8080);
-}
-```
-
-</CodeFile>
-
-<CodeFile name="routes/main_app.dart">
-
-```dart
-@App()
-final class MainApp extends AppConfig {
-  // Listen on all network interfaces
-  const MainApp() : super(host: '0.0.0.0', port: 8080);
-}
-```
-
-</CodeFile>
-
-### Port Configuration
-
-<CodeFile name="routes/main_app.dart">
-
-```dart
-@App()
-final class MainApp extends AppConfig {
-  // Development port
-  const MainApp() : super(host: 'localhost', port: 3000);
-}
-```
-
-</CodeFile>
-
-<CodeFile name="routes/main_app.dart">
-
-```dart
-@App()
-final class MainApp extends AppConfig {
-  // Production port
-  const MainApp() : super(host: 'localhost', port: 80);
-}
-```
-
-</CodeFile>
-
-## Step 4: Advanced Configuration
-
-### Global Prefix
-
-Add a global prefix to all your API routes:
-
-<CodeFile name="routes/main_app.dart">
-
-```dart
-@App()
-final class MainApp extends AppConfig {
-  const MainApp() : super(
-    host: 'localhost',
-    port: 8080,
-    prefix: '/api/v1',  // All routes will be prefixed with /api/v1
-  );
-}
-```
-
-</CodeFile>
-
-### Reading Host and Port from the Environment
-
-A deployed app is usually told its address rather than deciding it. `AppConfig.fromEnv` reads `HOST` and `PORT`, defaulting to `0.0.0.0` and `8080`:
-
-<CodeFile name="routes/main_app.dart">
-
-```dart
-@App()
-final class MainApp extends AppConfig {
-  // Not const: it reads the environment, which is a runtime fact.
-  MainApp() : super.fromEnv(prefix: '/api');
-}
-```
-
-</CodeFile>
-
-See [Environment Variables](/revali/app-configuration/env-vars) for the variable names, the defaults, and why they differ from the ones above.
-
-### Worker Isolates
-
-`workers` runs the server in several isolates, all bound to the same port:
-
-<CodeFile name="routes/main_app.dart">
-
-```dart
-@App()
-final class MainApp extends AppConfig {
-  const MainApp() : super(
-    host: '0.0.0.0',
-    port: 8080,
-    workers: 4,   // isolates accepting connections on 8080
-    backlog: 0,   // listen backlog; 0 means the OS default
-  );
-}
-```
-
-</CodeFile>
-
-Isolates share no memory, so a cache or a counter in a field becomes one per isolate. See [Worker Isolates](/revali/app-configuration/workers) before turning this up.
-
-### Trusted Proxy
-
-When your server sits behind a reverse proxy or load balancer, override `trustedProxy` so `request.ip` and `@Ip()` resolve the real client from proxy headers instead of the proxy's TCP address:
-
-<CodeFile name="routes/main_app.dart">
-
-```dart
-@App()
-final class MainApp extends AppConfig {
-  const MainApp() : super(host: 'localhost', port: 8080);
-
-  @override
-  TrustedProxy get trustedProxy => const TrustedProxy(
-    headers: ['X-Forwarded-For'],
-  );
-}
-```
-
-</CodeFile>
-
-Leave the default (`const TrustedProxy()`) when clients connect directly — proxy headers are ignored in that case.
-
-See [Client IP](/constructs/revali_server/request/client-ip) for `useLeftmostIp`, header precedence, and security guidance.
-
-### Complete Example
-
-Here's a complete app configuration with all common options:
-
-<CodeFile name="routes/main_app.dart">
+<CodeFile name="routes/apps/main_app.dart">
 
 ```dart
 import 'package:revali_router/revali_router.dart';
 
 @App()
 final class MainApp extends AppConfig {
-  const MainApp() : super(
-    host: 'localhost',
-    port: 8080,
-    prefix: '/api',
-  );
+  const MainApp()
+      : super(
+          host: 'localhost',
+          port: 8080,
+          prefix: 'api', // routes are served under /api
+        );
+}
+```
+
+</CodeFile>
+
+Revali finds the app from these rules:
+
+- The file must be under `routes/`. The convention is `routes/apps/`.
+- The file must be named `app.dart`, `*_app.dart` or `*.app.dart`.
+- The class must be annotated with `@App()` and extend `AppConfig`, imported from `package:revali_router/revali_router.dart`.
+- The constructor may take an [`Args`](/revali/cli/dev#server-arguments) parameter. Nothing else is injected into it: the app is created before dependency injection is set up.
+
+## Host, Port and Prefix
+
+| Parameter | Default | Notes |
+| --- | --- | --- |
+| `host` | required | Use `localhost` for local development and `0.0.0.0` in a container. |
+| `port` | required | `0` picks a free port, which is useful in tests. |
+| `prefix` | `'api'` | Written without slashes: `'api'` or `'api/v1'`, never `'/api'`. A leading or trailing `/` throws when the server starts. Use `null` or `''` for no prefix. |
+| `workers` | `1` | See [Worker Isolates](/revali/app-configuration/workers). |
+| `backlog` | `0` | The listen backlog. `0` uses the OS default. |
+
+The prefix applies to every route except the [health probes](/revali/app-configuration/health-probes). A controller at `@Controller('users')` is served at `/api/users`.
+
+### Reading Host and Port from the Environment
+
+In a deployment, the platform usually decides the port. `AppConfig.fromEnv` reads `HOST` (default `0.0.0.0`) and `PORT` (default `8080`):
+
+<CodeFile name="routes/apps/main_app.dart">
+
+```dart
+@App()
+final class MainApp extends AppConfig {
+  MainApp() : super.fromEnv(); // not const: it reads the environment at runtime
+}
+```
+
+</CodeFile>
+
+`revali up` and `revali compose` pass each service its port through `PORT`. See [Environment Variables](/revali/app-configuration/env-vars#appconfigfromenv).
+
+### Trusted Proxy
+
+Behind a reverse proxy or load balancer, override `trustedProxy`. Then `request.ip` and `@Ip()` report the client's address from the proxy headers instead of the proxy's own address:
+
+<CodeFile name="routes/apps/main_app.dart">
+
+```dart
+@App()
+final class MainApp extends AppConfig {
+  const MainApp() : super(host: '0.0.0.0', port: 8080);
+
+  @override
+  TrustedProxy get trustedProxy => const TrustedProxy(
+        headers: ['X-Forwarded-For'],
+      );
+}
+```
+
+</CodeFile>
+
+Keep the default (`const TrustedProxy()`) when clients connect to the server directly, so they can't spoof their IP through these headers. See [Client IP](/constructs/revali_server/request/client-ip).
+
+## Flavors
+
+A project can define several apps, one per environment. Give each app a `flavor` and pick one at run time with `--flavor`:
+
+<CodeFile name="routes/apps/dev_app.dart">
+
+```dart
+import 'package:revali_router/revali_router.dart';
+
+@App(flavor: 'dev')
+final class DevApp extends AppConfig {
+  const DevApp() : super(host: 'localhost', port: 8080);
 
   @override
   Future<void> configureDependencies(DI di) async {
-    // Register your dependencies here
-    // We'll cover this in the next guide
+    di.registerLazySingleton<EmailService>(FakeEmailService.new);
   }
 }
 ```
 
 </CodeFile>
 
-## Step 5: Running Your App
+<CodeFile name="routes/apps/prod_app.dart">
 
-Once you've created your app configuration, you can start your server:
+```dart
+import 'package:revali_router/revali_router.dart';
+
+@App(flavor: 'prod')
+final class ProdApp extends AppConfig {
+  ProdApp() : super.fromEnv();
+
+  @override
+  Future<void> configureDependencies(DI di) async {
+    di.registerLazySingleton<EmailService>(SmtpEmailService.new);
+  }
+}
+```
+
+</CodeFile>
 
 ```bash
-dart run revali dev
+dart run revali dev --flavor dev
+dart run revali build --flavor prod
 ```
 
-Your server will be available at the configured host and port (e.g., `http://localhost:8080/api/`).
+Revali picks the app as follows:
 
-## Multiple App Configurations
+- **Only one server runs.** The CLI selects a single app. Two apps can't serve different ports from one package.
+- **Flavor names are case-sensitive.** `dev` and `Dev` are different flavors.
+- **Without `--flavor`:** if only one app exists, it runs. If there are several, the first app without a flavor runs. If every app has a flavor, generation fails with `No app found, did you forget pass the --flavor arg?` and a list of the configured flavors.
+- **With `--flavor` but no matching app:** generation fails with `No app found for flavor "<name>"`.
 
-You can create multiple app configurations for different purposes:
-
-<CodeFile name="routes/api_app.dart">
-
-```dart
-@App()
-final class ApiApp extends AppConfig {
-  const ApiApp() : super(
-    host: 'localhost',
-    port: 8080,
-    prefix: '/api',
-  );
-}
-```
-
-</CodeFile>
-
-<CodeFile name="routes/admin_app.dart">
-
-```dart
-@App()
-final class AdminApp extends AppConfig {
-  const AdminApp() : super(
-    host: 'localhost',
-    port: 8081,
-    prefix: '/admin',
-  );
-}
-```
-
-</CodeFile>
-
-## Best Practices
-
-### 📁 **File Organization**
-
-- Use descriptive names: `main_app.dart`, `api_app.dart`, `admin_app.dart`
-- Group related apps in subdirectories: `routes/api/main_app.dart`
-- Keep app configurations focused and single-purpose
-
-### 🔧 **Configuration Management**
-
-- Use environment variables for host and port in production
-- Create separate configurations for different environments
-- Document your configuration choices
-
-### 🚀 **Performance**
-
-- Choose appropriate host settings for your deployment
-- Use non-privileged ports (>1024) for development
-- Consider using `0.0.0.0` for containerized deployments
-
-## Troubleshooting
-
-### Common Issues
-
-**App Not Recognized:**
-
-- Ensure the file ends with `_app.dart` or `.app.dart`
-- Verify the file is in the `routes/` directory
-- Check that the `@App()` annotation is present
-
-**Port Already in Use:**
-
-- Change the port number in your configuration
-- Check if another service is using the port
-- Use `lsof -i :8080` to find processes using the port
-
-**Host Binding Issues:**
-
-- Use `localhost` for local development
-- Use `0.0.0.0` for network access
-- Check firewall settings
-
-## Next Steps
-
-- **[Configure Dependencies](/revali/app-configuration/configure-dependencies)**: Set up dependency injection
-- **[Environment Variables](/revali/app-configuration/env-vars)**: Handle configuration across environments
-- **[Flavors](/revali/app-configuration/flavors)**: Create environment-specific configurations
+Put values that change between deployments of the same build, such as secrets and URLs, in [environment variables](/revali/app-configuration/env-vars) rather than in flavors.

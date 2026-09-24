@@ -1,19 +1,11 @@
 ---
-title: Middleware
-description: Add request/response processing with Middleware
+title: Middleware and Guards
+description: Log every request with middleware, and protect endpoints with a bearer-token guard
 ---
 
-This tutorial walks through building two middleware components with the [`LifecycleComponent`][lifecycle-component] API: one that logs every request, and one that guards an endpoint behind an API key.
+In this tutorial you build two [lifecycle components][lifecycle-component]: a middleware that logs each request, and a guard that blocks requests without a valid bearer token. A method's return type decides its role. A method that returns `MiddlewareResult` is middleware and runs first. A method that returns `GuardResult` is a guard: it runs next and either lets the request through or blocks it.
 
-<Callout type="tip">
-
-Middleware runs before guards, in the order it's registered. Read the full [Middleware reference][middleware-ref] for the complete list of possible results.
-
-</Callout>
-
-## Log every request
-
-A `LifecycleComponent` method that returns `MiddlewareResult` acts as middleware. Bind `Request` to inspect the incoming request:
+## 1. Log Every Request (Middleware)
 
 <CodeFile name="lib/components/request_logger.dart">
 
@@ -33,11 +25,12 @@ class RequestLogger implements LifecycleComponent {
 
 </CodeFile>
 
-Apply it to an endpoint, controller, or the whole app by using it as an annotation:
+To apply a component, use it as an annotation on an endpoint, a controller or the app:
 
 <CodeFile name="routes/controllers/some_controller.dart">
 
 ```dart
+import 'package:my_app/components/request_logger.dart';
 import 'package:revali_router/revali_router.dart';
 
 @Controller('some')
@@ -52,67 +45,90 @@ class SomeController {
 
 </CodeFile>
 
-Every request to `GET /some/logged` prints a line like `[GET] /some/logged` to the server's console before the endpoint runs.
+`GET /api/some/logged` prints `[GET] /api/some/logged` and returns `{"data": "logged"}`.
 
-## Guard an endpoint with an API key
+Middleware can also end a request early with `MiddlewareResult.stop(statusCode: …, body: …)`, or pass values to the endpoint with [`Data`][data-sharing]. The guard below does both.
 
-Middleware can also stop a request before it reaches the endpoint, and share data with it via [`Data`][data-sharing]:
+## 2. Require a Bearer Token (Guard)
 
-<CodeFile name="lib/components/require_api_key.dart">
+<CodeFile name="lib/components/require_auth.dart">
 
 ```dart
 import 'package:revali_router/revali_router.dart';
 
-class RequireApiKey implements LifecycleComponent {
-  const RequireApiKey();
+class RequireAuth implements LifecycleComponent {
+  const RequireAuth();
 
-  MiddlewareResult checkApiKey(
-    @Header('X-Api-Key') String? apiKey,
+  GuardResult checkAuth(
+    @Header('Authorization') String? authorization,
     Data data,
   ) {
-    if (apiKey == null) {
-      return const MiddlewareResult.stop(
+    if (authorization == null || !authorization.startsWith('Bearer ')) {
+      return const GuardResult.block(
         statusCode: 401,
-        body: 'Missing X-Api-Key header',
+        body: 'Missing or invalid Authorization header',
       );
     }
 
-    data.add(apiKey);
-    return const MiddlewareResult.next();
+    final token = authorization.substring('Bearer '.length);
+
+    if (!isValidToken(token)) {
+      return const GuardResult.block(statusCode: 401, body: 'Invalid token');
+    }
+
+    data.add(token); // the endpoint reads this with @Data()
+    return const GuardResult.pass();
   }
+}
+
+// Replace with a lookup against your auth provider.
+bool isValidToken(String token) => token == 'secret-token';
+```
+
+</CodeFile>
+
+In a real app, inject an auth service with `@Dep() AuthService auth` as another parameter of `checkAuth`, and register the service in [`configureDependencies`][configure-dependencies].
+
+<CodeFile name="routes/controllers/account_controller.dart">
+
+```dart
+import 'package:my_app/components/require_auth.dart';
+import 'package:revali_router/revali_router.dart';
+
+@Controller('account')
+class AccountController {
+  const AccountController();
+
+  @RequireAuth()
+  @Get('me')
+  String me(@Data() String token) => 'authenticated as $token';
 }
 ```
 
 </CodeFile>
 
-The endpoint reads the value middleware stored in `Data` using the `@Data()` annotation:
+| Request | Response |
+| --- | --- |
+| `GET /api/account/me` without `Authorization` | `401 Missing or invalid Authorization header` |
+| `GET /api/account/me` with `Authorization: Bearer wrong` | `401 Invalid token` |
+| `GET /api/account/me` with `Authorization: Bearer secret-token` | `200 {"data": "authenticated as secret-token"}` |
 
-<CodeFile name="routes/controllers/some_controller.dart">
+## Applying It to More Routes
 
-```dart
-@RequireApiKey()
-@Get('protected-by-middleware')
-String protectedByMiddleware(@Data() String apiKey) => 'key: $apiKey';
+Put `@RequireAuth()` on the controller, or on the app class, to protect every route under it. See [Scoping][scoping]. For role checks, add a second guard that reads what the first guard stored in `Data`. See the [Guards reference][guards-ref].
+
+## Try It
+
+```bash
+dart run revali dev
+curl -H 'Authorization: Bearer secret-token' http://localhost:8080/api/account/me
 ```
 
-</CodeFile>
-
-- A request without `X-Api-Key` gets `401 Missing X-Api-Key header` and never reaches `protectedByMiddleware`.
-- A request with `X-Api-Key: my-key-123` reaches the endpoint, which echoes back `key: my-key-123`.
-
-<Callout type="note">
-
-This example checks for the mere presence of a key. For real authentication (verifying a token against a user), see the [Authentication tutorial][auth-tutorial] which uses a `Guard` instead — guards run after middleware and are the dedicated place for pass/block authorization decisions.
-
-</Callout>
-
-## What's next?
-
-- [Error Handling](/revali/tutorials/error-handling) — turn exceptions into consistent error responses
-- [Authentication](/revali/tutorials/authentication) — protect endpoints with a `Guard`
-- [Lifecycle Components reference][lifecycle-component] — the full binding and registration model
+Next: [Error Handling](/revali/tutorials/error-handling) · [Middleware reference][middleware-ref] · [Testing](/revali/testing)
 
 [lifecycle-component]: /constructs/revali_server/lifecycle-components
 [middleware-ref]: /constructs/revali_server/lifecycle-components/advanced/middleware
+[guards-ref]: /constructs/revali_server/lifecycle-components/advanced/guards
 [data-sharing]: /constructs/revali_server/context/data-sharing
-[auth-tutorial]: /revali/tutorials/authentication
+[scoping]: /constructs/revali_server/lifecycle-components#scoping
+[configure-dependencies]: /revali/app-configuration/configure-dependencies

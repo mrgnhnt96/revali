@@ -1,58 +1,33 @@
 ---
-title: Tips and Tricks
+title: Debugging Constructs
+description: Step through your construct with a debugger by launching Revali's generated construct runner directly
 ---
 
-## Debugging Constructs
+`revali dev` runs your construct inside a compiled runner, so breakpoints in your construct are not hit. To debug, launch the runner's source file, `.dart_tool/revali/revali.dart`, from your IDE instead. Run `dart run revali dev` once first so the file exists.
 
-Let's be honest, the Dart Analyzer's API is very extensive and can be quite overwhelming at first. Debugging your constructs can be very helpful in understanding how the Analyzer is interpreting your server project's codebase. Here are a few tips to help you debug your constructs:
-
-### Don't use `revali dev` for debugging
-
-This may seem counterintuitive, but the `revali dev` command is not the best way to debug your constructs. The `revali dev` command is designed to run your constructs in a production-like environment, which means that it will not output any debugging information to the console. To debug your constructs, you should leverage the Root Construct Entrypoint file that is generated when you run the `revali dev` command.
-
-This file is located in the `.dart_tool` directory:
-
-```tree
-.
-└── .dart_tool
-    └── revali
-        └── revali.dart
-```
-
-<Callout type="important">
-
-You're going to need to run the `revali dev` command at least once to generate the Root Construct Entrypoint file.
-
-</Callout>
-
-Once you have the Root Construct Entrypoint file, you can debug your constructs using your IDE's debugger. This will allow you to set breakpoints, inspect variables, and step through your constructs line by line.
-
-<Callout type="tip">
-
-In VSCode, add a new configuration to your `launch.json` file that points to the Root Construct Entrypoint file. It should look something like this:
+In VS Code, add a launch configuration in the **server** project:
 
 <CodeFile name=".vscode/launch.json">
 
 ```json
 {
-    "name": "Debug Constructs",
-    "cwd": "examples/create_construct/app",
-    "request": "launch",
-    "type": "dart",
-    "program": ".dart_tool/revali/revali.dart",
-    "args": [ "dev" ]
+  "configurations": [
+    {
+      "name": "Debug constructs",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "${workspaceFolder}",
+      "program": ".dart_tool/revali/revali.dart",
+      "args": ["dev"]
+    }
+  ]
 }
 ```
 
 </CodeFile>
 
-<Callout type="important">
+- `args` selects the mode, exactly as on the command line: `["dev"]` or `["build"]`, plus any flags such as `--flavor`.
+- Set `cwd` to the server project root, the directory holding its `pubspec.yaml`.
+- Breakpoints in your construct package's `lib/` now work, and you can inspect the `MetaServer` that Revali built, which is the quickest way to learn what the analyzer exposes for your routes.
 
-You must pass the `dev` (or `build`) argument so that the Root Construct Entrypoint file knows which mode to run in. The arguments are the same as the ones you would pass to the [`revali dev`][revali-dev] or [`revali build`][revali-build] command.
-
-</Callout>
-
-[revali-dev]: /revali/cli/dev
-[revali-build]: /revali/cli/build
-
-</Callout>
+`revali.dart` is regenerated when the set of constructs changes. If you add or remove a construct, run `dart run revali dev` again before debugging.

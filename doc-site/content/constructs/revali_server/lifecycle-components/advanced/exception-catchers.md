@@ -1,219 +1,137 @@
 ---
 title: Exception Catchers
+description: Turn exceptions thrown during a request into error responses.
 ---
 
-An `ExceptionCatcher` is a Lifecycle Component that allows you to catch exceptions that are thrown during the request lifecycle. No matter where the exception is thrown, the request flow is aborted and the exception is caught by the server. The `ExceptionCatcher`'s responsibility is to handle certain types of exceptions and prepare an error response to be sent back to the client.
+An exception catcher turns an exception into an error response. When anything in the lifecycle throws (middleware, a guard, an interceptor, a pipe, or the endpoint), Revali stops the request and asks the catchers, in order, whether they handle that exception. Use catchers to map your domain exceptions (`NotFound`, `ValidationFailed`, ...) to status codes in one place instead of in every endpoint.
 
-## Recipes
+<Callout type="tip">
 
-- Prefer a **domain exception → 4xx** catcher for expected client failures (`ValidationException`, `UnauthorizedException`, etc.).
-- Do **not** use `ExceptionCatcher<Exception>` as a typed catcher — the runtime requires a concrete subtype (see below). Use `DefaultExceptionCatcher` only when you intentionally want a catch-all.
-- Prefer the free `LifecycleComponent` form (method returning `ExceptionCatcherResult<MyError>`) for new code; classic `extends ExceptionCatcher<T>` remains supported.
-- **`MissingArgumentException`** (missing/invalid `@Query`/`@Body`/… bindings) is mapped by the framework to **HTTP 400** automatically — you do not need a custom catcher unless you want a different body shape.
+For a standard `{"error": {"code": ..., "message": ...}}` response, you can throw an [`HttpError`][http-error] without writing a catcher.
 
-## Create an ExceptionCatcher
+</Callout>
 
-To create an `ExceptionCatcher`, you need to extend the `ExceptionCatcher` class and implement the `catchException` method. The `catchException` will only be called if the exception thrown is an instance of the type specified in the type argument of the `ExceptionCatcher` class.
+## Example
 
-In this example, only exceptions of type `MyException` will be caught by the `MyExceptionCatcher` class.
-
-<CodeFile name="lib/components/catchers/my_catcher.dart">
+<CodeFile name="lib/components/not_found_catcher.dart">
 
 ```dart
 import 'package:revali_router/revali_router.dart';
 
-final class MyExceptionCatcher extends ExceptionCatcher<MyException> {
-    const MyExceptionCatcher();
+class NotFound implements Exception {
+  const NotFound(this.what);
 
-    @override
-    ExceptionCatcherResult catchException(MyException exception, Context context) {
-        return const ExceptionCatcherResult.handled();
-    }
+  final String what;
+}
+
+class NotFoundCatcher implements LifecycleComponent {
+  const NotFoundCatcher();
+
+  ExceptionCatcherResult<NotFound> notFound(NotFound exception) {
+    return ExceptionCatcherResult.handled(
+      statusCode: 404,
+      body: {'message': '${exception.what} not found'},
+    );
+  }
 }
 ```
 
 </CodeFile>
 
-<Callout type="important">
-
-A type parameter must be specified when extending the `ExceptionCatcher` class. This type parameter specifies the type of exception that the `ExceptionCatcher` will catch. Without this type parameter, the `ExceptionCatcher` will not be able to catch any exceptions.
-
-<Callout type="caution">
-
-The type parameter must be a subtype of `Exception` and not `Exception` itself.
-
-</Callout>
-
-</Callout>
-
-## Register an ExceptionCatcher
-
-To register an `ExceptionCatcher`, annotate your `MyExceptionCatcher` class on the app, controller, or endpoint level.
-
-<CodeFile name="routes/my_app.dart">
+<CodeFile name="routes/apps/my_app.dart">
 
 ```dart
 import 'package:revali_router/revali_router.dart';
 
+@NotFoundCatcher()
 @App()
-// highlight-next-line
-@MyExceptionCatcher()
-class MyApp ...
-```
-
-</CodeFile>
-
-### Register as Type Reference
-
-If you have a parameter that can not be provided at compile time, you can register the `MyExceptionCatcher` as a type reference using the `@Catchers()` annotation.
-
-<CodeFile name="routes/my_app.dart">
-
-```dart
-import 'package:revali_router/revali_router.dart';
-
-@App()
-// highlight-next-line
-@Catches([MyExceptionCatcher])
-class MyApp ...
-```
-
-</CodeFile>
-
-<Callout type="tip">
-
-Learn more about [type referencing][type-referencing].
-
-</Callout>
-
-### Repetitive Catchers
-
-Its not common, but you can create multiple `ExceptionCatcher` classes that catch the same type of exception. This can be useful if you want to handle the same type of exception in different ways.
-
-<CodeFile name="lib/components/catchers/my_other_catcher.dart">
-
-```dart
-import 'package:revali_router/revali_router.dart';
-
-final class MyOtherCatcher extends ExceptionCatcher<MyException> {
-    const MyOtherCatcher();
-
-    @override
-    ExceptionCatcherResult catchException(MyException exception, Context context) {
-        if (condition) {
-            return const ExceptionCatcherResult.handled();
-        } else {
-            return const ExceptionCatcherResult.unhandled();
-        }
-    }
+final class MyApp extends AppConfig {
+  const MyApp() : super(host: 'localhost', port: 8080);
 }
 ```
 
 </CodeFile>
 
-When `ExceptionCatcherResult.unhandled()` is returned, the next `ExceptionCatcher` that catches the same type of exception will be called.
-
-## Handling the Response
-
-The `ExceptionCatcher` is responsible for preparing the error response to be sent back to the client.
-
-<CodeFile name="lib/components/catchers/my_catcher.dart">
+<CodeFile name="routes/controllers/users_controller.dart">
 
 ```dart
-import 'package:revali_router/revali_router.dart';
+@Controller('users')
+class UsersController {
+  const UsersController();
 
-final class MyExceptionCatcher extends ExceptionCatcher<MyException> {
-    const MyExceptionCatcher();
-
-    @override
-    ExceptionCatcherResult catchException(MyException exception, Context context) {
-        return const ExceptionCatcherResult.handled(
-            statusCode: 500,
-            headers: {
-                HttpHeaders.contentTypeHeader: 'text/plain',
-            }
-            body: 'An error occurred',
-        );
-    }
+  @Get(':id')
+  User get(@Param() String id) => throw const NotFound('User');
 }
 ```
 
 </CodeFile>
 
-Here's an example of how you can handle the response:
+`GET /api/users/42` responds with `404` and `{"message": "User not found"}`. In debug mode, a `"__DEBUG__"` key is added to that object.
 
-```dart
-const ExceptionCatcherResult.handled();
-```
+## How Catchers Are Chosen
 
-```dart
-const ExceptionCatcherResult.unhandled(
-    statusCode: 500,
-    headers: {},
-    body: 'Internal Server Error',
-);
-```
+- The **type argument** of `ExceptionCatcherResult<T>` is the exception type the method handles. A parameter of type `T` receives the thrown exception.
+- Catchers are tried **endpoint first, then controller, then app**, and the first `handled` result wins. See [Order of Execution][order].
+- Return `ExceptionCatcherResult.unhandled()` to pass the exception on to the next catcher.
+- Only `Exception` subtypes are passed to catchers. An `Error` (such as a `TypeError` or `StateError`) always becomes a `500`.
+- Catcher methods must be **synchronous**. A method that returns `Future<ExceptionCatcherResult<T>>` is rejected when the code is generated.
 
-<Callout type="tip">
+## Results
 
-Learn about [returning error responses][error-responses].
-<Callout type="important">
+| Result | Effect |
+| --- | --- |
+| `ExceptionCatcherResult.handled({statusCode, headers, body})` | This response is sent. The status defaults to `500`, or `400` for a `MissingArgumentException`. |
+| `ExceptionCatcherResult.unhandled()` | Try the next catcher. It takes no arguments. |
 
-If the `statusCode` is not set, the default status code will be 500.
+`handled` takes the same arguments as the other error results. See [Error Responses][error-responses].
 
-</Callout>
+## When Nothing Catches It
 
-</Callout>
+| Exception | Response |
+| --- | --- |
+| `MissingArgumentException` (a required `@Query`, `@Body`, `@Header`, `@Data`, ... binding was missing or invalid) | `400 Bad Request` |
+| [`HttpError`][http-error] | Its own status and `{"error": {...}}` envelope |
+| Anything else | `500 Internal Server Error` |
 
-## Default Exception Catcher
+To change these default bodies, see [Default Responses][default-responses].
 
-If you would like to catch all exceptions that weren't caught by any other `ExceptionCatcher`, you can extend the `DefaultExceptionCatcher` class and implement the `catchException` method. While you may be tempted to handle all exceptions in the default exception catcher, it is highly recommended to only handle exceptions that are not caught by any other `ExceptionCatcher`.
+## Classic Style
 
-<CodeFile name="lib/components/catchers/unhandled_catcher.dart">
+As an alternative, extend `ExceptionCatcher<T>` and implement `catchException`. `T` must be a specific exception type. `ExceptionCatcher<Exception>` never matches anything.
+
+<CodeFile name="lib/components/not_found_catcher.dart">
 
 ```dart
 import 'package:revali_router/revali_router.dart';
 
-class UnhandledCatcher extends DefaultExceptionCatcher {
-    const UnhandledCatcher();
+final class NotFoundCatcher extends ExceptionCatcher<NotFound> {
+  const NotFoundCatcher();
 
-    @override
-    ExceptionCatcherResult catchException(exception, context) {
-        return const ExceptionCatcherResult.handled();
-    }
+  @override
+  ExceptionCatcherResult<NotFound> catchException(NotFound exception, Context context) {
+    return ExceptionCatcherResult.handled(statusCode: 404, body: '${exception.what} not found');
+  }
 }
 ```
 
 </CodeFile>
 
-<Callout type="note">
+For a catch-all, extend `DefaultExceptionCatcher`. It matches every `Exception` and is always tried after all other catchers:
 
-There isn't a limit to the number of `DefaultExceptionCatchers` that can be created.
+```dart
+final class FallbackCatcher extends DefaultExceptionCatcher {
+  const FallbackCatcher();
 
-</Callout>
-
-<Callout type="tip">
-
-Scope the `DefaultExceptionCatcher` to the app level to catch all unhandled exceptions.
-
-</Callout>
-
-## Unhandled Exceptions
-
-When an exception is not handled by any `ExceptionCatcher`, the default status code will be 500. The body will be set to the default error message.
-
-```plaintext
-Internal Server Error
+  @override
+  ExceptionCatcherResult<Exception> catchException(Exception exception, Context context) {
+    return const ExceptionCatcherResult.handled(statusCode: 500, body: 'Something went wrong');
+  }
+}
 ```
 
-<Callout type="tip">
+Apply classic catchers with `@NotFoundCatcher()`, or by type with `@Catches([NotFoundCatcher])`.
 
-Learn how you can customize the internal server error message in the [docs][default-responses]
-
-</Callout>
-
-Learn more about [type referencing][type-referencing].
-
-[type-referencing]: /constructs/revali_server/tidbits#using-types-in-annotations
+[order]: /constructs/revali_server/lifecycle-components#order-of-execution
 [error-responses]: /constructs/revali_server/lifecycle-components#error-responses
+[http-error]: /revali/app-configuration/default-responses#httperror
 [default-responses]: /revali/app-configuration/default-responses

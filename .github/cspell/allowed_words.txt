@@ -32,3 +32,12 @@ tracestate
 unexpose
 useb
 windsurfrules
+DREGION
+frontends
+preflights
+Ganondorf
+hyrule
+undecoded
+introspectable
+unparseable
+llms

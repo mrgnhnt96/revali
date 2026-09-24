@@ -1,34 +1,11 @@
 ---
 title: Controllers
-description: Organize your API endpoints with controllers
+description: Group related endpoints under one URL path with a @Controller class
 ---
 
-Controllers are the foundation of your API architecture. They organize related endpoints, handle business logic, and provide a clean way to structure your server-side code.
+A controller is a class annotated with `@Controller(path)` whose annotated methods become HTTP endpoints. Use one controller per resource (users, orders, ...); every endpoint in it is served under the controller's path.
 
-## What Are Controllers?
-
-Think of controllers as **traffic directors** for your API. They:
-
-- **Group related endpoints** together (like all user-related operations)
-- **Handle business logic** for those endpoints
-- **Manage dependencies** and services
-- **Provide a clean separation** between routing and logic
-
-## Creating Your First Controller
-
-### Method 1: Using the CLI (Recommended)
-
-The fastest way to create a controller is using the CLI:
-
-```bash
-dart run revali create controller
-```
-
-When prompted, enter a name like `users` or `products`. This generates a complete controller with examples.
-
-### Method 2: Manual Creation
-
-Create a new file in your `routes` directory:
+## Minimal example
 
 <CodeFile name="routes/controllers/users_controller.dart">
 
@@ -37,93 +14,53 @@ import 'package:revali_router/revali_router.dart';
 
 @Controller('users')
 class UsersController {
-  // Your endpoints will go here
-}
-```
-
-</CodeFile>
-
-**Key points:**
-
-- File must end with `_controller.dart` or `.controller.dart`
-- Must be in the `routes` directory
-- Use the `@Controller('path')` annotation to define the base route
-
-## Understanding Routes
-
-The `@Controller('users')` annotation means:
-
-- All endpoints in this controller start with `/users`
-- `@Get()` becomes `GET /users`
-- `@Get(':id')` becomes `GET /users/:id` (with path parameter)
-- `@Post()` becomes `POST /users`
-
-<Callout type="info">
-
-Path parameters like `:id` create dynamic routes. Learn more about [path parameters in HTTP methods](/constructs/revali_server/core/methods#path-parameters) and [extracting them with binding](/constructs/revali_server/core/binding#param---path-parameters).
-
-</Callout>
-
-## Adding Endpoints
-
-Endpoints are methods within your controller:
-
-<CodeFile name="routes/controllers/users_controller.dart">
-
-```dart
-import 'package:revali_router/revali_router.dart';
-
-@Controller('users')
-class UsersController {
+  const UsersController();
 
   @Get()
-  Future<List<User>> getUsers() async {
-    // Return all users
-    return await userService.getAllUsers();
-  }
+  List<String> list() => ['alice', 'bob'];
 
   @Get(':id')
-  Future<User> getUser(@Param() String id) async {
-    // Return specific user
-    return await userService.getUserById(id);
-  }
-
-  @Post()
-  Future<User> createUser(@Body() CreateUserRequest request) async {
-    // Create new user
-    return await userService.createUser(request);
-  }
-
-  @Put(':id')
-  Future<User> updateUser(
-    @Param() String id,
-    @Body() UpdateUserRequest request,
-  ) async {
-    // Update existing user
-    return await userService.updateUser(id, request);
-  }
-
-  @Delete(':id')
-  Future<void> deleteUser(@Param() String id) async {
-    // Delete user
-    await userService.deleteUser(id);
-  }
+  String get(@Param() String id) => 'user $id';
 }
 ```
 
 </CodeFile>
 
-**Available routes:**
+```bash
+curl http://localhost:8080/api/users
+# {"data":["alice","bob"]}
 
-- `GET /users` → Get all users
-- `GET /users/:id` → Get specific user
-- `POST /users` → Create new user
-- `PUT /users/:id` → Update user
-- `DELETE /users/:id` → Delete user
+curl http://localhost:8080/api/users/42
+# {"data":"user 42"}
+```
 
-## Constructor and Dependencies
+To scaffold one instead, run `dart run revali create controller` (see [CLI](/revali/cli/create)).
 
-Controllers can have dependencies injected through their constructor:
+## Rules
+
+| Rule | Detail |
+| ---- | ------ |
+| Location | The file must be under `routes/`. |
+| File name | Must end in `_controller.dart` or `.controller.dart`, or the file is ignored. |
+| Annotation | Exactly one `@Controller` per class. |
+| URL | `/<app prefix>/<controller path>/<method path>`. The app prefix defaults to `api`. |
+| Method name | Not part of the URL. `@Get()` with no path binds to the controller path itself. |
+| Duplicates | Two endpoints with the same HTTP method and path in one controller fail the build. |
+
+How the pieces combine:
+
+| Controller | Method annotation | Route |
+| ---------- | ----------------- | ----- |
+| `@Controller('users')` | `@Get()` | `GET /api/users` |
+| `@Controller('users')` | `@Get(':id')` | `GET /api/users/:id` |
+| `@Controller('users')` | `@Post()` | `POST /api/users` |
+| `@Controller('shops/:shopId')` | `@Get('orders')` | `GET /api/shops/:shopId/orders` |
+
+Path syntax (`:param`, leading slashes) is covered in [HTTP Methods](/constructs/revali_server/core/methods).
+
+## Constructor dependencies
+
+Constructor parameters are resolved from [dependency injection](/revali/app-configuration/configure-dependencies). `@Dep()` is optional on controller constructor parameters.
 
 <CodeFile name="routes/controllers/users_controller.dart">
 
@@ -132,87 +69,37 @@ import 'package:revali_router/revali_router.dart';
 
 @Controller('users')
 class UsersController {
-  const UsersController(
-    this._userService,
-    this._logger,
-  );
+  const UsersController(this._users);
 
-  final UserService _userService;
-  final Logger _logger;
+  final UserService _users;
 
   @Get()
-  Future<List<User>> getUsers() async {
-    _logger.info('Fetching all users');
-    return await _userService.getAllUsers();
-  }
+  Future<List<User>> list() => _users.all();
 }
 ```
 
 </CodeFile>
 
-**Important notes:**
+- Revali uses the **first constructor declared** in the class. The class must have at least one public constructor; declare it first.
+- A controller never receives the request directly. Read request data with [binding annotations](/constructs/revali_server/core/binding).
 
-- Revali uses the **first public constructor**
-- Private constructors are ignored
-- Dependencies are automatically injected based on your configuration
-- Controllers don't have access to request objects directly
+## Instance lifetime
 
-## Controller Lifespan
-
-### Singleton (Default)
-
-By default, controllers are created once and reused:
-
-```dart
-@Controller('users')
-class UsersController {
-  // Created once, reused for all requests
-}
-```
-
-### Factory (Per Request)
-
-Create a new instance for each request:
+| `type:` | Behavior |
+| ------- | -------- |
+| `InstanceType.singleton` (default) | One instance, created once and reused for every request. |
+| `InstanceType.factory` | A new instance for every request. |
 
 ```dart
 @Controller('users', type: InstanceType.factory)
 class UsersController {
-  // New instance created for each request
-}
-```
-
-## Best Practices
-
-### Keep Controllers Focused
-
-```dart
-// ✅ Good - focused on user operations
-@Controller('users')
-class UsersController {
-  @Get()
-  Future<List<User>> getUsers() => _userService.getAllUsers();
-
-  @Post()
-  Future<User> createUser(@Body() CreateUserRequest request) =>
-    _userService.createUser(request);
-}
-
-// ❌ Avoid - mixing unrelated operations
-@Controller('users')
-class UsersController {
-  @Get()
-  Future<List<User>> getUsers() => _userService.getAllUsers();
-
-  @Get()
-  Future<List<Product>> getProducts() => _productService.getAllProducts(); // Wrong!
+  const UsersController();
 }
 ```
 
 ## Sharing endpoints between controllers
 
-Annotated methods on a superclass or mixin become routes on the controller
-that inherits them, so endpoints several controllers share can be declared
-once:
+Annotated methods on a superclass or mixin become routes on the controller that inherits them:
 
 ```dart
 abstract class CrudBase {
@@ -236,32 +123,15 @@ class ItemsController extends CrudBase with HealthEndpoints {
 }
 ```
 
-`ItemsController` serves all three: `POST /api/items`, `GET /api/items/all`
-and `GET /api/items/health`.
+`ItemsController` serves `POST /api/items`, `GET /api/items/all` and `GET /api/items/health`.
 
-Overriding behaves the way you would expect:
-
-- Override **with** an annotation and yours replaces the inherited route.
-- Override **without** one and the inherited route stays, dispatching to your
-  implementation at runtime.
+- Override **with** a method annotation and yours replaces the inherited route.
+- Override **without** one and the inherited route stays, dispatching to your implementation.
 
 <Callout type="caution">
 
-Inheriting endpoints from a **generic** base is not supported and fails the
-build with an explanatory error. The inherited signatures still refer to the
-base's type parameters, so the generated request bindings would be wrong.
-Declare those endpoints on the controller itself, or make the base
-non-generic.
+Inheriting endpoints from a **generic** base class is not supported and fails the build. The inherited signatures refer to the base's type parameters, so the generated bindings would be wrong. Declare those endpoints on the controller, or make the base non-generic.
 
 </Callout>
 
-## What's Next?
-
-Now that you understand controllers, explore these related topics:
-
-1. **[HTTP Methods](/constructs/revali_server/core/methods)** - Learn about different HTTP methods and how to use them
-2. **[Binding](/constructs/revali_server/core/binding)** - Understand how to extract data from requests
-3. **[Pipes](/constructs/revali_server/core/pipes)** - Transform and validate request data
-4. **[Dependency Injection](/revali/app-configuration/configure-dependencies)** - Configure your services and dependencies
-
-Ready to dive deeper? Let's explore HTTP methods!
+Next: [HTTP Methods](/constructs/revali_server/core/methods) · [Binding](/constructs/revali_server/core/binding)

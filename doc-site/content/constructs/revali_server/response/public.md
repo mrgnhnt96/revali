@@ -1,41 +1,40 @@
 ---
 title: Public Files
-description: The directory used to store static files
+description: Serve static files from the project's public directory
 ---
 
-The `public` directory is a special directory used to store static files that are directly served by the server. Any file placed in this directory is accessible by anyone, making it ideal for assets like images, icons, and other public resources.
+Files in the `public/` directory at the project root are served as static files, at the server root, without the app prefix. Use it for `favicon.ico`, `robots.txt`, images and other assets that need no endpoint.
 
-## Usage
+## Example
 
-The `public` directory is automatically mapped to the server's root, even if you have defined an [application prefix][app-prefix]
-
-### Example
-
-```plaintext
-public/
-    favicon.ico
-    robots.txt
-    images/
-        logo.png
+```tree
+my_app/
+├── public/
+│   ├── favicon.ico
+│   ├── robots.txt
+│   └── images/
+│       └── logo.png
+├── routes/
+└── pubspec.yaml
 ```
 
-If you're running Revali locally, the `favicon.ico` and other files in the `public` directory are accessible via URLs like:
-
-```http
-http://localhost:3000/favicon.ico
-http://localhost:3000/images/logo.png
+```bash
+curl http://localhost:8080/favicon.ico
+curl http://localhost:8080/images/logo.png
 ```
 
-<Callout type="note">
+## Behavior
 
-The `public` directory does not use the server's prefix. All files are served from the root path, regardless of any server routing configuration.
-
-</Callout>
+| Detail | Value |
+| ------ | ----- |
+| URL | `/<path inside public/>`. The app prefix (`/api`) is **not** added. |
+| Method | `GET` (and automatic `HEAD`/`OPTIONS`). |
+| CORS | All origins allowed. |
+| Headers | `Content-Type` from the file extension, plus `Content-Length`, `Last-Modified`, `Accept-Ranges` and `Content-Disposition`. |
+| Discovery | Files are listed when the server is generated. After adding or removing a file, regenerate: press `r` in `dart run revali dev`, or run `dart run revali dev --generate-only`. |
 
 <Callout type="danger">
 
-Avoid placing sensitive or private information in the `public` directory, as it is fully accessible to anyone who knows the URL.
+Everything in `public/` is readable by anyone who knows the URL. Never put secrets or private data there.
 
 </Callout>
-
-[app-prefix]: /revali/app-configuration/create-an-app

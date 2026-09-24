@@ -3,21 +3,17 @@ title: revali doctor
 description: Diagnose SDK, construct, kernel cache, and generated-output issues
 ---
 
-The `revali doctor` command checks your SDK, resolved constructs, construct kernel cache, and generated output freshness — useful when `revali dev`/`revali build` are behaving unexpectedly.
-
-## Basic Usage
+`revali doctor` checks your project's setup. Run it when `revali dev` or `revali build` behaves unexpectedly. It checks the SDK, resolved packages and constructs, the construct kernel, and whether the generated output is up to date.
 
 ```bash
 dart run revali doctor
 ```
 
-Example output:
-
 ```text
-✓ [ok] sdk: 3.12.2
+✓ [ok] sdk: 3.8.1
 ✓ [ok] project_root: /path/to/your/app
-✓ [ok] revali_packages: revali, revali_annotations, revali_core, revali_construct, revali_router
-✓ [ok] constructs: revali_server:revali_server
+✓ [ok] revali_packages: revali, revali_annotations, revali_construct, revali_core, revali_router
+✓ [ok] constructs: revali:revali_server
 ✓ [ok] kernel_cache: hit 8f2a1c...
 ✓ [ok] local_kernel: fresh
 ✓ [ok] generated_outputs: up to date vs routes/ and lib/
@@ -29,26 +25,21 @@ Example output:
 
 | Flag | Description |
 | --- | --- |
-| `--json` | Print a structured JSON report (`{ ok, checks: [...] }`) instead of the human-readable list. |
+| `--json` | Prints `{ "ok": bool, "checks": [{ "id", "status", "detail" }] }`. |
 
-## What It Checks
+## Checks
 
-| Check | Meaning when it warns/errors |
+| Check | If it warns or fails |
 | --- | --- |
-| `sdk` | The Dart SDK version currently running `revali doctor`. |
-| `project_root` | Whether the project root could be resolved. An error here stops all further checks. |
-| `package_config` | Whether `.dart_tool/package_config.json` exists — run `dart pub get` if not. |
-| `revali_packages` | Which `revali*` packages are resolved for this project. Empty is a warning. |
-| `constructs` | Constructs resolved from your dependencies. Empty is a warning. |
-| `kernel_cache` | Whether the shared construct-kernel cache has an entry for this construct set + SDK. A miss just means the next build recompiles once. |
-| `local_kernel` | Whether the local construct kernel (`.revali/revali.dart.dill`) exists and is fresh against construct/`revali_*` sources. |
-| `generated_outputs` | Whether `.revali/server/server.dart` is up to date against `routes/` and `lib/`. Stale means re-run `revali dev --generate-only`. |
-| `routes_manifest` | Whether `.revali/server/routes.json` exists (see [`revali routes`](/revali/cli/routes)). |
-| `exception_catchers` | Best-effort scan for thrown types under `routes/`/`lib/` that may need a matching `ExceptionCatcher` registered. Info-only, never fails the check. |
+| `sdk` | Information only. Shows the Dart SDK version. |
+| `project_root` | **Error.** No project root was found. Run the command inside your package. |
+| `package_config` | **Error.** `.dart_tool/package_config.json` is missing. Run `dart pub get`. |
+| `revali_packages` | No `revali*` packages resolved. Add `revali` (dev dependency) and `revali_router`. |
+| `constructs` | No constructs resolved from your dependencies. |
+| `kernel_cache` | Cache miss. The next run compiles the construct kernel once. |
+| `local_kernel` | `.revali/revali.dart.dill` is missing or out of date. Run with `--recompile`. |
+| `generated_outputs` | `.revali/server/server.dart` is missing or older than `routes/` or `lib/`. Run `dart run revali dev --generate-only`. |
+| `routes_manifest` | `.revali/server/routes.json` is missing. Regenerate the server. |
+| `exception_catchers` | Information only. Lists types thrown under `routes/` or `lib/` that might need an exception catcher. |
 
-Only `project_root` and `package_config` errors are treated as hard failures (non-zero exit code) — everything else is advisory.
-
-## Next Steps
-
-- **[The Routes Command](/revali/cli/routes)**: List generated routes
-- **[The Dev Command](/revali/cli/dev)**: Start the development server
+Only the two **Error** checks fail the command with exit code `1`. Every other check is advisory.

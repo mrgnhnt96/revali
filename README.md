@@ -23,7 +23,7 @@ class ExampleController {
 }
 ```
 
-To learn more about how Revali can help simplify your backend development workflow, including advanced topics like dependency injection, WebSocket management, and custom middleware, please visit [revali.dev](https://revali.dev) for the full documentation.
+To learn more about how Revali can help simplify your backend development workflow, including advanced topics like dependency injection, WebSocket management, and custom middleware, see [docs.revali.dev](https://docs.revali.dev) for the full documentation.
 
 ## CLI
 

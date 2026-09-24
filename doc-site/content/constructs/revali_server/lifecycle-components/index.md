@@ -1,318 +1,338 @@
 ---
 title: Overview
-description: Reusable classes to handle incoming requests
+description: Run code before and after your endpoints - authentication, logging, data loading, error handling - and control where it applies.
 ---
 
-Lifecycle components are classes that are used to manage the lifecycle of a request. Specifically, they are used to manage the request from the time it is received by the server to the time it is sent back to the client. Each can have dedicated tasks, such as logging, authentication, or authorization.
+Lifecycle components are classes that run around your endpoints: they can load data, reject a request, change the response, or turn an exception into an error response. Use them for anything that applies to more than one endpoint, such as authentication, request logging, or error mapping.
 
-<Callout type="tip" title="Preferred API">
+This page owns the parts every component shares: the order they run in, where you can apply them, how to register them, and how their error responses are formed. The pages for each role only cover that role.
 
-Build new middleware with **`LifecycleComponent`** (method return types select the role). Annotate the app, controller, or endpoint with `@MyComponent()` or `@LifecycleComponents([MyComponent])`.
+## Quick Example
 
-Classic `implements Middleware` / `Guard` / `Interceptor` / `ExceptionCatcher` interfaces remain supported for advanced cases — see [Middleware](/constructs/revali_server/lifecycle-components/advanced/middleware) and siblings under Advanced.
+Write a class that implements `LifecycleComponent`. Each method's **return type** decides its role: this one returns `GuardResult`, so it runs as a [guard][guards].
 
-</Callout>
+<CodeFile name="lib/components/api_key.dart">
 
-## Built-in kits
+```dart
+import 'package:revali_router/revali_router.dart';
 
-| Kit | Usage |
-|-----|--------|
-| `@RequestId()` | Ensure `X-Request-Id` (or a custom header) on every request |
-| `@AllowOrigins(...)` | CORS allowed origins (access control, not a LifecycleComponent) |
+class ApiKey implements LifecycleComponent {
+  const ApiKey();
 
-## App Lifecycle
+  GuardResult check(@Header('X-Api-Key') String? key) {
+    if (key != 'secret') {
+      return const GuardResult.block(statusCode: 401, body: 'Invalid API key');
+    }
 
-Since Lifecycle Components are used for requests, they are called upon when a request is received by the server.
+    return const GuardResult.pass();
+  }
+}
+```
 
-You can think of a basic request lifecycle as follows:
+</CodeFile>
 
-| Request | Middleware  |   Controller   | Endpoint | Middleware (reversed) | Response |
-| :-----: | :---------: | :------------: | :------: | :-------------------: | :------: |
-| Request | [ A, B, C ] | `MyController` | `hello`  |      [ C, B, A ]      | Response |
+Apply it by using the class as an annotation:
 
-When a request is received by the server, it is passed to the middleware which performs its task. The middleware then passes the request to the controller's endpoint which will process the request and resolve the response to send. The response is then passed back to the middleware in reverse order. Finally, the response is then sent back to the client.
+<CodeFile name="routes/controllers/reports_controller.dart">
 
-<Callout type="caution">
+```dart
+import 'package:revali_router/revali_router.dart';
+import 'package:my_app/components/api_key.dart';
 
-"Middleware" used in this context is a general term used to describe _any_ Lifecycle Component and is not the same as the `Middleware` component used in the `revali` framework.
+@ApiKey()
+@Controller('reports')
+class ReportsController {
+  const ReportsController();
 
-</Callout>
+  @Get()
+  List<String> list() => ['q1', 'q2'];
+}
+```
 
-### Exceptions
+</CodeFile>
 
-If an exception is thrown during the request lifecycle, the flow will be aborted and the exception will be caught by the server. The server will then send an error response back to the client.
+```bash
+curl -H 'X-Api-Key: secret' http://localhost:8080/api/reports
+# 200 {"data":["q1","q2"]}
+
+curl http://localhost:8080/api/reports
+# 401 Invalid API key
+```
+
+In [debug mode](#debug-and-release-mode) the `401` body also carries a `__DEBUG__` block with the stack trace.
 
 <Callout type="tip">
 
-You can catch exceptions by using the [`Catcher`][catchers] Lifecycle Component.
+Scaffold a component with `dart run revali create lifecycle-component`. See [Writing a LifecycleComponent][components] for constructor arguments, parameter binding, and the full set of rules.
 
 </Callout>
+
+## Roles
+
+| Return type | Role | Runs | Can stop the request? |
+| --- | --- | --- | --- |
+| `WrapperResult` (with a `NextResponse` parameter) | [Request wrapper][wrapper] | Around everything below | Yes, by not calling `next()` |
+| `MiddlewareResult` | [Middleware][middleware] | Before guards | Yes: `MiddlewareResult.stop()` (400) |
+| `GuardResult` | [Guard][guards] | After middleware | Yes: `GuardResult.block()` (403) |
+| `InterceptorPreResult` | [Interceptor (pre)][interceptors] | After guards, before the endpoint | Only by throwing |
+| `InterceptorPostResult` | [Interceptor (post)][interceptors] | After the endpoint | Only by throwing |
+| `ExceptionCatcherResult<T>` | [Exception catcher][catchers] | When an exception of type `T` is thrown | Produces the error response |
+
+Two more pieces plug into the lifecycle but are not `LifecycleComponent` methods:
+
+- [Observers][observer] watch every request and cannot change it. App level only.
+- [Response handlers][response-handler] replace how the final response is written to the socket.
+
+### Built-in Kits
+
+| Kit | What it does |
+| --- | --- |
+| `@RequestId()` | Sets `X-Request-Id` on the response to the request's [trace id][tracing]: the incoming `X-Request-Id` if the caller sent one, otherwise a generated id. Pass a name to use another header: `@RequestId('X-Correlation-Id')`. |
+| [`@Throttle(...)`][throttle] | Rate-limits callers with `429 Too Many Requests`. |
+| [`@AllowOrigins(...)`][allow-origins] | CORS allowed origins. This is an access-control annotation, not a lifecycle component. |
 
 ## Lifecycle Order
 
-1. Request
-1. [Request Wrapper][wrapper] (pre)
-1. Observer (pre)
-1. Middleware
-1. Guard
-1. Interceptor (Pre)
-1. Pipes
-1. Endpoint
-1. Interceptor (Post)
-1. [Request Wrapper][wrapper] (post)
-1. Observer (post)
-1. Response
+For a request that matches a route, Revali runs these steps in order:
+
+1. **Access control**: [`@AllowOrigins`][allow-origins], [`@ExpectHeaders`][expect-headers], and [`@PreventHeaders`][prevent-headers] are checked. A failure returns `403`.
+2. **OPTIONS requests** return here with `200` and the CORS headers. No components run.
+3. **Redirects** declared on the endpoint return here.
+4. **Request wrappers**: setup, outermost first.
+5. **Observers** are notified. They are not awaited.
+6. **Middleware**
+7. **Guards**
+8. **Interceptors (pre)**
+9. **Pipes and binding**, then **the endpoint**. An automatic `HEAD` request skips the endpoint.
+10. **Interceptors (post)**, in reverse order
+11. **Request wrappers**: teardown, innermost first.
+12. The **response handler** writes the response.
+
+```mermaid
+graph LR;
+    A[Access control] --> B[Wrapper setup]
+    B --> C[Middleware]
+    C --> D[Guards]
+    D --> E[Interceptors pre]
+    E --> F[Endpoint]
+    F --> G[Interceptors post]
+    G --> H[Wrapper teardown]
+    H --> I[Response]
+```
+
+- A middleware `stop` or a guard `block` ends the request immediately. Later steps, including the post interceptors, do not run.
+- An exception thrown anywhere from step 4 to step 11 goes to the [exception catchers][catchers]. The post interceptors do not run for that request.
+- Only `Exception` subtypes reach catchers. An `Error` (such as a `TypeError`) always becomes a `500`.
+- [WebSocket][websockets] routes skip request wrappers and interceptors.
 
 ## Scoping
 
-Lifecycle components can be applied at different levels of the application: app, controller, and endpoint. By applying Lifecycle Components at different levels, you can control when the Lifecycle Component gets executed.
+You can apply a component to the app, a controller, or a single endpoint.
 
-### App Level
-
-To apply a Lifecycle Component to the entire application, you can annotate the app with the Lifecycle Component.
+| Where you annotate | Applies to |
+| --- | --- |
+| The `@App()` class | Every request the app handles |
+| A `@Controller()` class | Every endpoint in that controller |
+| An endpoint method | Only that endpoint |
 
 <CodeFile name="routes/apps/my_app.dart">
 
 ```dart
 import 'package:revali_router/revali_router.dart';
 
-// highlight-next-line
-@MyLifecycleComponent()
+@RequestId()
 @App()
 final class MyApp extends AppConfig {
-    ...
+  const MyApp() : super(host: 'localhost', port: 8080);
 }
 ```
 
 </CodeFile>
 
-<Callout type="info">
-
-The `MyLifecycleComponent` will be applied to all requests received by the server.
-
-</Callout>
-
-### Controller Level
-
-To apply a Lifecycle Component to a specific controller, you can annotate the controller with the Lifecycle Component.
-
-<CodeFile name="routes/controllers/my_controller.dart">
+<CodeFile name="routes/controllers/users_controller.dart">
 
 ```dart
 import 'package:revali_router/revali_router.dart';
 
-// highlight-next-line
-@MyLifecycleComponent()
-@Controller('')
-class MyController {
-    ...
+@ApiKey()
+@Controller('users')
+class UsersController {
+  const UsersController();
+
+  @Throttle(max: 10)
+  @Get(':id')
+  String get(@Param() String id) => id;
 }
 ```
 
 </CodeFile>
 
-<Callout type="info">
+All three apply to `GET /api/users/1`. The [lifecycle order](#lifecycle-order) comes first, and scope only orders components within the same role. `ApiKey` and `Throttle` are both guards, so they run in that order. `RequestId` is a pre-interceptor, so it runs after both guards even though it is declared on the app. The position of lifecycle annotations relative to `@Get`, `@Controller`, or `@App` does not matter.
 
-The `MyLifecycleComponent` will only be applied to requests received by the `MyController` controller.
+### Order of Execution
 
-</Callout>
-
-### Endpoint Level
-
-To apply a Lifecycle Component to a specific endpoint, you can annotate the endpoint with the Lifecycle Component.
-
-<CodeFile name="routes/controllers/my_controller.dart">
+Components are collected from the outside in: **app, then controller, then endpoint**. Within one declaration they run in the order the annotations are written. Each role keeps this order, and only the unwinding steps reverse it.
 
 ```dart
-import 'package:revali_router/revali_router.dart';
+@A()
+@App()
+final class MyApp extends AppConfig { /* ... */ }
 
-@Controller('')
+@B()
+@Controller('things')
 class MyController {
-    ...
-
-    @Get()
-    // highlight-next-line
-    @MyLifecycleComponent()
-    String hello() {
-        return 'world';
-    }
+  @C()
+  @D()
+  @Get()
+  String hello() => 'world';
 }
 ```
 
-</CodeFile>
-
-<Callout type="info">
-
-The `MyLifecycleComponent` will only be applied to requests received by the `hello` endpoint.
-
-</Callout>
+| Role | Order for `GET /api/things` |
+| --- | --- |
+| Wrappers (setup), middleware, guards, interceptors (pre) | `A`, `B`, `C`, `D` |
+| Interceptors (post), wrappers (teardown) | `D`, `C`, `B`, `A` |
+| Exception catchers | `C`, `D`, `B`, `A`: endpoint first, then controller, then app. The first catcher that handles the exception wins, and a `DefaultExceptionCatcher` is always tried last. |
 
 <Callout type="note">
 
-The order of the annotations between Lifecycle Components and non-Lifecycle Components does not matter.
+If one declaration mixes classic components (`@MyGuard()` on a class that `implements Guard`) with `LifecycleComponent`s, the classic ones run first. Use one style per feature and this never comes up.
 
 </Callout>
 
-## Order of Execution
+## Registering Components
 
-The order of execution of Lifecycle Components is important. When a request is received by the server, the middleware is executed in the order that they are applied. The controller is then executed, followed by the endpoint. The response is then passed back to the middleware in reverse order. Understanding the order of execution of Lifecycle Components is important when designing your application.
+There are two ways to apply a component.
 
-If we have multiple Lifecycle Components applied to an endpoint, the order of execution is from top to bottom.
+**As an instance**: `@ApiKey()`. The arguments you pass are compile-time constants, which is what Dart requires of every annotation. Literals, `const` constructors, and `const` variables all work, but `@Audit(Logger())` does not unless `Logger` has a `const` constructor.
 
-<CodeFile name="routes/apps/my_app.dart">
+**As a type**: `@LifecycleComponents([ApiKey, Audit])`. Revali creates the component for each request and resolves every constructor parameter from [dependency injection][di]. Use this when the constructor needs a service that can't be constant:
 
 ```dart
-@LifecycleComponent0()
-@App()
-final class MyApp extends AppConfig {
-    ...
+class Audit implements LifecycleComponent {
+  const Audit(this.log); // AuditLog is resolved from DI
+
+  final AuditLog log;
+
+  InterceptorPostResult record(Request request) {
+    log.write('${request.method} ${request.uri}');
+  }
+}
+
+@LifecycleComponents([Audit])
+@Get()
+String hello() => 'world';
+```
+
+To pass constant configuration **and** a runtime dependency in one annotation, pass an [`Inject` marker][inject] in place of the dependency. For example, `@Audit(InjectAuditLog())`, where `InjectAuditLog extends Inject implements AuditLog`, and Revali resolves the real `AuditLog` from DI.
+
+### Classic Components
+
+Classes that implement the classic interfaces (`Middleware`, `Guard`, `Interceptor`, `RequestWrapper`, `ExceptionCatcher`, `Observer`) are applied the same way: as an instance (`@MyGuard()`), or by type with the annotation for their role.
+
+| Role | Type annotation |
+| --- | --- |
+| `Middleware` | `@Middlewares([MyMiddleware])` |
+| `Guard` | `@Guards([MyGuard])` |
+| `Interceptor` | `@Intercepts([MyInterceptor])` |
+| `RequestWrapper` | `@Wrappers([MyWrapper])` |
+| `ExceptionCatcher` | `@Catches([MyCatcher])` |
+| `Observer` (app only) | `@Observers([MyObserver])` |
+| `CombineComponents` | `@Combines([MyGroup])` |
+
+`CombineComponents` bundles several classic components under one annotation. A `LifecycleComponent` already groups its roles in one class, so you only need this for classic components:
+
+<CodeFile name="lib/components/auth_components.dart">
+
+```dart
+import 'package:revali_router/revali_router.dart';
+
+class AuthComponents implements CombineComponents {
+  const AuthComponents();
+
+  @override
+  List<Middleware> get middlewares => const [AuthMiddleware()];
+
+  @override
+  List<Guard> get guards => const [AuthGuard()];
+
+  @override
+  List<Interceptor> get interceptors => const [];
+
+  @override
+  List<RequestWrapper> get requestWrappers => const [];
+
+  @override
+  List<ExceptionCatcher> get catchers => const [AuthExceptionCatcher()];
 }
 ```
 
 </CodeFile>
 
-<CodeFile name="routes/controllers/my_controller.dart">
-
-```dart
-@LifecycleComponentA()
-@Controller('')
-class MyController {
-
-    @Get()
-    @LifecycleComponentB()
-    @LifecycleComponentC()
-    String hello() {
-        return 'world';
-    }
-}
-```
-
-</CodeFile>
-
-In the example above, the order of Lifecycle Component execution is as follows:
-
-1. `LifecycleComponent0`
-2. `LifecycleComponentA`
-3. `LifecycleComponentB`
-4. `LifecycleComponentC`
-5. -- endpoint --
-6. `LifecycleComponentC`
-7. `LifecycleComponentB`
-8. `LifecycleComponentA`
-9. `LifecycleComponent0`
+Apply it with `@AuthComponents()`, or with `@Combines([AuthComponents])` when its constructor needs dependencies.
 
 ## Error Responses
 
-Some Lifecycle Components are responsible for returning error responses. Such components include `ExceptionCatcher`, `Guard`, and `Middleware`.
+Middleware (`stop`), guards (`block`), and exception catchers (`handled`) all accept the same three optional arguments:
 
-Typically, a Lifecycle Component that can return an error response can accept a `statusCode`, `headers`, and `body`. The status code and body values passed to the method will override any values previously set by the request flow, while the headers will be merged with the headers set by the request flow.
+| Argument | Effect |
+| --- | --- |
+| `statusCode` | Replaces the status code. Falls back to the role's default when omitted. |
+| `headers` | Merged into the headers already set on the response. |
+| `body` | Replaces the body. When omitted, the body already on the response is kept. |
 
-### Debug Mode
+| Result | Default status |
+| --- | --- |
+| `MiddlewareResult.stop()` | `400` |
+| `GuardResult.block()` | `403` |
+| `ExceptionCatcherResult.handled()` | `500`, or `400` for a `MissingArgumentException` |
+| An exception no catcher handles | `500 Internal Server Error`, `400 Bad Request` for a `MissingArgumentException`, or the status and envelope of an [`HttpError`][http-error] |
 
-When an error response is returned in [debug mode][debug-mode], a stack trace will be included in the error response.
+To change the framework's default bodies (`Internal Server Error`, `Not Found`, and so on), see [Default Responses][default-responses].
 
-Depending on the response content type, the stack trace will be formatted differently.
+### Debug and Release Mode
 
-<Callout type="tip">
+In [debug mode][run-modes] (the default for `revali dev`), error responses include a `__DEBUG__` section with the error and stack trace. How it is added depends on the body:
 
-Learn more about [run modes][run-modes].
+| Body | Debug output |
+| --- | --- |
+| String | `__DEBUG__:`, `Error:`, and `Stack Trace:` lines appended to the text |
+| Map | A `"__DEBUG__": {"error": ..., "stackTrace": [...]}` key added to the object |
+| List | A `{"__DEBUG__": {...}}` element appended to the list |
 
-</Callout>
+For example, a guard that blocks with `body: 'I am a custom rejection message'` responds in debug mode with:
 
-#### String Debug Message
-
-```dart
-body: 'An error occurred',
-```
-
-```plaintext
-An error occurred
+```text
+I am a custom rejection message
 
 __DEBUG__:
-Error: Instance of 'MyException'
+Error: GuardStopException: RejectGuard
 
 Stack Trace:
-routes/hello_controller.dart 13:5                            HelloController.hello
-.revali/server/routes/__hello.dart 15:16                     hello.<fn>
-package:revali_router/src/router/execute.dart 56:22          Execute.run.<fn>
-dart:async                                                   runZonedGuarded
-package:revali_router/src/router/execute.dart 54:11          Execute.run
-package:revali_router/src/router/router.dart 221:12          Router._handle
-package:revali_router/src/router/router.dart 190:22          Router.handle
-package:revali_router/src/server/handle_requests.dart 23:20  handleRequests
+package:revali_router/src/router/run_guards.dart ...
 ```
 
-#### Map Debug Message
+In release and profile builds (`revali build`), no debug details are added:
 
-```dart
-body: {
-  'message': 'An error occurred',
-},
-```
+- A response that you wrote (you passed a `statusCode`, `headers`, or `body`) is sent exactly as written, even if it is a `5xx`.
+- Any other `5xx` is replaced by the default `500 Internal Server Error` response, so internal details don't leak.
 
-```json
-{
-  "message": "An error occurred",
-  "__DEBUG__": {
-    "error": "Instance of 'MyException'",
-    "stackTrace": [
-      "routes/hello_controller.dart 13:5                            HelloController.hello",
-      ".revali/server/routes/__hello.dart 15:16                     hello.<fn>",
-      "package:revali_router/src/router/execute.dart 56:22          Execute.run.<fn>",
-      "dart:async                                                   runZonedGuarded",
-      "package:revali_router/src/router/execute.dart 54:11          Execute.run",
-      "package:revali_router/src/router/router.dart 221:12          Router._handle",
-      "package:revali_router/src/router/router.dart 190:22          Router.handle",
-      "package:revali_router/src/server/handle_requests.dart 23:20  handleRequests"
-    ]
-  }
-}
-```
-
-#### List Debug Message
-
-```dart
-body: [
-  'An error occurred',
-],
-```
-
-```json
-[
-  "An error occurred",
-  {
-    "__DEBUG__": {
-      "error": "Instance of 'MyException'",
-      "stackTrace": [
-        "routes/hello_controller.dart 13:5                            HelloController.hello",
-        ".revali/server/routes/__hello.dart 15:16                     hello.<fn>",
-        "package:revali_router/src/router/execute.dart 56:22          Execute.run.<fn>",
-        "dart:async                                                   runZonedGuarded",
-        "package:revali_router/src/router/execute.dart 54:11          Execute.run",
-        "package:revali_router/src/router/router.dart 159:22          Router.handle",
-        "package:revali_router/src/server/handle_requests.dart 23:20  handleRequests"
-      ]
-    }
-  }
-]
-```
-
-### Profile Mode
-
-When an error response is return in profile mode, the error response will not include any debug messages;
-
-<Callout type="note">
-
-Profile mode is only available for the [`build`][build-command] command.
-
-</Callout>
-
-### Release Mode
-
-When an error response is returned in release mode, the error response will not include any debug messages.
-
-[catchers]: /constructs/revali_server/lifecycle-components/advanced/exception-catchers
+[components]: /constructs/revali_server/lifecycle-components/components
 [wrapper]: /constructs/revali_server/lifecycle-components/advanced/wrapper
-[debug-mode]: /revali/cli/dev#debug-mode-default
+[middleware]: /constructs/revali_server/lifecycle-components/advanced/middleware
+[guards]: /constructs/revali_server/lifecycle-components/advanced/guards
+[interceptors]: /constructs/revali_server/lifecycle-components/advanced/interceptors
+[catchers]: /constructs/revali_server/lifecycle-components/advanced/exception-catchers
+[response-handler]: /constructs/revali_server/lifecycle-components/advanced/response-handler
+[observer]: /constructs/revali_server/lifecycle-components/observer
+[throttle]: /constructs/revali_server/lifecycle-components/kits/throttle
+[allow-origins]: /constructs/revali_server/access-control/allow-origins
+[expect-headers]: /constructs/revali_server/access-control/expect-headers
+[prevent-headers]: /constructs/revali_server/access-control/prevent-headers
+[websockets]: /constructs/revali_server/response/websockets
+[tracing]: /revali/app-configuration/tracing
+[di]: /revali/app-configuration/configure-dependencies
+[inject]: /revali/app-configuration/configure-dependencies#the-inject-marker-class
+[http-error]: /revali/app-configuration/default-responses#httperror
+[default-responses]: /revali/app-configuration/default-responses
 [run-modes]: /revali/cli/dev#run-modes
-[build-command]: /revali/cli/build

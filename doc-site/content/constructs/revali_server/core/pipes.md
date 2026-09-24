@@ -1,29 +1,13 @@
 ---
 title: Pipes
-description: Transform and validate data from requests
+description: Transform or validate a bound value before it reaches the endpoint
 ---
 
-Pipes are data transformation and validation components that process values from [bindings](/constructs/revali_server/core/binding) before they reach your endpoint methods. They're perfect for converting strings to objects, validating data, or performing complex transformations.
+A pipe is a class that receives a bound value (path parameter, query value, header, body, ...) and returns a new value for the endpoint parameter. Use one to turn an ID into a loaded object, parse a type Revali does not convert for you, or reject invalid input.
 
-<Callout type="tip">
+You do not need a pipe for plain JSON-to-class conversion: [binding](/constructs/revali_server/core/binding#conversion-and-missing-values) already calls your class's `fromJson`.
 
-**Most of the time, you don't need pipes!** Revali automatically detects `fromJson` constructors in your Dart classes. If your class has a `fromJson` factory constructor, Revali will use it automatically for JSON conversion. Only use pipes when you need complex validation, database lookups, or custom transformation logic.
-
-</Callout>
-
-## What Are Pipes?
-
-Think of pipes as **data processors** that:
-
-- **Convert types** - `String "123"` → `int 123`
-- **Validate data** - Check if email is valid format
-- **Transform objects** - Parse JSON to custom classes
-- **Handle errors** - Provide meaningful error messages
-- **Perform async operations** - Database lookups, API calls
-
-## Creating Pipes
-
-### Basic Pipe Structure
+## Minimal example
 
 <CodeFile name="lib/pipes/user_pipe.dart">
 
@@ -31,16 +15,18 @@ Think of pipes as **data processors** that:
 import 'package:revali_router/revali_router.dart';
 
 class UserPipe implements Pipe<String, User> {
-  const UserPipe({required this.userService});
+  const UserPipe(this._users);
 
-  final UserService userService;
+  final UserService _users;
 
   @override
-  Future<User> transform(String value, Context context) async {
-    // Convert string ID to User object
-    final user = await userService.getUserById(value);
+  Future<User> transform(String value, PipeContext context) async {
+    final user = await _users.find(value);
     if (user == null) {
-      throw NotFoundException('User not found: $value');
+      throw const HttpError.notFound(
+        code: 'user_not_found',
+        message: 'No user with that id',
+      );
     }
     return user;
   }
@@ -49,185 +35,76 @@ class UserPipe implements Pipe<String, User> {
 
 </CodeFile>
 
-### Type Parameters
-
-- **First type** (`String`) - What the pipe receives from binding
-- **Second type** (`User`) - What the pipe returns to your endpoint
-
-<Callout type="tip">
-
-Use the CLI to generate pipes quickly:
-
-```bash
-dart run revali create pipe
-```
-
-</Callout>
-
-### Type Conversion Pipe
-
-<CodeFile name="lib/pipes/int_pipe.dart">
+<CodeFile name="routes/controllers/users_controller.dart">
 
 ```dart
 import 'package:revali_router/revali_router.dart';
 
-class IntPipe implements Pipe<String, int> {
-  const IntPipe();
+import 'package:my_app/pipes/user_pipe.dart';
 
-  @override
-  Future<int> transform(String value, Context context) async {
-    final intValue = int.tryParse(value);
-    if (intValue == null) {
-      throw ValidationException('Invalid integer: $value');
-    }
-    return intValue;
-  }
+@Controller('users')
+class UsersController {
+  const UsersController();
+
+  @Get(':id')
+  String get(@Param.pipe(UserPipe) User user) => user.name;
 }
 ```
 
 </CodeFile>
 
-## Using Pipes
+```bash
+curl http://localhost:8080/api/users/42
+# {"data":"Ada"}
 
-### With Path Parameters
+curl http://localhost:8080/api/users/999
+# 404 {"error":{"code":"user_not_found","message":"No user with that id"}}
+```
+
+`HttpError` is described in [Error responses](/revali/app-configuration/default-responses#httperror). Scaffold a pipe with `dart run revali create pipe`.
+
+## Defining a pipe
 
 ```dart
-@Controller('users')
-class UsersController {
-  @Get(':id')
-  Future<User> getUser(@Param.pipe(UserPipe) User user) async {
-    return user; // Already a User object
-  }
+abstract interface class Pipe<T, R> {
+  Future<R> transform(T value, PipeContext context);
 }
 ```
 
-<Callout type="info">
+| Part | Meaning |
+| ---- | ------- |
+| `T` | The type of the raw bound value the pipe accepts. Make it nullable (`String?`) to receive missing values instead of failing. |
+| `R` | The type returned to the endpoint. Must match the parameter type. |
+| Constructor | Parameters are resolved from [dependency injection](/revali/app-configuration/configure-dependencies). |
 
-Path parameters are defined using `:parameterName` syntax in route paths. Learn more about [creating path parameters](/constructs/revali_server/core/methods#path-parameters) and [extracting them with @Param()](/constructs/revali_server/core/binding#param---path-parameters).
+`PipeContext` gives access to the request [context](/constructs/revali_server/context) (`request`, `response`, `data`, `meta`, `route`, `reflect`) plus:
+
+| Property | Value for `@Query('id', IdPipe) String id` |
+| -------- | ------------------------------------------ |
+| `type` | `AnnotationType.query` |
+| `annotationArgument` | `'id'` |
+| `nameOfParameter` | `'id'` |
+
+## Applying a pipe
+
+| Source | Pipe only | Name / key path and pipe |
+| ------ | --------- | ------------------------ |
+| Path | `@Param.pipe(P)` | `@Param('id', P)` |
+| Query | `@Query.pipe(P)` | `@Query('id', P)` |
+| Query, all values | `@Query.allPipe(P)` | `@Query.all('id', P)` |
+| Header | `@Header.pipe(P)` | `@Header('X-Id', P)` |
+| Header, all values | `@Header.allPipe(P)` | `@Header.all('X-Id', P)` |
+| Cookie | `@Cookie.pipe(P)` | `@Cookie('id', P)` |
+| Body | `@Body.pipe(P)` | `@Body(['user', 'id'], P)` |
+| Client IP | `@Ip.pipe(P)` | |
+
+- When the parameter is a `List`, the pipe runs once per element and receives single values.
+- If the parameter has a default value, the default is used when the raw value is `null` or the pipe throws.
+
+<Callout type="caution">
+
+Query values are type-coerced before the pipe sees them: `?id=42` arrives as the `int` `42`, not `"42"`. A `Pipe<String, T>` on a query value then fails with an `ArgumentError`. For query values that may look numeric or boolean, declare the input as `Object` (or `Object?`) and convert inside the pipe. Path, header and cookie values are always `String`.
 
 </Callout>
 
-### With Query Parameters
-
-```dart
-@Controller('users')
-class UsersController {
-  @Get()
-  Future<List<User>> searchUsers(
-    @Query.pipe(EmailPipe) String email,
-  ) async {
-    return await userService.findByEmail(email);
-  }
-}
-```
-
-### With Request Body
-
-```dart
-@Controller('users')
-class UsersController {
-  @Post()
-  Future<User> createUser(@Body.pipe(CreateUserPipe) User user) async {
-    return await userService.create(user);
-  }
-}
-```
-
-### Multiple Pipes
-
-```dart
-@Controller('users')
-class UsersController {
-  @Get(':id')
-  Future<User> getUser(
-    @Param.pipe(IntPipe) int id,
-    @Query.pipe(EmailPipe) String email,
-  ) async {
-    return await userService.getUser(id, email);
-  }
-}
-```
-
-## Context
-
-The `Context` provides access to request information and utilities:
-
-```dart
-class CustomPipe implements Pipe<String, String> {
-  const CustomPipe();
-
-  @override
-  Future<String> transform(String value, Context context) async {
-    // Access request data
-    final headers = context.request.headers;
-    final queryParams = context.request.queryParameters;
-
-    // Log transformation
-    context.logger.info('Transforming value: $value');
-
-    // Access data handler
-    final currentUser = context.data.get<User>('currentUser');
-
-    return value.toUpperCase();
-  }
-}
-```
-
-<Callout type="tip">
-
-Learn more about [Context](/constructs/revali_server/context) for advanced usage.
-
-</Callout>
-
-## When to Use Pipes vs `fromJson`
-
-### Use Pipes When
-
-- Complex validation logic
-- Database lookups
-- Async operations
-- Custom error handling
-- Multiple transformation steps
-
-### Use `fromJson` When
-
-- Simple JSON parsing
-- Synchronous operations
-- Standard type conversion
-
-```dart
-// Use fromJson for simple cases
-class User {
-  final String name;
-  final int age;
-
-  User({required this.name, required this.age});
-
-  factory User.fromJson(Map<String, dynamic> json) {
-    return User(
-      name: json['name'] as String,
-      age: json['age'] as int,
-    );
-  }
-}
-
-// Use pipes for complex cases
-class UserPipe implements Pipe<String, User> {
-  const UserPipe();
-
-  @override
-  Future<User> transform(String value, Context context) async {
-    // Complex validation, database lookup, etc.
-    return await _fetchAndValidateUser(value);
-  }
-}
-```
-
-## What's Next?
-
-Now that you understand pipes, explore these related topics:
-
-1. **[Binding](/constructs/revali_server/core/binding)** - Extract data from requests
-2. **[Implied Binding](/constructs/revali_server/core/implied_binding)** - Types that don't need annotations
-3. **[HTTP Methods](/constructs/revali_server/core/methods)** - Define endpoint behavior
-4. **[Controllers](/constructs/revali_server/core/controllers)** - Organize your endpoints
+Next: [Binding](/constructs/revali_server/core/binding) · [Request](/constructs/revali_server/request)

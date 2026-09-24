@@ -1,46 +1,28 @@
 ---
 title: Reflect
-description: Access metadata on types and their properties using reflection
+description: Read metadata annotations on the fields of your return types at runtime, for example to strip private fields from responses.
 ---
 
-> Access via: `context.reflect`
+`Reflect` gives you the [metadata][meta] annotations on the **fields** of your own classes at runtime. Use it to build generic components that act on field annotations, such as removing fields marked private from every response.
 
-The `Reflect` object provides runtime reflection capabilities to analyze metadata on types and their properties. This is useful for building generic components that need to inspect and process data based on metadata annotations.
+Revali records a class for reflection when it is an endpoint's return type (or the output of a pipe) **and** at least one of its fields has an annotation that implements `MetaData`. Other classes return `null`.
 
-## Basic Operations
+## Example
 
-### Getting a Reflector
+Mark a field, then remove marked fields in a post interceptor:
 
-Get a `Reflector` for a specific type to analyze its properties:
-
-```dart
-// Get reflector for a specific type
-Reflector? reflector = context.reflect.get<User>();
-```
-
-### Analyzing Property Metadata
-
-Use the reflector to access metadata on specific properties:
+<CodeFile name="lib/domain/user.dart">
 
 ```dart
-// Get metadata for a specific property
-Meta? propertyMeta = reflector?.get('password');
-
-// Get all property metadata
-Map<String, Meta> allMeta = reflector?.meta ?? {};
-```
-
-## Real-World Example: Data Sanitization
-
-Here's how reflection is used to build a generic data sanitizer that removes private fields:
-
-```dart
-class Access implements MetaData {
-  const Access(this.type);
-  final AccessType type;
-}
+import 'package:revali_router/revali_router.dart';
 
 enum AccessType { public, private }
+
+class Access implements MetaData {
+  const Access(this.type);
+
+  final AccessType type;
+}
 
 class User {
   const User({required this.name, required this.password});
@@ -49,23 +31,30 @@ class User {
 
   @Access(AccessType.private)
   final String password;
-}
 
-// Generic sanitizer using reflection
-class DataSanitizer implements LifecycleComponent {
+  Map<String, dynamic> toJson() => {'name': name, 'password': password};
+}
+```
+
+</CodeFile>
+
+<CodeFile name="lib/components/user_sanitizer.dart">
+
+```dart
+import 'package:revali_router/revali_router.dart';
+
+class UserSanitizer implements LifecycleComponent {
+  const UserSanitizer();
+
   InterceptorPostResult sanitize(Response response, Reflect reflect) {
     final reflector = reflect.get<User>();
-    final body = response.body.data;
 
-    if (body case {'data': final Map<String, dynamic> data}) {
+    if (response.body.data case {'data': final Map<String, dynamic> data}) {
       final json = {...data};
 
-      // Iterate through each property in the response
       for (final key in data.keys) {
-        final meta = reflector?.get(key);
-        final access = meta?.get<Access>();
+        final access = reflector?.get(key).get<Access>();
 
-        // Remove private fields
         if (access?.any((e) => e.type == AccessType.private) ?? false) {
           json.remove(key);
         }
@@ -77,18 +66,32 @@ class DataSanitizer implements LifecycleComponent {
 }
 ```
 
-## Common Use Cases
+</CodeFile>
 
-### 1. Data Sanitization
+<CodeFile name="routes/controllers/users_controller.dart">
 
-Remove sensitive fields from API responses based on metadata annotations.
+```dart
+@Controller('users')
+class UsersController {
+  const UsersController();
 
-### 2. Validation
+  @UserSanitizer()
+  @Get('me')
+  User me() => const User(name: 'Ganondorf', password: 'i-hate-hyrule');
+}
+```
 
-Apply validation rules based on property metadata.
+</CodeFile>
 
-## What's Next?
+`GET /api/users/me` returns `{"data":{"name":"Ganondorf"}}`. The `password` field is removed.
 
-- Learn about [metadata](/constructs/revali_server/context/meta) for creating custom annotations
-- Explore [data sharing](/constructs/revali_server/context/data-sharing) for runtime data storage
-- See [lifecycle components](/constructs/revali_server/lifecycle-components/components) for using reflection in guards and interceptors
+## API
+
+| Member | Returns | Behavior |
+| --- | --- | --- |
+| `reflect.get<T>()` | `Reflector?` | The reflector for class `T`, or `null` if `T` was not recorded |
+| `reflector.get('field')` | `Meta` | The annotations on that field. Empty if it has none. |
+| `reflector.meta` | `Map<String, Meta>` | Every annotated field, by name |
+| `meta.get<A>()` | `List<A>?` | The `A` annotations on the field |
+
+[meta]: /constructs/revali_server/context/meta

@@ -1,193 +1,128 @@
 ---
 title: Annotations
-description: Optional annotations for enriching the generated OpenAPI spec
+description: Optional annotations from revali_swagger_annotations that add summaries, tags, responses and schema overrides to the generated spec
 ---
 
-All annotations are provided by the `revali_swagger_annotations` package. They are optional — the construct produces a valid spec without any of them.
+These annotations come from `revali_swagger_annotations` (add it to `dependencies`) and only affect the generated spec, never request handling. None are required.
 
-## Summary
+```dart
+import 'package:revali_swagger_annotations/revali_swagger_annotations.dart';
+```
 
-| Annotation                 | Target               | Purpose                                  |
-| -------------------------- | -------------------- | ---------------------------------------- |
-| `@ApiInfo`                 | App class            | Override title, version, and description |
-| `@ApiTag`                  | Controller or method | Group endpoints in the spec              |
-| `@ApiSummary`              | Method               | Short one-line summary                   |
-| `@ApiDescription`          | Method               | Multi-line description                   |
-| `@ApiResponse`             | Method               | Document additional response codes       |
-| `@ApiHidden` / `apiHidden` | Controller or method | Exclude from the spec entirely           |
-| `@ApiType`                 | Parameter or field   | Override the inferred JSON Schema type   |
-
----
+| Annotation | Put it on | Effect |
+| --- | --- | --- |
+| `@ApiInfo(title:, version:, description:)` | App class | Sets the `info` block, overriding `revali.yaml` |
+| `@ApiTag(name)` | Controller or method | Sets the operation's tag(s) |
+| `@ApiSummary(text)` | Method | Sets `summary` |
+| `@ApiDescription(text)` | Method | Sets `description` (Markdown) |
+| `@ApiResponse(code, description:)` | Method, repeatable | Replaces the generated responses |
+| `@ApiHidden()` / `@apiHidden` | Controller or method | Leaves it out of the spec |
+| `@ApiType(type, format:)` | Handler parameter or model field | Replaces the inferred schema |
 
 ## @ApiInfo
 
-Overrides the top-level `info` block in the generated spec. Place it on your Revali app class.
+Place it on the `@App` class. Values here win over the `revali.yaml` options. With [flavors](/revali/app-configuration/create-an-app#flavors), the app matching the current flavor is used.
+
+<CodeFile name="routes/apps/main_app.dart">
 
 ```dart
+import 'package:revali_router/revali_router.dart';
 import 'package:revali_swagger_annotations/revali_swagger_annotations.dart';
 
 @ApiInfo(
   title: 'Payments API',
   version: '3.0.0',
-  description: 'Handles all payment processing operations.',
+  description: 'Handles payment processing.',
 )
-@App(host: 'localhost', port: 8080)
-void main() async { ... }
-```
-
-The same values can also be set in `revali.yaml`. See [Configuration](./getting-started/configuration) for details.
-
----
-
-## @ApiTag
-
-By default, each controller contributes its class name (snake-cased) as the tag for all its routes. Use `@ApiTag` to set an explicit tag on a controller or a specific method.
-
-```dart
-@ApiTag('payments')
-@Controller('payments')
-class PaymentsController {
-  @Get('')
-  Future<List<Payment>> list() async { ... }
-
-  @ApiTag('admin')
-  @Post('refund')
-  Future<void> refund(@Body() RefundRequest req) async { ... }
+@App()
+final class MainApp extends AppConfig {
+  const MainApp() : super(host: 'localhost', port: 8080);
 }
 ```
 
-In the generated spec, `list` appears under `payments` and `refund` appears under `admin`.
+</CodeFile>
 
----
+## @ApiTag
 
-## @ApiSummary
+By default every operation gets one tag: the controller class name without `Controller`, lowercased (`PaymentsController` becomes `payments`). `@ApiTag` on the controller changes it for all its methods. `@ApiTag` on a method replaces the controller's tag for that method, and can be repeated to give the method several tags.
 
-Adds a short one-line `summary` field to an operation. Shown as the endpoint title in most OpenAPI UIs.
+```dart
+@ApiTag('billing')
+@Controller('payments')
+class PaymentsController {
+  const PaymentsController();
+
+  @Get()
+  Future<List<Payment>> list() async => ...; // tag: billing
+
+  @ApiTag('admin')
+  @Post('refund')
+  Future<void> refund(@Body() RefundRequest req) async => ...; // tag: admin
+}
+```
+
+## @ApiSummary and @ApiDescription
 
 ```dart
 @Get(':id')
 @ApiSummary('Get a payment by ID')
-Future<Payment> getById(@Param() String id) async { ... }
-```
-
----
-
-## @ApiDescription
-
-Adds a `description` field to an operation. Supports Markdown.
-
-```dart
-@Post('refund')
 @ApiDescription('''
-Issues a full or partial refund for a completed payment.
+Returns the payment, including its refund history.
 
-The original payment must have a status of `completed` before
-a refund can be issued.
+Requires the `payments:read` scope.
 ''')
-Future<Refund> refund(@Body() RefundRequest req) async { ... }
+Future<Payment> getById(@Param() String id) async => ...;
 ```
-
----
 
 ## @ApiResponse
 
-Documents additional response codes beyond the default. Useful for error responses that are handled by middleware or exception handlers outside the method body.
+With no `@ApiResponse`, the spec has one response: the `@StatusCode` (or `200`) with the return type's schema. Once you add any `@ApiResponse`, **only** your annotations are emitted, each with a description and no schema. Include the success code if you still want it listed.
 
 ```dart
 @Get(':id')
+@ApiResponse(200, description: 'The payment')
 @ApiResponse(404, description: 'Payment not found')
-@ApiResponse(403, description: 'Insufficient permissions')
-Future<Payment> getById(@Param() String id) async { ... }
+@ApiResponse(403, description: 'Missing payments:read scope')
+Future<Payment> getById(@Param() String id) async => ...;
 ```
-
-<Callout type="note">
-
-When `@ApiResponse` annotations are present, they **replace** the auto-generated success response in the spec. Add an explicit `@ApiResponse` for the success code if you want it included.
-
-</Callout>
-
-```dart
-@Get(':id')
-@ApiResponse(200, description: 'The payment object')
-@ApiResponse(404, description: 'Payment not found')
-Future<Payment> getById(@Param() String id) async { ... }
-```
-
----
 
 ## @ApiHidden
 
-Excludes a controller or method from the generated spec. The endpoint still exists and handles requests — it just does not appear in the documentation.
+The endpoint still works. It is just left out of the spec. A controller whose methods are all hidden disappears entirely.
 
 ```dart
-// Entire controller is hidden.
 @ApiHidden()
 @Controller('internal')
 class InternalController { ... }
 
-// A single method is hidden.
 @Controller('users')
 class UsersController {
-  @Get('')
-  Future<List<User>> list() async { ... }
+  const UsersController();
 
-  @ApiHidden()
+  @apiHidden
   @Get('debug')
-  Future<Map<String, dynamic>> debug() async { ... }
+  Future<Map<String, dynamic>> debug() async => ...;
 }
 ```
 
-The constant `apiHidden` is provided as a convenience for use without parentheses:
-
-```dart
-@apiHidden
-@Get('debug')
-Future<Map<String, dynamic>> debug() async { ... }
-```
-
----
-
 ## @ApiType
 
-Overrides the JSON Schema inferred from a Dart type. Use this on method parameters or on fields of model classes when the inferred schema is incorrect or cannot be resolved.
+Overrides the schema of a handler parameter or of a field on a model class. The first argument is the JSON Schema `type`, and `format` is optional.
 
 ```dart
 @Get('events')
-Future<List<Event>> listEvents(
-  @Query()
-  @ApiType(type: 'integer', format: 'int64')
-  Duration maxAge,
-) async { ... }
+Future<List<Event>> list(
+  @Query() @ApiType('integer', format: 'int64') Duration maxAge,
+) async => ...;
+
+class Event {
+  const Event({required this.id, required this.timeout});
+
+  final String id;
+
+  @ApiType('integer', format: 'int64')
+  final Duration timeout; // milliseconds on the wire
+}
 ```
 
-### Common Use Cases
-
-**`Duration`** — not a standard JSON type; represent as milliseconds:
-
-```dart
-@ApiType(type: 'integer', format: 'int64')
-Duration timeout
-```
-
-**Custom serialized type** — a class serialized as a plain string:
-
-```dart
-@ApiType(type: 'string')
-EmailAddress email
-```
-
-**Opaque `Object` / `dynamic`** — acknowledge that any JSON value is accepted:
-
-```dart
-@ApiType(type: 'object')
-Object metadata
-```
-
-**External type you don't control** — specify the schema explicitly:
-
-```dart
-@ApiType(type: 'string', format: 'date')
-LocalDate date
-```
-
-See [Type Inference](./type-inference) for the full table of Dart types and their automatically inferred schemas.
+Use it for `Duration`, value types serialized as strings (`@ApiType('string') EmailAddress email`), and third-party types the generator cannot introspect. See [Type Inference](/constructs/revali_swagger/type-inference#when-apitype-is-needed).

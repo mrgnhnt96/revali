@@ -50,8 +50,13 @@ void main() {
 ```
 
 `createServer` is generated into `.revali/server/server.dart`, so the import is
-relative to your test file. Run `revali dev --generate-only` at least once
-before running tests, or the file won't exist yet.
+relative to your test file. Generate it before running tests, and again after
+changing routes:
+
+```bash
+dart run revali dev --generate-only            # add --flavor test for a test app
+dart test
+```
 
 <Callout type="important">
 
@@ -148,10 +153,6 @@ tearDown(() async {
 Prefer `TestServer` for everything else. It is faster, needs no port, and will
 not collide with another test running at the same time.
 
-## What's next?
-
-- [Middleware](/revali/tutorials/middleware) — the components your tests will exercise
-- [Error Handling](/revali/tutorials/error-handling) — assert on the responses your catchers produce
-- [`revali dev`](/revali/cli/dev) — regenerate `.revali/server/server.dart`
+Related: [Middleware and Guards](/revali/tutorials/middleware) · [Error Handling](/revali/tutorials/error-handling) · [Messaging](/revali/messaging#testing-with-inmemorybroker)
 
 [revali-test]: https://pub.dev/packages/revali_test

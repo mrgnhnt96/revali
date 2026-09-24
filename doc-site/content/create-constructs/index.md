@@ -1,126 +1,40 @@
 ---
 title: Overview
+description: Write your own Revali construct to generate files from a server's routes
 ---
 
-Revali's construct system is designed to be intuitive and flexible, allowing developers to create powerful extensions and plugins for their applications. Whether you need a client-generated package, a Swagger API generator, or a custom deployment tool, Revali provides the tools to build and manage these constructs with ease.
+A construct is a Dart package that Revali runs during `revali dev` or `revali build`. It receives an analyzed model of the server (controllers, methods, parameters, types, apps) and returns files, which Revali writes under `.revali/`. `revali_client`, `revali_swagger` and `revali_docker` are all constructs. Write one when you want to generate something from your routes that they do not cover: a client in another language, route documentation, deployment manifests.
 
-## What You Can Build
-
-Constructs enable you to extend Revali's capabilities in countless ways. (Server generation itself is built into Revali and isn't something you author — see [Construct Types](#construct-types) below.)
-
-### 📦 **Build Constructs**
-
-- Client SDK generation for multiple languages
-- API documentation generators (OpenAPI, Swagger)
-- Deployment configurations (Docker, Kubernetes)
-- Asset bundlers and optimizers
-- Database migration tools
-- Testing utilities and mock generators
-
-### 🔧 **Generic Constructs**
-
-- Code generators for specific patterns
-- Utility libraries with code generation
-- Framework integrations
-- Custom annotation processors
-
-## Construct Types
-
-Revali supports different types of constructs, each optimized for specific use cases. Server generation itself isn't a construct you author — Revali always contributes its own, generating code into `.revali/server/` — but the types below are the ones you can build:
-
-### Build Constructs
-
-Build constructs generate code, assets, or files needed for deployment and distribution. They run during the build process and prepare your application for production.
-
-**Characteristics:**
-
-- Generate code in `.revali/build/` directory
-- Run during build command execution
-- Prepare assets for deployment
-- **Limit**: Multiple allowed (enables complex build pipelines)
-
-### Generic Constructs
-
-Generic constructs are flexible packages that can generate any type of code or assets. They're automatically detected and can be used for various purposes.
-
-**Characteristics:**
-
-- Generate code in `.revali/<construct-name>/` directory
-- Flexible output structure
-- Can be used for any code generation purpose
-- **Limit**: Multiple allowed with automatic conflict resolution
-
-## Directory Structure
-
-When you create a construct, Revali automatically manages the generated output:
+## What a construct package contains
 
 ```tree
-.revali/
-├── server/              # Server construct output
-├── build/               # Build construct output
-├── my_custom_construct/ # Generic construct output
-└── another_construct/   # Another generic construct
+my_construct/
+├── construct.yaml          # registers the construct(s)
+├── pubspec.yaml            # depends on revali_construct
+└── lib/
+    └── my_construct.dart   # top-level entrypoint function
 ```
 
-### Conflict Resolution
+The server project adds the package to its `dev_dependencies`. Revali discovers it by its `construct.yaml`, compiles it into the construct runner, and calls it on every run.
 
-If multiple constructs have the same name, Revali automatically resolves conflicts by nesting them under their package names:
+## Two kinds
 
-```tree
-.revali/
-├── package_a/
-│   └── my_construct/
-└── package_b/
-    └── my_construct/
-```
+| | Generic construct | Build construct |
+| --- | --- | --- |
+| Extends | `Construct` | `BuildConstruct` |
+| `construct.yaml` | default | `is_build: true` |
+| Runs during | `revali dev` and `revali build` | `revali build` only |
+| Writes to | `.revali/<name>/` | `.revali/build/` (shared) |
+| Hooks | none | `preBuild`, `postBuild` |
+| Examples | `revali_client`, `revali_swagger` | `revali_docker` |
 
-This ensures no conflicts while maintaining clear organization.
+Server generation is part of `revali` itself and is not something you can replace with a construct.
 
-## Getting Started
+## Guides
 
-Ready to create your first construct? Follow these guides:
+- [Getting Started](/create-constructs/getting-started): build, register and run a generic construct end to end.
+- [Build Constructs](/create-constructs/core/build-construct): `is_build`, `BuildConstruct` and the build hooks.
+- [Construct Lifecycle](/create-constructs/core/construct-lifecycle): discovery, caching and when to pass `--recompile`.
+- [Debugging](/create-constructs/tips-and-tricks): step through your construct in a debugger.
 
-1. **[Create a Package](/create-constructs/getting-started/create-package)** - Set up your construct package
-2. **[Add as Dependency](/create-constructs/getting-started/add-as-dependency)** - Integrate with Revali
-3. **[Create Entrypoint](/create-constructs/getting-started/create-entrypoint)** - Define your construct's main logic
-4. **[Run New Construct](/create-constructs/getting-started/run-new-construct)** - Test your construct
-
-## Advanced Topics
-
-For more complex constructs, explore these advanced concepts:
-
-- **[Construct Lifecycle](/create-constructs/core/construct-lifecycle)** - Understand how constructs integrate with Revali
-- **[Build Constructs](/create-constructs/core/build-construct)** - Create deployment and build tools
-- **[Generic Constructs](/create-constructs/core/generic-construct)** - Build flexible code generators
-
-## Best Practices
-
-### Design Principles
-
-- **Single Responsibility**: Each construct should have a clear, focused purpose
-- **Composability**: Design constructs to work well with others
-- **Performance**: Optimize for fast code generation
-- **Maintainability**: Write clean, well-documented code
-
-### Naming Conventions
-
-- Use descriptive, clear names
-- Follow Dart package naming conventions
-
-### Documentation
-
-- Provide clear README files
-- Document all configuration options
-- Include usage examples
-- Maintain up-to-date API documentation
-<!--
-
-## Community Constructs
-
-The Revali community has created many useful constructs. Browse available constructs on [pub.dev](https://pub.dev/packages?q=dependency%3Arevali_construct) or contribute your own! -->
-
-<Callout type="tip">
-
-**Need Help?** Check out the [Tips and Tricks](/create-constructs/tips-and-tricks) guide for common patterns and solutions.
-
-</Callout>
+For the user-facing side (installing constructs and configuring them in `revali.yaml`), see [Constructs](/constructs).

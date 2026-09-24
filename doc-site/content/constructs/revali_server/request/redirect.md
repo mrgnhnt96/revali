@@ -1,105 +1,51 @@
 ---
 title: Redirect
-description: Redirecting the client to a different URL
+description: Redirect an endpoint to another URL with @Redirect
 ---
 
-The `redirect` function is used to redirect the client to a different URL.
+`@Redirect(location, [code])` on an endpoint makes Revali answer with a redirect instead of running the handler. Use it for moved or aliased routes.
+
+## Minimal example
+
+<CodeFile name="routes/controllers/users_controller.dart">
 
 ```dart
 import 'package:revali_router/revali_router.dart';
 
 @Controller('users')
-class MyController {
+class UsersController {
+  const UsersController();
 
-    @Redirect('/users/all')
-    @Get()
-    void users() {
-        ...
-    }
+  @Redirect('/api/users/all')
+  @Get()
+  void users() {}
 
-    @Get('all')
-    void allUsers() {
-        ...
-    }
+  @Get('all')
+  List<String> all() => ['alice', 'bob'];
 }
 ```
 
-In the example above, when a client sends a `GET` request to `/users`, the server redirects the client to `/users/123`. The client then sends a `GET` request to `/users/123`, which is handled by the `user` method.
+</CodeFile>
 
-## Status Code
-
-By default, the status code of the response is `301 Moved Permanently`. This tells the client that the URL has been permanently moved to a different location, the next time the client sends a request to the original URL, it will be redirected to the new URL.
-
-You can change the status code by passing the status code as an argument to the `Redirect` annotation.
-
-```dart
-@Redirect('/users/all', 302)
+```bash
+curl -i http://localhost:8080/api/users
+# HTTP/1.1 301 Moved Permanently
+# location: /api/users/all
 ```
 
-## Redirecting to a Different Domain
+## Behavior
 
-You can redirect the client to a different domain by passing the domain as an argument to the `Redirect` annotation.
+| Detail | Value |
+| ------ | ----- |
+| Status code | `301` by default. Pass a second argument for another code: `@Redirect('/api/users/all', 302)`. |
+| `Location` header | The first argument, sent **verbatim**. Revali does not add the app prefix or the controller path. |
+| Handler | Not called. Guards, middleware and interceptors do not run either; the redirect is answered right after CORS checks. |
+| Where | Endpoint methods only, at most one `@Redirect` per method. The method still needs an HTTP method annotation. |
 
-```dart
-@Redirect('https://example.com/users/all')
-```
+Because the location is sent as-is:
 
-## Redirecting to a Different Path
+- Use an absolute path that includes the app prefix: `/api/users/all`, not `all` or `/users/all`.
+- A relative value like `'all'` is resolved by the client against the current URL, so from `/api/users` it points to `/api/all`.
+- A full URL (`https://example.com/users`) redirects to another host.
 
-### Within the Same Controller
-
-You can redirect the client to a different path within the same controller by passing the path as an argument to the `Redirect` annotation.
-
-```dart
-import 'package:revali_router/revali_router.dart';
-
-@Controller('users')
-class MyController {
-
-    @Redirect('all') // Redirects to /users/all
-    @Get()
-    void users() {
-        ...
-    }
-
-    @Get('all')
-    void allUsers() {
-        ...
-    }
-}
-```
-
-### To a Different Controller
-
-You can redirect the client to a different controller by passing the controller name and path as arguments to the `Redirect` annotation.
-
-```dart
-import 'package:revali_router/revali_router.dart';
-
-@Controller('users')
-class MyController {
-
-    @Redirect('/admin/users/all') // Redirects to /admin/users/all
-    @Get()
-    void users() {
-        ...
-    }
-
-    @Get('all')
-    void allUsers() {
-        ...
-    }
-}
-```
-
-<Callout type="important">
-
-The leading `/` is required when redirecting to a different controller.
-
-</Callout>
-
-<Callout type="important">
-
-Don't forget to include your app's prefix when redirecting to a different controller.
-
-</Callout>
+Use `302`/`307` for temporary redirects; browsers cache `301` responses.

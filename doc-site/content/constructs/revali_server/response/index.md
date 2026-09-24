@@ -1,120 +1,145 @@
 ---
-title: Overview
-description: Control the outgoing HTTP response
+title: Response
+description: How an endpoint's return value becomes the HTTP response, and how to change the body, status and headers
 ---
 
-> Access via: `context.response`
+An endpoint's return value becomes the response body. Revali picks the wire format from the return type: most values are JSON-encoded and wrapped as `{"data": ...}`, while `StringContent`, bytes and streams are sent raw. To change the status code, headers or body from a [lifecycle component](/constructs/revali_server/lifecycle-components), use the `Response` object.
 
-The `Response` object represents the outgoing HTTP response. It contains all the information about the response, including headers, body, status code, and cookies. You can access and modify the response through the context in lifecycle components.
+## Minimal example
 
-## Key Properties
-
-- **`body`** - The response payload (data sent to client)
-- **`headers`** - HTTP headers sent with the response
-- **`statusCode`** - HTTP status code (200, 404, 500, etc.)
-
-## Accessing the Response
-
-### Via Binding
-
-Access the response from the context in lifecycle components by using the `Response` parameter.
+<CodeFile name="routes/controllers/greeting_controller.dart">
 
 ```dart
-class MyMiddleware implements LifecycleComponent {
-  MiddlewareResult processRequest(Response response) {
-    response.statusCode = 200;
-    response.headers.set('Cache-Control', 'no-cache');
+import 'package:revali_router/revali_router.dart';
 
-    return const MiddlewareResult.next();
-  }
+@Controller('greeting')
+class GreetingController {
+  const GreetingController();
+
+  @Get()
+  String json() => 'Hello world!';
+
+  @Get('text')
+  StringContent text() => const StringContent('Hello world!');
 }
 ```
 
-You can also access response properties directly in endpoint methods:
+</CodeFile>
 
-```dart
-@Controller('api')
-class ApiController {
-  @Get('data')
-  String getData(Headers headers) {
-    headers.set('X-Custom-Header', 'value');
+```bash
+curl -i http://localhost:8080/api/greeting
+# content-type: application/json
+# {"data":"Hello world!"}
 
-    return 'Data';
-  }
-}
+curl -i http://localhost:8080/api/greeting/text
+# content-type: text/plain
+# Hello world!
 ```
 
-<Callout type="warning">
+## Return types
 
-**Avoid using `Response` in endpoint methods.** Instead, use specific types like `Headers` or access the response through lifecycle components. This keeps your endpoints clean and focused.
+| Return type | Body | `Content-Type` |
+| ----------- | ---- | -------------- |
+| `void`, `Future<void>` | Empty, status `200` | none |
+| `String`, `int`, `double`, `bool` | `{"data": value}` | `application/json` |
+| `Map`, `List`, `Set`, `Iterable` | `{"data": [...]}` / `{"data": {...}}` | `application/json` |
+| Class with `toJson()` | `{"data": toJson()}` | `application/json` |
+| Record `(a, b)` | `{"data": [a, b]}` | `application/json` |
+| Record `({a, b})` | `{"data": {"a": ..., "b": ...}}` | `application/json` |
+| Record `(a, {b})` | `{"data": [a, {"b": ...}]}` | `application/json` |
+| `StringContent` | The raw string | `text/plain` |
+| `List<int>` | The raw bytes | `application/octet-stream` |
+| `Stream<T>` | Each event written as it is produced; each event is encoded by the rules above | `application/octet-stream` |
+| `Future<T>` | Same as `T` | same as `T` |
+
+Nested custom types are converted too: `List<User>`, `Map<String, User>` and records containing `User` all call `User.toJson()`.
+
+```dart
+class User {
+  const User({required this.name});
+
+  final String name;
+
+  Map<String, dynamic> toJson() => {'name': name};
+}
+
+@Get('users')
+List<User> users() => const [User(name: 'Ada')];
+```
+
+`GET /api/greeting/users` returns `{"data":[{"name":"Ada"}]}`.
+
+<Callout type="note">
+
+A plain `String` return is JSON (`{"data":"..."}`), not text. Return `StringContent` to send text or HTML as-is.
 
 </Callout>
 
-## Common Patterns
+## Errors
 
-### Setting Response Data
+Throw to send an error response. An uncaught exception becomes `500`; a binding failure (`MissingArgumentException`) becomes `400`. For a specific status with a machine-readable body, throw an `HttpError`:
 
 ```dart
-// Return data from endpoint (recommended)
-@Get('users')
-List<User> getUsers() {
-  return userService.getAllUsers();
+@Get('users/:id')
+Future<User> user(@Param() String id) async {
+  final user = await repo.find(id);
+  if (user == null) {
+    throw const HttpError.notFound(code: 'user_not_found', message: 'No such user');
+  }
+  return user;
+}
+```
+
+```json
+{"error": {"code": "user_not_found", "message": "No such user"}}
+```
+
+See [Error responses](/revali/app-configuration/default-responses#httperror) for `HttpError`, and [exception catchers](/constructs/revali_server/lifecycle-components/advanced/exception-catchers) to map your own exceptions.
+
+## The `Response` object
+
+`Response` is available as an implied parameter in endpoints and lifecycle components, and as `context.response`.
+
+| Member | Type | Use |
+| ------ | ---- | --- |
+| `statusCode` | `int` (read/write) | See [Status code](/constructs/revali_server/response/status-code). |
+| `headers` | `Headers` | See [Headers](/constructs/revali_server/response/headers). |
+| `headers.setCookies` | `SetCookies` | See [Cookies](/constructs/revali_server/response/cookies). |
+| `body` | `Body`; setter takes any supported value | Read with `body.data`, replace with `body = value`, add a key to a JSON body with `body['key'] = value`. |
+
+Assigning `body` accepts the same values as a return type, plus `dart:io` `File` and `MemoryFile`. A `File` is streamed with `Content-Type` from its extension, `Content-Disposition: attachment; filename="..."`, `Last-Modified`, and `Range` support. A `MemoryFile` sends in-memory bytes with a given MIME type and file name:
+
+```dart
+import 'dart:io';
+
+@Get('report')
+void report(Response response) {
+  response.body = File('reports/latest.pdf');
 }
 
-// Set data in lifecycle component
-class ResponseProcessor implements LifecycleComponent {
-  InterceptorPostResult processResponse(Response response) {
+@Get('export')
+void export(Response response) {
+  response.body = MemoryFile.from(
+    'id,name\n1,Ada\n',
+    mimeType: 'text/csv',
+    basename: 'users',
+    extension: 'csv',
+  );
+}
+```
+
+Changing the body in a post-interceptor, after the handler has run:
+
+```dart
+class AddTimestamp implements LifecycleComponent {
+  const AddTimestamp();
+
+  InterceptorPostResult stamp(Response response) {
     response.body['timestamp'] = DateTime.now().toIso8601String();
   }
 }
 ```
 
-### Setting Headers
+A value returned by the endpoint overwrites anything set on `response.body` inside the endpoint. Endpoints that set `response.body` themselves should return `void`.
 
-```dart
-// Via annotation
-@Get('data')
-@SetHeader('Cache-Control', 'max-age=3600')
-String getData() {
-  return 'Cached data';
-}
-
-// Via lifecycle component
-class SecurityHeaders implements LifecycleComponent {
-  MiddlewareResult processRequest(Response response) {
-    response.headers.set('X-Content-Type-Options', 'nosniff');
-    response.headers.set('X-Frame-Options', 'DENY');
-
-    return const MiddlewareResult.next();
-  }
-}
-```
-
-### Setting Status Codes
-
-```dart
-// Via annotation
-@Post('job')
-@StatusCode(201)
-void startJob() {
-   service.startAsyncOperation();
-}
-
-// Via interceptor (post)
-class StatusCodeProcessor implements LifecycleComponent {
-  InterceptorPostResult processResponse(Response response) {
-    if (response.body.data == null) {
-      response.statusCode = 201;
-    }
-  }
-}
-```
-
-## What's Next?
-
-- Learn about [response body](/constructs/revali_server/response/body) for setting response data
-- Explore [response headers](/constructs/revali_server/response/headers) for HTTP headers
-- See [status codes](/constructs/revali_server/response/status-code) for HTTP status codes
-- Check out [cookies](/constructs/revali_server/response/cookies) for session management
-- Discover [WebSockets](/constructs/revali_server/response/websockets) for real-time communication
-- Learn about [Server-Sent Events](/constructs/revali_server/response/server-sent-events) for streaming updates
+Related: [Status code](/constructs/revali_server/response/status-code) · [Headers](/constructs/revali_server/response/headers) · [Cookies](/constructs/revali_server/response/cookies) · [Server-Sent Events](/constructs/revali_server/response/server-sent-events) · [WebSockets](/constructs/revali_server/response/websockets)

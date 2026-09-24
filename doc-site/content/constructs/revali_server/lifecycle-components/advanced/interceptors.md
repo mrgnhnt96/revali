@@ -1,104 +1,110 @@
 ---
 title: Interceptors
-description: Manipulate the request & response
+description: Run code just before the endpoint (pre) and just after it (post), for example to add request data or change the response.
 ---
 
-An `Interceptor` is a Lifecycle Component that can be used to modify the request or response before or after the request is processed by the controller or endpoint.
+An interceptor runs code right around the endpoint. The **pre** part runs after the guards, just before the endpoint. The **post** part runs after the endpoint has returned, so it can read and change the response. Use interceptors to add data the endpoint needs, add response headers, or reshape a response body.
 
-Interceptors are useful for binding data to the request context, transforming the request or response, and other tasks that need to be executed before or after the endpoint.
+Interceptors can't stop a request by returning a result. To reject a request, use [middleware][middleware] or a [guard][guards], or throw an exception.
 
-## Execution
+## Example
 
-Interceptors are executed in two phases:
-
-### Pre
-
-The `pre` method is executed after the Guards and before the endpoint.
-
-### Post
-
-The `post` method is executed after the endpoint and before the response is returned.
-
-### Order of Execution
-
-Interceptors are executed in the order they are registered. Before the endpoint is executed, all pre-interceptors are executed. After the endpoint is executed, all post-interceptors are executed in the reverse order.
-
-1. Interceptor 1 (pre)
-2. Interceptor 2 (pre)
-3. Endpoint
-4. Interceptor 2 (post)
-5. Interceptor 1 (post)
-
-## Create an Interceptor
-
-To create an `Interceptor`, you need to implement the `Interceptor` class and implement the `pre` and `post` methods.
-
-<CodeFile name="lib/components/interceptors/my_interceptor.dart">
+<CodeFile name="lib/components/timing.dart">
 
 ```dart
 import 'package:revali_router/revali_router.dart';
 
-class MyInterceptor implements Interceptor {
-    const MyInterceptor();
+class Timing implements LifecycleComponent {
+  const Timing();
 
-    @override
-    Future<void> pre(context) async {}
+  InterceptorPreResult start(Data data) {
+    data.add(Stopwatch()..start());
+  }
 
-    @override
-    Future<void> post(context) async {}
+  InterceptorPostResult stop(Data data, Headers headers) {
+    final watch = data.get<Stopwatch>();
+    if (watch != null) {
+      headers.set('X-Elapsed-Ms', '${watch.elapsedMilliseconds}');
+    }
+  }
 }
 ```
 
 </CodeFile>
 
-<Callout type="note">
-
-There's no limit to the number of interceptors that can be applied to a controller or endpoint. Interceptors are executed in the order they are registered.
-
-</Callout>
-
-## Register the Interceptor
-
-To register the `Interceptor`, annotate your `Interceptor` class on the app, controller, or endpoint level.
-
-<CodeFile name="routes/controllers/my_controller.dart">
+<CodeFile name="routes/controllers/hello_controller.dart">
 
 ```dart
 import 'package:revali_router/revali_router.dart';
 
-// highlight-next-line
-@MyInterceptor()
-@Get('')
-Future<void> myEndpoint() {
-    ...
+@Timing()
+@Controller('hello')
+class HelloController {
+  const HelloController();
+
+  @Get()
+  String hello() => 'world';
 }
 ```
 
 </CodeFile>
 
-### Register as Type Reference
+```http
+GET /api/hello
 
-If you have a parameter that can not be provided at compile time, you can register the `Interceptor` as a type reference using the `@Intercepts()` annotation.
+HTTP/1.1 200 OK
+x-elapsed-ms: 0
+content-type: application/json
 
-<CodeFile name="routes/controllers/my_controller.dart">
+{"data":"world"}
+```
+
+`Headers` is the **response** headers. To read request headers, bind `RequestHeaders` or use `@Header()`.
+
+## Pre and Post
+
+| Return type | Runs | Order |
+| --- | --- | --- |
+| `InterceptorPreResult` | After all guards, before pipes and the endpoint | Registration order |
+| `InterceptorPostResult` | After the endpoint returns | Reverse registration order |
+
+Both types are aliases for `FutureOr<void>`, so the method returns nothing. Mark it `async` to await inside it, and keep the alias as the return type so Revali recognizes the role.
+
+- Post interceptors **don't run** when the endpoint (or anything before it) throws. The exception goes to the [exception catchers][catchers] instead.
+- In a post interceptor, `Response` holds the body the endpoint produced, already wrapped as `{"data": ...}`. You can replace it with `response.body = ...`. [Reflect][reflect] shows an example that strips private fields this way.
+- Interceptors don't run for [WebSocket][websockets] routes.
+
+## Classic Style
+
+As an alternative, implement `Interceptor` with both `pre` and `post`:
+
+<CodeFile name="lib/components/timing_interceptor.dart">
 
 ```dart
 import 'package:revali_router/revali_router.dart';
 
-// highlight-next-line
-@Intercepts([MyInterceptor])
-@Get('')
-Future<void> myEndpoint() {
-    ...
+class TimingInterceptor implements Interceptor {
+  const TimingInterceptor();
+
+  @override
+  Future<void> pre(Context context) async {
+    context.data.add(Stopwatch()..start());
+  }
+
+  @override
+  Future<void> post(Context context) async {
+    final watch = context.data.get<Stopwatch>();
+    context.response.headers.set('X-Elapsed-Ms', '${watch?.elapsedMilliseconds}');
+  }
 }
 ```
 
 </CodeFile>
 
-<Callout type="tip">
+Apply it with `@TimingInterceptor()`, or by type with `@Intercepts([TimingInterceptor])`.
 
-Learn more about [type referencing][type-referencing].
-
-</Callout>
-
-[type-referencing]: /constructs/revali_server/tidbits#using-types-in-annotations
+[middleware]: /constructs/revali_server/lifecycle-components/advanced/middleware
+[guards]: /constructs/revali_server/lifecycle-components/advanced/guards
+[catchers]: /constructs/revali_server/lifecycle-components/advanced/exception-catchers
+[reflect]: /constructs/revali_server/context/reflect
+[websockets]: /constructs/revali_server/response/websockets

@@ -1,141 +1,81 @@
 ---
 title: Run the Server
-description: Run your server to see your API in action
+description: Start the dev server, hot reload, debug, and know what gets generated.
 ---
 
-Now that you've created your first endpoint, let's start the development server and see your API in action.
-
-## Start the Development Server
-
-Revali provides a CLI tool to run your server. From your project root, run:
+Run this from the package root, the directory with `pubspec.yaml` and
+`routes/`:
 
 ```bash
 dart run revali dev
 ```
 
-This command will:
+`dev` analyzes `routes/`, generates the server into `.revali/`, starts it, and
+prints a status board:
 
-1. Analyze your routes and controllers
-2. Generate the necessary server code
-3. Start the development server
-4. Enable hot reload for instant development feedback
+```console
+12:34:56 PM [READY]
+Serving at http://localhost:8080/api
+The Dart VM service is listening on http://127.0.0.1:53211/abc123=/
+Press: r reload, c clear, q quit
 
-## Server Configuration
-
-By default, Revali configures your server with these settings:
-
-- **Host**: `localhost`
-- **Port**: `8080`
-- **API Prefix**: `/api`
-
-## Access Your API
-
-Once the server is running, you can access your API at:
-
-```text
-http://localhost:8080/api
+/hello
+GET -> /hello
+GET -> /hello/:name
 ```
-
-For your hello endpoint created in the previous guide:
-
-```text
-GET http://localhost:8080/api/hello
-```
-
-## Generated Files
-
-When Revali starts, it generates files in your project:
-
-```tree
-.
-└── .revali/
-    └── server/
-        ├── <generated-files>
-        └── server.dart
-```
-
-<Callout type="warning">
-
-**Important**: Never modify files in the `.revali` directory manually. Revali manages these files automatically and will overwrite any changes you make.
-
-</Callout>
-
-## Hot Reload
-
-One of Revali's best features is hot reload support. When you make changes to your controllers:
-
-1. Save your file
-2. Revali automatically detects the changes
-3. Regenerates the necessary code
-4. Restarts the server
-5. Your changes are live instantly!
-
-## Testing Your API
-
-You can test your API using various tools:
-
-### Using curl
 
 ```bash
 curl http://localhost:8080/api/hello
+# {"data":"Hello, World!"}
 ```
 
-### Using a REST Client
+## While it runs
 
-Tools like [Postman](https://www.postman.com/), [Insomnia](https://insomnia.rest/), or [Thunder Client](https://www.thunderclient.com/) work great for testing APIs.
+| Key | Action |
+| --- | --- |
+| `r` | Regenerate and restart |
+| `c` | Clear the screen and reprint the status board |
+| `q` | Quit (`Ctrl+C` also works) |
 
-## Development Tips
+Without a terminal (CI, a script, an AI agent), write `reload`, `clear` or
+`quit` to a file named `.revali_cmd` in the package root instead.
 
-- **Keep the terminal open**: The development server shows logs and error messages
-- **Check the console**: Revali provides helpful feedback about route generation
-- **Use hot reload**: Make changes and see them instantly without restarting
+## Hot reload
 
-## Next Steps
+Saving a file anywhere in the package regenerates `.revali/` and **restarts the
+server process**. That keeps new and deleted controllers correct, but it means
+in-memory state, open database connections and WebSocket clients do not
+survive a reload. Paths you don't want to trigger a reload can be excluded in
+[`revali.yaml`](/revali/revali-configuration).
 
-<Callout type="tip">
+## Debugging
 
-Ready to add more features? Check out these guides:
+The status board prints the Dart VM service URL. Attach your IDE to it:
 
-- [Debug the Server](/revali/getting-started/debug-server) - Debug your server-side code
+- **VS Code:** run **Dart: Attach to Process** from the command palette and
+  paste the URL.
+- **IntelliJ / Android Studio:** create a **Dart Remote Debug** run
+  configuration with the URL.
 
-- [Hot Reload](/revali/getting-started/hot-reload) - Learn about hot reload features
+Breakpoints in controllers and components then work as usual. The port is
+random unless you pass `--dart-vm-service-port`. After a hot reload the process
+is new, so re-attach.
 
-- [Revali Server](/constructs/revali_server) - Advanced server features
+## Generated files
 
-</Callout>
-
-## Troubleshooting
-
-### Port Already in Use
-
-If port 8080 is already in use, you can change it in your `AppConfig` subclass:
-
-<CodeFile name="routes/main_app.dart">
-
-```dart
-import 'package:revali_router/revali_router.dart';
-
-@App()
-final class MainApp extends AppConfig {
-  const MainApp()
-      : super(
-          host: 'localhost',
-          port: 3000, // Use a different port
-        );
-}
+```tree
+.revali/
+└── server/
+    ├── server.dart     # entrypoint; also exports createServer() for tests
+    └── routes/         # one file per controller
 ```
 
-</CodeFile>
+`.revali/` is regenerated on every run. Never edit it; add it to `.gitignore`.
 
-### Server Crashes or Other Issues
+## What's next
 
-If you encounter other issues:
-
-1. Check the error messages in the terminal for clues
-2. Verify your code matches the examples in the documentation
-3. Try running `dart pub get` to refresh dependencies
-4. If the problem persists, [create an issue](https://github.com/mrgnhnt96/revali/issues/new) with:
-   - A description of the problem
-   - Steps to reproduce
-   - Error messages/logs
-   - Your environment details (Dart version, OS, etc.)
+- Every `dev` flag (flavors, `--release`, `--dart-define`, HTTPS):
+  [`revali dev`](/revali/cli/dev)
+- Test endpoints in-process without a port: [Testing](/revali/testing)
+- Compile for production: [`revali build`](/revali/cli/build)
+- Something wrong? Run [`dart run revali doctor`](/revali/cli/doctor).

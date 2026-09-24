@@ -1,78 +1,101 @@
 ---
 title: Overview
-description: Generate OpenAPI documentation from your Revali routes automatically
+description: Generate an OpenAPI 3.0.3 spec from your Revali routes, then install and configure revali_swagger
 ---
 
-Revali Swagger is a construct that automatically generates an [OpenAPI 3.0.3](https://spec.openapis.org/oas/v3.0.3) specification from your Revali route definitions — no manual spec writing required.
+`revali_swagger` generates an [OpenAPI 3.0.3](https://spec.openapis.org/oas/v3.0.3) spec from your controllers, parameters and return types. Use it to feed Swagger UI, Redoc, API gateways or client generators for languages other than Dart. For a Dart client, use [revali_client](/constructs/revali_client) instead.
 
-## What is Revali Swagger?
+It is a generic construct, so the spec is rewritten on every `revali dev` (and `revali build`) run.
 
-Revali Swagger reads your controllers, routes, parameters, and return types at code-generation time and produces `swagger.yaml` and `swagger.json` files that describe your entire API. It works alongside your existing Revali Router annotations (`@Body`, `@Query`, `@Param`, `@Header`, `@Cookie`) so there's nothing new to add for a working spec.
+## Installation
 
-Optional annotations from `revali_swagger_annotations` let you enrich the spec with summaries, descriptions, additional response codes, and custom tags — but they are never required.
+| Package | Role | Section |
+| --- | --- | --- |
+| `revali_swagger` | The construct (spec generator) | `dev_dependencies` |
+| `revali_swagger_annotations` | Optional [annotations](/constructs/revali_swagger/annotations) (`@ApiSummary`, `@ApiTag`, ...) | `dependencies` |
 
-## Key Features
-
-### 📄 **Zero-Config Generation**
-
-Drop the package in, run `revali dev`, and fully valid OpenAPI specs appear in `.revali/revali_swagger/swagger.yaml` and `.revali/revali_swagger/swagger.json`. No annotations or configuration needed to get started.
-
-### 🔍 **Automatic Type Introspection**
-
-Dart primitives, collections, records, enums, sealed classes, and custom classes are all converted to JSON Schema automatically. Fields are walked up the superclass chain so inherited properties are included.
-
-### 🏷️ **Optional Annotation Overrides**
-
-Use `@ApiSummary`, `@ApiDescription`, `@ApiTag`, `@ApiResponse`, and `@ApiHidden` to add human-readable context to the generated spec without changing your API logic.
-
-### 📄 **YAML and JSON Output**
-
-Both `swagger.yaml` and `swagger.json` are generated on every run so you can use whichever format your tooling expects.
-
-### ⚠️ **Helpful Warnings**
-
-When a type cannot be resolved automatically (e.g. `Duration`, external types), a warning is written to stderr with a suggestion to use `@ApiType` to specify the schema explicitly.
-
-## How It Works
-
-When you run `revali dev`, the construct:
-
-1. Reads every controller and route from your project
-2. Maps each parameter to its OpenAPI location (`path`, `query`, `header`, `cookie`, or `requestBody`)
-3. Converts Dart types to JSON Schema, registering complex types in `components/schemas`
-4. Writes the assembled spec to `.revali/revali_swagger/swagger.yaml` and `.revali/revali_swagger/swagger.json`
-
-```mermaid
-graph LR
-    A[Controllers & Routes] --> B[Revali Swagger Construct]
-    B --> C[OpenAPI 3.0.3 Spec]
-    C --> D[.revali/revali_swagger/swagger.yaml]
-    C --> E[.revali/revali_swagger/swagger.json]
+```bash
+dart pub add --dev revali_swagger
+dart pub add revali_swagger_annotations # only if you use the annotations
 ```
 
-## Quick Example
+<CodeFile name="pubspec.yaml">
 
-Given this controller:
+```yaml
+dependencies:
+  revali_swagger_annotations: ^1.0.0
 
-<CodeFile name="routes/users/users_controller.dart">
+dev_dependencies:
+  revali: ^3.3.3
+  revali_swagger: ^1.3.0
+```
+
+</CodeFile>
+
+No `revali.yaml` entry is required. Run:
+
+```bash
+dart run revali dev
+```
+
+The spec is written in both formats:
+
+```tree
+.revali/revali_swagger/
+├── swagger.yaml
+└── swagger.json
+```
+
+Types the generator cannot map are reported on stderr as `[revali_swagger] WARNING: ...`. Fix them with [`@ApiType`](/constructs/revali_swagger/annotations#apitype).
+
+## Configuration
+
+All options are optional and go under the construct's entry in `revali.yaml`:
+
+<CodeFile name="revali.yaml">
+
+```yaml
+constructs:
+  - name: revali_swagger
+    options:
+      title: My API
+      version: 2.1.0
+      description: Public API for the My App service
+```
+
+</CodeFile>
+
+| Option | Type | Default | Sets |
+| --- | --- | --- | --- |
+| `title` | `String` | `API` | `info.title` |
+| `version` | `String` | `1.0.0` | `info.version` |
+| `description` | `String` | none | `info.description` |
+
+[`@ApiInfo`](/constructs/revali_swagger/annotations#apiinfo) on your app class overrides these values.
+
+## Example
+
+<CodeFile name="routes/controllers/users_controller.dart">
 
 ```dart
-import 'package:revali_router_annotations/revali_router_annotations.dart';
+import 'package:revali_router/revali_router.dart';
 
 @Controller('users')
 class UsersController {
-  @Get(':id')
-  Future<User> getById(@Param() String id) async { ... }
+  const UsersController();
 
-  @Post('')
+  @Get(':id')
+  Future<User> getById(@Param() String id) async => ...;
+
+  @Post()
   @StatusCode(201)
-  Future<User> create(@Body() CreateUserBody body) async { ... }
+  Future<User> create(@Body() CreateUserBody body) async => ...;
 }
 ```
 
 </CodeFile>
 
-Revali Swagger generates:
+produces (abridged):
 
 <CodeFile name=".revali/revali_swagger/swagger.yaml">
 
@@ -82,7 +105,25 @@ info:
   title: API
   version: 1.0.0
 paths:
-  /users/{id}:
+  '/users':
+    post:
+      operationId: users_create
+      tags:
+        - users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserBody'
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  '/users/{id}':
     get:
       operationId: users_getById
       tags:
@@ -100,44 +141,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-  /users:
-    post:
-      operationId: users_create
-      tags:
-        - users
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateUserBody'
-      responses:
-        '201':
-          description: Success
-          ...
 components:
   schemas:
-    User:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-      required:
-        - id
-        - name
-    CreateUserBody:
-      ...
+    # User, CreateUserBody ...
 ```
 
 </CodeFile>
 
-## Getting Started
+## How routes map to the spec
 
-Ready to add OpenAPI docs to your Revali API?
+- **Paths** join the controller and method paths, with `:id` rewritten as `{id}`. The app prefix (`/api` by default) is **not** included, and the spec has no `servers` block. Add both in your tooling if it needs them.
+- **Operation IDs** are `<controller>_<method>`, where `<controller>` is the class name without `Controller`, lowercased: `UsersController.getById` becomes `users_getById`.
+- **Tags** default to that same lowercased controller name. Override them with [`@ApiTag`](/constructs/revali_swagger/annotations#apitag).
+- **Parameters**: `@Param` becomes `in: path`, `@Query` `in: query`, `@Header` `in: header`, `@Cookie` `in: cookie`. `@Body` becomes the `requestBody`, except on `GET`, `HEAD` and `DELETE`, where it is documented as a query parameter.
+- **Responses** use the method's `@StatusCode`, or `200`. A `void` handler gets a `No content` response with no schema. [`@ApiResponse`](/constructs/revali_swagger/annotations#apiresponse) replaces this default.
+- **Response schemas** describe the handler's return type as-is. They do not include the `{"data": ...}` envelope that Revali wraps JSON responses in.
+- **Output** is sorted by path and method, so the spec is stable across machines and safe to commit or diff.
 
-1. **[Installation](/constructs/revali_swagger/getting-started/installation)** — Add the packages and register the construct
-2. **[Configuration](/constructs/revali_swagger/getting-started/configuration)** — Set the API title and version
-3. **[Annotations](/constructs/revali_swagger/annotations)** — Enrich your spec with summaries and descriptions
-4. **[Type Inference](/constructs/revali_swagger/type-inference)** — Learn how Dart types map to JSON Schema
+See [Type Inference](/constructs/revali_swagger/type-inference) for how Dart types become schemas, and [Annotations](/constructs/revali_swagger/annotations) to add summaries, descriptions and extra responses.

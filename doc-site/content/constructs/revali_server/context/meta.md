@@ -1,133 +1,84 @@
 ---
 title: Meta
-description: Store and retrieve metadata associated with endpoints and requests
+description: Attach your own annotations to endpoints and controllers and read them in lifecycle components.
 ---
 
-> Access via: `context.meta`
+Metadata lets you label endpoints and controllers with your own annotations and read those labels while a request runs. A common use is marking endpoints `@Public()` so an auth guard can skip them, or tagging an endpoint with the role it requires. Revali collects any annotation whose class implements `MetaData`.
 
-Metadata allows you to attach custom information to endpoints and access it during request processing. This is useful for storing configuration, annotations, or any data that needs to be shared between different parts of your application.
+## Example
 
-## Creating Metadata Classes
-
-To create metadata, implement the `MetaData` interface:
+<CodeFile name="lib/meta/public.dart">
 
 ```dart
-import 'package:revali_router_annotations/revali_router_annotations.dart';
+import 'package:revali_router/revali_router.dart';
 
 class Public implements MetaData {
   const Public();
 }
-
-class Role implements MetaData {
-  const Role(this.name);
-
-  final String name;
-}
 ```
 
-## Basic Operations
+</CodeFile>
 
-### Annotating with Metadata
-
-Metadata is stored by annotating controllers and methods:
+<CodeFile name="lib/components/auth_guard.dart">
 
 ```dart
-@Controller('api')
-class ApiController {
-  @Public()
-  @Get('health')
-  String healthCheck() {
-    return 'OK';
-  }
+import 'package:revali_router/revali_router.dart';
 
-  @Role('admin')
-  @Get('admin-data')
-  String adminData() {
-    return 'Admin only data';
-  }
-}
-```
+class AuthGuard implements LifecycleComponent {
+  const AuthGuard();
 
-### Retrieving Metadata
-
-Get metadata using `get()` - returns a list of all instances:
-
-```dart
-// Get all instances of a type
-List<Role> roles = context.meta.get<Role>();
-// Returns: [Role('admin')] for the admin-data endpoint
-```
-
-### Checking for Metadata
-
-Check if metadata exists using `has()`:
-
-```dart
-if (context.meta.has<Public>()) {
-  // This endpoint is public
-}
-
-if (context.meta.has<Role>()) {
-  // This endpoint has role metadata
-}
-```
-
-## Direct vs Inherited Metadata
-
-The `MetaScope` provides access to both direct and inherited metadata:
-
-```dart
-@Controller('api')
-class ApiController {
-  @Role('admin')  // This will be inherited by all methods
-  @Get('users')
-  String getUsers() {
-    // Direct metadata - attached to this specific method
-    List<Role> directRoles = context.meta.direct.get<Role>();
-
-    // Inherited metadata - from parent controller
-    List<Role> inheritedRoles = context.meta.inherited.get<Role>();
-
-    return 'Users data';
-  }
-}
-```
-
-## Real-World Examples
-
-### 1. Public Endpoint Marking
-
-Mark endpoints as public to bypass authentication:
-
-```dart
-class Public implements MetaData {
-  const Public();
-}
-
-@Controller('api')
-class ApiController {
-  @Public()
-  @Get('health')
-  String healthCheck() {
-    return 'OK';
-  }
-}
-
-// In your auth guard
-class AuthGuard implements Guard {
-  Future<GuardResult> protect(GuardContext context) async {
-    if (context.meta.has<Public>()) {
+  GuardResult check(MetaScope meta, @Header('Authorization') String? token) {
+    if (meta.has<Public>()) {
       return const GuardResult.pass();
     }
 
-    // Check authentication...
+    return token == null
+        ? const GuardResult.block(statusCode: 401)
+        : const GuardResult.pass();
   }
 }
 ```
 
-### 2. Route Configuration
+</CodeFile>
 
-Store route-specific configuration:
+<CodeFile name="routes/controllers/status_controller.dart">
+
+```dart
+import 'package:revali_router/revali_router.dart';
+
+@AuthGuard()
+@Controller('status')
+class StatusController {
+  const StatusController();
+
+  @Public()
+  @Get('health')
+  String health() => 'ok';
+
+  @Get('details')
+  String details() => 'secret details';
+}
+```
+
+</CodeFile>
+
+`GET /api/status/health` returns `200` without a token. `GET /api/status/details` returns `401` without one.
+
+## Reading Metadata
+
+Bind `MetaScope` (or `Meta`) as a parameter in a component or endpoint.
+
+| Member | Returns | Behavior |
+| --- | --- | --- |
+| `get<T>()` | `List<T>?` | Every `T` annotation on the endpoint. If the endpoint has none, the `T` annotations on its controller. `null` if neither has any. |
+| `has<T>()` | `bool` | Whether the endpoint or its controller has a `T` annotation |
+| `direct` | `Meta` | Only the annotations on the endpoint |
+| `inherited` | `Meta` | Only the annotations on the controller |
+| `add<T>(T value)` | `void` | Adds a value at runtime. Later components and the endpoint see it. |
+
+Metadata on the `@App()` class is visible too. It is stored with the endpoint's own annotations, in `direct`.
+
+`get` returns a list because the same annotation can appear more than once. For an annotation you expect once, use `meta.get<CodeName>()?.single`:
 
 ```dart
 class CodeName implements MetaData {
@@ -136,20 +87,12 @@ class CodeName implements MetaData {
   final String name;
 }
 
-@Controller('api')
-class ApiController {
-
-  @CodeName('API-1234')
-  @Get('data')
-  String getData(Meta meta) {
-    final codeName = meta.get<CodeName>()?.single;
-    return codeName?.name ?? 'No code name';
-  }
-}
+@CodeName('API-1234')
+@Get('data')
+String data(MetaScope meta) => meta.get<CodeName>()?.single.name ?? 'none';
+// GET /api/.../data -> {"data":"API-1234"}
 ```
 
-## What's Next?
+A metadata class needs a `const` constructor, because it is used as an annotation. Metadata on a class's fields is read with [Reflect][reflect] instead.
 
-- Learn about [data sharing](/constructs/revali_server/context/data-sharing) for storing runtime data
-- Explore [reflection](/constructs/revali_server/context/reflect) for accessing metadata on types
-- See [lifecycle components](/constructs/revali_server/lifecycle-components/components) for using metadata in guards and interceptors
+[reflect]: /constructs/revali_server/context/reflect
