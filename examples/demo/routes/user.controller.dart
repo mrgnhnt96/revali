@@ -2,7 +2,7 @@ import 'package:examples/repos/repo.dart';
 import 'package:examples/utils/logger.dart';
 import 'package:revali_router/revali_router.dart';
 
-@AllowOrigins({
+@AllowOrigins.noInherit({
   'http://localhost:8080',
   'http://localhost:8081',
 })
