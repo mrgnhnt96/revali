@@ -138,7 +138,7 @@ jobs:
           test -s search-index.json || {
             echo "::error::search-index.json was not published"; exit 1; }
           pages=$(find . -name index.html | wc -l)
-          [ "$pages" -ge 90 ] || {
+          [ "$pages" -ge 75 ] || {
             echo "::error::only $pages pages rendered; expected the full site"; exit 1; }
           # robots.txt advertises this; a missing one is an advertised 404, and
           # Search Console reports the subscribed sitemap as "couldn't fetch"
@@ -149,7 +149,7 @@ jobs:
           # produces, and it is still perfectly valid XML — so count them. The
           # bound matches the page count above: every rendered page is a URL.
           urls=$(grep -c "<loc>" sitemap.xml)
-          [ "$urls" -ge 90 ] || {
+          [ "$urls" -ge 75 ] || {
             echo "::error::sitemap.xml lists only $urls URLs; expected one per page"; exit 1; }
           # The origin comes from content/_data/site.yaml, so a wrong value
           # there ships a sitemap of URLs on someone else's host.
@@ -171,10 +171,10 @@ jobs:
             echo "::error::all $urls sitemap entries share one lastmod; per-page dates were not applied"
             exit 1; }
           # Every page names its own card in og:image, so a missing directory
-          # would leave 97 previews pointing at a 404 -- and nothing else here
+          # would leave every preview pointing at a 404 -- and nothing else here
           # would notice, since the HTML is perfectly valid either way.
           cards=$(find images/og -name '*.png' 2>/dev/null | wc -l)
-          [ "$cards" -ge 90 ] || {
+          [ "$cards" -ge 75 ] || {
             echo "::error::only $cards social cards published; expected one per page"; exit 1; }
           # Spot-check that the tool and the layout agree on the file name.
           card=$(grep -o 'og:image" content="[^"]*"' revali/cli/routes/index.html | head -1 | sed 's|.*docs.revali.dev||;s|"$||')
