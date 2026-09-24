@@ -24,6 +24,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # doc-site dates each page by its last commit (git_lastmod_test), so
+          # a shallow clone collapses every page to one date and fails it.
+          fetch-depth: 0
 
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@v1
