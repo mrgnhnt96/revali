@@ -75,7 +75,7 @@ build:
 ```
 
 - All constructs are enabled by default; add an explicit `enabled: false` entry to disable one.
-- If two dependencies register a construct with the same `name`, disambiguate with `package:` (must match the package name in `pubspec.yaml`).
+- Each entry takes `name`, and optionally `package`, `enabled` and `options`. If two dependencies register a construct with the same `name`, disambiguate with `package:` (must match the package name in `pubspec.yaml`).
 - Server generation itself (`revali_server`) is *built into* `revali` — it is not something you enable/disable via this file.
 - Adding a `build:` section is the *signal* that tells `revali build` to also run `dart compile exe` for you (cross-compiling to Linux works from any host OS since Dart 3.8; `macos`/`windows` targets must be built natively on that OS).
 
@@ -144,9 +144,11 @@ class UsersController {
 }
 ```
 
-Available method annotations: `@Get()`, `@Post()`, `@Put()`, `@Patch()`, `@Delete()`, `@SSE()` (Server-Sent Events), `@WebSocket()`. Only one method annotation per endpoint. Custom methods can be created by extending `Method`: `final class CustomMethod extends Method { const CustomMethod([String? path]) : super('CUSTOM', path: path); }`.
+Available method annotations: `@Get()`, `@Post()`, `@Put()`, `@Patch()`, `@Delete()`, `@Head()`, `@SSE()` (Server-Sent Events), `@WebSocket()`. Only one method annotation per endpoint. With no path argument (`@Get()`), the endpoint serves the controller's own path. A `@Get()` also answers `HEAD` (without a body) unless a `@Head()` is declared for the same path, which then wins. Custom methods can be created by extending `Method`: `final class CustomMethod extends Method { const CustomMethod([String? path]) : super('CUSTOM', path: path); }`.
 
 Path parameters use `:name` syntax and can be declared at the controller level too (`@Controller('shops/:shopId')`), shared by every endpoint beneath it. Path parameters are always `String`, required, and URL-decoded.
+
+Return values are sent as JSON wrapped in `{"data": ...}` — including a plain `String` (`{"data": "hi"}`). Return `StringContent('hi')` for a raw `text/plain` body; `List<int>`, `Stream<List<int>>`, `File` and `MemoryFile` are also sent as the raw body with their own content type.
 
 Controllers use constructor injection (Revali picks the **first public constructor**; private constructors are ignored) and are **singletons by default** — pass `type: InstanceType.factory` to `@Controller(...)` for a fresh instance per request. Controllers never receive request objects directly; use binding annotations instead.
 
@@ -165,7 +167,7 @@ Binding extracts data from the request (or injects a dependency) straight into a
 | `@Data()` | Value from the request's Data Handler | `@Data() User currentUser` |
 | custom `Bind<T>` | Custom extraction logic | `@CustomBind() CustomType data` |
 
-Only one binding annotation per parameter. `@Query()`/`@Header()` collapse repeated values (last value wins / comma-joined respectively) unless you use `@Query.all()` / `@Header.all()`, which bind a `List<String>` of every value.
+Only one binding annotation per parameter. `@Query()`/`@Header()` collapse repeated values (last value wins / comma-joined respectively) unless you use `@Query.all()` / `@Header.all()`, which bind a `List` of every value.
 
 ```dart
 @Controller('users')
@@ -182,7 +184,7 @@ class UsersController {
 }
 ```
 
-Revali auto-converts request-body JSON into typed objects when the target class exposes a `fromJson(Map<String, dynamic>)` factory constructor (must take exactly one argument) — no pipe required for the common case. `@Param()`/`@Query()`/`@Header()` values are always `String`; use a [pipe](#pipes) to convert them.
+Revali auto-converts request-body JSON into typed objects when the target class exposes a `fromJson(Map<String, dynamic>)` factory constructor (must take exactly one argument) — no pipe required for the common case. Query values are type-coerced (`?limit=5` binds to `@Query() int limit`; a `String` parameter receives `"5"`). `@Param()` and `@Header()` values are always `String`; use a [pipe](#pipes) to convert them. A pipe whose input type is `String` receives the raw query string, uncoerced.
 
 Custom bindings extend `Bind<T>` and implement `T bind(BindContext context)`; the constructor must be `const`. Use `@Binds(MyBinding)` instead of `@MyBinding()` when the binding needs runtime (non-const) arguments.
 
@@ -218,7 +220,7 @@ class UserPipe implements Pipe<String, User> {
   final UserService userService;
 
   @override
-  Future<User> transform(String value, Context context) async {
+  Future<User> transform(String value, PipeContext context) async {
     final user = await userService.getUserById(value);
     if (user == null) throw NotFoundException('User not found: $value');
     return user;
@@ -524,7 +526,7 @@ Future<MessageBroker?> createBroker() async => InMemoryBroker();
 
 ## Constructs
 
-A **construct** is a standalone Dart package, imported as a dependency and auto-detected by Revali, that generates code into its own `.revali/<name>/` directory based on your routes and annotations. Server generation (`revali_server`) is built into `revali` itself and isn't a construct you choose — everything else is opt-in via `pubspec.yaml` + `revali.yaml`.
+A **construct** is a standalone Dart package, added to `dev_dependencies` and auto-detected by Revali (regular `dependencies` are not scanned), that generates code into its own `.revali/<name>/` directory based on your routes and annotations. Server generation (`revali_server`) is built into `revali` itself and isn't a construct you choose — everything else is opt-in via `pubspec.yaml` + `revali.yaml`.
 
 | Construct | Generates |
 | --- | --- |
@@ -533,7 +535,7 @@ A **construct** is a standalone Dart package, imported as a dependency and auto-
 | `revali_swagger` | An OpenAPI 3.0.3 spec (`swagger.yaml`/`swagger.json`) from your routes, parameters, and return types, with optional `@ApiSummary`/`@ApiDescription`/`@ApiTag`/`@ApiResponse`/`@ApiType` annotations to enrich it. |
 | `revali_docker` | A multi-stage, production-ready `Dockerfile` that compiles your server to a native executable (or copies a pre-cross-compiled one if a `build:` section exists in `revali.yaml`). |
 
-Constructs are either **Build Constructs** (run during `revali build`, generate deployment artifacts — client SDKs, Dockerfiles, OpenAPI docs) or **Generic Constructs** (flexible, run during `revali dev`/`revali build`, output to `.revali/<name>/`). You can author your own — see the `create-constructs` docs for the package-creation, entrypoint, and lifecycle guide (gap: full construct-authoring API surface is out of scope for this reference; consult `/create-constructs` directly for that).
+Constructs are either **Build Constructs** (run only during `revali build`, output to `.revali/build/` — of the constructs above only `revali_docker` is one) or **Generic Constructs** (run during `revali dev`/`revali build`, output to `.revali/<name>/` — `revali_client` and `revali_swagger`). You can author your own — see the `create-constructs` docs for the package-creation, entrypoint, and lifecycle guide (gap: full construct-authoring API surface is out of scope for this reference; consult `/create-constructs` directly for that).
 
 ## CLI Commands
 
@@ -543,7 +545,7 @@ Constructs are either **Build Constructs** (run during `revali build`, generate 
 | `dart run revali build` | Run all registered build constructs to produce deployment artifacts (and, with a `build:` section in `revali.yaml`, cross-compile a native executable via `dart compile exe`). Flags: `--release`/`--profile` (release is default), `--flavor`/`-f`, `--recompile`, `--dart-define`/`-D`, `--dart-define-from-file`. |
 | `dart run revali routes` | List generated routes by reading `.revali/server/routes.json`. Flags: `--generate`/`-g` (regenerate first), `--json`. |
 | `dart run revali doctor` | Diagnose SDK version, resolved `revali*` packages/constructs, construct kernel cache, and generated-output freshness. Flag: `--json`. |
-| `dart run revali create <component>` | Scaffold a `controller`, `app`, `lifecycle-component` (`lc`), `observer`, or `pipe` — interactive if no component is named. Output paths are customizable under `server.create_path` in `revali.yaml`. |
+| `dart run revali create <component>` | Scaffold a `controller`, `app`, `lifecycle-component` (`lc`), `observer`, or `pipe` — interactive if no component is named. Output paths are customizable under `server.create_paths` in `revali.yaml`. |
 | `dart run revali ai <tool>` | Install this reference doc for an AI coding assistant (`claude`, `cursor`, `copilot`, `windsurf`, `cline`, or `all`). Skips files that already exist unless `--force`. |
 | `dart run revali services` | List the Revali services in the repository (a package with `routes/` that depends on the framework). Flags: `--root <path>`, `--paths` (one path per line, for scripting). Exits non-zero when none are found. |
 | `dart run revali up` | Run **every** service at once, each on its own port from `--base-port` (passed as `PORT`, which `AppConfig.fromEnv` reads). Flags: `--root <path>`, `--only <name>` (repeatable), `--base-port <port>`. |
@@ -860,21 +862,23 @@ class UsersController {
 }
 ```
 
-Method annotations: `@Get()`, `@Post()`, `@Put()`, `@Patch()`, `@Delete()`, `@SSE()`, `@WebSocket()` — one per endpoint. Path params use `:name` (controller-level too: `@Controller('shops/:shopId')`), always `String`, required, URL-decoded. Constructor injection uses the **first public constructor**; controllers are **singletons by default** (`type: InstanceType.factory` for per-request instances).
+Method annotations: `@Get()`, `@Post()`, `@Put()`, `@Patch()`, `@Delete()`, `@Head()`, `@SSE()`, `@WebSocket()` — one per endpoint; `@Get()` with no path serves the controller path. `@Get()` also answers `HEAD` unless a `@Head()` exists for the same path. Path params use `:name` (controller-level too: `@Controller('shops/:shopId')`), always `String`, required, URL-decoded. Constructor injection uses the **first public constructor**; controllers are **singletons by default** (`type: InstanceType.factory` for per-request instances).
+
+Return values are sent as `{"data": ...}` JSON, including a plain `String`. `StringContent`, `List<int>`, `Stream<List<int>>`, `File` and `MemoryFile` are sent as the raw body.
 
 ## Binding
 
 | Annotation | Purpose |
 | --- | --- |
 | `@Param()` | Path parameter |
-| `@Query()` | Query parameter (`.all()` for `List<String>`) |
+| `@Query()` | Query parameter, type-coerced (`.all()` for every value) |
 | `@Header()` | Request header (`.all()` for `List<String>`) |
 | `@Ip()` | Resolved client IP |
 | `@Body()` | Request body (whole or `@Body(['data','email'])` nested key) |
 | `@Dep()` | Dependency injection |
 | `@Data()` | Value from the request's Data Handler |
 
-Only one binding annotation per parameter. Body JSON auto-converts to typed objects via a `fromJson(Map<String, dynamic>)` factory (single argument). `@Param()`/`@Query()`/`@Header()` are always `String` — use a pipe to convert.
+Only one binding annotation per parameter. Body JSON auto-converts to typed objects via a `fromJson(Map<String, dynamic>)` factory (single argument). Query values are type-coerced (`@Query() int limit` works); `@Param()`/`@Header()` are always `String` — use a pipe to convert. A `Pipe<String, T>` receives the raw query string.
 
 ## Implied Binding
 
@@ -888,7 +892,7 @@ class UserPipe implements Pipe<String, User> {
   final UserService userService;
 
   @override
-  Future<User> transform(String value, Context context) async {
+  Future<User> transform(String value, PipeContext context) async {
     final user = await userService.getUserById(value);
     if (user == null) throw NotFoundException('User not found: $value');
     return user;
@@ -995,7 +999,7 @@ alwaysApply: false
 
 # Revali Constructs
 
-A **construct** is a standalone Dart package, added as a dependency and auto-detected by Revali, that generates code into its own `.revali/<name>/` directory from your routes and annotations. Enable/disable and configure via `revali.yaml` (see `revali-overview.mdc`).
+A **construct** is a standalone Dart package, added to `dev_dependencies` and auto-detected by Revali, that generates code into its own `.revali/<name>/` directory from your routes and annotations. Enable/disable and configure via `revali.yaml` (see `revali-overview.mdc`).
 
 | Construct | Generates |
 | --- | --- |
@@ -1004,6 +1008,6 @@ A **construct** is a standalone Dart package, added as a dependency and auto-det
 | `revali_swagger` | An OpenAPI 3.0.3 spec (`swagger.yaml`/`swagger.json`), enrichable with `@ApiSummary`/`@ApiDescription`/`@ApiTag`/`@ApiResponse`/`@ApiType`. |
 | `revali_docker` | A multi-stage production `Dockerfile` compiling your server to a native executable (or copying a pre-cross-compiled one). |
 
-Constructs are **Build Constructs** (run during `revali build`, produce deployment artifacts) or **Generic Constructs** (run during `revali dev`/`revali build`, output to `.revali/<name>/`). Authoring your own construct is covered by the `create-constructs` docs — not fully reproduced here.
+Constructs are **Build Constructs** (run only during `revali build`, output to `.revali/build/` — `revali_docker`) or **Generic Constructs** (run during `revali dev`/`revali build`, output to `.revali/<name>/` — `revali_client`, `revali_swagger`). Authoring your own construct is covered by the `create-constructs` docs — not fully reproduced here.
 ''',
 };
