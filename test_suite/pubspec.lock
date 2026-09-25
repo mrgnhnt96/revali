@@ -420,7 +420,7 @@ packages:
       path: "../constructs/revali_client/revali_client"
       relative: true
     source: path
-    version: "3.0.0"
+    version: "3.0.1"
   revali_client_cookies:
     dependency: transitive
     description:
