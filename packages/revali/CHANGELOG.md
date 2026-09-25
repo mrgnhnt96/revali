@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 3.3.4 | 09.25.26
+
+### Fixes
+
+- Send `File` and `MemoryFile` return values as the raw body instead of trying to JSON-encode `{"data": file}`.
+- Pass the raw query string to a pipe whose input type is `String` (`?id=1.50` arrives as `"1.50"`, not a coerced number).
+- Correct the `revali ai` reference and the doc links in `revali create` scaffolds, which pointed at pages that 404.
+
 ## 3.3.3 | 09.01.26
 
 ### Fixes
