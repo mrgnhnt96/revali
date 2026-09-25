@@ -6,12 +6,13 @@
 
 # revali
 
-## 3.3.3
+## 3.3.4
 
 ### Fixes
 
-- **`dart run revali dev --generate-only` exited 0 no matter what happened.** It emitted a server against source that does not even parse and reported success: appending one line of invalid Dart to a route file printed 14 analysis errors, wrote the server anyway, and exited 0. Anything reading that exit code as the verdict — a CI step, a pre-push hook, a script that regenerates before running the suite — was reading a constant, and the real failure only surfaced later as a compile error in whatever consumed the generated output, at which point it no longer points at the generator. Generation now stops on analysis errors and reports them, which is what the watch path already did on every reload and file change.
-- Propagate the construct runner's exit code. `ConstructEntrypointHandler.run` collected the value the constructs isolate reported and then returned void, so `revali dev`, `revali build` and `revali routes --generate` each awaited it and returned a literal 0 — no failure inside the construct runner could reach the shell. Two smaller holes in the same path went with it: the error listener's guard never fired, because it tested for `0` on a field that is null until the isolate reports something, so an isolate that errored before sending anything read as success; and `revali routes --generate` went on to read the manifest after a failed generation, reporting on whatever the previous run had left on disk.
+- Send `File` and `MemoryFile` return values as the raw body instead of trying to JSON-encode `{"data": file}`.
+- Pass the raw query string to a pipe whose input type is `String` (`?id=1.50` arrives as `"1.50"`, not a coerced number).
+- Correct the `revali ai` reference and the doc links in `revali create` scaffolds, which pointed at pages that 404.
 
 # revali_annotations
 
@@ -68,11 +69,19 @@
 
 # revali_router
 
-## 5.1.2
+## 5.2.0
+
+### Security
+
+- `@AllowOrigins` matched each entry as an unanchored regex, so `https://myapp.com` also admitted `https://myapp.com.attacker.io`. Entries now match exactly; `'*'` still allows any origin, and a regex must start with `^` and match the whole origin. **An existing regex entry without `^` now matches nothing.**
+- The request origin was read from a client-sent `Access-Control-Allow-Origin` header before `Origin`, letting a client claim an allowed origin. Only `Origin` is read now.
 
 ### Fixes
 
-- **Refusing a request cost more than serving one.** A `5xx` the application authored on purpose — the `503` a catcher sheds load with, an `HttpError.internal` thrown deliberately, a guard's `.block()` or a middleware's `.stop()` at or above `500` — was logged with its full stack trace, unconditionally, through a bare `print`. `Trace.format` parses every frame and `print` is synchronous, so the line cost about 2ms per response in an AOT build against roughly a third of a millisecond to serve a successful request, and it was paid on exactly the path whose volume peaks when the server has the least to spare. An app with a bounded write queue measured a clean knee at its bound: successful throughput fell ~50× one step past it, and the server completed *fewer* requests in total above the knee than below, because shedding fed the saturation it was meant to relieve. There was no logger, level or switch to turn it off; the only workaround was to throw every expected `5xx` with `StackTrace.empty`, which is impossible where the throw site is not the app's. The component that chose the status already knows why, so an authored `5xx` is now logged only when `debug` is on — under `revali dev`, where the console is what the developer is watching — and delivered silently in a released build, the same way a `4xx` always was. This reverses the 5.1.1 note that a `5xx` reaches the operator on both paths: an exception no catcher claimed, a bare `ExceptionCatcherResult.handled()` that authored nothing, and every other crash still log with their trace, since that is the case the log exists for. Independently, the log line no longer parses a trace that has no frames, so an app that already throws with `StackTrace.empty` gets the cheap path too.
+- App-level `@AllowOrigins` and `@PreventHeaders` now apply to every route, unless a `noInherit` sits in between.
+- `@PreventHeaders` matches header names case-insensitively. Before this, `dart:io` lowercased incoming names and nothing matched.
+- CORS preflights skip the `@ExpectHeaders`/`@PreventHeaders` checks, which browsers can't satisfy on a preflight.
+- An explicit `@Head` route always answers HEAD requests, whichever order it and a `@Get` on the same path are declared in.
 
 # revali_redis
 
