@@ -287,21 +287,37 @@ const _amplitudeApiKey = '15288b16e4a64d54978fa9d86adddad1';
 const _amplitudeInit =
     "window.amplitude.init('$_amplitudeApiKey', { serverZone: 'US', autocapture: true });";
 
-/// Sends one `docs_search` Amplitude event per settled search query.
+/// Sends one `docs_search` Amplitude event per settled search query, carrying
+/// both the `search_term` and the numeric `result_count` it returned.
 ///
 /// The search dialog (`lib/components/search.dart`) is a `@client` component
 /// whose `<input id="docs-search-input">` mounts lazily — it only exists once
 /// the ⌘K dialog is opened — so this listens at the document level (capture
 /// phase) and filters on the input's id rather than binding to the element
-/// directly. The compiled client confirms the id: it renders the input with
-/// `"docs-search-input"` and looks it up via `getElementById("docs-search-input")`.
+/// directly. The compiled client confirms the ids and class names this reads:
+/// it renders the input via `getElementById("docs-search-input")`, the dialog
+/// via `getElementById("docs-search-dialog")`, and renders each result as an
+/// `<a class="search-hit">` inside `div.search-results`.
+///
+/// Counting results:
+/// - Each rendered hit is one `a.search-hit`, so the count is
+///   `querySelectorAll('.search-hit').length` scoped to the dialog.
+/// - The "no results" branch renders `div.search-empty` carrying a
+///   `span.search-hint` (count 0). The *loading* and *empty-query* branches
+///   also render `div.search-empty`, but WITHOUT a `.search-hint`, so they are
+///   treated as "not settled yet" rather than as a real zero — otherwise a slow
+///   first-time index fetch would be logged as `result_count: 0`.
 ///
 /// Behaviour:
 /// - Debounced ~800ms, so a burst of keystrokes resolves to the query the
 ///   reader actually settled on rather than every prefix along the way.
-/// - Fires only when the settled query is non-empty, >= 2 characters, and
-///   different from the last term sent (dedupe on `lastSent`) — at most one
-///   event per distinct settled query.
+/// - After the debounce, results render asynchronously (the index is fetched on
+///   first open, then scored in the browser), so this polls every ~150ms until
+///   the dialog reports a settled results/no-results state that holds steady
+///   across two consecutive reads, or until a ~1500ms cap — then sends exactly
+///   one event with the final `result_count` (0 when the no-results state is
+///   shown). Dedupes on `lastSent` so the same settled query is not re-sent.
+/// - Fires only when the settled query is non-empty and >= 2 characters.
 /// - Guards `window.amplitude` being undefined (CDN loader not yet ready or
 ///   blocked), in which case nothing is sent.
 ///
@@ -311,18 +327,57 @@ const _searchTrackingSnippet = r'''
 (function () {
   var lastSent = null;
   var timer = null;
+  var pollTimer = null;
+
+  // Number of rendered result items, or -1 if the results area has not yet
+  // settled into a results/no-results state (still loading, or empty query).
+  function readCount() {
+    var dialog = document.getElementById('docs-search-dialog');
+    if (!dialog) return -1;
+    var results = dialog.querySelector('.search-results');
+    if (!results) return -1;
+    var hits = results.querySelectorAll('.search-hit');
+    if (hits.length > 0) return hits.length;
+    // No hit items: only the explicit "no results" state carries a
+    // `.search-hint`; the loading and empty-query states do not.
+    if (results.querySelector('.search-empty .search-hint')) return 0;
+    return -1;
+  }
+
+  function trackWhenSettled(query) {
+    var attempts = 0;
+    var previous = -1;
+    function poll() {
+      attempts++;
+      var current = readCount();
+      // Settled once two consecutive reads agree on a real count, or give up
+      // at the ~1500ms cap (10 * 150ms) and report what is on screen.
+      var settled = current >= 0 && current === previous;
+      if (settled || attempts >= 10) {
+        if (query === lastSent) return;
+        lastSent = query;
+        var count = current >= 0 ? current : 0;
+        if (window.amplitude && window.amplitude.track) {
+          window.amplitude.track('docs_search', { search_term: query, result_count: count });
+        }
+        return;
+      }
+      previous = current;
+      pollTimer = setTimeout(poll, 150);
+    }
+    pollTimer = setTimeout(poll, 150);
+  }
+
   document.addEventListener('input', function (event) {
     var target = event.target;
     if (!target || target.id !== 'docs-search-input') return;
     var query = (target.value || '').trim();
     if (timer) clearTimeout(timer);
+    if (pollTimer) clearTimeout(pollTimer);
     timer = setTimeout(function () {
       if (query.length < 2) return;
       if (query === lastSent) return;
-      lastSent = query;
-      if (window.amplitude && window.amplitude.track) {
-        window.amplitude.track('docs_search', { search_term: query });
-      }
+      trackWhenSettled(query);
     }, 800);
   }, true);
 })();
