@@ -79,6 +79,14 @@ class _Site extends StatelessComponent {
         // letting a crawler infer them from the <title>.
         script(attributes: {'type': 'application/ld+json'}, content: _structuredData),
         script(content: _analytics),
+        // Amplitude Browser SDK: the CDN loader first so `window.amplitude`
+        // exists, then the inline `init`. `script(content:)` wraps its body in
+        // a `RawText`, so the init renders unescaped and executes rather than
+        // sitting inertly in the DOM. The key is the PUBLIC ingestion-scoped
+        // project API key -- designed to ship in client source, so it is in
+        // plain source and not behind an env var or a proxy.
+        script(src: 'https://cdn.amplitude.com/script/$_amplitudeApiKey.js'),
+        script(content: _amplitudeInit),
       ],
       body: const _Body(),
     );
@@ -149,6 +157,21 @@ const _structuredData =
 ///
 /// Raw string: JavaScript uses `$` freely and Dart would read it as
 /// interpolation.
+/// The public ingestion-scoped Amplitude project API key.
+///
+/// Not a secret: Amplitude's Browser SDK key is write-only and client-side, so
+/// it ships in plain source rather than behind an env var or a proxy.
+const _amplitudeApiKey = '15288b16e4a64d54978fa9d86adddad1';
+
+/// Amplitude's `init`, run after the CDN loader tag defines `window.amplitude`.
+///
+/// Raw, not escaped: `script(content:)` wraps this in a `RawText` so the braces
+/// and quotes render as executable JS. `serverZone: 'US'` and
+/// `autocapture: true` (page views, clicks including CTA buttons, sessions).
+/// Session Replay is deliberately left off to stay on the free tier.
+const _amplitudeInit =
+    "window.amplitude.init('$_amplitudeApiKey', { serverZone: 'US', autocapture: true });";
+
 const _analytics = r'''
 (function () {
   var s = document.createElement('script');

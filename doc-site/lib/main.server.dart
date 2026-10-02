@@ -160,6 +160,17 @@ final class RevaliDocsLayout extends DocsLayout {
     // verbatim each time it appears. A `<script>` is none of those, so the
     // component route would load PostHog once per callout on the page.
     yield script(content: _posthogSnippet);
+
+    // Amplitude, injected the same way and for the same reason as PostHog
+    // above: once per page from `buildHead`, never from a component's
+    // `Document.head`. Two tags in order -- the CDN loader first so
+    // `window.amplitude` exists, then the inline `init`. `script(content:)`
+    // wraps its body in a `RawText`, so the JS renders unescaped and actually
+    // executes. The key is the PUBLIC ingestion-scoped Amplitude project API
+    // key: it is designed to ship in client source, so it is committed in
+    // plain text rather than routed through an env var or a proxy.
+    yield script(src: 'https://cdn.amplitude.com/script/$_amplitudeApiKey.js');
+    yield script(content: _amplitudeInit);
   }
 
   @override
@@ -252,6 +263,23 @@ final class RevaliDocsLayout extends DocsLayout {
 ///   would be a new visitor.
 const _posthogSnippet =
     r'''!function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);posthog.init('phc_JvQSPxWXO7nPNdqPEp1i1341AblCBRWZRpS0kKWRheu',{api_host:'https://us.i.posthog.com',disable_session_recording:true});''';
+
+/// The public ingestion-scoped Amplitude project API key.
+///
+/// Not a secret: Amplitude's Browser SDK key is write-only and client-side, so
+/// it is committed in plain source rather than routed through an env var or a
+/// proxy.
+const _amplitudeApiKey = '15288b16e4a64d54978fa9d86adddad1';
+
+/// Amplitude's `init`, run after the CDN loader tag defines `window.amplitude`.
+///
+/// Raw, not escaped: `script(content:)` wraps this in a `RawText`, which is
+/// what keeps the braces and quotes rendering as executable JS instead of HTML
+/// entities. `serverZone: 'US'` and `autocapture: true` (page views, clicks
+/// including CTA buttons, and sessions). Session Replay is deliberately left
+/// off -- it is not enabled here, to stay on the free tier.
+const _amplitudeInit =
+    "window.amplitude.init('$_amplitudeApiKey', { serverZone: 'US', autocapture: true });";
 
 /// Previous/next links along the reading order defined in [flatNavigation].
 final class _PageNav extends StatelessComponent {
