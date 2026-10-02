@@ -171,6 +171,12 @@ final class RevaliDocsLayout extends DocsLayout {
     // plain text rather than routed through an env var or a proxy.
     yield script(src: 'https://cdn.amplitude.com/script/$_amplitudeApiKey.js');
     yield script(content: _amplitudeInit);
+
+    // Search-term tracking, injected the same way as the Amplitude init above:
+    // a raw inline `<script>` yielded once per page from `buildHead`. It fires
+    // one `docs_search` event per settled query so top search terms can be
+    // charted. See [_searchTrackingSnippet] for the debounce/dedupe logic.
+    yield script(content: _searchTrackingSnippet);
   }
 
   @override
@@ -280,6 +286,47 @@ const _amplitudeApiKey = '15288b16e4a64d54978fa9d86adddad1';
 /// off -- it is not enabled here, to stay on the free tier.
 const _amplitudeInit =
     "window.amplitude.init('$_amplitudeApiKey', { serverZone: 'US', autocapture: true });";
+
+/// Sends one `docs_search` Amplitude event per settled search query.
+///
+/// The search dialog (`lib/components/search.dart`) is a `@client` component
+/// whose `<input id="docs-search-input">` mounts lazily — it only exists once
+/// the ⌘K dialog is opened — so this listens at the document level (capture
+/// phase) and filters on the input's id rather than binding to the element
+/// directly. The compiled client confirms the id: it renders the input with
+/// `"docs-search-input"` and looks it up via `getElementById("docs-search-input")`.
+///
+/// Behaviour:
+/// - Debounced ~800ms, so a burst of keystrokes resolves to the query the
+///   reader actually settled on rather than every prefix along the way.
+/// - Fires only when the settled query is non-empty, >= 2 characters, and
+///   different from the last term sent (dedupe on `lastSent`) — at most one
+///   event per distinct settled query.
+/// - Guards `window.amplitude` being undefined (CDN loader not yet ready or
+///   blocked), in which case nothing is sent.
+///
+/// Raw, not escaped: `script(content:)` wraps this in a `RawText`, so the `&&`
+/// and `<` render as executable JS rather than HTML entities.
+const _searchTrackingSnippet = r'''
+(function () {
+  var lastSent = null;
+  var timer = null;
+  document.addEventListener('input', function (event) {
+    var target = event.target;
+    if (!target || target.id !== 'docs-search-input') return;
+    var query = (target.value || '').trim();
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(function () {
+      if (query.length < 2) return;
+      if (query === lastSent) return;
+      lastSent = query;
+      if (window.amplitude && window.amplitude.track) {
+        window.amplitude.track('docs_search', { search_term: query });
+      }
+    }, 800);
+  }, true);
+})();
+''';
 
 /// Previous/next links along the reading order defined in [flatNavigation].
 final class _PageNav extends StatelessComponent {
