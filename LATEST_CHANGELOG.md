@@ -122,19 +122,17 @@
 
 # revali_client
 
-## 3.0.1
+## 3.1.0
 
-### Fixes
+### Features
 
-- **Percent-encode query keys and values.** `RevaliClient.request` wrote every key and value into the URL verbatim and handed the result to `Uri.parse`, so any character that means something in a query string was read as syntax rather than data: a `#` truncated the value and silently moved the rest into the URI fragment, an `&` truncated it and left the remainder as a bogus extra parameter, and a `+` arrived as a space. The expensive part is where it surfaces — the client sends a request that looks fine and exits 0, and the failure appears two packages away as a deserialization error from the server, which decodes with `Uri.queryParametersAll` and so is reading exactly what it was sent. A record id containing `#` inside a JSON-encoded query parameter cut the JSON mid-string and came back as a `400` complaining about the wrong Dart type, nowhere near the call site that supplied the id. Keys and values now go through `Uri.encodeQueryComponent`, which is the exact inverse of the router's decode.
-- Stop emitting an empty pair after a list or a null. The list branch wrote a `&` after *every* element while the outer loop added its own separator between entries, so `{'a': [1, 2], 'b': 3}` produced `?a=1&a=2&&b=3`; a null value skipped its pair but still got a separator. Pairs are now collected and joined, so exactly one `&` sits between them.
-- Stop swallowing a `jsonEncode` failure. A value `jsonEncode` could not represent was caught and replaced with its `toString()`, putting `Instance of 'Foo'` on the wire as though it were the value and turning a mistake at the call site into a puzzling server-side error. The error now propagates.
+- Add `isTransportError`, a predicate for `Stream.handleError(test:)` that is true only for `package:http`'s `ClientException` — the error a stream raises when the connection itself fails, most often because the peer went away. Generated stream clients use it to keep swallowing that noise without also swallowing everything else. It is deliberately not called `isDisconnectError`: `ClientException` also covers "Client is already closed" and a malformed content-length, and the name should not promise more than it delivers. Type-based, never message-matching, and imports no `dart:io`, so the package stays web-safe.
 
 # revali_client_gen
 
-## 2.5.0
+## 2.6.0
 
 ### Fixes
 
-- Stop dropping an endpoint's own parameters when several share a Dart type. `ClientMethod.allParams` deduped its whole merged parameter list by *binding* — position, type and access, never name — and on a match **replaced** the entry it had, so one parameter per distinct Dart type survived: the last one declared. A route with `@Query() double latitude, @Query() double longitude, @Query() int? downPaymentCents, @Query() int? termPeriods, @Query() int? unitIndex` generated a client sending only `longitude` and `unitIndex`. `@Header()` collapsed the same way. The dedupe exists to reconcile a guard or interceptor's parameters against the endpoint's, and it is now confined to that: lifecycle parameters are still dropped when the endpoint already declares the same binding, but the endpoint's own list is passed through untouched. The expensive part was that adding a parameter deleted a *different* one — adding `unitIndex` silently removed `termPeriods` — with no warning, exit 0, and a client that compiles and type-checks while no longer sending a value the server still reads; a `required` parameter dropped this way fails at runtime, nowhere near the generator. Reported against 2.4.0. No `test_suite/constructs/revali_client` route declared two query parameters of one type, which is why it shipped.
-- Raise the `revali_client` floor to `^3.0.0`. Nothing else in this package changed; it is re-released so the published set still resolves. `revali_client` 3.0.0 is a new major, and a dependent's constraint is only rewritten if that dependent is itself part of the release — leaving 2.4.0 behind on `^2.1.0` would make it unresolvable alongside it. Generated client packages are unaffected: `pubspec_file.dart` resolves `revali_client` by path rather than by version constraint.
+- Stop generated stream clients swallowing every error. They appended `handleError((_) {})` unconditionally, and a `handleError` that does not rethrow completes the stream normally — so an `Invalid response` decode failure, or any application error, ended the stream as though it had finished, with no `onError` and no exception. A crashed stream was indistinguishable from a finished one. The suppression exists for transport failures when the peer disconnects, and it now applies only to those, via `isTransportError`; both generated codepaths (the bytes/nullable branch and the `mapOver` branch) are covered by tests.
+- Raise the `revali_client` floor to `^3.1.0`, which is where `isTransportError` arrives. Generated code references it, so an older `revali_client` would fail to compile.
