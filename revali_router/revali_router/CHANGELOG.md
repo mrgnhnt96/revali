@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 5.2.2 | 10.19.26
+
+### Fixes
+
+- A wildcard route under an empty-path parent now matches, so `@Controller('')` with `@Get('*')` or `@Get('*path')` serves every unmatched path instead of returning 404. Static and dynamic sibling routes still take precedence over the wildcard.
+
 ## 5.2.1 | 10.19.26
 
 ### Fixes
