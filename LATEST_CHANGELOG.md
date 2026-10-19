@@ -69,19 +69,11 @@
 
 # revali_router
 
-## 5.2.0
-
-### Security
-
-- `@AllowOrigins` matched each entry as an unanchored regex, so `https://myapp.com` also admitted `https://myapp.com.attacker.io`. Entries now match exactly; `'*'` still allows any origin, and a regex must start with `^` and match the whole origin. **An existing regex entry without `^` now matches nothing.**
-- The request origin was read from a client-sent `Access-Control-Allow-Origin` header before `Origin`, letting a client claim an allowed origin. Only `Origin` is read now.
+## 5.2.1
 
 ### Fixes
 
-- App-level `@AllowOrigins` and `@PreventHeaders` now apply to every route, unless a `noInherit` sits in between.
-- `@PreventHeaders` matches header names case-insensitively. Before this, `dart:io` lowercased incoming names and nothing matched.
-- CORS preflights skip the `@ExpectHeaders`/`@PreventHeaders` checks, which browsers can't satisfy on a preflight.
-- An explicit `@Head` route always answers HEAD requests, whichever order it and a `@Get` on the same path are declared in.
+- A path segment may start with a single dot, so `@Controller('.well-known')` and `Route('.well-known')` no longer throw `Invalid path format`. Dot-only segments (`.`, `..`), two leading dots and dotted params (`:.id`) are still rejected.
 
 # revali_redis
 
