@@ -331,7 +331,7 @@ packages:
       path: "../../../revali_router/revali_router"
       relative: true
     source: path
-    version: "5.2.1"
+    version: "5.2.2"
   shelf:
     dependency: transitive
     description:
