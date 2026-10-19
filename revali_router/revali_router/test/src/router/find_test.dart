@@ -1,4 +1,5 @@
 import 'package:revali_router/src/route/route.dart';
+import 'package:revali_router/src/route/route_match.dart';
 import 'package:revali_router/src/router/router.dart';
 import 'package:test/test.dart';
 
@@ -917,6 +918,90 @@ void main() {
         expect(result?.pathParameters, {
           'path': <String>[],
         });
+      });
+
+      group('nested under an empty-path parent', () {
+        for (final (wildcard, key) in [('*', '*'), ('*path', 'path')]) {
+          group(wildcard, () {
+            late Route catchAll;
+            late Route status;
+            late Router router;
+
+            setUp(() {
+              catchAll = Route(
+                wildcard,
+                method: 'GET',
+                handler: (_) async {},
+              );
+              status = Route(
+                'status',
+                method: 'GET',
+                handler: (_) async {},
+              );
+              router = Router(
+                routes: [
+                  Route('', routes: [catchAll]),
+                  Route('api', routes: [status]),
+                ],
+              );
+            });
+
+            RouteMatch? find(List<String> segments, {String method = 'GET'}) {
+              return Find(
+                segments: segments,
+                routes: router.routes,
+                method: method,
+              ).run();
+            }
+
+            for (final segments in [
+              ['anything'],
+              ['a', 'b', 'c'],
+              ['.well-known', 'x'],
+            ]) {
+              test('should match ${segments.join('/')}', () {
+                final result = find(segments);
+
+                expect(result?.route, catchAll);
+                expect(result?.pathParameters, {key: segments});
+              });
+            }
+
+            test('should match the root path with an empty capture', () {
+              final result = find([]);
+
+              expect(result?.route, catchAll);
+              expect(result?.pathParameters, {key: <String>[]});
+            });
+
+            test('should prefer a static sibling over the wildcard', () {
+              final result = find(['api', 'status']);
+
+              expect(result?.route, status);
+              expect(result?.pathParameters, isEmpty);
+            });
+
+            test('should prefer a static route beside the wildcard', () {
+              final health = Route(
+                'health',
+                method: 'GET',
+                handler: (_) async {},
+              );
+              router = Router(
+                routes: [
+                  Route('', routes: [catchAll, health]),
+                ],
+              );
+
+              expect(find(['health'])?.route, health);
+              expect(find(['health', 'x'])?.route, catchAll);
+            });
+
+            test('should not match a different method', () {
+              expect(find(['anything'], method: 'POST'), isNull);
+            });
+          });
+        }
       });
     });
   });

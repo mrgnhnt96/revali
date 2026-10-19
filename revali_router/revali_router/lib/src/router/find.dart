@@ -64,6 +64,8 @@ class Find {
           return methodOrder(a).compareTo(methodOrder(b));
         });
 
+      RouteMatch? wildcardFallback;
+
       for (final route in sorted) {
         final wildcardIndex =
             route.segments.indexWhere((segment) => segment.startsWith('*'));
@@ -161,6 +163,13 @@ class Find {
           proxy = poss?.route;
         }
 
+        // An empty-path parent sorts ahead of its static siblings, so a
+        // wildcard reached through it is only used when no sibling matches.
+        if (route.path.isEmpty && (proxy?.hasWildcard ?? false)) {
+          wildcardFallback ??= RouteMatch(proxy!);
+          continue;
+        }
+
         if (route.isDynamic) {
           final segments = [
             for (final segment
@@ -254,7 +263,7 @@ class Find {
         }
       }
 
-      return null;
+      return wildcardFallback;
     }
 
     final result = find(
