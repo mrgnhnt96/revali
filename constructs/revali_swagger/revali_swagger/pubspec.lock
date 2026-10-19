@@ -391,7 +391,7 @@ packages:
       path: "../../../packages/revali"
       relative: true
     source: path
-    version: "3.3.3"
+    version: "3.3.4"
   revali_annotations:
     dependency: "direct main"
     description:
@@ -419,7 +419,7 @@ packages:
       path: "../../../revali_router/revali_router"
       relative: true
     source: path
-    version: "5.1.2"
+    version: "5.2.0"
   revali_swagger_annotations:
     dependency: "direct main"
     description:
