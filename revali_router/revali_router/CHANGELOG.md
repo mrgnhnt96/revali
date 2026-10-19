@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 5.2.1 | 10.19.26
+
+### Fixes
+
+- A path segment may start with a single dot, so `@Controller('.well-known')` and `Route('.well-known')` no longer throw `Invalid path format`. Dot-only segments (`.`, `..`), two leading dots and dotted params (`:.id`) are still rejected.
+
 ## 5.2.0 | 09.25.26
 
 ### Security
