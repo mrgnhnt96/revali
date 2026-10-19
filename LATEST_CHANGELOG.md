@@ -69,11 +69,11 @@
 
 # revali_router
 
-## 5.2.1
+## 5.2.2
 
 ### Fixes
 
-- A path segment may start with a single dot, so `@Controller('.well-known')` and `Route('.well-known')` no longer throw `Invalid path format`. Dot-only segments (`.`, `..`), two leading dots and dotted params (`:.id`) are still rejected.
+- A wildcard route under an empty-path parent now matches, so `@Controller('')` with `@Get('*')` or `@Get('*path')` serves every unmatched path instead of returning 404. Static and dynamic sibling routes still take precedence over the wildcard.
 
 # revali_redis
 
