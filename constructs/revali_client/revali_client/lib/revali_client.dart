@@ -16,3 +16,4 @@ export 'src/revali_client.dart';
 export 'src/server_exception.dart';
 export 'src/session_storage.dart';
 export 'src/storage.dart';
+export 'src/stream_errors.dart';
