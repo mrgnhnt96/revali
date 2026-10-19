@@ -83,66 +83,68 @@ void main() {
 
     group('wildcard under an empty-path parent', () {
       for (final (wildcard, key) in [('*', '*'), ('*path', 'path')]) {
-        Future<(int, String)> get(String path) async {
-          final request = await client.getUrl(
-            Uri.parse('http://127.0.0.1:${server.port}$path'),
-          );
-          final response = await request.close();
-          final body = await response.transform(utf8.decoder).join();
+        group(wildcard, () {
+          Future<(int, String)> get(String path) async {
+            final request = await client.getUrl(
+              Uri.parse('http://127.0.0.1:${server.port}$path'),
+            );
+            final response = await request.close();
+            final body = await response.transform(utf8.decoder).join();
 
-          return (response.statusCode, body);
-        }
+            return (response.statusCode, body);
+          }
 
-        setUp(() async {
-          await serve(
-            Router(
-              routes: [
-                Route(
-                  '',
-                  routes: [
-                    Route(
-                      wildcard,
-                      method: 'GET',
-                      handler: (context) async {
-                        final captured =
-                            context.request.wildcardParameters[key];
-                        context.response.body =
-                            'wildcard:${captured?.join('/')}';
-                      },
-                    ),
-                  ],
-                ),
-                Route(
-                  'api',
-                  routes: [
-                    Route(
-                      'status',
-                      method: 'GET',
-                      handler: (context) async {
-                        context.response.body = 'status';
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          );
-        });
+          setUp(() async {
+            await serve(
+              Router(
+                routes: [
+                  Route(
+                    '',
+                    routes: [
+                      Route(
+                        wildcard,
+                        method: 'GET',
+                        handler: (context) async {
+                          final captured =
+                              context.request.wildcardParameters[key];
+                          context.response.body =
+                              'wildcard:${captured?.join('/')}';
+                        },
+                      ),
+                    ],
+                  ),
+                  Route(
+                    'api',
+                    routes: [
+                      Route(
+                        'status',
+                        method: 'GET',
+                        handler: (context) async {
+                          context.response.body = 'status';
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          });
 
-        for (final path in ['anything', 'a/b/c', '.well-known/x']) {
-          test('$wildcard serves /$path', () async {
-            final (status, body) = await get('/$path');
+          for (final path in ['anything', 'a/b/c', '.well-known/x']) {
+            test('serves /$path', () async {
+              final (status, body) = await get('/$path');
+
+              expect(status, HttpStatus.ok);
+              expect(body, 'wildcard:$path');
+            });
+          }
+
+          test('leaves the static sibling in charge', () async {
+            final (status, body) = await get('/api/status');
 
             expect(status, HttpStatus.ok);
-            expect(body, 'wildcard:$path');
+            expect(body, 'status');
           });
-        }
-
-        test('$wildcard leaves the static sibling in charge', () async {
-          final (status, body) = await get('/api/status');
-
-          expect(status, HttpStatus.ok);
-          expect(body, 'status');
         });
       }
     });

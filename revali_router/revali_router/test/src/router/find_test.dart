@@ -997,6 +997,28 @@ void main() {
               expect(find(['health', 'x'])?.route, catchAll);
             });
 
+            test('should prefer a dynamic sibling over the wildcard', () {
+              final byId = Route(
+                ':id',
+                method: 'GET',
+                handler: (_) async {},
+              );
+              router = Router(
+                routes: [
+                  Route('', routes: [catchAll]),
+                  byId,
+                ],
+              );
+
+              final result = find(['123']);
+
+              expect(result?.route, byId);
+              expect(result?.pathParameters, {
+                'id': ['123'],
+              });
+              expect(find(['123', 'x'])?.route, catchAll);
+            });
+
             test('should not match a different method', () {
               expect(find(['anything'], method: 'POST'), isNull);
             });
