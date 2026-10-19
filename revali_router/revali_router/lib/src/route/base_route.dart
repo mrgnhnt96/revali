@@ -102,8 +102,10 @@ class BaseRoute extends Equatable implements RouteEntry, LifecycleComponents {
       }
 
       if (!ignorePathPattern) {
+        // A literal segment may start with a single dot, for paths like
+        // `.well-known`. Params may not (`:.id` is not an identifier).
         final segmentPattern = RegExp(
-          r'^:?(?:_|[a-z0-9]+(?:[-_.][a-z0-9]+)*)$',
+          r'^(?::?(?:_|[a-z0-9]+(?:[-_.][a-z0-9]+)*)|\.[a-z0-9]+(?:[-_.][a-z0-9]+)*)$',
           caseSensitive: false,
         );
         final wildcardPattern = RegExp(

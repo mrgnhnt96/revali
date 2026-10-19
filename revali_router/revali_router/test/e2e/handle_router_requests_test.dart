@@ -49,6 +49,38 @@ void main() {
       expect(body, 'pong');
     });
 
+    test('serves a route under a dot-prefixed segment', () async {
+      await serve(
+        Router(
+          routes: [
+            Route(
+              '.well-known',
+              routes: [
+                Route(
+                  'security.txt',
+                  method: 'GET',
+                  handler: (context) async {
+                    context.response.body = 'Contact: mailto:a@b.c';
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+
+      final request = await client.getUrl(
+        Uri.parse(
+          'http://127.0.0.1:${server.port}/.well-known/security.txt',
+        ),
+      );
+      final response = await request.close();
+      final body = await response.transform(utf8.decoder).join();
+
+      expect(response.statusCode, HttpStatus.ok);
+      expect(body, 'Contact: mailto:a@b.c');
+    });
+
     test('fail-closes with 500 when the handler throws', () async {
       await serve(
         Router(
