@@ -256,6 +256,41 @@ void main() {
           expect(route.hasWildcard, isTrue);
         });
 
+        test('allows a segment with a leading dot', () {
+          final route = Route(
+            '.well-known/apple-app-site-association',
+            method: 'GET',
+            handler: (_) async {},
+          );
+
+          expect(route.path, '.well-known/apple-app-site-association');
+        });
+
+        test('if a segment is only dots', () {
+          for (final path in ['.', '..', '...', 'a/../b', '.well-known/.']) {
+            expect(
+              () => Route(
+                path,
+                method: 'GET',
+                handler: (_) async {},
+              ),
+              throwsArgumentError,
+              reason: path,
+            );
+          }
+        });
+
+        test('if a segment has more than one leading dot', () {
+          expect(
+            () => Route(
+              '..well-known',
+              method: 'GET',
+              handler: (_) async {},
+            ),
+            throwsArgumentError,
+          );
+        });
+
         test('if path contains more than one wildcard', () {
           expect(
             () => Route(
@@ -295,7 +330,8 @@ void main() {
             'user_/id',
             '-user/id',
             '_user/id',
-            '.user/id',
+            '.-user/id',
+            'user/:.id',
           };
 
           for (final format in badFormat) {
