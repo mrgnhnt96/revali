@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2.6.0 | 10.19.26
+
+### Fixes
+
+- Stop generated stream clients swallowing every error. They appended `handleError((_) {})` unconditionally, and a `handleError` that does not rethrow completes the stream normally — so an `Invalid response` decode failure, or any application error, ended the stream as though it had finished, with no `onError` and no exception. A crashed stream was indistinguishable from a finished one. The suppression exists for transport failures when the peer disconnects, and it now applies only to those, via `isTransportError`; both generated codepaths (the bytes/nullable branch and the `mapOver` branch) are covered by tests.
+- Raise the `revali_client` floor to `^3.1.0`, which is where `isTransportError` arrives. Generated code references it, so an older `revali_client` would fail to compile.
+
 ## 2.5.0 | 08.15.26
 
 ### Fixes

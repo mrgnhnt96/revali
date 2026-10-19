@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 3.1.0 | 10.19.26
+
+### Features
+
+- Add `isTransportError`, a predicate for `Stream.handleError(test:)` that is true only for `package:http`'s `ClientException` — the error a stream raises when the connection itself fails, most often because the peer went away. Generated stream clients use it to keep swallowing that noise without also swallowing everything else. It is deliberately not called `isDisconnectError`: `ClientException` also covers "Client is already closed" and a malformed content-length, and the name should not promise more than it delivers. Type-based, never message-matching, and imports no `dart:io`, so the package stays web-safe.
+
 ## 3.0.1 | 09.01.26
 
 ### Fixes
