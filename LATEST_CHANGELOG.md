@@ -6,13 +6,11 @@
 
 # revali
 
-## 3.3.4
+## 3.3.5
 
 ### Fixes
 
-- Send `File` and `MemoryFile` return values as the raw body instead of trying to JSON-encode `{"data": file}`.
-- Pass the raw query string to a pipe whose input type is `String` (`?id=1.50` arrives as `"1.50"`, not a coerced number).
-- Correct the `revali ai` reference and the doc links in `revali create` scaffolds, which pointed at pages that 404.
+- Parse non-`String` `@Param()` path params. Path params always arrive as a `String`, so a `@Param() int` (or `double`, `num`, `bool`) never matched the generated binding and every request threw `MissingArgumentException`, answering 400. The value is now parsed with `T.parse` when `T.tryParse` accepts it; a malformed value still falls through to the 400.
 
 # revali_annotations
 
