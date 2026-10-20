@@ -141,6 +141,19 @@ Expression createArgForParam(
       Block.of([declareFinal('data', type: refer('bool')).code]):
           stringifiedValue,
     },
+    // Path parameters are never coerced -- they always arrive as `String`, so
+    // a `final int data` arm alone can never match. Parse primitives here; an
+    // unparsable value falls through to the missing-argument arm (400).
+    if (annotation.type == AnnotationType.param &&
+        _parsablePrimitives.contains(rawType))
+      Block.of([
+        declareFinal('data', type: refer('String')).code,
+        const Code('when'),
+        refer(rawType).property('tryParse').call([refer('data')]).code,
+        const Code('!= null'),
+      ]): refer(
+        rawType,
+      ).property('parse').call([refer('data')]),
     // Coerced ints should satisfy double parameters (`?n=5` → 5).
     if (rawType == 'double')
       Block.of([declareFinal('data', type: refer('num')).code]): refer(
@@ -171,3 +184,7 @@ Expression createArgForParam(
     },
   });
 }
+
+/// Primitives a `String` path parameter is parsed into via their static
+/// `tryParse` / `parse`.
+const _parsablePrimitives = {'int', 'double', 'num', 'bool'};

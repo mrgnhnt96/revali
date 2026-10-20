@@ -1,5 +1,6 @@
 import 'package:code_builder/code_builder.dart';
 import 'package:revali/server/converters/server_param.dart';
+import 'package:revali/server/converters/server_param_annotation.dart';
 import 'package:revali/server/converters/server_param_annotations.dart';
 import 'package:revali/server/converters/server_query_annotation.dart';
 import 'package:revali/server/converters/server_type.dart';
@@ -108,6 +109,57 @@ void main() {
       // legitimately still appears elsewhere, in the thrown exception's
       // `expectedType` message.
       expect(code, isNot(contains('final List<String> data')));
+    });
+  });
+
+  group('createArgForParam path param parsing', () {
+    final emitter = DartEmitter.scoped(useNullSafetySyntax: true);
+
+    ServerParam pathParam(String type) {
+      return ServerParam(
+        name: 'id',
+        type: ServerType(name: type, isPrimitive: true),
+        annotations: ServerParamAnnotations(
+          body: null,
+          query: null,
+          header: null,
+          cookie: null,
+          ip: null,
+          param: ServerParamAnnotation(name: 'id', pipe: null),
+          dep: false,
+          data: false,
+          binds: null,
+          bind: null,
+        ),
+      );
+    }
+
+    for (final type in ['int', 'double', 'num', 'bool']) {
+      test('$type path params parse the String path value', () {
+        final param = pathParam(type);
+        final code = createArgForParam(
+          param.annotations.param!,
+          param,
+        ).accept(emitter).toString();
+
+        // The emitter's output is unformatted; compare whitespace-free.
+        final compact = code.replaceAll(RegExp(r'\s+'), '');
+        expect(
+          compact,
+          contains('finalStringdatawhen$type.tryParse(data)!=null=>'),
+        );
+        expect(compact, contains('$type.parse(data)'));
+      });
+    }
+
+    test('String path params are not parsed', () {
+      final param = pathParam('String');
+      final code = createArgForParam(
+        param.annotations.param!,
+        param,
+      ).accept(emitter).toString();
+
+      expect(code, isNot(contains('tryParse')));
     });
   });
 }
