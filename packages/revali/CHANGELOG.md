@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 3.3.5 | 10.19.26
+
+### Fixes
+
+- Parse non-`String` `@Param()` path params. Path params always arrive as a `String`, so a `@Param() int` (or `double`, `num`, `bool`) never matched the generated binding and every request threw `MissingArgumentException`, answering 400. The value is now parsed with `T.parse` when `T.tryParse` accepts it; a malformed value still falls through to the 400.
+
 ## 3.3.4 | 09.25.26
 
 ### Fixes
