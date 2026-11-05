@@ -500,8 +500,9 @@ class Router extends Equatable {
       _cleanUp.add(runCleanUp);
     }
 
-    // ignore: argument_type_not_assignable_to_error_handler
-    final response = await _handle(helper).catchError(helper.run.catchers.call);
+    final response = await _handle(helper).catchError(
+      helper.run.catchers.keepingHeaders,
+    );
 
     responseCompleter.complete(response);
 
@@ -531,8 +532,7 @@ class Router extends Equatable {
       return response;
     }
 
-    // ignore: argument_type_not_assignable_to_error_handler
-    return await execute.run().catchError(catchers.call);
+    return await execute.run().catchError(catchers.keepingHeaders);
   }
 
   HelperMixin _createHelper(
