@@ -8,10 +8,12 @@ import 'package:test/test.dart';
 import 'utils/test_request.dart';
 
 const _origin = 'https://app.example.com';
+const _unlistedOrigin = 'https://other.example.com';
 const _preflight = {
   'origin': _origin,
   'access-control-request-method': 'GET',
 };
+const _missingBody = MissingArgumentException(key: 'body', location: '@body');
 
 class _PublicPolicy extends CorsPolicy {
   const _PublicPolicy();
@@ -39,12 +41,74 @@ class _ThrowingPolicy extends CorsPolicy {
   CorsGrant grant(String? origin) => throw StateError('no policy');
 }
 
+class _ListedPolicy extends CorsPolicy {
+  const _ListedPolicy();
+
+  @override
+  CorsGrant grant(String? origin) {
+    if (origin == _origin) {
+      return (allowOrigin: _origin, allowCredentials: true);
+    }
+
+    return (allowOrigin: '*', allowCredentials: false);
+  }
+}
+
+class _ThrowingGuard implements Guard {
+  bool wasCalled = false;
+
+  @override
+  Future<GuardResult> protect(Context context) async {
+    wasCalled = true;
+    throw _missingBody;
+  }
+}
+
+class _ThrowingMiddleware implements Middleware {
+  const _ThrowingMiddleware();
+
+  @override
+  Future<MiddlewareResult> use(Context context) async {
+    throw _missingBody;
+  }
+}
+
+class _ThrowingInterceptor implements Interceptor {
+  const _ThrowingInterceptor();
+
+  @override
+  Future<void> pre(Context context) async {
+    throw _missingBody;
+  }
+
+  @override
+  Future<void> post(Context context) async {}
+}
+
+class _PassingWrapper implements RequestWrapper {
+  const _PassingWrapper();
+
+  @override
+  Future<Response> wrap(Context context, NextResponse next) => next();
+}
+
 String? _header(Response response, String name) {
   return response.headers.values[name]?.join(', ');
 }
 
 Future<void> _ok(Context context) async {
   context.response.statusCode = HttpStatus.ok;
+}
+
+Future<void> _throwInHandler(Context context) async {
+  throw _missingBody;
+}
+
+void _expectListedGrant(Response response) {
+  expect(response.statusCode, HttpStatus.badRequest);
+  expect(_header(response, 'access-control-allow-origin'), _origin);
+  expect(_header(response, 'access-control-allow-credentials'), 'true');
+  expect(_header(response, 'vary'), 'Origin');
 }
 
 void main() {
@@ -248,6 +312,163 @@ void main() {
           },
         );
       }
+    });
+  });
+
+  group('when the request fails before the handler', () {
+    requestTest(
+      'a guard keeps the grant of a listed origin',
+      TestRoute(
+        handler: _ok,
+        cors: const _ListedPolicy(),
+        guards: [_ThrowingGuard()],
+        headers: const {'origin': _origin},
+      ),
+      verifyResponse: (response, _) => _expectListedGrant(response),
+    );
+
+    requestTest(
+      'a guard keeps the grant of an unlisted origin',
+      TestRoute(
+        handler: _ok,
+        cors: const _ListedPolicy(),
+        guards: [_ThrowingGuard()],
+        headers: const {'origin': _unlistedOrigin},
+      ),
+      verifyResponse: (response, _) {
+        expect(response.statusCode, HttpStatus.badRequest);
+        expect(_header(response, 'access-control-allow-origin'), '*');
+        expect(_header(response, 'access-control-allow-credentials'), isNull);
+        expect(_header(response, 'vary'), 'Origin');
+      },
+    );
+
+    requestTest(
+      'a guard keeps the grant in debug mode',
+      TestRoute(
+        handler: _ok,
+        debug: true,
+        cors: const _ListedPolicy(),
+        guards: [_ThrowingGuard()],
+        headers: const {'origin': _origin},
+      ),
+      verifyResponse: (response, _) => _expectListedGrant(response),
+    );
+
+    requestTest(
+      'a guard inside a request wrapper keeps the grant',
+      TestRoute(
+        handler: _ok,
+        cors: const _ListedPolicy(),
+        requestWrappers: const [_PassingWrapper()],
+        guards: [_ThrowingGuard()],
+        headers: const {'origin': _origin},
+      ),
+      verifyResponse: (response, _) => _expectListedGrant(response),
+    );
+
+    requestTest(
+      'a middleware keeps the grant',
+      TestRoute(
+        handler: _ok,
+        cors: const _ListedPolicy(),
+        middlewares: const [_ThrowingMiddleware()],
+        headers: const {'origin': _origin},
+      ),
+      verifyResponse: (response, _) => _expectListedGrant(response),
+    );
+
+    requestTest(
+      'an interceptor keeps the grant',
+      TestRoute(
+        handler: _ok,
+        cors: const _ListedPolicy(),
+        interceptors: const [_ThrowingInterceptor()],
+        headers: const {'origin': _origin},
+      ),
+      verifyResponse: (response, _) => _expectListedGrant(response),
+    );
+
+    test('a refused origin gets no grant and never reaches the guard',
+        () async {
+      final guard = _ThrowingGuard();
+
+      await testRequest(
+        TestRoute(
+          handler: _ok,
+          cors: const _ListedPolicy(),
+          allowedOrigins: const AllowOrigins({'https://example.com'}),
+          guards: [guard],
+          headers: const {'origin': _origin},
+        ),
+        verifyResponse: (response, _) {
+          expect(response.statusCode, HttpStatus.forbidden);
+          expect(_header(response, 'access-control-allow-origin'), isNull);
+          expect(_header(response, 'access-control-allow-credentials'), isNull);
+          expect(_header(response, 'vary'), 'Origin');
+          expect(guard.wasCalled, isFalse);
+        },
+      );
+    });
+
+    test('leaves no grant on a default response shared between requests',
+        () async {
+      final shared = SimpleResponse(HttpStatus.badRequest);
+
+      await testRequest(
+        TestRoute(
+          handler: _ok,
+          cors: const _ListedPolicy(),
+          guards: [_ThrowingGuard()],
+          defaultResponses: DefaultResponses(badRequest: shared),
+          headers: const {'origin': _origin},
+        ),
+        verifyResponse: (response, _) {
+          _expectListedGrant(response);
+          expect(_header(shared, 'access-control-allow-origin'), isNull);
+          expect(_header(shared, 'access-control-allow-credentials'), isNull);
+          expect(_header(shared, 'vary'), isNull);
+        },
+      );
+    });
+  });
+
+  group('when the handler fails', () {
+    requestTest(
+      'keeps one copy of each header',
+      TestRoute(
+        handler: _throwInHandler,
+        cors: const _ListedPolicy(),
+        headers: const {'origin': _origin},
+      ),
+      verifyResponse: (response, _) {
+        _expectListedGrant(response);
+        for (final name in const [
+          'access-control-allow-origin',
+          'access-control-allow-credentials',
+          'vary',
+        ]) {
+          expect(response.headers.getAll(name), hasLength(1), reason: name);
+        }
+      },
+    );
+
+    test('leaves no grant on a default response shared between requests',
+        () async {
+      final shared = SimpleResponse(HttpStatus.badRequest);
+
+      await testRequest(
+        TestRoute(
+          handler: _throwInHandler,
+          cors: const _ListedPolicy(),
+          defaultResponses: DefaultResponses(badRequest: shared),
+          headers: const {'origin': _origin},
+        ),
+        verifyResponse: (response, _) {
+          _expectListedGrant(response);
+          expect(_header(shared, 'access-control-allow-origin'), isNull);
+        },
+      );
     });
   });
 

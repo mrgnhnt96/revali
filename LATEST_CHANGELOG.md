@@ -74,6 +74,11 @@
 - Add `CorsPolicy`, a runtime CORS policy an app supplies by overriding `cors` on `AppConfig`, or through `Router(cors: ...)`. After the `@AllowOrigins` check, `CorsPolicy.grant` decides `Access-Control-Allow-Origin` and whether `Access-Control-Allow-Credentials: true` is sent. It runs before any lifecycle component, so it governs preflights too, which nothing in an app could reach before. The default reflects the origin with credentials, as before.
 - Send `Vary: Origin` on every response to a request with an `Origin` header, refusals included, so a cache cannot serve one origin's grant to another. This is the one change to existing apps' responses.
 
+### Fixes
+
+- Keep the CORS grant and other headers already on the response when a guard, middleware, interceptor or request wrapper throws, as a handler error already did. Without them a browser reported a network error instead of the real status.
+- Stop an error response leaving one request's headers on an app-supplied `DefaultResponses` instance, where they reached later requests.
+
 # revali_redis
 
 ## 0.2.0

@@ -125,11 +125,9 @@ class Execute {
           try {
             await handler(context);
           } catch (e, stackTrace) {
-            final responseForError = await catchers(e, stackTrace);
-            responseForError.headers.addEverything(
-              response.headers.values,
+            errorResponse.complete(
+              await catchers.keepingHeaders(e, stackTrace),
             );
-            errorResponse.complete(responseForError);
           }
 
           if (!errorResponse.isCompleted) {
@@ -165,11 +163,7 @@ ${Trace.from(stack)}
         try {
           await handler(context);
         } catch (e, stackTrace) {
-          final responseForError = await catchers(e, stackTrace);
-          responseForError.headers.addEverything(
-            response.headers.values,
-          );
-          return responseForError;
+          return catchers.keepingHeaders(e, stackTrace);
         }
       }
     }

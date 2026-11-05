@@ -16,6 +16,26 @@ class RunCatchers {
         defaultResponse: defaultResponse,
       );
 
+  /// Answers [e] like [run], keeping the headers this request has already put
+  /// on its response, such as the CORS grant. Without them a browser reports a
+  /// network error instead of the real status.
+  ///
+  /// The answer can be an app-supplied default shared between requests, so the
+  /// headers go on a copy. Left on the default, one caller's reflected origin
+  /// and credentials would reach whoever gets that default next.
+  Future<Response> keepingHeaders(Object e, StackTrace stackTrace) async {
+    final HelperMixin(:response) = helper;
+
+    final caught = await run(e, stackTrace);
+    if (identical(caught, response)) {
+      return caught;
+    }
+
+    return SimpleResponse(caught.statusCode, body: caught.body)
+      ..headers.addEverything(caught.headers.values)
+      ..headers.addEverything(response.headers.values);
+  }
+
   Future<Response> run(
     Object e,
     StackTrace stackTrace, {
