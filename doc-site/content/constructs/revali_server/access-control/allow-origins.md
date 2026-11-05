@@ -90,17 +90,62 @@ Every request that passes the check gets these headers, whether or not you use `
 
 | Header | Value |
 | --- | --- |
-| `Access-Control-Allow-Origin` | The request's `Origin`, or `*` when it has none |
-| `Access-Control-Allow-Credentials` | `true` |
+| `Access-Control-Allow-Origin` | The request's `Origin`, or `*` when it has none. A [`CorsPolicy`](#runtime-policy) can change this. |
+| `Access-Control-Allow-Credentials` | `true`. A [`CorsPolicy`](#runtime-policy) can leave it off. |
 | `Access-Control-Allow-Methods` and `Allow` | The methods the path supports, for example `OPTIONS, GET, HEAD, POST` |
 | `Access-Control-Allow-Headers` | Any [`@ExpectHeaders`][expect-headers] names, plus the headers the client listed in `Access-Control-Request-Headers` |
+
+Any request with an `Origin` header also gets `Vary: Origin`, including one refused with a `403`, so a cache never serves one origin's answer to another.
+
+## Runtime Policy
+
+`@AllowOrigins` is fixed when the server is generated. To decide what an origin receives at runtime, for example from an allow-list in an environment variable, override `cors` on your app and return a `CorsPolicy`:
+
+<CodeFile name="routes/apps/main_app.dart">
+
+```dart
+import 'dart:io';
+
+import 'package:revali_router/revali_router.dart';
+
+final class TrustedOrigins extends CorsPolicy {
+  const TrustedOrigins(this.trusted);
+
+  final Set<String> trusted;
+
+  @override
+  CorsGrant grant(String? origin) {
+    if (origin != null && trusted.contains(origin)) {
+      return (allowOrigin: origin, allowCredentials: true);
+    }
+
+    return (allowOrigin: '*', allowCredentials: false);
+  }
+}
+
+@App()
+final class MainApp extends AppConfig {
+  MainApp() : super(host: 'localhost', port: 8080);
+
+  @override
+  CorsPolicy get cors => TrustedOrigins(
+    (Platform.environment['ALLOWED_ORIGINS'] ?? '').split(',').toSet(),
+  );
+}
+```
+
+</CodeFile>
+
+`grant` runs after the `@AllowOrigins` check, on every request that passes it, and before any lifecycle component. That includes preflights, so it is the only way to change what a preflight grants. `origin` is `null` when the request has no `Origin` header. An origin `@AllowOrigins` refuses still gets the `403`, and `grant` is not called for it.
+
+`Access-Control-Allow-Origin` is set to `allowOrigin`, and `Access-Control-Allow-Credentials: true` is sent only when `allowCredentials` is `true`. Browsers refuse a credentialed response whose allowed origin is `*`, so pair `*` with `allowCredentials: false`.
 
 ## Preflight Requests
 
 Browsers send an `OPTIONS` preflight before most cross-origin requests that are not "simple": for example, requests that send JSON, send a custom header, or use `PUT`, `PATCH`, or `DELETE`. Revali answers it automatically, and you don't write an `OPTIONS` endpoint:
 
 1. The origin is checked against `@AllowOrigins`. A failure returns `403`.
-2. Otherwise the response is `200` with an empty body and the CORS headers above.
+2. Otherwise the response is `200` with an empty body and the CORS headers above, including what a [`CorsPolicy`](#runtime-policy) grants.
 
 A preflight is an `OPTIONS` request with an `Access-Control-Request-Method` header. It only names the headers the real request will send, so [`@ExpectHeaders`][expect-headers] and [`@PreventHeaders`][prevent-headers] are not checked on it. They are checked on the real request that follows. A prevented header is left out of the preflight's `Access-Control-Allow-Headers`. A plain `OPTIONS` request, without `Access-Control-Request-Method`, is checked like any other request.
 
@@ -116,6 +161,7 @@ curl -i -X OPTIONS http://localhost:8080/api/orders \
 HTTP/1.1 200 OK
 access-control-allow-origin: https://myapp.com
 access-control-allow-credentials: true
+vary: Origin
 access-control-allow-methods: OPTIONS, GET, HEAD
 allow: OPTIONS, GET, HEAD
 ```

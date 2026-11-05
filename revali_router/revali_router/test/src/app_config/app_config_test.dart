@@ -25,6 +25,7 @@ void main() {
 
       expect(app.defaultResponses, isA<DefaultResponses>());
       expect(app.trustedProxy, isA<TrustedProxy>());
+      expect(app.cors, isA<CorsPolicy>());
     });
   });
 }

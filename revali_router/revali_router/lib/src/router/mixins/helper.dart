@@ -17,6 +17,7 @@ class Helper with HelperMixin, ContextMixin {
     authoredErrorResponse = router._authoredResponse;
     debugResponses = router.debug;
     defaultResponses = router.defaultResponses;
+    cors = router.cors;
 
     data = DataImpl()..add<CleanUp>(CleanUpImpl());
     meta = MetaScopeImpl(
@@ -61,6 +62,9 @@ class Helper with HelperMixin, ContextMixin {
 
   @override
   late final DefaultResponses defaultResponses;
+
+  @override
+  late final CorsPolicy cors;
 
   @override
   final List<Observer> observers;

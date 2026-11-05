@@ -31,15 +31,51 @@ class RunOriginCheck {
     }
   }
 
+  Response _refuse(Response refusal, {required Object error}) {
+    final response = helper.debugErrorResponse(
+      refusal,
+      error: error,
+      stackTrace: StackTrace.current,
+    );
+
+    _varyOnOrigin(response);
+
+    return response;
+  }
+
+  /// Marks [response] as depending on the request's `Origin`, so a cache never
+  /// hands one origin's answer to another. Refusals need it too: a cached 403
+  /// would otherwise lock out an admitted origin.
+  ///
+  /// Appends rather than sets, and leaves a marked response alone, because a
+  /// refusal can be an app-supplied response shared between requests.
+  void _varyOnOrigin(Response response) {
+    if (helper.request.headers.origin == null) {
+      return;
+    }
+
+    final headers = response.headers;
+    final values = [
+      for (final value in headers.getAll(HttpHeaders.varyHeader) ?? <String>[])
+        value.trim(),
+    ];
+
+    if (values.any((value) => value.toLowerCase() == 'origin')) {
+      return;
+    }
+
+    headers.set(HttpHeaders.varyHeader, [...values, 'Origin'].join(', '));
+  }
+
   Response? run() {
     final HelperMixin(
       :request,
       :route,
-      :debugErrorResponse,
       :defaultResponses,
       :preventedHeaders,
       :expectedHeaders,
       :allowedOrigins,
+      :cors,
       :response,
     ) = helper;
 
@@ -62,10 +98,9 @@ class RunOriginCheck {
     }
 
     if (!isAllowed) {
-      return debugErrorResponse(
+      return _refuse(
         defaultResponses.failedCorsOrigin,
         error: 'Origin is not allowed.',
-        stackTrace: StackTrace.current,
       );
     }
 
@@ -90,10 +125,9 @@ class RunOriginCheck {
     if (prevented.isNotEmpty && !isPreflight) {
       for (final header in request.headers.keys) {
         if (prevented.contains(header.toLowerCase())) {
-          return debugErrorResponse(
+          return _refuse(
             defaultResponses.failedCorsHeaders,
             error: 'Header is not allowed.',
-            stackTrace: StackTrace.current,
           );
         }
       }
@@ -110,27 +144,31 @@ class RunOriginCheck {
       }
 
       if (caseSafeHeaders.isNotEmpty) {
-        return debugErrorResponse(
+        return _refuse(
           defaultResponses.failedCorsHeaders,
           error: '''
 Missing Headers:
   - ${caseSafeHeaders.keys.join('\n  - ')}
 ''',
-          stackTrace: StackTrace.current,
         );
       }
     }
 
+    final grant = cors.grant(origin);
+
     response.headers.set(
-      HttpHeaders.accessControlAllowCredentialsHeader,
-      'true',
+      HttpHeaders.accessControlAllowOriginHeader,
+      grant.allowOrigin,
     );
 
-    if (origin != null) {
-      response.headers.set(HttpHeaders.accessControlAllowOriginHeader, origin);
-    } else {
-      response.headers.set(HttpHeaders.accessControlAllowOriginHeader, '*');
+    if (grant.allowCredentials) {
+      response.headers.set(
+        HttpHeaders.accessControlAllowCredentialsHeader,
+        'true',
+      );
     }
+
+    _varyOnOrigin(response);
 
     if (route.allowedMethods case final methods when methods.isNotEmpty) {
       response.headers.set(

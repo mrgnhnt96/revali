@@ -9,6 +9,7 @@ part of 'router.dart';
 extension _$RouterAutoequal on Router {
   List<Object?> get _$props => [
         compression,
+        cors,
         di,
         observers,
         routes,

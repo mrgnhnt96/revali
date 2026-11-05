@@ -56,6 +56,7 @@ Members you can override:
 | `shutdownTimeout`, `drainDelay`, `handleShutdownSignals`, `onServerStopped()` | 15s, 0s, `true`, no-op | [Graceful Shutdown](/revali/app-configuration/graceful-shutdown) |
 | `createBroker()` | `null` (messaging off) | [Messaging](/revali/messaging) |
 | `trustedProxy` | proxy headers ignored | [Create an App](/revali/app-configuration/create-an-app#trusted-proxy) |
+| `cors` | reflects the origin, with credentials | [Allow Origins](/constructs/revali_server/access-control/allow-origins#runtime-policy) |
 | `onServerStarted(HttpServer server)` | prints `Serving at …` | |
 | `runStartup(start)` | calls `start()` | Wrap startup, for example in `runZoned`. |
 

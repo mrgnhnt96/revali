@@ -22,6 +22,7 @@ mixin HelperMixin {
   /// Formats a failure the app authored; delivers a 5xx as written.
   DebugErrorResponse get authoredErrorResponse;
   DefaultResponses get defaultResponses;
+  CorsPolicy get cors;
   bool get debugResponses;
   List<Observer> get observers;
   Future<Response> get observerResponseFuture;

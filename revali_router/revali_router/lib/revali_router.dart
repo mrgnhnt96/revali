@@ -16,6 +16,7 @@ export 'src/context/context_impl.dart';
 export 'src/context/pipe_context_impl.dart';
 export 'src/cookies/cookies_impl.dart';
 export 'src/cookies/set_cookies_impl.dart';
+export 'src/cors/cors_policy.dart';
 export 'src/data/data_impl.dart';
 export 'src/exceptions/close_web_socket_exception.dart';
 export 'src/exceptions/guard_stop_exception.dart';

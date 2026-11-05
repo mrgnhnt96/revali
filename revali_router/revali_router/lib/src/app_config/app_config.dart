@@ -1,5 +1,6 @@
 import 'package:revali_core/revali_core.dart' as core;
 import 'package:revali_core/revali_core.dart';
+import 'package:revali_router/src/cors/cors_policy.dart';
 import 'package:revali_router/src/response/default_responses.dart';
 
 base class AppConfig extends core.AppConfig {
@@ -47,4 +48,11 @@ base class AppConfig extends core.AppConfig {
   /// Override in your app class to supply proxy settings (for example after
   /// loading deployment config during [runStartup]).
   TrustedProxy get trustedProxy => const TrustedProxy();
+
+  /// What an origin admitted by `@AllowOrigins` is granted, on every response
+  /// including preflights.
+  ///
+  /// Override in your app class to decide this at runtime (for example from an
+  /// allow-list loaded during [runStartup]).
+  CorsPolicy get cors => const CorsPolicy();
 }
