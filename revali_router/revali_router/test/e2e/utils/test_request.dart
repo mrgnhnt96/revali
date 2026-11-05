@@ -35,7 +35,7 @@ Future<void> testRequest(
 
   final request = _MockHttpRequest()
     ..stub(
-      method: route.method,
+      method: route.requestMethod ?? route.method,
       path: route.requestPath ?? route.path,
       headers: route.headers,
     );
@@ -155,6 +155,9 @@ class TestRoute extends Route {
     this.headers = const {},
     this.debug = false,
     this.requestPath,
+    this.requestMethod,
+    this.cors = const CorsPolicy(),
+    this.defaultResponses = const DefaultResponses(),
     super.routes,
     super.middlewares,
     super.requestWrappers,
@@ -182,11 +185,20 @@ class TestRoute extends Route {
   /// registered at -- the only way to drive a request that matches no route.
   final String? requestPath;
 
+  /// Method to request with, when it should differ from the method this route
+  /// is registered for -- the only way to drive a preflight of it.
+  final String? requestMethod;
+
+  final CorsPolicy cors;
+  final DefaultResponses defaultResponses;
+
   Router toRouter() {
     return Router(
       routes: [this],
       observers: observers,
       debug: debug,
+      cors: cors,
+      defaultResponses: defaultResponses,
     );
   }
 

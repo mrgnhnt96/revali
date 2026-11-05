@@ -464,7 +464,7 @@ For per-request state (a transaction, a session context), use `RequestScopedDI` 
 | **Graceful shutdown** | `SIGTERM` drains consumers, then in-flight requests, before exit; `drainDelay` (default zero) and `shutdownTimeout` (default 15s) on `AppConfig`, plus `onServerStopped()`. `SIGINT` skips the drain delay. |
 | **Compression** | Gzip is **on** by default via the `compression` getter; use `const CompressionSettings.disabled()` when a CDN or proxy in front already compresses. |
 | **HTTPS in dev** | `revali dev --cert path.pem --key key.pem` (no code change), or `AppConfig.secure(securityContext: ...)` for programmatic TLS / mutual TLS. Generate local certs with `mkcert`. |
-| **CORS (`@AllowOrigins`)** | All origins allowed by default; scope `@AllowOrigins({'https://myapp.com'})` at app/controller/endpoint level (inherits by default; `@AllowOrigins.noInherit(...)` opts out; `@AllowOrigins.all()` is an explicit wildcard). |
+| **CORS (`@AllowOrigins`)** | All origins allowed by default; scope `@AllowOrigins({'https://myapp.com'})` at app/controller/endpoint level (inherits by default; `@AllowOrigins.noInherit(...)` opts out; `@AllowOrigins.all()` is an explicit wildcard). To decide what an admitted origin is granted at runtime, preflights included, override `cors` on `AppConfig` with a `CorsPolicy`. |
 
 ```dart
 @App(flavor: 'production')
@@ -816,7 +816,7 @@ For per-request state (a transaction), use `RequestScopedDI` inside a request wr
 | **Workers** | `workers: N` runs N isolates on one port; they share no memory, so caches/counters/statics are per isolate. `IsolateIdentity.current.isWorker` guards once-per-process work. |
 | **Shutdown & probes** | `SIGTERM` drains consumers then HTTP (`drainDelay`, `shutdownTimeout`, `onServerStopped`); `/healthz` and `/readyz` come from the `health` getter. |
 | **Compression** | Gzip is on by default (`compression` getter); disable with `const CompressionSettings.disabled()`. |
-| **CORS** | All origins allowed by default; scope with `@AllowOrigins({'https://myapp.com'})` (`.noInherit(...)`, `.all()`). |
+| **CORS** | All origins allowed by default; scope with `@AllowOrigins({'https://myapp.com'})` (`.noInherit(...)`, `.all()`). Override `cors` on `AppConfig` with a `CorsPolicy` to decide the grant at runtime, preflights included. |
 
 ## Database Integration
 

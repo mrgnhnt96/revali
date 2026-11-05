@@ -6,11 +6,11 @@
 
 # revali
 
-## 3.3.5
+## 3.4.0
 
-### Fixes
+### Features
 
-- Parse non-`String` `@Param()` path params. Path params always arrive as a `String`, so a `@Param() int` (or `double`, `num`, `bool`) never matched the generated binding and every request threw `MissingArgumentException`, answering 400. The value is now parsed with `T.parse` when `T.tryParse` accepts it; a malformed value still falls through to the 400.
+- Pass the app's `cors` policy to `Router` in the generated server, next to `trustedProxy` and `compression`. Generated code now needs `revali_router` 5.3.0, which is the new floor.
 
 # revali_annotations
 
@@ -67,11 +67,12 @@
 
 # revali_router
 
-## 5.2.2
+## 5.3.0
 
-### Fixes
+### Features
 
-- A wildcard route under an empty-path parent now matches, so `@Controller('')` with `@Get('*')` or `@Get('*path')` serves every unmatched path instead of returning 404. Static and dynamic sibling routes still take precedence over the wildcard.
+- Add `CorsPolicy`, a runtime CORS policy an app supplies by overriding `cors` on `AppConfig`, or through `Router(cors: ...)`. After the `@AllowOrigins` check, `CorsPolicy.grant` decides `Access-Control-Allow-Origin` and whether `Access-Control-Allow-Credentials: true` is sent. It runs before any lifecycle component, so it governs preflights too, which nothing in an app could reach before. The default reflects the origin with credentials, as before.
+- Send `Vary: Origin` on every response to a request with an `Origin` header, refusals included, so a cache cannot serve one origin's grant to another. This is the one change to existing apps' responses.
 
 # revali_redis
 

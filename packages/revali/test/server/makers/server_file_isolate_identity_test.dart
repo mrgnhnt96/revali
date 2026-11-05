@@ -51,6 +51,10 @@ void main() {
     }
   });
 
+  test('hands the router the CORS policy the app supplies', () {
+    expect(squash(generate()), contains('cors: app.cors,'));
+  });
+
   test('declares the isolate index as a top-level, defaulting to the '
       'parent', () {
     expect(squash(generate()), contains('int _revaliIsolateIndex = 0;'));

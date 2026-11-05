@@ -13,6 +13,7 @@ import 'package:revali_core/revali_core.dart';
 import 'package:revali_router/src/body/body_impl.dart';
 import 'package:revali_router/src/body/response_body/base_body_data.dart';
 import 'package:revali_router/src/context/context_impl.dart';
+import 'package:revali_router/src/cors/cors_policy.dart';
 import 'package:revali_router/src/data/data_impl.dart';
 import 'package:revali_router/src/exceptions/close_web_socket_exception.dart';
 import 'package:revali_router/src/exceptions/guard_stop_exception.dart';
@@ -77,6 +78,7 @@ class Router extends Equatable {
     this.defaultResponses = const DefaultResponses(),
     this.trustedProxy = const TrustedProxy(),
     this.compression = const CompressionSettings(),
+    this.cors = const CorsPolicy(),
     this.di,
   })  : _reflects = reflects,
         _globalComponents = globalComponents {
@@ -87,6 +89,10 @@ class Router extends Equatable {
   /// response handler. A route or global component supplying its own handler
   /// is responsible for its own compression.
   final CompressionSettings compression;
+
+  /// What an origin admitted by `@AllowOrigins` is granted, on every response
+  /// including preflights.
+  final CorsPolicy cors;
 
   /// The application container every request scopes from.
   ///
