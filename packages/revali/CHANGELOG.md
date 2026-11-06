@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 3.4.0 | 11.05.26
+
+### Features
+
+- Pass the app's `cors` policy to `Router` in the generated server, next to `trustedProxy` and `compression`. Generated code now needs `revali_router` 5.3.0, which is the new floor.
+
 ## 3.3.5 | 10.19.26
 
 ### Fixes
