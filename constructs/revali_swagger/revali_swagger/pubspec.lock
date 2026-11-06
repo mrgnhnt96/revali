@@ -391,7 +391,7 @@ packages:
       path: "../../../packages/revali"
       relative: true
     source: path
-    version: "3.3.4"
+    version: "3.3.5"
   revali_annotations:
     dependency: "direct main"
     description:
