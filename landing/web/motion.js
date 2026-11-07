@@ -1,21 +1,20 @@
 /* ==========================================================================
    Revali — interaction layer
    --------------------------------------------------------------------------
-   Five small behaviours, no framework, no dependencies. Everything here is
+   Six small behaviours, no framework, no dependencies. Everything here is
    PROGRESSIVE: the page is complete and readable with this file blocked, and
    nothing below ever hides content that it is then responsible for revealing.
 
-   The one thing this script does before anything else is add `.js` to <html>,
-   which is what arms the reveal styles in styles.css. That ordering is the
-   whole contract — if the script fails to load, those rules never match and
-   every section is simply visible.
+   Adding `.js` to <html> is what arms the reveal styles in styles.css. If the
+   script fails to load, those rules never match and every section is simply
+   visible. It is added only after whatever is already on screen has been
+   marked `is-in`, so the hero is never hidden, not even for one frame.
    ========================================================================== */
 
 (() => {
   'use strict';
 
   const root = document.documentElement;
-  root.classList.add('js');
 
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -82,6 +81,8 @@
     });
   }
 
+  root.classList.add('js');
+
   /* ---------------------------------------------------------------------
      3. Pipeline tabs.
      --------------------------------------------------------------------- */
@@ -104,6 +105,10 @@
         panel.hidden = panel.dataset.panel !== id;
       }
     };
+
+    // The markup leaves every panel visible, so a blocked script still shows
+    // all four. Collapsing to one is this script's job.
+    select(tabs[0].dataset.tab);
 
     tabs.forEach((tab, index) => {
       tab.addEventListener('click', () => select(tab.dataset.tab));

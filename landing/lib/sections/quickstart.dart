@@ -25,14 +25,35 @@ class Quickstart extends StatelessComponent {
             eyebrow: 'Quickstart',
             title: [
               Component.text('Running in '),
-              span(classes: 'grad', [Component.text('under a minute.')]),
+              span(classes: 'grad', [Component.text('three steps.')]),
             ],
+            sub: 'You need Dart 3.8 or later.',
             center: true,
           ),
           div(classes: 'qs', [
-            _step(1, 'Add the packages', hl.shell, snip.quickstartInstall, 0),
-            _step(2, 'Write a controller', hl.dart, snip.quickstartController, 80),
-            _step(3, 'Run it', hl.shell, snip.quickstartRun, 160),
+            _step(1, 'Create a project', hl.shell, snip.quickstartInstall, 0),
+            _step(
+              2,
+              'Write a controller',
+              hl.dart,
+              snip.quickstartController,
+              80,
+              note: [
+                Component.text('Save it as '),
+                code([Component.text(snip.quickstartControllerPath)]),
+              ],
+            ),
+            _step(
+              3,
+              'Run it',
+              hl.shell,
+              snip.quickstartRun,
+              160,
+              note: [
+                Component.text('Then open '),
+                code([Component.text(snip.quickstartUrl)]),
+              ],
+            ),
           ]),
           const _Cta(),
         ]),
@@ -40,7 +61,14 @@ class Quickstart extends StatelessComponent {
     );
   }
 
-  Component _step(int n, String title, hl.Grammar grammar, String source, int delay) {
+  Component _step(
+    int n,
+    String title,
+    hl.Grammar grammar,
+    String source,
+    int delay, {
+    List<Component>? note,
+  }) {
     return div(
       classes: 'qstep',
       attributes: {'data-reveal': '', if (delay > 0) 'style': '--d:${delay}ms'},
@@ -51,6 +79,7 @@ class Quickstart extends StatelessComponent {
           copyButton(source.trim()),
         ]),
         codeBlock(grammar, source),
+        if (note != null) p(classes: 'qstep__note', note),
       ],
     );
   }
@@ -71,8 +100,8 @@ class _Cta extends StatelessComponent {
         ]),
         p([
           Component.text(
-            'Revali is open source and MIT licensed. Your annotations '
-            'are the spec — everything else is generated.',
+            'Revali is open source and MIT licensed. Your annotations are '
+            'the spec, and the server is generated from them.',
           ),
         ]),
         div(classes: 'cta__cmd', [

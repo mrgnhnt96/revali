@@ -80,6 +80,11 @@ jobs:
             echo "::error::CNAME missing or wrong: $(cat CNAME 2>/dev/null)"; exit 1; }
           test -s styles.css || { echo "::error::styles.css was not published"; exit 1; }
           test -s motion.js || { echo "::error::motion.js was not published"; exit 1; }
+          # analytics.js carries the off switch that /privacy/ describes.
+          test -s analytics.js || { echo "::error::analytics.js was not published"; exit 1; }
+          test -s privacy/index.html || { echo "::error::the privacy page was not generated"; exit 1; }
+          test -s 404.html || { echo "::error::404.html was not generated"; exit 1; }
+          test -s images/og-home-2026-11.png || { echo "::error::the social card was not published"; exit 1; }
           # robots.txt advertises this; a missing one is an advertised 404.
           test -s sitemap.xml || { echo "::error::sitemap.xml was not generated"; exit 1; }
           # The page is one long document; a truncated render still returns a

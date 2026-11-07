@@ -67,11 +67,11 @@ class Browser:
             '--remote-allow-origins=*',
             '--hide-scrollbars',
             '--no-first-run',
+            # A test run must not land in the real analytics.
+            '--host-resolver-rules=MAP *.posthog.com ~NOTFOUND, MAP *.amplitude.com ~NOTFOUND',
         ]
         if reduced_motion:
             flags.append('--force-prefers-reduced-motion')
-        if not javascript:
-            flags.append('--disable-javascript')
 
         self.profile = tempfile.mkdtemp(prefix='revali-landing-cdp-')
         self.process = subprocess.Popen(
@@ -82,6 +82,9 @@ class Browser:
         self.socket = create_connection(self._wait_for_target(), suppress_origin=True)
         self.send('Page.enable')
         self.send('Runtime.enable')
+        if not javascript:
+            # Chrome has no command-line switch for this.
+            self.send('Emulation.setScriptExecutionDisabled', value=True)
 
     def _wait_for_target(self) -> str:
         for _ in range(100):
@@ -289,6 +292,50 @@ def run_checks(base: str) -> None:
     finally:
         reduced.close()
 
+    # --- The other two pages ----------------------------------------------
+    pages = Browser(9336)
+    try:
+        pages.viewport(390, 844, mobile=True)
+        pages.navigate(f'{base}/privacy/')
+        time.sleep(0.6)
+        check('privacy page renders', pages.evaluate('document.querySelector("h1").textContent') == 'Privacy')
+        check(
+            'privacy page has no sideways scroll',
+            pages.evaluate(
+                'document.documentElement.scrollWidth <= document.documentElement.clientWidth'
+            ) is True,
+        )
+        check(
+            'off switch appears',
+            pages.evaluate('document.querySelector("[data-analytics]").hidden') is False,
+        )
+        pages.screenshot('11-privacy', full=True)
+
+        pages.evaluate('document.querySelector("[data-analytics-toggle]").click()')
+        time.sleep(0.3)
+        check(
+            'off switch is remembered',
+            pages.evaluate('localStorage.getItem("revali-analytics") !== null') is True,
+        )
+        pages.evaluate('document.querySelector("[data-analytics-toggle]").click()')
+        time.sleep(0.3)
+        check(
+            'off switch turns back on',
+            pages.evaluate('localStorage.getItem("revali-analytics") === null') is True,
+        )
+
+        pages.navigate(f'{base}/404.html')
+        time.sleep(0.4)
+        check(
+            'not-found page stays out of search',
+            pages.evaluate(
+                'document.querySelector("meta[name=robots]")?.content.includes("noindex")'
+            ) is True,
+        )
+        pages.screenshot('12-not-found')
+    finally:
+        pages.close()
+
     # --- No JS: the page must still be a page -----------------------------
     nojs = Browser(9335, javascript=False)
     try:
@@ -297,6 +344,21 @@ def run_checks(base: str) -> None:
         time.sleep(0.8)
         nojs.screenshot('10-no-js')
         print('  ..   no-js screenshot written (inspect 10-no-js.png)')
+        check(
+            'no-js really has no js',
+            nojs.evaluate('document.documentElement.classList.contains("js")') is False,
+        )
+        check(
+            'no-js shows all four outputs',
+            nojs.evaluate('document.querySelectorAll("[data-panel]:not([hidden])").length') == 4,
+        )
+
+        nojs.navigate(f'{base}/privacy/')
+        time.sleep(0.4)
+        check(
+            'no-js hides the off switch it cannot run',
+            nojs.evaluate('document.querySelector("[data-analytics]").hidden') is True,
+        )
     finally:
         nojs.close()
 
