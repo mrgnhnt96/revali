@@ -1,0 +1,54 @@
+<!doctype html>
+<!-- The social card for the home page. Render it with:
+       "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new \
+         --hide-scrollbars --force-device-scale-factor=1 --window-size=1200,630 \
+         --screenshot=web/images/og-home-2026-11.png "file://$PWD/tool/og_home.html"
+     Give the output a new dated name when the card changes, so social sites
+     that cache by URL pick it up. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Revali social card</title>
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    width: 1200px; height: 630px; overflow: hidden;
+    display: grid; grid-template-columns: 1fr 500px; gap: 48px; align-items: center;
+    padding: 64px;
+    background: radial-gradient(700px 420px at 12% 0%, rgba(251,191,36,.14), transparent 70%),
+      radial-gradient(700px 480px at 100% 100%, rgba(99,102,241,.2), transparent 70%), #07080c;
+    color: #f2f4f8;
+    font-family: Inter, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  }
+  .brand { display: flex; align-items: center; gap: 14px; margin-bottom: 44px; font-size: 32px; font-weight: 600; letter-spacing: -.02em; }
+  .brand img { width: 52px; height: 52px; }
+  h1 { font-size: 56px; line-height: 1.06; letter-spacing: -.035em; font-weight: 680; }
+  h1 span { color: #fbbf24; }
+  p { margin-top: 26px; color: #a2a9b8; font-size: 27px; line-height: 1.35; }
+  pre {
+    padding: 30px 32px; border: 1px solid #262b38; border-radius: 16px; background: #0f1219;
+    font: 23px/1.6 ui-monospace, Menlo, monospace; color: #dfe3ea;
+  }
+  .a { color: #fbbf24; } .k { color: #c4a2f5; } .t { color: #7dd3fc; }
+</style>
+</head>
+<body>
+  <div>
+    <div class="brand"><img src="../web/images/logo.svg" alt="">Revali</div>
+    <h1>Annotate your Dart.<br><span>Generate the server.</span></h1>
+    <p>A Dart backend framework</p>
+  </div>
+<pre><span class="a">@Controller</span>('users')
+<span class="k">class</span> <span class="t">UsersController</span> {
+  <span class="a">@Get</span>(':id')
+  <span class="t">Future</span>&lt;<span class="t">User</span>&gt; byId(
+    <span class="a">@Param</span>() <span class="t">String</span> id,
+  ) => users.find(id);
+
+  <span class="a">@Post</span>()
+  <span class="t">Future</span>&lt;<span class="t">User</span>&gt; create(
+    <span class="a">@Body</span>() <span class="t">NewUser</span> body,
+  ) => users.create(body);
+}</pre>
+</body>
+</html>

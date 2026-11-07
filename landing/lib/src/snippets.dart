@@ -40,21 +40,25 @@ class UsersController {
 ''';
 
 /// Source: content/revali/cli/routes.md — the documented `revali routes`
-/// output format, widened to the four endpoints in [source].
+/// output format, listing the three endpoints in [source].
 const routeTable = '''
-prefix: /api  (4 routes)
+prefix: /api  (3 routes)
 
-GET      /users        →  UsersController.all
-GET      /users/:id    →  UsersController.byId
-POST     /users        →  UsersController.create
+GET     /api/users      →  UsersController.all
+GET     /api/users/:id  →  UsersController.byId
+POST    /api/users      →  UsersController.create
 ''';
 
-/// Source: content/constructs/revali_client/generated-code.md — positional
-/// body argument, matching the documented `createUser(User(...))` shape.
+/// Source: content/constructs/revali_client/index.md and generated-code.md.
+/// The package is `client` by default, body parameters are named, and models
+/// come from the package both sides share ("Sharing types"): `client.dart`
+/// does not export them. Checked by generating a client from [source] and
+/// analyzing this against it.
 const client = '''
-// .revali/revali_client — generated, then
-// imported straight into your Flutter app.
-import 'package:revali_client/client.dart';
+// .revali/revali_client — generated, then added
+// to your Flutter app as a path dependency.
+import 'package:client/client.dart';
+import 'package:models/models.dart';
 
 final server = Server();
 
@@ -63,7 +67,10 @@ final server = Server();
 final users = await server.users.all();
 
 final ada = await server.users.create(
-  NewUser(name: 'Ada', email: 'ada@revali.dev'),
+  body: NewUser(
+    name: 'Ada',
+    email: 'ada@revali.dev',
+  ),
 );
 ''';
 
@@ -149,8 +156,7 @@ class Session implements LifecycleComponent {
 
   // An Interceptor: it runs after the handler.
   InterceptorPostResult timing(Context context) {
-    context.response.headers.add('x-served-by', 'revali');
-    return const InterceptorPostResult.next();
+    context.response.headers['x-served-by'] = 'revali';
   }
 }
 ''';
@@ -165,9 +171,6 @@ Future<Page<User>> search(
   @Header('accept-language') String? locale,
   @Cookie('session') String? session,
 ) async {
-  // Parsed, typed, and validated before you
-  // are called. A bad request never gets here
-  // — it is a 400 with a real message.
   return users.search(q, page: page);
 }
 ''';
@@ -217,14 +220,17 @@ final class MainApp extends AppConfig {
 
 /// Source: content/create-constructs/core/build-construct.md
 const construct = '''
-class GraphQlConstruct implements BuildConstruct {
+final class GraphQlConstruct extends BuildConstruct {
+  const GraphQlConstruct();
+
   @override
-  Future<void> build(
-    RevaliContext context,
-    List<MetaRoute> routes,
-  ) async {
+  BuildDirectory generate(
+    RevaliBuildContext context,
+    MetaServer server,
+  ) {
     // Every route, every annotation, every type
     // — the same input the built-in server uses.
+    return BuildDirectory(files: const []);
   }
 }
 ''';
@@ -233,7 +239,7 @@ class GraphQlConstruct implements BuildConstruct {
 // Terminal.
 // ---------------------------------------------------------------------------
 
-const installCommand = 'dart pub add revali --dev';
+const installCommand = 'dart pub add revali_router dev:revali';
 const runCommand = 'dart run revali dev';
 
 /// Source: content/revali/cli/dev.md — the documented status board.
@@ -246,12 +252,20 @@ Press: r reload, c clear, q quit
 // Quickstart.
 // ---------------------------------------------------------------------------
 
+/// Source: content/revali/getting-started/installation.md
 const quickstartInstall = '''
-dart pub add revali --dev
+dart create -t console my_api
+cd my_api
 dart pub add revali_router
+dart pub add --dev revali
 ''';
 
+/// Saved at [quickstartControllerPath].
+///
+/// Source: content/revali/getting-started/create-your-first-endpoint.md
 const quickstartController = '''
+import 'package:revali_router/revali_router.dart';
+
 @Controller('hello')
 class HelloController {
   const HelloController();
@@ -261,4 +275,8 @@ class HelloController {
 }
 ''';
 
+const quickstartControllerPath = 'routes/controllers/hello_controller.dart';
+
 const quickstartRun = 'dart run revali dev';
+
+const quickstartUrl = 'http://localhost:8080/api/hello';

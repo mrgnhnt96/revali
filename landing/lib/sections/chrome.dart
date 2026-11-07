@@ -39,14 +39,14 @@ class SiteHeader extends StatelessComponent {
       [
         div(classes: 'shell hdr__inner', [
           a(classes: 'hdr__brand', href: '/', [
-            img(src: '/images/logo.svg', alt: ''),
+            img(src: '/images/logo.svg', alt: 'Revali logo', width: 30, height: 30),
             span([Component.text('Revali')]),
           ]),
           nav(classes: 'hdr__nav', [
-            a(classes: 'hdr__link hdr__link--hide-sm', href: '#how', [
+            a(classes: 'hdr__link hdr__link--hide-sm', href: '/#how', [
               Component.text('How it works'),
             ]),
-            a(classes: 'hdr__link hdr__link--hide-sm', href: '#features', [
+            a(classes: 'hdr__link hdr__link--hide-sm', href: '/#features', [
               Component.text('Features'),
             ]),
             a(classes: 'hdr__link hdr__link--hide-sm', href: '$_docs/constructs', [
@@ -59,7 +59,7 @@ class SiteHeader extends StatelessComponent {
               attributes: {'target': '_blank', 'rel': 'noopener', 'aria-label': 'GitHub'},
               [ico.github],
             ),
-            a(classes: 'btn btn--primary', href: '#start', [Component.text('Get started')]),
+            a(classes: 'btn btn--primary', href: '/#start', [Component.text('Get started')]),
           ]),
         ]),
       ],
@@ -75,7 +75,7 @@ class SiteFooter extends StatelessComponent {
     return footer(classes: 'ftr', [
       div(classes: 'shell ftr__inner', [
         div(classes: 'ftr__brand', [
-          img(src: '/images/logo.svg', alt: ''),
+          img(src: '/images/logo.svg', alt: 'Revali logo', width: 22, height: 22),
           span([Component.text('Revali — MIT licensed')]),
         ]),
         nav(classes: 'ftr__links', [
@@ -95,6 +95,7 @@ class SiteFooter extends StatelessComponent {
             attributes: {'target': '_blank', 'rel': 'noopener'},
             [Component.text('GitHub')],
           ),
+          a(href: '/privacy/', [Component.text('Privacy')]),
         ]),
       ]),
     ]);
