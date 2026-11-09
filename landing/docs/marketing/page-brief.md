@@ -27,14 +27,14 @@
 | Amplitude autocapture records page speed, failed requests and frustration signals | https://amplitude.com/docs/sdks/analytics/browser/browser-sdk-2/reference, read 2026-11-06 |
 | Amplitude records the IP address by default | Same page: `ip: "$remote"` is sent "so Amplitude records the request IP" |
 | PostHog receives the IP address with each event | https://posthog.com/docs/privacy/data-collection, read 2026-11-06 |
-| Both services are on free plans | Amplitude account plan read on 2026-11-06. PostHog from the note in `web/analytics.js`, which Morgan must confirm |
-| PostHog free plan: one year of data retention | https://posthog.com/pricing.md, read 2026-11-06 |
-| Amplitude free plan: access to one year of data | https://amplitude.com/pricing, read 2026-11-06 |
+| PostHog keeps the location and discards the IP | PostHog project settings, read 2026-11-09: Privacy > "Discard client IP data" is on (`anonymize_ips: true`), and the GeoIP transformation is enabled, so country and city are stored before the IP is dropped |
+| Both services are on free plans | Amplitude org plan `starter_v4` with the Free plan's 2M events/month quota, read 2026-11-09. PostHog Organization > Billing, read 2026-11-09: no card on file, every product on its free-tier limit |
+| PostHog free plan: one year of data retention | https://posthog.com/pricing.md, read 2026-11-06. The org's `product_analytics_data_retention` entitlement reads 1 year, 2026-11-09 |
+| Amplitude free plan: access to one year of data | https://amplitude.com/pricing, read 2026-11-06 and 2026-11-09: Free shows "Data access: 1 year" |
 | GitHub logs Pages visitors' IP addresses | https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages, read 2026-11-06 |
 
 ## Waiting on a person
 
 - Morgan: turn Session Replay off in the Amplitude project. Its remote config has capture on at 100%, and the docs site still uses the loader that obeys it.
-- B20, Morgan: must confirm the PostHog plan, retention for both services, and PostHog's IP storage. Correct `/privacy/` if anything differs, and add the dated confirmation to the claims table.
 - B24, Morgan: decides both: whether EU and UK visitors need a consent banner (analytics start on page load today), and a private contact for privacy requests (the page points to GitHub issues until then).
 - Morgan: after launch, verify the site in Search Console and Bing Webmaster, and run the Rich Results Test on the deployed page.
