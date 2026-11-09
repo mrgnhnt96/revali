@@ -31,7 +31,7 @@ dart run jaspr_cli:jaspr build      # -> build/jaspr
 
 ```
 lib/
-  main.server.dart      the whole page: <head>, meta, section order
+  main.server.dart      every page: <head>, meta, section order, routes
   sections/             one file per section, top to bottom
   src/
     snippets.dart       every code sample, each tagged with its doc source
@@ -40,7 +40,10 @@ lib/
     ui.dart             shared primitives (window chrome, reveal, copy button)
 web/
   styles.css            the design system — read the header comment first
-  motion.js             ~4KB, five behaviours, no dependencies
+  motion.js             ~4KB, six behaviours, no dependencies
+  analytics.js          PostHog, Amplitude, and the off switch on /privacy/
+tool/
+  og_home.html          the social card; render command in its header
 ```
 
 ### Three rules worth knowing before editing
@@ -68,11 +71,9 @@ what goes stale — the doc path in each comment makes the check a diff.
 *works*, so there is a headless-Chrome harness that asserts and screenshots:
 
 ```bash
-# In one terminal — render the single route and serve it:
-PORT=8099 dart run lib/main.server.dart
-mkdir -p /tmp/rvprev && cp -r web/* /tmp/rvprev/
-curl -s http://localhost:8099/ > /tmp/rvprev/index.html
-(cd /tmp/rvprev && python3 -m http.server 8777)
+# In one terminal — build the site and serve it:
+dart run jaspr_cli:jaspr build --sitemap-domain https://revali.dev
+(cd build/jaspr && python3 -m http.server 8777)
 
 # In another:
 python3 tool/verify_in_browser.py http://localhost:8777

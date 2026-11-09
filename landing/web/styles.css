@@ -26,7 +26,7 @@
 
   --text: #e7e9ee;
   --text-dim: #a2a9b8;
-  --text-faint: #6b7385;
+  --text-faint: #8a93a6;
 
   /* Amber — "yours". Straight off the logo's wing gradient. */
   --amber: #fbbf24;
@@ -469,7 +469,7 @@ p {
 /* Token colours. Deliberately restrained: annotations are the loudest thing
    in a Dart snippet because they are what the page is about. */
 .tok-comment {
-  color: #5a6273;
+  color: #858da0;
   font-style: italic;
 }
 .tok-ann {
@@ -645,45 +645,9 @@ p {
   }
 }
 
-.hero__pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  margin-bottom: 1.75rem;
-  padding: 0.35rem 0.85rem 0.35rem 0.4rem;
-  border: 1px solid var(--line-strong);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.03);
-  font-size: 0.8rem;
-  color: var(--text-dim);
-  transition: border-color 0.2s var(--ease), background 0.2s var(--ease);
-}
-
-.hero__pill:hover {
-  border-color: rgba(251, 191, 36, 0.4);
-  background: rgba(251, 191, 36, 0.06);
-}
-
-.hero__pill b {
-  padding: 0.15rem 0.5rem;
-  border-radius: 999px;
-  background: rgba(251, 191, 36, 0.14);
-  color: var(--amber);
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.hero__pill svg {
-  width: 0.85rem;
-  height: 0.85rem;
-  opacity: 0.6;
-}
-
 .hero h1 {
-  font-size: var(--step-4);
+  /* Sized so each of the two sentences stays on one line in the hero column. */
+  font-size: clamp(2.3rem, 1.2rem + 2.8vw, 3.6rem);
   font-weight: 660;
   letter-spacing: -0.038em;
   line-height: 1.02;
@@ -1004,6 +968,16 @@ p {
   line-height: 1.5;
 }
 
+.ptab__add {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
 .pipe__pane {
   position: sticky;
   top: 5.5rem;
@@ -1020,6 +994,15 @@ p {
    rise so the change registers as motion rather than a flicker. */
 .pipe__panel[hidden] {
   display: none;
+}
+
+/* With no script to run the tabs, all four panels stack. */
+html:not(.js) .pipe__pane {
+  position: static;
+}
+
+html:not(.js) .pipe__panel + .pipe__panel {
+  margin-top: 1rem;
 }
 
 .pipe__panel .win__body {
@@ -1430,6 +1413,19 @@ p {
   background: var(--bg-inset);
 }
 
+.qstep__note {
+  padding: 0.75rem 1.25rem;
+  border-top: 1px solid var(--line-soft);
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+
+.qstep__note code {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+
 /* --- Copy button --------------------------------------------------------- */
 
 .copy {
@@ -1613,4 +1609,125 @@ p {
   .term__cursor {
     display: none;
   }
+}
+
+/* --------------------------------------------------------------------------
+   18. Privacy and 404
+   -------------------------------------------------------------------------- */
+
+.prose__inner {
+  max-width: 44rem;
+}
+
+.prose h2 {
+  margin-top: 2.5rem;
+  margin-bottom: 0.75rem;
+  font-size: var(--step-1);
+}
+
+.prose p,
+.prose li {
+  color: var(--text-dim);
+  line-height: 1.7;
+}
+
+.prose p + p {
+  margin-top: 1rem;
+}
+
+.prose ul {
+  display: grid;
+  gap: 0.5rem;
+  padding-left: 1.25rem;
+  list-style: disc;
+}
+
+.prose a {
+  color: var(--amber);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.prose__date {
+  margin-bottom: 1.5rem;
+  color: var(--text-faint) !important;
+  font-size: 0.88rem;
+}
+
+.prose__table {
+  margin-top: 1rem;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.prose th,
+.prose td {
+  padding: 0.6rem 0.85rem;
+  border-bottom: 1px solid var(--line);
+  color: var(--text-dim);
+  text-align: left;
+  vertical-align: top;
+}
+
+.prose tr:last-child td {
+  border-bottom: 0;
+}
+
+.prose th {
+  color: var(--text);
+  font-weight: 560;
+}
+
+.prose td code {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  .prose td code {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
+.optout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  margin-top: 1.5rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: var(--bg-panel);
+}
+
+.optout[hidden] {
+  display: none;
+}
+
+.optout__status {
+  flex: 1 1 14rem;
+  color: var(--text) !important;
+}
+
+.notfound {
+  min-height: 60vh;
+  text-align: center;
+}
+
+.notfound__links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 2rem;
 }
