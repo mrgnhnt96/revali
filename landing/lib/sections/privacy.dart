@@ -24,7 +24,7 @@ class Privacy extends StatelessComponent {
     return section(classes: 'section prose', [
       div(classes: 'shell prose__inner', [
         h1(classes: 'section-title', [Component.text('Privacy')]),
-        p(classes: 'prose__date', [Component.text('Last updated 6 November 2026')]),
+        p(classes: 'prose__date', [Component.text('Last updated 9 November 2026')]),
         p([
           Component.text(
             'revali.dev is published by MRGNHNT, LLC, the copyright holder of '
@@ -73,8 +73,10 @@ class Privacy extends StatelessComponent {
           li([Component.text('Random device and session IDs, kept in your browser.')]),
           li([
             Component.text(
-              'Your IP address. Both services receive it with each request and '
-              'may store it. Amplitude records it by default.',
+              'Your IP address. Both services receive it with each request. '
+              'PostHog looks up your approximate location from it, such as '
+              'country and city, keeps that, and discards the IP itself. '
+              'Amplitude records the IP by default.',
             ),
           ]),
         ]),
