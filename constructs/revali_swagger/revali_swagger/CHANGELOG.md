@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.4.0 | 11.16.26
+
+### Chore
+
+- Support `analyzer` 13 and 14 (`>=13.3.0 <15.0.0`), up from `^10.0.0`. Synthetic fields are now excluded with `isOriginGetterSetter`, since `FieldElement.isSynthetic` no longer exists; the set of fields documented is unchanged.
+
 ## 1.3.0 | 08.15.26
 
 ### Fixes

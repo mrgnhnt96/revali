@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 3.5.0 | 11.16.26
+
+### Chore
+
+- Support `analyzer` 13 and 14 (`>=13.3.0 <15.0.0`) and `dart_style` up to 3.1.14. `^10.0.0` held back every project that also depends on `build_web_compilers`, whose first release that allows Dart 3.14 (4.8.11) needs `analyzer >=13.3.0`. The floor moves to 13.3.0 rather than widening down to 10: analyzer 13 replaced `NamedExpression` with `NamedArgument`, and the two share no API, so a single source cannot compile against both. 13.3.0 is also where `Folder.getFile`/`getFolder` arrive.
+
 ## 3.4.0 | 11.05.26
 
 ### Features

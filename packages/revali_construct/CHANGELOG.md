@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 3.1.0 | 11.16.26
+
+### Chore
+
+- Support `analyzer` 13 and 14 (`>=13.3.0 <15.0.0`), up from `^10.0.0`. Constructs that use analyzer APIs removed in 11–13 (for example `ClassDeclaration.name`/`members`, `NamedExpression`, `Element.isSynthetic`) need migrating when they take this version.
+
 ## 3.0.0 | 08.15.26
 
 ### Breaking

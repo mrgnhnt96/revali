@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.7.0 | 11.16.26
+
+### Chore
+
+- Support `analyzer` 13 and 14 (`>=13.3.0 <15.0.0`) and `dart_style` up to 3.1.14, up from `^10.0.0` and `<3.1.8`.
+
 ## 2.6.0 | 10.19.26
 
 ### Fixes
