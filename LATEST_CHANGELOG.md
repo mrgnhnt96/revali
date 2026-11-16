@@ -6,11 +6,11 @@
 
 # revali
 
-## 3.4.0
+## 3.5.0
 
-### Features
+### Chore
 
-- Pass the app's `cors` policy to `Router` in the generated server, next to `trustedProxy` and `compression`. Generated code now needs `revali_router` 5.3.0, which is the new floor.
+- Support `analyzer` 13 and 14 (`>=13.3.0 <15.0.0`) and `dart_style` up to 3.1.14. `^10.0.0` held back every project that also depends on `build_web_compilers`, whose first release that allows Dart 3.14 (4.8.11) needs `analyzer >=13.3.0`. The floor moves to 13.3.0 rather than widening down to 10: analyzer 13 replaced `NamedExpression` with `NamedArgument`, and the two share no API, so a single source cannot compile against both. 13.3.0 is also where `Folder.getFile`/`getFolder` arrive.
 
 # revali_annotations
 
@@ -22,15 +22,11 @@
 
 # revali_construct
 
-## 3.0.0
+## 3.1.0
 
-### Breaking
+### Chore
 
-- Remove `GenerateConstructType.buildAndConstructs`. It could not honour its name: it reported `isBuild`, and the generator branches `if (isBuild) { build makers } else { server and other makers }`, so it took the build branch and silently skipped every construct — the opposite of "both". `revali build` passed it nowhere, but a hidden `--type buildAndConstructs` looked like the way to make a build regenerate the client, and quietly did nothing of the sort. The promote step had a matching `isBuild && isConstructs` branch written for the promise rather than the behaviour, replacing the whole `.revali` tree with outputs that phase never generated; it was unreachable and is gone too. The two remaining values are mutually exclusive, which is what the generator always assumed. Running both phases is the caller's job — `revali build` now does it explicitly, in order.
-
-### Features
-
-- Add `MetaConsumer` and `MetaRoute.consumers`, describing methods annotated with `@Consumes` so constructs can generate against them. Kept separate from `MetaMethod` rather than folded into it: a consumer has no HTTP verb, no path and no request to bind from, so every field they would share is one that does not apply.
+- Support `analyzer` 13 and 14 (`>=13.3.0 <15.0.0`), up from `^10.0.0`. Constructs that use analyzer APIs removed in 11–13 (for example `ClassDeclaration.name`/`members`, `NamedExpression`, `Element.isSynthetic`) need migrating when they take this version.
 
 # revali_core
 
@@ -116,11 +112,11 @@
 
 # revali_swagger
 
-## 1.3.0
+## 1.4.0
 
-### Fixes
+### Chore
 
-- Raise the `revali_construct` floor to `^3.0.0`. Nothing in this package changed; it is re-released so the published set still resolves. `revali_construct` is a new major this round, and a dependent's constraint is only rewritten if that dependent is itself part of the release — leaving 1.2.0 behind on `^2.4.0` would make it unresolvable alongside it.
+- Support `analyzer` 13 and 14 (`>=13.3.0 <15.0.0`), up from `^10.0.0`. Synthetic fields are now excluded with `isOriginGetterSetter`, since `FieldElement.isSynthetic` no longer exists; the set of fields documented is unchanged.
 
 <!-- REVALI CLIENT -->
 
@@ -134,9 +130,8 @@
 
 # revali_client_gen
 
-## 2.6.0
+## 2.7.0
 
-### Fixes
+### Chore
 
-- Stop generated stream clients swallowing every error. They appended `handleError((_) {})` unconditionally, and a `handleError` that does not rethrow completes the stream normally — so an `Invalid response` decode failure, or any application error, ended the stream as though it had finished, with no `onError` and no exception. A crashed stream was indistinguishable from a finished one. The suppression exists for transport failures when the peer disconnects, and it now applies only to those, via `isTransportError`; both generated codepaths (the bytes/nullable branch and the `mapOver` branch) are covered by tests.
-- Raise the `revali_client` floor to `^3.1.0`, which is where `isTransportError` arrives. Generated code references it, so an older `revali_client` would fail to compile.
+- Support `analyzer` 13 and 14 (`>=13.3.0 <15.0.0`) and `dart_style` up to 3.1.14, up from `^10.0.0` and `<3.1.8`.

@@ -307,7 +307,7 @@ List<FieldElement> _allInstanceFields(ClassElement classEl) {
     for (final field in current.fields) {
       final name = field.name;
       if (!field.isStatic &&
-          !field.isSynthetic &&
+          !field.isOriginGetterSetter &&
           name != null &&
           seen.add(name)) {
         result.add(field);
