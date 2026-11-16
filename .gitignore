@@ -101,3 +101,10 @@ graphify-out/
 .saggar/**/*.local.*
 .saggar/scratchpad.md
 .saggar/jobs/
+
+# task-board worktree slots: per-developer checkouts, not project source
+.claude/worktrees/
+
+# test fixture lockfiles: rewritten by every test run (path deps record the
+# current sibling versions), so tracking them dirties the tree after each bump
+**/test/**/fixtures/**/pubspec.lock
