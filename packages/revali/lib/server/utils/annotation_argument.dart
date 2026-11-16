@@ -141,8 +141,8 @@ _ResolvedParameter? _resolveParameterName(
         isRequired: param.isRequiredNamed,
       );
     }
-    if (node case NamedExpression(name: Label(:final label))) {
-      return (name: label.name, isRequired: false);
+    if (node case NamedArgument(:final name)) {
+      return (name: name.lexeme, isRequired: false);
     }
     node = node.parent;
   }

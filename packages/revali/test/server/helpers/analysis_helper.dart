@@ -78,7 +78,14 @@ class AnalysisHelper {
     final function = await topLevelFunction(functionName);
 
     for (final annotation in function.metadata.annotations) {
-      if (annotation.element?.displayName != annotationName) {
+      // An annotation's element is its constructor, whose `displayName` is
+      // `RateLimit.new` on analyzer 14, so match on the class instead.
+      final name = switch (annotation.element) {
+        ConstructorElement(:final enclosingElement) =>
+          enclosingElement.displayName,
+        final element => element?.displayName,
+      };
+      if (name != annotationName) {
         continue;
       }
 

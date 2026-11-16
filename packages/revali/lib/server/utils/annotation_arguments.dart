@@ -26,11 +26,14 @@ class AnnotationArguments with ExtractImport {
       var positionalIndex = 0;
 
       for (final param in args) {
-        if (param case NamedExpression(:final name, :final expression)) {
-          namedArguments[name.label.name] = AnnotationArgument.fromExpression(
+        if (param case NamedArgument(
+          :final name,
+          argumentExpression: final expression,
+        )) {
+          namedArguments[name.lexeme] = AnnotationArgument.fromExpression(
             expression,
             annotationContext: annotationContext,
-            knownNamedParameter: name.label.name,
+            knownNamedParameter: name.lexeme,
           );
         } else if (param case final Expression expression) {
           final knownParameter = positionalIndex < positionalParameters.length

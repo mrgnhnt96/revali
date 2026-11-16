@@ -71,14 +71,14 @@ final class _AppConfig extends AppConfig {
   final [unit, ...] = libraryResult.units;
 
   final declaration = unit.unit.declarations.firstWhereOrNull(
-    (e) => e is ClassDeclaration && e.name.lexeme == element.name,
+    (e) => e is ClassDeclaration && e.namePart.typeName.lexeme == element.name,
   );
 
   if (declaration == null || declaration is! ClassDeclaration) {
     return badResponse;
   }
 
-  final ctor = declaration.members.firstWhereOrNull(
+  final ctor = declaration.body.members.firstWhereOrNull(
     (e) => e is ConstructorDeclaration,
   );
 
@@ -95,23 +95,23 @@ final class _AppConfig extends AppConfig {
   }
 
   for (final arg in initializer.argumentList.arguments) {
-    if (arg is NamedExpression) {
-      if (arg.name.label.name == 'host') {
-        host = switch (arg.expression) {
+    if (arg is NamedArgument) {
+      if (arg.name.lexeme == 'host') {
+        host = switch (arg.argumentExpression) {
           final StringLiteral e => e.stringValue,
           final InstanceCreationExpression e => '\${${e.toSource()}}',
           _ => null,
         };
         foundHost = true;
-      } else if (arg.name.label.name == 'port') {
-        port = switch (arg.expression) {
+      } else if (arg.name.lexeme == 'port') {
+        port = switch (arg.argumentExpression) {
           final IntegerLiteral e => '${e.value}',
           final InstanceCreationExpression e => '\${${e.toSource()}}',
           _ => null,
         };
         foundPort = true;
-      } else if (arg.name.label.name == 'prefix') {
-        prefix = switch (arg.expression) {
+      } else if (arg.name.lexeme == 'prefix') {
+        prefix = switch (arg.argumentExpression) {
           final StringLiteral e => e.stringValue,
           NullLiteral() => '',
           _ => null,

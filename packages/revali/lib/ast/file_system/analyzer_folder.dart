@@ -55,7 +55,7 @@ class AnalyzerFolder implements Folder {
   }
 
   @override
-  File getChildAssumingFile(String relPath) {
+  File getFile(String relPath) {
     final path = p.join(directory.path, relPath);
     final child = fileSystem.file(path);
 
@@ -63,12 +63,20 @@ class AnalyzerFolder implements Folder {
   }
 
   @override
-  Folder getChildAssumingFolder(String relPath) {
+  Folder getFolder(String relPath) {
     final path = p.join(directory.path, relPath);
     final child = fileSystem.directory(path);
 
     return child.toAnalyzerFolder(fileSystem);
   }
+
+  // Still abstract on `Folder` through analyzer 14, deprecated in favour of
+  // the two above.
+  @override
+  File getChildAssumingFile(String relPath) => getFile(relPath);
+
+  @override
+  Folder getChildAssumingFolder(String relPath) => getFolder(relPath);
 
   @override
   List<Resource> getChildren() {

@@ -16,7 +16,7 @@ environment:
   sdk: ">=3.8.0 <4.0.0"
 
 dependencies:
-  analyzer: ^10.0.0
+  analyzer: ">=13.3.0 <15.0.0"
   revali_annotations: ^3.2.0
   revali_construct: ^3.0.0
   revali_swagger_annotations: ^1.0.0
